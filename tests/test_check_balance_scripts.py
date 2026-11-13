@@ -182,6 +182,46 @@ def test_missing_script_is_reported(tmp_path, cheme):
     assert res.status == "missing-script" and res.failed
 
 
+def _with_conversion_duty(stream: str) -> dict:
+    """FLOWSHEET plus a duty that core's conversion-step model writes on ``stream``."""
+    fs = json.loads(json.dumps(FLOWSHEET))
+    fs["streams"].append(
+        {
+            "id": stream,
+            "kind": "energy",
+            "state": {
+                "design": {
+                    "duty": {
+                        "value": 120.0,
+                        "provenance": "calculated",
+                        "source": f"{cbs.CONVERSION_DUTY} of R1 (core ADR 0059)",
+                    }
+                }
+            },
+        }
+    )
+    return fs
+
+
+def test_a_duty_core_writes_is_found_in_the_flowsheet():
+    assert cbs.conversion_duties(_with_conversion_duty("Q2")) == {("design", "Q2"): 120.0}
+    assert cbs.conversion_duties(FLOWSHEET) == {}  # an assumed duty citing a script is not one
+
+
+def test_script_giving_a_duty_core_writes_is_a_duplicate(tmp_path, cheme):
+    folder = _process(tmp_path, {**GOOD, "Q2": {"duty": 121.0}}, _with_conversion_duty("Q2"))
+    (res,) = cbs.check_process(folder, cheme)
+    assert res.failed
+    (bad,) = [f for f in res.findings if f.status != "ok"]
+    assert (bad.stream, bad.quantity, bad.status) == ("Q2", "duty", "duplicate")
+    assert (bad.flowsheet, bad.script_value) == (120.0, 121.0)
+    md = cbs.markdown([res])
+    assert "| p-1 | design | Q2 | duty | duplicate |" in md
+    # leaving the duty out of the balance output passes: the script keeps it as a printout
+    (ok,) = cbs.check_process(_process(tmp_path / "b", GOOD, _with_conversion_duty("Q2")), cheme)
+    assert not ok.failed, ok
+
+
 def test_fixed_tolerances_for_temperature_and_pressure():
     fs = {"tolerance": {"abs": 0.5, "rel": 0.002}}
     assert cbs.tolerance(fs, "flow") == {"abs": 0.5, "rel": 0.002}

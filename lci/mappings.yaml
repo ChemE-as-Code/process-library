@@ -209,6 +209,20 @@ technosphere:
     source: >-
       Sulfuric acid, contact process (chlor-alkali-1 feed:H2SO4, 98 wt-%, counted 1:1). ASSUMED
       that the background counts the acid as sold; TODO check its basis (100 % H2SO4 or not).
+  sulfur-trioxide:
+    activity: {name: "market for sulfur trioxide", reference_product: "sulfur trioxide", unit: kilogram, location: RER}
+    source: >-
+      Sulfur trioxide, liquid, from a contact plant (the SO3 part of the chlorosulfonic-acid
+      estimate proxy, ADR 0039). The library's sulfuric-acid-1 makes no SO3 or oleum product: its
+      SO3 is absorbed inside the plant to 98.5 wt-% acid, so its product is not a fit (SO3 would
+      have to be recovered from the acid). ASSUMED that the background counts SO3 as 100 %.
+    notes: "not checked: no ecoinvent licence"
+  chlorosulfonic-acid:
+    proxy: chlorosulfonic-acid
+    source: >-
+      Chlorosulfonic acid (registry chlorosulfonic-acid): no library process makes it and no
+      background activity is curated for it, so the estimate proxy below stands for it (ADR 0039);
+      a library producer of it, once one exists, takes precedence automatically.
   sulfur:
     activity: {name: "market for sulfur", reference_product: "sulfur", unit: kilogram, location: GLO}
     source: >-
@@ -470,6 +484,37 @@ proxies:
       Converts the solution's mass to the background's KOH 100 % and its dilution water
       (deionised). tests/test_lci_case_datasets.py checks both amounts against the dataset's
       composition.
+
+  # --- estimate proxies (ADR 0039) ------------------------------------------------------------
+  # A proxy with a `basis` stands for a substance (`chemical`) no library process makes, by other
+  # products; an input may name a library product (`dataset: {path, product}`) with its amount per
+  # kg of the proxy, and `content` when it counts only one component of a mixture (on a library
+  # product only: a background `use:` entry states no composition, so the schema refuses it
+  # there). The build checks the mass on the basis (1 kg per kg) and each content against the
+  # product's stated composition (a component it does not state, another fraction or a product
+  # with no composition is refused), and refuses a missing product and a circular link. A library
+  # producer of `chemical` in the build always takes precedence: the exchange links it instead,
+  # also when the build refuses the proxy or cannot use it. Otherwise every exchange linked to the
+  # proxy is marked an estimate (`atlas estimate`, its technological pedigree raised to 4, the
+  # dataset's DQR recomputed). A public build that does not hold a product the proxy names makes
+  # the exchange a gap, unless a library producer of `chemical` is linked instead.
+  chlorosulfonic-acid:
+    name: "chlorosulfonic acid, from sulfur trioxide and hydrogen chloride (Atlas estimate proxy)"
+    reference_product: "chlorosulfonic acid, estimated"
+    unit: kilogram
+    location: GLO
+    chemical: chlorosulfonic-acid
+    basis: stoichiometric
+    reaction: "SO3 + HCl -> HSO3Cl"
+    inputs:
+      - {use: sulfur-trioxide, amount: 0.687096, source: "80.057 / 116.515 kg SO3 per kg HSO3Cl, the molar masses of the registry (IUPAC 2021; SO3 from S 32.06 and O 15.999); the industrial route, HCl into SO3 (p-toluenesulfonyl-chloride-1 SRC-6, D-012)"}
+      - {dataset: {path: processes/hydrogen-chloride-1/lca/dataset.yaml, product: "product:HCLACID"}, amount: 0.948194, content: {component: HCl, fraction: 0.33}, source: "36.458 / 116.515 = 0.312904 kg HCl per kg HSO3Cl (registry molar masses), as hydrochloric acid 33 wt-% of hydrogen-chloride-1 counted by its HCl: 0.312904 / 0.33 kg of the acid. ASSUMED that the HCl of the acid stands for the dry gas the route takes: the absorption is counted, the gas drying or desorption is not"}
+    source: >-
+      Stoichiometric estimate of chlorosulfonic acid from SO3 and anhydrous HCl, the industrial
+      route (HCl into SO3 dissolved in oleum). Not counted: the oleum handling and the SO3
+      distillation, the reaction's heat removal and the acid's purification, losses and transport;
+      so the proxy is low by an unknown amount. SO3 from the background (sulfuric-acid-1 makes no
+      SO3 product); HCl from the library's hydrogen-chloride-1.
 
 # Flows the cut-off model leaves out of the producer's system (docs/system-model.md, "Wastes and
 # recyclables"): material sent to recycling leaves burden-free, the recycler carries the

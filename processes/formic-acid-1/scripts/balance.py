@@ -206,8 +206,11 @@ duty["C302"] = reb(prod, REFLUX["C302"])
 # R-101 heat of reaction, liquid phase: -37.7 kJ/mol from ideal-gas dHf (cheme chemistry thermo)
 # and heats of vaporization at 298 K (Thermo: MF 28.57, MeOH 37.46)
 duty["R101"] = r["e_carb"] * 37.7 / 3.6
-# R-201: +8 kJ/mol ASSUMED (nearly thermoneutral), supplied by LP steam
-duty["R201"] = r["e_hyd"] * 8.0 / 3.6
+# R-201: +7.7 kJ/mol at 298.15 K (CRC liquid formation enthalpies, chemicals 1.5.2), supplied by
+# LP steam. The reaction term only: the flowsheet's Q10 is core's conversion-step duty, which
+# also brings the liquid streams to and from 298.15 K at the liquid heat capacities of
+# materials.yaml (-43.6 kW, D-015), so it is not cited from this script
+duty["R201"] = r["e_hyd"] * 7.7 / 3.6
 # E-101: reactor effluent 353 -> 313 K, liquid cp 2.5 kJ/(kg K) ASSUMED
 duty["E101"] = mass(r["s7"]) * 2.5 * 40 / 3600
 # E-201: hydrolyser feed 340 -> 393 K (S19 -> S20), cp 3.0 kJ/(kg K) ASSUMED
@@ -287,7 +290,7 @@ for k, d in out["streams"].items():
                               "composition": {"values": {c: v / sum(d.values()) for c, v in d.items()},
                                               "basis": "mole_fraction"}}
 for qid, k in {"Q1": "K101", "Q2": "K101_cool", "Q3": "P101", "Q4": "R101", "Q5": "E101",
-               "Q6": "C101", "Q8": "P201", "Q9": "E201", "Q10": "R201", "Q11": "C201",
+               "Q6": "C101", "Q8": "P201", "Q9": "E201", "Q11": "C201",
                "Q13": "C202", "Q15": "C301", "Q17": "C302"}.items():
     FLOWSHEET[qid] = {"duty": duty[k]}
 for qid, k in {"Q7": "C101", "Q12": "C201", "Q14": "C202", "Q16": "C301", "Q18": "C302"}.items():

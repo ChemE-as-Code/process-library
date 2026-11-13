@@ -38,7 +38,8 @@ Output (``--out``; ``<out>/lci/`` is replaced):
 - ``lci/gaps.json``: the mapping gaps per process (below), always
   written (``count`` 0 without gaps);
 - ``lci/index.json``: the summary the Atlas reads (files with size, sha256, format and format
-  version, activities per process, caveats).
+  version, activities per process, caveats, the preliminary processes and, ADR 0039, the
+  ``estimated`` ones with their ``estimates`` count).
 - with ``--previous <dir>`` (an earlier build): ``lci/changes.json`` and ``lci/CHANGES.md``, the
   change report per dataset and activity (exchanges added, removed and changed) with the delta of
   a reference impact set per activity (``reference_impacts.py``: core's packaged IPCC 2021 GWP100
@@ -68,6 +69,19 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
 - free inputs (ambient air) and free pass-through emissions are not exported (see mappings);
 - a technosphere amount is the quantity of the linked activity's reference product, as in
   core's study; the installer flips the sign for a treatment activity (production -1);
+- an estimate proxy (``proxies:`` with a ``basis``, ADR 0039) stands for a substance no library
+  process makes by background entries and library products (``dataset: {path, product}``, linked
+  inside the Atlas with their check); its mass on a mass or stoichiometric basis must be 1 kg per
+  kg, a missing product, an unchecked ``content`` (one its product's composition does not state,
+  or one on a background ``use:`` input, which states none: the schema refuses that) and a
+  circular link are refused, a library producer of its ``chemical`` is linked instead when the
+  build has one (an advisory; also when the proxy is refused or unavailable in the build), and
+  every exchange linked to it is
+  marked (``atlas proxy``, ``atlas estimate``, ``atlas estimates``, an ``ESTIMATE`` comment line)
+  with its technological pedigree raised to ``ESTIMATE_TECHNOLOGY_SCORE`` and its dataset's
+  ``data_quality`` recomputed (``proxy_penalty``), and listed per process (``datapackage.json``
+  ``processes[].estimates``, ``index.json`` ``estimated``, the catalog's ``lci_estimates``). A
+  public build without a product it names makes the exchange a gap (unless a producer is linked);
 - markets (``markets/<substance>.yaml``, ``markets.py``, docs/markets.md) are activities of the
   same database, code ``market:<product>:<region>``: their Atlas producers weighted by production
   volume or sourced shares, transport legs in ton kilometer and losses, per kg delivered;
@@ -278,8 +292,20 @@ EXCHANGE_COLUMNS = (
     "atlas plant location",
     "atlas plant code",
     "atlas plant check",
+    "atlas proxy",
+    "atlas estimate",
     "atlas gap",
 )
+#: ADR 0039: the further-technological-correlation pedigree score (the fifth; the TfS TeR) an
+#: exchange linked to an estimate proxy gets at least: "data on related processes or materials"
+#: (ecoinvent data quality guideline, Weidema et al. 2013). A proxy stands for a substance by
+#: other products, so the link is a related material, never the process under study.
+ESTIMATE_TECHNOLOGY_SCORE = 4
+#: ADR 0039: how far the inputs of a proxy on a mass or stoichiometric basis may sum from 1 kg
+#: per kg on that basis (rounding of stated amounts).
+PROXY_MASS_TOLERANCE = 1e-3
+#: core's ``lca.allocation.TAKEN``: an input taken from nature, counted by its components.
+TAKEN = "taken from nature"
 CAVEATS = (
     "No background data is included: link the database to the ecoinvent (or other) databases you "
     "are licensed for; background activities are referenced by name, reference product, unit and "
@@ -316,6 +342,9 @@ class Report:
     gaps: list[dict] = field(default_factory=list)
     #: the warnings that do not fail ``--strict``: a public process's benchmark gap (ADR 0026)
     advisories: list[str] = field(default_factory=list)
+    #: exchanges linked to an estimate proxy (ADR 0039): neither errors nor gaps; one entry per
+    #: dataset exchange (``datapackage.json`` ``processes[].estimates``, ``index.json`` ``estimated``)
+    estimates: list[dict] = field(default_factory=list)
 
     def error(self, where: str, message: str) -> None:
         self.errors.append(f"{where}: {message}")
@@ -335,6 +364,14 @@ class Report:
         entry = {"process": process, "dataset": dataset.data["id"], "path": dataset.path, "key": exchange["key"], "type": exchange["type"], "link": link, "reason": reason}
         if entry not in self.gaps:  # once per exchange, not per co-product
             self.gaps.append(entry)
+
+    def estimate(self, process: str, dataset: Dataset, exchange: dict, pid: str, proxy: dict) -> None:
+        """An exchange linked to an estimate proxy (ADR 0039), once per dataset exchange: what the
+        catalog, ``datapackage.json`` ``processes[].estimates`` and ``index.json`` ``estimated``
+        mark, so that no page shows a proxied chain as modelled."""
+        entry = {"process": process, "dataset": dataset.data["id"], "path": dataset.path, "key": exchange["key"], "proxy": f"proxy:{pid}", "chemical": proxy["chemical"], "basis": proxy["basis"]}
+        if entry not in self.estimates:  # once per exchange, not per co-product
+            self.estimates.append(entry)
 
 
 def _yaml(path: Path) -> Any:
@@ -394,7 +431,7 @@ def load_mappings(path: Path) -> dict:
     substitution.setdefault("technosphere", {})
     substitution.setdefault("proxies", {})
     for pid, proxy in data["proxies"].items():
-        credits = [item["use"] for item in proxy["inputs"] if item["amount"] < 0]
+        credits = [_input_label(item) for item in proxy["inputs"] if item["amount"] < 0]
         if credits:
             raise BuildError(
                 f"{path}: proxies.{pid}: negative input of {', '.join(credits)} is an avoided-burden credit; "
@@ -412,13 +449,50 @@ def load_mappings(path: Path) -> dict:
                 raise BuildError(f"{path}: {prefix}technosphere.{tid}: unknown proxy {entry['proxy']!r}")
         for pid, proxy in proxies.items():
             for item in proxy["inputs"]:
+                if "use" not in item:
+                    continue  # a library product (ADR 0039): checked against the build's datasets
                 target = data["technosphere"].get(item["use"])
                 if target is None or "activity" not in target:
                     raise BuildError(f"{path}: {prefix}proxies.{pid}: input {item['use']!r} is not a technosphere entry with an activity")
+            problem = _proxy_basis_problem(proxy, data["technosphere"])
+            if problem:
+                raise BuildError(f"{path}: {prefix}proxies.{pid}: {problem}")
     for key, entry in data["allocation"].items():
         if entry["method"] not in RULE_METHODS[entry["rule"]]:
             raise BuildError(f"{path}: allocation.{key}: rule {entry['rule']!r} does not allow method {entry['method']!r}")
     return data
+
+
+def _input_label(item: dict) -> str:
+    """A proxy input as its mappings name it: the technosphere id, or ``<path>#<product>``."""
+    if "use" in item:
+        return item["use"]
+    return f"{item['dataset']['path']}#{item['dataset']['product']}"
+
+
+def _proxy_mass(proxy: dict) -> float:
+    """The inputs' mass on the proxy's basis per unit of it: each amount times the fraction of
+    its ``content`` (1 without)."""
+    return sum(item["amount"] * (item.get("content") or {}).get("fraction", 1.0) for item in proxy["inputs"])
+
+
+def _proxy_basis_problem(proxy: dict, technosphere: dict) -> str | None:
+    """What is wrong with an estimate proxy's basis (ADR 0039), checked without the datasets: a
+    mass or stoichiometric basis needs a proxy in kg and background inputs in kg, and its inputs
+    must make up 1 kg on the basis. A library product's unit is checked when the build links it."""
+    basis = proxy.get("basis")
+    if basis is None or basis == "non-mass":
+        return None
+    if proxy["unit"] != "kilogram":
+        return f"a {basis} basis counts mass: the proxy must be in kilogram, not {proxy['unit']} (or declare basis non-mass with its basis_reason)"
+    for item in proxy["inputs"]:
+        if "use" in item and technosphere[item["use"]]["activity"]["unit"] != "kilogram":
+            return f"input {item['use']!r} is in {technosphere[item['use']]['activity']['unit']}, not kilogram: a {basis} basis counts mass"
+    total = _proxy_mass(proxy)
+    if abs(total - 1.0) > PROXY_MASS_TOLERANCE:
+        terms = " + ".join(f"{_input_label(i)} {i['amount']:g}" + (f" x {i['content']['fraction']:g}" if i.get("content") else "") for i in proxy["inputs"])
+        return f"mass not conserved on its {basis} basis: {terms} = {total:.6g} kg per kg, not 1 (within {PROXY_MASS_TOLERANCE:g})"
+    return None
 
 
 def merge_process_mappings(library: Path, mappings: dict, report: Report) -> None:
@@ -948,6 +1022,14 @@ class Linker:
     datasets: dict[str, Dataset] = field(default_factory=dict)
     #: plant activity code -> its row
     rows: dict[str, dict] = field(default_factory=dict)
+    #: estimate proxies (ADR 0039) this build cannot use -> why (a product it names is not in the
+    #: build): an exchange mapped to one is a gap, unless a library producer of its chemical is linked
+    unavailable: dict[str, str] = field(default_factory=dict)
+    #: estimate proxies refused (ADR 0039) -> the error, reported once when an exchange is mapped to
+    #: one and no library producer of its chemical takes precedence
+    refused: dict[str, str] = field(default_factory=dict)
+    #: the refused estimate proxies an exchange was mapped to
+    attempted: set[str] = field(default_factory=set)
 
     def known(self, tid: str | None) -> bool:
         return bool(tid) and (tid in self.mappings["technosphere"] or tid in self.mappings["cutoff_exclusions"])
@@ -966,7 +1048,11 @@ class Linker:
         entry = self.mappings["technosphere"][tid]
         if "proxy" in entry:
             proxy = self.mappings["proxies"][entry["proxy"]]
-            self.proxies_used.add(entry["proxy"])
+            if not proxy.get("basis"):
+                self.proxies_used.add(entry["proxy"])
+            # an estimate proxy (ADR 0039) is resolved by the caller (``build_activities``): a library
+            # producer of its chemical takes precedence, also over a proxy this build cannot use or
+            # refuses; without one the exchange is marked as an estimate, or is a gap
             target = {
                 "name": proxy["name"],
                 "reference product": proxy["reference_product"],
@@ -974,6 +1060,7 @@ class Linker:
                 "location": proxy["location"],
                 "database": self.db_name,
                 "atlas location rule": "fixed",
+                **({"_estimate": entry["proxy"]} if proxy.get("basis") else {}),
             }
         else:
             activity = entry["activity"]
@@ -1101,7 +1188,7 @@ class Linker:
     def _own(self, row: dict) -> dict:
         return {"name": row["name"], "reference product": row["reference product"], "unit": row["unit"], "location": row["location"], "database": self.db_name}
 
-    def atlas_alternative(self, process: Process, exchange: dict, unit: str, location: str | None = None) -> AtlasChoice | None:
+    def atlas_alternative(self, process: Process, exchange: dict, unit: str, location: str | None = None, chemical: str | None = None) -> AtlasChoice | None:
         """The Atlas activity this exchange links to with ``prefer_atlas``: the market of its grade
         (``markets.choose``) when one exists, else the plant; and the plant beside a market, for
         pinning. The exchange is an input, or an output of a utility (a service such as cooling
@@ -1111,8 +1198,8 @@ class Linker:
         id, the study's dataset before a design case's own within one process (ADR 0034), and
         name (deterministic; the other candidates are reported, so that a second producer
         never replaces the first silently). A producer of another grade than the one the input
-        names is refused."""
-        chemical = _chemical(process, exchange, self.mappings, self.registry)
+        names is refused. *chemical* replaces the exchange's own (an estimate proxy's, ADR 0039)."""
+        chemical = chemical or _chemical(process, exchange, self.mappings, self.registry)
         if not (exchange["type"] == "input" or (exchange["type"] == "output" and chemical in self.utilities)):
             return None
         override = self.mappings["exchanges"].get(f"{process.pid}/{exchange['key']}") or self.mappings["exchanges"].get(exchange["key"]) or {}
@@ -1530,7 +1617,7 @@ def _successor_text(successor: dict, key: str) -> str:
     return same[0] if same else f"dataset {successor['id']} {successor['version']}" + ("" if successor["resolved"] else " (not in this build)")
 
 
-def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], excluded: list[str], model: str, commit: str | None, version: str, unlinked: list[str] | None = None) -> str:
+def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], excluded: list[str], model: str, commit: str | None, version: str, unlinked: list[str] | None = None, estimated: list[str] | None = None) -> str:
     method = dataset.allocation.get("method", "mass")
     share_text = ", ".join(f"{_name({'key': k})} {v * 100:.1f} %" for k, v in sorted(dataset.shares.items(), key=lambda kv: -kv[1]))
     lines = [
@@ -1557,6 +1644,8 @@ def _comment(process: Process, dataset: Dataset, row: dict, skipped: list[str], 
             "UNLINKED (mapping gaps of a preliminary LCI): " + "; ".join(unlinked)
             + ". These exchanges have no background link and count no burden; install() refuses the database until they are mapped."
         )
+    if estimated:
+        lines.insert(1, f"ESTIMATE: {len(estimated)} exchange(s) of this dataset link to an estimate proxy, so their supply chain is estimated from other products, not modelled (ADR 0039): " + "; ".join(estimated) + ".")
     if dataset.allocation.get("source"):
         lines.append(f"Allocation source: {' '.join(str(dataset.allocation['source']).split())}")
     lines.append(f"Atlas LCI {version}; library commit {commit or 'unknown'}.")
@@ -1584,9 +1673,188 @@ class Built:
     links: list[dict] = field(default_factory=list)
 
 
-def build_activities(processes: list[Process], mappings: dict, products: reg.Registry, db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None, markets: list[mk.Market] | None = None, public: bool = False) -> Built:
+# --- estimate proxies (ADR 0039) -------------------------------------------------------------
+
+
+def _library_product(library: Path | None, path: str, product: str) -> bool:
+    """Whether the library has the dataset *path* with an exchange *product* (whether or not the
+    build holds it: a public build leaves the unpublished processes out)."""
+    if library is None or not (library / path).is_file():
+        return False
+    try:
+        data = _yaml(library / path) or {}
+    except yaml.YAMLError:
+        return False
+    return any(isinstance(e, dict) and e.get("key") == product and e.get("type") == "product" for e in data.get("exchanges") or [])
+
+
+def check_estimate_proxies(linker: Linker, products: reg.Registry, library: Path | None) -> None:
+    """Check every estimate proxy (one with a ``basis``) against the build's datasets: its
+    ``chemical`` is a registry slug; each library product it names is an exported activity of the
+    build, in kilogram on a mass or stoichiometric basis, and an input's ``content`` names a
+    component the product's stated composition contains, with that fraction (a component it does
+    not state, or a product without a composition, cannot be checked and is refused; the schema
+    already refuses a content on a background ``use:`` input, which states no composition). A
+    proxy that fails is refused (``linker.refused``): an error once an exchange would use it
+    (``report_refused_proxies``), so a library holding part of the processes, whose exchanges never
+    reach the proxy, still builds. A product of a process a public build leaves out makes the
+    proxy unavailable in that build (``linker.unavailable``): an exchange mapped to it is a gap,
+    never linked to a partial proxy. In both cases a library producer of the proxy's chemical, when
+    the build holds one, is linked instead (it takes precedence over any proxy)."""
+    for pid, proxy in sorted(linker.mappings["proxies"].items()):
+        if not proxy.get("basis"):
+            continue
+        if proxy["chemical"] not in products.chemicals:
+            linker.refused[pid] = f"chemical {proxy['chemical']!r} is not in the registry (chemicals/chemicals.yaml)"
+            continue
+        for item in proxy["inputs"]:
+            if "dataset" not in item:
+                continue
+            label = _input_label(item)
+            ref = item["dataset"]
+            provider = linker.by_dataset.get((ref["path"], ref["product"]))
+            if provider is None:
+                if _library_product(library, ref["path"], ref["product"]):
+                    linker.unavailable.setdefault(pid, f"it names {label}, a product of a process this build does not hold (a public build holds public processes only)")
+                else:
+                    linker.refused[pid] = f"input {label} is not a product of this library: a proxy names an exported Atlas dataset's product (a missing product)"
+                    break
+                continue
+            if proxy["basis"] != "non-mass" and provider["unit"] != "kilogram":
+                linker.refused[pid] = f"input {label} is in {provider['unit']}, not kilogram: a {proxy['basis']} basis counts mass"
+                break
+            content = item.get("content")
+            if not content:
+                continue
+            dataset = linker.datasets.get(provider["code"])
+            exchange = next((e for e in (dataset.data["exchanges"] if dataset else []) if e["key"] == ref["product"]), None)
+            stated = ((exchange or {}).get("composition") or {}).get("fractions") or {}
+            if content["component"] not in stated:
+                # the fraction is checked, never taken on trust: a component the product's composition
+                # does not state (or a product without a composition) cannot be checked
+                states = f"states {', '.join(sorted(stated))}" if stated else "states no composition"
+                linker.refused[pid] = f"input {label}: content {content['component']} {content['fraction']:g}, but the product's composition {states}, not {content['component']}: the fraction cannot be checked"
+                break
+            if abs(float(stated[content["component"]]) - content["fraction"]) > 1e-4:
+                linker.refused[pid] = f"input {label}: content {content['component']} {content['fraction']:g}, but the product's composition states {float(stated[content['component']]):g}"
+                break
+
+
+def report_refused_proxies(linker: Linker, report: Report) -> None:
+    """The refused estimate proxies an exchange was mapped to, as errors (once each)."""
+    for pid in sorted(linker.attempted):
+        report.error(f"lci mappings: proxies.{pid}", linker.refused[pid])
+
+
+def _supersede_proxy(entry: dict, db_name: str) -> None:
+    """A library producer of the chemical an estimate proxy stands for takes precedence (ADR 0039):
+    the Atlas activity ``link_atlas`` named becomes the exchange's own link, inside the Atlas, in
+    place of the proxy (the market of its grade, else the plant)."""
+    entry.update({
+        "name": entry.pop("atlas activity"), "reference product": entry.pop("atlas reference product"), "location": entry.pop("atlas location"),
+        "database": db_name, "atlas location rule": "fixed",
+    })
+    for key in [k for k in entry if k.startswith("atlas plant ")]:
+        del entry[key]
+
+
+def _estimate(exchange: dict, pid: str, proxy: dict) -> tuple[dict, str]:
+    """The exchange as an estimate proxy's input scores it (ADR 0039): its further technological
+    correlation (the fifth pedigree score, the TfS TeR) raised to ``ESTIMATE_TECHNOLOGY_SCORE``,
+    and the ``atlas estimate`` text that says so."""
+    pedigree = exchange.get("pedigree") or {}
+    scores = list(pedigree.get("scores") or [])
+    head = f"ESTIMATE (ADR 0039): linked to proxy:{pid}, {proxy['name']}, which stands for {proxy['chemical']} on a {proxy['basis']} basis; its supply chain is estimated, not modelled"
+    if len(scores) != 5:
+        return exchange, f"{head}; the exchange has no pedigree to penalise"
+    raised = [*scores[:4], max(scores[4], ESTIMATE_TECHNOLOGY_SCORE)]
+    scored = {**exchange, "pedigree": {**pedigree, "scores": raised}}
+    return scored, f"{head}; pedigree technological correlation {scores[4]} -> {raised[4]}"
+
+
+def circular_proxies(activities: list[Activity], proxies: list[Activity], markets: list[Activity], report: Report) -> None:
+    """Refuse an estimate proxy whose inputs reach back to it (ADR 0039): through the library
+    products it names, their datasets' links inside the Atlas (pinned, market, plant, a market's
+    suppliers) and the exchanges linked to proxies, to an activity that consumes the proxy. A
+    proxy that rests on a product made with itself is circular."""
+    edges: dict[str, set[str]] = {}
+    for activity in [*activities, *proxies, *markets]:
+        targets = edges.setdefault(activity.row["code"], set())
+        for exchange in activity.exchanges[1:]:
+            for key in ("atlas code", "atlas plant code"):
+                if exchange.get(key):
+                    targets.add(exchange[key])
+            if exchange.get("atlas proxy"):
+                targets.add(f"proxy:{exchange['atlas proxy']}")
+    for proxy in proxies:
+        if not proxy.metadata.get("atlas estimate"):
+            continue
+        start = proxy.row["code"]
+        stack: list[tuple[str, list[str]]] = [(start, [start])]
+        seen: set[str] = set()
+        while stack:
+            node, path = stack.pop()
+            for nxt in sorted(edges.get(node, ())):
+                if nxt == start:
+                    report.error(f"lci mappings: proxies.{start.removeprefix('proxy:')}", "circular link: " + " -> ".join([*path, start]) + ": an estimate proxy cannot rest on a product made with itself")
+                    stack = []
+                    break
+                if nxt not in seen:
+                    seen.add(nxt)
+                    stack.append((nxt, [*path, nxt]))
+
+
+def _rated(exchange: dict) -> bool:
+    """An exchange core's data quality rating reads (core ``lca.quality._counted``) with a pedigree."""
+    source = str(exchange.get("source") or "")
+    released = (exchange["type"] == "output" and source.startswith(RELEASED)) or (exchange["type"] == "input" and source.startswith(TAKEN))
+    return exchange["type"] != "product" and not exchange.get("free") and not released and len((exchange.get("pedigree") or {}).get("scores") or []) == 5
+
+
+def penalised_rating(dataset: Dataset, penalties: dict[str, tuple[list[int] | None, list[int] | None]]) -> dict | None:
+    """The dataset's data quality rating (``lca/manifest.json``, core's TfS DQR) with the
+    estimate penalty of its exchanges linked to an estimate proxy (ADR 0039). An unweighted
+    rating is recomputed as core does (the mean of the rated exchanges' pedigree scores: TeR,
+    GeR, TiR, P, C), with the penalised technological scores, when the unpenalised recomputation
+    reproduces the manifest's; otherwise (a weighted rating, or one that does not reproduce) the
+    rating is kept and ``proxy_penalty`` says it was not recomputed. Without a rating, only the
+    penalty is recorded."""
+    keys = sorted(penalties)
+    rule = f"exchanges linked to an estimate proxy: further technological correlation (TeR) at least {ESTIMATE_TECHNOLOGY_SCORE} (ADR 0039)"
+    rating = dataset.data_quality
+    if not rating:
+        return {"proxy_penalty": {"exchanges": keys, "rule": rule, "recomputed": False, "reason": "the dataset has no data quality rating (lca/manifest.json)"}}
+    rated = [e for e in dataset.data["exchanges"] if _rated(e)]
+
+    def means(changed: bool) -> list[float]:
+        rows = [(penalties[e["key"]][1] if changed and e["key"] in penalties and penalties[e["key"]][1] else e["pedigree"]["scores"]) for e in rated]
+        return [sum(r[i] for r in rows) / len(rows) for i in range(5)]
+
+    kept = {**rating, "proxy_penalty": {"exchanges": keys, "rule": rule, "recomputed": False}}
+    if rating.get("weighted") or not rated or rating.get("exchanges") != len(rated):
+        kept["proxy_penalty"]["reason"] = "a weighted rating, or one this build cannot reproduce from the dataset's pedigrees: the exported pedigrees carry the penalty"
+        return kept
+    reliability, completeness, temporal, geo, tech = means(False)
+    if any(abs(a - float(rating.get(k, -99))) > 1e-3 for a, k in ((tech, "TeR"), (geo, "GeR"), (temporal, "TiR"), (reliability, "P"), (completeness, "C"))):
+        kept["proxy_penalty"]["reason"] = "the dataset's pedigrees do not reproduce the manifest's rating: the exported pedigrees carry the penalty"
+        return kept
+    reliability, completeness, temporal, geo, tech = means(True)
+    indicators = {"TeR": tech, "GeR": geo, "TiR": temporal}
+    before = {k: rating.get(k) for k in ("TeR", "dqr", "dqr_pef", "weakest")}
+    return {
+        **rating,
+        "TeR": round(tech, 4),
+        "dqr": round((tech + geo + temporal) / 3, 4),
+        "dqr_pef": round((tech + geo + temporal + reliability) / 4, 4),
+        "weakest": max(indicators, key=lambda k: (indicators[k], -list(indicators).index(k))),
+        "proxy_penalty": {"exchanges": keys, "rule": rule, "recomputed": True, "before": before},
+    }
+
+
+def build_activities(processes: list[Process], mappings: dict, products: reg.Registry, db_name: str, commit: str | None, version: str, report: Report, model: str = "cutoff", excluded_log: list[dict] | None = None, markets: list[mk.Market] | None = None, public: bool = False, library: Path | None = None) -> Built:
     """*mappings* is the profile of *model* (``profile()``); every exchange the cut-off model
-    excludes is appended to *excluded_log*."""
+    excludes is appended to *excluded_log*. *library* tells a library product an estimate proxy
+    names that a public build does not hold from one the library does not have (ADR 0039)."""
     utilities = {slug for slug, entry in products.chemicals.items() if entry.get("kind") == "utility"}
     linker = Linker(mappings, db_name, set(products.chemicals), utilities=utilities, model=model, markets=list(markets or []))
     excluded_log = [] if excluded_log is None else excluded_log
@@ -1617,6 +1885,9 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
             linker.datasets[row["code"]] = dataset
             linker.rows[row["code"]] = row
     market_activities, market_entries = build_markets(linker, products, db_name, commit, version, report, public, links)
+    check_estimate_proxies(linker, products, library)
+    #: dataset path -> {exchange key: (pedigree scores, as penalised)} of its estimated exchanges
+    penalties: dict[str, dict[str, tuple[list[int] | None, list[int] | None]]] = {}
 
     activities: list[Activity] = []
     for process in processes:
@@ -1640,6 +1911,7 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
             skipped: list[str] = []
             excluded: list[str] = []
             unlinked: list[str] = []
+            estimated: list[str] = []
             for exchange in dataset.data["exchanges"]:
                 if exchange["type"] == "product":
                     continue
@@ -1675,8 +1947,10 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     if refusal not in report.errors:  # once per exchange, not per co-product
                         report.errors.append(refusal)
                     continue
+                estimate = target.pop("_estimate", None) if kind == "technosphere" else None
                 entry = {"amount": amount, "type": kind, "atlas key": exchange["key"], **target}
                 entry["_unallocated"] = _number(unallocated)  # per basis, for the multi-output formats (not a workbook column)
+                scored = exchange
                 if gap:
                     pass  # unlinked: no categories, no provider, no Atlas alternative
                 elif kind == "biosphere":
@@ -1689,20 +1963,58 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
                     check = linker.check(chemical, process.grades.get(exchange["key"]), provider, "pinned", exchange.get("carrier"))
                     entry["atlas check"] = check["text"]
                     links.append(_link(row, exchange, provider, "pinned", check))
+                elif estimate:
+                    # ADR 0039: a library producer of the chemical the proxy stands for takes precedence
+                    proxy = mappings["proxies"][estimate]
+                    # the links and warnings of the trial count only when the exchange is not a gap
+                    found: list[dict] = []
+                    trial = Report()
+                    link_atlas(linker, process, exchange, row, entry, target, trial, found, chemical=proxy["chemical"])
+                    problem = linker.refused.get(estimate) or linker.unavailable.get(estimate)
+                    if entry.get("atlas activity") or not problem:
+                        links.extend(found)
+                        report.warnings.extend(w for w in trial.warnings if w not in report.warnings)
+                    if entry.get("atlas activity"):
+                        _supersede_proxy(entry, db_name)
+                        state = f" (it is also {'refused' if estimate in linker.refused else 'unavailable in this build'}: {problem})" if problem else ""
+                        message = f"the estimate proxy {estimate!r} is not used: {entry['atlas code']} makes {proxy['chemical']} and is linked instead (ADR 0039){state}; remove the proxy from the mappings"
+                        if f"{process.pid}: {exchange['key']}: {message}" not in report.warnings:
+                            report.advise(f"{process.pid}: {exchange['key']}", message)
+                    elif problem:
+                        # no producer, and a proxy this build cannot use: a gap (ADR 0026), never a partial proxy
+                        if estimate in linker.refused:
+                            linker.attempted.add(estimate)
+                            reason = f"mapped to the estimate proxy {estimate!r}, which is refused: {problem}"
+                        else:
+                            reason = f"mapped to the estimate proxy {estimate!r}, which this build cannot use: {problem}"
+                        report.gap(process.pid, dataset, exchange, "technosphere", reason)
+                        unlinked.append(f"{exchange['key']} ({reason})")
+                        entry = {"amount": amount, "type": kind, "atlas key": exchange["key"], "name": _name(exchange), "unit": BW_UNITS[exchange["unit"]],
+                                 "atlas gap": f"unlinked, no technosphere mapping: {reason}", "_unallocated": entry["_unallocated"]}
+                    else:
+                        linker.proxies_used.add(estimate)
+                        scored, text = _estimate(exchange, estimate, proxy)
+                        entry.update({"atlas proxy": estimate, "atlas estimate": text})
+                        estimated.append(f"{exchange['key']} (proxy:{estimate})")
+                        report.estimate(process.pid, dataset, exchange, estimate, proxy)
+                        penalties.setdefault(dataset.path, {})[exchange["key"]] = (
+                            list((exchange.get("pedigree") or {}).get("scores") or []) or None,
+                            list((scored.get("pedigree") or {}).get("scores") or []) or None,
+                        )
                 else:
                     link_atlas(linker, process, exchange, row, entry, target, report, links)
-                entry.update(_uncertainty(exchange, amount))
+                entry.update(_uncertainty(scored, amount))
                 kind_of = (exchange.get("uncertainty") or {}).get("distribution", "lognormal")
                 if kind_of != "lognormal":
                     report.warn(f"{dataset.path} {exchange['key']}", f"uncertainty distribution {kind_of!r} (and the pedigree) is not exported: Brightway sees this exchange as deterministic")
-                entry.update(_pedigree_column(exchange))
+                entry.update(_pedigree_column(scored))
                 carrier = _carrier_text(exchange.get("carrier"))
                 if carrier:
                     entry["atlas carrier"] = carrier
                 if exchange.get("title"):
                     entry["comment"] = exchange["title"]
                 exchanges.append(entry)
-            comment = _comment(process, dataset, row, skipped, excluded, model, commit, version, unlinked)
+            comment = _comment(process, dataset, row, skipped, excluded, model, commit, version, unlinked, estimated)
             metadata = {
                 "code": row["code"],
                 "reference product": row["reference product"],
@@ -1727,28 +2039,52 @@ def build_activities(processes: list[Process], mappings: dict, products: reg.Reg
             if unlinked:
                 metadata["atlas gaps"] = len(unlinked)
                 metadata["atlas preliminary"] = True
+            if estimated:
+                metadata["atlas estimates"] = len(estimated)
             activities.append(Activity(row, comment, metadata, exchanges))
 
     proxies: list[Activity] = []
     for pid in sorted(linker.proxies_used):
         proxy = mappings["proxies"][pid]
         row = {"code": f"proxy:{pid}", "name": proxy["name"], "reference product": proxy["reference_product"], "unit": proxy["unit"], "location": proxy["location"]}
+        if proxy.get("chemical"):
+            row.update({"chemical": proxy["chemical"], "grade": None})
         exchanges = [{"name": row["name"], "amount": 1.0, "unit": row["unit"], "type": "production", "database": db_name, "reference product": row["reference product"], "location": row["location"]}]
         for item in proxy["inputs"]:
             if model == "cutoff" and item["amount"] < 0:  # load_mappings refuses it already
-                report.error(f"proxies.{pid}", f"negative input of {item['use']}: an avoided-burden credit in a cut-off build")
-            target = linker.technosphere(item["use"], mappings["technosphere"][item["use"]]["activity"]["unit"], f"proxies.{pid}")
-            exchanges.append({"amount": _number(item["amount"]), "type": "technosphere", "atlas key": f"proxy:{item['use']}", "comment": item["source"], **target})
-        comment = "\n".join(
-            [
-                "Atlas screening proxy (lci/mappings.yaml): stands in where datasets count a flow in a unit the background has no activity for.",
-                f"{' '.join(proxy['source'].split())}",
-                "Inputs: " + "; ".join(f"{i['use']} {i['amount']:g}: {i['source']}" for i in proxy["inputs"]),
-                f"Atlas LCI {version}; library commit {commit or 'unknown'}.",
-            ]
-        )
+                report.error(f"proxies.{pid}", f"negative input of {_input_label(item)}: an avoided-burden credit in a cut-off build")
+            comment = item["source"] + (f" (counted as its {item['content']['component']}, mass fraction {item['content']['fraction']:g})" if item.get("content") else "")
+            if "dataset" in item:
+                # a library product (ADR 0039), linked inside the Atlas as link.dataset is
+                provider = linker.by_dataset[(item["dataset"]["path"], item["dataset"]["product"])]
+                check = linker.check(provider.get("chemical"), None, provider, "pinned")
+                target = {**linker._own(provider), "atlas location rule": "fixed", "atlas code": provider["code"], "atlas link": "proxy", "atlas check": check["text"]}
+                key = f"proxy:{provider['code']}"
+                links.append(_link(row, key, provider, "proxy", check))
+            else:
+                target = linker.technosphere(item["use"], mappings["technosphere"][item["use"]]["activity"]["unit"], f"proxies.{pid}")
+                key = f"proxy:{item['use']}"
+            exchanges.append({"amount": _number(item["amount"]), "type": "technosphere", "atlas key": key, "comment": comment, **target})
+        inputs = "Inputs: " + "; ".join(f"{_input_label(i)} {i['amount']:g}: {i['source']}" for i in proxy["inputs"])
+        if proxy.get("basis"):
+            stated = {"stoichiometric": f"stoichiometric basis ({proxy.get('reaction', '')}, mass conserved)", "mass": "mass basis (mass conserved)", "non-mass": f"non-mass basis ({proxy.get('basis_reason', '')})"}[proxy["basis"]]
+            kind = (
+                f"Atlas estimate proxy (lci/mappings.yaml, ADR 0039): stands for {proxy['chemical']}, which no library process in this build makes, "
+                f"by other products on a {stated}. An ESTIMATE: every exchange linked to it is marked (atlas estimate) and its technological pedigree raised."
+            )
+        else:
+            kind = "Atlas screening proxy (lci/mappings.yaml): stands in where datasets count a flow in a unit the background has no activity for."
+        comment = "\n".join([kind, f"{' '.join(proxy['source'].split())}", inputs, f"Atlas LCI {version}; library commit {commit or 'unknown'}."])
         metadata = {"code": row["code"], "reference product": row["reference product"], "unit": row["unit"], "location": row["location"], "type": "process", "production amount": 1, "comment": comment, "atlas proxy": pid}
+        if proxy.get("basis"):
+            metadata.update({"atlas estimate": True, "atlas chemical": proxy["chemical"], "atlas basis": proxy["basis"]})
         proxies.append(Activity(row, comment, metadata, exchanges))
+    report_refused_proxies(linker, report)
+    circular_proxies(activities, proxies, market_activities, report)
+    for process in processes:
+        for dataset in process.datasets:
+            if dataset.path in penalties:
+                dataset.data_quality = penalised_rating(dataset, penalties[dataset.path])
 
     by_process = {pid: [r for _, r in rows] for pid, rows in rows_by_process.items()}
     return Built(activities, proxies, market_activities, by_process, market_entries, links)
@@ -1766,15 +2102,16 @@ def _link(consumer: dict, exchange: dict | str, provider: dict, kind: str, check
     }
 
 
-def link_atlas(linker: Linker, process: Process, exchange: dict, row: dict, entry: dict, target: dict, report: Report, links: list[dict]) -> None:
+def link_atlas(linker: Linker, process: Process, exchange: dict, row: dict, entry: dict, target: dict, report: Report, links: list[dict], chemical: str | None = None) -> None:
     """Name the Atlas activity an input linked to the background can link to instead
     (``prefer_atlas``): the market of its grade, else the plant (a warning), with the plant beside
-    a market for pinning, and the compatibility check of each."""
-    choice = linker.atlas_alternative(process, exchange, target["unit"], row["location"])
+    a market for pinning, and the compatibility check of each. *chemical* replaces the exchange's
+    own (the chemical an estimate proxy stands for, ADR 0039)."""
+    choice = linker.atlas_alternative(process, exchange, target["unit"], row["location"], chemical)
     if choice is None:
         return
     where = f"{process.pid}: {exchange['key']}"
-    chemical = _chemical(process, exchange, linker.mappings, linker.registry)
+    chemical = chemical or _chemical(process, exchange, linker.mappings, linker.registry)
     wanted = process.grades.get(exchange["key"])
 
     def warn(message: str) -> None:  # once per input, not once per co-product of the consumer
@@ -1998,6 +2335,9 @@ def _leg(linker: Linker, market: mk.Market, leg: dict, mass: float, key: str, ex
         target = linker.technosphere(leg["use"], "ton kilometer", f"{market.path} {market.code} {key}")
     except BuildError as failure:
         report.errors.append(str(failure))
+        return True
+    if target.pop("_estimate", None):
+        report.error(f"{market.path} {market.code}", f"transport {leg['mode']} uses {leg['use']!r}, an estimate proxy (ADR 0039): a market leg links a transport activity")
         return True
     exchanges.append({"amount": _number(mass / 1000.0 * distance), "type": "technosphere", **target, "atlas key": key, "comment": text})
     return False
@@ -2465,7 +2805,7 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     # the default model's database carries the plain name; a variant is labelled in its name
     db_name = f"cheme-as-code-atlas-{version}" if model == mappings["system_model"] else f"cheme-as-code-atlas-{version}-{model}"
     excluded: list[dict] = []
-    built = build_activities(processes, profile(mappings, model), products, db_name, commit, version, report, model, excluded, markets, public)
+    built = build_activities(processes, profile(mappings, model), products, db_name, commit, version, report, model, excluded, markets, public, library)
     activities, proxies, by_process = built.activities, built.proxies, built.by_process
     checks = {d.path: property_checks(p, d, products, mappings, report) for p in processes for d in p.datasets}
     kpis = benchmark_results(processes, benchmarks, public, report)
@@ -2548,16 +2888,29 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
     gaps_by_process: dict[str, list[dict]] = {}
     for gap in report.gaps:
         gaps_by_process.setdefault(gap["process"], []).append({k: v for k, v in gap.items() if k != "process"})
+    estimates_by_process: dict[str, list[dict]] = {}
+    for found in report.estimates:
+        estimates_by_process.setdefault(found["process"], []).append({k: v for k, v in found.items() if k != "process"})
     for entry in process_entries:
         entry["gaps"] = gaps_by_process.get(entry["id"], [])
         entry["gap_count"] = len(entry["gaps"])
         entry["preliminary"] = bool(entry["gaps"])
+        # ADR 0039: exchanges linked to an estimate proxy, a fact beside the gaps (install() links them)
+        entry["estimates"] = estimates_by_process.get(entry["id"], [])
+        entry["estimate_count"] = len(entry["estimates"])
+        entry["estimated"] = bool(entry["estimates"])
     preliminary = sorted(gaps_by_process)
     if report.gaps:
         variant_caveats.append(
             f"PRELIMINARY: {len(report.gaps)} exchange(s) of {len(gaps_by_process)} process(es) are mapping gaps "
             f"(lci/gaps.json): exported unlinked, without a background link (column atlas gap), so they count no burden and these processes' inventories "
             f"are incomplete: {', '.join(preliminary)}. An activity that links one of them inherits that. install() refuses the database until they are mapped."
+        )
+    if report.estimates:
+        variant_caveats.append(
+            f"ESTIMATED: {len(report.estimates)} exchange(s) of {len(estimates_by_process)} process(es) link to an estimate proxy (ADR 0039; column "
+            f"atlas estimate, datapackage.json processes[].estimates): their supply chain is estimated from other products, not modelled, and their "
+            f"technological pedigree is raised: {', '.join(sorted(estimates_by_process))}."
         )
     findings = [f"{d.path}: {d.finding}" for p in processes for d in p.datasets if d.finding]
     datapackage = {
@@ -2631,10 +2984,13 @@ def build(library: Path, out: Path, version: str, commit: str | None = None, map
         ],
         "system_model": model,
         "methodology_version": METHODOLOGY_VERSION,
-        "processes": {e["id"]: [{"code": a["code"], "name": a["name"], "reference_product": a["reference_product"], "unit": a["unit"], **({"preliminary": True} if e["preliminary"] else {})} for a in e["activities"]] for e in process_entries},
+        "processes": {e["id"]: [{"code": a["code"], "name": a["name"], "reference_product": a["reference_product"], "unit": a["unit"], **({"preliminary": True} if e["preliminary"] else {}), **({"estimated": True} if e["estimated"] else {})} for a in e["activities"]] for e in process_entries},
         "markets": [{"code": m.row["code"], "name": m.row["name"], "reference_product": m.row["reference product"], "unit": m.row["unit"], "location": m.row["location"]} for m in built.markets],
         "gaps": {pid: len(found) for pid, found in gaps_by_process.items()},
         "preliminary": preliminary,
+        # ADR 0039: the processes with exchanges linked to an estimate proxy, and how many
+        "estimates": {pid: len(found) for pid, found in sorted(estimates_by_process.items())},
+        "estimated": sorted(estimates_by_process),
         "caveats": caveats,
     }
     _write_json(lci / "index.json", index)

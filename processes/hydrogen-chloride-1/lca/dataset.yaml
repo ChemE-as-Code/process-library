@@ -209,16 +209,17 @@ exchanges:
 - key: product:STEAM
   title: Steam 1000 kPa(a) raised in the synthesis furnace (export)
   type: product
-  amount: 2195.1
+  amount: 2195.05
   unit: kWh
+  provenance: calculated
   properties:
     exergy: 1230.596026
     source: Carnot factor at 179.85 °C, T0 = 298.15 K
   streams:
   - Q1
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
     kind: steam
@@ -246,6 +247,20 @@ exchanges:
     kind: cold
     temperature: 25.0
     source: utility of CW in process/flowsheet.yaml
+- key: product:AMBIENT
+  title: Heat lost from the synthesis furnace to the ambient air
+  type: output
+  amount: 72.83
+  unit: kWh
+  free: true
+  streams:
+  - Q5
+  source: 'Q5: 3 % of the reaction heat lost from the synthesis furnace to the ambient air (D-007, D-014);
+    warm air leaves without a burden and is not an emission of any impact category used here'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
 - key: emission:Cl2
   title: Cl2 to the environment
   type: emission
@@ -380,7 +395,7 @@ provenance:
   case: design
   files:
     equipment/equipment-list.yaml: sha256:ce67dff4db670a0f768cfa21271c10935cac4b677ef6482da0293901a21dd1db
-    lca/lca.yaml: sha256:7c520f28cea04f8a9ad8d64506b19df1c43b261e5f689169b6886e074a15f9e2
+    lca/lca.yaml: sha256:1b4b7231f6226134ba25586b9ba4fd949a785873ef2bf87ad4de37f44718817d
     process.yaml: sha256:d32bdec5ecccb8736cbe92a1d310ebc48ce0019f9299e2fc4b5bf824d10df9ab
-    process/flowsheet.yaml: sha256:25d0796654ecdc30615f978bd2043e58aa4ce2c51794711b667d808eac1512dc
+    process/flowsheet.yaml: sha256:2f0c6c7d07d45264ec3451568a4c407cc96faef93654ce55131ae8bdc32d0fa1
     process/materials.yaml: sha256:25f53c0efc19adc8b163e3e96edf5f91b13870939d3fcf40decb4d487b091a54
