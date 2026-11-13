@@ -488,12 +488,16 @@ proxies:
   # --- estimate proxies (ADR 0039) ------------------------------------------------------------
   # A proxy with a `basis` stands for a substance (`chemical`) no library process makes, by other
   # products; an input may name a library product (`dataset: {path, product}`) with its amount per
-  # kg of the proxy, and `content` when it counts only one component of a mixture. The build
-  # checks the mass on the basis (1 kg per kg), refuses a missing product and a circular link,
-  # links a library producer of `chemical` instead when the build has one, and marks every
-  # exchange linked to the proxy as an estimate (`atlas estimate`, its technological pedigree
-  # raised to 4, the dataset's DQR recomputed). A public build that does not hold a product the
-  # proxy names makes the exchange a gap.
+  # kg of the proxy, and `content` when it counts only one component of a mixture (on a library
+  # product only: a background `use:` entry states no composition, so the schema refuses it
+  # there). The build checks the mass on the basis (1 kg per kg) and each content against the
+  # product's stated composition (a component it does not state, another fraction or a product
+  # with no composition is refused), and refuses a missing product and a circular link. A library
+  # producer of `chemical` in the build always takes precedence: the exchange links it instead,
+  # also when the build refuses the proxy or cannot use it. Otherwise every exchange linked to the
+  # proxy is marked an estimate (`atlas estimate`, its technological pedigree raised to 4, the
+  # dataset's DQR recomputed). A public build that does not hold a product the proxy names makes
+  # the exchange a gap, unless a library producer of `chemical` is linked instead.
   chlorosulfonic-acid:
     name: "chlorosulfonic acid, from sulfur trioxide and hydrogen chloride (Atlas estimate proxy)"
     reference_product: "chlorosulfonic acid, estimated"

@@ -278,6 +278,17 @@ def test_a_content_component_the_product_does_not_contain_is_refused(library: Pa
     assert not any(e.get("atlas proxy") for e in _activities_or_empty(tmp_path / "out").get(USER, {}).get("exchanges", []))
 
 
+def test_a_content_on_a_background_input_is_refused(library: Path, tmp_path: Path) -> None:
+    # a background entry states no composition, so its content could never be checked: without the
+    # refusal any fraction would balance the mass (here 0.2 + 1.6 x 0.5 = 1 kg per kg)
+    _proxy(library, inputs=[{"dataset": {"path": H2_PATH, "product": "product:H2"}, "amount": 0.2, "source": "fixture"},
+                            {"use": "water", "amount": 1.6, "content": {"component": "H2O", "fraction": 0.5}, "source": "fixture"}])
+    _consumer(library)
+    report = _build(library, tmp_path / "out")
+    assert any("proxies/solvent/inputs/1" in e and "'dataset' is a dependency of 'content'" in e for e in report.errors), report.errors
+    assert not any(e.get("atlas proxy") for e in _activities_or_empty(tmp_path / "out").get(USER, {}).get("exchanges", []))
+
+
 def _activities_or_empty(out: Path) -> dict[str, dict]:
     xlsx = out / "lci" / f"{DB}.xlsx"
     return _activities(xlsx) if xlsx.is_file() else {}

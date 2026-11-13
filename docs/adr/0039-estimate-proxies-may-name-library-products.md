@@ -4,10 +4,14 @@
 - **Deciders:** the owner, as the library's maintainer (drafted by an agent session for issue #419)
 - **Scope:** the LCI pipeline: the shared mappings `lci/mappings.yaml` (`proxies:`), its schema
   `schemas/lci-mappings.schema.json`, `scripts/build_lci.py` and `scripts/lci_activities.py`
-  (the Atlas LCI database, `datapackage.json`). It extends the screening proxies of
-  [ADR 0008](0008-brightway-workbook-linked-by-name.md) and the gap rule of
-  [ADR 0022](0022-lci-gaps-for-unpublished-processes-and-per-process-mappings.md) and
-  [ADR 0026](0026-public-processes-may-be-preliminary.md); it changes neither.
+  (the Atlas LCI database, `datapackage.json`); and the catalog, `scripts/build_catalog.py`
+  (`catalog.json` and `processes/<id>.json`: `estimated`, `estimate_count`, `lci_estimates`).
+  It extends the screening proxies of [ADR 0008](0008-brightway-workbook-linked-by-name.md) and
+  the gap rule of [ADR 0022](0022-lci-gaps-for-unpublished-processes-and-per-process-mappings.md),
+  which it leaves unchanged, and amends
+  [ADR 0026](0026-public-processes-may-be-preliminary.md) in one point: the catalog's
+  `preliminary` (the process and its LCA headline) now also marks a process with an estimated
+  exchange and no gap, while `gap_count` and the LCI files' `preliminary` keep meaning gaps.
 
 ## Context
 
@@ -54,9 +58,11 @@ states the registry slug of the substance it stands for (`chemical`). Its inputs
   its `amount` per unit of the proxy in the unit of that product,
 
 and an input that is a mixture counts one component on the basis with `content: {component,
-fraction}`. A proxy without `basis` is a unit or screening proxy as before: background inputs
-only, no estimate marking. Per-process mappings do not get proxies of their own: a consumer's
-`lca/mappings.yaml` names the shared proxy through a `chemical` slug or `use`.
+fraction}`, on a library product only: a background entry states no composition to check it
+against, so the schema refuses a content on a `use` input. A proxy without `basis` is a unit or
+screening proxy as before: background inputs only, no estimate marking. Per-process mappings do
+not get proxies of their own: a consumer's `lca/mappings.yaml` names the shared proxy through a
+`chemical` slug or `use`.
 
 **The basis is checked.** `basis: mass` (a mixture or split) and `basis: stoichiometric` (the
 reactants of the stated `reaction`, from molar masses) conserve mass: the proxy is in kilogram,
@@ -64,10 +70,12 @@ every input is in kilogram, and the inputs' masses on the basis (amount times th
 fraction) sum to 1 kg per kg within 0.001. `basis: non-mass` declares another basis in
 `basis_reason` and is not mass-checked. A content is checked, never taken on trust: its component
 must be in the composition the linked product states, with that fraction (within 0.0001); a
-component the composition does not contain, or a product that states no composition, is refused. The build refuses (an error) a mass that is not conserved and a unit
-that does not fit the basis (when it loads the mappings), and, once an exchange uses the proxy
-(so that a library holding part of the processes still builds), an unregistered `chemical`, a
-content its product does not state or contradicts, and:
+component the composition does not contain, or a product that states no composition, is
+refused, and a content on a background input cannot be written (above). The build refuses (an
+error) a mass that is not conserved, a unit that does not fit the basis and a content on a
+background input (when it loads the mappings), and, once an exchange uses the proxy (so that a
+library holding part of the processes still builds), an unregistered `chemical`, a content its
+product does not state or contradicts, and:
 
 - **a missing product**: a `dataset` input that is not a product of the library;
 - **a circular link**: an estimate proxy whose inputs reach back to it, through the library
@@ -174,10 +182,10 @@ proxy's chemical is linked instead (above).
   `Report.estimates`); `scripts/lci_activities.py` (`estimate`, `estimated`, `estimates`);
   `scripts/build_catalog.py` (`_lci_gaps`: `estimated`, `estimate_count`, `lci_estimates`).
 - `tests/test_lci_estimate_proxies.py`: mass on the basis, a declared non-mass basis, a missing
-  product, a content its product contradicts or does not state, a circular link, a dedicated
-  producer's precedence (also over a refused and an unavailable proxy, in the preview and the
-  public build), the estimate marked with its penalty and recomputed DQR, the estimates per
-  process and in the catalog, the public build's gap, and the library's chlorosulfonic-acid
-  proxy.
+  product, a content its product contradicts or does not state, a content on a background
+  input, a circular link, a dedicated producer's precedence (also over a refused and an
+  unavailable proxy, in the preview and the public build), the estimate marked with its penalty
+  and recomputed DQR, the estimates per process and in the catalog, the public build's gap, and
+  the library's chlorosulfonic-acid proxy.
 - `lci/mappings.yaml` `proxies.chlorosulfonic-acid`, `technosphere.sulfur-trioxide`;
   `processes/p-toluenesulfonyl-chloride-1/lca/mappings.yaml` and its `DESIGN.md` D-016.

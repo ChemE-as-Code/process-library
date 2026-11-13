@@ -132,11 +132,12 @@ fails the `balance-scripts` job.
   products (a stoichiometry, a mixture) may link a shared estimate proxy in `lci/mappings.yaml`:
   a `chemical`, a `basis` (mass, stoichiometric with its `reaction`, or non-mass with its
   reason) and inputs that are background entries or library products (`dataset: {path,
-  product}`) with an amount per kg. The build checks the mass and a mixture's stated content,
+  product}`) with an amount per kg. The build checks the mass and a mixture's content against
+  its library product's stated composition (a content on a background entry is refused),
   refuses a missing product and a circular link, always prefers a library producer once one
   exists, and marks every linked exchange as an estimate with a pedigree and DQR penalty; the
-  catalog keeps such a process preliminary and `estimated`. Record the proxy and what it leaves out in the
-  consumer's `DESIGN.md`; when a part fits nothing, keep the gap
+  catalog keeps such a process preliminary and `estimated`. Record the proxy and what it leaves
+  out in the consumer's `DESIGN.md`; when a part fits nothing, keep the gap
   ([ADR 0039](docs/adr/0039-estimate-proxies-may-name-library-products.md)).
 - **No total from gaps alone.** A category whose every contribution in `lca/gaps.csv` is a gap
   (a background not linked yet; flows outside the method do not count) has no footprint: the

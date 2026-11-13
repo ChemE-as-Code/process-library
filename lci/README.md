@@ -225,7 +225,9 @@ unlinked and writes nothing.
 **Estimate proxies** (ADR 0039). A proxy of `proxies:` with a `basis` stands for a substance no
 library process makes (`chemical`, a registry slug) by other products: background entries
 (`use`) and **library products** (`dataset: {path, product}`), each with its amount per kg of the
-proxy and, for a mixture, the `content` (component and mass fraction) that counts on the basis.
+proxy and, for a mixture, the `content` (component and mass fraction) that counts on the basis
+(on a library product only: the schema refuses a content on a background entry, which states no
+composition to check it against).
 `basis: mass` and `basis: stoichiometric` (with its `reaction`) must sum to 1 kg per kg on the
 basis, in kilogram throughout; `basis: non-mass` states its `basis_reason`. The build refuses a
 mass that is not conserved and, once an exchange uses the proxy, a missing product, a content

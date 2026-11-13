@@ -138,7 +138,7 @@
       }
     },
     "proxy": {
-      "description": "An activity of the Atlas database that stands in for a flow the background has no activity for. Without `basis`: a unit or screening proxy whose inputs are background entries. With `basis` (ADR 0039): an estimate of a substance (`chemical`) from other products, which may name library products; the build checks its mass on the basis, refuses a missing product and a circular link, links a library producer of `chemical` instead when the build has one, and marks every exchange linked to it as an estimate with a data-quality penalty.",
+      "description": "An activity of the Atlas database that stands in for a flow the background has no activity for. Without `basis`: a unit or screening proxy whose inputs are background entries. With `basis` (ADR 0039): an estimate of a substance (`chemical`) from other products, which may name library products; the build checks its mass on the basis and each input's `content` against its product's stated composition, refuses a missing product and a circular link, always links a library producer of `chemical` instead when the build has one (also when it refuses the proxy or cannot use it), and marks every exchange linked to it as an estimate with a data-quality penalty.",
       "type": "object",
       "additionalProperties": false,
       "required": ["name", "reference_product", "unit", "location", "inputs", "source"],
@@ -161,12 +161,13 @@
             "additionalProperties": false,
             "required": ["amount", "source"],
             "oneOf": [{"required": ["use"]}, {"required": ["dataset"]}],
+            "dependentRequired": {"content": ["dataset"]},
             "properties": {
               "use": {"$ref": "#/$defs/id", "description": "A technosphere entry with an activity (not a proxy)."},
               "dataset": {"$ref": "#/$defs/dataset_ref", "description": "A library product (ADR 0039): this Atlas dataset's product, linked inside the Atlas database. Only in a proxy with a `basis`."},
               "amount": {"type": "number", "description": "Per unit of the proxy, in the unit of the input's activity or product."},
               "content": {
-                "description": "The part of the input that counts on the basis, when the input is a mixture (e.g. HCl in a 33 wt-% acid counted by the solution): its component and mass fraction. The build checks the fraction against the composition a linked library product states.",
+                "description": "The part of the input that counts on the basis, when the input is a mixture (e.g. HCl in a 33 wt-% acid counted by the solution): its component and mass fraction. Only on a library product (`dataset`), whose stated composition the build checks the fraction against; a background entry (`use`) states no composition, so a content on it is refused.",
                 "type": "object",
                 "additionalProperties": false,
                 "required": ["component", "fraction"],

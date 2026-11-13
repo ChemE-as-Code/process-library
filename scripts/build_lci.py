@@ -72,9 +72,11 @@ Modelling rules (``docs/system-model.md``; also written into every activity's ``
 - an estimate proxy (``proxies:`` with a ``basis``, ADR 0039) stands for a substance no library
   process makes by background entries and library products (``dataset: {path, product}``, linked
   inside the Atlas with their check); its mass on a mass or stoichiometric basis must be 1 kg per
-  kg, a missing product, an unchecked ``content`` and a circular link are refused, a library
-  producer of its ``chemical`` is linked instead when the build has one (an advisory; also when
-  the proxy is refused or unavailable in the build), and every exchange linked to it is
+  kg, a missing product, an unchecked ``content`` (one its product's composition does not state,
+  or one on a background ``use:`` input, which states none: the schema refuses that) and a
+  circular link are refused, a library producer of its ``chemical`` is linked instead when the
+  build has one (an advisory; also when the proxy is refused or unavailable in the build), and
+  every exchange linked to it is
   marked (``atlas proxy``, ``atlas estimate``, ``atlas estimates``, an ``ESTIMATE`` comment line)
   with its technological pedigree raised to ``ESTIMATE_TECHNOLOGY_SCORE`` and its dataset's
   ``data_quality`` recomputed (``proxy_penalty``), and listed per process (``datapackage.json``
@@ -1691,8 +1693,9 @@ def check_estimate_proxies(linker: Linker, products: reg.Registry, library: Path
     ``chemical`` is a registry slug; each library product it names is an exported activity of the
     build, in kilogram on a mass or stoichiometric basis, and an input's ``content`` names a
     component the product's stated composition contains, with that fraction (a component it does
-    not state, or a product without a composition, cannot be checked and is refused). A proxy that
-    fails is refused (``linker.refused``): an error once an exchange would use it
+    not state, or a product without a composition, cannot be checked and is refused; the schema
+    already refuses a content on a background ``use:`` input, which states no composition). A
+    proxy that fails is refused (``linker.refused``): an error once an exchange would use it
     (``report_refused_proxies``), so a library holding part of the processes, whose exchanges never
     reach the proxy, still builds. A product of a process a public build leaves out makes the
     proxy unavailable in that build (``linker.unavailable``): an exchange mapped to it is a gap,
