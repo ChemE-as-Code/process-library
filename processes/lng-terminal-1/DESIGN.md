@@ -3155,8 +3155,8 @@ locked bleed and a gauge instead of a bleed open to atmosphere.
    (c) P-8102 start frequency (medium #3). The checker's ~22 direct-on-line starts an hour at the ~20 m3/h design
    rain reproduce (band 0.30 m x 2.25 m2 = 0.675 m3, the riser's ~0.23 m3 drain-back, 50 m3/h: worst ~22.6 at
    ~22 m3/h of inflow). P-8102 is now fed through a VSD in MCC-1 with its speed following the pocket level between
-   the 0.90 m start and the 0.60 m stop (as P-8103, D-037.17): at a minimum speed of ~75 % it still delivers
-   ~20 m3/h against the ~27.8 m static, so above that inflow it runs on, and below it cycles at most ~9 times an
+   the 0.90 m start and the 0.60 m stop (as P-8103, D-037.17): at a minimum speed of ~85 % (corrected in (j);
+   given as ~75 %) it still delivers ~20 m3/h against its ~38 m fixed head, so above that inflow it runs on, and below it cycles at most ~9 times an
    hour (worst at ~9 m3/h of inflow), each a VSD ramp, against a vendor limit taken as 15 evenly spaced starts an
    hour for a submersible motor of this size. A wider band or a larger pocket was not taken: either holds more
    water in the pocket, the residual of D-039.1 (h). The datasheet, the equipment list, LC-8103
@@ -3193,6 +3193,21 @@ locked bleed and a gauge instead of a bleed open to atmosphere.
    check valve's cracking pressure and the ball valve cavity vent (vendors); the bidirectional loading meters
    (instrument vendor); the P-8102 motor's start limit and minimum speed (pump vendor); the carrier connection
    warnings (reviewer or library); the HAZOP restamp against these sheets (its owner).
+   (j) Re-check of the repair (two mediums, three lows). P-8102's minimum speed in (c) was taken against the
+   static alone; against its full fixed head, ~38 m (27.8 m static plus ~10.2 m for 1.0 barg at the oily
+   water battery limit), the 75 % speed delivers nothing (shut-off 59 m x 0.5625 = ~33 m). On a parabolic
+   curve through 45 m at 50 m3/h and 59 m at zero flow (ASSUMED, vendor curve) flow starts at ~80 % and
+   reaches ~20 m3/h at ~84 %: the minimum speed is ~85 % (ASSUMED), so the speed at the 0.60 m stop still
+   delivers and the level reaches the stop at any inflow below ~20 m3/h; the ~9 starts an hour stand.
+   SEQ-LINE-EMPTY: after an abort the sequence is restarted from S1 (the reset already said so), which reopens
+   the crossover and a return; resuming at S2 would have left them closed. The time held adds to the time
+   the leak is fed (it ends ~3 h after the restart): the 240 min of PFP hold only if an early abort is
+   cleared within ~0.45 h; held to 3.5 h after the ESD-1, the leak lasts to ~6.5 h with ~65 m3 of T-8102's
+   87 m3, so a longer hold is stated as a residual of H-07, not a design case. The S2 timeout is 5 h (was
+   3 h), longer than the ~4.6 h displacement at 2,000 Nm3/h, so low N2 is not an abort. The stale JB-SUB
+   sentence of the electrical list and the P-8102 shut-off of the equipment list (59 m) are corrected.
+   Files: `control/sequences.yaml`, `control/philosophy.md`, `build/gen_loops.py` / `control/loops.yaml`
+   (LC-8103), `scripts/draft_P-08.py` (HS-8103), the P-8102 datasheet, the equipment and electrical lists.
 
 **D-040 Response to the layout review 2026-11-05-basic-layout-7.** (2026-11-13) The review's four mediums
 (#1 to #4), two lows (#5, #6), the carried open findings where the layout can answer them, and its
