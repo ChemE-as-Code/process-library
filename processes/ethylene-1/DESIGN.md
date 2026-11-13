@@ -76,8 +76,9 @@ Feeds, separator outlets and duties are typed into `process/flowsheet.yaml` as A
 script as source. Mixers, the furnace coils, the hydrogenation reactors and the firebox are
 recalculated by `cheme process propagate --fill` (provenance calculated) and agree with the
 script. `cheme process reactors` reproduces the script's duties: H101 372.2 MW, H103 9.5 MW,
-H102 -586.6 MW (= coils + convection steam + 1.5 % casing loss). Temperatures and pressures
-are design choices.
+H102 -586.6 MW (= coils + convection steam + 1.5 % casing loss). Since D-019 the convection
+steam Q102 is written by cheme from H102's model, less the coils and the casing loss Q105.
+Temperatures and pressures are design choices.
 
 ## D-007 Heat recovery, quench and dilution steam (ASSUMED)
 TLE outlet 350 C; SHP steam at 11500 kPa(a), 520 C from BFW at 115 C. BFW preheat and
@@ -132,7 +133,7 @@ plant's heat balance.
 ## D-013 Fuel system and firebox (ASSUMED)
 Tail gas (87 mol% H2), the C2 and C3 vents and a natural-gas make-up (95 % CH4) are burnt with
 15 % excess air (3.2 vol% O2 dry). The stack is at 120 C and the casing loss is 1.5 % of the
-LHV. The natural-gas make-up (9.6 t/h) closes the firebox heat balance. Fired duty is 611 MW
+LHV (9.16 MW, its own energy stream Q105 to the ambient air since D-019). The natural-gas make-up (9.6 t/h) closes the firebox heat balance. Fired duty is 611 MW
 LHV = 17.6 GJ/t ethylene. There is no fuel gas export: the fuel gas co-product is used in the
 furnaces.
 
@@ -213,6 +214,29 @@ SO2 from sulphur doping, non-routine flaring, effluent loads. Each is declared i
   an upper estimate (D-014).
 - Furnace CO2 0.472 kg/kg ethylene unallocated; 0.433 kg/kg ethylene with mass allocation
   (91.6 %). Both include the fuel for the exported SHP steam (D-015).
+
+## D-019 Casing loss as its own stream; convection duty from core's model (2026-11-12)
+Context: since core 1.9.0 (its ADR 0059) a conversion step's model gives the duty of its heat
+stream and counts its other energy streams as work. The firebox H102 burns the fuel S802 with
+the air S803 to the flue gas S804. Its enthalpy change is -586 554.2 kW on the elements basis,
+ideal gas, and its other energy streams take 381 708.7 kW out to the coils (Q101 372 194.5 kW,
+Q104 9 514.2 kW). For the convection steam Q102 the model left 204 845.5 kW against the typed
+195 682.0 kW, and `cheme.process-duty` warned (issue #396). The gap, 9 163.5 kW, is the
+casing loss of D-013: scripts/balance.py closes the firebox with 1.5 % of the fired 610.92 MW
+LHV lost through the casing (9 163.8 kW), which the model did not know.
+Decision: the hand value holds a loss the model leaves out, so the stream is split. The casing
+loss is its own assumed energy stream Q105 (H102 to a new terminal AMBIENT, utility kind
+`other`, so it is not a heat utility), 9 163.8 kW from scripts/balance.py. H102 names
+`energy_port: hps`, and the model's heat less the coils and Q105 goes on Q102. The typed Q102
+is removed and `cheme process propagate --fill` writes it; scripts/balance.py keeps its
+convection steam as a printed cross-check and no longer gives Q102 in its balance output.
+Result: Q102 = 586 554.2 - 381 708.7 - 9 163.8 = 195 681.7 kW, written as 195 682.0 kW
+(calculated), the same as before. SHP steam export, fuel and CO2 are unchanged. The inventory
+gains the casing loss, product:AMBIENT, 0.0671 kWh per kg ethylene, free (heat to the air
+carries no burden, lca/lca.yaml).
+Rejected: taking the model's 204 845 kW (it would export the casing loss as steam, 4.7 % more
+than the convection section raises); dropping the casing loss (the natural-gas make-up that
+closes the firebox would then be overstated against the steam).
 
 ## Open inputs and next stage
 Sourced feed specification and capacity; sourced hydrogenation selectivities; a coke make and

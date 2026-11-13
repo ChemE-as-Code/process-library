@@ -10,8 +10,9 @@
 # - the reactors R101 and R201 and the mixers M201 and M401 are solved by
 #   `cheme process propagate --fill` (conversion model, calculated);
 # - the vent condensers V101/V201 (Raoult's law with thermo vapour pressures), the columns C301
-#   and C302 (specified splits), the scrubber T401 and every duty come from the independent
-#   balance scripts/balance.py (D-006), given here as ASSUMED: core has no property package for
+#   and C302 (specified splits), the scrubber T401 and every duty but Q3 come from the independent
+#   balance scripts/balance.py (D-006), given here as ASSUMED (Q3 is R201's conversion-step duty,
+#   written by `cheme process propagate --fill`, D-016): core has no property package for
 #   PCl3, POCl3, white phosphorus or the caustic liquor, so it can neither
 #   flash the condensers nor close the energy balance of the liquid-phase reactors.
 schema: cheme/process/v1
@@ -497,7 +498,7 @@ streams:
   # --- energy ----------------------------------------------------------------------------------
   - {id: Q1, title: PCl3 reactor heat to cooling water (reflux condenser E-101), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 2443.2, provenance: assumed, source: "scripts/balance.py: liquid-phase reaction heats at 298 K, sensible terms neglected (D-004, D-006)"}}}}
   - {id: Q2, title: PCl3 vent condenser E-102 duty, kind: energy, from: V101.q, to: CHW.v101, state: {design: {duty: {value: 0.049, provenance: assumed, source: "scripts/balance.py: vapour condensed from 308 to 283 K saturation (D-007)"}}}}
-  - {id: Q3, title: POCl3 reactor heat to cooling water (circulation cooler E-201), kind: energy, from: R201.q, to: CW.r201, state: {design: {duty: {value: 1912.3, provenance: assumed, source: "scripts/balance.py: 277.4 kJ/mol PCl3 reacted (D-005, D-006)"}}}}
+  - {id: Q3, title: POCl3 reactor heat to cooling water (circulation cooler E-201), kind: energy, from: R201.q, to: CW.r201, state: {design: {duty: {value: 1932.94, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S6 S10 S7', fingerprint: 222e5c1d70dad84f}}}}
   - {id: Q4, title: POCl3 vent condenser E-202 duty, kind: energy, from: V201.q, to: CHW.v201, state: {design: {duty: {value: 0.384, provenance: assumed, source: "scripts/balance.py: POCl3 heat of vaporisation from the vapour pressure (D-007, D-008)"}}}}
   - {id: Q5, title: Light-ends column reboiler, kind: energy, from: LPS.c301, to: C301.steam, state: {design: {duty: {value: 65.4, provenance: assumed, source: "scripts/balance.py: reflux ratio 3 and feed heating 323-379 K (D-008)"}}}}
   - {id: Q6, title: Light-ends column condenser, kind: energy, from: C301.cw, to: CW.c301, state: {design: {duty: {value: 8.9, provenance: assumed, source: "scripts/balance.py (D-008)"}}}}

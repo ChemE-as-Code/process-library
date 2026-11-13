@@ -13,7 +13,8 @@
 #   from the feeds; their temperatures are assumed (D-007);
 # - the absorption streams, the vent and the duties come from the independent balance
 #   scripts/balance.py (D-006), run with `cheme run scripts/balance.py`, given as ASSUMED; its
-#   inputs are sourced or ASSUMED in DESIGN.md;
+#   inputs are sourced or ASSUMED in DESIGN.md; the burner's Q2 is R101's conversion-step duty,
+#   written by `cheme process propagate --fill` (D-014), which the script's value confirms;
 # - hydrobromic acid is an electrolyte: its enthalpy is not calculated by cheme;
 #   the absorber duty rests on an ASSUMED heat of solution in scripts/balance.py (D-009).
 schema: cheme/process/v1
@@ -119,6 +120,14 @@ steps:
       - {id: h2, direction: in, delegates: h2}
       - {id: out, direction: out}
       - {id: cw, direction: out, kind: energy, delegates: cw1}
+  # R-101's electrical auxiliaries: their power never reaches the gas, so it is not R101's work
+  # (core ADR 0059: an instrument's power belongs on a stream to another node), DESIGN.md D-014
+  - id: U101
+    block: SYN
+    title: Burner management, instruments and analysers of R-101
+    class: ProcessStep
+    links: [{target: equipment, ref: R-101}]
+    ports:
       - {id: aux, direction: in, kind: energy, delegates: aux}
   - id: R102
     block: SYN
@@ -210,9 +219,9 @@ streams:
   - {id: S12, title: Hydrobromic acid 48 wt-% product, from: P201.out, to: HBRACID.in, template: aqueous, state: {design: {temperature: {value: 313.15, provenance: assumed, source: D-008}, pressure: {value: 300.0, provenance: assumed, source: D-008}, flow: {value: 2083.333, basis: mass, provenance: assumed, source: "design basis, D-002"}, composition: {basis: mass_fraction, values: {HBr: 0.48, H2O: 0.52}, provenance: assumed, source: "design basis, D-002"}}}}
   # Energy streams (duties from scripts/balance.py, D-006, D-007, D-010, D-011)
   - {id: Q1, title: Bromine vaporiser LP steam duty, kind: energy, from: LPS.e101, to: E101.heat, state: {design: {duty: {value: 58.0, provenance: assumed, source: "scripts/balance.py: Br2 vaporisation enthalpy at 298 K (30.88 kJ/mol) and gas superheat to 378 K; 98.5 kg/h LP steam (D-007)"}}}}
-  - {id: Q2, title: Burner chamber cooling water duty, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 166.4, provenance: assumed, source: "scripts/balance.py: heat released from the feeds at 378/313 K to the outlet at 448 K (D-007)"}}}}
+  - {id: Q2, title: Burner chamber cooling water duty, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 166.391, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S2 S3 S4', fingerprint: 6d3bc6ee27cec1bd}}}}
   - {id: Q3, title: Graphite gas cooler duty, kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 11.8, provenance: assumed, source: "scripts/balance.py: HBr gas 448 to 333 K (D-007)"}}}}
   - {id: Q4, title: Absorber cooling water duty, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 232.4, provenance: assumed, source: "scripts/balance.py: gas cooling and heat of solution -72.0 kJ/mol HBr ASSUMED (D-009)"}}}}
   - {id: Q5, title: Product acid pump power, kind: energy, from: POWER.p201, to: P201.power, state: {design: {duty: {value: 0.08, provenance: assumed, source: "scripts/balance.py: 100 kPa, 1 490 kg/m3, eta 0.5 (D-011)"}}}}
-  - {id: Q6, title: "Burner management, instruments and analysers", kind: energy, from: POWER.r101, to: R101.aux, state: {design: {duty: {value: 3.0, provenance: assumed, source: "D-011: ASSUMED allowance"}}}}
+  - {id: Q6, title: "Burner management, instruments and analysers", kind: energy, from: POWER.r101, to: U101.aux, state: {design: {duty: {value: 3.0, provenance: assumed, source: "D-011: ASSUMED allowance"}}}}
 layout: {bfd: {}, pfd: {}}

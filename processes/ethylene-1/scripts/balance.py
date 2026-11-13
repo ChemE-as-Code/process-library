@@ -369,7 +369,8 @@ def duties(st, r, fb):
     q = {}
     q["Q101"] = fb["q_coil"] * kw
     q["Q104"] = fb["q_coil3"] * kw
-    q["Q102"] = fb["q_conv_steam"] * kw
+    q["Q102"] = fb["q_conv_steam"] * kw   # written by cheme from H102's model less Q105 (D-019)
+    q["Q105"] = CASING_LOSS * fb["fired"] * kw   # firebox casing loss to the ambient air (D-013)
     q["Q103"] = fb["q_tle"] * kw
     # quench: sensible cooling 350 -> 40 C and condensation of the dilution steam
     cond = st["S202"]["H2O"]
@@ -519,7 +520,11 @@ def main():
     flowsheet = {sid: {"flow": {"value": o["kg_h"], "basis": "mass"},
                        "composition": {"values": o["y"], "basis": "mole_fraction"}}
                  for sid, o in out.items()}
+    # Q102 is written by cheme (H102's conversion-step duty less Q105, D-019): the script's
+    # value stays a printed cross-check and in build/balance.json, not a cited one
     for k, v in q.items():
+        if k == "Q102":
+            continue
         flowsheet.setdefault(k, {})["duty"] = v
     write_balance_output({"design": flowsheet})
     (ROOT / "build" / "states.yaml").write_text("\n".join(lines) + "\n")
