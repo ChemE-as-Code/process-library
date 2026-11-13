@@ -1,0 +1,143 @@
+# Components and templates of oxalyl-chloride-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# conventional atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# Property sources (DESIGN.md source register SRC-5, SRC-6):
+# - normal boiling points, densities, heat capacities and heats of vaporization from the CRC
+#   Handbook tables as packaged in the `chemicals` 1.5.2 package (CRC_organic_data,
+#   CRC_inorganic_data, CRC_standard_data, Hvap_data_CRC), not the printed handbook: single
+#   facts with the package named (library ADR 0037);
+# - Antoine constants from the NIST Chemistry WebBook, SRD 69, log10(P/bar) = A - B/(T/K + C),
+#   each fitted by NIST (phosphorus trichloride and phosphoryl chloride to Stull 1947, water to
+#   Stull 1947);
+# - oxalyl chloride: no Antoine fit was found openly (NIST WebBook C79378 gives none). Its line
+#   is a Clausius-Clapeyron line (C = 0) through the normal boiling point 336.65 K (CRC via
+#   chemicals 1.5.2) with NIST's heat of vaporization of 32 +/- 4 kJ/mol (Walker and Prophet,
+#   1967) taken as constant: B = 32000 / (8.314 ln 10) = 1671.6 K, A = log10(1.01325) + B /
+#   336.65 = 4.9711, ASSUMED (it gives 18.6 kPa at 293 K); DESIGN.md D-007;
+# - chlorine: Antoine constants fitted by us (least squares, 240 to 345 K, within 0.2 %) to the
+#   DIPPR-form vapour-pressure equation of Perry's Chemical Engineers' Handbook, 8th ed., as
+#   packaged in chemicals 1.5.2 (Psat_data_Perrys2_8, C1 71.334, C2 -3855.0, C3 -8.5171, C4
+#   0.012378, C5 1): a single fact with that source (Perry's not read here), ASSUMED
+#   (D-007). Chlorine is only a trace in the liquids (D-005).
+# The liquid data the semi-batches R101 and R102 need (D-005):
+# - liquid_molar_volume, m3/kmol, at 333.15 K: the molar mass over the CRC density near 298 K
+#   (phosphorus trichloride 1574, phosphoryl chloride 1645, oxalyl chloride 1478.5 at 293 K,
+#   2,4-lutidine 930.9 kg/m3), raised by 3.5 % for the 35 K above it (ASSUMED, a thermal
+#   expansion of about 0.1 %/K usual for these liquids); the suspended solids (phosphorus
+#   pentachloride 2100, anhydrous oxalic acid 1900 kg/m3, CRC) at their solid density, their
+#   volume in the slurry; dissolved chlorine at its liquid molar volume near its boiling point,
+#   0.0453 m3/kmol (1565 kg/m3, ASSUMED). Ideal mixing.
+# - liquid_heat_capacity, kJ/(kmol K): phosphoryl chloride 138.8, 2,4-lutidine 184.8 (CRC);
+#   oxalic acid (solid) 91.0 (CRC); phosphorus trichloride 120, phosphorus pentachloride (solid)
+#   150, oxalyl chloride 150 and dissolved chlorine 67, ASSUMED (no open measured value found;
+#   oxalyl chloride as two -COCl groups, each about acetyl chloride's 117 less its methyl group).
+# - phosphorus pentachloride and oxalic acid are solids in the slurry (phase: solid): non-volatile
+#   in the stills, and in the semi-batches carried as part of the reacting suspension, their rates
+#   pseudo-homogeneous (DESIGN.md D-005, L-1).
+# - HCl, CO and CO2 leave as they form (batch.vent, core ADR 0054) and are never charged or
+#   dosed; their liquid data below are placeholders core asks for (L-3).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: PCL3
+    name: Phosphorus trichloride
+    formula: PCl3
+    cas: 7719-12-2
+    molar_mass: 137.324
+    normal_boiling_point: 349.15
+    liquid_molar_volume: 0.09030
+    liquid_heat_capacity: 120.0
+    heat_of_vaporization: 30500
+    vapour_pressure: {a: 4.19505, b: 1304.47, c: -36.965, temperature_range: [221.6, 347.3], provenance: given, source: "NIST WebBook (C7719122), coefficients calculated by NIST from Stull (1947)"}
+  - id: CL2
+    name: Chlorine
+    formula: Cl2
+    cas: 7782-50-5
+    molar_mass: 70.900
+    normal_boiling_point: 239.11
+    liquid_molar_volume: 0.0453
+    liquid_heat_capacity: 67.0
+    heat_of_vaporization: 20410
+    vapour_pressure: {a: 4.16399, b: 905.335, c: -21.406, temperature_range: [240.0, 345.0], provenance: assumed, source: "fitted by us to the Perry's 8th ed. DIPPR-form equation as packaged in chemicals 1.5.2 (Psat_data_Perrys2_8), within 0.2 % over 240-345 K (header)"}
+  - {id: PCL5, name: Phosphorus pentachloride, formula: PCl5, cas: 10026-13-8, molar_mass: 208.224, liquid_molar_volume: 0.09915, liquid_heat_capacity: 150.0, phase: solid}
+  - id: POCL3
+    name: Phosphoryl chloride (phosphorus oxychloride)
+    formula: Cl3OP
+    cas: 10025-87-3
+    molar_mass: 153.323
+    normal_boiling_point: 378.65
+    liquid_molar_volume: 0.09647
+    liquid_heat_capacity: 138.8
+    heat_of_vaporization: 34350
+    vapour_pressure: {a: 4.28166, b: 1445.959, c: -40.119, temperature_range: [275.0, 378.3], provenance: given, source: "NIST WebBook (C10025873), coefficients calculated by NIST from Stull (1947)"}
+  - {id: OXA, name: Oxalic acid (anhydrous), formula: C2H2O4, cas: 144-62-7, molar_mass: 90.034, liquid_molar_volume: 0.04739, liquid_heat_capacity: 91.0, phase: solid}
+  - id: OXCL
+    name: Oxalyl chloride
+    formula: C2Cl2O2
+    cas: 79-37-8
+    molar_mass: 126.92
+    normal_boiling_point: 336.65
+    liquid_molar_volume: 0.08885
+    liquid_heat_capacity: 150.0
+    heat_of_vaporization: 32000
+    vapour_pressure: {a: 4.97113, b: 1671.6, c: 0.0, temperature_range: [283.0, 380.0], provenance: assumed, source: "Clausius-Clapeyron line through the normal boiling point 336.65 K (CRC via chemicals 1.5.2) with NIST WebBook's heat of vaporization 32 +/- 4 kJ/mol (Walker and Prophet 1967) held constant; no open Antoine fit found (header, D-007)"}
+  - id: LUT
+    name: 2,4-Dimethylpyridine (2,4-lutidine, catalyst)
+    formula: C7H9N
+    cas: 108-47-4
+    molar_mass: 107.156
+    normal_boiling_point: 431.55
+    liquid_molar_volume: 0.1191
+    liquid_heat_capacity: 184.8
+  # HCl, CO and CO2 leave as they form and are never in a liquid; the semi-batch R101 asks a
+  # liquid volume and heat capacity of every component its charge lists, even at 0 (the heel
+  # comes from R102's liquid outlet, which lists them at 0; L-3): the liquids' values near
+  # their boiling points (HCl 1191, CO 789, CO2 1180 kg/m3), ASSUMED, never used with a share.
+  # Their ideal-gas data let the vent condenser E-102's duty count the gases cooled from 333 to
+  # 283 K (core ADR 0062; without them the model leaves that term out, D-010)
+  - id: HCL
+    name: Hydrogen chloride
+    formula: HCl
+    cas: 7647-01-0
+    molar_mass: 36.458
+    normal_boiling_point: 188.15
+    liquid_molar_volume: 0.0306
+    liquid_heat_capacity: 60.0
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.827, -0.002936, 8.79e-06, -1.031e-08, 4.39e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals 1.5.2: dHf_298 ATcT, S_298 CRC, cp_R Poling et al. (5th ed.)"}
+  - id: CO
+    name: Carbon monoxide
+    formula: CO
+    cas: 630-08-0
+    molar_mass: 28.010
+    normal_boiling_point: 81.64
+    liquid_molar_volume: 0.0355
+    liquid_heat_capacity: 60.0
+    ideal_gas: {dHf_298: -110525.0, S_298: 197.7, cp_R: [3.912, -0.003913, 1.182e-05, -1.3e-08, 5.15e-12], temperature_range: [50, 1000], provenance: given, source: "chemicals 1.5.2: dHf_298 ATcT, S_298 CRC, cp_R Poling et al. (5th ed.)"}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.009
+    liquid_molar_volume: 0.0373
+    liquid_heat_capacity: 80.0
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [3.259, 0.001356, 1.502e-05, -2.374e-08, 1.056e-11], temperature_range: [50, 1000], provenance: given, source: "chemicals 1.5.2: dHf_298 ATcT, S_298 CRC, cp_R Poling et al. (5th ed.)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    liquid_molar_volume: 0.01816
+    liquid_heat_capacity: 75.3
+    heat_of_vaporization: 40660
+    vapour_pressure: {a: 4.6543, b: 1435.264, c: -64.848, temperature_range: [255.9, 373.0], provenance: given, source: "NIST WebBook (C7732185), coefficients fitted by NIST to Stull (1947)"}
+  - {id: H3PO4, name: Phosphoric acid, formula: H3O4P, cas: 7664-38-2, molar_mass: 97.994, liquid_heat_capacity: 145.0}
+templates:
+  - {id: chlorination, title: "Chlorination and reaction mass: PCl3, chlorine, PCl5 slurry in POCl3, oxalic acid, oxalyl chloride, catalyst", components: [PCL3, CL2, PCL5, POCL3, OXA, OXCL, LUT, HCL, CO, CO2]}
+  - {id: liquids, title: "Distillates and products: oxalyl chloride, phosphoryl chloride, traces", components: [PCL3, CL2, POCL3, OXCL]}
+  - {id: gas, title: "Off-gas: HCl, CO, CO2, chlorine with oxalyl chloride, POCl3 and PCl3 vapour", components: [HCL, CO, CO2, CL2, OXCL, POCL3, PCL3]}
+  - {id: acid, title: "Absorber: water, hydrochloric acid, phosphoric acid, off-gas", components: [H2O, HCL, H3PO4, CO, CO2, CL2, OXCL, POCL3, PCL3]}
+property_method:
+  adapter: thermo
+  status: placeholder
