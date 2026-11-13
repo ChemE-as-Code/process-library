@@ -1,0 +1,29 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes per batch from the recipe (D-003) and the models; design pressures, temperatures and
+# materials are not set yet (basic engineering); stainless steel is the usual choice for dry
+# Grignard and chlorosilane service, to be confirmed (open input). All values ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: R-101, type: StirredTankReactor, service: "Grignard reactor: tert-butyl chloride dosed into magnesium turnings in THF/n-hexane at 313 K, isobutene and isobutane vented through E-103",
+     notes: "6.3 m3 stainless steel (R10 preferred size, 79 % full with 4.97 m3 of batch), as the recipe sizes it from R101's model (core ADR 0052); half-pipe jacket on chilled brine 263/268 K (U 400 W/(m2 K), 12.3 m2 at the charge) removes 233.8 kW against the model's peak of 178.1 kW; warmed on hot water at 323.15 K, below the screening's MTT; a 5 kW agitator; the halide dosed 5 % first, a 30 min initiation hold, then 95 % over 2.5 h, the main dosing interlocked on a positive initiation and stopped on low heat flow, high temperature, loss of brine or of the agitator (D-004, D-011); vent line through E-103 to the thermal oxidiser for 100 m3/h (hazard.vent_capacity, ASSUMED); an emergency relief for the boiling-solvent case is open (D-011); kept dry (no rinse)."}
+  - {tag: E-103, type: HeatExchanger, service: "R-101's vent condenser: the solvent and halide vapour the C4 gases carry condensed at 268 K and returned to R-101",
+     notes: "On chilled brine 263/268 K, above the freezing points of the condensates (tert-butyl chloride 247 K, the solvents and the silane lower); 0.75 kW year average (R101's model, Q2); the gas past it, 94.6 kg a batch (mostly isobutene and isobutane), to the thermal oxidiser (D-008)."}
+  - {tag: R-102, type: StirredTankReactor, service: "Silylation reactor: the Grignard solution dosed into dichlorodimethylsilane with sodium thiocyanate at 301 K",
+     notes: "8 m3 stainless steel (R10 preferred size, 80 % full with 6.37 m3 of batch), sized from R102's model; the half-pipe jacket of its bottom head and an internal coil, 9 m2 covered by the charge, on chilled brine (U 400 W/(m2 K)), remove 128.1 kW against the model's peak of 95.1 kW (D-010); a 6 kW agitator; the Grignard solution dosed over 3 h from R-101; vented to the same header as R-101; an emergency relief for the boiling-solvent case is open (D-011)."}
+  - {tag: F-101, type: Filter, service: "Agitated filter-dryer: the magnesium salt filtered off under nitrogen, reslurried in recovered solvent, filtered again and vacuum-dried at 343 K",
+     notes: "8 m3 (R10 preferred size, 80 % full with one batch's slurry), heated jacket, bottom and agitator about 12 m2 on hot water at 353 K from LP steam; filtration from Ruth's equation (D-006); drying 5.51 h at an ASSUMED 4 kg/(m2 h), 12.23 kW year average (core's dryer model, Q8); dry vacuum pump; discharges 562 kg of dried salt a batch with the excess magnesium into the quench drum (D-006)."}
+  - {tag: E-201, type: HeatExchanger, service: "Condenser of the dryer's vapour after the dry vacuum pump, at atmospheric pressure and 268 K",
+     notes: "On chilled brine 263/268 K, 5.10 kW year average with the vacuum pump's heat (Q9); the condensate holds 4.4 mol% TBSCl, far below its ideal solubility at 268 K (D-009); 1 % of the condensable solvent leaves with the nitrogen bleed to the oxidiser (S18, D-006)."}
+  - {tag: T-201, type: Tank, service: "Still feed tank: the filtrate and the wash filtrate of one batch",
+     notes: "About 10 m3 (one batch's 5.56 t of filtrate, about 6.6 m3, with margin), stainless steel, nitrogen blanket (D-007)."}
+  - {tag: C-101, type: Vessel, service: "Batch still: the recovered solvent with the excess silane distilled off, then the TBSCl cut, at 101 kPa(a)",
+     notes: "10 m3 stainless steel (R10 preferred size, 66 % full with one batch's filtrates), jacket and coil on MP steam at 453 K, boil-up 250 kW, 6.67 h a batch (cheme process stills), from 342.3 to 425.2 K; nitrogen blanket (D-007)."}
+  - {tag: K-101, type: Column, service: "Packed rectifying column on C-101 with its condenser on tempered water",
+     notes: "About 10 theoretical stages with the still at a reflux ratio of 2 (ASSUMED); the condenser on tempered water 303/313 K for the recovered cut and on the loop's hot supply at 368 K for the TBSCl cut, above its melting point 358.1 K, switched before the TBSCl-rich vapour reaches it (D-007); 168.9 kW year average (ST101's model, Q6)."}
+  - {tag: E-102, type: HeatExchanger, service: "Flaker: the molten TBSCl cut solidified on a cooled drum and cooled to 308 K, under nitrogen",
+     notes: "Drum on cooling water 298/308 K, 3.98 kW year average (Q7); the receiver and lines from K-101 traced on LP steam above 358 K (Q11); enclosed, its nitrogen to the vent header; TBSCl reacts with moist air to HCl (D-007)."}
+  - {tag: T-301, type: Tank, service: "Recycle tank: the recovered THF/n-hexane with the excess silane (still cut and dryer condensate), its 2 % purge taken off",
+     notes: "About 15 m3 (two batches of about 5 t of recovered solvent), stainless steel, nitrogen blanket (D-014)."}
+  - {tag: E-301, type: HeatExchanger, service: "Recycle cooler: the recovered solvent cooled from its 336.6 K mix to 303 K",
+     notes: "On cooling water 298/308 K, 9.55 kW year average (Q10, D-009)."}

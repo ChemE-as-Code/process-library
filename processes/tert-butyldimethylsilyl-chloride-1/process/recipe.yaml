@@ -1,0 +1,86 @@
+# The batch recipe of tert-butyldimethylsilyl-chloride-1 (schema cheme/recipe/v1, `cheme process
+# recipe`, DESIGN.md D-003). One batch makes 721.9 kg of TBSCl flakes (stream S25); the
+# flowsheet's rates are the year averages.
+# - R-101 is one vessel over the charge (M101), its warm-up (E101) and the Grignard step (R101):
+#   `units`, core ADR 0057; R-102 takes the Grignard solution for the silylation (R102): a unit
+#   procedure holds one batch or semi-batch step, so the two steps cannot share a vessel in the
+#   recipe (DESIGN.md D-003, L-2). The dosings and post-reactions take their times from the
+#   models (from: R101, R102), the warm-up from the jacket with the vessel's metal (core ADRs
+#   0052, 0063); each vessel is sized from its model's content and its jacket checked against
+#   the model's peak cooling duty.
+# - F-101, an agitated filter-dryer, takes the slurry: filtration and the wash's filtration from
+#   Ruth's equation (F101, F102), the drying time from D101's drying rate on its heated area
+#   (core ADR 0057).
+# - C-101, the still, takes the filtrates from T-201: its boil-up time from ST101 (from: ST101).
+# Every other duration is ASSUMED (D-003). The flaker E-102, the vent condenser E-103, the
+# dryer's condenser E-201 and the tanks T-201 and T-301 run with their vessels and are no batch
+# units. `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: tert-Butyldimethylsilyl chloride by a batch Grignard route
+batch_size: {value: 721.9, unit: kg, stream: S25, provenance: assumed, source: "one batch of TBSCl flakes, what one R-101 charge gives (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [M101, E101, R101]
+    title: Charge, warm-up and Grignard step (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      metal_heat_capacity: 3000
+      jacket: {u: 400, coolant_temperature: 265.69, heating_temperature: 323.15, provenance: assumed, source: "stainless-steel vessel with a half-pipe jacket, U 400 W/(m2 K) ASSUMED (D-010); chilled brine enters at 263.15 K and leaves at 268.15 K, so the content at 313.15 K sees a log-mean driving force of (50 - 45) / ln(50/45) = 47.46 K: core takes the coolant temperature as constant, so the equivalent 313.15 - 47.46 = 265.69 K is entered, not the supply temperature; warming on hot water at 323.15 K, below the screening's MTT (tert-butyl chloride's boiling point, 324.1 K) and the liquor's bubble point (340.3 K) (D-010)"}
+      provenance: assumed
+      source: "usual fill and proportions of a stainless-steel stirred vessel; its metal about 6 t of steel at 0.5 kJ/(kg K), 3000 kJ/K, ASSUMED (D-003)"
+    operations:
+      - {id: inert, kind: other, title: "Dry and inert R-101 with nitrogen (oxygen and moisture out)", duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: charge-mg, kind: charge, title: Charge the magnesium turnings under nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge-solvent, kind: charge, title: "Charge the recycled solvent and the THF and n-hexane make-up", duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: warm, kind: heat, title: Warm the charge to 313 K (E101), temperatures: [302.9, 313.15]}
+      - {id: dose, kind: dose, title: "Dose 5 % of the tert-butyl chloride, hold for the initiation, dose the rest", from: R101}
+      - {id: react, kind: react, title: Post-reaction of the Grignard step, from: R101}
+      - {id: sample, kind: hold, title: "Sample and titrate the Grignard reagent", duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: "Dose the Grignard solution with the excess magnesium into R-102 (R-102's dosing)", duration: {value: 3.0, provenance: assumed, source: "R102's dosing time, 10800 s (D-003, D-004)"}}
+  - id: SILYL
+    unit: R102
+    title: Silylation (R-102)
+    # R-102 is inerted and charged while R-101 doses its halide, then waits, charged, until the
+    # Grignard solution is ready: its dosing must run exactly in R-101's transfer, because the
+    # solution leaves R-101 only as fast as R-102 takes it. The wait is R-101's dose, react and
+    # sample (3.25 + 0.194 + 0.5 h, two from R101's model) less R-102's inerting and charging
+    # (1.25 h): 2.694 h, so R-102 doses over 6.86-9.86 h as R-101 transfers (a test checks the
+    # two windows in `cheme process recipe`; a change of R101's times needs the wait changed).
+    start: {after: REACT, operation: dose}
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      metal_heat_capacity: 3000
+      jacket: {u: 400, area: 9.0, coolant_temperature: 265.71, provenance: assumed, source: "U as R-101's; 9 m2 that the charge covers from the start, the half-pipe jacket of the bottom head and an internal coil of about 6 m2 near the bottom, both on chilled brine 263/268 K, ASSUMED: the heel and the silane charged wet only about 6 m2 of the shell, which would not remove the peak of the Grignard dose (D-010); the content at 301.3 K sees a log-mean driving force of (38.15 - 33.15) / ln(38.15/33.15) = 35.59 K, so 301.3 - 35.59 = 265.71 K is entered (D-010)"}
+      provenance: assumed
+      source: "as R-101 (D-003)"
+    operations:
+      - {id: inert, kind: other, title: Inert R-102 with nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: "Charge the dichlorodimethylsilane and the heel of recovered solvent, add the sodium thiocyanate through the solids port", duration: {value: 0.75, provenance: assumed, source: "D-003, D-004"}}
+      - {id: wait, kind: hold, title: "Charged, waiting for the Grignard solution (R-101's dosing, post-reaction and sampling)", duration: {value: 2.694, provenance: assumed, source: "aligns R-102's dosing with R-101's transfer: 3.25 + 0.194 + 0.5 - 0.5 - 0.75 h (D-003)"}}
+      - {id: dose, kind: dose, title: Dose the Grignard solution from R-101, from: R102}
+      - {id: react, kind: react, title: Post-reaction of the silylation, from: R102}
+      - {id: sample, kind: hold, title: "Sample (GC) for the conversion of the Grignard reagent", duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Press the slurry to F-101 with nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: FILTER
+    units: [F101, M102, F102, D101]
+    title: Filtration, reslurry wash and vacuum drying of the salt in the agitated filter-dryer (F-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.0, heated_area: 12, provenance: assumed, source: "a squat agitated filter-dryer, its filter plate the bottom; jacket, heated bottom and heated agitator about 12 m2, as methyltriphenylphosphonium-bromide-1's (D-006)"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the slurry, duration: {value: 0.5, provenance: assumed, source: "as R-101's transfer (D-003)"}}
+      - {id: filter, kind: filter, title: Filter off the liquor to T-201 (F101), from: F101}
+      - {id: wash, kind: other, title: Reslurry the cake in recovered solvent (M102), duration: {value: 0.5, provenance: assumed, source: D-006}}
+      - {id: refilter, kind: filter, title: Filter off the wash to T-201 (F102), from: F102}
+      - {id: dry, kind: dry, title: Vacuum drying at 343 K (D101), from: D101}
+      - {id: discharge, kind: transfer, title: "Break the vacuum with nitrogen, discharge the warm salt into the quench drum", duration: {value: 1.0, provenance: assumed, source: "D-003, D-006"}}
+  - id: DISTIL
+    unit: ST101
+    title: Solvent recovery and product cut (C-101 with its column K-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.2, metal_heat_capacity: 3000, provenance: assumed, source: "a stainless-steel still pot with jacket and coil, sized from the filtrates it receives; its metal about 6 t of steel at 0.5 kJ/(kg K), 3000 kJ/K, in the still's duty (core ADR 0063), ASSUMED (D-003, D-007)"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the filtrates from T-201, duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: distil, kind: distil, title: "Distil the solvent to T-301, then the product cut to the flaker", from: ST101}
+      - {id: drain, kind: transfer, title: "Cool and drain the residue to the incineration drum", duration: {value: 0.5, provenance: assumed, source: D-003}}

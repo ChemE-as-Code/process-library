@@ -1,0 +1,84 @@
+# Reactions of tert-butyldimethylsilyl-chloride-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`). DESIGN.md D-001 (route) and D-005 (heats and rate laws).
+#
+# GRIG: magnesium and tert-butyl chloride to tert-butylmagnesium chloride in THF, the first step
+# of US 5 068 386 A (Examples 1 and 3: 0.5 mol each of magnesium and tert-butyl chloride in 250 mL
+# of THF under nitrogen). Heat of reaction ASSUMED: -270 kJ/mol, the molar reaction enthalpy the
+# HZDR measured in a closed reaction calorimeter for a Grignard formation from an aryl bromide
+# and magnesium in THF at 40-70 C (270 +/- 6 kJ/mol, Hessel et al., HZDR annual report 1999) as
+# the analogue; no open value for tert-butyl chloride was found (D-005).
+# DISP: the disproportionation of the Grignard reagent with tert-butyl chloride to isobutene,
+# isobutane and MgCl2, the side reaction of a tertiary alkyl halide in a Grignard formation (the
+# tert-butyl radical gives up or takes a hydrogen). Its heat is derived (my arithmetic, D-005):
+# R-MgCl + HCl(g) -> R-H + MgCl2 taken as Holm's -274.5 kJ/mol for CH3MgBr + HBr (NIST WebBook,
+# the analogue, ASSUMED), plus tert-butyl chloride(l) -> isobutene(g) + HCl(g), +101.5 kJ/mol from
+# the formation enthalpies in chemicals 1.5.2 (tert-butyl chloride liquid -211.3, isobutene gas
+# -17.6, HCl gas -92.17 kJ/mol): -173.0 kJ/mol with both hydrocarbons as gases (they are vented as
+# they form, core ADR 0054).
+# SIL: the Grignard reagent and dichlorodimethylsilane to tert-butyldimethylsilyl chloride and
+# MgCl2 with a thiocyanate catalyst (US 5 068 386 A, Example 3: 0.8 mol% sodium thiocyanate,
+# 78 % isolated). Without a catalyst the tertiary Grignard reagent gave only a trace of product
+# (US 5 872 274 A, Example 10, in diethylene glycol dibutyl ether; that it does not react in
+# R-101's THF at 313 K either is ASSUMED, D-004, D-005). Heat of reaction ASSUMED: -200 kJ/mol (D-005): no open value;
+# the patent's own exotherm, from room temperature to 60 C as the silane was dripped into the
+# 0.5 mol batch, is consistent with it but bounds it only from below (about 50 kJ/mol, my
+# arithmetic: about 0.4 kg of mixture at about 1.8 kJ/(kg K) warmed by about 35 K).
+# Kinetics: no open rate law of any of the three (searched 2026-11-12). All three are effective
+# homogeneous rate laws, ASSUMED (D-005); GRIG of order 2/3 in the magnesium's
+# pseudo-concentration (the turnings' surface shrinking with their mass) as in
+# methylmagnesium-bromide-1; core has no surface-area rate or induction period (L-1).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: GRIG
+    title: Grignard formation from magnesium and tert-butyl chloride
+    equation: Mg + C4H9Cl -> C4H9MgCl
+    stoichiometry: {MG: -1, TBUCL: -1, TBUMGCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -270000, provenance: assumed, source: "ASSUMED (D-005): the molar reaction enthalpy of a Grignard formation from an aryl bromide and magnesium in THF at 40-70 C, 270 +/- 6 kJ/mol (HZDR closed reaction calorimeter, Hessel et al. 1999, SRC-4), as the analogue; no open value for tert-butyl chloride found"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 0.01 (m3/kmol)^(2/3)/s at 313.15 K (Ea 40 kJ/mol): A = 0.01 x exp(40000 / (8.314 x
+      # 313.15)) = 4.704e4
+      k: {A: 4.704e4, Ea: 40000}
+      orders: {TBUCL: 1, MG: 0.6667}
+      temperature_range: [293.15, 343.15]
+      provenance: assumed
+      source: "ASSUMED effective rate of the initiated reaction (D-005): first order in the halide as the HZDR fitted for the main stage of an aryl bromide's Grignard formation in THF (k 0.6e-2 to 1.6e-2 L/(mol s) at 40 C, SRC-4), of order 2/3 in the magnesium as a surface proxy; no open kinetics of tert-butyl chloride found (2026-11-12); to be replaced by reaction calorimetry"
+    sources: ["US 5 068 386 A, Examples 1 and 3 (the Grignard step)", "HZDR annual report 1999, Hessel et al. (analogue heat and rate)"]
+  - id: DISP
+    title: Disproportionation of the Grignard reagent with tert-butyl chloride
+    equation: C4H9MgCl + C4H9Cl -> C4H8 + C4H10 + MgCl2
+    stoichiometry: {TBUMGCL: -1, TBUCL: -1, IB: 1, IBA: 1, MGCL2: 1}
+    phase: liquid
+    heat_of_reaction: {value: -173000, provenance: assumed, source: "derived (my arithmetic, D-005): Holm's -274.5 kJ/mol for CH3MgBr + HBr -> CH4 + MgBr2 (NIST WebBook, SRC-5) as the analogue of C4H9MgCl + HCl -> C4H10 + MgCl2, ASSUMED, plus tert-butyl chloride(l) -> isobutene(g) + HCl(g), +101.5 kJ/mol (chemicals 1.5.2 formation enthalpies, SRC-7); both hydrocarbons as gases"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 1.5e-3 m3/(kmol s) at 313.15 K (Ea 40 kJ/mol): A = 1.5e-3 x 4.704e6 = 7056
+      k: {A: 7056, Ea: 40000}
+      orders: {TBUMGCL: 1, TBUCL: 1}
+      temperature_range: [293.15, 343.15]
+      provenance: assumed
+      source: "ASSUMED (D-005): set so that the model's isolated yield on tert-butyl chloride stays below the 78 % of US 5 068 386 A, Example 3 (74.6 % modelled, D-002); no open selectivity of tert-butyl chloride's Grignard formation found"
+    sources: ["US 5 068 386 A (the yield the selectivity is set against)"]
+  - id: SIL
+    title: Silylation of the Grignard reagent with dichlorodimethylsilane (thiocyanate catalyst)
+    equation: C4H9MgCl + C2H6Cl2Si -> C6H15ClSi + MgCl2
+    stoichiometry: {TBUMGCL: -1, ME2SICL2: -1, TBSCL: 1, MGCL2: 1}
+    phase: liquid
+    heat_of_reaction: {value: -200000, provenance: assumed, source: "ASSUMED (D-005): no open value found; of the order of a Grignard reagent's reaction with an electrophile; the 60 C exotherm of US 5 068 386 A, Examples 1 and 3 bounds it only from below"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 5e-3 m3/(kmol s) at 313.15 K (Ea 40 kJ/mol): A = 5e-3 x 4.704e6 = 2.352e4
+      k: {A: 2.352e4, Ea: 40000}
+      orders: {TBUMGCL: 1, ME2SICL2: 1}
+      temperature_range: [293.15, 343.15]
+      provenance: assumed
+      source: "ASSUMED effective rate with 0.8 mol% sodium thiocyanate (D-005): fast, as US 5 068 386 A's batch heated itself to 60 C while the silane was dripped in, and US 5 872 274 A's copper-catalysed mixtures formed their two phases within 5 min at 23 C; the catalyst is not a component of the model (L-5)"
+    sources: ["US 5 068 386 A, Example 3", "US 5 872 274 A, Examples 10-16 (no reaction without a catalyst in diethylene glycol dibutyl ether)"]

@@ -1,0 +1,111 @@
+# Components and templates of tert-butyldimethylsilyl-chloride-1. Schema cheme/process/v1 (`cheme
+# schema process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The Grignard solution is carried as molecular pseudo-components (tert-butylmagnesium chloride
+# dissolved in the THF/hexane solvent), an inventory basis: the Schlenk equilibrium and the THF
+# solvates of the magnesium species are not modelled (DESIGN.md D-005). Magnesium and magnesium
+# chloride are solids (phase: solid): the turnings and the salt that precipitates as it forms.
+# Isobutene and isobutane, formed by the disproportionation of the Grignard step, leave by R-101's
+# vent as they form (batch.vent, core ADR 0054) and need no liquid data. Sources (DESIGN.md SRC-n):
+# - normal boiling points and the Antoine lines (bar, K) of THF, n-hexane, dichlorodimethylsilane
+#   and tert-butyl chloride: NIST WebBook (SRC-6), each fitted by NIST to the work it names; used
+#   outside their fitted ranges where the vent condenser (268 K) or the still (up to about 425 K)
+#   needs them, an extrapolation recorded in D-007 and D-008;
+# - TBSCl's normal boiling point 398.15 K (397-399 K in the NIST WebBook, SRC-6) and its fusion
+#   at 358.1 K (enthalpy of fusion 5.6 kJ/mol, Braeuninger et al. 2010, NIST WebBook, SRC-6),
+#   taken as its melting point (core has no solid-liquid data); its vapour pressure is ASSUMED:
+#   an Antoine line fitted (300-440 K, within 0.14 %) to thermo 0.6.1's Ambrose-Walton
+#   correlation from estimated critical constants (SRC-7); it reproduces the boiling point;
+# - liquid molar volumes from thermo 0.6.1's default liquid densities at 298 K (SRC-7: THF and
+#   n-hexane from DIPPR_PERRY_8E and HEOS_FIT, Me2SiCl2 and tert-butyl chloride from the
+#   MMSNM0 correlation, TBSCl from the Yamada-Gunn estimate at 313 K), single facts with their
+#   method named (library ADR 0037); magnesium from 1.738 g/cm3 and MgCl2 from 2.32 g/cm3 (the
+#   solids, CRC via chemicals 1.5.2), the solids' own volume in the slurry; tert-butylmagnesium
+#   chloride 0.110 m3/kmol, ASSUMED (no open density of its solution found);
+# - liquid heat capacities, kJ/(kmol K), at 313 K from thermo 0.6.1 (SRC-7: THF Dadgostar-Shaw
+#   141.1, n-hexane HEOS_FIT 201.4, Me2SiCl2 and tert-butyl chloride Zabransky's spline 174.2
+#   and 169.5, TBSCl Dadgostar-Shaw 265.4); magnesium 24.9 and MgCl2 71.4 (the solids, NIST
+#   WebBook); tert-butylmagnesium chloride 194, ASSUMED by Kopp's rule (solid Mg plus liquid
+#   tert-butyl chloride);
+# - heats of vaporization, kJ/kmol, at the normal boiling point from thermo 0.6.1 (SRC-7: THF
+#   29.85 and n-hexane 28.88 (DIPPR_PERRY_8E, HEOS_FIT), Me2SiCl2 28.61 and tert-butyl chloride
+#   25.50 (Morgan-Kobayashi), TBSCl 33.24 (Morgan-Kobayashi from estimated constants, ASSUMED));
+#   they set the still's boil-up energy (core ADRs 0055, 0061), the vent vapour's cooling (ADR
+#   0062) and the default MTT above 110 kPa(a) (ADR 0058).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: THF
+    name: Tetrahydrofuran
+    formula: C4H8O
+    cas: 109-99-9
+    molar_mass: 72.107
+    normal_boiling_point: 339.15
+    liquid_molar_volume: 0.08194
+    liquid_heat_capacity: 141.1
+    heat_of_vaporization: 29850
+    vapour_pressure: {a: 4.12118, b: 1202.942, c: -46.818, temperature_range: [268.0, 372.8], provenance: given, source: "NIST WebBook (C109999), coefficients calculated by NIST from Scott (1970) over 296.29-372.8 K; used down to the vent condenser's 268 K, an extrapolation (D-008)"}
+  - id: HEX
+    name: n-Hexane
+    formula: C6H14
+    cas: 110-54-3
+    molar_mass: 86.178
+    normal_boiling_point: 341.9
+    liquid_molar_volume: 0.13158
+    liquid_heat_capacity: 201.4
+    heat_of_vaporization: 28880
+    vapour_pressure: {a: 4.00266, b: 1171.53, c: -48.784, temperature_range: [268.0, 430.0], provenance: given, source: "NIST WebBook (C110543), coefficients calculated by NIST from Willingham, Taylor et al. (1945) over 286.18-342.69 K; used from the vent condenser's 268 K to the still's end, an extrapolation (D-007, D-008)"}
+  - id: TBUCL
+    name: tert-Butyl chloride (2-chloro-2-methylpropane)
+    formula: C4H9Cl
+    cas: 507-20-0
+    molar_mass: 92.567
+    normal_boiling_point: 324.1
+    liquid_molar_volume: 0.11309
+    liquid_heat_capacity: 169.5
+    heat_of_vaporization: 25500
+    vapour_pressure: {a: 4.24201, b: 1281.242, c: -21.795, temperature_range: [254.0, 430.0], provenance: given, source: "NIST WebBook (C507200), coefficients calculated by NIST from Stull (1947) over 254-324 K; above it an extrapolation (D-007)"}
+  - id: ME2SICL2
+    name: Dichlorodimethylsilane
+    formula: C2H6Cl2Si
+    cas: 75-78-5
+    molar_mass: 129.06
+    normal_boiling_point: 342.52
+    liquid_molar_volume: 0.12490
+    liquid_heat_capacity: 174.2
+    heat_of_vaporization: 28610
+    vapour_pressure: {a: 4.26844, b: 1328.0, c: -32.0, temperature_range: [268.0, 430.0], provenance: given, source: "NIST WebBook (C75785), coefficients of Jenkins and Chambers (1954) over 300.9-345.3 K; outside it an extrapolation (D-007, D-008)"}
+  - id: TBSCL
+    name: tert-Butyldimethylsilyl chloride (tert-butylchlorodimethylsilane)
+    formula: C6H15ClSi
+    cas: 18162-48-6
+    molar_mass: 150.725
+    normal_boiling_point: 398.15
+    liquid_molar_volume: 0.17163
+    liquid_heat_capacity: 265.4
+    heat_of_vaporization: 33240
+    vapour_pressure: {a: 4.04459, b: 1358.562, c: -61.718, temperature_range: [268.0, 440.0], provenance: assumed, source: "ASSUMED (D-007): fitted over 300-440 K (0.14 % at most) to thermo 0.6.1's Ambrose-Walton vapour pressure from its estimated critical constants (SRC-7); it gives 101.5 kPa at 398.15 K, the boiling point the NIST WebBook lists (397-399 K, SRC-6); no measured vapour pressure found"}
+  - {id: MG, name: Magnesium (turnings), formula: Mg, cas: 7439-95-4, molar_mass: 24.305, phase: solid, liquid_molar_volume: 0.013985, liquid_heat_capacity: 24.9}
+  - {id: TBUMGCL, name: tert-Butylmagnesium chloride (dissolved), formula: C4H9ClMg, cas: 677-22-5, molar_mass: 116.872, liquid_molar_volume: 0.110, liquid_heat_capacity: 194.0}
+  - {id: MGCL2, name: Magnesium chloride (precipitated), formula: MgCl2, cas: 7786-30-3, molar_mass: 95.211, phase: solid, liquid_molar_volume: 0.04104, liquid_heat_capacity: 71.4}
+  # IB and IBA leave by the vent as they form and are 0 in every liquid; their liquid data (thermo
+  # 0.6.1, HEOS_FIT at 313 K, SRC-7) only let R102 and the still take a liquid that lists them
+  # at 0 (DESIGN.md L-3)
+  - {id: IB, name: Isobutene, formula: C4H8, cas: 115-11-7, molar_mass: 56.107, normal_boiling_point: 266.15, liquid_molar_volume: 0.0986, liquid_heat_capacity: 138.3}
+  - {id: IBA, name: Isobutane, formula: C4H10, cas: 75-28-5, molar_mass: 58.123, normal_boiling_point: 261.4, liquid_molar_volume: 0.1095, liquid_heat_capacity: 147.3}
+templates:
+  # R101, R102 and the still write every component of their charge into their outlets (the
+  # vented gases at 0, DESIGN.md L-3): the process template carries them all.
+  - {id: process, title: "Reaction mass, solution, filtrate, recovered solvent and cuts", components: [THF, HEX, TBUCL, ME2SICL2, TBSCL, MG, TBUMGCL, MGCL2, IB, IBA]}
+  - {id: solvent, title: "Solvent make-up", components: [THF, HEX]}
+  - {id: metal, title: Magnesium turnings, components: [MG]}
+  - {id: reagent, title: "tert-Butyl chloride and dichlorodimethylsilane", components: [TBUCL, ME2SICL2]}
+  - {id: offgas, title: "Isobutene and isobutane with the solvent's vapour", components: [IB, IBA, THF, HEX, TBUCL, ME2SICL2, TBSCL]}
+# No benchmarked property package covers the Grignard solution (cheme process props
+# --coverage): the liquid data above are the semi-batch's and the still's; the duties of R101,
+# R102, the vent condenser and the still are the models' (core ADRs 0059, 0061, 0062, 0063), the
+# dryer's core's dryer model, the others hand arithmetic (DESIGN.md D-009).
+property_method:
+  adapter: thermo
+  status: placeholder
