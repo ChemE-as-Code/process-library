@@ -1,0 +1,842 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# tert-Butyldimethylsilyl chloride (TBSCl) by the Grignard route of US 5 068 386 A (DESIGN.md
+# D-001), a batch plant: magnesium turnings in THF and n-hexane (the recovered solvent and its
+# make-up) are warmed to 313 K in R-101; tert-butyl chloride is dosed into them (5 % first and a
+# hold for the initiation, then the rest), the isobutene and isobutane of the side reaction leave
+# by the vent with the solvent's vapour through a brine vent condenser; the Grignard solution is
+# then dosed into R-102, where dichlorodimethylsilane, a heel of recovered solvent and sodium
+# thiocyanate are charged (the catalyst of US 5 068 386 A, the order of addition of
+# US 5 872 274 A, DESIGN.md D-004). The
+# slurry is filtered in the agitated filter-dryer F-101, the cake reslurried in recovered
+# solvent, filtered again and dried under vacuum; the filtrates go to the batch still C-101 with
+# its column, which distils the solvent with the excess silane back to the recycle and then the
+# product cut, condensed above TBSCl's melting point and flaked. The recovered solvent is
+# recycled to the next charge and the cake wash (a recycle converged at its tear).
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-008, ASSUMED; the feeds are
+#   scaled by hand to the recipe's batch (every outlet scales with them);
+# - R101 and R102: cheme's semi-batch model (core ADR 0050), R101 with its vent, the vent's
+#   vapour and its condenser (ADRs 0054, 0062), from the ASSUMED rate laws (D-005);
+# - F101, F102: specified filters with Ruth's filtration time (core ADR 0057, D-006);
+# - D101: core's dryer (ADR 0057, D-006);
+# - ST101: cheme's batch still with a column on the shortcut (ADRs 0055, 0061, 0063), Raoult's
+#   law with the NIST Antoine lines and TBSCl's ASSUMED line (D-007);
+# - E101, E102, E201, E301 (pass-through), M101, M102, M103, M201, M301, M401 (mixers), SP201,
+#   SP301, SP302 (splitters): `cheme process propagate --fill`; the recycle converges at its
+#   tear S29 (D-014); the mixers' temperatures are given, from their inlets (D-009);
+# - the duties: R101's Q1 and its vent condenser's Q2, R102's Q3, the still's reboiler Q5 and
+#   condenser Q6 are written by `cheme process propagate --fill` from the models (core ADRs 0059,
+#   0061, 0062, 0063); the dryer's Q8 is core's dryer model (`cheme process crystallizers`) and
+#   R-101's warm-up Q4 the recipe's heat (`cheme process recipe`), copied at their precision;
+#   the others are hand arithmetic from the stream table, given as ASSUMED with the arithmetic
+#   in the source (D-009).
+schema: cheme/process/v1
+kind: flowsheet
+title: tert-Butyldimethylsilyl chloride by a batch Grignard route with filtration, solvent recovery and batch rectification
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: TBSCl flakes, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The solvent loop (R-101, F-101, C-101, the recycle tank T-301) is torn at the recycle S29 and
+# converged by `cheme process propagate` (Wegstein, core ADR 0060).
+tears:
+  - stream: S29
+    initial: {flow: 474.2, unit: kg/h, basis: mass_fraction, composition: {THF: 0.7505, HEX: 0.1937, TBUCL: 0.0001, ME2SICL2: 0.0163, TBSCL: 0.0394}}
+convergence: {method: wegstein, max_iterations: 1000, tolerance: {abs: 1.0e-5, rel: 1.0e-8}}
+
+feeds:
+  - {id: MGF, title: Magnesium turnings (merchant), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: THFF, title: "Tetrahydrofuran make-up, dry (thf-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HEXF, title: "n-Hexane make-up, dry (merchant)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: TBUCLF, title: "tert-Butyl chloride (merchant)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SILF, title: "Dichlorodimethylsilane (merchant)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: r102, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+      - {id: e102, direction: out, kind: energy}
+  - id: LPS
+    title: "LP steam 350 kPa(a) (the hot-water loops of R-101 and F-101, tracing of the product's receiver and lines)"
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a): 412.0 K (IAPWS-IF97)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+      - {id: trace, direction: out, kind: energy}
+  - id: MPS
+    title: "MP steam 1000 kPa(a) (the still C-101)"
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "design basis (D-007, D-009)"}
+      supply_temperature: {value: 453.0, provenance: given, source: "saturation at 1000 kPa(a): 453.0 K (IAPWS-IF97)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: st101, direction: out, kind: energy}
+products:
+  - {id: TBSCLP, title: "tert-Butyldimethylsilyl chloride flakes to packing under nitrogen", category: product, ports: [{id: in, direction: in}]}
+  - {id: CAKE, title: "Dried salt cake (MgCl2, excess magnesium) to quench and hazardous-waste treatment", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: RESID, title: Still residue to incineration, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: WSOLV, title: Solvent purge to solvent incineration, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: OXID, title: "Vent gas (isobutene, isobutane, solvent vapour) to the thermal oxidiser", category: off_gas, ports: [{id: in, direction: in}]}
+  - id: BRINE
+    title: Chilled brine return (the jackets of R-101 and R-102, R-101's vent condenser, the dryer's vapour condenser)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 263.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 268.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r101v, direction: in, kind: energy}
+      - {id: r102, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+  - id: TW
+    title: "Tempered-water return (C-101's condenser: 303/313 K for the recovered cut, 368/373 K for the product cut)"
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 303.15, provenance: assumed, source: "design basis (D-007, D-009): the closed loop's cold supply for the recovered cut; for the product cut it is switched to its hot supply, 368.15 K, 10 K above TBSCl's melting point (358.1 K, D-007), so that no product freezes on the condenser; the loop is cooled by the site's cooling water"}
+      return_temperature: {value: 313.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: st101, direction: in, kind: energy}
+  - id: CW
+    title: Cooling water return (the flaker and the recovered-solvent cooler)
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: e301, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Grignard formation (R-101) and silylation (R-102)
+    class: ReactingChemicals
+    ports:
+      - {id: mg, direction: in}
+      - {id: thf, direction: in}
+      - {id: hex, direction: in}
+      - {id: rec, direction: in}
+      - {id: heel, direction: in}
+      - {id: tbucl, direction: in}
+      - {id: sil, direction: in}
+      - {id: slurry, direction: out}
+      - {id: vent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: brine, direction: out, kind: energy}
+      - {id: brinev, direction: out, kind: energy}
+      - {id: brine2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+  - id: FILT
+    title: Filtration, reslurry wash and vacuum drying of the salt (F-101)
+    class: Filtering
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: filtrate, direction: out}
+      - {id: wfiltrate, direction: out}
+      - {id: cake, direction: out}
+      - {id: cond, direction: out}
+      - {id: loss, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: brine, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: DIST
+    title: Batch rectification (C-101) and flaking (E-102)
+    class: Distilling
+    ports:
+      - {id: filtrate, direction: in}
+      - {id: wfiltrate, direction: in}
+      - {id: recovered, direction: out}
+      - {id: product, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: tw, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: trace, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: RECOV
+    title: Solvent recycle (T-301), purge and the vent header
+    class: Mixing
+    ports:
+      - {id: dist, direction: in}
+      - {id: dcond, direction: in}
+      - {id: rec, direction: out}
+      - {id: wash, direction: out}
+      - {id: heel, direction: out}
+      - {id: purge, direction: out}
+      - {id: vent, direction: in}
+      - {id: loss, direction: in}
+      - {id: oxid, direction: out}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  - id: M101
+    block: REACT
+    title: R-101 charge (magnesium, recycled solvent and make-up)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: mg, direction: in, delegates: mg}
+      - {id: thf, direction: in, delegates: thf}
+      - {id: hex, direction: in, delegates: hex}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: E101
+    block: REACT
+    title: Charge warmed to 313 K (R-101 jacket on hot water)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: REACT
+    title: Grignard step (tert-butyl chloride dosed into magnesium at 313 K, C4 gases vented)
+    class: ReactingChemicals
+    reactions: [GRIG, DISP]
+    reactor: semibatch
+    batch:
+      dosing:
+        - {stream: S4, profile: [[900, 0.05], [1800, 0.0], [9000, 0.95]]}
+      vent:
+        stream: S8
+        components: [IB, IBA]
+        vapour: {components: [THF, HEX, TBUCL, ME2SICL2, TBSCL], source: "D-008: the C4 gases leave the liquid saturated with its volatile components at 313.15 K and 101.325 kPa(a) (Raoult, an ideal liquid, materials.yaml's Antoine lines; the dissolved Grignard reagent counted in the liquid)"}
+        condenser: {temperature: 268.15, returns: vessel, energy_port: qv, provenance: assumed, source: "R-101's vent condenser E-103 on chilled brine 263/268 K, the gas out at 268.15 K (D-008): above the freezing points of every condensate it takes (tert-butyl chloride 247 K, dichlorodimethylsilane 199 K, THF 165 K, n-hexane 178 K, NIST WebBook); the little TBSCl the recycle brings stays dissolved in the condensing solvent; the condensate runs back into R-101"}
+      target: {key: TBUCL, conversion: 0.999}
+      heat: isothermal
+      provenance: assumed
+      source: "5 % of the tert-butyl chloride in 15 min, a 30 min hold for the initiation, the rest over 2.5 h, within R-101's jacket (D-004, D-010); post-reaction at 313 K to 0.999 conversion of the halide (D-005); the C4 gases leave as they form (D-008)"
+    energy_port: q
+    hazard:
+      vent_capacity: 100.0
+      provenance: assumed
+      source: "R-101's vent line through its vent condenser E-103 to the thermal oxidiser's header, sized for about three times the normal peak of the isobutene and isobutane past E-103 (34.0 m3/h at 268 K, `cheme process recipe`) so that it also passes a cooling failure at the base rate with the liquid's vapour (80.1 m3/h at the MTSR); 100 m3/h, ASSUMED (D-011)"
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: E-103}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: dose, direction: in, delegates: tbucl}
+      - {id: out, direction: out}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: brine}
+      - {id: qv, direction: out, kind: energy, delegates: brinev}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M103
+    block: REACT
+    title: R-102 charge (dichlorodimethylsilane and a heel of recovered solvent)
+    class: Mixing
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: sil, direction: in, delegates: sil}
+      - {id: heel, direction: in, delegates: heel}
+      - {id: out, direction: out}
+  - id: R102
+    block: REACT
+    title: Silylation in R-102 (the Grignard solution dosed into dichlorodimethylsilane at 301 K, sodium thiocyanate catalyst)
+    class: ReactingChemicals
+    reactions: [SIL]
+    reactor: semibatch
+    batch:
+      dosing:
+        - {stream: S7, time: 10800}
+      target: {key: TBUMGCL, conversion: 0.999}
+      heat: isothermal
+      provenance: assumed
+      source: "reverse addition (D-004): the dichlorodimethylsilane with a heel of recovered solvent charged and 0.8 mol% sodium thiocyanate on the tert-butyl chloride added (the catalyst and amount of US 5 068 386 A, Example 3; an LCA consumable, not a component), the Grignard solution from R-101 dosed at a constant rate over 3 h, the order of US 5 872 274 A, Examples 11-16, so that the silane is not set off all at once when the catalyst is in, within R-102's jacket (D-004, D-010); isothermal at the 301.3 K the charge mixes to (D-005), the post-reaction to 0.999 conversion of the Grignard reagent in place of the patent's 3 h at reflux"
+    energy_port: q
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: dose, direction: in}
+      - {id: out, direction: out, delegates: slurry}
+      - {id: q, direction: out, kind: energy, delegates: brine2}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  - id: F101
+    block: FILT
+    title: Filtration of the reaction slurry (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.998
+      cake_liquid: {value: 0.5, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "agitated filter-dryer under nitrogen, 0.5 kg of liquor per kg of salt in the cake, 0.2 % of the fine salt through the cloth (D-006)"
+      filtration:
+        specific_cake_resistance: 2.0e+10
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 0.6
+        filtrate_density: 830
+        provenance: assumed
+        source: "ASSUMED (D-006): a fine, solvated salt, a cloth medium, 200 kPa of nitrogen on the cake; the liquor THF/n-hexane at 313 K (about 0.4 mPa s for the solvents, raised for the dissolved product) and about 0.83 g/cm3"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out, delegates: filtrate}
+  - id: M102
+    block: FILT
+    title: Reslurry wash of the cake with recovered solvent (filter-dryer)
+    class: Mixing
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: out, direction: out}
+  - id: F102
+    block: FILT
+    title: Filtration of the wash (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.999
+      cake_liquid: {value: 0.5, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F101 (D-006)"
+      filtration:
+        specific_cake_resistance: 2.0e+10
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 0.5
+        filtrate_density: 790
+        provenance: assumed
+        source: "as F101; the wash, mostly solvent (D-006)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out, delegates: wfiltrate}
+  - id: D101
+    block: FILT
+    title: Vacuum drying of the salt cake at 343 K (filter-dryer)
+    class: Drying
+    dryer:
+      volatiles: [THF, HEX, TBUCL, ME2SICL2, TBSCL]
+      residual_moisture: {value: 0.02, basis: mass_fraction, provenance: assumed, source: "2 wt% solvent left in the dried salt, ASSUMED (D-006): the THF the MgCl2 solvate holds is not modelled"}
+      temperature: 343.15
+      energy:
+        heat_capacity: 1.15
+        inlet_temperature: 302.4
+        latent_heat: {THF: 425.0, HEX: 350.0, TBUCL: 275.0, ME2SICL2: 230.0, TBSCL: 246.0}
+        vessel_heat_capacity: 4000
+        efficiency: 0.7
+        port: steam
+        provenance: assumed
+        source: "ASSUMED (D-006, D-009): the wet cake enters at the reslurried cake's 302.4 K (S12); the wet cake, the salt (0.75 kJ/(kg K)) with 0.5 kg of liquor (about 1.95 kJ/(kg K)) per kg, 1.15 kJ/(kg K); latent heats at 343 K from thermo 0.6.1 (SRC-7): THF 30.6, n-hexane 30.2, tert-butyl chloride 25.5, Me2SiCl2 29.6 and TBSCl 37.1 kJ/mol; the filter-dryer's steel, about 8 t at 0.5 kJ/(kg K), heated each batch from the cake's temperature; 70 % of the heat to the cake"
+      drying_rate: {value: 4.0, provenance: assumed, source: "ASSUMED mean rate of an agitated vacuum filter-dryer drying a solvent-wet salt at 343 K with hot water at 353 K (D-006), as methyltriphenylphosphonium-bromide-1's"}
+      cake_density: {value: 1100, provenance: assumed, source: "ASSUMED bulk density of the solvent-wet salt cake (D-006)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: cake}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E201
+    block: FILT
+    title: Dryer vapour condensed at 268 K after the dry vacuum pump (E-201, brine)
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: brine}
+  - id: SP201
+    block: FILT
+    title: Dryer condensate and the solvent the nitrogen bleed carries to the oxidiser
+    class: SplittingMaterial
+    split: {loss: 0.01}
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: loss, direction: out, delegates: loss}
+  - id: M201
+    block: DIST
+    title: Filtrate and wash filtrate in the still feed tank T-201
+    class: Mixing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: filtrate, direction: in, delegates: filtrate}
+      - {id: wfiltrate, direction: in, delegates: wfiltrate}
+      - {id: out, direction: out}
+  - id: ST101
+    block: DIST
+    title: Batch still with its column at 101 kPa(a) (C-101), the solvent and the product cut
+    class: Distilling
+    energy_port: steam
+    still:
+      pressure: 101.325
+      volatility: {model: raoult, provenance: assumed, source: "an ideal liquid, the NIST Antoine lines and TBSCl's ASSUMED line (materials.yaml); no VLE data of the pairs found, ASSUMED (D-007)"}
+      # IB and IBA are 0 in the filtrate (R101 vents them whole as they form) and TBUMGCL 0.001
+      # of its charge; they are listed so that the still asks no vapour pressure of them
+      nonvolatile: [MG, MGCL2, TBUMGCL, IB, IBA]
+      boilup: {value: 250, unit: kW, provenance: assumed, source: "C-101's jacket and internal coil on MP steam 1000 kPa(a) (D-007, D-009); with the column (R + 1) moles boil up per mole distilled (core ADR 0061)"}
+      heat_up: true
+      condenser_port: cond
+      column: {stages: 10, reflux: constant, ratio: 2.0, provenance: assumed, source: "a packed column of about 10 theoretical stages (the still included) at a reflux ratio of 2, ASSUMED (D-007): US 5 068 386 A distilled at ambient pressure without stating a column"}
+      cuts:
+        - {outlet: rec, end: {residue: {key: ME2SICL2, mole_fraction: 1.0e-3}}}
+        - {outlet: product, end: {residue: {key: TBSCL, mole_fraction: 0.5}}}
+      outlets: {residue: bottom}
+      provenance: assumed
+      source: "the solvent with the excess silane and the unreacted halide distilled to the recycle until dichlorodimethylsilane is 10 ppm (mol) of the still, then the product cut until TBSCl is half of the residue's moles, the rest the salt fines (D-007)"
+    links: [{target: equipment, ref: C-101}, {target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out, delegates: recovered}
+      - {id: product, direction: out}
+      - {id: bottom, direction: out, delegates: residue}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cond, direction: out, kind: energy, delegates: tw}
+  - id: E102
+    block: DIST
+    title: "Product cut solidified and cooled to 308 K on the flaker (E-102)"
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+      - {id: trace, direction: in, kind: energy, delegates: trace}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M301
+    block: RECOV
+    title: Recovered solvent (still cut and dryer condensate) in T-301
+    class: Mixing
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: dist, direction: in, delegates: dist}
+      - {id: dcond, direction: in, delegates: dcond}
+      - {id: out, direction: out}
+  - id: E301
+    block: RECOV
+    title: Recovered solvent cooled to 303 K (E-301)
+    class: Cooling
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+  - id: SP301
+    block: RECOV
+    title: Purge of the recovered solvent
+    class: SplittingMaterial
+    split: {purge: 0.02}
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out}
+      - {id: purge, direction: out, delegates: purge}
+  - id: SP302
+    block: RECOV
+    title: Recovered solvent to the next charge, the cake wash and R-102's heel
+    class: SplittingMaterial
+    split: {wash: 0.14, heel: 0.15}
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out, delegates: rec}
+      - {id: wash, direction: out, delegates: wash}
+      - {id: heel, direction: out, delegates: heel}
+  - id: M401
+    block: RECOV
+    title: Vent header to the thermal oxidiser (R-101's vent and the dryer's nitrogen bleed)
+    class: Mixing
+    ports:
+      - {id: r101, direction: in, delegates: vent}
+      - {id: loss, direction: in, delegates: loss}
+      - {id: out, direction: out, delegates: oxid}
+
+streams:
+  - id: S1
+    title: Magnesium turnings
+    from: MGF.out
+    to: M101.mg
+    template: metal
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 15.744, provenance: assumed, source: "1.00 mol per mol of tert-butyl chloride, as US 5 068 386 A, Examples 1 and 3 (D-004)"}
+        composition: {basis: mass_fraction, values: {MG: 1.0}, provenance: assumed, source: "magnesium turnings, the oxide skin not modelled (D-004)"}
+  - id: S2
+    title: THF make-up
+    from: THFF.out
+    to: M101.thf
+    template: solvent
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 8.904, provenance: assumed, source: "the THF lost to the purge, the vents, the dried cake and the product, which sets the loop at about 5.7 mol of THF per mol of tert-butyl chloride in R-101's charge, US 5 068 386 A's 6.2 (D-004, D-014)"}
+        composition: {basis: mass_fraction, values: {THF: 1.0}, provenance: assumed, source: "dry THF (D-004)"}
+  - id: S3
+    title: n-Hexane make-up
+    from: HEXF.out
+    to: M101.hex
+    template: solvent
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 2.473, provenance: assumed, source: "the n-hexane lost to the purge, the vents, the dried cake and the product, which sets the loop at about 1.3 mol per mol of tert-butyl chloride in R-101's charge, against US 5 068 386 A's 100 mL of hexane per 0.5 mol (1.5 mol per mol) added before the filtration (D-004, D-014)"}
+        composition: {basis: mass_fraction, values: {HEX: 1.0}, provenance: assumed, source: "dry n-hexane (D-004)"}
+  - id: S4
+    title: tert-Butyl chloride (dosed)
+    from: TBUCLF.out
+    to: R101.dose
+    template: reagent
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 300, provenance: assumed, source: "dosing pump discharge (D-004)"}
+        flow: {value: 59.964, provenance: assumed, source: "the batch's tert-butyl chloride over the cycle, scaled to the recipe's basis (D-003, D-004)"}
+        composition: {basis: mass_fraction, values: {TBUCL: 1.0}, provenance: assumed, source: "tert-butyl chloride (D-004)"}
+  - id: S5
+    title: Dichlorodimethylsilane (charged to R-102)
+    from: SILF.out
+    to: M103.sil
+    template: reagent
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 300, provenance: assumed, source: "dosing pump discharge (D-004)"}
+        flow: {value: 63.88, provenance: assumed, source: "the silane the batch consumes and the little the purge, the vent, the cake and the product take, set so that the silane the recycle carries is a few per cent of the Grignard reagent, the excess the reaction ends on (D-004, D-014)"}
+        composition: {basis: mass_fraction, values: {ME2SICL2: 1.0}, provenance: assumed, source: "dichlorodimethylsilane (D-004)"}
+  - id: S6
+    title: R-101 charge
+    from: M101.out
+    to: E101.in
+    template: process
+    state:
+      design:
+        temperature: {value: 302.9, provenance: assumed, source: "M101 mixed from its inlets (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 386.289, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S30', fingerprint: 42ec25a336da924d}
+        composition: {basis: mole_fraction, values: {MG: 0.119977, THF: 0.682149, HEX: 0.152093, TBUCL: 0.000116316, ME2SICL2: 0.025725, TBSCL: 0.0199388, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S30', fingerprint: 2c78c2ab8e860d1f}
+  - id: S6B
+    title: Charge at 313 K
+    from: E101.out
+    to: R101.charge
+    template: process
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "warmed in R-101 to the dosing temperature (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 386.289, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: 71f528c82245f416}
+        composition: {basis: mole_fraction, values: {MG: 0.119977, THF: 0.682149, HEX: 0.152093, TBUCL: 0.000116316, ME2SICL2: 0.025725, TBSCL: 0.0199388, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: 71f528c82245f416}
+  - id: S7
+    title: Grignard solution with the excess magnesium
+    from: R101.out
+    to: R102.dose
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {TBUCL: 0.000120271, ME2SICL2: 0.0257266, THF: 0.681955, HEX: 0.152081, TBSCL: 0.0199673, MG: 0.0146133, TBUMGCL: 0.0909338, MGCL2: 0.0146027, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+        flow: {value: 436.665, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+  - id: S8
+    title: R-101 vent (C4 gases with the solvent's vapour, past the vent condenser)
+    from: R101.gas
+    to: M401.r101
+    template: offgas
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {IB: 0.476279, IBA: 0.476279, THF: 0.0383777, HEX: 0.00753956, TBUCL: 0.000358178, ME2SICL2: 0.00115816, TBSCL: 8.0665e-06}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+        flow: {value: 9.58834, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+        temperature: {value: 268.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+  - id: S9
+    title: Reaction slurry to F-101
+    from: R102.out
+    to: F101.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.64577, HEX: 0.14397, TBUCL: 0.000113897, ME2SICL2: 0.025262, TBSCL: 0.090429, MG: 0.0114881, TBUMGCL: 7.1487e-05, MGCL2: 0.0828953, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: e305a5bbd79c73fa}
+        flow: {value: 576.426, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: a7a6ca45a869a2d1}
+        temperature: {value: 301.3, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: e305a5bbd79c73fa}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: e305a5bbd79c73fa}
+  - id: S10
+    title: Filter cake
+    from: F101.cake
+    to: M102.cake
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {MG: 0.0802537, MGCL2: 0.579091, THF: 0.242912, HEX: 0.0541556, TBUCL: 4.28434e-05, ME2SICL2: 0.00950252, TBSCL: 0.0340157, TBUMGCL: 2.68905e-05, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: ab16c0b7fe57af38}
+        flow: {value: 83.8939, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: ab16c0b7fe57af38}
+  - id: S11
+    title: Filtrate to T-201
+    from: F101.filtrate
+    to: M201.filtrate
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.712915, HEX: 0.15894, TBUCL: 0.00012574, ME2SICL2: 0.0278887, TBSCL: 0.0998315, MG: 2.68057e-05, TBUMGCL: 7.892e-05, MGCL2: 0.000193423, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: ab16c0b7fe57af38}
+        flow: {value: 492.532, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S9', fingerprint: ab16c0b7fe57af38}
+  - id: S12
+    title: Reslurried cake
+    from: M102.out
+    to: F102.in
+    template: process
+    state:
+      design:
+        temperature: {value: 302.4, provenance: assumed, source: "M102 mixed from its inlets (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 154.716, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S20', fingerprint: f728271629f46ef7}
+        composition: {basis: mole_fraction, values: {THF: 0.498177, HEX: 0.11095, TBUCL: 8.78859e-05, ME2SICL2: 0.0194513, TBSCL: 0.0289161, MG: 0.0416764, TBUMGCL: 1.39645e-05, MGCL2: 0.300727, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S20', fingerprint: 7c9a3896f6b716da}
+  - id: S13
+    title: Washed cake to the dryer
+    from: F102.cake
+    to: D101.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {MG: 0.0788494, MGCL2: 0.568959, THF: 0.266811, HEX: 0.059422, TBUCL: 4.70695e-05, ME2SICL2: 0.0104176, TBSCL: 0.0154867, TBUMGCL: 7.47903e-06, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: e406cbc0d572de26}
+        flow: {value: 83.8102, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: e406cbc0d572de26}
+  - id: S14
+    title: Wash filtrate to T-201
+    from: F102.filtrate
+    to: M201.wfiltrate
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.757023, HEX: 0.168598, TBUCL: 0.00013355, ME2SICL2: 0.0295579, TBSCL: 0.0439405, MG: 8.83028e-05, TBUMGCL: 2.12203e-05, MGCL2: 0.000637172, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: e406cbc0d572de26}
+        flow: {value: 70.9058, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: e406cbc0d572de26}
+  - id: S15
+    title: Dried salt cake
+    from: D101.product
+    to: CAKE.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.0164465, HEX: 0.00366284, TBUCL: 2.90142e-06, ME2SICL2: 0.000642153, TBSCL: 0.000954619, MG: 0.119073, TBUMGCL: 1.12944e-05, MGCL2: 0.859206, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 5d2da5f4f911a6e9}
+        flow: {value: 57.0146, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 5d2da5f4f911a6e9}
+  - id: S16
+    title: Dryer vapour
+    from: D101.vapour
+    to: E201.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.757589, HEX: 0.168724, TBUCL: 0.00013365, ME2SICL2: 0.02958, TBSCL: 0.0439733}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 5d2da5f4f911a6e9}
+        flow: {value: 26.7956, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 5d2da5f4f911a6e9}
+  - id: S17
+    title: Dryer condensate
+    from: E201.out
+    to: SP201.in
+    template: process
+    state:
+      design:
+        temperature: {value: 268.15, provenance: assumed, source: "condensed after the dry vacuum pump at atmospheric pressure on brine 263/268 K (D-006, D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 26.7956, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S16', fingerprint: 6fdd5d39c593475b}
+        composition: {basis: mole_fraction, values: {THF: 0.757589, HEX: 0.168724, TBUCL: 0.00013365, ME2SICL2: 0.02958, TBSCL: 0.0439733}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S16', fingerprint: 6fdd5d39c593475b}
+  - id: S18
+    title: Solvent the dryer's nitrogen bleed carries to the oxidiser
+    from: SP201.loss
+    to: M401.loss
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.757589, HEX: 0.168724, TBUCL: 0.00013365, ME2SICL2: 0.02958, TBSCL: 0.0439733}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S17', fingerprint: 22a66953533d49b4}
+        flow: {value: 0.267956, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S17', fingerprint: aa5695f6599b6e4e}
+  - id: S19
+    title: Dryer condensate to T-301
+    from: SP201.cond
+    to: M301.dcond
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.757589, HEX: 0.168724, TBUCL: 0.00013365, ME2SICL2: 0.02958, TBSCL: 0.0439733}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S17', fingerprint: 22a66953533d49b4}
+        flow: {value: 26.5276, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S17 S18', fingerprint: 3510095dba04d147}
+  - id: S21
+    title: Still charge
+    from: M201.out
+    to: ST101.in
+    template: process
+    state:
+      design:
+        temperature: {value: 301.4, provenance: assumed, source: "M201 mixed from its inlets (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 563.438, provenance: calculated, source: 'cheme process propagate: mixer M201 from S11 S14', fingerprint: 537464c3a52b35fa}
+        composition: {basis: mole_fraction, values: {THF: 0.718717, HEX: 0.160211, TBUCL: 0.000126767, ME2SICL2: 0.0281083, TBSCL: 0.0924789, MG: 3.48958e-05, TBUMGCL: 7.13295e-05, MGCL2: 0.000251799, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S11 S14', fingerprint: 0be8646fb8b1f096}
+  - id: S22
+    title: Recovered cut (solvent, excess silane)
+    from: ST101.rec
+    to: M301.dist
+    template: process
+    state:
+      design:
+        temperature: {value: 340.3, provenance: assumed, source: "the cut condensed at its bubble point, 340.3 K for the cut's mean composition (Raoult with the Antoine lines of materials.yaml, D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 489.668, provenance: calculated, source: 'cheme process propagate: still ST101 from S21', fingerprint: 666569dff3b730ab}
+        composition: {basis: mole_fraction, values: {THF: 0.774817, HEX: 0.172498, TBUCL: 0.000136702, ME2SICL2: 0.0302327, TBSCL: 0.0223153, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S21', fingerprint: 666569dff3b730ab}
+  - id: S23
+    title: Product cut (molten TBSCl)
+    from: ST101.product
+    to: E102.in
+    template: process
+    state:
+      design:
+        temperature: {value: 398.15, provenance: assumed, source: "the cut condensed at TBSCl's boiling point on the condenser's hot tempered water, not subcooled below its melting point (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 73.1806, provenance: calculated, source: 'cheme process propagate: still ST101 from S21', fingerprint: 666569dff3b730ab}
+        composition: {basis: mole_fraction, values: {THF: 0.00289786, HEX: 0.00345744, TBUCL: 1.86134e-12, ME2SICL2: 0.00100995, TBSCL: 0.992635, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S21', fingerprint: 666569dff3b730ab}
+  - id: S24
+    title: Still residue
+    from: ST101.bottom
+    to: RESID.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.0, HEX: 0.0, TBUCL: 0.0, ME2SICL2: 0.0, TBSCL: 0.5, MG: 0.0487338, TBUMGCL: 0.0996154, MGCL2: 0.351651}, provenance: calculated, source: 'cheme process propagate: still ST101 from S21', fingerprint: 666569dff3b730ab}
+        flow: {value: 0.589695, provenance: calculated, source: 'cheme process propagate: still ST101 from S21', fingerprint: 666569dff3b730ab}
+  - id: S25
+    title: TBSCl flakes to packing
+    from: E102.out
+    to: TBSCLP.in
+    template: process
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "cooled on the flaker (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 73.1806, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S23', fingerprint: 468b64bcb3b0a345}
+        composition: {basis: mole_fraction, values: {THF: 0.00289786, HEX: 0.00345744, TBUCL: 1.86134e-12, ME2SICL2: 0.00100995, TBSCL: 0.992635, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S23', fingerprint: 468b64bcb3b0a345}
+  - id: S26
+    title: Recovered solvent
+    from: M301.out
+    to: E301.in
+    template: process
+    state:
+      design:
+        temperature: {value: 336.6, provenance: assumed, source: "M301 mixed from its inlets, S22 at 340.3 K and S19 at 268.15 K, with the liquid heat capacities of materials.yaml (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 516.196, provenance: calculated, source: 'cheme process propagate: mixer M301 from S19 S22', fingerprint: ce4ab3943b57eb5f}
+        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136548, ME2SICL2: 0.0301998, TBSCL: 0.0234069, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S19 S22', fingerprint: 1ae6eb85b010db42}
+  - id: S27
+    title: Recovered solvent at 303 K
+    from: E301.out
+    to: SP301.in
+    template: process
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "cooled in E-301 for storage in T-301 (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 516.196, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S26', fingerprint: e93c8ec3fea8454c}
+        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136548, ME2SICL2: 0.0301998, TBSCL: 0.0234069, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S26', fingerprint: e93c8ec3fea8454c}
+  - id: S28
+    title: Solvent purge
+    from: SP301.purge
+    to: WSOLV.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136548, ME2SICL2: 0.0301998, TBSCL: 0.0234069, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S27', fingerprint: d532d2832f3e5141}
+        flow: {value: 10.3239, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S27', fingerprint: b9b295410fd81803}
+  - id: S29
+    title: Recovered solvent after the purge
+    from: SP301.rec
+    to: SP302.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136547, ME2SICL2: 0.0301994, TBSCL: 0.0234068, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, wegstein)', fingerprint: 77d619b835f6d14b}
+        flow: {value: 505.871, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, wegstein)', fingerprint: 77d619b835f6d14b}
+  - id: S30
+    title: Recycled solvent to R-101
+    from: SP302.rec
+    to: M101.rec
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136547, ME2SICL2: 0.0301994, TBSCL: 0.0234068, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S29', fingerprint: 9f826fc1113124ff}
+        flow: {value: 359.168, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S29 S20 S32', fingerprint: 23a6709bd3bd9de7}
+  - id: S20
+    title: Wash solvent to F-101
+    from: SP302.wash
+    to: M102.wash
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136547, ME2SICL2: 0.0301994, TBSCL: 0.0234068, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S29', fingerprint: 9f826fc1113124ff}
+        flow: {value: 70.8219, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S29', fingerprint: a004442e4a25d661}
+  - id: S32
+    title: Heel solvent to R-102
+    from: SP302.heel
+    to: M103.heel
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136547, ME2SICL2: 0.0301994, TBSCL: 0.0234068, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S29', fingerprint: 9f826fc1113124ff}
+        flow: {value: 75.8806, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S29', fingerprint: a004442e4a25d661}
+  - id: S33
+    title: R-102 charge
+    from: M103.out
+    to: R102.charge
+    template: process
+    state:
+      design:
+        temperature: {value: 301.3, provenance: assumed, source: "M103 mixed from its inlets (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 139.761, provenance: calculated, source: 'cheme process propagate: mixer M103 from S5 S32', fingerprint: aa4a21fbe41a1514}
+        composition: {basis: mole_fraction, values: {TBUCL: 9.04642e-05, ME2SICL2: 0.357495, THF: 0.512751, HEX: 0.114156, TBSCL: 0.0155073, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S5 S32', fingerprint: 6feeae1f580c63d6}
+  - id: S31
+    title: Vent gas to the thermal oxidiser
+    from: M401.out
+    to: OXID.in
+    # the process template: the dryer bleed's solvent S18 lists the cake's solids at 0 (L-3)
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {IB: 0.466776, IBA: 0.466776, THF: 0.0527275, HEX: 0.0107555, TBUCL: 0.000353698, ME2SICL2: 0.00172524, TBSCL: 0.000885267, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S8 S18', fingerprint: d07419484c1ae26e}
+        flow: {value: 9.8563, provenance: calculated, source: 'cheme process propagate: mixer M401 from S8 S18', fingerprint: 4283d8ebef728196}
+  # energy
+  - {id: Q1, title: Heat of the Grignard step to brine (R101's model), kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 45.2023, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S4 S6B', fingerprint: 18e4dedb87230166}}}}
+  - {id: Q2, title: R-101 vent condenser to brine (R101's model), kind: energy, from: R101.qv, to: BRINE.r101v, state: {design: {duty: {value: 0.747506, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S4 S6B', fingerprint: d7d089bd872f5c62}}}}
+  - {id: Q3, title: Heat of the silylation to brine (R102's model), kind: energy, from: R102.q, to: BRINE.r102, state: {design: {duty: {value: 29.9723, provenance: calculated, source: 'cheme process propagate: semibatch duty R102 from S7 S33', fingerprint: f1f245f3374e38e8}}}}
+  - {id: Q4, title: "Charge warming (R-101 jacket, hot water from LP steam)", kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 3.014, provenance: assumed, source: "cheme process recipe (core 1.11.0): the warm operation of R-101, the charge from 302.9 to 313.15 K with the vessel's metal, 107 MJ per batch (content 76.24, metal 30.75 MJ) over the 9.86 h cycle, year average 3.014 kW; losses not counted (D-009)"}}}}
+  - {id: Q5, title: Still reboiler (ST101's model), kind: energy, from: MPS.st101, to: ST101.steam, state: {design: {duty: {value: 191.938, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S21', fingerprint: f02f9ae68be0d579}}}}
+  - {id: Q6, title: Still condenser to tempered water (ST101's model), kind: energy, from: ST101.cond, to: TW.st101, state: {design: {duty: {value: 168.934, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S21', fingerprint: 2e0ad8dc6995d5de}}}}
+  - {id: Q7, title: Flaker E-102 to cooling water, kind: energy, from: E102.q, to: CW.e102, state: {design: {duty: {value: 3.98, provenance: assumed, source: "hand arithmetic (D-009): S23, 0.4835 kmol/h of TBSCl, cooled as a liquid from 398.15 to 358.1 K (265.4 kJ/(kmol K) x 40.05 K), solidified (5.6 kJ/mol, NIST WebBook) and cooled as a solid to 308.15 K (the liquid's heat capacity, ASSUMED, x 49.95 K): 29488 kJ/kmol, 14257 kJ/h, with the traces of solvent and silane 53 kJ/h: 3.98 kW"}}}}
+  - {id: Q8, title: Dryer heat (hot water from LP steam), kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 12.2309, provenance: assumed, source: "cheme process crystallizers (core 1.11.0): D101's dryer model, 12.2309 kW: sensible 3927.56 kJ/h (the cake from 302.4 to 343.15 K), evaporation 10370.7 kJ/h (264.3 kg of solvent a batch), vessel 16523.7 kJ/h (the filter-dryer's 4000 kJ/K of steel reheated from 302.4 K each batch), at 70 % efficiency (D-006, D-009)"}}}}
+  - {id: Q9, title: Dryer vapour condenser E-201 to brine, kind: energy, from: E201.q, to: BRINE.e201, state: {design: {duty: {value: 5.10, provenance: assumed, source: "hand arithmetic (D-009): S16 condensed at the latent heats of D101 at 343 K (THF 30.6, n-hexane 30.2, Me2SiCl2 29.6, TBSCl 37.1 kJ/mol; 10360 kJ/h) and the condensate cooled to 268.15 K (53.07 kJ/(h K) x 75 K = 3980 kJ/h): 3.98 kW; with the dry vacuum pump's power, 1.12 kW of P2, which heats the gas it compresses: 5.10 kW"}}}}
+  - {id: Q10, title: Recovered solvent cooler E-301, kind: energy, from: E301.q, to: CW.e301, state: {design: {duty: {value: 9.545, provenance: assumed, source: "hand arithmetic (D-009): S26 cooled from 336.6 to 303.15 K, 1027.3 kJ/(h K) of the components' liquid heat capacities (materials.yaml) x 33.45 K = 34363 kJ/h: 9.545 kW"}}}}
+  - {id: Q11, title: "Tracing of the product's receiver and lines (LP steam)", kind: energy, from: LPS.trace, to: E102.trace, state: {design: {duty: {value: 2.0, provenance: assumed, source: "ASSUMED (D-009): the heat losses of the product receiver and its lines held at about 373 K above TBSCl's melting point, about 2 kW all year (no layout yet)"}}}}
+  - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: "ASSUMED (D-009): about 0.8 kW/m3 for a 6.3 m3 vessel stirring a slurry of magnesium turnings, 5 kW over R-101's whole cycle (100 % occupied)"}}}}
+  - {id: P2, title: "F-101 agitator and dry vacuum pump", kind: energy, from: POWER.d101, to: D101.power, state: {design: {duty: {value: 5.07, provenance: assumed, source: "ASSUMED (D-009): the agitator 4 kW over F-101's 9.746 h of the 9.86 h cycle (3.95 kW) and the dry vacuum pump 2 kW over the 5.51 h drying (1.12 kW)"}}}}
+  - {id: P3, title: Flaker drive, kind: energy, from: POWER.e102, to: E102.power, state: {design: {duty: {value: 0.081, provenance: assumed, source: "ASSUMED (D-009): the flaker's drum and knife, 1.5 kW while the product cut runs, 0.532 h of the 9.86 h cycle"}}}}
+  - {id: P4, title: R-102 agitator, kind: energy, from: POWER.r102, to: R102.power, state: {design: {duty: {value: 4.17, provenance: assumed, source: "ASSUMED (D-009): about 0.75 kW/m3, 6 kW for the 8 m3 vessel, over R-102's 6.86 h of the 9.86 h cycle"}}}}
+layout: {bfd: {}, pfd: {}}

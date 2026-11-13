@@ -1,0 +1,18 @@
+# tert-butyldimethylsilyl-chloride-1's own exchange overrides for the Atlas LCI build
+# (build_lci.py, ADR 0022). Schema: schemas/lci-process-mappings.schema.json. Keys are the
+# dataset's exchange keys (<kind>:<id>); each entry `use`s a technosphere entry of the shared
+# lci/mappings.yaml, or links an Atlas producer's dataset.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here, kg for kg with the grade checked: the THF make-up to
+# thf-1 (99.95 wt% THF, dried on site to the Grignard grade), the nitrogen consumable to asu-1's
+# gaseous nitrogen, and the LP and MP steam counted as heat delivered (kWh), as
+# potassium-tert-butoxide-1 does. The library has no producer of magnesium, n-hexane,
+# tert-butyl chloride, dichlorodimethylsilane or sodium thiocyanate; their cited proxies are
+# named in lca/lca.yaml and DESIGN.md D-012 and not linked.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:THFF": {dataset: {path: processes/thf-1/lca/dataset.yaml, product: "product:THFP"}, source: "the Atlas producer thf-1, tetrahydrofuran from 1,4-butanediol, 99.95 wt% THF, per kg, the basis of both its product and this exchange (S2); dried on site to the Grignard grade, the drying not modelled (D-004, D-012)"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); inerting, pressing, blanketing and purging need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to R-101's hot-water loop (Q4), the dryer's hot-water loop (Q8) and the tracing of the product's receiver and lines (Q11), counted as heat delivered (kWh), D-009"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1000 kPa(a) to the still C-101 (Q5), counted as heat delivered (kWh), D-009"}

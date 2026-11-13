@@ -1,0 +1,115 @@
+# Process Atlas manifest of tert-butyldimethylsilyl-chloride-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: tert-butyldimethylsilyl-chloride-1
+title: tert-Butyldimethylsilyl chloride (TBSCl) by a batch Grignard route, filtration, solvent recycle, rectification (580 t/a)
+summary: >-
+  A batch plant: tert-butylmagnesium chloride from magnesium and tert-butyl chloride in
+  THF/n-hexane (5 % dosed first and held for the initiation, isobutene and isobutane vented) is
+  dosed into dichlorodimethylsilane with a thiocyanate catalyst; the salt is filtered and dried,
+  the solvent recycled, TBSCl rectified and flaked. Concept stage, 721.9 kg every 9.86 h,
+  screened, preliminary LCI.
+description: |
+  Magnesium turnings (1 mol per mol of halide) are charged with recycled THF and n-hexane into a
+  6.3 m3 reactor under nitrogen and warmed to 313 K. tert-Butyl chloride is dosed in: 5 % in 15
+  min, a 30 min hold until the Grignard reaction has started, then the rest over 2.5 h, the rate
+  set by the brine jacket; the isobutene and isobutane of the side reaction leave by the vent
+  through a brine vent condenser. The Grignard solution is then dosed over 3 h into
+  dichlorodimethylsilane, a heel of recovered solvent and 0.8 mol% sodium thiocyanate in a second
+  reactor at 301 K, the catalyst and its amount of US 5 068 386 A (Example 3, 78 % isolated), the
+  order of addition of US 5 872 274 A. The magnesium chloride is filtered off in an agitated
+  filter-dryer, washed and dried under vacuum; the filtrates are rectified at ambient pressure in
+  a batch still with a 10-stage column: the solvent with the excess silane goes back to the next
+  batch (2 % purged), the TBSCl cut (modelled 99.58 wt%, an upper bound) is condensed above its
+  melting point (358 K) and flaked.
+
+  The batch is modelled with cheme-as-code's semi-batch reactors (R101 with a vent, the vent's
+  vapour and a condenser; magnesium a solid reactant), filters with Ruth's filtration time, a
+  dryer, a rectifying batch still on Diwekar's shortcut, the solvent recycle converged at its
+  tear and the batch recipe (cycle 9.86 h, 803 batches a year). The kinetics are ASSUMED: the
+  Grignard formation on the HZDR's calorimetry of an aryl bromide in THF (270 kJ/mol). At the
+  base rates the cooling-failure temperature is 317.7 K in the Grignard step (2.2 % of the halide
+  accumulated) and 309.3 K in the silylation, below the halide's boiling point, 324.1 K; ten times
+  slower, both exceed it and the Grignard step boils (345 K); a hundred times slower, 441 K. Yield
+  74.6 % on tert-butyl chloride (12 % goes to isobutene and isobutane with as much of the Grignard
+  reagent). See DESIGN.md for every assumption.
+families: [inorganic-chemicals]
+keywords: [tert-butyldimethylsilyl chloride, TBSCl, TBDMSCl, tert-butylchlorodimethylsilane, silylating agent, Grignard reagent, tert-butylmagnesium chloride, tert-butyl chloride, dichlorodimethylsilane, magnesium, sodium thiocyanate, THF, n-hexane, semi-batch, batch, vent, initiation, accumulation, filter-dryer, batch rectification, solvent recycle, flaking, thermal screening]
+facets:
+  feedstock_basis: [fossil, mineral]
+  product_classes: [chemicals]
+  unit_operations: [reaction, filtration, drying, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, heats, jackets,
+# the cake and the still's VLE are assumed; the route, catalyst and charge ratios are sourced
+# (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams). The semi-batches R101 (with its vent, the vent's vapour and condenser) and
+    R102, the filters, the dryer, the rectifying still and the solvent recycle (converged at its
+    tear S29) are calculated by cheme process propagate from ASSUMED rate laws; there is no balance
+    script. The duties are year averages: R101's, its vent condenser's, R102's and the still's
+    reboiler and condenser from the models (energy_port), the dryer's from core's dryer model,
+    R-101's warm-up from the recipe, the others by hand (DESIGN.md D-009). The recipe's year-average
+    rate of the product agrees with the flowsheet (no cheme.recipe-basis finding); it sizes R-101
+    (6.3 m3), R-102, F-101 (8 m3) and C-101 (10 m3), and both reactors' jacket checks pass. Thermal
+    screening (cheme process reactor-hazards): R101 dT_ad 202.5 K, accumulation 2.21 %, MTSR
+    317.7 K; R102 dT_ad 91.1 K, MTSR 309.3 K; the default MTT is tert-butyl chloride's boiling
+    point 324.1 K, conservative against the liquor's bubble point (about 340 K); no criticality
+    class without a TD24 from calorimetry. R-101's vent capacity, 100 m3/h ASSUMED, passes the
+    base case's gas release at the MTSR (80.1 m3/h with the liquid's vapour) but not that of a
+    slower reaction (k/10: 109.8 m3/h of C4 gases, the content boiling), which the dosing
+    interlocks and separate emergency reliefs must meet (D-011). The low accumulation rests on the
+    assumed kinetics; the k/10, k/100 and uninitiated cases are in DESIGN.md D-011, with water
+    ingress (HCl from the chlorosilanes) and the hydrogen from quenching the salt (D-006).
+    Preliminary gate-to-gate LCI with the per-batch nitrogen and sodium thiocyanate; THF linked
+    to thf-1 and nitrogen to asu-1, the other backgrounds gaps (magnesium, tert-butyl chloride,
+    dichlorodimethylsilane, n-hexane and sodium thiocyanate have no library producer; their
+    proxies are named, not linked). cheme maturity reaches no level (assumed kinetics and
+    separations); the claim `maturity: concept` is the lowest value of the schema, not an
+    evidenced level. Not reviewed. Needs cheme-as-code 1.11.
+chemistry:
+  inputs:
+    - {chemical: magnesium, role: feedstock, inventory_key: "feed:MGF", note: "Magnesium turnings (merchant), 0.215 kg/kg TBSCl, 1.00 mol per mol of tert-butyl chloride"}
+    - {chemical: tert-butyl-chloride, role: feedstock, inventory_key: "feed:TBUCLF", note: "tert-Butyl chloride (merchant), 0.819 kg/kg TBSCl"}
+    - {chemical: dichlorodimethylsilane, role: feedstock, inventory_key: "feed:SILF", note: "Dichlorodimethylsilane (merchant), 0.873 kg/kg TBSCl"}
+    - {chemical: tetrahydrofuran, role: feedstock, inventory_key: "feed:THFF", note: "THF make-up (thf-1), 0.122 kg/kg TBSCl, the solvent's losses"}
+    - {chemical: n-hexane, role: feedstock, inventory_key: "feed:HEXF", note: "n-Hexane make-up (merchant), 0.034 kg/kg TBSCl"}
+    - {chemical: sodium-thiocyanate, role: feedstock, inventory_key: "consumable:sodium-thiocyanate", note: "Sodium thiocyanate, 0.8 mol% on the halide, 4.14 kg per batch, 5.7 g/kg TBSCl"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, pressing, filtration, blanketing and purging, 168.3 kg per batch, 0.233 kg/kg TBSCl (ASSUMED)"}
+  outputs:
+    - {chemical: tert-butyldimethylsilyl-chloride, role: main-product, inventory_key: "product:TBSCLP", note: "TBSCl flakes, modelled 99.58 wt% (an upper bound), to packing under nitrogen"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.196 kWh/kg TBSCl: agitators, the dry vacuum pump, the flaker (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "2.62 kWh/kg TBSCl of MP steam 1000 kPa(a): the still"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.236 kWh/kg TBSCl of LP steam 350 kPa(a): R-101's warm-up, the dryer, the product's tracing"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "1.11 kWh/kg TBSCl removed by brine at 263 K: both reactions, the vent condenser and the dryer's condenser (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:TW", note: "2.31 kWh/kg TBSCl to the tempered-water loop: the still's condenser"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.185 kWh/kg TBSCl: the flaker and the recycle cooler"}
+basis:
+  capacity: "579.6 t/a of TBSCl flakes: 803.3 batches/a of 721.9 kg in 7920 h on a dedicated train (73.18 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with a thermal oxidiser and acid-gas scrubber (not chosen)
+references:
+  - {title: "Shirahata, A. (Dow Corning Toray Silicone), US 5 068 386 A, Preparation of tertiary-hydrocarbylsilyl compounds (1991): Examples 1 and 3, tert-butylmagnesium chloride with dichlorodimethylsilane and a cyano or thiocyanate catalyst, 80 and 78 % isolated", url: "https://patents.google.com/patent/US5068386A/en"}
+  - {title: "Cannady, J. P. and Nguyen, B. T. (Dow Corning), US 5 872 274 A, Method for preparation of tertiary-hydrocarbylsilyl compounds (1999): no reaction without a catalyst (Example 10); copper salts with the Grignard solution added to the silane (Examples 11-16)", url: "https://patents.google.com/patent/US5872274A/en"}
+  - {title: "Hessel, G. et al. (2000) Calorimetric investigation of the formation of Grignard reagents, FZR-284, Annual Report 1999 of the Institute of Safety Research, Forschungszentrum Rossendorf, pp. 29-34 (molar reaction enthalpy 270 +/- 6 kJ/mol, rate constants, initiation)", url: "https://www.hzdr.de/publications/Publ-5058"}
+  - {title: "NIST Chemistry WebBook: phase-change data of THF, n-hexane, tert-butyl chloride, dichlorodimethylsilane and tert-butylchlorodimethylsilane; reaction thermochemistry of methylmagnesium bromide (Holm 1981)", url: "https://webbook.nist.gov"}
+  - {title: "PubChem CID 28928, tert-Butylchlorodimethylsilane (GHS classification, reaction with water)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/28928"}
+  - {title: "PubChem CID 6398, Dichlorodimethylsilane (HSDB Methods of Manufacturing: silicon with methyl chloride over copper)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/6398"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/tert-butyldimethylsilyl-chloride-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

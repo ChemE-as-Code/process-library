@@ -27,6 +27,12 @@
 # Hydrogen iodide (hydrogen-iodide-1, #149): the dataset's efficiency is from US 8 268 284 B2, so
 # that patent's figure is recorded but not bound; the KPI is bound to the per-pass conversions of
 # another applicant's patent (US 11 554 956 B2). Electricity and heat have no open reference.
+# tert-Butyldimethylsilyl chloride (tert-butyldimethylsilyl-chloride-1, #147; the taxonomy has no
+# organosilicon family, inorganic-chemicals is the nearest): no open source gives a plant's
+# specific consumptions. The one open yield, 78 % isolated on the halide of US 5 068 386 A,
+# Example 3, bounds the dataset's yield from above (DESIGN.md D-002) and is a laboratory figure,
+# so it is not bound as a range. The stoichiometric floors are 0.614 kg tert-butyl chloride and
+# 0.856 kg dichlorodimethylsilane per kg TBSCl; they are limits, not ranges of real plants.
 schema: cheme-as-code/benchmarks/v1
 family: inorganic-chemicals
 
@@ -136,6 +142,14 @@ kpis:
       were read as for electricity and give operating temperatures (iodine melted at about 120
       degC, vaporised at 150 to 170 degC, reactor at 300 to 350 degC) but no duty. The dataset's
       value is core's Tier 0 default, ASSUMED.
+  tbscl-specific-tert-butyl-chloride:
+    title: tert-Butyl chloride consumption per kg of tert-butyldimethylsilyl chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's tert-butyl chloride use per kg of TBSCl found (2026-11-12: the open patents US 5 068 386 A and US 5 872 274 A read, laboratory examples only; no plant figure found in the sources read). Only the stoichiometric floor, 0.614 kg/kg, and the laboratory yield of 78 % (0.787 kg/kg) are known."
+  tbscl-specific-dichlorodimethylsilane:
+    title: Dichlorodimethylsilane consumption per kg of tert-butyldimethylsilyl chloride
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's silane use per kg of TBSCl found (searched 2026-11-12 as for tbscl-specific-tert-butyl-chloride). Only the stoichiometric floor, 0.856 kg/kg, is known."
 
 datasets:
   - process: phosphorus-tribromide-1
@@ -172,3 +186,9 @@ datasets:
         out_of_range_reason: "The dataset's efficiency is the platinum-catalyst result of US 8 268 284 B2 (97.9 % after 100 h), which is above the per-pass conversions of the nickel catalysts in US 11 554 956 B2; both are single-pass laboratory figures, and neither includes the iodine recycle of a plant."
       hydrogen-iodide-specific-electricity: {expression: feed:electricity / product:hydrogen-iodide, per: product:hydrogen-iodide}
       hydrogen-iodide-specific-heat: {expression: feed:heat / product:hydrogen-iodide, per: product:hydrogen-iodide}
+  - process: tert-butyldimethylsilyl-chloride-1
+    dataset: tert-butyldimethylsilyl-chloride-by-a-batch-grignard-route-with-filtration-solvent-recovery-and-batch-rectification
+    conditions: {technology: "tert-butylmagnesium chloride from magnesium and tert-butyl chloride in THF/n-hexane (semi-batch, C4 gases vented), dosed into dichlorodimethylsilane with sodium thiocyanate, filter-dryer, batch rectification with the solvent and excess silane recycled, flaking", basis: "concept balance, the catalyst and charge ratios of US 5 068 386 A, ASSUMED kinetics and selectivity (DESIGN.md D-004, D-005)"}
+    kpis:
+      tbscl-specific-tert-butyl-chloride: {expression: feed:TBUCLF / product:TBSCLP, per: product:TBSCLP}
+      tbscl-specific-dichlorodimethylsilane: {expression: feed:SILF / product:TBSCLP, per: product:TBSCLP}

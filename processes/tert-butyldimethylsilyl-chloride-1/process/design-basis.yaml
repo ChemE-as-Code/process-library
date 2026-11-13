@@ -1,0 +1,57 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# tert-Butyldimethylsilyl chloride (TBSCl) by the batch Grignard route, issue
+# ChemE-as-Code/process-library#147. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: TBSCl flakes to packing under nitrogen at the battery limit
+  tbscl_t_per_year: 579.6                 # from the recipe (D-002, D-003)
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 721.9                        # ASSUMED (D-003): one batch of flakes every 9.86 h
+  batches_per_year: 803.3               # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Magnesium turnings (merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "Mg 100 % (its oxide skin not modelled), 1.00 mol per mol of tert-butyl chloride as US 5 068 386 A"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: tert-Butyl chloride (merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "100 % tert-butyl chloride, dry"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Dichlorodimethylsilane (merchant)
+    source_of_values: ASSUMED (D-004)
+    composition: "100 % dichlorodimethylsilane, the excess the reaction needs carried in the solvent loop"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Tetrahydrofuran make-up (thf-1) and n-hexane make-up (merchant), dry
+    source_of_values: ASSUMED (D-004)
+    composition: "THF and n-hexane, dried on site below 100 ppm water (not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Sodium thiocyanate catalyst (per batch)
+    source_of_values: "US 5 068 386 A, Example 3 (D-004)"
+    composition: "0.8 mol% on the tert-butyl chloride; an LCA consumable, not a component of the balance"
+products:
+  - name: tert-Butyldimethylsilyl chloride flakes
+    purity: "modelled 99.58 wt% TBSCl, 0.14 wt% THF, 0.20 wt% n-hexane and 0.09 wt% dichlorodimethylsilane (D-002, D-007); an upper bound on the assay: the siloxane from moisture, the di-tert-butyl and tetramethyl by-products and the catalyst's residues are not modelled, and no open product specification was read"
+    delivery: {temperature_K: 308.15, pressure_kPa_a: 101.325, battery_limit: packing under nitrogen (drums; not in the boundary)}
+  - name: Dried salt cake to quench and hazardous-waste treatment
+    note: "magnesium chloride with the excess magnesium and 2 wt% solvent (D-006)"
+  - name: Still residue and solvent purge to incineration
+    note: "halogenated organic wastes (D-007, D-014)"
+  - name: Vent gas to the thermal oxidiser with an acid-gas scrubber
+    note: "isobutene and isobutane with the solvent's vapour past the vent condenser, the dryer's nitrogen bleed (D-008)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and F-101, the dry vacuum pump, the flaker's drive (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the hot-water loops of R-101 (warm-up) and F-101 (drying), the tracing of the product's receiver and lines (D-009)", note: "ASSUMED; through closed hot-water loops at 323 K (R-101, below the screening's MTT, tert-butyl chloride's boiling point 324.1 K, D-010) and 353 K (F-101)"}
+  - {name: MP steam, pressure_kPa_a: 1000, use: "the still C-101 (D-007, D-009)", note: ASSUMED}
+  - {name: Chilled brine, supply_K: 263.15, return_K: 268.15, use: "R-101's jacket and its vent condenser E-103, the dryer's vapour condenser E-201 (D-008, D-009, D-010)", note: "ASSUMED; above the freezing point of every condensate it touches (tert-butyl chloride 247 K, the solvents lower)"}
+  - {name: Tempered water, supply_K: 303.15, return_K: 313.15, use: "C-101's condenser for the recovered cut; switched to its hot supply at 368 K for the product cut, above TBSCl's melting point 358 K (D-007, D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the flaker E-102 and the recovered-solvent cooler E-301 (D-009)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with a thermal oxidiser and acid-gas scrubber, hazardous-waste incineration and a chilled-brine plant, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: tert-butylmagnesium chloride from magnesium and tert-butyl chloride in THF, then dichlorodimethylsilane with a sodium thiocyanate catalyst (the Grignard solution dosed into the silane, D-004), the salt filtered, the solvent recovered and the product distilled at ambient pressure (US 5 068 386 A, Example 3, 78 % isolated; D-001)."
+  - "ASSUMED kinetics and heats of reaction (no open data for these reactions, D-005): the Grignard formation on the HZDR's calorimetry of an aryl bromide (270 kJ/mol, k about 1e-2 L/(mol s) at 313 K), a disproportionation to isobutene and isobutane set to the patent's 78 % yield, the silylation fast with the catalyst."
+  - "ASSUMED solvent loop: THF and n-hexane recycled together (a batch still cannot part them), 2 % purged (D-014)."
+  - "All flows are year averages of the recipe (D-003); the duties of R101, R102, the vent condenser and the still from the models (written by cheme process propagate), the dryer's from cheme's dryer model, the others hand arithmetic from the stream table (D-009); accuracy +/-30 % not demonstrated."

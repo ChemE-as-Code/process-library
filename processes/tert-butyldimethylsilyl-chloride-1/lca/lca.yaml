@@ -1,0 +1,129 @@
+# Goal and scope of the tert-butyldimethylsilyl-chloride-1 LCI. Schema: `cheme schema lca`.
+# Outputs: `cheme assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json,
+# results); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of TBSCl flakes, from the flowsheet's year averages of the recipe
+# (D-003). Per batch: multiply by 721.9 kg. The backgrounds are left unmapped (`missing:` with the
+# activity each should connect to and the proxy a later study may use, D-012), except where
+# lca/mappings.yaml links a library producer (THF from thf-1, nitrogen from asu-1, steam as
+# heat): a gap, never zero, and no values from licensed databases. The vent gas, the salt cake,
+# the still residue and the solvent purge leave as wastes to treatment, not as emissions.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of tert-butyldimethylsilyl chloride (TBSCl) made
+  in batches by the Grignard route: tert-butylmagnesium chloride from magnesium and tert-butyl
+  chloride in THF/n-hexane, then dichlorodimethylsilane with a sodium thiocyanate catalyst, the
+  magnesium salt filtered and dried, the solvent recovered and the product rectified and
+  flaked, at the concept stage: which raw materials, utilities and wastes the batch plant
+  exchanges per kg of TBSCl, as the foreground for a later cradle-to-gate study. No impact
+  results: most backgrounds are not mapped yet (D-012).
+functional_unit: {product: TBSCLP, amount: 1, unit: kg, source: "1 kg of TBSCl flakes (modelled 99.58 wt% TBSCl, 0.14 wt% THF, 0.20 wt% n-hexane and 0.09 wt% dichlorodimethylsilane, an upper bound on the assay, D-007) at the plant gate to packing under nitrogen, stream S25 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as the library's other
+# batch entries do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: magnesium turnings in recycled THF/n-hexane at 313 K, tert-butyl chloride dosed over 3.25 h (5 % for the initiation, a 30 min hold, the rest), isobutene and isobutane vented through a brine vent condenser; the Grignard solution dosed over 3 h into dichlorodimethylsilane with sodium thiocyanate (0.8 mol%) at 301 K in a second reactor; the salt filtered, washed and vacuum-dried in an agitated filter-dryer; the filtrates rectified at ambient pressure (10 stages, reflux 2), the solvent with the excess silane recycled (2 % purged), the product cut flaked; 721.9 kg per batch, 803.3 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:MGF
+    missing: "not mapped yet (D-012); connect to: primary magnesium metal, turnings, from the silicothermic (Pidgeon) reduction of calcined dolomite, the dominant primary route; no library process makes magnesium. Cited proxy for a later study: a primary-magnesium ingot dataset of the background database, plus turning (not linked: never map to a guess), as methylmagnesium-bromide-1"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:THFF
+    missing: "linked to processes/thf-1 (lca/mappings.yaml), kg for kg: THF from 1,4-butanediol, 99.95 wt% with 0.05 wt% water; dried on site to the Grignard grade (a molecular sieve, not modelled: the water it holds, 0.5 g/kg, is not in the balance, D-004)"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:HEXF
+    missing: "not mapped yet (D-012); connect to: n-hexane, solvent grade, from the C6 cut of naphtha or natural-gas liquids (extractive distillation and hydrogenation); no library process makes it. Cited proxy for a later study: a hexane or light naphtha solvent dataset of the background database (not linked)"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:TBUCLF
+    missing: "not mapped yet (D-012); connect to: tert-butyl chloride from tert-butyl alcohol and hydrogen chloride (Wikipedia, SRC-9); no library process makes it. Cited proxy for a later study: the stoichiometric inputs from processes/tert-butanol-1 and processes/hydrogen-chloride-1, 0.801 kg tert-butanol and 0.394 kg HCl per kg (C4H9OH + HCl -> C4H9Cl + H2O), recorded here and in DESIGN.md D-012, not linked (library ADR 0039, in review, would allow such a proxy with library inputs)"
+    source: "flowsheet stream S4 (D-004)"
+  - key: feed:SILF
+    missing: "not mapped yet (D-012); connect to: dichlorodimethylsilane from the direct (Mueller-Rochow) process, silicon with methyl chloride over a copper catalyst and the crude silanes' distillation (HSDB via PubChem CID 6398, SRC-8); no library process makes it. Cited proxy for a later study: the stoichiometric inputs, 0.218 kg metallurgical silicon and 0.782 kg chloromethane (processes/chloromethane-1) per kg (Si + 2 CH3Cl -> (CH3)2SiCl2), not linked"
+    source: "flowsheet stream S5 (D-004)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101's agitator), P2 (F-101's agitator and dry vacuum pump) and P3 (the flaker's drive), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler, per kWh of condensing heat"
+    source: "flowsheet energy streams Q4 (R-101's charge warmed), Q8 (the dryer, core's dryer model) and Q11 (tracing of the product's receiver and lines), D-009"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1000 kPa(a), from a natural-gas-fired site boiler, per kWh of condensing heat"
+    source: "flowsheet energy stream Q5 (the still's reboiler, ST101's model), D-007, D-009"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 263 K (brine) from an electric vapour-compression unit (processes/utility-chiller's 6 C chilled water is too warm to be linked), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q1 (the Grignard step, R101's model), Q2 (R-101's vent condenser, R101's model), Q3 (the silylation, R102's model) and Q9 (the dryer's vapour condenser), D-009, D-010"
+  - key: product:TW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower) through the tempered-water loop, per kWh removed"
+    source: "flowsheet energy stream Q6 (the still's condenser, ST101's model), D-007, D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q7 (the flaker) and Q10 (the recovered-solvent cooler), D-009"
+  # wastes
+  - key: product:CAKE
+    treatment: {kind: waste, route: "the dried salt cake (magnesium chloride with the excess magnesium and 2 wt% solvent) quenched under nitrogen with water, which sets free hydrogen from the magnesium (D-006), then landfill or recovery of the magnesium salts"}
+    missing: "not mapped yet (D-012); connect to: treatment of a reactive metal-containing hazardous solid waste (quench, then landfill of the salts), per kg"
+    source: "flowsheet stream S15 (D-006)"
+  - key: product:RESID
+    treatment: {kind: waste, route: "incineration of a halogenated organic waste with silicon (the still's residue: TBSCl, the salt fines that passed the cloth), with acid-gas scrubbing"}
+    missing: "not mapped yet (D-012); connect to: hazardous-waste incineration of a chlorinated organosilicon residue, per kg"
+    source: "flowsheet stream S24 (D-007)"
+  - key: product:WSOLV
+    treatment: {kind: waste, route: "incineration of a solvent waste with chlorosilanes (the 2 % purge of the recovered THF/n-hexane with its dichlorodimethylsilane), with acid-gas scrubbing (D-014)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a halogenated liquid organic waste, per kg"
+    source: "flowsheet stream S28 (D-014)"
+  - key: product:OXID
+    treatment: {kind: waste, route: "the site's thermal oxidiser with an acid-gas scrubber: isobutene and isobutane with the solvent and chlorosilane vapour past the vent condenser and the dryer's bleed, burnt to CO2, water, HCl (scrubbed) and silica (D-008)"}
+    missing: "not mapped yet (D-012); connect to: thermal oxidation of a hydrocarbon vent gas with chlorinated traces and acid-gas scrubbing, per kg of gas"
+    source: "flowsheet stream S31: R-101's vent S8 and the dryer bleed's solvent S18 (D-006, D-008)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml). The train is
+# kept dry between its own batches (a Grignard reagent and chlorosilanes react with water): no
+# rinse.
+consumables:
+  - id: nitrogen
+    title: "Nitrogen for inerting R-101, pressing the slurry, the filter-dryer's pressure filtration, bleed and vacuum break, blanketing the still and the tanks, and the vent header's purge"
+    unit: kg
+    per_batch: 168.3
+    source: "134.6 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101 inerted with 3 volumes of its 6.3 m3 (18.9 Nm3) and R-102 with 3 of its 8 m3 (24); the slurry pressed to F-101 (19); the two filtrations pushed at 200 kPa (20); the dryer's bleed (10) and its vacuum break (8); C-101 and the tanks blanketed (15); the vent header purged at 2 Nm3/h over the 9.86 h cycle (19.7)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+    disposal:
+      kind: waste
+      route: "through the vent header to the thermal oxidiser, unchanged (D-012)"
+      source: "the nitrogen leaves with the vent gas S31 (D-012)"
+      missing: "not mapped yet (D-012); connect to: the thermal oxidiser's throughput of inert gas, with the vent gas product:OXID"
+  - id: sodium-thiocyanate
+    title: Sodium thiocyanate, the silylation's catalyst
+    unit: kg
+    per_batch: 4.14
+    source: "0.8 mol% on the 6.390 kmol of tert-butyl chloride a batch, as US 5 068 386 A, Example 3: 0.0511 kmol x 81.07 kg/kmol (D-004); it ends in the salt cake, not in the balance"
+    missing: "not mapped yet (D-012); connect to: sodium thiocyanate, technical grade, from the reaction of sodium cyanide with sulfur (or from coke-oven gas scrubbing); no library process makes it (processes/sodium-cyanide-1 makes the cyanide, not linked)"
+    disposal:
+      kind: waste
+      route: "with the dried salt cake to its quench and hazardous-waste treatment (D-006, D-012)"
+      source: "the catalyst stays with the magnesium salt in F-101 (not in the balance)"
+      missing: "not mapped yet (D-012); connect to: the salt cake's treatment, with product:CAKE"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: oxidiser-combustion, method: combustion, equipment: [R-101, F-101], reason: "The isobutene, isobutane, solvent and chlorosilane vapour of S31 are burnt in the site's thermal oxidiser, a waste treatment outside the plant's boundary (product:OXID); its CO2, HCl and silica belong to that treatment's dataset, not estimated here (D-012)."}
+  - {id: reactor-vents, method: storage-tank, equipment: [R-101, R-102], reason: "R-101's vent (the isobutene and isobutane with the vapour past E-103) is the flowsheet's S8 to the oxidiser (product:OXID); R-102 forms no gas, and its filling and emptying, like R-101's, go through the nitrogen blanket to the same vent header; not estimated beyond S8 (no P&ID yet, D-008)."}
+  - {id: tank-breathing, method: storage-tank, equipment: [T-201, T-301, C-101], reason: "Breathing and filling losses of the still feed and recycle tanks and of the still go through the nitrogen blanket to the vent header and the oxidiser; not estimated (no P&ID yet, D-014)."}
+  - {id: flaker-dust, method: equipment-leaks, equipment: [E-102], reason: "TBSCl vapour and dust at the enclosed flaker under nitrogen and at packing (3.4 kPa for the subcooled liquid at 308 K on its ASSUMED vapour-pressure line, less over the solid, D-007) are not estimated; the enclosure's nitrogen goes to the vent header."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with a thermal oxidiser and acid-gas scrubber, hazardous-waste incineration and a chilled-brine plant, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #147, unreviewed"
