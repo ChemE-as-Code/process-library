@@ -1,0 +1,109 @@
+# Components and templates of methanesulfonyl-chloride-1. Schema cheme/process/v1 (`cheme
+# schema process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula), normal_boiling_point in K at 101.325
+# kPa. Sources are the register rows of DESIGN.md (SRC-n).
+#
+# The liquid data the semi-batch R101 and the stills need (DESIGN.md D-005, D-007):
+# - liquid_molar_volume, m3/kmol, from the densities PubChem's HSDB records give (SRC-3):
+#   methanesulfonyl chloride 1.4805 g/cm3 and methanesulfonic acid 1.4812 g/cm3, both at 18 C;
+#   thionyl chloride 1.638 g/cm3 at 20 C (the CRC liquid density packaged in chemicals 1.5.2,
+#   thermo 0.6.1's CRC_INORG_L_CONST, SRC-5); water 0.01807. Ideal mixing.
+# - liquid_heat_capacity, kJ/(kmol K): thionyl chloride 121.0 and water 75.3 (the CRC standard
+#   table packaged in chemicals 1.5.2, SRC-5); methanesulfonyl chloride 150 and methanesulfonic
+#   acid 145, ASSUMED: no measured value was found (NIST WebBook and PubChem give none); 150 is
+#   1.31 J/(g K), between acetyl chloride's 1.49 and sulfuryl chloride's 0.99 J/(g K), and 145 is
+#   1.51 J/(g K), a little above sulfuric acid's 1.42 J/(g K) (all three from the same CRC table,
+#   SRC-5) (D-005).
+# - vapour_pressure (NIST form, log10(P/bar) = a - b/(T/K + c)) and heat_of_vaporization:
+#   * thionyl chloride: NIST WebBook's Antoine line fitted to Stull (1947), 220.3-348.6 K, used
+#     to 370 K in R-101 (at 368.15 K it gives 177 kPa, against 180 kPa from the normal boiling
+#     point and CRC's 31.7 kJ/mol at it); heat of vaporization 32.4 kJ/mol at 272 K (NIST
+#     WebBook, Dykyj et al.), at the forerun's condensing temperature (SRC-2, SRC-5);
+#   * methanesulfonyl chloride: no Antoine line is published openly; a two-point
+#     Clausius-Clapeyron line (c = 0) through PubChem's 62 C at 18 mmHg and 161 C at 730 mmHg
+#     (SRC-3), ASSUMED; it gives 20.8 mmHg at 65 C against Organic Syntheses' 64-66 C at 20
+#     mmHg (SRC-1) and 0.23 kPa at 20 C against the ICSC's 0.27 kPa (SRC-3). Its slope, 45.2
+#     kJ/mol, is taken as the heat of vaporization at the stills' 345-365 K; HSDB's 349 kJ/kg
+#     (40.0 kJ/mol, temperature not stated, SRC-3) is 12 % lower and would give a smaller
+#     reboiler duty (D-007);
+#   * methanesulfonic acid: a two-point line through PubChem's 167 C at 10 mmHg and 4.28e-4 mmHg
+#     at 25 C (SRC-3), ASSUMED (0.02 kPa at 368 K, so it hardly volatilises); heat of
+#     vaporization 73.9 kJ/mol at 410 K (NIST WebBook, Stephenson and Malanowski 1987, SRC-2).
+# - ideal_gas: HCl, SO2, SOCl2 and water as `cheme chemistry thermo` prints them (chemicals
+#   1.5.2: ATcT and CRC formation data, Poling's or thermo's TRCIG heat capacities, SRC-5); the
+#   vent condenser cools the vented gas with them.
+# The scrubber species (NaOH, NaCl, Na2SO3, sodium methanesulfonate) are molecular
+# pseudo-components of the aqueous liquor (D-010); their heat capacities are the solids' (CRC
+# table in chemicals 1.5.2), as other library entries take them, ASSUMED for the dissolved salt.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: SOCL2
+    name: Thionyl chloride
+    formula: Cl2OS
+    cas: 7719-09-7
+    molar_mass: 118.97
+    normal_boiling_point: 348.75
+    liquid_molar_volume: 0.07263
+    liquid_heat_capacity: 121.0
+    heat_of_vaporization: 32400
+    vapour_pressure: {a: 4.34394, b: 1399.91, c: -26.202, temperature_range: [220.3, 370.0], provenance: given, source: "NIST WebBook (C7719097), coefficients fitted by NIST to Stull (1947) over 220.3-348.6 K (SRC-2); used to 370 K in R-101, where it agrees within 2 % with the normal boiling point and CRC's heat of vaporization (D-005)"}
+    ideal_gas: {dHf_298: -212500.0, S_298: 309.8, cp_R: [4.42692, 0.0189314, -2.92695e-05, 2.22068e-08, -6.64823e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.17%)"}
+  - id: MSA
+    name: Methanesulfonic acid
+    formula: CH4O3S
+    cas: 75-75-2
+    molar_mass: 96.10
+    normal_boiling_point: 561.0
+    liquid_molar_volume: 0.06488
+    liquid_heat_capacity: 145.0
+    heat_of_vaporization: 73900
+    vapour_pressure: {a: 7.297333, b: 4037.245, c: 0.0, temperature_range: [298.0, 440.0], provenance: assumed, source: "two-point Clausius-Clapeyron line through PubChem CID 6395's (HSDB) 167 C at 10 mmHg and 4.28e-4 mmHg at 25 C (SRC-3), ASSUMED; no open Antoine line found (D-007)"}
+  - id: MSCL
+    name: Methanesulfonyl chloride
+    formula: CH3ClO2S
+    cas: 124-63-0
+    molar_mass: 114.55
+    normal_boiling_point: 434.15
+    liquid_molar_volume: 0.07737
+    liquid_heat_capacity: 150.0
+    heat_of_vaporization: 45200
+    vapour_pressure: {a: 5.432045, b: 2363.434, c: 0.0, temperature_range: [290.0, 435.0], provenance: assumed, source: "two-point Clausius-Clapeyron line through PubChem CID 31297's (HSDB) 62 C at 18 mmHg and 161 C at 730 mmHg (SRC-3), ASSUMED; checked against Organic Syntheses' 64-66 C at 20 mmHg (SRC-1) and the ICSC's 0.27 kPa at 20 C (SRC-3) (D-007)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    liquid_molar_volume: 0.01807
+    liquid_heat_capacity: 75.3
+    heat_of_vaporization: 43990
+    vapour_pressure: {a: 4.6543, b: 1435.264, c: -64.848, temperature_range: [255.9, 373.0], provenance: given, source: "NIST WebBook (C7732185), coefficients fitted by NIST to Stull (1947) (SRC-2)"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: HCL
+    name: Hydrogen chloride
+    formula: ClH
+    cas: 7647-01-0
+    molar_mass: 36.458
+    normal_boiling_point: 188.17
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.827, -0.002936, 8.79e-06, -1.031e-08, 4.39e-12], temperature_range: [50, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: SO2
+    name: Sulfur dioxide
+    formula: O2S
+    cas: 7446-09-5
+    molar_mass: 64.064
+    normal_boiling_point: 263.14
+    ideal_gas: {dHf_298: -296800.0, S_298: 248.2, cp_R: [4.417, -0.002234, 2.344e-05, -3.271e-08, 1.393e-11], temperature_range: [50, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R Poling (5th ed.)"}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997, liquid_molar_volume: 0.0188, liquid_heat_capacity: 59.5}
+  - {id: NACL, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.443, liquid_molar_volume: 0.02693, liquid_heat_capacity: 50.5}
+  - {id: NA2SO3, name: Sodium sulfite (dissolved), formula: Na2O3S, cas: 7757-83-7, molar_mass: 126.04, liquid_molar_volume: 0.04787, liquid_heat_capacity: 120.3}
+  - {id: MSNA, name: Sodium methanesulfonate (dissolved), formula: CH3NaO3S, cas: 2386-57-4, molar_mass: 118.08, liquid_molar_volume: 0.0700, liquid_heat_capacity: 150.0}
+templates:
+  - {id: organics, title: "Thionyl chloride, methanesulfonic acid, methanesulfonyl chloride and water", components: [SOCL2, MSA, MSCL, H2O]}
+  - {id: offgas, title: "Hydrogen chloride and sulfur dioxide with the vapour they carry past R-101's vent condenser (D-010)", components: [HCL, SO2, SOCL2, MSCL]}
+  - {id: crude, title: "The reaction mass leaving R-101 (the vented gases at zero, D-005)", components: [SOCL2, MSA, MSCL, H2O, SO2, HCL]}
+  - {id: liquor, title: "Caustic scrubber liquor (D-010)", components: [NAOH, H2O, NACL, NA2SO3, MSNA]}
+  - {id: spent, title: "Spent scrubber liquor (the off-gas taken up whole, its components at zero, D-010)", components: [NAOH, H2O, NACL, NA2SO3, MSNA, HCL, SO2, SOCL2, MSCL]}
+property_method:
+  adapter: thermo
+  status: placeholder

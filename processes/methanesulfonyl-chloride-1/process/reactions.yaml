@@ -1,0 +1,89 @@
+# Reactions of methanesulfonyl-chloride-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# MSCL: methanesulfonic acid and thionyl chloride to methanesulfonyl chloride, sulfur dioxide and
+# hydrogen chloride, the route of Organic Syntheses, Coll. Vol. 4, p. 571 (Hearst and Noller:
+# 1.5 mol of the acid at 95 C, 2.0 mol of thionyl chloride added over 4 h, held 3.5 h at 95 C).
+# Both gases leave the liquid as they form (R101's batch.vent, core ADR 0054).
+# HYD: the water of the acid takes thionyl chloride first, to SO2 and two HCl.
+# No open kinetics or calorimetry of either reaction was found (DESIGN.md D-005): the rate laws
+# are ASSUMED, second order, MSCL sized so that the post-reaction to 0.99 conversion of the acid
+# after the 4 h dosing takes 3.3 h, about the source's 3.5 h hold. The heat of reaction of MSCL
+# cannot be derived (no open formation enthalpy of methanesulfonic acid or methanesulfonyl
+# chloride): +65 kJ/mol is ASSUMED from two analogues computed with the standard formation
+# enthalpies of chemicals 1.5.2 (its default Hfl and Hfg: the CRC Handbook tables it bundles,
+# ATcT for gaseous HCl and water; SRC-5): one S-OH of liquid sulfuric acid to the S-Cl of
+# sulfuryl chloride with thionyl chloride, +66.6 kJ/mol, and acetic acid to acetyl chloride,
+# +68.1 kJ/mol, each with SO2 and HCl formed as gas (D-005). HYD's +50.3 kJ/mol is computed from
+# the same data (liquid thionyl chloride -245.6 and water -285.825, gaseous SO2 -296.8 and HCl
+# -92.173 kJ/mol).
+#
+# NEU_*: the caustic scrubber A101 (D-010), the off-gas taken up whole in sodium hydroxide
+# solution, conversion 1 of each gas ASSUMED. Their heats are ASSUMED orders of magnitude for the
+# dissolved products (no open table of aqueous formation enthalpies was read): an acid gas's heat
+# of solution in water and the neutralisation of the strong acid formed, about -56 kJ per mol
+# of hydroxide used (D-010).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: MSCL
+    title: Methanesulfonic acid and thionyl chloride to methanesulfonyl chloride
+    equation: CH3SO3H + SOCl2 -> CH3SO2Cl + SO2 + HCl
+    stoichiometry: {MSA: -1, SOCL2: -1, MSCL: 1, SO2: 1, HCL: 1}
+    phase: liquid
+    heat_of_reaction: {value: 65000, provenance: assumed, source: "ASSUMED (D-005): endothermic by analogy, standard formation enthalpies of chemicals 1.5.2 (Hfl, Hfg defaults: CRC Handbook tables, ATcT for HCl(g); SRC-5): H2SO4(l) + 2 SOCl2(l) -> SO2Cl2(l) + 2 SO2(g) + 2 HCl(g), +66.6 kJ per S-OH; CH3COOH(l) + SOCl2(l) -> CH3COCl(l) + SO2(g) + HCl(g), +68.1 kJ/mol; SO2 and HCl formed as gas; to be measured by reaction calorimetry"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 7.5e-5 m3/(kmol s) at 368.15 K (Ea 60 kJ/mol)
+      k: {A: 2.44577e+04, Ea: 60000}
+      orders: {MSA: 1, SOCL2: 1}
+      temperature_range: [353.15, 383.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): no open kinetics found (2026-11-12); sized so that the post-reaction to 0.99 conversion of the acid after the 4 h dosing takes 3.3 h, about the 3.5 h hold of Organic Syntheses, Coll. Vol. 4, 571; Ea 60 kJ/mol ASSUMED; to be replaced by reaction calorimetry with off-gas measurement; k/10 and k/100 screened (D-011)"
+    sources: ["Organic Syntheses, Coll. Vol. 4, p. 571 (1963); Vol. 30, p. 58 (1950), P. J. Hearst and C. R. Noller: 1.5 mol methanesulfonic acid (95 %, 2 % water) at 95 C, 2.0 mol thionyl chloride over 4 h, 3.5 h more at 95 C, distilled at 64-66 C and 20 mmHg, 71-83 %"]
+  - id: HYD
+    title: Thionyl chloride hydrolysed by the acid's water
+    equation: SOCl2 + H2O -> SO2 + 2 HCl
+    stoichiometry: {SOCL2: -1, H2O: -1, SO2: 1, HCL: 2}
+    phase: liquid
+    heat_of_reaction: {value: 50300, provenance: given, source: "standard formation enthalpies of chemicals 1.5.2 (Hfl, Hfg defaults; SRC-5): SOCl2(l) -245.6 (CRC), H2O(l) -285.825, SO2(g) -296.8 (CRC), HCl(g) -92.173 kJ/mol (ATcT); SO2 and HCl formed as gas; 298.15 K"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 7.5e-3 m3/(kmol s) at 368.15 K, a hundred times MSCL's (Ea 60 kJ/mol)
+      k: {A: 2.44577e+06, Ea: 60000}
+      orders: {SOCL2: 1, H2O: 1}
+      temperature_range: [353.15, 383.15]
+      provenance: assumed
+      source: "ASSUMED (D-005): thionyl chloride reacts with water much faster than with the acid; a hundred times MSCL's rate constant, so the water is gone early in the dosing"
+  - id: NEU_HCL
+    title: Hydrogen chloride neutralised in the scrubber
+    equation: HCl + NaOH -> NaCl + H2O
+    stoichiometry: {HCL: -1, NAOH: -1, NACL: 1, H2O: 1}
+    reversible: false
+    conversion: {key: HCL, value: 1.0, provenance: assumed, source: "D-010: all HCl taken up by the caustic scrubber, ASSUMED"}
+    heat_of_reaction: {value: -130000, provenance: assumed, source: "ASSUMED order of magnitude (D-010): HCl gas dissolved in water (about -75 kJ/mol at high dilution) and neutralised (about -56 kJ/mol)"}
+  - id: NEU_SO2
+    title: Sulfur dioxide absorbed to sulfite in the scrubber
+    equation: SO2 + 2 NaOH -> Na2SO3 + H2O
+    stoichiometry: {SO2: -1, NAOH: -2, NA2SO3: 1, H2O: 1}
+    reversible: false
+    conversion: {key: SO2, value: 1.0, provenance: assumed, source: "D-010: all SO2 taken up by the caustic scrubber to sulfite (excess caustic), ASSUMED"}
+    heat_of_reaction: {value: -160000, provenance: assumed, source: "ASSUMED order of magnitude (D-010): SO2 dissolved in water (about -26 kJ/mol) and neutralised by two hydroxides to sulfite (about -2 x 56 kJ, a weak second acid step taken as the first)"}
+  - id: NEU_SOCL2
+    title: Thionyl chloride vapour destroyed in the scrubber
+    equation: SOCl2 + 4 NaOH -> Na2SO3 + 2 NaCl + 2 H2O
+    stoichiometry: {SOCL2: -1, NAOH: -4, NA2SO3: 1, NACL: 2, H2O: 2}
+    reversible: false
+    conversion: {key: SOCL2, value: 1.0, provenance: assumed, source: "D-010: the thionyl chloride past the vent condenser hydrolysed and neutralised, ASSUMED"}
+    heat_of_reaction: {value: -400000, provenance: assumed, source: "ASSUMED (D-010): hydrolysis to SO2 and 2 HCl in the liquid and their neutralisation, about the sum of NEU_SO2 and 2 x NEU_HCL less the gases' heats of solution"}
+  - id: NEU_MSCL
+    title: Methanesulfonyl chloride vapour destroyed in the scrubber
+    equation: CH3SO2Cl + 2 NaOH -> CH3SO3Na + NaCl + H2O
+    stoichiometry: {MSCL: -1, NAOH: -2, MSNA: 1, NACL: 1, H2O: 1}
+    reversible: false
+    conversion: {key: MSCL, value: 1.0, provenance: assumed, source: "D-010: the trace of methanesulfonyl chloride past the vent condenser hydrolysed in the caustic, ASSUMED"}
+    heat_of_reaction: {value: -150000, provenance: assumed, source: "ASSUMED order of magnitude (D-010): hydrolysis and the neutralisation of two strong acids"}

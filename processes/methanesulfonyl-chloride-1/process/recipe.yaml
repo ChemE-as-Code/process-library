@@ -1,0 +1,47 @@
+# The batch recipe of methanesulfonyl-chloride-1 (schema cheme/recipe/v1, `cheme process
+# recipe`, DESIGN.md D-003). One batch makes 1203.4 kg of distilled methanesulfonyl chloride
+# (stream S10); the flowsheet's rates are the year averages.
+# - R-101 runs R101 alone: the acid warmed from 298.15 K on the jacket (heat, batch.heat_up),
+#   the dosing and the post-reaction to 0.99 conversion of the acid take their times from R101's
+#   model (from: R101); the vessel is sized from R101's model (core ADR 0052). Its jacket check
+#   is a cooling check: the reaction is endothermic, so the heating the dosing needs is checked
+#   by hand (D-009, D-014, L-3).
+# - C-101, the still with its column K-101, is one vessel over ST101 (the forerun), ST102 (the
+#   product) and E101 (the product cooler, which runs while the product distils): the cuts take
+#   their boil-up times from the still's model (from: ST101, ST102), (R + 1) moles boiled up per
+#   mole distilled (core ADR 0061).
+# Every other duration is ASSUMED (D-003). The vent condenser E-102 and the scrubber A-101 run
+# while R-101 doses and are no batch units.
+schema: cheme/recipe/v1
+kind: recipe
+title: Methanesulfonyl chloride by semi-batch reaction of methanesulfonic acid with thionyl chloride
+batch_size: {value: 1203.4, unit: kg, stream: S10, provenance: assumed, source: "one batch of distilled methanesulfonyl chloride: 1000 t/a over the 831.0 batches the 9.531 h cycle allows, 126.263 kg/h x 9.531 h (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    unit: R101
+    title: Charge and warm the acid, dose the thionyl chloride, post-react (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 303.28, heating_temperature: 382.44, provenance: assumed, source: "enamelled (glass-lined) steel vessel, U 300 W/(m2 K) ASSUMED; heated with LP steam let down to 140 kPa(a), condensing at 382.44 K (IAPWS-IF97), below Organic Syntheses' 115 C (388.15 K) limit for the product's heated wall (D-009); the reaction is endothermic (D-005), so the jacket heats throughout the dosing; were it cooled, cooling water entering at 298.15 K and leaving at 308.15 K would see a log-mean driving force of (70 - 60) / ln(70/60) = 64.87 K from the batch at 368.15 K: core takes the coolant temperature as constant, so the equivalent 368.15 - 64.87 = 303.28 K is entered (D-003, D-009)"}
+      provenance: assumed
+      source: "usual fill and proportions of an enamelled stirred vessel; no metal_heat_capacity: R-101 is not cooled between batches (the crude leaves at 368.15 K and the next acid is charged into the warm vessel within 0.75 h), so its metal ends each batch at the temperature it started from and takes no net heat; the acid's heat-up from 298.15 K (batch.heat_up) holds the batch's whole heat, and the warming time is slightly long (D-003, D-009)"
+    operations:
+      - {id: inert, kind: other, title: Nitrogen purge of the dry vessel, duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: charge, kind: charge, title: Charge the acid, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Warm the acid to 368 K, temperatures: [298.15, 368.15]}
+      - {id: dose, kind: dose, title: Dose the thionyl chloride, from: R101}
+      - {id: react, kind: react, title: Post-reaction at 368 K, from: R101}
+      - {id: hold, kind: hold, title: "Sample the crude (acid, thionyl chloride)", duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Crude to the still C-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: DISTIL
+    units: [ST101, ST102, E101]
+    title: Vacuum distillation at 4 kPa(a), forerun then product (C-101, K-101, E-103, E-104, E-101)
+    operations:
+      - {id: receive, kind: charge, title: Receive the crude, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: evacuate, kind: other, title: Evacuate to 4 kPa(a), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: forerun, kind: distil, title: Distil the excess thionyl chloride to T-102, from: ST101}
+      - {id: product, kind: distil, title: Distil the methanesulfonyl chloride, from: ST102}
+      - {id: vent, kind: other, title: Stop the boil-up and break the vacuum with nitrogen, duration: {value: 0.5, provenance: assumed, source: "D-003; the residue is not cooled in C-101: it drains at the still's end temperature, 362 K, to the waste drum (D-008, D-009)"}}
+      - {id: drain, kind: transfer, title: Drain the residue to the waste drum D-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
