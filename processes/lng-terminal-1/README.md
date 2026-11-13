@@ -12,7 +12,9 @@ liquefaction trains (28 MTPA), two full-containment tanks of 225,000 m3 with in-
 loading and vapour return lines over a ~2 km trestle, two berths with four 16 inch arms each
 (12,000 m3/h), BOG compressors and the storage and loading flare. The plot plan follows the
 real site geometry. A design case built from public facts (`DESIGN.md`, source register), not
-a description of the project. Issue ChemE-as-Code/process-library#362.
+a description of the project: an independent study, not the design of LNG Canada Development
+Inc. or its owners, made without their data and not reviewed by them. Values marked ASSUMED are
+ours. Issue ChemE-as-Code/process-library#362; open items #444 to #457.
 
 A plant design kept as plain files in git: P&IDs in DEXPI 2.0.1 (the open P&ID exchange
 standard) in `pid/`, engineering lists as YAML, decisions and progress as Markdown. Edited by
