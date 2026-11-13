@@ -312,7 +312,7 @@ steps:
       pressure: 101.325
       volatility: {model: raoult, provenance: assumed, source: "ideal liquid, the Antoine lines of materials.yaml (D-008)"}
       nonvolatile: [LUT, HCL, CO, CO2]
-      boilup: {value: 95, unit: kW, provenance: assumed, source: "the reboiler's heat input, LP steam (412 K) on C-201's jacket, held at what the jacket gives at the still's end, where its wetted area is smallest and the still hottest: U 300 W/(m2 K) x the wetted area under the POCl3 left (core's wetted_area at C-201's diameter) x (412 - 378.1) K, 97.0 kW, rounded down to 95 kW (scripts/balance.py prints it, D-008, D-009)"}
+      boilup: {value: 95, unit: kW, provenance: assumed, source: "the reboiler's heat input, LP steam (412 K) on C-201's jacket, held at what the jacket gives at the still's end, where its wetted area is smallest and the still hottest: U 300 W/(m2 K) x the wetted area under the POCl3 left (core's wetted_area at C-201's diameter) x (412 - 378.1) K = 118.5 kW, so 95 kW holds over the whole cut (scripts/balance.py prints it, D-008, D-009)"}
       heat_up: true
       condenser_port: condenser
       column:
@@ -417,8 +417,8 @@ streams:
     template: chlorination
     state:
       design:
-        composition: {basis: mole_fraction, values: {PCL3: 5.59016e-05, CL2: 1.17762e-35, PCL5: 0.407706, POCL3: 0.537382, OXA: 0.000322039, OXCL: 0.005, LUT: 0.0495342, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S14 (tear, wegstein)', fingerprint: f17076c3a68ae72d}
-        flow: {value: 325.678, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S14 (tear, wegstein)', fingerprint: f17076c3a68ae72d}
+        composition: {basis: mole_fraction, values: {PCL3: 5.59016e-05, CL2: 1.17762e-35, PCL5: 0.407706, POCL3: 0.537382, OXA: 0.000322039, OXCL: 0.005, LUT: 0.0495342, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S14 (tear, wegstein)', fingerprint: 3fe4b9a7b23c0313}
+        flow: {value: 325.678, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S14 (tear, wegstein)', fingerprint: 3fe4b9a7b23c0313}
   - id: S4
     title: Charge of R-101
     from: M101.out
@@ -620,8 +620,8 @@ streams:
       design:
         temperature: {value: 309.8, provenance: assumed, source: "scripts/balance.py: mixed from the crude S13, the off-cut S25 and C-201's metal at the POCl3's cooled temperature (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 381.038, provenance: calculated, source: 'cheme process propagate: recycle M201 from S13 S25 (tear, wegstein)', fingerprint: f17076c3a68ae72d}
-        composition: {basis: mole_fraction, values: {PCL3: 0.00177596, CL2: 5.73622e-07, PCL5: 0.0, POCL3: 0.761316, OXA: 0.0, OXCL: 0.236908, LUT: 0.0, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle M201 from S13 S25 (tear, wegstein)', fingerprint: f17076c3a68ae72d}
+        flow: {value: 381.038, provenance: calculated, source: 'cheme process propagate: recycle M201 from S13 S25 (tear, wegstein)', fingerprint: 3fe4b9a7b23c0313}
+        composition: {basis: mole_fraction, values: {PCL3: 0.00177596, CL2: 5.73622e-07, PCL5: 0.0, POCL3: 0.761316, OXA: 0.0, OXCL: 0.236908, LUT: 0.0, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle M201 from S13 S25 (tear, wegstein)', fingerprint: 3fe4b9a7b23c0313}
   - id: S21
     title: Absorber water
     from: PW.out
@@ -667,7 +667,7 @@ streams:
         flow: {value: 10.5158, provenance: assumed, source: "scripts/balance.py: the CO, CO2 and chlorine, none absorbed (D-010)"}
         composition: {basis: mass_fraction, values: {CO: 0.37002145, CO2: 0.581373581, CL2: 0.04860497}, provenance: assumed, source: "scripts/balance.py (D-010)"}
   # energy
-  - {id: Q1, title: "Charge warmed (R-101's hot-water loop, LP steam)", kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 0.7034, provenance: assumed, source: "scripts/balance.py: the charge S4 from its mixed temperature to 333.15 K (D-009)"}}}}
+  - {id: Q1, title: "Charge warmed (R-101's hot-water loop, LP steam)", kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 0.7034, provenance: assumed, source: "scripts/balance.py: the charge S4 and R-101's metal (ASSUMED 6500 kJ/K) from the charge's mixed temperature to 333.15 K (D-009)"}}}}
   - {id: Q2, title: Heat of chlorination to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 41.129, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S5 S6', fingerprint: ad4b9be30e04a054}}}}
   - {id: Q3, title: "Net heat of R102 to cooling water: the heat of reaction less the dose warmed and the vapour carried off, near balance", kind: energy, from: R102.q, to: CW.r102, state: {design: {duty: {value: 0.273125, provenance: calculated, source: 'cheme process propagate: semibatch duty R102 from S7 S10', fingerprint: 47ce0a3977ec3d18}}}}
   - {id: Q4, title: Vent condenser E-102 to chilled water, kind: energy, from: R102.q_vent, to: CHW.e102, state: {design: {duty: {value: 3.5308, provenance: calculated, source: 'cheme process propagate: vent condenser duty R102 from S7 S10', fingerprint: 890ae389e0a0198a}}}}
@@ -676,7 +676,7 @@ streams:
   - {id: Q7, title: Still reboiler C-201 (LP steam), kind: energy, from: LPS.st201, to: ST201.steam, state: {design: {duty: {value: 63.9822, provenance: calculated, source: 'cheme process propagate: still duty ST201 from S26', fingerprint: 30ae5b1947996165}}}}
   - {id: Q8, title: Column condenser (K-201) to cooling water, kind: energy, from: ST201.condenser, to: CW.k201, state: {design: {duty: {value: 55.3638, provenance: calculated, source: 'cheme process propagate: still condenser duty ST201 from S26', fingerprint: 4104acbd976c5f07}}}}
   - {id: Q9, title: Product cooler to cooling water, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 0.6952, provenance: assumed, source: "scripts/balance.py: the product cut from its bubble point to 303.15 K (D-009)"}}}}
-  - {id: Q10, title: POCl3 cooling to cooling water, kind: energy, from: E202.q, to: CW.e202, state: {design: {duty: {value: 7.4268, provenance: assumed, source: "scripts/balance.py: the still's POCl3 from its bubble point to 303.15 K (D-009)"}}}}
+  - {id: Q10, title: POCl3 cooling to cooling water, kind: energy, from: E202.q, to: CW.e202, state: {design: {duty: {value: 7.4268, provenance: assumed, source: "scripts/balance.py: the still's POCl3 and C-201's metal (ASSUMED 4500 kJ/K) from the POCl3's bubble point to 313.15 K, where it is drained (D-008, D-009)"}}}}
   - {id: Q11, title: "Absorber heat (hydrolyses, HCl dissolved) to cooling water", kind: energy, from: D101.q, to: CW.a101, state: {design: {duty: {value: 24.3141, provenance: assumed, source: "scripts/balance.py: the vapours' hydrolysis and the HCl's heat of solution, less the water and gas warmed to 313.15 K (D-010)"}}}}
   - {id: P1, title: R-101 agitator and vacuum pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 7.0, provenance: assumed, source: "ASSUMED (D-009): R-101's agitator for its 16 m3 slurry vessel, about 0.35 kW/m3, 5.6 kW over the whole cycle, and the dry vacuum pump of the strip, about 3 kW for the strip's 46 % of the cycle, 1.4 kW"}}}}
   - {id: P2, title: Still agitator and column reflux pump, kind: energy, from: POWER.st201, to: ST201.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "ASSUMED (D-009): C-201's agitator, about 1.5 kW, and the reflux and transfer pumps, about 0.5 kW"}}}}

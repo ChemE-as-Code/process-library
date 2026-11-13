@@ -121,7 +121,7 @@ Warming and the strip use R-101's hot-water loop at 353/348 K (mean 350.65 K), b
 (D-009, D-011).
 Rejected: chilled water on R-101's jacket for a 3 h chlorination (refrigeration energy, and
 the chilled water's 278 K supply would freeze POCl3 on the wall, 274.33 K, only 4 K away);
-chlorination at SRC-1's 85 C (358 K, 0.8 K below R101's MTT, D-011).
+chlorination at SRC-1's 85 C (358.15 K, 0.6 K below R101's MTT, D-011).
 
 ## D-004 Feeds, charge and the heel (2026-11-13)
 Decision: per mol of oxalic acid 1.915 mol of fresh PCl3 (the 1.85 the reactions consume at

@@ -173,6 +173,9 @@ def test_the_mtts_are_the_bubble_points_of_the_vented_mass(balance, sheet, strea
     design = _text("DESIGN.md")
     assert f"of R101's charge, {_step(sheet, 'R101')['hazard']['mtt']:.2f} K" in design
     assert f"of R102's final liquid, {_step(sheet, 'R102')['hazard']['mtt']:.2f} K" in design
+    # the rejected chlorination at SRC-1's 85 C: its margin to R101's MTT from 358.15 K
+    margin = _step(sheet, "R101")["hazard"]["mtt"] - (85.0 + 273.15)
+    assert f"85 C (358.15 K, {margin:.1f} K below R101's MTT" in design
 
 
 def _chlorine_bubble_points(balance, streams) -> dict[str, float]:
@@ -282,6 +285,23 @@ def test_the_allocation_shares_are_the_values_at_the_stated_prices(streams):
     mass = streams["S17"]["flow"]["value"] / sum(streams[sid]["flow"]["value"] for sid in flows.values())
     assert mass == pytest.approx(0.155, abs=5e-4)
     assert "15.5 %" in _text("DESIGN.md")
+
+
+def test_the_tail_gas_per_kg_follows_from_s24(balance, streams):
+    """The tail gas's CO and CO2 per kg of product, stated in lca.yaml's gap (and so in the
+    generated gaps, inventory, dataset and results), process.yaml and DESIGN.md (D-012)."""
+    tail = _kg(balance, streams, "S24")
+    product = streams["S17"]["flow"]["value"]
+    co = tail["CO"] / product
+    co2 = tail["CO2"] / product
+    oxidised = co / balance.MW["CO"] * balance.MW["CO2"]
+    text = f"the CO ({co:.3f} kg per kg of product) leaves the oxidiser as {oxidised:.3f} kg of CO2, beside the {co2:.3f} kg of CO2 the tail gas carries itself"
+    gap = next(p for p in _load("lca/lca.yaml")["flows"] if p["key"] == "product:TAIL")
+    assert text in " ".join(gap["missing"].split())
+    for rel in ("lca/gaps.csv", "lca/inventory.csv", "lca/results.md", "lca/dataset.yaml"):
+        assert text in _text(rel), rel
+    assert f"CO in the absorber's tail gas ({co:.3f} kg/kg with {co2:.3f} kg CO2" in _text("process.yaml")
+    assert f"({co:.3f} kg CO, {co2:.3f} kg CO2," in _text("DESIGN.md")
 
 
 def test_every_heat_stream_reaches_the_lci(streams):
@@ -417,6 +437,8 @@ def test_the_stills_jackets_and_c201s_cooling_by_hand(balance, sheet, streams):
     steam = u * area * (balance.T_LPS - t18)
     boil201 = _step(sheet, "ST201")["still"]["boilup"]["value"]
     assert boil201 <= steam and steam == pytest.approx(118.5, abs=0.05)
+    source201 = " ".join(_step(sheet, "ST201")["still"]["boilup"]["source"].split())
+    assert f"= {steam:.1f} kW, so {boil201:g} kW holds over the whole cut" in source201
     # C-201's cooling: the POCl3 and the metal on the jacket's water at its mean
     capacity = balance.heat_capacity_rate(_kg(balance, streams, "S18")) * hours + _metal("DISTIL")
     cool = capacity / (u * area) * math.log((t18 - balance.T_CW_MEAN) / (balance.T_POCL3 - balance.T_CW_MEAN)) / 3600.0
@@ -446,6 +468,9 @@ def test_the_vessels_metal_is_in_the_heats(balance, streams):
     t18 = streams["S18"]["temperature"]["value"]
     q10 = (balance.heat_capacity_rate(_kg(balance, streams, "S18")) + _metal("DISTIL") / hours) * (t18 - 313.15) / 3600.0
     assert streams["Q10"]["duty"]["value"] == pytest.approx(q10, abs=1e-3)
+    # the duties' sources name the metal and the end temperatures the script uses
+    assert "R-101's metal" in streams["Q1"]["duty"]["source"] and "to 333.15 K" in streams["Q1"]["duty"]["source"]
+    assert "C-201's metal" in streams["Q10"]["duty"]["source"] and f"to {balance.T_POCL3} K" in streams["Q10"]["duty"]["source"]
     assert "metal 3.12" in _text("DESIGN.md") and "metal 0.26" in _text("DESIGN.md")
 
 
