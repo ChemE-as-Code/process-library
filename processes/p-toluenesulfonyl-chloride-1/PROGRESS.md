@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-12 | lca/mappings.yaml, lca/lca.yaml, lca/ outputs, process.yaml, DESIGN.md | feed:CSA linked through the library's estimate proxy `chlorosulfonic-acid` (library ADR 0039): 0.687 kg SO3 from the background (sulfuric-acid-1 makes no SO3 or oleum product) and 0.313 kg HCl as hydrogen-chloride-1's 33 wt-% acid per kg, by stoichiometry; marked as an estimate in the Atlas dataset (technological pedigree 3 -> 4, DQR 2.3333 -> 2.3556); one gap fewer; lca.yaml's text and the LCA outputs regenerated (the inventory itself unchanged); D-012 superseded for the acid by D-016; ammonium chloride stays a gap | issue #419 |
 | 2026-11-12 | DESIGN.md | source register SRC-11 no longer calls chemicals' packaged CRC tables open data: open-source packages queried, single values, the CRC Handbook as the underlying work (not read) | issue #426: ADR 0037 sweep of the older source registers; text only, no number changes |
 | 2026-11-06 | README.md | publication review: the 150 m3/h vent capacity marked ASSUMED (no vent sized yet), and the interlocks and relief described as required, not yet designed | publication review of PR #411 |
 | 2026-11-06 | process.yaml, README.md, tests | `publication: {status: public, license: CC-BY-4.0}`, the maintainer's decision that every library entry is public (ADR 0036); README.md and the entry's test say public; lca/manifest.json and lca/dataset.yaml fingerprints of process.yaml renewed | publication policy |

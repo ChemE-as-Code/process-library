@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://atlas.cheme-as-code.org/schemas/lci-mappings/v1.json",
   "title": "Atlas LCI mappings (lci/mappings.yaml)",
-  "description": "How build_lci.py links each exchange of a process's LCI dataset to a Brightway background: technosphere activities by name, reference product, unit and location (database chosen at install time), library-level screening proxies, biosphere flows by name and categories, and the curated decisions on atmospheric pass-through emissions; the declared system model of the default build (cut-off), the flows it excludes, the substitution variant's extra links and proxies, and the curated allocation per process (docs/system-model.md).",
+  "description": "How build_lci.py links each exchange of a process's LCI dataset to a Brightway background: technosphere activities by name, reference product, unit and location (database chosen at install time), library-level screening proxies and estimate proxies that may name library products (ADR 0039), biosphere flows by name and categories, and the curated decisions on atmospheric pass-through emissions; the declared system model of the default build (cut-off), the flows it excludes, the substitution variant's extra links and proxies, and the curated allocation per process (docs/system-model.md).",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "system_model", "default_site_location", "technosphere"],
@@ -117,14 +117,8 @@
         "use": {"$ref": "#/$defs/id"},
         "chemical": {"$ref": "#/$defs/id"},
         "dataset": {
-          "description": "Link this exchange to this Atlas dataset's product, chosen by a curator, as a dataset's own link.dataset does. An input with no background entry can link an Atlas producer this way. Not together with `use`.",
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["path", "product"],
-          "properties": {
-            "path": {"type": "string", "pattern": "^processes/[a-z0-9-]+/lca/.+[.]yaml$"},
-            "product": {"type": "string", "pattern": "^product:[A-Za-z0-9_.\\-]+$"}
-          }
+          "$ref": "#/$defs/dataset_ref",
+          "description": "Link this exchange to this Atlas dataset's product, chosen by a curator, as a dataset's own link.dataset does. An input with no background entry can link an Atlas producer this way. Not together with `use`."
         },
         "atlas": {"type": "boolean", "description": "false: the exchange is never linked inside the Atlas (prefer_atlas), only to its background mapping, e.g. while the process has not decided which Atlas utility serves it."},
         "properties_reason": {"type": "string", "minLength": 10, "description": "Why a product's allocation property (exergy, energy) may differ from the chemicals registry's (build_lci.py property_checks)."},
@@ -144,6 +138,7 @@
       }
     },
     "proxy": {
+      "description": "An activity of the Atlas database that stands in for a flow the background has no activity for. Without `basis`: a unit or screening proxy whose inputs are background entries. With `basis` (ADR 0039): an estimate of a substance (`chemical`) from other products, which may name library products; the build checks its mass on the basis and each input's `content` against its product's stated composition, refuses a missing product and a circular link, always links a library producer of `chemical` instead when the build has one (also when it refuses the proxy or cannot use it), and marks every exchange linked to it as an estimate with a data-quality penalty.",
       "type": "object",
       "additionalProperties": false,
       "required": ["name", "reference_product", "unit", "location", "inputs", "source"],
@@ -152,20 +147,55 @@
         "reference_product": {"type": "string", "minLength": 1},
         "unit": {"$ref": "#/$defs/unit"},
         "location": {"type": "string", "minLength": 2},
+        "chemical": {"$ref": "#/$defs/id", "description": "The registry slug of the substance the proxy stands for (ADR 0039): a library producer of it in the build takes precedence over the proxy."},
+        "basis": {
+          "description": "What the inputs conserve (ADR 0039): `mass` (the inputs' masses on the basis make up 1 kg of the proxy), `stoichiometric` (the reactants of `reaction`, by their molar masses; mass is conserved too) or `non-mass` (another basis, stated in `basis_reason`; no mass check).",
+          "enum": ["mass", "stoichiometric", "non-mass"]
+        },
+        "reaction": {"type": "string", "minLength": 5, "description": "basis stoichiometric: the reaction the amounts come from, e.g. \"SO3 + HCl -> HSO3Cl\"."},
+        "basis_reason": {"type": "string", "minLength": 10, "description": "basis non-mass: what the amounts conserve instead, and why."},
         "inputs": {
           "type": "array", "minItems": 1,
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["use", "amount", "source"],
+            "required": ["amount", "source"],
+            "oneOf": [{"required": ["use"]}, {"required": ["dataset"]}],
+            "dependentRequired": {"content": ["dataset"]},
             "properties": {
               "use": {"$ref": "#/$defs/id", "description": "A technosphere entry with an activity (not a proxy)."},
-              "amount": {"type": "number"},
+              "dataset": {"$ref": "#/$defs/dataset_ref", "description": "A library product (ADR 0039): this Atlas dataset's product, linked inside the Atlas database. Only in a proxy with a `basis`."},
+              "amount": {"type": "number", "description": "Per unit of the proxy, in the unit of the input's activity or product."},
+              "content": {
+                "description": "The part of the input that counts on the basis, when the input is a mixture (e.g. HCl in a 33 wt-% acid counted by the solution): its component and mass fraction. Only on a library product (`dataset`), whose stated composition the build checks the fraction against; a background entry (`use`) states no composition, so a content on it is refused.",
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["component", "fraction"],
+                "properties": {
+                  "component": {"type": "string", "minLength": 1},
+                  "fraction": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+                }
+              },
               "source": {"type": "string", "minLength": 3}
             }
           }
         },
         "source": {"type": "string", "minLength": 3}
+      },
+      "dependentRequired": {"basis": ["chemical"], "chemical": ["basis"]},
+      "allOf": [
+        {"if": {"properties": {"basis": {"const": "stoichiometric"}}, "required": ["basis"]}, "then": {"required": ["reaction"]}},
+        {"if": {"properties": {"basis": {"const": "non-mass"}}, "required": ["basis"]}, "then": {"required": ["basis_reason"]}},
+        {"if": {"not": {"required": ["basis"]}}, "then": {"properties": {"inputs": {"items": {"not": {"anyOf": [{"required": ["dataset"]}, {"required": ["content"]}]}}}}}}
+      ]
+    },
+    "dataset_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "product"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^processes/[a-z0-9-]+/lca/.+[.]yaml$"},
+        "product": {"type": "string", "pattern": "^product:[A-Za-z0-9_.\\-]+$"}
       }
     },
     "id": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
