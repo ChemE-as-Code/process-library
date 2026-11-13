@@ -1,0 +1,663 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Oxalyl chloride by Bayer's one-pot route (US 4 341 720 A, Examples 19 and 20; DESIGN.md D-001),
+# a batch plant on one reactor-still R-101 and one rectification still C-201:
+# - R-101 holds the previous batch's residue (the heel: excess PCl5 suspended in POCl3 with the
+#   amine catalyst); fresh PCl3 and the catalyst's make-up are charged to it (M101) and warmed to
+#   333 K (E101), chlorine is dosed and chlorinates the PCl3 to PCl5 (R101, a semi-batch);
+# - anhydrous oxalic acid, suspended in recycled POCl3 (V-102, M102), is dosed into the slurry
+#   (R102, a semi-batch): oxalyl chloride, POCl3 and HCl form, part of the acid is lost to CO and
+#   CO2; the gases leave by the vent through the vent condenser E-102 (on chilled water, its
+#   condensate back to R-101) to the HCl absorber;
+# - R-101 is put under 15 kPa(a) and the crude (oxalyl chloride with POCl3) is distilled off the
+#   heel (ST101, a batch still); 5 % of the heel is purged (SP101), the rest stays for the next
+#   batch (the tear S3);
+# - the crude is rectified at atmospheric pressure in C-201 with its column K-201 (ST201): the
+#   oxalyl chloride overhead, the POCl3 in the still; part of the POCl3 suspends the next acid
+#   charge (SP201, the tear S9), the rest is a co-product;
+# - the off-gas is absorbed in water (A101, D101) to about 30 wt% hydrochloric acid; CO, CO2 and
+#   the chlorine traces go to the site's thermal oxidiser.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, ratios: design basis and D-002..D-004, ASSUMED or from US 4 341 720 A;
+# - R101, R102: cheme's semi-batch model (core ADRs 0050, 0054, 0062, 0063) from the ASSUMED rate
+#   laws (D-005); R102's vent carries the liquid's vapour through the vent condenser E-102;
+# - ST101, ST201: cheme's batch still on Raoult's law (ADR 0055), ST201 with its column (ADR
+#   0061) (D-007, D-008);
+# - M101, M102 (mixers), SP101, SP201 (splitters), E101, E201, E202 (pass-through) and A101 (a
+#   conversion step): `cheme process propagate --fill`, the recycles converged at the tears S3
+#   and S9 (ADR 0060);
+# - the duties of R101 (Q2), R102 (Q3), its vent condenser (Q4), the stills' reboilers (Q5, Q7)
+#   and condensers (Q6, Q8) are written by `cheme process propagate --fill` from the models
+#   (ADRs 0059, 0061, 0062); E101's warming Q1, the coolers' Q9 and Q10 and the absorber's Q11
+#   come from scripts/balance.py (no property package of core covers these liquids or HCl in
+#   water; D-009, D-010);
+# - the feeds for 500 t/a, the absorber's water and its split D101, and the temperatures core
+#   does not derive: scripts/balance.py (D-004, D-009, D-010).
+schema: cheme/process/v1
+kind: flowsheet
+title: Oxalyl chloride from oxalic acid and phosphorus pentachloride made in situ, batch reaction with gas evolution and batch distillation (500 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 500 t/a distilled oxalyl chloride, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# Three recycles (core ADR 0060), torn at two streams: the heel S3 (R-101's residue kept for
+# the next batch; its gain 0.95, the purge) and the crude S13, which cuts both loops through
+# C-201: the POCl3 S9 that suspends the next acid charge and the off-cut S25, both back to the
+# acid slurry tank. Their tolerance is far tighter than the balances'.
+tears:
+  - stream: S3
+    initial: {flow: 300.0, unit: kg/h, basis: mass_fraction, composition: {PCL5: 0.43, POCL3: 0.54, LUT: 0.03}}
+  - stream: S13
+    initial: {flow: 300.0, unit: kg/h, basis: mass_fraction, composition: {OXCL: 0.25, POCL3: 0.75}}
+convergence: {method: wegstein, max_iterations: 500, tolerance: {abs: 1.0e-6, rel: 1.0e-8}}
+
+feeds:
+  - {id: PCL3F, title: Phosphorus trichloride (no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: LUTF, title: "2,4-Dimethylpyridine (catalyst make-up; no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CL2F, title: Chlorine (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: OXAF, title: "Oxalic acid, anhydrous (no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (HCl absorber), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: st201, direction: out, kind: energy}
+      - {id: a101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97 (411.5 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+      - {id: st201, direction: out, kind: energy}
+products:
+  - {id: OXCLP, title: Oxalyl chloride to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: POCL3P, title: Phosphoryl chloride (co-product), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: HCLAQ, title: Hydrochloric acid about 30 wt% (by-product), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: "Heel purge (PCl5, POCl3, catalyst) to hazardous-waste incineration", category: by_product, ports: [{id: in, direction: in}]}
+  - {id: TAIL, title: "Absorber tail gas (CO, CO2, chlorine traces) to the site's thermal oxidiser", category: by_product, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r102, direction: in, kind: energy}
+      - {id: k201, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+      - {id: e202, direction: in, kind: energy}
+      - {id: a101, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return (283 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 278.15, provenance: assumed, source: "design basis (D-009): above the 274.33 K melting point of POCl3 (CRC via chemicals 1.5.2), which condenses on E-102 and on R-101's distillate condenser E-103; oxalyl chloride melts at 257.15 K"}
+      return_temperature: {value: 283.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: e103, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Chlorination, reaction and stripping in the reactor-still (R-101)
+    class: ReactingChemicals
+    ports:
+      - {id: pcl3, direction: in}
+      - {id: lut, direction: in}
+      - {id: cl2, direction: in}
+      - {id: oxa, direction: in}
+      - {id: carrier, direction: in}
+      - {id: offcut, direction: in}
+      - {id: crude, direction: out}
+      - {id: vent, direction: out}
+      - {id: purge, direction: out}
+      - {id: steam_heat, direction: in, kind: energy}
+      - {id: steam_strip, direction: in, kind: energy}
+      - {id: q1, direction: out, kind: energy}
+      - {id: q2, direction: out, kind: energy}
+      - {id: q_vent, direction: out, kind: energy}
+      - {id: q_cond, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: PURIFY
+    title: Batch rectification at atmospheric pressure (C-201, K-201)
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: carrier, direction: out}
+      - {id: offcut, direction: out}
+      - {id: pocl3, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: qprod, direction: out, kind: energy}
+      - {id: qres, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ABSORB
+    title: HCl absorption to hydrochloric acid
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: acid, direction: out}
+      - {id: tail, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: REACT
+    title: Charge of R-101 (the heel kept, fresh PCl3 and the catalyst's make-up)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: pcl3, direction: in, delegates: pcl3}
+      - {id: lut, direction: in, delegates: lut}
+      - {id: heel, direction: in}
+      - {id: out, direction: out}
+  - id: E101
+    block: REACT
+    title: Charge warmed to 333 K (R-101 jacket, hot-water loop)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: steam_heat}
+  - id: R101
+    block: REACT
+    title: Chlorination (chlorine dosed into PCl3 and the heel at 333 K)
+    class: ReactingChemicals
+    reactions: [CHL]
+    reactor: semibatch
+    energy_port: q
+    batch:
+      dosing:
+        - stream: S6
+          time: 28800
+          absorbed: 1.0
+          heat_of_solution: {values: {CL2: -20410}, provenance: assumed, source: "the chlorine's heat of solution in the PCl3/POCl3 liquid taken as minus its heat of vaporization at its normal boiling point (20.41 kJ/mol, CRC via chemicals 1.5.2), an ideal solution: no open solubility or heat of solution of chlorine in POCl3 was found; CHL's heat is on the dissolved basis (reactions.yaml, D-005)"}
+      target: {key: PCL3, conversion: 0.999}
+      heat: isothermal
+      provenance: assumed
+      source: "chlorine dosed at a constant rate over 8 h into the charge at 333 K and taken up entirely (US 4 341 720 A: 930 g of chlorine in 6 h at 85 C in Example 19, 570 g in 3 h in Example 20; the plant's temperature ASSUMED, the 8 h set by R-101's jacket on cooling water, D-003, D-005), then held to 0.999 conversion of the PCl3; 1.005 mol of chlorine per mol of PCl3 charged, so a little dissolved chlorine is left (D-004)"
+    hazard:
+      mtt: 360.72
+      provenance: assumed
+      source: "the bubble point of R101's charge S5 at 101.325 kPa(a) (Raoult's law over the liquid, the PCl5 solid and the catalyst left out; scripts/balance.py), the lowest over the step, since the PCl3 turns into solid PCl5; R-101 is vented, so it boils there; dissolved chlorine is left out (accumulated chlorine lowers it, D-011). No vent_capacity: R101 forms no gas (the chlorine is taken up, absorbed 1.0); the chlorine a cooling failure could release is D-011's case (c)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: dose, direction: in, delegates: cl2}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q1}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M102
+    block: REACT
+    title: Acid slurry tank (oxalic acid suspended in recycled POCl3 and C-201's off-cut)
+    class: Mixing
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: oxa, direction: in, delegates: oxa}
+      - {id: carrier, direction: in, delegates: carrier}
+      - {id: offcut, direction: in, delegates: offcut}
+      - {id: out, direction: out}
+  - id: R102
+    block: REACT
+    title: Reaction (acid slurry dosed into the PCl5 slurry at 333 K, gases vented)
+    class: ReactingChemicals
+    reactions: [OXC, DEC]
+    reactor: semibatch
+    energy_port: q
+    batch:
+      dosing: [{stream: S10, time: 14400}]
+      target: {key: OXA, conversion: 0.999}
+      heat: isothermal
+      vent:
+        stream: S12
+        components: [HCL, CO, CO2]
+        vapour: {components: [OXCL, POCL3, CL2], source: "the gas leaves saturated with the liquid's volatile components at 333 K and 101.3 kPa(a): Raoult's law, an ideal liquid ASSUMED, the Antoine lines of materials.yaml; the suspended PCl5 and the catalyst stay; the PCl3 left after R101 (under 0.03 mol% of the liquid) is left out, its vapour about 0.02 kg/h (D-010)"}
+        condenser:
+          temperature: 283.15
+          returns: vessel
+          energy_port: q_vent
+          provenance: assumed
+          source: "E-102, the vent condenser on chilled water in R-101's off-gas line, its gas outlet 5 K above the chilled water's 278.15 K supply (the design basis' minimum approach, D-009), the condensate back to R-101 (D-010)"
+      provenance: assumed
+      source: "the acid slurry dosed at a constant rate over 4 h into the PCl5 slurry at 333 K (US 4 341 720 A, Examples 19 and 20: 4 h at 60 C), then held to 0.999 conversion of the acid (the examples' 0.5 h at 70 C); HCl, CO and CO2 leave as gas as they form, none taken as dissolved (no solubility data for a Henry split, D-005); at 101.3 kPa(a), not the examples' 250 mbar, at which the mass boils and the oxalyl chloride distils off as it forms (D-001, L-1)"
+    hazard:
+      mtt: 367.16
+      vent_capacity: 350.0
+      provenance: assumed
+      source: "MTT: the bubble point of R102's final liquid S11 at 101.325 kPa(a) (Raoult's law over the liquid, the PCl5 solid and the catalyst left out; scripts/balance.py), the lowest over the step, since the oxalyl chloride it forms is its most volatile component; R-101 is vented, so it boils there. Vent capacity: R-101's one vent line through E-102 to the absorber A-101, sized for 350 m3/h of gas at 101.3 kPa(a): the release at a cooling failure at the MTSR with the liquid's vapour, 283 m3/h (cheme process reactor-hazards), plus about 20 %, rounded up; the normal peak is 182 m3/h past E-102 (cheme process recipe) (D-011)"
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: E-102}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: dose, direction: in}
+      - {id: out, direction: out}
+      - {id: gas, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: q2}
+      - {id: q_vent, direction: out, kind: energy, delegates: q_vent}
+  - id: ST101
+    block: REACT
+    title: Crude distilled off the heel at 15 kPa(a) (R-101 with its condenser E-103)
+    class: Distilling
+    energy_port: steam
+    still:
+      pressure: 15.0
+      volatility: {model: raoult, provenance: assumed, source: "ideal liquid, the Antoine lines of materials.yaml; oxalyl chloride, POCl3 and PCl3 are not shown to form an ideal liquid: ASSUMED (D-007)"}
+      # the catalyst (as its hydrochloride) stays; HCl, CO and CO2 are listed because R102 writes
+      # them into its liquid outlet at 0 and a still asks a vapour pressure of every component
+      # its inlet lists (L-3); PCl5 is a solid and stays
+      nonvolatile: [LUT, HCL, CO, CO2]
+      boilup: {value: 80, unit: kW, provenance: assumed, source: "the heat input of R-101's hot-water loop at 353/348 K (mean 350.65 K, below both MTTs, D-009): U 300 W/(m2 K) over the jacket's wetted area of about 15 m2 (cheme process recipe) at a mean driving force of about 18 K: the still starts near 315 K and ends near 340 K at 15 kPa(a); D-007, D-009"}
+      heat_up: true
+      condenser_port: condenser
+      end: {residue: {key: OXCL, mole_fraction: 0.005}}
+      outlets: {distillate: top, residue: bottom}
+      provenance: assumed
+      source: "distil at 15 kPa(a) until oxalyl chloride is 0.5 mol% of the residue (D-007): US 4 341 720 A, Examples 19 and 20, distil the crude off at 250 mbar while the acid reacts; at 25 kPa(a) the still would end near 353 K, above R-101's hot-water loop (350.65 K mean), so the strip is set lower; core counts the suspended PCl5 in the still's liquid (L-1)"
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: crude}
+      - {id: bottom, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam_strip}
+      - {id: condenser, direction: out, kind: energy, delegates: q_cond}
+  - id: SP101
+    block: REACT
+    title: The heel kept in R-101 and its purge
+    class: SplittingMaterial
+    split: {recycle: 0.95}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: recycle, direction: out}
+      - {id: purge, direction: out, delegates: purge}
+  - id: ST201
+    block: PURIFY
+    title: Batch still C-201 at 101 kPa(a) with its column K-201
+    class: Distilling
+    energy_port: steam
+    still:
+      pressure: 101.325
+      volatility: {model: raoult, provenance: assumed, source: "ideal liquid, the Antoine lines of materials.yaml (D-008)"}
+      nonvolatile: [LUT, HCL, CO, CO2]
+      boilup: {value: 150, unit: kW, provenance: assumed, source: "the reboiler's heat input, LP steam on C-201's jacket (D-008, D-009)"}
+      heat_up: true
+      condenser_port: condenser
+      column:
+        stages: 15
+        reflux: constant
+        ratio: 6
+        provenance: assumed
+        source: "15 theoretical stages at a constant reflux ratio of 6, ASSUMED (D-008): US 4 341 720 A rectifies the crude without stating a column; oxalyl chloride (bp 336.7 K) and POCl3 (378.7 K) are about 3 to 4 apart in volatility on the Antoine lines; a reflux held for 99.8 mol% overhead up to a ratio of 6 stayed at 6 throughout (D-008)"
+      cuts:
+        - {outlet: top, end: {purity: {key: OXCL, fraction: 0.995}, basis: mass}}
+        - {outlet: offcut, end: {residue: {key: OXCL, mole_fraction: 0.002}}}
+      outlets: {residue: bottom}
+      provenance: assumed
+      source: "the crude rectified at atmospheric pressure: a product cut collected while its mean is at least 99.5 wt% oxalyl chloride (the specification, D-002), then an off-cut until 0.2 mol% oxalyl chloride is left in the POCl3, which returns to the next acid slurry (D-008)"
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: K-201}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: top, direction: out}
+      - {id: offcut, direction: out, delegates: offcut}
+      - {id: bottom, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: condenser, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E201
+    block: PURIFY
+    title: Product cooler (on K-201's condensate)
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: q, direction: out, kind: energy, delegates: qprod}
+  - id: E202
+    block: PURIFY
+    title: POCl3 cooled in the still (C-201 jacket)
+    class: Cooling
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: qres}
+  - id: SP201
+    block: PURIFY
+    title: POCl3 to the next acid slurry and to the co-product tank
+    class: SplittingMaterial
+    split: {carrier: 0.36}
+    links: [{target: equipment, ref: T-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: carrier, direction: out, delegates: carrier}
+      - {id: product, direction: out, delegates: pocl3}
+  - id: A101
+    block: ABSORB
+    title: HCl absorber (falling film with tail scrubber; the vapours hydrolysed)
+    class: ReactingChemicals
+    reactions: [OXH, POH]
+    reactor: conversion
+    links: [{target: equipment, ref: A-101}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: D101
+    block: ABSORB
+    title: Acid and tail gas leaving the absorber (specified split)
+    class: SeparatingByGravity
+    links: [{target: equipment, ref: A-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: acid, direction: out, delegates: acid}
+      - {id: tail, direction: out, delegates: tail}
+      - {id: q, direction: out, kind: energy, delegates: q}
+
+streams:
+  - id: S1
+    title: Phosphorus trichloride
+    from: PCL3F.out
+    to: M101.pcl3
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from storage (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 168.6896, provenance: assumed, source: "scripts/balance.py: 1.915 mol per mol of the oxalic acid S8 (D-004)"}
+        composition: {basis: mass_fraction, values: {PCL3: 1.0}, provenance: assumed, source: "phosphorus trichloride 100 % (D-004)"}
+  - id: S2
+    title: 2,4-Dimethylpyridine (make-up)
+    from: LUTF.out
+    to: M101.lut
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from drums (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.5292, provenance: assumed, source: "scripts/balance.py: the heel purge's catalyst made up, 3.137 g per kg of PCl3 (D-004)"}
+        composition: {basis: mass_fraction, values: {LUT: 1.0}, provenance: assumed, source: "2,4-dimethylpyridine 100 % (D-004)"}
+  - id: S3
+    title: The heel kept for the next batch (recycle)
+    from: SP101.recycle
+    to: M101.heel
+    template: chlorination
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PCL3: 0.000122877, CL2: 1.61318e-36, PCL5: 0.390402, POCL3: 0.55689, OXA: 0.000307335, OXCL: 0.005, LUT: 0.047278, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S14 (tear, wegstein)', fingerprint: 2976925334fc9bc0}
+        flow: {value: 342.205, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S14 (tear, wegstein)', fingerprint: 2976925334fc9bc0}
+  - id: S4
+    title: Charge of R-101
+    from: M101.out
+    to: E101.in
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 323.96, provenance: assumed, source: "scripts/balance.py: mixed from the PCl3 and the catalyst at 298.15 K and the heel at the strip's end, S14 (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 511.424, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: bce6b91b2486b113}
+        composition: {basis: mole_fraction, values: {PCL3: 0.381798, CL2: 9.94917e-37, PCL5: 0.240778, POCL3: 0.343458, OXA: 0.000189547, OXCL: 0.00308371, LUT: 0.030693, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: d1021545311ddcc8}
+  - id: S5
+    title: Charge at 333 K
+    from: E101.out
+    to: R101.charge
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "warmed to the reaction temperature in R-101 (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 511.424, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: fe0263e8f2d8420d}
+        composition: {basis: mole_fraction, values: {PCL3: 0.381798, CL2: 9.94917e-37, PCL5: 0.240778, POCL3: 0.343458, OXA: 0.000189547, OXCL: 0.00308371, LUT: 0.030693, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: fe0263e8f2d8420d}
+  - id: S6
+    title: Chlorine (dosed)
+    from: CL2F.out
+    to: R101.dose
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "chlorine gas let down from the supply (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 87.5294, provenance: assumed, source: "scripts/balance.py: 1.005 mol per mol of the fresh PCl3 S1 (D-004)"}
+        composition: {basis: mass_fraction, values: {CL2: 1.0}, provenance: assumed, source: "dry chlorine, its 0.8 wt% oxygen not modelled (D-004)"}
+  - id: S7
+    title: PCl5 slurry in POCl3
+    from: R101.out
+    to: R102.charge
+    template: chlorination
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PCL3: 0.000380954, CL2: 0.00221006, PCL5: 0.620819, POCL3: 0.342699, OXA: 0.000189128, OXCL: 0.00307689, LUT: 0.0306252, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: d4ec81dbbd317f8e}
+        flow: {value: 598.953, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: 63e783b11db1b1e5}
+        temperature: {value: 333.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: d4ec81dbbd317f8e}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: d4ec81dbbd317f8e}
+  - id: S8
+    title: Oxalic acid (anhydrous)
+    from: OXAF.out
+    to: M102.oxa
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from the silo (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 57.7537, provenance: assumed, source: "scripts/balance.py: the acid that makes 500 t/a of the product cut S17 (D-002, D-004)"}
+        composition: {basis: mass_fraction, values: {OXA: 1.0}, provenance: assumed, source: "anhydrous oxalic acid 100 % (D-004)"}
+  - id: S9
+    title: POCl3 to suspend the acid (recycle)
+    from: SP201.carrier
+    to: M102.carrier
+    template: chlorination
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PCL3: 0.000625792, CL2: 2.16736e-50, POCL3: 0.997374, OXCL: 0.002}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S19', fingerprint: 9c8be1413a42369b}
+        flow: {value: 95.2949, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S19', fingerprint: 7e1c6181939bedc2}
+  - id: S10
+    title: Acid slurry (dosed)
+    from: M102.out
+    to: R102.dose
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 316.57, provenance: assumed, source: "scripts/balance.py: mixed from the acid at 298.15 K, the POCl3 at 303.15 K and the off-cut at its bubble point (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 207.45, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S9 S25', fingerprint: e58d8a223ed5713f}
+        composition: {basis: mole_fraction, values: {PCL3: 0.00186788, CL2: 8.22593e-51, PCL5: 0.0, POCL3: 0.535176, OXA: 0.39155, OXCL: 0.0714067, LUT: 0.0, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S8 S9 S25', fingerprint: 6d99118297654d4f}
+  - id: S11
+    title: Reaction mass (oxalyl chloride, POCl3, PCl5 slurry)
+    from: R102.out
+    to: ST101.in
+    template: chlorination
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PCL3: 0.00091476, CL2: 5.11453e-07, PCL5: 0.173964, POCL3: 0.670701, OXA: 0.00013695, OXCL: 0.133215, LUT: 0.0210673, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S10', fingerprint: 8d0a879dc5e38c3b}
+        flow: {value: 742.456, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S10', fingerprint: 8d0a879dc5e38c3b}
+        temperature: {value: 333.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S10', fingerprint: 8d0a879dc5e38c3b}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S10', fingerprint: 8d0a879dc5e38c3b}
+  - id: S12
+    title: Off-gas past the vent condenser E-102
+    from: R102.gas
+    to: A101.gas
+    template: acid
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {HCL: 0.825437, CO: 0.0619152, CO2: 0.0619152, OXCL: 0.0305954, POCL3: 0.0155521, CL2: 0.00458473}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S10', fingerprint: 8d0a879dc5e38c3b}
+        flow: {value: 63.9472, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S10', fingerprint: 8d0a879dc5e38c3b}
+        temperature: {value: 283.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S10', fingerprint: 8d0a879dc5e38c3b}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S10', fingerprint: 8d0a879dc5e38c3b}
+  - id: S13
+    title: Crude distillate (oxalyl chloride in POCl3)
+    from: ST101.top
+    to: ST201.in
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 309.38, provenance: assumed, source: "scripts/balance.py: the crude's bubble point at 15 kPa(a), as E-103 condenses it (not subcooled, D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "the receiver broken to atmospheric pressure with nitrogen (D-007)"}
+        flow: {value: 382.24, provenance: calculated, source: 'cheme process propagate: recycle ST101 from S11 (tear, wegstein)', fingerprint: 2976925334fc9bc0}
+        composition: {basis: mole_fraction, values: {PCL3: 0.00155125, CL2: 9.22356e-07, PCL5: 0.0, POCL3: 0.762177, OXA: 0.0, OXCL: 0.236271, LUT: 0.0, HCL: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle ST101 from S11 (tear, wegstein)', fingerprint: 2976925334fc9bc0}
+  - id: S14
+    title: Heel at the end of the strip
+    from: ST101.bottom
+    to: SP101.in
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 337.22, provenance: assumed, source: "scripts/balance.py: the heel's bubble point at 15 kPa(a), the strip's end, with the suspended PCl5 and the catalyst in the liquid as the still counts them (D-007)"}
+        pressure: {value: 15.0, provenance: assumed, source: "still pressure (D-007)"}
+        flow: {value: 360.215, provenance: calculated, source: 'cheme process propagate: still ST101 from S11', fingerprint: f9ae05be530e57d9}
+        composition: {basis: mole_fraction, values: {PCL3: 0.000122877, CL2: 1.64012e-36, PCL5: 0.3904, POCL3: 0.556892, OXA: 0.000307335, OXCL: 0.005, LUT: 0.047278}, provenance: calculated, source: 'cheme process propagate: still ST101 from S11', fingerprint: f9ae05be530e57d9}
+  - id: S15
+    title: Heel purge
+    from: SP101.purge
+    to: PURGE.in
+    template: chlorination
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PCL3: 0.000122877, CL2: 1.64012e-36, PCL5: 0.3904, POCL3: 0.556892, OXA: 0.000307335, OXCL: 0.005, LUT: 0.047278}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S14', fingerprint: e8394489ccf1349d}
+        flow: {value: 18.011, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S14 S3', fingerprint: e828e1e638275410}
+  - id: S16
+    title: Distillate of K-201 (the product cut)
+    from: ST201.top
+    to: E201.in
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 336.73, provenance: assumed, source: "scripts/balance.py: the product cut's bubble point, as K-201's total condenser gives it (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "still pressure (D-008)"}
+        flow: {value: 63.1314, provenance: calculated, source: 'cheme process propagate: still ST201 from S13', fingerprint: e4c53867f6de6d46}
+        composition: {basis: mole_fraction, values: {PCL3: 0.000563752, CL2: 4.82361e-06, POCL3: 0.00363513, OXCL: 0.995796}, provenance: calculated, source: 'cheme process propagate: still ST201 from S13', fingerprint: e4c53867f6de6d46}
+  - id: S17
+    title: Oxalyl chloride
+    from: E201.out
+    to: OXCLP.in
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "distillate subcooled on cooling water to storage (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 63.1314, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S16', fingerprint: 0f7b5018a1837d76}
+        composition: {basis: mole_fraction, values: {PCL3: 0.000563752, CL2: 4.82361e-06, POCL3: 0.00363513, OXCL: 0.995796}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S16', fingerprint: 0f7b5018a1837d76}
+  - id: S18
+    title: POCl3 left in the still
+    from: ST201.bottom
+    to: E202.in
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 378.08, provenance: assumed, source: "scripts/balance.py: the POCl3's bubble point at the still's end (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "still pressure (D-008)"}
+        flow: {value: 264.708, provenance: calculated, source: 'cheme process propagate: still ST201 from S13', fingerprint: e4c53867f6de6d46}
+        composition: {basis: mole_fraction, values: {PCL3: 0.000625792, CL2: 2.16736e-50, POCL3: 0.997374, OXCL: 0.002}, provenance: calculated, source: 'cheme process propagate: still ST201 from S13', fingerprint: e4c53867f6de6d46}
+  - id: S19
+    title: POCl3 cooled
+    from: E202.out
+    to: SP201.in
+    template: chlorination
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "cooled on cooling water in the still before it is drained (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 264.708, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S18', fingerprint: cb8a174865ee1690}
+        composition: {basis: mole_fraction, values: {PCL3: 0.000625792, CL2: 2.16736e-50, POCL3: 0.997374, OXCL: 0.002}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S18', fingerprint: cb8a174865ee1690}
+  - id: S20
+    title: Phosphoryl chloride (co-product)
+    from: SP201.product
+    to: POCL3P.in
+    template: chlorination
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PCL3: 0.000625792, CL2: 2.16736e-50, POCL3: 0.997374, OXCL: 0.002}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S19', fingerprint: 9c8be1413a42369b}
+        flow: {value: 169.413, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S19 S9', fingerprint: e89250ee0306a9b4}
+  - id: S25
+    title: Off-cut (oxalyl chloride with POCl3) to the next acid slurry
+    from: ST201.offcut
+    to: M102.offcut
+    template: chlorination
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PCL3: 0.00712219, CL2: 0.0, POCL3: 0.684256, OXCL: 0.308621}, provenance: calculated, source: 'cheme process propagate: still ST201 from S13', fingerprint: e4c53867f6de6d46}
+        flow: {value: 54.4011, provenance: calculated, source: 'cheme process propagate: still ST201 from S13', fingerprint: e4c53867f6de6d46}
+  - id: S21
+    title: Absorber water
+    from: PW.out
+    to: A101.water
+    template: acid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 123.1845, provenance: assumed, source: "scripts/balance.py: for 30 wt% HCl in the acid S23, with the water the hydrolyses use (D-010)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "process water"}
+  - id: S22
+    title: Absorber outlet (acid with the gas)
+    from: A101.out
+    to: D101.in
+    template: acid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "absorber outlet on cooling water (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 187.132, provenance: calculated, source: 'cheme process propagate: reactor A101 from S12 S21', fingerprint: 59d6933709da7e61}
+        composition: {basis: mole_fraction, values: {H2O: 0.791528, HCL: 0.170903, H3PO4: 0.0028479, CO: 0.0169406, CO2: 0.0169406, CL2: 0.000839557, OXCL: 0.0, POCL3: 0.0, PCL3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor A101 from S12 S21', fingerprint: 4336b27a5926dfca}
+  - id: S23
+    title: Hydrochloric acid
+    from: D101.acid
+    to: HCLAQ.in
+    template: acid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "the absorber's outlet on cooling water (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 176.2717, provenance: assumed, source: "scripts/balance.py: all the HCl and phosphoric acid, the water left (D-010)"}
+        composition: {basis: mass_fraction, values: {H2O: 0.686562991, HCL: 0.3, H3PO4: 0.013437009}, provenance: assumed, source: "scripts/balance.py (D-010)"}
+  - id: S24
+    title: Tail gas to the thermal oxidiser
+    from: D101.tail
+    to: TAIL.in
+    template: acid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "the absorber's outlet on cooling water (D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 10.8598, provenance: assumed, source: "scripts/balance.py: the CO, CO2 and chlorine, none absorbed (D-010)"}
+        composition: {basis: mass_fraction, values: {CO: 0.370834043, CO2: 0.582650318, CL2: 0.046515639}, provenance: assumed, source: "scripts/balance.py (D-010)"}
+  # energy
+  - {id: Q1, title: "Charge warmed (R-101's hot-water loop, LP steam)", kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 1.1154, provenance: assumed, source: "scripts/balance.py: the charge S4 from its mixed temperature to 333.15 K (D-009)"}}}}
+  - {id: Q2, title: Heat of chlorination to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 41.4492, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S5 S6', fingerprint: 93338dbfa47cf5e9}}}}
+  - {id: Q3, title: "Net heat of R102 to cooling water: the heat of reaction less the dose warmed and the vapour carried off, near balance", kind: energy, from: R102.q, to: CW.r102, state: {design: {duty: {value: 0.135626, provenance: calculated, source: 'cheme process propagate: semibatch duty R102 from S7 S10', fingerprint: 7b359701c4383393}}}}
+  - {id: Q4, title: Vent condenser E-102 to chilled water, kind: energy, from: R102.q_vent, to: CHW.e102, state: {design: {duty: {value: 3.81427, provenance: calculated, source: 'cheme process propagate: vent condenser duty R102 from S7 S10', fingerprint: 077c6e9e85ba34d2}}}}
+  - {id: Q5, title: "Strip (R-101's hot-water loop, LP steam)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 24.3957, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S11', fingerprint: 32810ff2feadb635}}}}
+  - {id: Q6, title: Crude condenser E-103 to chilled water, kind: energy, from: ST101.condenser, to: CHW.e103, state: {design: {duty: {value: 24.3957, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S11', fingerprint: 7ed9bf61f7df29a3}}}}
+  - {id: Q7, title: Still reboiler C-201 (LP steam), kind: energy, from: LPS.st201, to: ST201.steam, state: {design: {duty: {value: 60.8325, provenance: calculated, source: 'cheme process propagate: still duty ST201 from S13', fingerprint: ab0e7be8fef8c8b7}}}}
+  - {id: Q8, title: Column condenser (K-201) to cooling water, kind: energy, from: ST201.condenser, to: CW.k201, state: {design: {duty: {value: 55.4322, provenance: calculated, source: 'cheme process propagate: still condenser duty ST201 from S13', fingerprint: 9d951ce2d4c83b95}}}}
+  - {id: Q9, title: Product cooler to cooling water, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 0.6952, provenance: assumed, source: "scripts/balance.py: the product cut from its bubble point to 303.15 K (D-009)"}}}}
+  - {id: Q10, title: POCl3 cooling to cooling water, kind: energy, from: E202.q, to: CW.e202, state: {design: {duty: {value: 4.9901, provenance: assumed, source: "scripts/balance.py: the still's POCl3 from its bubble point to 303.15 K (D-009)"}}}}
+  - {id: Q11, title: "Absorber heat (hydrolyses, HCl dissolved) to cooling water", kind: energy, from: D101.q, to: CW.a101, state: {design: {duty: {value: 24.637, provenance: assumed, source: "scripts/balance.py: the vapours' hydrolysis and the HCl's heat of solution, less the water and gas warmed to 313.15 K (D-010)"}}}}
+  - {id: P1, title: R-101 agitator and vacuum pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 6.5, provenance: assumed, source: "ASSUMED (D-009): R-101's agitator for a 10 m3 slurry vessel, about 0.6 kW/m3, 6 kW over the whole cycle, and the dry vacuum pump of the strip, about 3 kW for a sixth of it"}}}}
+  - {id: P2, title: Still agitator and column reflux pump, kind: energy, from: POWER.st201, to: ST201.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "ASSUMED (D-009): C-201's agitator, about 1.5 kW, and the reflux and transfer pumps, about 0.5 kW"}}}}
+  - {id: P3, title: Absorber pump and fan, kind: energy, from: POWER.a101, to: A101.power, state: {design: {duty: {value: 1.5, provenance: assumed, source: "ASSUMED (D-009): the absorber's circulation pump, about 1 kW, and the tail gas fan, about 0.5 kW"}}}}
+layout: {bfd: {}, pfd: {}}

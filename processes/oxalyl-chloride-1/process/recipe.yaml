@@ -1,0 +1,58 @@
+# The batch recipe of oxalyl-chloride-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes 1280.5 kg of the distilled product cut (stream S17); the
+# flowsheet's rates are the year averages.
+# - R-101 is one vessel over M101 (the fresh PCl3 charged to the heel kept from the last
+#   batch), E101 (the charge warmed), the chlorination R101, the reaction R102 (the acid slurry
+#   dosed, the gases vented through E-102), the strip ST101 (the crude distilled off the heel at
+#   15 kPa(a)) and SP101 (the heel's purge): `units`, core ADR 0057. The vessel is sized, its
+#   jacket checked and its vent reported from R102, which holds the most and vents: a unit over
+#   two semi-batch steps is refused (core ADR 0057), so R101 is not in `units`, its dosing and
+#   post-reaction take their times from its model (from: R101) and its jacket is checked by hand
+#   (D-003, L-5). The warming takes its time from the jacket (temperatures), the strip from
+#   ST101's boil-up.
+# - C-201, the still with its column K-201, is one vessel over ST201 (the rectification with
+#   its product cut and off-cut, core ADR 0061), E202 (the POCl3 cooled) and SP201 (the POCl3
+#   drained to the next acid slurry and to the co-product tank). The product cooler E201 on
+#   K-201's condensate runs while the still distils and is no batch unit.
+# - The acid slurry tank V-102 (M102), the vent condenser E-102 and the absorber A-101 run
+#   while R-101 doses and are no batch units.
+# Every other duration is ASSUMED (D-003). `cheme process recipe --svg build/gantt.svg` draws one
+# batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Oxalyl chloride by the one-pot PCl5 route with batch distillation
+batch_size: {value: 1280.5, unit: kg, stream: S17, provenance: assumed, source: "one batch of the distilled product cut: 500 t/a over the batches the cycle allows, 63.131 kg/h x the cycle (D-002, D-003; the fixed point of batch size = rate x cycle, since the strip's time grows with the batch)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [M101, E101, R102, ST101, SP101]
+    title: Charge PCl3 to the heel, chlorinate, dose the acid slurry, strip the crude at 15 kPa(a) (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 303.43, heating_temperature: 350.65, provenance: assumed, source: "enamelled (glass-lined) steel vessel, U 300 W/(m2 K) ASSUMED; cooling water enters the jacket at 298.15 K and leaves at 308.15 K (design basis, D-009), so the reaction mass at 333.15 K sees a log-mean driving force of (35 - 25) / ln(35/25) = 29.72 K: core takes the coolant temperature as constant, so the equivalent 333.15 - 29.72 = 303.43 K is entered, not the supply temperature; warming and the strip on R-101's hot-water loop at 353/348 K (mean 350.65 K), heated by LP steam, below R101's MTT 360.10 K and R102's 366.90 K (D-009, D-011)"}
+      provenance: assumed
+      source: "usual fill and proportions of an enamelled stirred vessel (D-003)"
+    operations:
+      - {id: charge, kind: charge, title: Charge the fresh PCl3 and the catalyst's make-up to the heel (M101), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Warm to 333 K (E101), temperatures: [323.96, 333.15]}
+      - {id: dose_cl2, kind: dose, title: Dose the chlorine (R101), from: R101}
+      - {id: react_cl2, kind: react, title: Post-chlorination to 0.999 of the PCl3 (R101), from: R101}
+      - {id: sample, kind: hold, title: Sample the PCl5 slurry (PCl3 and chlorine left), duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: dose_acid, kind: dose, title: Dose the oxalic acid slurry from V-102 (R102), from: R102}
+      - {id: react_acid, kind: react, title: Post-reaction to 0.999 of the acid (R102), from: R102}
+      - {id: strip, kind: distil, title: Strip the crude off the heel at 15 kPa(a) to the receiver (ST101), from: ST101}
+      - {id: purge, kind: other, title: "Break the vacuum with nitrogen, drain 5 % of the heel to the waste drum (SP101)", duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: DISTIL
+    units: [ST201, E202, SP201]
+    title: Rectify the crude at atmospheric pressure in the still with its column (C-201, K-201)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      provenance: assumed
+      source: "an enamelled still pot with a jacket on LP steam, sized from the crude it receives (D-003, D-008)"
+    operations:
+      - {id: receive, kind: charge, title: Receive the crude from R-101's receiver, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: distil, kind: distil, title: "Distil the product cut, then the off-cut (ST201)", from: ST201}
+      - {id: cool, kind: cool, title: Cool the POCl3 to 303 K on cooling water (E202), duration: {value: 1.0, provenance: assumed, source: "D-003, D-009"}}
+      - {id: drain, kind: transfer, title: Drain the POCl3 to the acid slurry tank and the co-product tank (SP201), duration: {value: 0.5, provenance: assumed, source: D-003}}
