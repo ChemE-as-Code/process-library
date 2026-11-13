@@ -36,7 +36,12 @@
 # through LNG-2002 with P-2102 / P-3102 at 15 barg; SEQ-LINE-EMPTY, which returns a leaking trestle
 # line to a tank with site N2 (permissive: at least 1,100 m3 below the receiving tank's high-high,
 # abort on I-201 or a high tank pressure); on P-03 the drip-tray detector TSL-3124 under XV-3123;
-# on P-01 FO-1117 drawn as a restriction orifice, the same tag and service).
+# on P-01 FO-1117 drawn as a restriction orifice, the same tag and service), then to those of commit
+# ae718797 (DESIGN.md D-038, drawing only: the fill connectors of P-01 on the bottom edge with the
+# T-3101 fill lines, XV-1108 / XV-1109 and HS-1108 / HS-1109 moved, BOG-1003 and FG-1001 on the right
+# edge, the P-02 / P-03 connectors on the edges; D-039 item 3, D-039.9 (d), (j): the SEQ-LINE-EMPTY
+# abort holding the leaking line isolated with the crossover and the return closed, the restart from
+# S1 into the other tank; the other C&E, loop and sequence changes of D-039 are outside this study).
 # Every entry is a proposal for the team: status proposed.
 schema: cheme/hazop-study/v1
 kind: hazop-study
@@ -58,13 +63,13 @@ modes:
   - {id: cooldown, title: Cooldown, description: "Cooldown of a warm tank, of the fill lines or of the transfer lines; first cooldown at commissioning and after maintenance."}
   - {id: startup, title: Start-up and shutdown, description: "Start and stop of the rundown, fill switching between tanks and between top and bottom fill, ESD and restart."}
 analysed:
-  - {path: pid/P-01.xml, revision: 'sha256:e47fed36a98b17c37a7ef9d503cc115fda2d2bda768cdd695a212f110850c064', relation: analyses}
-  - {path: pid/P-02.xml, revision: 'sha256:2e2b6061eda04d17c9380f54aeee96a5c0e24a03fd7736fe3137851bf9689d98', relation: analyses}
-  - {path: pid/P-03.xml, revision: 'sha256:14c60066ab45caac7562d21fe1a03d310c89cb1a3d120cdadde365a8933e8f65', relation: analyses}
-  - {path: control/cause-effect.yaml, revision: 'sha256:987f6b095ca0aabafa9e93d4a22d8e5c22ec766a1798d1fafee63726534bf321', relation: analyses}
-  - {path: control/loops.yaml, revision: 'sha256:a7417294d1288704b77fac600cc7963a95b21a3dcaa295aef23e52e0cf9a7b30', relation: analyses}
-  - {path: control/sequences.yaml, revision: 'sha256:de967e12a155e5c74344b503ad656043f2b1e072bd0ed79cff4adc148aabad85', relation: analyses}
-  - {path: piping/special-items.yaml, revision: 'sha256:694a02f0585b8b21d5067e857062362ea391b8a53759a0a6acca95f08e510597', relation: analyses}
+  - {path: pid/P-01.xml, revision: 'sha256:55d877c4ea5f570d1834062f29c5203f447c414bd0506dda0b367f4a20f5389d', relation: analyses}
+  - {path: pid/P-02.xml, revision: 'sha256:4df34203d03be8a2aa2b7c29cd8b5017206ca7791e5da5bec0b7c7f361870c2c', relation: analyses}
+  - {path: pid/P-03.xml, revision: 'sha256:6329cfabd0f0a5b53356db9b1b289bc950a137f9d663772985c79b967e392213', relation: analyses}
+  - {path: control/cause-effect.yaml, revision: 'sha256:cdadc6e40f88e0d8046656c39a9843a7cb3bdc1e432cfae854e197be0534a93b', relation: analyses}
+  - {path: control/loops.yaml, revision: 'sha256:378d0e7b9e278dea5e998ca1db0b457b55c945324a1a2883a64b9ce407b2c11c', relation: analyses}
+  - {path: control/sequences.yaml, revision: 'sha256:6c6506a1710f28621999e3c8a36dde3b3dc6f2d7b20ac227db7f97702986b8ad', relation: analyses}
+  - {path: piping/special-items.yaml, revision: 'sha256:c5f07c1e0d9a0c04bf5d7b34262533f336705c31d802d48bef53ff16a2b73ee6', relation: analyses}
 risk_matrix: safety/risk-matrix.yaml
 assessment_basis: >-
   Each scenario is rated per category before its safeguards (initial): severity is the credible
@@ -105,7 +110,13 @@ assessment_basis: >-
   longer stop and which no longer feed the return, and S11 for the N2 that SEQ-LINE-EMPTY sends
   to a tank; codes kept. The N2 displacement itself is H-02 S31 to S33, its N2 in the BOG H-04
   S26, the XV-3123 tray detector TSL-3124 H-05 S29; the P-01 change (FO-1117 drawn as a restriction
-  orifice) touches no scenario of this study.
+  orifice) touches no scenario of this study. The revision for commit ae718797 (D-038, D-039) adds
+  no scenario and changes no code: S26 and SG29 are re-described for the SEQ-LINE-EMPTY abort, which
+  now closes the crossover and the return and holds the leaking line isolated under N2, and the
+  restart from S1 into the other tank (A24 partly answered); the D-038 changes of P-01, P-02 and
+  P-03 are drawing only (`cheme diff`: connector and label positions, the same items, lines and
+  connections) and touch no scenario; the new loops (LIC-5111 / LIC-6111, LIC-8101, LC-8103,
+  LC-8106) and the T-8101 / T-8102 / B-SUB trips are outside this study's nodes (H-03, H-05).
 team: []            # to be named by the project; no team has sat on this draft yet
 notes: >-
   Drafted by an agent (skills hazop-study, hazop-equipment-causes, relief-scenarios,
@@ -653,7 +664,12 @@ nodes:
               (the SEQ-LINE-EMPTY abort): the leaking line is left part-full with the N2 pushing
               against a closed return (H-02 S31), and what is left of it drains to the leak by
               gravity beyond the ~3.5 h / ~36 m3 of D-036.11 (b) (T-8102, the header bay fire, H-02
-              S29); with I-201 failing on demand the return overfills the tank as S6, at the
+              S29). Since ae718797 (D-039 item 3, D-039.9 (d), (j)) the abort also closes the
+              crossover in use and holds the leaking line isolated under the regulator's ~4.7 barg
+              (the leak fed at ~1.3 kg/s by what is left in it), and the sequence is restarted from
+              S1 into the other tank (T-3101 through XV-3123, at least 1,100 m3 below its
+              high-high on LZT-3102); the 240 min PFP holds only if that restart comes within ~0.45
+              h of an early abort (H-02 S35); with I-201 failing on demand the return overfills the tank as S6, at the
               displacement rate plus the rundown, and the N2 that follows the liquid at the end goes
               into a tank whose vapour space is already at its high-high level.
             refs: [T-2101, T-3101, LZT-2102, LZT-2106, LT-2101, XV-2123, XV-3123, XV-4105, XV-1102, LNG-4005, LNG-4001, LNG-4002]
@@ -672,7 +688,13 @@ nodes:
               rundown, which at the full rundown rate (~7,560 m3/h, D-005) fills that margin in under
               a minute: the rundown has to be on the other tank for the displacement, which the
               sequence does not state (A24). The band is proposed for the team; no residual (the
-              permissive is an operator's check, I-201 ends the displacement it protects).
+              permissive is an operator's check, I-201 ends the displacement it protects). Revised
+              for ae718797 (D-039 item 3, D-039.9 (d), (j); SEQ-LINE-EMPTY abort and reset): the
+              response to I-201 ending the displacement is now written (the line held isolated, the
+              restart from S1 into the other tank as soon as the cause clears, T-3101 lined up with
+              its own 1,100 m3 permissive), and the tank-limit causes are to be made unlikely by that
+              permissive; where the rundown goes during the displacement is still not stated (A24).
+              Codes kept.
       - id: N2-LL
         guide_word: less
         parameter: level
@@ -1013,7 +1035,7 @@ safeguards:
   - {id: SG6, title: "Interlock I-201 (I-301): LZT-2102 or LZT-2106 (LZT-3102 or LZT-3106) LAHH, 1oo2, closes XV-1102 (XV-1103) and the circulation return XV-2123 (XV-3123)", kind: interlock, interlock: I-201, refs: [LZT-2102, LZT-2106, XV-1102, XV-2123], status: proposed, by: agent, notes: "Second independent gauge and 1oo2 since 589c9ca7 (D-025 item 2); I-301 alike with LZT-3102 / LZT-3106. Since f5d925f6 (D-028 item 3) XV-2123 / XV-3123 fail closed; XV-1102 closes in at least 30 s (S23). Since 79d5c7ad (D-030 item 1) the trip no longer stops P-2102, P-3102, P-5101, P-6101; I-205 / I-305 do, only if the return is not proven closed (SG28, S25)."}
   - {id: SG27, title: "Permissive I-103: the close command of the last open fill selection valve of the only lined-up tank (HS-1106..HS-1109) is blocked; XV-1106..XV-1109 close in at least 30 s (speed controller)", kind: interlock, interlock: I-103, refs: [HS-1106, HS-1107, HS-1108, HS-1109, XV-1106, XV-1107, XV-1108, XV-1109, ZSC-1102, ZSC-1103], status: proposed, by: agent, notes: "Added in 79d5c7ad (D-030 item 6, D-023 (3), D-026.4); never moves a valve; 'open' is the open command held for the stroke time (about 35 s), the selection valves have no position switch at basic (S24); latching false, reset automatic, SIL null; position switches left to the SIL screening (hold H-06)."}
   - {id: SG28, title: "Interlocks I-205 (I-305): I-201 (I-301) tripped and ZSC-2123 (ZSC-3123) not proving XV-2123 (XV-3123) closed after 15 s stop P-2102 and P-3102 (until aedd8dbd also P-5101 and P-6101)", kind: interlock, interlock: I-205, refs: [ZSC-2123, ZSC-3123, XV-2123, XV-3123, P-2102, P-3102], status: proposed, by: agent, notes: "Added in 79d5c7ad (D-030 item 1; P-02 / P-03, instrument list); the switch is on the valve itself; latching, manual reset, SIL null; delay 15 s ASSUMED (stroke time plus margin); a switch failing to 'not closed' stops the pumps (H-02 S24), one failing to 'closed' is part of the cause of S25. Since 709fcf20 (D-032 item 7, #3) the delay sits on 'I-201 / I-301 tripped', and a command discrepancy alarm finds a switch reading closed while its valve is commanded open. Since c257902c (D-036 item 5 (a)) the jetty drain pumps are no longer effects: they return into the berth headers downstream of XV-5101 / XV-6101, not into the return."}
-  - {id: SG29, title: "SEQ-LINE-EMPTY permissive and abort: at least 1,100 m3 below the high-high level of the receiving tank (LZT-2102 / LZT-3102) before the displacement; abort on I-201 (I-301) tripped or a high receiving-tank pressure (PIC-1110 output saturated)", kind: procedural, refs: [LZT-2102, LZT-3102, XV-2123, XV-3123, PIC-1110], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 5 (b), control/sequences.yaml SEQ-LINE-EMPTY); an operator's check of the level against the ~1,030 m3 line, no interlock; the rundown into the same tank during the ~2.3 h displacement is not stated in the sequence (S26)."}
+  - {id: SG29, title: "SEQ-LINE-EMPTY permissive and abort: at least 1,100 m3 below the high-high level of the receiving tank (LZT-2102 / LZT-3102) before the displacement; abort on I-201 (I-301) tripped or a high receiving-tank pressure (PIC-1110 output saturated)", kind: procedural, refs: [LZT-2102, LZT-3102, XV-2123, XV-3123, PIC-1110], status: proposed, by: agent, notes: "Added in c257902c (D-036 item 5 (b), control/sequences.yaml SEQ-LINE-EMPTY); an operator's check of the level against the ~1,030 m3 line, no interlock; the rundown into the same tank during the ~2.3 h displacement is not stated in the sequence (S26). Since ae718797 (D-039 item 3, D-039.9 (d), (j)) the abort closes the crossover and the return, holds the leaking line isolated under N2 and is followed by a restart from S1 into the other tank (XV-3123, LZT-3102 permissive); the no-N2 abort on the return flow is H-02's (S35)."}
   - {id: SG7, title: "Interlock I-101: both tanks LAHH trip the trains through XS-1100 and close the battery-limit valves XV-1111..XV-1114", kind: interlock, interlock: I-101, refs: [LZT-2102, LZT-3102, LZT-2106, LZT-3106, XV-1111, XV-1112, XV-1113, XV-1114, XS-1100], status: proposed, by: agent, notes: "XS-1100 effect since f5d925f6 (D-028 item 2)."}
   - {id: SG8, title: "Interlock I-202 (I-302): LZT-2102 LALL stops the in-tank pumps", kind: interlock, interlock: I-202, refs: [LZT-2102, P-2101A, P-2101B, P-2101C, P-2101D, P-2102], status: proposed, by: agent}
   - {id: SG9, title: Density and temperature profile LTD-2103 / LTD-3103 with TI-2104 / TI-3104 and rundown density AI-1102, kind: other, refs: [LTD-2103, LTD-3103, TI-2104, TI-3104, AI-1102], status: proposed, by: agent, notes: "Monitoring; no alarm on a density difference is stated in the files."}
@@ -1058,4 +1080,4 @@ actions:
   - {id: A21, status: proposed, by: agent, text: "Agree with the trains and the site air system the trip point of I-804 (4.5 barg, ASSUMED) against the normal transients of the air header (compressor and dryer change-over), whether a short confirmation delay is acceptable within the margin to the ~3.5 barg stroke pressure, and the restart route of the trains after an I-804 rundown trip (reset of I-804 and I-102, rundown restart through XS-1100) (S21)."}
   - {id: A22, status: proposed, by: agent, text: "C&E / instrument list: base I-103 on proven positions rather than held open commands - closed- or open-position switches on XV-1106..XV-1109, or a confirmation by the rundown header pressure (PI-1104 / PZT-1105 steady) before the old selection valve may close - and state the response when I-103 blocks a close command (alarm, operator action); decide it in the SIL screening with the voting of ZSC-1102 / ZSC-1103 (hold H-06) (S24)."}
   - {id: A23, status: proposed, by: agent, text: "Put ZSC-2123 / ZSC-3123 and I-205 / I-305 in the proof test (switch made only by the fully closed valve, the 15 s delay against the stroke time of XV-2123 / XV-3123, ASSUMED), consider a discrepancy alarm between the close command and the switch, and confirm with the tank contractor the volume above the LAHH trip point against the return at the circulation rate until I-205 / I-305 act (with A20) (S25).", response: "Partly answered by commit 709fcf20 (D-032 item 7, #3; C&E I-205 / I-305 notes): ZSC-2123 / ZSC-3123 reading closed while XV-2123 / XV-3123 is commanded open longer than its stroke time raises a discrepancy alarm, and the 15 s on-delay now sits on 'I-201 / I-301 tripped', so it is measured against the stroke from the trip. Still open: the proof test of the switches and of I-205 / I-305, and the volume above the LAHH trip point against the return until they act. Still proposed. Commit c257902c (D-036 item 5 (a)) removes the jetty drain pumps from I-205 / I-305 (they no longer feed the return), so the return volume until the trip acts is that of the circulation pump alone; the items above remain open. Still proposed."}
-  - {id: A24, status: proposed, by: agent, text: "SEQ-LINE-EMPTY: state where the rundown goes during the displacement (fill switched to the other tank as a permissive, since the ~70 m3 the 1,100 m3 permissive leaves above the ~1,030 m3 line is filled by the rundown in under a minute), make the ullage of the receiving tank a measured permissive (LZT-2102 / LZT-3102 against the line volume and the film), and state the response when I-201 (I-301) ends the displacement with the leaking line part-full (which receiving tank next, the N2 blocks closed, the remaining drain-down against the T-8102 budget of D-036.11 (b)) (S26; H-02 S29, S31)."}
+  - {id: A24, status: proposed, by: agent, text: "SEQ-LINE-EMPTY: state where the rundown goes during the displacement (fill switched to the other tank as a permissive, since the ~70 m3 the 1,100 m3 permissive leaves above the ~1,030 m3 line is filled by the rundown in under a minute), make the ullage of the receiving tank a measured permissive (LZT-2102 / LZT-3102 against the line volume and the film), and state the response when I-201 (I-301) ends the displacement with the leaking line part-full (which receiving tank next, the N2 blocks closed, the remaining drain-down against the T-8102 budget of D-036.11 (b)) (S26; H-02 S29, S31).", response: "Partly answered by commit ae718797 (D-039 item 3, D-039.9 (d), (j); SEQ-LINE-EMPTY abort and reset): the response when I-201 ends the displacement is written: the crossover in use and the return closed, the N2 blocks left open behind the check valve with the regulator limiting the line, the bleed locked closed, and the sequence restarted from S1 into the other tank (T-3101 through XV-3123 with at least 1,100 m3 below its high-high on LZT-3102) as soon as the cause clears; the remaining drain-down against T-8102 is stated (~40 m3 when the 240 min PFP is reached ~3.5 h after the earliest abort; a hold longer than ~0.45 h a residual of hold H-07). Still open: where the rundown goes during the displacement (the fill switched to the other tank as a permissive) and a measured ullage permissive. Still proposed."}
