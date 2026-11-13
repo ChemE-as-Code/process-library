@@ -324,16 +324,19 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058):
   of what stays in the liquid; core 1.9.0's default, which leaves the vent's HCl out, D-014). The
   MTSR over the batch rises from 338.5 K after 1.4 h to 343.6 K at the end of the dosing (7 h),
   set by SULP (SALT alone 338.3 K). The vent's peak HCl rate in operation is 0.71 mmol/(s m3) at
-  the salt's addition (144.9 m3/h, `cheme process recipe`). Core takes the gas release of a
-  cooling failure only at the moment of the highest MTSR, the end of the toluene dosing (25200
-  s): the accumulated toluene releases 0.594 mol/s of HCl, 60.3 m3/h at 343.6 K, 0.40 of the
-  vent capacity of 150 m3/h (`hazard.vent_capacity`, D-014); SULP run to completion from that
-  moment forms 0.197 kmol (5.5 m3). It is not the largest release of the batch: core's
+  the salt's addition (144.9 m3/h, `cheme process recipe`). Core's gas release of a cooling
+  failure at the moment of the highest MTSR, the end of the toluene dosing (25200 s): the
+  accumulated toluene releases 0.594 mol/s of HCl, 60.3 m3/h at 343.6 K, 0.40 of the vent
+  capacity of 150 m3/h (`hazard.vent_capacity`, D-014); SULP run to completion from that moment
+  forms 0.197 kmol (5.5 m3). It is not the largest release of the batch: core's
   `stirred_tank.vent_gas_rate` at every point of R101's cooling profile, at that point's MTSR and
   per batch (13.85 h of the flowsheet's flows, as core scales it), gives the most at the end of
   the salt addition (3600 s), from SALT's accumulated NH4Cl: 145.5 m3/h at 338.3 K, 0.97 of the
   vent, about 3 % margin (a cooling failure there releases about the normal peak, since the
-  salt's HCl leaves as it forms). The pressure of a blocked vent is still not screened.
+  salt's HCl leaves as it forms). Since core 1.12.0 the screening reports this largest release
+  itself (`gas_release.largest_over_batch`, core ADR 0069), and `cheme.reactor-hazard-vent`
+  quotes it, 0.97 (0.40 up to core 1.11.0, which took the release at the highest MTSR only). The
+  pressure of a blocked vent is still not screened.
 - Q101 (quench): T_p 288.15 K, dT_ad 39.1 K (HYD's 24.9 K and 14.2 K of the dosed acids' heat of
   solution, core 1.10.0, D-015), accumulation of ClSO3H 0.16 %, MTSR 298.2 K (it
   includes the hydrolysis potential of the TsCl in the liquor, which hardly reacts: TSHP alone
@@ -343,7 +346,8 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058):
   core's worst moment (14404 s, just after the dosing) 0.134 mol/s, 11.8 m3/h of HCl at 298.2 K,
   0.08 of the 150 m3/h header (D-014); at the end of the dosing (14400 s), with the accumulated
   ClSO3H, 14.1 m3/h, 0.09 of it, the largest over the batch (`vent_gas_rate` over the cooling
-  profile, as for R101). Both are the ASSUMED 10 % vented share of the HCl formed
+  profile, as for R101; since core 1.12.0 `gas_release.largest_over_batch`, and the 0.09 that
+  `cheme.reactor-hazard-vent` quotes). Both are the ASSUMED 10 % vented share of the HCl formed
   (`batch.vent.fraction`, D-006: the split of normal operation at 288 K, not known for a cooling
   failure). With all the HCl formed leaving, the release is about 118 m3/h at core's worst
   moment and about 141 m3/h at the end of the dosing, 0.79 to 0.94 of the header. The
@@ -363,10 +367,11 @@ nothing else changed; not committed):
 MTT 383.75 K (R101) and 373.12 K (Q101) in every case. The gas release columns were added on
 core 1.9.0 (scratch copies again, 2026-11-06; the other columns reproduce): m3/h of HCl at
 101.3 kPa(a), per batch (the same 13.85 h of flows in every case), against the vent capacity of
-150 m3/h (D-014). Core gives the release only at its worst moment, the moment of the highest
+150 m3/h (D-014). Core 1.9.0 gave the release only at its worst moment, the moment of the highest
 MTSR (R101: the end of the toluene dosing, 25200 s, in every case); the largest over the batch
 is core's `stirred_tank.vent_gas_rate` at every point of the cooling profile, at that point's
-MTSR, with its ratio to the vent. Q101's values are the ASSUMED 10 % vented share (about ten
+MTSR, with its ratio to the vent (since core 1.12.0 reported by the screening itself,
+`gas_release.largest_over_batch`; at k the same 145.5 and 14.1 m3/h). Q101's values are the ASSUMED 10 % vented share (about ten
 times as much if all the HCl formed left, D-006). Without a TD24 there is no class; on
 MTSR against MTT alone, R101 at k and k/10 lies below the MTT (Stoessel class 1 or 2, depending
 on where the MTT lies against MTD24), at k/100 above it (class 3, 4 or 5): toluene would boil
@@ -447,11 +452,12 @@ Decision, on the core pin's rise to 1.9.0 (314642c):
   ASSUMED: R-101's vent line and the scrubber T-201 are sized for the recipe's normal peak,
   144.9 m3/h of HCl at 338 K while the salt goes in, rounded up (no vent sizing yet: there is no
   P&ID). Q-101's vent joins the same header; while Q-101 doses, R-101 is emptying into it and
-  gives off no gas, so the header's 150 m3/h is Q-101's. Core takes the gas release only at the
-  moment of the highest MTSR: 60.3 m3/h for R101 (0.40 of it, the end of the toluene dosing) and
-  11.8 m3/h for Q101 (0.08), within the vent (`cheme.reactor-hazard-vent`, info). The largest
-  cooling-failure release over the batch (D-011) is R101's at the end of the salt addition,
-  145.5 m3/h (0.97), and Q101's at the end of the dosing, 14.1 m3/h (0.09). Q101's values are the
+  gives off no gas, so the header's 150 m3/h is Q-101's. Core 1.9.0 took the gas release only at
+  the moment of the highest MTSR: 60.3 m3/h for R101 (0.40 of it, the end of the toluene dosing)
+  and 11.8 m3/h for Q101 (0.08). The largest cooling-failure release over the batch (D-011) is
+  R101's at the end of the salt addition, 145.5 m3/h (0.97), and Q101's at the end of the dosing,
+  14.1 m3/h (0.09); since core 1.12.0 (ADR 0069) `cheme.reactor-hazard-vent` quotes these, the
+  larger of the two, within the vent (info; 0.40 and 0.08 up to core 1.11.0). Q101's values are the
   ASSUMED 10 % vented share of the HCl formed (`batch.vent.fraction`, D-006); with all of it
   leaving, about 118 m3/h at core's worst moment and 141 m3/h at the end of the dosing, 0.79 to
   0.94 of the shared header.

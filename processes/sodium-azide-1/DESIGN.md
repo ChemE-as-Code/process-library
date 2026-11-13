@@ -480,7 +480,12 @@ MTSR and 101.3 kPa(a)):
 | R102 | 6.34 m3/h (N2O and NH3, 0.067 mol/s) at 318.9 K | SIDE, the worst moment's content | 60 m3/h | 0.11 | 0.660 kmol, 17.3 m3 (SIDE run to completion) |
 
 Both are within the vents (`cheme.reactor-hazard-vent`, info). In R-101 the rate at the MTSR is
-below the normal peak: the dosed acid accumulates to under 1 %. In R-102 only the side reaction
+below the normal peak: the dosed acid accumulates to under 1 %. The largest release over the batch
+(core 1.12.0, `gas_release.largest_over_batch`, ADR 0069: every step's content at its own MTSR) is
+R-101's at the end of the dosing (4.01 h, its MTSR 298.2 K), 44.6 m3/h of methyl nitrite (0.507
+mol/s), 0.89 of the 50 m3/h, about the normal peak the vent was sized for; since core 1.12.0
+`cheme.reactor-hazard-vent` quotes that, 0.89 (0.59 up to core 1.11.0), still info. R-102's
+largest is its release at the MTSR (6.34 m3/h, 0.11). In R-102 only the side reaction
 forms gas (AZ forms none), and the "most gas" is an upper bound that sends the whole accumulated
 methyl nitrite by SIDE.
 **Finding: a blocked vent** (a design item for the next stage; core screens no head space or

@@ -456,7 +456,13 @@ about 30 % margin.
 Cases against it, all with the vapour:
 - normal operation: about 226 m3/h at most (45 %);
 - the slower-kinetics cases (D-011): k/10 about 388 m3/h (78 %), k/100 about 201 m3/h;
-- a cooling failure: nothing (endothermic);
+- a cooling failure: nothing (endothermic). Core 1.12.0's largest gas release over the batch
+  (`gas_release.largest_over_batch`, core ADR 0069: every moment's content at its own MTSR, here
+  T_p) is 178.7 m3/h at 1.11 h (0.822 mol/s each of SO2 and HCl, a vapour share of 0.18, the
+  vapour limited by the reactions' heat), 0.36 of the capacity, which `cheme.reactor-hazard-vent`
+  (info) now quotes (a nil release, 3e-29 of it, up to core 1.11.0). It is the dosing's normal
+  gas peak (182.9 m3/h at 1.1 h above), not a release from accumulation, and below this
+  decision's basis with the vapour at Raoult;
 - **design finding 1, an accumulated dose**: if the heating fails (steam lost, E-105 stopped)
   while the dosing goes on, the batch cools (the reaction and the cold dose both take heat), the
   reaction slows and the thionyl chloride accumulates; when the heating returns it reacts at
@@ -527,8 +533,9 @@ an open input for calorimetry (DSC/ARC), never estimated here.
 - L-2: the screening's default MTT is the lowest normal boiling point of a component of the
   charge and the dose (thionyl chloride, 348.75 K), not the mixture's bubble point; here it lies
   below T_p and would report a boiling batch. And for an endothermic gas-forming reaction the
-  screening's MTSR and gas release are nil: the release of a dose accumulated at a lower
-  temperature (a heating failure) is not screened; it is a hand case here (D-014).
+  screening's MTSR and gas release at the MTSR are nil (since core 1.12.0 its largest release
+  over the batch is the dosing's normal gas peak, D-014): the release of a dose accumulated at a
+  lower temperature (a heating failure) is not screened; it is a hand case here (D-014).
 - L-3: the recipe checks a jacket's cooling at the model's peak but not its heating of an
   endothermic semi-batch; R-101's heating demand is computed by hand from the model's profile
   (D-009).

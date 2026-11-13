@@ -444,7 +444,10 @@ Decision: R-101's off-gas system (the vapour line from R-101, the reflux condens
 and A-101) is sized for 130 m3/h of gas with the liquid's vapour at the vessel's pressure,
 `hazard.vent_capacity: 130`, ASSUMED: 1.2 x the gas release at the MTSR with the assumed rate
 law (128.6 m3/h), rounded up; the release at the MTSR is then 82 % of it, within it
-(`cheme.reactor-hazard-vent`, info). The vapour line from R-101 to E-102, for example DN80, runs
+(`cheme.reactor-hazard-vent`, info). Since core 1.12.0 the finding quotes the larger of that and
+the largest release over the batch (`gas_release.largest_over_batch`, core ADR 0069): 107.4 m3/h
+at 1.94 h (its MTSR 421.1 K, a vapour share of 0.23), 0.826 of the capacity against 0.825 at the
+MTSR, so the margin is the same. The vapour line from R-101 to E-102, for example DN80, runs
 at about 7.6 m/s at 130 m3/h. Its non-condensables, about 99 m3/h of HCl at 421.9 K (0.79 mol/s),
 are about 53 kW to A-101's cooling at 67 kJ/mol with the gas arriving hot (E-102 lost), against
 39 kW at the normal peak through E-102 (D-010).

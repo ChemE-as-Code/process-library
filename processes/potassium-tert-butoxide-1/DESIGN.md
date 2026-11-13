@@ -302,9 +302,14 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058, 0062):
 - Gas release at the MTSR (with the liquid's vapour, no condenser credited): 0.371 mol/s, 133.4
   m3/h at 350.1 K (38.36 m3/h of hydrogen, the non-condensables, a vapour share of 0.713), against
   the vent capacity of 200 m3/h (`hazard.vent_capacity`, ASSUMED: about twice the normal peak of
-  102.5 m3/h before E-104, D-006), 0.67 of it; the end of the dosing is also the largest release
-  over the batch (core's `vent_gas_rate` at each point of the cooling profile at that point's
-  MTSR). KTBA run to completion from that moment forms 0.114 kmol (11.4 m3 with the vapour).
+  102.5 m3/h before E-104, D-006), 0.67 of it; the end of the dosing is also the largest
+  release of hydrogen over the batch (core's `vent_gas_rate` at each point of the cooling profile
+  at that point's MTSR). KTBA run to completion from that moment forms 0.114 kmol (11.4 m3 with the
+  vapour). With the liquid's vapour the largest release over the batch is earlier, in the first
+  hour of the dosing (core 1.12.0, `gas_release.largest_over_batch`, ADR 0069): 179.2 m3/h at
+  0.458 h (its MTSR 350.0 K), 0.366 mol/s of hydrogen with 1.367 mol/s of tert-butanol vapour (a
+  vapour share of 0.789), 0.90 of the vent capacity, within it; since core 1.12.0
+  `cheme.reactor-hazard-vent` quotes that, 0.90 (0.67 up to core 1.11.0), still info.
 - No TD24 of the solution, the solvate or the product is known (never estimated): no class
   (`cheme.reactor-hazard-missing`, info). With MTSR below MTT, core's `criticality()` leaves
   classes 1 (TD24 above the MTT), 2 (TD24 between the MTSR and the MTT) or 5 (TD24 below the

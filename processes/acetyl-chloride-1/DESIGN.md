@@ -408,11 +408,13 @@ MTSR over the batch (core 1.9.0, ADR 0058): 313.1 K at the start, 313.7 K at 0.5
 at 2.49 h. ACCL sets it (dT_ad 21.4 K); HYD alone gives 0.3 K (313.5 K), so `hazard.reactions` is
 not needed. Gas released at a cooling failure at the MTSR: 4.35e-6 kmol/s, 0.41 m3/h at 315.8 K
 (the worst moment's content, per batch of the recipe), against R-101's vent capacity of 50 m3/h
-(0.008 of it, `cheme.reactor-hazard-vent` info). The main reaction forms no gas: that rate is
+(0.008 of it). The main reaction forms no gas: that rate is
 the vented share of the acetyl chloride (0.213 %), whose 0.005 kmol from the accumulated PCl3 is
 vapour. The largest release over the batch is at 69 s, 31.2 m3/h of HCl at 313.4 K, while the
 acid's water hydrolyses the first PCl3 (core's `vent_gas_rate` at every point of the cooling
-profile, at that point's MTSR; D-014).
+profile, at that point's MTSR; D-014). Since core 1.12.0 the screening reports it itself
+(`gas_release.largest_over_batch`, core ADR 0069: 31.2 m3/h at 0.0191 h, its MTSR 313.4 K), and
+`cheme.reactor-hazard-vent` (info) quotes it, 0.62 of the vent (0.008 up to core 1.11.0).
 No TD24 is known (never estimated): no criticality class (`cheme.reactor-hazard-missing`, info).
 With MTSR below MTT the class is 1 or 2 if the TD24 lies above the MTSR (1 above the MTT, 2
 between), and 5 if it lies below (TD24 < 315.8 K): core's `criticality()` and Stoessel test the
@@ -587,8 +589,9 @@ Decision, on the core pin's rise to 1.9.0 (314642c), for the three findings core
   of HCl a batch released evenly over the 2 h dosing (1.059 kmol, 13.6 m3/h at 313 K). That is
   44.4 m3/h, rounded up to 50 (no vent sizing yet: there is no P&ID). Against a cooling failure
   (`cheme process reactor-hazards`; core's `vent_gas_rate` over the cooling profile; D-011's
-  table), the gas released is 0.41 m3/h at the MTSR (0.008 of it, `cheme.reactor-hazard-vent`
-  info) and 31.2 m3/h at 69 s, the largest over the batch (0.62). At k/10 the largest is 37.2
+  table), the gas released is 0.41 m3/h at the MTSR (0.008 of it) and 31.2 m3/h at 69 s, the
+  largest over the batch (0.62; since core 1.12.0 the ratio `cheme.reactor-hazard-vent` quotes,
+  info, 0.008 up to core 1.11.0). At k/10 the largest is 37.2
   m3/h (0.74), at k/100 37.9 m3/h (0.76). Core compares the vent's components only. The gas
   leaving R-101 also carries the liquid's vapour: about 5 % at the HCl peak (acetic acid at 4.7
   kPa), up to two thirds at the end of the dosing, where the gas is small. The line from R-101 to

@@ -27,8 +27,8 @@ flowsheet's year-average flows come from (`cheme process recipe`, `cheme process
 
 The thermal screening compares the cooling-failure temperature, 350.1 K at a 3.1 % accumulation of
 the dispersed metal, with the alcohol's boiling point (355.45 K), and the hydrogen it releases
-with the liquid's vapour (133.4 m3/h) with an ASSUMED vent capacity of 200 m3/h (no vent sized
-yet). The kinetics are ASSUMED: at a ten times slower rate the MTSR is 366.9 K, above the boiling
+with the liquid's vapour (133.4 m3/h; 179.2 m3/h, 0.90 of it, at its largest early in the dosing)
+with an ASSUMED vent capacity of 200 m3/h (no vent sized yet). The kinetics are ASSUMED: at a ten times slower rate the MTSR is 366.9 K, above the boiling
 point, and the alcohol would boil with its hydrogen in a cooling failure (a design finding:
 dosing interlocks on the agitator, the cooling and the hydrogen flow, and an emergency relief
 sized from calorimetry are required, not yet designed; DESIGN.md D-011). Hydrogen and the

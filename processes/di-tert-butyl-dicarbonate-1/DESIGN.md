@@ -443,7 +443,8 @@ Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058, 0062, 0063)
   the p-toluenesulfonyl-chloride-1 entry, over 1 - Y with Y the vent vapour's share at that MTSR
   on core's basis), the most is 24.5 m3/h at 7367 s (the start of the phosgene dosing; 22.9 m3/h
   of it CO2 and isobutene, Y 0.069), 0.49 of the vent's 50 m3/h (D-014; 23.0 m3/h of CO2 alone,
-  0.46, on core 1.9.0);
+  0.46, on core 1.9.0); core 1.12.0 reports the same, 24.54 m3/h at 2.05 h
+  (`gas_release.largest_over_batch`), and its `cheme.reactor-hazard-vent` quotes 0.49;
 - no TD24 is known for the slurry, the crude or Boc2O (never estimated): no class
   (`cheme.reactor-hazard-missing`, info). With MTSR below the MTT, core's `criticality()` gives
   class 1 or 2 if the TD24 is at or above the MTSR (1 if it is above the MTT), and class 5 if it is
@@ -567,10 +568,12 @@ Decision:
   times the recipe's normal peak (T-401 takes about 100 m3/h, K-101's discharge in the degassing,
   D-006), 22.2 m3/h of CO2 with its hexane past the vent condenser at 263 K (`cheme process
   recipe`, core 1.10.0; 22.8 m3/h of CO2 at 278 K before); no vent
-  sizing yet (no P&ID). Core's release at its worst moment is 0 (CARB, no gas;
-  `cheme.reactor-hazard-vent`, info); the largest over the batch with the liquid's vapour 24.5
-  m3/h (0.49), at k/10 26.6 (0.53), at k/100 52.9 m3/h (1.06, D-011; 23.0, 25.5 and 53.5 m3/h of
-  CO2 alone on core 1.9.0).
+  sizing yet (no P&ID). Core's release at its worst moment is 0 (CARB, no gas); the largest over
+  the batch with the liquid's vapour 24.5 m3/h (0.49), at k/10 26.6 (0.53), at k/100 52.9 m3/h
+  (1.06, D-011; 23.0, 25.5 and 53.5 m3/h of CO2 alone on core 1.9.0). Since core 1.12.0 the
+  screening gives that largest release itself (`gas_release.largest_over_batch`, core ADR 0069:
+  24.54 m3/h at 2.05 h, its MTSR 278.2 K, a vapour share of 0.069), and
+  `cheme.reactor-hazard-vent` (info) quotes it, 0.49 of the vent (0 up to core 1.11.0).
 - **`hazard.mtt: 333.15` K**, the technical limit of the mass, not a boiling point: SRC-2's
   Comparative Examples 1 and 4 at 60-70 C evolved gas vigorously and lost the product (11 % and 5 %
   yield): a decomposition observed over a reaction's hours. Core's default would take hexane's
