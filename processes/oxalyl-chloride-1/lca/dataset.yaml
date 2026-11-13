@@ -18,30 +18,31 @@ technology: 'Batch plant on one reactor-still and one rectification still: PCl3 
   heel (PCl5 in POCl3 with 2,4-dimethylpyridine) and chlorinated at 333 K over 8 h; anhydrous oxalic acid
   in recycled POCl3 dosed over 4 h at 333 K, HCl, CO and CO2 vented through a chilled-water condenser
   to a water absorber (30 wt% hydrochloric acid); the crude stripped off the heel at 15 kPa(a), 5 % of
-  the heel purged; the crude rectified at atmospheric pressure (15 stages, reflux 6) to the product, an
-  off-cut recycled and POCl3; 1286 kg per batch, 389 batches a year on a dedicated train'
+  the heel purged; the crude rectified at atmospheric pressure with the last batch''s off-cut (15 stages,
+  reflux 6) to the product, an off-cut for the next still charge and POCl3; 1642.1 kg per batch, 304.5
+  batches a year on a dedicated train'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:vent-nitrogen
   title: storage-tank emissions of R-101, E-102, A-101
   direction: output
   reason: 'No P&ID yet: the nitrogen of the vacuum break, which the next charge displaces through E-102
-    and the absorber, leaves saturated with oxalyl chloride and POCl3 at 283 K, about 0.67 kmol a batch
-    carrying about 0.02 kmol (3 kg) of oxalyl chloride, 0.2 % of the batch, which the absorber hydrolyses
-    to HCl, CO and CO2; not in the balance (D-010).'
+    and the absorber, leaves saturated with oxalyl chloride and POCl3 at 283 K, about 0.42 kmol a batch
+    (9.3 Nm3) carrying about 0.013 kmol (1.6 kg) of oxalyl chloride, 0.1 % of the batch, which the absorber
+    hydrolyses to HCl, CO and CO2; not in the balance (D-010).'
 - key: emission-excluded:vacuum-pump
   title: storage-tank emissions of R-101, E-103
   direction: output
   reason: 'No P&ID yet: the strip''s vacuum pump discharges the air that leaks into R-101 at 15 kPa(a),
     saturated over the crude condensate at E-103''s 283 K outlet; at an ASSUMED leak of 1 kg/h (0.035
     kmol/h) of air, the gas carries about 0.4 mol of oxalyl chloride and POCl3 vapour per mol of air (4.4
-    of 15 kPa), about 2 kg/h, some 13 kg a batch over the strip (1 % of the batch''s product), to be recovered
-    in a cold trap after the pump and routed to the absorber; not in the balance (D-010).'
+    of 15 kPa), about 2 kg/h, some 24 kg a batch over the 12 h strip (1.5 % of the batch''s product),
+    to be recovered in a cold trap after the pump and routed to the absorber; not in the balance (D-010).'
 - key: emission-excluded:storage-breathing
-  title: storage-tank emissions of T-201, T-202, V-102
+  title: storage-tank emissions of T-201, T-202, T-203, V-102
   direction: output
-  reason: The breathing of the oxalyl chloride, POCl3 and acid slurry tanks (nitrogen-blanketed, vented
-    to E-102 and the absorber) is not estimated (D-010).
+  reason: The breathing of the oxalyl chloride, POCl3, off-cut and acid slurry tanks (nitrogen-blanketed,
+    vented to E-102 and the absorber) is not estimated (D-010).
 uuid: 66816a07-02e4-5cd6-ae4f-e41ee4d5e9e5
 version: 0.1.0
 geography:
@@ -53,7 +54,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 500000.68799999997
+  amount: 499999.896
   unit: kg/a
   source: product:OXCLP per hour x operation.hours_per_year (7920 h/a)
 classification:
@@ -76,7 +77,7 @@ exchanges:
 - key: feed:PCL3F
   title: Phosphorus trichloride (no library process)
   type: input
-  amount: 168.6896
+  amount: 167.4022
   unit: kg
   link:
     source: flowsheet stream S1 (D-004)
@@ -101,7 +102,7 @@ exchanges:
 - key: feed:LUTF
   title: 2,4-Dimethylpyridine (catalyst make-up; no library process)
   type: input
-  amount: 0.5292
+  amount: 0.5251
   unit: kg
   link:
     source: flowsheet stream S2 (D-004)
@@ -124,7 +125,7 @@ exchanges:
 - key: feed:CL2F
   title: Chlorine (chlor-alkali-1)
   type: input
-  amount: 87.5294
+  amount: 86.8614
   unit: kg
   link:
     source: flowsheet stream S6 (D-004)
@@ -145,7 +146,7 @@ exchanges:
 - key: feed:OXAF
   title: Oxalic acid, anhydrous (no library process)
   type: input
-  amount: 57.7537
+  amount: 57.3129
   unit: kg
   link:
     source: flowsheet stream S8 (D-004)
@@ -169,7 +170,7 @@ exchanges:
 - key: feed:PW
   title: Process water (HCl absorber)
   type: input
-  amount: 123.1845
+  amount: 121.6692
   unit: kg
   link:
     source: flowsheet stream S21 (D-010)
@@ -191,7 +192,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 10.0
+  amount: 10.5
   unit: kWh
   link:
     source: flowsheet energy streams P1 (R-101's agitator and the strip's vacuum pump), P2 (C-201's agitator,
@@ -214,7 +215,7 @@ exchanges:
 - key: feed:LPS
   title: LP steam 350 kPa(a)
   type: input
-  amount: 86.34360000000001
+  amount: 86.8244
   unit: kWh
   link:
     source: 'flowsheet energy streams Q1 (the charge warmed), Q5 (the strip, from core''s still model)
@@ -243,7 +244,7 @@ exchanges:
 - key: product:OXCLP
   title: Oxalyl chloride to storage
   type: product
-  amount: 63.1314
+  amount: 63.1313
   unit: kg
   provenance: calculated
   streams:
@@ -255,15 +256,15 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 30.0
-    purity: 0.995796
+    purity: 0.995789
     basis: mole
     component: OXCL
   composition:
     fractions:
-      PCL3: 0.000609477
-      CL2: 2.692e-06
-      POCL3: 0.004387831
-      OXCL: 0.995
+      PCL3: 0.000693997
+      CL2: 1.669e-06
+      POCL3: 0.004304333
+      OXCL: 0.995000001
     formulas:
       PCL3: PCl3
       CL2: Cl2
@@ -273,7 +274,7 @@ exchanges:
 - key: product:POCL3P
   title: Phosphoryl chloride (co-product)
   type: product
-  amount: 169.413
+  amount: 168.742
   unit: kg
   provenance: calculated
   streams:
@@ -283,15 +284,15 @@ exchanges:
     rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   state:
-    purity: 0.997374
+    purity: 0.997283
     basis: mole
     component: POCL3
   composition:
     fractions:
-      PCL3: 0.000560721
+      PCL3: 0.000642491
       CL2: 0.0
-      POCL3: 0.99778301
-      OXCL: 0.001656269
+      POCL3: 0.997701225
+      OXCL: 0.001656284
     formulas:
       PCL3: PCl3
       CL2: Cl2
@@ -301,7 +302,7 @@ exchanges:
 - key: product:HCLAQ
   title: Hydrochloric acid about 30 wt% (by-product)
   type: product
-  amount: 176.2717
+  amount: 174.2409
   unit: kg
   streams:
   - S23
@@ -312,14 +313,14 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 40.0
-    purity: 0.686562991
+    purity: 0.686157219
     basis: mass
     component: H2O
   composition:
     fractions:
-      H2O: 0.686562991
+      H2O: 0.686157219
       HCL: 0.3
-      H3PO4: 0.013437009
+      H3PO4: 0.013842781
     formulas:
       H2O: H2O
       HCL: HCl
@@ -328,7 +329,7 @@ exchanges:
 - key: product:PURGE
   title: Heel purge (PCl5, POCl3, catalyst) to hazardous-waste incineration
   type: output
-  amount: 18.011
+  amount: 17.141
   unit: kg
   provenance: calculated
   link:
@@ -348,13 +349,13 @@ exchanges:
       scrubbing (HCl and P2O5 captured); not recovered in this concept (D-004)
   composition:
     fractions:
-      PCL3: 9.7865e-05
+      PCL3: 4.4305e-05
       CL2: 0.0
-      PCL5: 0.471468063
-      POCL3: 0.495210646
-      OXA: 0.000160483
-      OXCL: 0.003680542
-      LUT: 0.029382401
+      PCL5: 0.489962371
+      POCL3: 0.475529142
+      OXA: 0.00016734
+      OXCL: 0.00366257
+      LUT: 0.030634271
     formulas:
       PCL3: PCl3
       CL2: Cl2
@@ -367,7 +368,7 @@ exchanges:
 - key: product:TAIL
   title: Absorber tail gas (CO, CO2, chlorine traces) to the site's thermal oxidiser
   type: output
-  amount: 10.8598
+  amount: 10.5158
   unit: kg
   link:
     source: flowsheet stream S24 (D-010)
@@ -387,9 +388,9 @@ exchanges:
       in the oxidiser's caustic scrubber) in the site's thermal oxidiser (D-010)
   composition:
     fractions:
-      CO: 0.370834043
-      CO2: 0.582650318
-      CL2: 0.046515639
+      CO: 0.37002145
+      CO2: 0.58137358
+      CL2: 0.04860497
     formulas:
       CO: CO
       CO2: CO2
@@ -398,7 +399,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 127.339326
+  amount: 129.202025
   unit: kWh
   link:
     source: flowsheet energy streams Q2 (R101, from core's semi-batch model), Q3 (R102, from its model),
@@ -427,7 +428,7 @@ exchanges:
 - key: product:CHW
   title: Chilled water return (283 K)
   type: output
-  amount: 28.209970000000002
+  amount: 24.3612
   unit: kWh
   provenance: calculated
   link:
@@ -452,16 +453,16 @@ exchanges:
 - key: consumable:nitrogen
   title: Nitrogen for R-101's vacuum break and the blankets of C-201, the receivers and the tanks
   type: input
-  amount: 0.9275373377145557
+  amount: 0.8189838373020288
   unit: kg
   link:
-    source: '15 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 12.5 m3 broken from 15 kPa(a)
-      over the heel (about 7 Nm3), the crude receiver''s vacuum break (3 Nm3), C-201 and the tanks blanketed
+    source: '17 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 16 m3 broken from 15 kPa(a) over
+      the 5.1 m3 heel (about 9 Nm3), the crude receiver''s vacuum break (3 Nm3), C-201 and the tanks blanketed
       as they fill and empty (5 Nm3)'
     missing: 'linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit'
-  source: '15 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 12.5 m3 broken from 15 kPa(a) over
-    the heel (about 7 Nm3), the crude receiver''s vacuum break (3 Nm3), C-201 and the tanks blanketed
-    as they fill and empty (5 Nm3); 18.8 kg per batch x 390.75 batches in 7920 h (process/recipe.yaml,
+  source: '17 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101''s 16 m3 broken from 15 kPa(a) over
+    the 5.1 m3 heel (about 9 Nm3), the crude receiver''s vacuum break (3 Nm3), C-201 and the tanks blanketed
+    as they fill and empty (5 Nm3); 21.3 kg per batch x 304.524 batches in 7920 h (process/recipe.yaml,
     case design, bottleneck REACT)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
@@ -474,8 +475,8 @@ allocation:
   - POCL3P
   - HCLAQ
   shares:
-    OXCLP: 0.579
-    POCL3P: 0.389
+    OXCLP: 0.58
+    POCL3P: 0.388
     HCLAQ: 0.032
   source: 'D-012 (agent proposal, for the LCA practitioner to confirm): the plant makes, per kg of oxalyl
     chloride, about 2.7 kg of POCl3 (a traded chemical, the product of processes/phosphorus-oxychloride-1)
@@ -487,7 +488,7 @@ allocation:
     a bulk phosphorus chloride, a by-product acid).'
   deviation: The shares rest on ASSUMED relative prices, not sourced ones. The conservative bound is all
     burdens to the oxalyl chloride (share 1, the POCl3 and the acid free); mass allocation, which the
-    rule would give only below a price ratio of 5, would leave the oxalyl chloride about 15 % of the burdens.
+    rule would give only below a price ratio of 5, would leave the oxalyl chloride about 16 % of the burdens.
     Sourced prices replace the ratios.
 provenance:
   generator: cheme assess lca
@@ -495,8 +496,8 @@ provenance:
     gas evolution and batch distillation (500 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:6e50d04e3fdf9ba290ed22543c5b121d380c21078d2ee9f9a7fa759eafe38558
-    lca/lca.yaml: sha256:4a1d2f4a51aa49d47c4a1e36042e0df9f9c61da7d764b43f7211219559216b8d
-    process.yaml: sha256:68d81b1c757e34ff02d23b4565924a0a1b82323aa0a32fd401566aa592d6e484
-    process/flowsheet.yaml: sha256:aff9acd7354ec226098611b3ac9906daeae0a86b0172266e39d93fdc5caf0ec1
+    equipment/equipment-list.yaml: sha256:9f003a566310cb477aefd25734d1052c47692529879ebc63862efef848800cce
+    lca/lca.yaml: sha256:7dc4caf43fa9d1d95039e11d2b4638c3761407c013359785549cf6ea6a46163d
+    process.yaml: sha256:d10132013ac7e0f83d4ee00d6226ebf7abc06272e74e95a5a68351e1033a72fc
+    process/flowsheet.yaml: sha256:a58cfe10156128be1e71bc8311d9d1af0a4483f467676b34ab2f8726961445db
     process/materials.yaml: sha256:25ad73682ed400b84a61a1a3ae35edf812ddb5223fb6fad05cfc5e0b824bee8e

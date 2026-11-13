@@ -4,7 +4,7 @@
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
 # plant with its amount per kg of oxalyl chloride, from the flowsheet's year averages of the
-# recipe (D-003). Per batch: multiply by 1286.0 kg. The backgrounds are left unmapped
+# recipe (D-003). Per batch: multiply by 1642.1 kg. The backgrounds are left unmapped
 # (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
 # library producer or a shared entry: a gap, never zero, and no values from licensed databases.
 # Phosphorus trichloride, anhydrous oxalic acid and 2,4-dimethylpyridine have no exported
@@ -18,14 +18,14 @@ goal: >-
   stage: which raw materials, utilities and wastes the batch plant exchanges per kg of oxalyl
   chloride, as the foreground for a later cradle-to-gate study. No impact results: most
   backgrounds are not mapped yet (D-012).
-functional_unit: {product: OXCLP, amount: 1, unit: kg, source: "1 kg of the distilled product cut (modelled 99.50 wt% oxalyl chloride, 0.44 wt% POCl3, 0.06 wt% PCl3) at the plant gate to storage, stream S17 (D-002, D-008, D-012)"}
+functional_unit: {product: OXCLP, amount: 1, unit: kg, source: "1 kg of the distilled product cut (modelled 99.50 wt% oxalyl chloride, 0.43 wt% POCl3, 0.07 wt% PCl3) at the plant gate to storage, stream S17 (D-002, D-008, D-012)"}
 # The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
 # being mapped free (the schema's gate-to-gate maps every feed free), as acetyl-chloride-1 does.
 boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Batch plant on one reactor-still and one rectification still: PCl3 charged to the recycled heel (PCl5 in POCl3 with 2,4-dimethylpyridine) and chlorinated at 333 K over 8 h; anhydrous oxalic acid in recycled POCl3 dosed over 4 h at 333 K, HCl, CO and CO2 vented through a chilled-water condenser to a water absorber (30 wt% hydrochloric acid); the crude stripped off the heel at 15 kPa(a), 5 % of the heel purged; the crude rectified at atmospheric pressure (15 stages, reflux 6) to the product, an off-cut recycled and POCl3; 1286 kg per batch, 389 batches a year on a dedicated train"
+technology: "Batch plant on one reactor-still and one rectification still: PCl3 charged to the recycled heel (PCl5 in POCl3 with 2,4-dimethylpyridine) and chlorinated at 333 K over 8 h; anhydrous oxalic acid in recycled POCl3 dosed over 4 h at 333 K, HCl, CO and CO2 vented through a chilled-water condenser to a water absorber (30 wt% hydrochloric acid); the crude stripped off the heel at 15 kPa(a), 5 % of the heel purged; the crude rectified at atmospheric pressure with the last batch's off-cut (15 stages, reflux 6) to the product, an off-cut for the next still charge and POCl3; 1642.1 kg per batch, 304.5 batches a year on a dedicated train"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 allocation:
@@ -33,8 +33,8 @@ allocation:
   # relative prices per kg (oxalyl chloride 1, POCl3 0.25, 30 wt% hydrochloric acid 0.02).
   method: shares
   coproducts: [OXCLP, POCL3P, HCLAQ]
-  # S17 63.131 x 1, S20 169.413 x 0.25 and S23 176.272 x 0.02 kg/h give 63.131, 42.353 and 3.525
-  shares: {OXCLP: 0.579, POCL3P: 0.389, HCLAQ: 0.032}
+  # S17 63.131 x 1, S20 168.742 x 0.25 and S23 174.241 x 0.02 kg/h give 63.131, 42.186 and 3.485
+  shares: {OXCLP: 0.580, POCL3P: 0.388, HCLAQ: 0.032}
   source: >-
     D-012 (agent proposal, for the LCA practitioner to confirm): the plant makes, per kg of
     oxalyl chloride, about 2.7 kg of POCl3 (a traded chemical, the product of
@@ -49,7 +49,7 @@ allocation:
     The shares rest on ASSUMED relative prices, not sourced ones. The conservative bound is all
     burdens to the oxalyl chloride (share 1, the POCl3 and the acid free); mass allocation, which
     the rule would give only below a price ratio of 5, would leave the oxalyl chloride about
-    15 % of the burdens. Sourced prices replace the ratios.
+    16 % of the burdens. Sourced prices replace the ratios.
 flows:
   # raw materials
   - key: feed:PCL3F
@@ -98,17 +98,17 @@ consumables:
   - id: nitrogen
     title: Nitrogen for R-101's vacuum break and the blankets of C-201, the receivers and the tanks
     unit: kg
-    per_batch: 18.8
-    source: "15 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101's 12.5 m3 broken from 15 kPa(a) over the heel (about 7 Nm3), the crude receiver's vacuum break (3 Nm3), C-201 and the tanks blanketed as they fill and empty (5 Nm3)"
+    per_batch: 21.3
+    source: "17 Nm3 per batch x 1.2506 kg/Nm3, ASSUMED (D-012): R-101's 16 m3 broken from 15 kPa(a) over the 5.1 m3 heel (about 9 Nm3), the crude receiver's vacuum break (3 Nm3), C-201 and the tanks blanketed as they fill and empty (5 Nm3)"
     missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
 operation:
   hours_per_year: 7920
   life_years: 20
   source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
 emission_exclusions:
-  - {id: vent-nitrogen, method: storage-tank, equipment: [R-101, E-102, A-101], reason: "No P&ID yet: the nitrogen of the vacuum break, which the next charge displaces through E-102 and the absorber, leaves saturated with oxalyl chloride and POCl3 at 283 K, about 0.67 kmol a batch carrying about 0.02 kmol (3 kg) of oxalyl chloride, 0.2 % of the batch, which the absorber hydrolyses to HCl, CO and CO2; not in the balance (D-010)."}
-  - {id: vacuum-pump, method: storage-tank, equipment: [R-101, E-103], reason: "No P&ID yet: the strip's vacuum pump discharges the air that leaks into R-101 at 15 kPa(a), saturated over the crude condensate at E-103's 283 K outlet; at an ASSUMED leak of 1 kg/h (0.035 kmol/h) of air, the gas carries about 0.4 mol of oxalyl chloride and POCl3 vapour per mol of air (4.4 of 15 kPa), about 2 kg/h, some 13 kg a batch over the strip (1 % of the batch's product), to be recovered in a cold trap after the pump and routed to the absorber; not in the balance (D-010)."}
-  - {id: storage-breathing, method: storage-tank, equipment: [T-201, T-202, V-102], reason: "The breathing of the oxalyl chloride, POCl3 and acid slurry tanks (nitrogen-blanketed, vented to E-102 and the absorber) is not estimated (D-010)."}
+  - {id: vent-nitrogen, method: storage-tank, equipment: [R-101, E-102, A-101], reason: "No P&ID yet: the nitrogen of the vacuum break, which the next charge displaces through E-102 and the absorber, leaves saturated with oxalyl chloride and POCl3 at 283 K, about 0.42 kmol a batch (9.3 Nm3) carrying about 0.013 kmol (1.6 kg) of oxalyl chloride, 0.1 % of the batch, which the absorber hydrolyses to HCl, CO and CO2; not in the balance (D-010)."}
+  - {id: vacuum-pump, method: storage-tank, equipment: [R-101, E-103], reason: "No P&ID yet: the strip's vacuum pump discharges the air that leaks into R-101 at 15 kPa(a), saturated over the crude condensate at E-103's 283 K outlet; at an ASSUMED leak of 1 kg/h (0.035 kmol/h) of air, the gas carries about 0.4 mol of oxalyl chloride and POCl3 vapour per mol of air (4.4 of 15 kPa), about 2 kg/h, some 24 kg a batch over the 12 h strip (1.5 % of the batch's product), to be recovered in a cold trap after the pump and routed to the absorber; not in the balance (D-010)."}
+  - {id: storage-breathing, method: storage-tank, equipment: [T-201, T-202, T-203, V-102], reason: "The breathing of the oxalyl chloride, POCl3, off-cut and acid slurry tanks (nitrogen-blanketed, vented to E-102 and the absorber) is not estimated (D-010)."}
 dataset:
   version: 0.1.0
   classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals

@@ -22,30 +22,34 @@ condensate returns (`vent.vapour`, `vent.condenser`, ADR 0062), to a water absor
 hydrochloric acid; the tail gas goes to the site's thermal oxidiser. The crude is then stripped off
 the heel at 15 kPa(a) in the same vessel (a batch still, `still:`, ADR 0055) and rectified at
 atmospheric pressure in C-201 with a 15-stage column at reflux 6 (`still.column`, ADR 0061): a
-product cut, an off-cut that returns to the next acid slurry, and POCl3, part of which suspends
-the next acid, the rest a co-product. Core converges the heel and the POCl3 recycles at two tear
-streams (`tears:`, ADR 0060), and the models write every duty they compute (ADR 0059).
-`process/recipe.yaml` gives the cycle (20.27 h, R-101 the bottleneck), 390.7 batches a year of
-1280.5 kg, R-101's 12.5 m3 vessel and its jacket check (`cheme process recipe`); `cheme process
-reactor-hazards` screens both semi-batches and compares the gas a cooling failure releases with
-R-101's vent capacity of 350 m3/h. Needs cheme-as-code 1.11.0. DESIGN.md lists the core features
+product cut, an off-cut that goes into the next still charge, and POCl3, part of which suspends
+the next acid, the rest a co-product. Core converges the heel, the POCl3 and the off-cut
+recycles at two tear streams (`tears:`, ADR 0060), and the models write every duty they compute
+(ADR 0059), with the vessels' metal (ADR 0063). `process/recipe.yaml` gives the cycle (26.01 h,
+R-101 the bottleneck), 304.5 batches a year of 1642.1 kg, R-101's 16 m3 vessel and its jacket
+check (`cheme process recipe`); `cheme process reactor-hazards` screens both semi-batches and
+compares the gas a cooling failure releases with R-101's vent capacity of 450 m3/h. Needs cheme-as-code 1.11.0. DESIGN.md lists the core features
 used and the core limits hit.
 
 Headline numbers and their caveats:
-- The yield, 77.2 % of theory on the oxalic acid, is a model result below the source's 84.2 %
+- The yield, 77.7 % of theory on the oxalic acid, is a model result below the source's 84.2 %
   isolated: the selectivity is calibrated to the oxalyl chloride in the source's crude (85.0 %),
-  and 7.4 % of the acid's worth of oxalyl chloride passes the vent condenser to the absorber,
+  and 6.8 % of the acid's worth of oxalyl chloride passes the vent condenser to the absorber,
   which cannot run colder without freezing POCl3 (274.33 K) on its wall (D-006, D-010).
 - The kinetics are ASSUMED (no open kinetics or calorimetry). The chlorine is dosed over 8 h so
   that R-101's jacket on cooling water removes the chlorination's heat (D-003). Both
   cooling-failure temperatures stay below the boiling points of the vented mass (MTSR 335.1 K
-  against 360.7 K, 334.0 K against 367.2 K). The gas a cooling failure releases is 0.81 of the
-  vent's capacity, but with a 100 times slower reaction it is 1.35 times: a design finding for
-  the relief study (D-011).
-- The product, 99.50 wt% with 0.44 wt% POCl3, rests on an ideal liquid and a Clausius-Clapeyron
+  against 358.8 K, 334.0 K against 367.0 K). The gas a cooling failure releases is 0.79 of the
+  vent's capacity. Two design findings for the next stage come from a 100 times slower
+  reaction: the acid's gas at a cooling failure is then 1.51 times the vent's capacity, and the
+  chlorine that accumulates (7.65 %) makes the mass boil chlorine at 333 K, which the vent
+  carries past the absorber (D-011).
+- The product, 99.50 wt% with 0.43 wt% POCl3, rests on an ideal liquid and a Clausius-Clapeyron
   line for oxalyl chloride's vapour pressure (no open Antoine fit or VLE data; D-007, D-008).
-- The plant makes 2.68 kg of POCl3 and 2.79 kg of 30 wt% hydrochloric acid per kg of product.
-  The preliminary LCI allocates economically at ASSUMED relative prices (57.9 % to the oxalyl
+- The stills' boil-ups are what their jackets give at the stills' ends, and the vessels' metal
+  (ASSUMED masses) is counted in the heat (D-007 to D-009).
+- The plant makes 2.67 kg of POCl3 and 2.76 kg of 30 wt% hydrochloric acid per kg of product.
+  The preliminary LCI allocates economically at ASSUMED relative prices (58.0 % to the oxalyl
   chloride); all burdens to the product is the conservative bound (D-012).
 
 | path | what |
