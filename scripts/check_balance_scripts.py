@@ -31,6 +31,11 @@ stops the two from drifting apart (ADR 0027):
    (else ``drift``); a script that fails is an ``error``. A script without the contract is
    ``not-migrated``: reported, and run only with ``--run-unmigrated`` (then just for its exit
    code).
+4. A duty that core's conversion-step model writes (``provenance: calculated``, ``source``
+   starting with ``cheme process propagate: conversion duty``; core ADR 0059, #396) must not be
+   in the output too (else ``duplicate``): the flowsheet has one source for it, and the script
+   keeps its own value only as a printed cross-check. Only scripts the flowsheet cites are run,
+   so only their output is checked for this.
 
 Tolerances: ``|flowsheet - script| <= abs + rel * |script|``.
 
@@ -49,10 +54,10 @@ reported as ``known`` and does not fail. If either value moves, it fails again; 
 matches no finding of a script that ran is ``stale`` and fails, so the list shrinks with its
 deviations.
 
-Exit status: 1 when any migrated script has a drift, a missing value or an error that is not a
-known deviation, or the known list has a stale entry (``--strict``: also when a cited script is
-not migrated), else 0. ``--markdown`` writes the drift table that a
-pull request carries; ``--json`` the full report.
+Exit status: 1 when any migrated script has a drift, a missing value, a duplicate or an error
+that is not a known deviation, or the known list has a stale entry (``--strict``: also when a
+cited script is not migrated), else 0. ``--markdown`` writes the drift table that a pull request
+carries; ``--json`` the full report.
 
 Run it with the cheme of library CI (pinned in .github/workflows/validate.yml): ``uv run
 scripts/check_balance_scripts.py --library . [--process hydrogen-1 ...]``.
@@ -87,6 +92,7 @@ FIXED_TOLERANCE = {
 KNOWN_FILE = Path("scripts") / "balance_known_deviations.yaml"
 KNOWN_SCRIPT_TOL = {"abs": 0.01, "rel": 1e-4}
 SOURCE = re.compile(r"^\s*(scripts/[\w.\-]+\.py)\b")
+CONVERSION_DUTY = "cheme process propagate: conversion duty"
 TIMEOUT_S = 900
 
 
@@ -112,7 +118,9 @@ class Finding:
     case: str
     stream: str
     quantity: str
-    status: str  # ok | drift | missing | known (matches an entry of the known-deviation list)
+    # ok | drift | missing | known (matches an entry of the known-deviation list) | duplicate
+    # (the script gives a duty that core's conversion-step model writes)
+    status: str
     flowsheet: object = None
     script_value: object = None
     deviation: float | None = None
@@ -164,6 +172,50 @@ def cited_values(flowsheet: dict) -> list[Cited]:
                         entry.get("basis"),
                     )
                 )
+    return out
+
+
+def conversion_duties(flowsheet: dict) -> dict[tuple[str, str], object]:
+    """(case, stream) -> value of every duty that core's conversion-step model writes."""
+    out: dict[tuple[str, str], object] = {}
+    for stream in flowsheet.get("streams") or []:
+        if not isinstance(stream, dict):
+            continue
+        for case, state in (stream.get("state") or {}).items():
+            duty = state.get("duty") if isinstance(state, dict) else None
+            if (
+                isinstance(duty, dict)
+                and duty.get("provenance") == "calculated"
+                and str(duty.get("source") or "").startswith(CONVERSION_DUTY)
+            ):
+                out[(str(case), str(stream.get("id")))] = duty.get("value")
+    return out
+
+
+def duplicates(process: str, script: str, emitted: dict, flowsheet: dict) -> list[Finding]:
+    """A ``duplicate`` finding for each duty the script gives that core's model writes."""
+    out = []
+    for (case, stream), value in sorted(conversion_duties(flowsheet).items()):
+        entry = (emitted.get(case) or {}).get(stream)
+        if isinstance(entry, dict) and "duty" in entry:
+            got = entry["duty"]
+            if isinstance(got, dict) and "value" in got:
+                got = got["value"]
+            out.append(
+                Finding(
+                    process,
+                    script,
+                    case,
+                    stream,
+                    "duty",
+                    "duplicate",
+                    flowsheet=_number(value),
+                    script_value=_number(got),
+                    note="core's conversion-step model writes this duty (cheme process "
+                    "propagate --fill); keep the script's value as a printed cross-check, out "
+                    "of its balance output",
+                )
+            )
     return out
 
 
@@ -431,6 +483,7 @@ def check_process(
                     else:
                         for c in values:
                             res.findings.extend(compare(folder.name, c, emitted, flowsheet))
+                        res.findings.extend(duplicates(folder.name, script, emitted, flowsheet))
         results.append(res)
     return results
 
@@ -443,15 +496,15 @@ def _fmt(x: object) -> str:
 
 def markdown(results: list[ScriptResult], stale: list[dict] | None = None) -> str:
     lines = [
-        "| process | script | status | cited | ok | drift | missing | known |",
-        "|---|---|---|---:|---:|---:|---:|---:|",
+        "| process | script | status | cited | ok | drift | missing | duplicate | known |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|",
     ]
-    statuses = ("ok", "drift", "missing", "known")
+    statuses = ("ok", "drift", "missing", "duplicate", "known")
     for r in results:
         n = {s: sum(f.status == s for f in r.findings) for s in statuses}
         lines.append(
             f"| {r.process} | `{r.script}` | {r.status} | {r.cited} | {n['ok']} | "
-            f"{n['drift']} | {n['missing']} | {n['known']} |"
+            f"{n['drift']} | {n['missing']} | {n['duplicate']} | {n['known']} |"
         )
     bad = [f for r in results for f in r.findings if f.status != "ok"]
     if bad:
@@ -469,6 +522,15 @@ def markdown(results: list[ScriptResult], stale: list[dict] | None = None) -> st
     errors = [r for r in results if r.message and r.status in ("error", "missing-script")]
     if errors:
         lines += ["", "Errors:", ""] + [f"- {r.process} `{r.script}`: {r.message}" for r in errors]
+    if any(f.status == "duplicate" for r in results for f in r.findings):
+        lines += [
+            "",
+            (
+                "`duplicate`: the script's balance output gives a duty that core's "
+                "conversion-step model writes (`cheme process propagate --fill`); keep the "
+                "script's value as a printed cross-check, out of its balance output."
+            ),
+        ]
     known = [f for r in results for f in r.findings if f.status == "known"]
     if known:
         lines += ["", f"Known deviations (`{KNOWN_FILE.as_posix()}`, not failing):", ""]
@@ -498,7 +560,8 @@ def _report(res: ScriptResult) -> None:
             print(
                 f"    {f.case}/{f.stream}.{f.quantity}: {f.status} flowsheet "
                 f"{_fmt(f.flowsheet)} script {_fmt(f.script_value)}{bound}"
-                + (f"\n      known deviation: {f.note}" if f.note else ""),
+                + (f"\n      {'known deviation: ' if f.status == 'known' else ''}{f.note}"
+                   if f.note else ""),
                 flush=True,
             )
 

@@ -107,7 +107,9 @@ uv run scripts/check_balance_scripts.py --library . --process <id>
 ```
 
 When the script changes, update the flowsheet values it sources in the same commit; a drift
-fails the `balance-scripts` job.
+fails the `balance-scripts` job. A duty that `cheme process propagate --fill` writes for a
+conversion step (`provenance: calculated`) stays out of the script's balance output (print it as
+a cross-check instead): the checker reports it as `duplicate`, which fails the job too.
 
 #### An LCI dataset, its mappings, gaps and allocation
 

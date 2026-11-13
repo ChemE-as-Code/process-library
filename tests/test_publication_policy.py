@@ -128,10 +128,7 @@ _OPEN = re.compile(_OPEN_DATA, re.IGNORECASE)
 _NEGATED = re.compile(r"\b(?:not|no)\s+" + _OPEN_DATA, re.IGNORECASE)
 # Rows whose fix waits for an open pull request or issue; strict, so the entry leaves this list once
 # fixed.
-_PENDING: dict[str, str] = {
-    "formic-acid-1": "SRC-7 calls its packaged CRC values open data: issue #433 (left out of #426 "
-    "while #396 changed the entry)",
-}
+_PENDING: dict[str, str] = {}
 
 
 def _open_data_claims(text: str) -> list[int]:
