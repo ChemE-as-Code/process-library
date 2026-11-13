@@ -205,10 +205,12 @@ The vacuum system: E-103 on brine cannot hold thionyl chloride at 4 kPa(a). At i
 263.15 K (10 K above the brine's supply), thionyl chloride's vapour pressure is 2.73 kPa (NIST's
 line, SRC-2), 68 % of the still's pressure, so every mol of non-condensable gas through E-103
 carries 2.15 mol of thionyl chloride to the vacuum pump. The non-condensables are C-101's purge
-nitrogen (2.5 Nm3 a batch, D-012), air leaking in (1 kg/h ASSUMED for a tight enamelled still of
+nitrogen (2.5 Nm3 a batch, C-101 purged before the crude is received: lca/lca.yaml's nitrogen,
+D-012), air leaking in (1 kg/h ASSUMED for a tight enamelled still of
 about 2.5 m3 at 4 kPa(a), over the evacuation and both cuts, 2.76 h a batch) and the SO2 and HCl
-dissolved in the hot crude (none in the model, which vents them all from R-101, D-005). Without
-a measure, about 11 kg of thionyl chloride a batch would pass the pump to the scrubber. The
+dissolved in the hot crude (none in the model, which vents them all from R-101, D-005): 0.21
+kmol a batch of nitrogen and air. Without a measure, they would carry 0.44 kmol, about 53 kg, of
+thionyl chloride a batch past the pump to the scrubber. The
 design therefore puts an after-condenser E-106 on brine on the dry pump's discharge, at about
 atmospheric pressure, gas out at 263.15 K: there the gas holds 0.028 mol of thionyl chloride per
 mol, 78 times less, and the condensate runs to the forerun receiver T-102. What passes E-106 is
@@ -316,9 +318,12 @@ Decision:
   1.1 x 0.45 + 4 x 0.29), P3 2.6 kW (the scrubber's pump 1.5 kW and fan 1.1 kW all year).
 - Small flows left out, each with its number: the forerun warms from its condensing temperature
   (about 275 K) to 298 K in T-102 by ambient heat, about 0.2 kW; the residue's sensible heat in the
-  drum, about 0.06 kW (D-008); the vacuum pump's discharge gas cooled in E-106 from about 420 K
-  (ASSUMED for a dry screw pump) to 263 K, about 1.9 MJ a batch, 0.06 kW (the heat of the pump's
-  power P2); heat losses of the vessels and lines, not estimated.
+  drum, about 0.06 kW (D-008); the vacuum pump's discharge gas, 0.21 kmol of nitrogen and air
+  with 0.44 kmol of thionyl chloride vapour a batch (D-007), cooled in E-106 from about 420 K
+  (ASSUMED for a dry screw pump) to 263 K before the vapour condenses, about 5.7 MJ a batch, 0.17
+  kW, 0.0013 kWh per kg of product (materials.yaml's ideal-gas heat capacity of thionyl chloride,
+  29 J/(mol K) ASSUMED for the nitrogen and air; the heat of the pump's power P2; the vapour's
+  condensation is in Q4); heat losses of the vessels and lines, not estimated.
 
 Per kg of product (lca/inventory.csv): steam heat 0.554 kWh, cooling water 1.069 kWh, brine
 0.188 kWh, power 0.052 kWh.
@@ -345,7 +350,7 @@ The vacuum pump's discharge (D-007): per batch about 0.21 kmol of non-condensabl
 not carry it (it lies within the flowsheet's tolerance): the fresh thionyl chloride is low and
 the scrubber's caustic short by as much, 0.023 kmol of NaOH a batch, 0.06 % of the caustic fed,
 which the 10 % excess covers. A larger in-leakage scales it (10 kg/h of air: about 3.5 kg a
-batch); without E-106 it would be about 11 kg a batch.
+batch); without E-106 it would be about 53 kg a batch (D-007).
 
 Heats (reactions.yaml NEU_*, ASSUMED orders of magnitude: an acid gas's heat of solution plus
 about -56 kJ per mol of hydroxide neutralised; no open table of aqueous formation enthalpies was

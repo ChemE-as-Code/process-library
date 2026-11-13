@@ -25,7 +25,8 @@ frame (for a new sheet: the one `cheme sheet new` wrote).
 
 `balance.py` is no generator: it gives the values of `process/flowsheet.yaml` that core cannot
 calculate (the feeds for 1000 t/a with the thionyl chloride recycle, the scrubber's caustic and
-its dilution water, the still's stream temperatures, and the duties Q7, Q9 and Q10; core's
-models write the others; DESIGN.md D-006). Run it with `cheme run scripts/balance.py` after
+its dilution water, the still's stream temperatures, and the duties Q7 and Q9; core's
+models write the others; DESIGN.md D-006). It also prints the crude's flash on evacuation as
+a cross-check, which is no duty of its own (it lies in the still's Q3 and Q4, D-007). Run it with `cheme run scripts/balance.py` after
 `cheme process propagate --fill`, and repeat both until the feeds stop changing; it follows the
 library's balance-output contract (`BALANCE_OUTPUT`, library ADR 0027).

@@ -162,6 +162,8 @@ def test_crude_flash_is_inside_the_stills_duties(model):
     and its heat is no duty of its own (Q4 condenses the whole forerun once)."""
     materials = model[0]
     assert "Q10" not in model[1]
+    for rel in ("scripts/README.md", "scripts/balance.py", "README.md", "process.yaml"):
+        assert "Q10" not in _text(rel), rel
     brine = next(p for p in model[2]["products"] if p["id"] == "BRINE")
     assert [p["id"] for p in brine["ports"]] == ["e102", "st101"]
     crude = {k: v for k, v in _kmol(model, "S5").items() if v > 0}
@@ -213,6 +215,12 @@ def test_utilities_keep_their_limits(model):
     assert "desuperheater" in lps["supply_temperature"]["source"]
     assert "above 385 K" in lps["supply_temperature"]["source"] and 385.0 < mtt
     assert "desuperheater after the let-down valve" in _text("DESIGN.md")
+    # the design basis names the desuperheater with its trip and every brine user (D-009)
+    basis = {u["name"]: u for u in _yaml("process/design-basis.yaml")["utilities"]}
+    assert "desuperheated to saturation" in basis["LP steam"]["use"]
+    assert "desuperheater" in basis["LP steam"]["note"] and "above 385 K" in basis["LP steam"]["note"]
+    for tag in ("E-102", "E-103", "E-106"):
+        assert tag in basis["Refrigerated brine"]["use"], tag
     jacket = _yaml("process/recipe.yaml")["unit_procedures"][0]["vessel"]["jacket"]
     assert jacket["heating_temperature"] == steam
     assert _state(model, "S11")["temperature"]["value"] < mtt  # the pot's end
@@ -283,15 +291,39 @@ def test_vacuum_pump_after_condenser(model):
     assert p == pytest.approx(2.73, abs=0.01)
     assert p / (4.0 - p) == pytest.approx(2.15, abs=0.01)
     assert p / (101.325 - p) == pytest.approx(0.028, abs=0.0005)
-    # per batch: C-101's purge nitrogen (2.5 Nm3) and 1 kg/h of air in-leakage over 2.76 h
-    inert = 2.5 / 22.414 + 1.0 / 28.96 * 2.76
-    past = inert * p / (101.325 - p)
-    assert past * materials["SOCL2"]["molar_mass"] == pytest.approx(0.68, abs=0.02)  # kg a batch
-    fresh = _state(model, "S2")["flow"]["value"] * CYCLE
-    assert past * materials["SOCL2"]["molar_mass"] / fresh < 0.001  # within the balance's tolerance
+    # per batch: C-101's purge nitrogen (lca/lca.yaml's nitrogen consumable) and 1 kg/h of air
+    # in-leakage (ASSUMED) over the pump's 2.76 h
     design = _text("DESIGN.md")
+    assert "1 kg/h ASSUMED" in design and "2.76 h a batch" in design
+    nitrogen = next(c for c in _yaml("lca/lca.yaml")["consumables"] if c["id"] == "nitrogen")
+    purge = float(re.search(r"C-101 purged before the crude is received \(([\d.]+) Nm3\)", nitrogen["source"]).group(1))
+    inert = purge / 22.414 + 1.0 / 28.96 * 2.76
+    assert inert == pytest.approx(0.21, abs=0.005) and "0.21 kmol" in design
+    mm = materials["SOCL2"]["molar_mass"]
+    # without E-106: what E-103 at 4 kPa(a) lets past
+    without = inert * p / (4.0 - p)
+    assert without == pytest.approx(0.44, abs=0.005) and without * mm == pytest.approx(53.0, abs=0.5)
+    assert "0.44 kmol, about 53 kg, of thionyl chloride a batch" in design
+    assert "without E-106 it would be about 53 kg a batch" in design
+    past = inert * p / (101.325 - p)
+    assert past * mm == pytest.approx(0.68, abs=0.02)  # kg a batch
+    assert without / past == pytest.approx(78.0, abs=0.6) and "78 times less" in design
+    fresh = _state(model, "S2")["flow"]["value"] * CYCLE
+    assert past * mm / fresh < 0.001  # within the balance's tolerance
     assert "2.15 mol of thionyl chloride" in design and "0.7 kg a batch" in design
-    assert "E-106" in {e["tag"] for e in _yaml("equipment/equipment-list.yaml")["equipment"]}
+    # the discharge gas cooled in E-106 from about 420 K (ASSUMED) to 263 K, left out (D-009):
+    # thionyl chloride on materials.yaml's ideal-gas heat capacity, nitrogen and air 29 J/(mol K)
+    cp_r = materials["SOCL2"]["ideal_gas"]["cp_R"]
+    h = lambda t: R * sum(c * t ** (i + 1) / (i + 1) for i, c in enumerate(cp_r))  # kJ/kmol
+    cooling = without * (h(420.0) - h(263.15)) + inert * 29.0 * (420.0 - 263.15)  # kJ a batch
+    assert cooling / 1000 == pytest.approx(5.7, abs=0.05)  # MJ a batch
+    assert cooling / CYCLE / 3600 == pytest.approx(0.17, abs=0.005)  # kW year average
+    product = _state(model, "S10")["flow"]["value"]
+    assert cooling / CYCLE / 3600 / product == pytest.approx(0.0013, abs=0.00005)  # kWh per kg
+    assert "about 5.7 MJ a batch, 0.17 kW, 0.0013 kWh per kg of product" in design
+    equipment = {e["tag"]: e for e in _yaml("equipment/equipment-list.yaml")["equipment"]}
+    assert "about 53 kg a batch" in equipment["E-106"]["notes"]
+    assert "about 0.17 kW year average" in equipment["E-106"]["notes"]
     links = {link["ref"] for link in _step(model, "ST101")["links"]}
     assert {"E-103", "P-101", "E-106"} <= links
 
