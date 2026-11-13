@@ -373,8 +373,10 @@ L.inst(sheet, f"ZSC-{n}101", f"XV-{n}101 closed position",
        f"longer than its stroke time raises a discrepancy alarm.",
        at=(39, 205), sensing=xv_esd.id, sensing_at=(28, HDR_Y + 1.5),
        sensing_points=[(28, HDR_Y + 3.5), (39, HDR_Y + 3.5)])
-L.inst(sheet, f"PDI-{n}102", f"Strainer SR-{n}102 differential pressure",
-       f"Differential pressure across the permanent T-type strainer SR-{n}102 (D-039), transmitted to the control room "
+L.inst(sheet, f"PDI-{n}102", f"Strainer SR-{n}102 differential pressure, indicated and alarmed (PDAH) in the control room",
+       f"The tag names the control-room function, as for the plant's other transmitted indications (LI-8103, PI-4105): "
+       f"a differential pressure transmitter on the strainer (round-10 design check, D-039.9), its PDAH a DCS alarm of "
+       f"the same loop, no local indicator. Differential pressure across the permanent T-type strainer SR-{n}102 (D-039), transmitted to the control room "
        f"with a PDAH (ASSUMED ~0.2 bar at 12,000 m3/h: the loss coefficient 2.0 the D-034 hydraulics take for the strainer "
        f"at its PDI alarm, on ~10 kPa of velocity head at 6.8 m/s in DN 800) "
        f"so the strainer is watched without anyone at the header bay during a transfer (south-end occupancy rule, "

@@ -65,6 +65,11 @@ detection that is never under water. CV-8114 takes a drain-back hole so that W-8
 stops (freezing). T-8102: the new LZT-8119 (own nozzle N3) gives the LAH transfer hold and I-805, so
 LZT-8106 is the P-8103 control alone. The B-SUB intake gas detection AT-8141A/B/C with the AHU-1 damper
 trip UZ-8142 / UZ-8143 and the fan stop UZ-8144 (C&E I-811) is drawn as stand-alone functions (no HVAC sheet).
+
+Round-10 design check (D-039.9), notes only: P-8102 is fed through a VSD with its speed following the pocket
+level between the start and the stop (HS-8103, loop LC-8103), so it runs on in steady rain instead of ~22
+direct-on-line starts an hour; a bad LZT-8113 signal is taken as its LAH (a transfer hold); the small-inflow
+coverage of I-801 is stated on TSL-8102 / TSL-8120.
 """
 
 import sys
@@ -343,11 +348,17 @@ L.inst(sheet, "TI-8131", "Pilot flame temperature (thermocouples)", "Pilot failu
 # (~1.5 x 1.5 m, 1.2 m deep, ~2.7 m3, ASSUMED) into which the pit floor falls; levels from the pocket floor.
 TSUMP = ("T-8101 is kept dry (D-039): water only in its floor pocket (~1.5 x 1.5 m, 1.2 m deep, ~2.7 m3, ASSUMED; "
          "the pit floor laid to fall to it, civil), where the submersible P-8102 stands with its ~0.5 m submergence. ")
-L.inst(sheet, "HS-8103", "P-8102 motor start/stop (DCS)",
+L.inst(sheet, "HS-8103", "P-8102 motor start/stop and speed (DCS, VSD)",
        "Tied to P-8102 (run feedback). Started and stopped by LI-8103 on its level band in the pocket (signal line): "
        "start at 0.90 m, stop at 0.60 m above the pocket floor (ASSUMED; the stop keeps the ~0.5 m submergence of the "
-       "submersible over its intake, vendor), loop LC-8103 (control/loops.yaml). The feeder trip I-801 (LNG) and the "
-       "rate-of-rise inhibit I-810 act on the pump from the C&E and have priority. Hand-off-auto selector at the MCC.",
+       "submersible over its intake, vendor), its speed following the level in between through the VSD in MCC-1 "
+       "(round-10 design check, D-039.9; as P-8103), loop LC-8103 (control/loops.yaml). Minimum speed ~75 % (ASSUMED), "
+       "where the pump still delivers ~20 m3/h against the ~27.8 m static: at an inflow above that it runs on, below it "
+       "it cycles at most ~9 times an hour (at ~9 m3/h of inflow, with the riser's ~0.23 m3 drain-back), each start a "
+       "VSD ramp, against ~22 direct-on-line starts an hour at the ~20 m3/h design rain with the 0.30 m band; "
+       "vendor limit taken as 15 starts an hour, evenly spaced (ASSUMED, submersible motor of this size, vendor to "
+       "confirm). The feeder trip I-801 (LNG) and the rate-of-rise inhibit I-810 act on the pump from the C&E and have "
+       "priority. Hand-off-auto selector at the MCC.",
        at=(42, 184), sensing=spump["N2"], sensing_at=(42, 222.6))  # down through the open top onto the casing
 L.inst(sheet, "TSL-8102", "Tank-area sump low temperature in the P-8102 pocket (LNG in the sump)",
        TSUMP + "Probe hung from the pit cover (N2) into the pocket beside P-8102, no wall penetration (D-034); its tip "
@@ -356,12 +367,16 @@ L.inst(sheet, "TSL-8102", "Tank-area sump low temperature in the P-8102 pocket (
        "rim (1.2 m) (was at the pit floor under the water, review 2026-11-05-basic-design-9 #1). Trips at -60 degC "
        "(ASSUMED: below the -20 degC design ambient of an empty pocket, far above LNG). 1oo2 with TSL-8120 on the "
        "discharge, with the rim gas detection AT-8124 as a third cause: any of them opens P-8102's motor feeder "
-       "(latching, C&E I-801); the F&G system starts the T-8101 high-expansion foam on the same detections (D-018).",
+       "(latching, C&E I-801); the F&G system starts the T-8101 high-expansion foam on the same detections (D-018). "
+       "Coverage (round-10 design check, D-039.9): it sees a large inflow, which raises the pocket to its tip or wets it "
+       "as it falls in; a small inflow (a flange drip from the troughs) that keeps the pocket below 1.0 m is seen only "
+       "by TSL-8120 once the pump draws it (1oo1; AT-8124 where its vapour reaches the rim, not credited), a residual "
+       "for H-05 / H-06; no vapour cooling of the tip is credited.",
        at=(14, 203), sensing=sump["N2"])
 L.inst(sheet, "LI-8103", "Tank-area sump pocket level: P-8102 level control",
        TSUMP + "Radar through the pit cover (N1) aimed at the pocket, no wall penetration (D-034). Control only (D-039): "
        "starts P-8102 at 0.90 m and stops it at 0.60 m above the pocket floor through HS-8103 (signal line; loop LC-8103, "
-       "ASSUMED). The alarms and trips are on the independent LZT-8113, with a deviation alarm between the two.",
+       "ASSUMED), its VSD speed following the level in between (D-039.9). The alarms and trips are on the independent LZT-8113, with a deviation alarm between the two.",
        at=(34, 196), sensing=sump["N1"], signal_to="Inst_HS8103", signal_points=[(34, 178), (42, 178)])
 L.inst(sheet, "LZT-8113", "Tank-area sump level, independent: high (pocket rim), high-high and rate of rise",
        TSUMP + "Own nozzle N3, a second radar through the pit cover aimed at the pocket, independent of LI-8103 "
@@ -372,7 +387,10 @@ L.inst(sheet, "LZT-8113", "Tank-area sump level, independent: high (pocket rim),
        "one trips ESD-1 of the transferring berth, since the governing tank-area spill is the loading pumps' run-out "
        "(D-034.3). Rate of rise (C&E I-810): a rise faster than an inflow of ~250 m3/h (ASSUMED, ~10 x the design rain "
        "on the troughs and the pit; the DCS converts the level rate with the pocket and floor areas) inhibits P-8102: a "
-       "spill raises the level metres in minutes, rain millimetres. Deviation alarm against LI-8103.",
+       "spill raises the level metres in minutes, rain millimetres. Deviation alarm against LI-8103. Bad signal "
+       "(round-10 design check, D-039.9; as LZT-8119, D-039.4): alarmed and taken as its LAH, a transfer hold (no "
+       "transfer starts, a transfer in progress is paused, SEQ-LOAD S0 / S4), not as the I-809 trip; a PR8 cable burnt "
+       "in a tank-area fire comes with that fire's own confirmed fire and gas cause of ESD-1.",
        at=(12, 224), sensing=sump["N3"])
 L.inst(sheet, "AT-8124", "T-8101 pit rim flammable gas (F&G)",
        "Flammable gas detection at the rim of the T-8101 pit (point IR heads round the rim at the cover, voted by the "
@@ -387,7 +405,8 @@ L.inst(sheet, "TSL-8120", "P-8102 discharge low temperature (LNG drawn by the pi
        "at -60 degC (ASSUMED; the riser is empty and at ambient between runs since CV-8114 drains back). 1oo2 with "
        "TSL-8102 in C&E I-801 (either opens P-8102's feeder, latching), so LNG the pump draws from under water in the "
        "pocket stops it within seconds of reaching the riser, before it passes the check valve in any quantity "
-       "(residual: those seconds of flow, H-05).",
+       "(residual: those seconds of flow, H-05). For a small inflow that keeps the pocket below TSL-8102's tip it is "
+       "the only credited detection (1oo1, D-039.9), a residual for H-05 / H-06.",
        at=(57, 197), sensing="Line_W8002_S1", sensing_at=(57, 209))
 L.inst(sheet, "TSL-8104", "Jetty sump low temperature (LNG in the sump)",
        "Probe hung from the cover into the T-8102 floor pocket beside the P-8103 bowl, its tip 0.40 m above the pocket "

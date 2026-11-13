@@ -317,6 +317,9 @@ value of the N2 hold (D-030 H-07); with no N2 entering, the leaking line is held
 under its N2 (crossover and return closed), never vented and never left open to the full line; a self-acting
 regulator PCV-4159 / PCV-4160 limits the emptied line to ~3 barg; the station bleeds are locked closed, with
 a gauge PI-4163 / PI-4164 between the blocks that also reads the isolated line's pressure at its tank end.
+*Corrected by D-039.9:* the regulators are set at 4.5 barg, above the ~3.4 barg the displacement can need
+plus their offset; the check valve stands on the line side of the inner block and PI-4163 / PI-4164 beyond it,
+so no station section is blocked in liquid-full; the no-N2 abort is on the displaced return flow.
 
 **D-017 Relief and flare philosophy.** Tank overpressure: pressure control to the BOG
 compressors, then PV to the storage and loading flare FL-8101 via the KO drum D-8101 (S-02:
@@ -2441,6 +2444,8 @@ the circulation pumps designed for the header pressure instead of a relief behin
    (open, they vented LNG passing an inner block at grade), PI-4163 / PI-4164 between the blocks show a passing
    block and the isolated line's pressure, PCV-4159 / PCV-4160 limit the emptied line to ~3 barg, and the abort
    on low N2 is replaced by a continuation at the reduced rate (the site N2 capacity is hold H-07 of D-030).
+   *Corrected by D-039.9:* regulators at 4.5 barg, the check valve on the line side of the inner block with
+   PI-4163 / PI-4164 beyond it, the passing-block check on the gauges between the blocks.
    (d) Dead state (medium). With I-501 / I-601 latched while the fire keeps XS-n108 active, the return path
    could not open. The C&E bypass field of I-n01 now defines an output override of the close outputs on
    XV-4101 / XV-4102 / XV-4107 only: key-protected per valve at the SIS operator station, permitted only with
@@ -2974,6 +2979,19 @@ only; `scripts/build_lists.py` writes the lists unchanged), no engineering chang
    BOG-7009, BOG-7006, the discharge header BOG-7002 and FL-7003; DR-7001 (the D-7101 drain) inside the
    recycle BOG-7008, which loops under D-7101 to BOG-1001.
    `checks/checks.yaml` drawing-clean does not list the rule, so the gate passes with them.
+   *Corrected by D-039.9 (round-10 design check, low #9):* the battery-limit and other-sheet connectors are
+   on the edges, each added crossing accepted in `checks/checks.yaml` with its item reason: (a) N-4002 comes in
+   on the top edge beside N-4001, its station 7 mm higher, crossing LNG-4001 once (the cell between the
+   loading lines and the crossovers LNG-4006 / LNG-4010 reaches no edge); (c) LNG-4008 on the top edge across
+   BOG-7012 (one crossing), DR-7001 on the bottom edge across BOG-7008 (one), FL-7002 on the bottom edge across
+   BOG-7002 and FL-7003 (two; PSV-7111 stays on top of the gas header). Left, per connector: (b) the six
+   carrier connections LNG-5011 / 5013 / 5014 and LNG-6011 / 6013 / 6014 "to carrier", the outboard ends of the
+   liquid and hybrid arms at the carrier's manifold, not a sheet or a battery limit of this plant. The library
+   (core 1.11) has no open-end form for a ship connection: its open ends are the texts atm., vent, drain or
+   hose, and "hose" would misdescribe a loading arm's coupler; a route to an edge crosses the berth header,
+   the other arms' risers and the vapour line (two to four crossings each). They stay under their arms, the
+   only `cheme.offpage-not-on-edge` warnings left (6), for the reviewer to accept or for a library open-end
+   form for a carrier connection.
 4. Other outputs brought current under 1.11: `layout/plant-model.yaml` rebuilt (the P&ID hashes of its
    provenance only; findings as before), `lca/dataset.yaml` and `lca/manifest.json` rewritten (the
    `process.yaml` hash and the generator version 1.7 to 1.11; results unchanged). The take-off, the
@@ -3043,7 +3061,7 @@ locked bleed and a gauge instead of a bleed open to atmosphere.
    in that line under a falling N2 cushion. (b) Pressure limit: self-acting regulators PCV-4159 / PCV-4160 at
    3.0 barg between orifice and check valve, wide open in the displacement (~2.7 barg in the line), holding the
    emptied line at ~3 barg in S3 instead of the 7 barg site N2; failed open, 7 barg is below the 15 barg design
-   and PSV-4111 / 4112. (c) Rate basis (S2 operator text): 4,000 Nm3/h ~3.5 h and ~36 m3; 3,500 Nm3/h (6 barg)
+   and PSV-4111 / 4112 (*set at 4.5 barg since D-039.9 (b)*). (c) Rate basis (S2 operator text): 4,000 Nm3/h ~3.5 h and ~36 m3; 3,500 Nm3/h (6 barg)
    ~3.9 h and ~39 m3, the minimum inside the 240 min PFP and the 40 m3, the acceptance value of the new hold
    H-07 (D-030); 2,000 Nm3/h ~5.9 h and ~55 m3, PFP exceeded (residual), T-8102 still 225 of 257 m3. The N2
    source and its back-up (liquid N2 storage and vaporisers, or a trailer with a portable vaporiser at the
@@ -3058,7 +3076,9 @@ locked bleed and a gauge instead of a bleed open to atmosphere.
    test before maintenance; PI-4163 / PI-4164 between the blocks show a passing block on rounds, so no LNG is
    vented at grade and no release source is added. #6: the same gauges, with the inner block opened (outer
    block and bleed closed, the check valve holding), read the isolated line's pressure at its tank end: SEQ-ESD
-   S2 and the SEQ-LINE-EMPTY permissive. #7: `control/loops.yaml` registers LIC-5111 / LIC-6111 with the
+   S2 and the SEQ-LINE-EMPTY permissive (*corrected by D-039.9 (a):* that line-up filled the section with LNG and
+   blocked it in; the check valve is now on the line side of the inner block and the gauges beyond it, so no valve
+   is opened to read the line). #7: `control/loops.yaml` registers LIC-5111 / LIC-6111 with the
    permissive (auto only with ZSC-n101 not closed and the cooldown flow, back to manual on ZSC-n101 closed or
    I-n01), LIC-8101, LC-8103 and LC-8106; ESD-1 stops P-n101 (I-n01), so it no longer dead-heads on its minimum
    flow; `control/philosophy.md` names SEQ-LINE-EMPTY, SEQ-FILL-CHANGE, the I-n01 output override, I-n02 at the
@@ -3093,10 +3113,86 @@ locked bleed and a gauge instead of a bleed open to atmosphere.
    probe and gas detector types (vendors); the pocket and the floor fall of T-8101 (civil); the boil-off and
    rapid phase transition of 1 (h) and 6 (d) (siting study); the SIL screening (H-06); the HAZOP restamp
    against these sheets (its owner); the 10 `cheme.offpage-not-on-edge` warnings of D-038.3 (unchanged by this
-   decision; every route to an edge crosses a line, the owner's call); the start and stop levels of
+   decision; every route to an edge crosses a line, the owner's call; 6 left since D-039.9 (i)); the start and stop levels of
    LIC-5111 / LIC-6111 / LIC-8101 (the D-5101 / D-6101 / D-8101 datasheets at detail design and the pumps'
    NPSH required from the vendor), kept `unresolved` in `control/loops.yaml` and accepted on the
    `control-complete` gate only until those values are known.
+9. Response to the round-10 design check (`build/check-design-r10.json`, 2026-11-13: three mediums, six lows,
+   no critical or high). Every value ASSUMED unless a source is named. Where there was a choice the arrangement
+   that removes the exposure was taken: a check valve placed so that it relieves the station section, not a
+   thermal relief valve to prove; a VSD that keeps the pump running, not a wider band in a larger pocket of water.
+   (a) N2 station section blocked in liquid-full (medium #1). The line-up is changed so it cannot happen, on the
+   sheet and in the sequences: the check valve CV-4151 / CV-4152 moves to the line side of the inner block
+   HV-4151 / HV-4153 (P-04, in the flow direction: outer block, orifice, regulator, bleed, inner block, check
+   valve, tee). The section between the inner block and the check valve can take LNG only back through the check
+   valve's seat, and relieves forward through it into the line (PSV-4111 / 4112, 15 barg); the section between
+   the blocks is reached only through both, and then stays connected to the line through them; the inner block's
+   cavity is vented to the line side (vendor), as D-026.14 / D-028 for the other cryogenic ball valves. PI-4163 /
+   PI-4164 move to the line side of the check valve and read the line at its tank end with no valve opened, so
+   SEQ-ESD S2 and the SEQ-LINE-EMPTY permissive no longer open the inner block onto a liquid-full line; it is
+   opened only in SEQ-LINE-EMPTY S2, after the outer block has pressurised the station with N2 to the regulator's
+   lock-up, and closed in S3 with N2 in the station. The passing-block check on rounds (D-039.5) moves to PI-4156
+   / PI-4158 and PI-4155 / PI-4157, between the blocks. No new item, no relief valve; the bleed stays locked closed.
+   (b) Regulator set point (medium #2). PCV-4159 / PCV-4160 at 4.5 barg (was 3.0). The highest pressure the
+   displacement needs at the tank end is ~3.4 barg: the receiving tank at its 29 kPa(g) design pressure (above
+   the PIC-1110 range, D-007), ~2.2 bar of LNG static (48 m at 470 kg/m3) and twice the ~45 kPa single-phase
+   friction of the return for the two-phase flow at the crossover, ~0.9 bar. With the regulator's offset at the
+   design rate, 0.5 bar (~10 % of the set point, vendor), it delivers ~4.0 barg, ~0.6 bar above that, so it never
+   throttles the displacement; lock-up ~4.7 barg, failed open 7 barg, both below the 15 barg line design. In
+   that bounding case the orifice outlet is ~4.6 bar(a) and the orifice is just unchoked: ~4,000 Nm3/h at 7 barg
+   site N2, ~3,400 Nm3/h at 6 barg (isentropic orifice flow, gamma 1.4), the leak fed ~4.0 h and ~40 m3, at both
+   limits with no margin, a residual of H-07. The SEQ-LINE-EMPTY start is based on the line pressure against the
+   regulator: S1 complete with PI-4163 below 4.0 barg; the site N2 is read on PI-4155 with the outer block open.
+   PI-4156 corrected: ~2.8 barg at the design rate, ~0.1 bar above the line's ~2.7 barg on PI-4163, the orifice
+   outlet ~2.9 barg, choked at 8 bar(a) upstream. The "no N2 entering" abort is on the station flow, seen as the
+   displaced LNG returning through the line in service on FIC-4102 (FIC-4101 for line B leaking; their meters on
+   the trestle side of XV-4101 / XV-4102 read the reverse flow, multipath ultrasonic, bidirectional, ASSUMED,
+   instrument vendor): ~450 m3/h at 4,000 Nm3/h, ~390 m3/h at 3,500 Nm3/h; below ~100 m3/h for 5 min before
+   ~1,030 m3 have returned, with the cause read at the station (PI-4155 within ~1 bar of PI-4163, or PI-4163 at
+   the regulator's ~4.0 barg). In S3 the emptied line is held at ~4.5 barg: the ~6 m3 of dead legs drain at up
+   to ~1.3 times the displacement's rate, the same volume in ~0.6 h. P-04 (`draft_P-04.py`), the line and
+   instrument lists, SEQ-LINE-EMPTY, SEQ-ESD S2, the philosophy (F-TRESTLE-LEAK).
+   (c) P-8102 start frequency (medium #3). The checker's ~22 direct-on-line starts an hour at the ~20 m3/h design
+   rain reproduce (band 0.30 m x 2.25 m2 = 0.675 m3, the riser's ~0.23 m3 drain-back, 50 m3/h: worst ~22.6 at
+   ~22 m3/h of inflow). P-8102 is now fed through a VSD in MCC-1 with its speed following the pocket level between
+   the 0.90 m start and the 0.60 m stop (as P-8103, D-037.17): at a minimum speed of ~75 % it still delivers
+   ~20 m3/h against the ~27.8 m static, so above that inflow it runs on, and below it cycles at most ~9 times an
+   hour (worst at ~9 m3/h of inflow), each a VSD ramp, against a vendor limit taken as 15 evenly spaced starts an
+   hour for a submersible motor of this size. A wider band or a larger pocket was not taken: either holds more
+   water in the pocket, the residual of D-039.1 (h). The datasheet, the equipment list, LC-8103
+   (`build/gen_loops.py`), HS-8103 / LI-8103, the C&E I-801 notes and the electrical list (converter-fed Ex d
+   motor with a dv/dt or sine filter, vendor) state it.
+   (d) SEQ-LINE-EMPTY abort residual (low #4). After a tank-limit abort the N2 keeps entering and holds the
+   isolated line at the regulator's ~4.7 barg lock-up, not a falling pressure ("falling" now applies only to the
+   no-N2 abort): the leak takes the remaining contents (up to ~1,030 m3) at ~1.3 kg/s, ~10 m3/h. From the
+   earliest abort (~0.5 h after the ESD-1) the 240 min PFP is reached ~3.5 h later with ~40 m3 in T-8102 of its
+   87 m3 above the platform spill (T-8102 would last ~8.5 h). Action: the hold lasts until 3.5 h after the ESD-1
+   at most; by then S2 is resumed, into T-3101 (XV-3123) after I-201 on T-2101, when PIC-1110 recovers after a
+   pressure abort, on the N2 back-up after a no-N2 abort; if not, the header bay and the platform's south end stay
+   cleared and the steel beyond its PFP duration is the residual of H-07 for the siting study.
+   (e) LZT-8113 bad signal (low #5): alarmed and taken as its LAH, a transfer hold, not the I-809 trip, as
+   LZT-8119 (C&E I-809 notes, instrument list, SEQ-LOAD S0 / S4). The electrical list's PR8 sentence is
+   corrected: each PR8 circuit's state on a burnt cable is named (feeder and control stop the pump; TSL-8102 /
+   TSL-8120 trip I-801; AT-8124 a fault to the F&G; LZT-8113 a hold).
+   (f) I-801 coverage (low #6): no vapour cooling of TSL-8102 is credited. A small inflow that keeps the pocket
+   below the 1.0 m tip is seen by TSL-8120 alone once P-8102 draws it (1oo1; AT-8124 not credited for it), a
+   residual for H-05 and the SIL screening H-06 (C&E I-801, instrument list TSL-8102 / TSL-8120).
+   (g) P-04 drawing (low #7): a sheet note names PCV-4159 / PCV-4160 self-acting regulators set at 4.5 barg and
+   HV-4161 / HV-4162 LC, with "LC" at each bleed valve. The library draws no self-acting regulator symbol (no
+   regulator class or actuator shape without an instrument function), so the note carries it.
+   (h) Stale texts (low #8): the electrical list's P-8102 source (45 m, 10.2 kW, floor pocket, VSD); the B-SUB
+   note and the cabling of AT-8141A/B/C and UZ-8142..8144, placed at LV1 / LV2 / AHU-1 and cabled to a new
+   marshalling box JB-SUB at the SIS cabinets of CR-1 (a box at the east wall put its tray across the AHU-1
+   ducts; the multipair's 43 m in the schedule follows the room's trunk tray, a modelling length); the P-8102
+   datasheet's suction source; PDI-n102 keeps its tag as the control-room function, as the plant's other
+   transmitted indications (LI-8103, PI-4105), the instrument list naming the transmitter and its PDAH.
+   (i) Off-page connectors (low #9): D-038.3 corrected; four moved to the edges with five accepted crossings,
+   the six carrier connections left with their reason; `cheme.offpage-not-on-edge` 10 to 6.
+   Layout chain run (`cheme layout build`, `cables --write`, `assess mto --write`, `assess estimate --write`,
+   `assess lca --write`: the dataset's input hash only). Left open: the regulator's offset and lock-up, the
+   check valve's cracking pressure and the ball valve cavity vent (vendors); the bidirectional loading meters
+   (instrument vendor); the P-8102 motor's start limit and minimum speed (pump vendor); the carrier connection
+   warnings (reviewer or library); the HAZOP restamp against these sheets (its owner).
 
 **D-040 Response to the layout review 2026-11-05-basic-layout-7.** (2026-11-13) The review's four mediums
 (#1 to #4), two lows (#5, #6), the carried open findings where the layout can answer them, and its

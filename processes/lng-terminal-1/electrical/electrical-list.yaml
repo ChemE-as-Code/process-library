@@ -70,7 +70,7 @@ motors:
   # flare KO drum pumps: the tray ends west of P-8101A, out of D-8101's crane lane from Z-PAD-A3
   - {driven: P-8101A, power_kw: 6.7, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-8101A shaft_power_kw 6.7 (D-017, D-022)", cable_entry: {point: [1436.4, 3065.0], elevation_m: 1.0}}
   - {driven: P-8101B, power_kw: 6.7, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-8101B shaft_power_kw 6.7 (D-022)", cable_entry: {point: [1436.4, 3066.0], elevation_m: 1.0}}
-  - {driven: P-8102, power_kw: 15.0, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-8102 motor 15 kW, 1.25 x the 10.0 kW shaft power (API 610 margin cited by number only, D-036.11 (e)) (50 m3/h at 44 m for the 19.5 m pit, efficiency 0.6 ASSUMED; flameproof zone 1 submersible motor, its feeder opened by C&E I-801; D-018, D-022, D-034.8, D-036)", cable_entry: {side: south}, notes: "Submersible on the pit floor (D-034.8): its cable from the west end of the basin services rack PR8 onto the pit cover at its discharge head and down the guide rail (D-029, D-035.4)"}
+  - {driven: P-8102, power_kw: 15.0, voltage_v: 400, room: MCC-1, assumed: true, source: "datasheet P-8102 motor 15 kW, at least 1.25 x the 10.2 kW shaft power (API 610 margin cited by number only, D-036.11 (e)) (50 m3/h at 45 m from the floor pocket of the 19.5 m pit, efficiency 0.6 ASSUMED; flameproof zone 1 submersible motor, its feeder opened by C&E I-801; D-018, D-022, D-034.8, D-036, D-039)", cable_entry: {side: south}, notes: "Submersible in the floor pocket of the T-8101 pit (D-039; was on the pit floor, D-034.8): its cable from the west end of the basin services rack PR8 onto the pit cover at its discharge head and down the guide rail (D-029, D-035.4). Fed through a VSD in MCC-1 since D-039.9 (round-10 design check: ~22 direct-on-line starts an hour at the design rain against a vendor limit taken as 15; with the VSD at most ~9 ramped starts), as P-8103: the Ex d motor certified with that VSD as a converter-fed combination, thermal protection in the winding and a dv/dt or sine filter for the feeder (ASSUMED, vendor); a burnt PR8 cable stops the pump (fail safe)"}
   - {driven: P-5101, power_kw: 11.2, voltage_v: 400, room: MCC-2, assumed: true, source: "datasheet P-5101 shaft_power_kw 11.2 (D-016, D-022)"}
   - {driven: P-6101, power_kw: 11.2, voltage_v: 400, room: MCC-2, assumed: true, source: "datasheet P-6101 shaft_power_kw 11.2 (D-022)"}
   # jetty sump dry-sump pump (D-037.15 (a), D-037.16): its motor on the T-8102 cover. The cable leaves
@@ -150,6 +150,7 @@ junction_boxes:
   - {tag: JB-BL, point: [1085.5, 3600.0, 1.2], capacity: 24, instruments: [FI-1111, FI-1112, FI-1113, FI-1114, XV-1111, XV-1112, XV-1113, XV-1114, PV-1111], notes: "Rundown battery limit valves and meters of trains 1-4 and the make-up gas control at the north end of PR4, west of the rack"}
   - {tag: JB-IA, point: [1187.0, 3101.0, 1.2], capacity: 24, instruments: [PZT-8123A, PZT-8123B, PZT-8123C], notes: "Instrument-air header low-low trip transmitters PZT-8123A/B/C on IA-8001 (P-08, I-804, D-028), reviewed from the build's proposal: south of the PR3 east leg beside the transmitters, outside every zone (D-029)"}
   - {tag: JB-PR3E, point: [1300.0, 3100.0, 1.2], capacity: 24, instruments: [FI-8111, PI-8112, PI-8121, PI-8122], notes: "Flare header purge and N2 header instruments along the PR3 east leg, south of the rack"}
+  - {tag: JB-SUB, point: [1166.0, 2962.0, 1.2], room: CR-1, capacity: 12, instruments: [AT-8141A, AT-8141B, AT-8141C, UZ-8142, UZ-8143, UZ-8144], notes: "B-SUB intake gas trip (C&E I-811, D-039): the LV1 intake detectors AT-8141A/B/C, the LV1 / LV2 damper actuators UZ-8142 / UZ-8143 and the AHU-1 fan stop UZ-8144, a marshalling box at the SIS cabinets of CR-1 (a box at the east wall put its tray across the AHU-1 ducts); the field cables run ~30 m inside the building in its cable cellar (not modelled, so no tray), fire-resistant as the other F&G circuits (round-10 design check, D-039.9; ASSUMED)"}
 instruments:
   # the P&ID gives these at the platform or the tank end; the build would place them at the
   # middle of their 2 km segments
@@ -176,8 +177,16 @@ instruments:
   - {tag: PI-4156, skip: "local pressure gauge at the N-4001 station (downstream of FO-4151), no field cable"}
   - {tag: PI-4157, skip: "local pressure gauge at the N-4002 station (upstream of FO-4152), no field cable"}
   - {tag: PI-4158, skip: "local pressure gauge at the N-4002 station (downstream of FO-4152), no field cable"}
-  - {tag: PI-4163, skip: "local pressure gauge between the blocks of the N-4001 station, read on rounds (D-039), no field cable"}
-  - {tag: PI-4164, skip: "local pressure gauge between the blocks of the N-4002 station, read on rounds (D-039), no field cable"}
+  - {tag: PI-4163, skip: "local pressure gauge of the N-4001 station on the line side of CV-4151 (D-039.9), no field cable"}
+  - {tag: PI-4164, skip: "local pressure gauge of the N-4002 station on the line side of CV-4152 (D-039.9), no field cable"}
+  # B-SUB intake gas trip, C&E I-811 (round-10 design check, D-039.9): placed at the louvres and
+  # AHU-1 of layout/hvac.yaml (LV1 east wall y 2967.5, LV2 south wall x 1191), cabled to JB-SUB
+  - {tag: AT-8141A, jb: JB-SUB, point: [1193.5, 2967.0, 3.5], notes: "Flammable gas detector in the AHU-1 intake duct behind LV1 (2oo3, I-811)"}
+  - {tag: AT-8141B, jb: JB-SUB, point: [1193.5, 2967.5, 3.5], notes: "Flammable gas detector in the AHU-1 intake duct behind LV1 (2oo3, I-811)"}
+  - {tag: AT-8141C, jb: JB-SUB, point: [1193.5, 2968.0, 3.5], notes: "Flammable gas detector in the AHU-1 intake duct behind LV1 (2oo3, I-811)"}
+  - {tag: UZ-8142, jb: JB-SUB, point: [1194.5, 2967.5, 3.5], notes: "Gas-tight damper actuator of the intake louvre LV1 (east wall), spring-return, fail closed (I-811)"}
+  - {tag: UZ-8143, jb: JB-SUB, point: [1191.0, 2955.5, 3.5], notes: "Gas-tight damper actuator of the exhaust louvre LV2 (south wall), spring-return, fail closed (I-811)"}
+  - {tag: UZ-8144, jb: JB-SUB, point: [1187.0, 2969.0, 1.5], notes: "AHU-1 fan stop (SIS output to its starter, I-811)"}
   - {tag: HS-5100A, skip: "control room desk in B-SUB: wired inside the building to the SIS, no field cable"}
   - {tag: HS-5107A, skip: "control room desk in B-SUB: wired inside the building to the SIS, no field cable"}
   - {tag: HS-6100A, skip: "control room desk in B-SUB: wired inside the building to the SIS, no field cable"}
@@ -207,7 +216,12 @@ notes: >-
   D-033.7, D-035.5): the ESD and fire and gas circuits from B-SUB on PR7 / PR3 over the trough,
   the rundown trip circuits from JB-PR1 (XV-1102 / 1103, ZSC-1102 / 1103, PZT-1105, XV-4101 /
   4102 / 4105 / 4106) and the platform ESD / ERS / ERC circuits from JB-A4-1 / -2. The basin's
-  PR8 circuits (P-8102, LI-8103, TSL-8102) fail safe: a burnt cable stops P-8102, which is not
-  needed in a spill (D-035.4, design owner to confirm in the C&E). B-SUB intake gas detection
-  (D-035.10): its detectors and the LV1 / LV2 damper actuators are cabled from LV1 on the
-  east wall to CR-1 once the design owner gives them tags (layout/hvac.yaml AHU-1 notes).
+  PR8 circuits (JB-A8-1) each have a defined state on a burnt cable (D-035.4; the design owner's
+  C&E since D-039.9): the P-8102 feeder, LI-8103 and HS-8103 stop the pump, which is not needed
+  in a spill; TSL-8102 and TSL-8120 (de-energise to trip, ASSUMED) trip I-801, which opens the
+  feeder; AT-8124 reports a fault to the F&G system; a bad LZT-8113 signal is taken as its LAH, a
+  transfer hold, not the I-809 trip (C&E I-809 notes, SEQ-LOAD S0 / S4). B-SUB intake gas
+  detection (D-035.10, C&E I-811 since D-039): the detectors AT-8141A/B/C in the LV1 intake duct
+  and the damper actuators UZ-8142 (LV1) / UZ-8143 (LV2) and the AHU-1 fan stop UZ-8144 are cabled
+  to the junction box JB-SUB beside LV1 inside the building, with its multipair to CR-1
+  (D-039.9, ASSUMED; layout/hvac.yaml AHU-1 notes).
