@@ -54,7 +54,7 @@ flows:
     source: "flowsheet energy streams Q6 (the product condenser, from core's still model), Q7 (product cooler), Q8 (the scrubber's cooler, from core's conversion step) and Q9 (the caustic dilution cooler), D-009"
   - key: product:BRINE
     missing: "not mapped yet (D-012); connect to: refrigeration at 253 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
-    source: "flowsheet energy streams Q2 (R-101's vent condenser E-102, from core's model), Q4 (the forerun condenser E-103, from core's still model) and Q10 (the crude's flash into E-103), D-009, D-010"
+    source: "flowsheet energy streams Q2 (R-101's vent condenser E-102, from core's model), Q4 (the forerun condenser E-103 with the vacuum pump's after-condenser E-106, from core's still model, which condenses the whole forerun once, the crude's flash on evacuation included), D-007, D-009, D-010"
   # wastes
   - key: product:RES
     treatment: {kind: waste, route: "hazardous-waste incineration of the still residue and the forerun purge (thionyl chloride, methanesulfonyl chloride, methanesulfonic acid) with flue-gas scrubbing (HCl and SO2 captured) (D-008)"}
@@ -82,7 +82,7 @@ operation:
   life_years: 20
   source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
 emission_exclusions:
-  - {id: scrubber-tail-gas, method: storage-tank, equipment: [R-101, E-102, A-101, P-101], reason: "No P&ID yet: R-101 vents only through E-102 and the caustic scrubber A-101, the still's vacuum pump also discharges there; the tail gas (the purge nitrogen with SO2 and HCl traces past 15 wt% caustic) goes to air; the balance takes all SO2, HCl and the vapour past E-102 up in the caustic (D-010, L-5); not estimated (open for basic engineering)."}
+  - {id: scrubber-tail-gas, method: storage-tank, equipment: [R-101, E-102, A-101, P-101, E-106], reason: "No P&ID yet: R-101 vents only through E-102 and the caustic scrubber A-101, the still's vacuum pump also discharges there through its after-condenser E-106, which lets about 0.7 kg of thionyl chloride a batch (0.57 g per kg of product, with ASSUMED 1 kg/h of air in-leakage and C-101's purge nitrogen) pass to A-101, where it is destroyed; the balance does not carry that 0.05 % of the fresh thionyl chloride (D-007, D-010); the tail gas (the purge nitrogen with SO2 and HCl traces past 15 wt% caustic) goes to air; the balance takes all SO2, HCl and the vapour past E-102 up in the caustic (D-010, L-5); not estimated (open for basic engineering)."}
   - {id: storage-breathing, method: storage-tank, equipment: [T-101, T-102, D-101], reason: "The breathing of the thionyl chloride, forerun and waste tanks (nitrogen-blanketed, vented to E-102 or A-101) is not estimated (D-010)."}
   - {id: caustic-tank-breathing, method: storage-tank, equipment: [T-201], reason: "The caustic dilution tank breathes air with water vapour only: 15 wt% NaOH at 308 K has no volatile component but water (D-010); negligible, not estimated."}
 dataset:

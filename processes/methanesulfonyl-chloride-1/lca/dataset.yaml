@@ -22,10 +22,13 @@ technology: 'Batch plant: thionyl chloride (fresh with the recovered forerun, 4/
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:scrubber-tail-gas
-  title: storage-tank emissions of R-101, E-102, A-101, P-101
+  title: storage-tank emissions of R-101, E-102, A-101, P-101, E-106
   direction: output
   reason: 'No P&ID yet: R-101 vents only through E-102 and the caustic scrubber A-101, the still''s vacuum
-    pump also discharges there; the tail gas (the purge nitrogen with SO2 and HCl traces past 15 wt% caustic)
+    pump also discharges there through its after-condenser E-106, which lets about 0.7 kg of thionyl chloride
+    a batch (0.57 g per kg of product, with ASSUMED 1 kg/h of air in-leakage and C-101''s purge nitrogen)
+    pass to A-101, where it is destroyed; the balance does not carry that 0.05 % of the fresh thionyl
+    chloride (D-007, D-010); the tail gas (the purge nitrogen with SO2 and HCl traces past 15 wt% caustic)
     goes to air; the balance takes all SO2, HCl and the vapour past E-102 up in the caustic (D-010, L-5);
     not estimated (open for basic engineering).'
 - key: emission-excluded:storage-breathing
@@ -177,7 +180,8 @@ exchanges:
     kind: electricity
     source: utility of POWER in process/flowsheet.yaml
 - key: feed:LPS
-  title: LP steam let down to 140 kPa(a) (R-101's jacket and the still's reboiler)
+  title: LP steam let down to 140 kPa(a) and desuperheated to saturation (R-101's jacket, E-105 and the
+    still's reboiler)
   type: input
   amount: 69.99424
   unit: kWh
@@ -329,23 +333,25 @@ exchanges:
 - key: product:BRINE
   title: Refrigerated brine return (253 K)
   type: output
-  amount: 27.70514
+  amount: 23.68024
   unit: kWh
+  provenance: calculated
   link:
     source: flowsheet energy streams Q2 (R-101's vent condenser E-102, from core's model), Q4 (the forerun
-      condenser E-103, from core's still model) and Q10 (the crude's flash into E-103), D-009, D-010
+      condenser E-103 with the vacuum pump's after-condenser E-106, from core's still model, which condenses
+      the whole forerun once, the crude's flash on evacuation included), D-007, D-009, D-010
     missing: 'not mapped yet (D-012); connect to: refrigeration at 253 K (brine) from an electric vapour-compression
       unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP,
       condenser cooling water, refrigerant losses'
   streams:
   - Q2
   - Q4
-  - Q10
   source: flowsheet energy streams Q2 (R-101's vent condenser E-102, from core's model), Q4 (the forerun
-    condenser E-103, from core's still model) and Q10 (the crude's flash into E-103), D-009, D-010
+    condenser E-103 with the vacuum pump's after-condenser E-106, from core's still model, which condenses
+    the whole forerun once, the crude's flash on evacuation included), D-007, D-009, D-010
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
     kind: cold
@@ -376,8 +382,8 @@ provenance:
     and batch vacuum distillation (1000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:04561a335197d4f43a5bf8d8238efbe6b96908da4ae13ab79bc799fb2c6c0175
-    lca/lca.yaml: sha256:b932dd9da7412ded0013be96cdc83be37c692f53379f4db4609cf71e5fcd322d
-    process.yaml: sha256:43f9327996326af60bee4ff3215d307b245f58deb527444c003b58935f42ac98
-    process/flowsheet.yaml: sha256:ba195bfaab4c44075b8600daf5b2c8920784e047876047a3d247a0931cbcb45d
+    equipment/equipment-list.yaml: sha256:b19e8d952565a9d8403cc1d1b761b849dff4331bca4e2b9ca57e318f33b4b1da
+    lca/lca.yaml: sha256:da06ec49f0eee2aec40e8287d345d102bd0c3ef1afa586c9de361f0fcbeee7d3
+    process.yaml: sha256:c24ac66a4f535edb0533308fc96ffa8cb4b37b18f1f6bc2c9fd71785821cedb8
+    process/flowsheet.yaml: sha256:000340b215e54643ee0100a9cfa04347ed3471e2382e12cc07c8edabe420a89b
     process/materials.yaml: sha256:2973cfa4a774147bafd9fb987676eae7c05aeb3a1dd330de2fa997af7974e97f

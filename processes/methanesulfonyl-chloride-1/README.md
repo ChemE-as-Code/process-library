@@ -24,16 +24,23 @@ the 115 C the source sets for the product. `process/recipe.yaml` gives the cycle
 the bottleneck), 831 batches a year of 1203 kg for 1000 t/a on a dedicated train, R-101's vessel
 (1.6 m3) and the still's boil-up times; the models write their duties (core ADR 0059); the
 screening (`cheme process reactor-hazards`) compares the gas release with R-101's vent capacity
-of 400 m3/h. DESIGN.md lists the core features used and the core limits hit.
+of 500 m3/h (SO2 and HCl with the liquid's vapour they carry). DESIGN.md lists the core features used and the core limits hit.
 
 What to know before using a number:
 - The reaction's kinetics and heat are ASSUMED: no open calorimetry exists. The rate is sized to
   the source's hold time; the heat, +65 kJ/mol, is endothermic by analogy with two computed
   acid-to-acid-chloride conversions (D-005). With an endothermic reaction a cooling failure does
   nothing; the hazard is the gas: a dose accumulated while the heating has failed releases about
-  1280 m3/h when it reacts, 3.2 times the vent, and R-101's jacket alone cannot supply the heat
-  the dosing needs (about 80 kW at the peak against at most 21 kW), so an external heating loop
-  E-105 is part of the design. These are design findings for basic engineering (D-009, D-014).
+  10,500 m3/h of SO2 and HCl with the thionyl chloride vapour they carry when it reacts, 21 times
+  the vent, and more liquid than R-101 holds; slower kinetics also overfill it (1.71 m3 at a
+  hundredth of the assumed rate, in a 1.6 m3 vessel); and R-101's jacket alone cannot supply the
+  heat the dosing needs (about 80 kW at the peak against at most 21 kW), so an external heating
+  loop E-105 is part of the design. These are design findings for basic engineering (D-009,
+  D-014).
+- The heating steam is let down to 140 kPa(a) and desuperheated to saturation, 382 K, with a
+  trip above 385 K, so that no heated wall exceeds the source's 115 C (D-009). The still's
+  vacuum pump has an after-condenser on brine: at 4 kPa(a) the forerun condenser cannot hold
+  thionyl chloride against the purge nitrogen and air leaking in (D-007, D-010).
 - The yield, 97.2 % of theory on the acid, is a model result and an upper bound; the only open
   example, 1.5 mol in the laboratory, reports 71-83 % (D-006).
 - The product, 99.95 wt% with 530 ppm thionyl chloride, is an upper bound of a shortcut column

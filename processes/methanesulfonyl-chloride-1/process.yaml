@@ -21,7 +21,8 @@ description: |
   an 8-stage column: the excess thionyl chloride as a forerun at reflux ratio 1, nine tenths
   recycled to the dose tank and a tenth purged; then the product at reflux ratio 0.5, to 50 mol%
   of methanesulfonyl chloride in the residue. The pot ends at 362 K and the let-down steam
-  condenses at 382 K, below the 115 C the source sets for the product's heated wall. Product
+  condenses at 382 K, desuperheated to saturation after its let-down, below the 115 C the
+  source sets for the product's heated wall. Product
   99.95 wt% with 530 ppm thionyl chloride, an upper bound of the shortcut column on an ideal
   liquid. Yield 97.2 % of theory on the acid: a model result and an upper bound (the
   laboratory source reports 71-83 %).
@@ -35,9 +36,10 @@ description: |
   year averages. The models write their duties (ADR 0059). The kinetics and the heat of reaction
   are ASSUMED (no open calorimetry): the reaction is endothermic by analogy, so a cooling failure
   releases nothing and the MTSR is the process temperature; the hazard is the gas. A dose
-  accumulated during a heating failure releases about 1280 m3/h when it reacts, 3.2 times R-101's
-  400 m3/h vent, and the jacket alone cannot supply the dosing's heat, so an external heating
-  loop is part of the design: design findings for basic engineering. See DESIGN.md for every
+  accumulated during a heating failure releases about 10,500 m3/h of SO2 and HCl with the
+  thionyl chloride vapour they carry when it reacts, 21 times R-101's 500 m3/h vent, and would
+  overfill R-101; the jacket alone cannot supply the dosing's heat, so an external heating loop
+  is part of the design: design findings for basic engineering. See DESIGN.md for every
   assumption.
 families: [chlorinated-organics]
 keywords: [methanesulfonyl chloride, mesyl chloride, MsCl, methanesulfonic acid, thionyl chloride, sulfonyl chloride, acid chloride, semi-batch, batch, dosing, SO2 vent, HCl vent, vent condenser, caustic scrubber, batch distillation, vacuum distillation, recycle, thermal screening, gas release, fine chemicals]
@@ -62,7 +64,8 @@ validation:
     99.0 % recovery from the stripped crude), the scrubber and the mixers are calculated by cheme
     process propagate; scripts/balance.py gives the feeds for 1000 t/a with the recycle, the
     scrubber's caustic, the still's stream temperatures and the duties core's models do not
-    write (the product cooler, the caustic's dilution, the crude's flash on evacuation). The
+    write (the product cooler, the caustic's dilution), and checks the crude's flash on
+    evacuation (to about 321 K, inside the still's duties). The
     recipe's year-average rate of the product agrees with the flowsheet (no cheme.recipe-basis
     finding); the recipe sizes R-101 (1.6 m3); its jacket check is a cooling check, and the
     heating the endothermic dosing needs (about 80 kW at the peak) is checked by hand from the
@@ -72,10 +75,16 @@ validation:
     K (hazard.mtt: the source's 115 C limit for the product's heated wall; the batch's own
     bubble point stays above 390.6 K); criticality without a TD24: 1 if the TD24 lies above the
     MTT, 2 if between the MTSR and the MTT, 5 if below the MTSR. With k/10 the accumulation is
-    0.683, with k/100 0.935 and the content within 2.4 K of boiling (DESIGN.md D-011). The
-    normal vent peak, 322 m3/h with the vapour, lies within R-101's vent capacity of 400 m3/h
-    (ASSUMED); an accumulated dose (a heating failure) releasing about 1280 m3/h and water
-    ingress beyond about 15 kg/h are design findings for the relief study (DESIGN.md D-014).
+    0.683, with k/100 0.935 and the content within 2.4 K of boiling (DESIGN.md D-011). R-101's
+    vent capacity, 500 m3/h of SO2 and HCl with the liquid's vapour (ASSUMED), holds the normal
+    batch's largest flow, about 226 m3/h, and the k/10 case's, about 388 m3/h; an accumulated dose
+    (a heating failure) releasing about 10,500 m3/h with its vapour, water ingress beyond about
+    25 kg/h, and the content at slower kinetics or a heating failure overfilling R-101 (1.50 m3
+    at k/10, 1.71 m3 at k/100, 1.81 m3 for the whole dose unreacted, in a 1.6 m3 vessel) are
+    design findings for basic engineering (DESIGN.md D-014). The let-down steam is desuperheated
+    to saturation and tripped above 385 K, below the product's 115 C wall limit (D-009); the
+    still's vacuum pump has an after-condenser on brine, as E-103 at 4 kPa(a) cannot hold
+    thionyl chloride against non-condensables (D-007, D-010).
     Preliminary gate-to-gate LCI with the per-batch nitrogen; thionyl chloride linked to
     thionyl-chloride-1, caustic soda to chlor-alkali-1, nitrogen to asu-1, methanesulfonic acid
     a gap with a recorded proxy, the other backgrounds gaps. cheme maturity reaches no level
@@ -95,7 +104,7 @@ chemistry:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.052 kWh/kg: agitators of R-101 and C-101, the heating loop's pump, the vacuum pump, the scrubber's pump and fan (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.554 kWh/kg of LP steam let down to 140 kPa(a): R-101's jacket and heating loop (the endothermic reaction, the dose's warming, the acid's heat-up, the vented vapour; core's semi-batch model) and the still's reboiler (core's still model with its column)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.069 kWh/kg removed by cooling water: the product condenser (core's still model), the scrubber's cooler (core's conversion model), the caustic dilution cooler, the product cooler"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.219 kWh/kg removed by brine at 253 K: the vent condenser E-102 (core's vent model), the forerun condenser E-103 (core's still model) and the crude's flash into it (the registry has chilled water, not brine: closest entry)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.188 kWh/kg removed by brine at 253 K: the vent condenser E-102 (core's vent model), the forerun condenser E-103 with the vacuum pump's after-condenser E-106 (core's still model, which condenses the whole forerun once, the crude's flash on evacuation included) (the registry has chilled water, not brine: closest entry)"}
 basis:
   capacity: "1000 t/a distilled methanesulfonyl chloride: 831 batches/a of 1203.4 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920

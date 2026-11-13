@@ -19,15 +19,20 @@ streams propagate wrote:
   S15 to 15 wt% NaOH (D-010);
 - the temperatures of the distillate S9 and the residue S11: the bubble points of their
   compositions at the still's 4 kPa(a) (Raoult, the vapour-pressure lines of materials.yaml);
-- the duties Q7 (the product cooler), Q9 (the caustic's heat of dilution less what warms the
-  diluted caustic to 308 K, 10 K above the cooling water's supply) and Q10 (the crude's heat above its bubble point at 4 kPa(a),
-  which flashes into the forerun condenser E-103 as the still is evacuated: core's still models
-  no flash of a charge above its bubble point, L-4): no property package of core covers these
-  liquids.
+- the duties Q7 (the product cooler) and Q9 (the caustic's heat of dilution less what warms the
+  diluted caustic to 308 K, 10 K above the cooling water's supply): no property package of core
+  covers these liquids.
 
-It prints cross-checks of what propagate wrote: the dose ratio, the yield, and the scrubber's
-duty Q8 (the neutralisations of reactions.yaml, the gas and the liquor brought to 308 K), which
-core's conversion step A101 writes itself (ADR 0059).
+It prints cross-checks of what propagate wrote: the dose ratio, the yield, the scrubber's duty
+Q8 (the neutralisations of reactions.yaml, the gas and the liquor brought to 308 K), which
+core's conversion step A101 writes itself (ADR 0059), and the crude's adiabatic flash as C-101
+is evacuated (D-007, L-4): the crude arrives at 368.15 K, far above its bubble point at 4 kPa(a),
+and flashes thionyl chloride into E-103 until its sensible heat is spent; as the thionyl
+chloride leaves, the liquid's bubble point rises, so the flash ends well above the crude's first
+bubble point. That heat is not a duty of its own: core's still ST101 starts at the bubble point
+with all the thionyl chloride in the pot, so its boil-up Q3 and condenser Q4 already evaporate
+and condense the thionyl chloride the flash takes (Q4 counts the forerun's condensation once;
+Q3 is conservative by the flash's heat, which R-101's steam already supplied).
 
 Run: `cheme run scripts/balance.py`, after `cheme process propagate --fill`. With BALANCE_OUTPUT
 set it writes the values the flowsheet cites (library ADR 0027).
@@ -105,6 +110,30 @@ def bubble_point(kmols: dict[str, float], pressure: float) -> float:
     return 0.5 * (low + high)
 
 
+def adiabatic_flash(kmols: dict[str, float], temperature: float, pressure: float, step: float = 0.001):
+    """A liquid above its bubble point at `pressure` flashed adiabatically and differentially
+    (Rayleigh): each step cools the liquid by `step` K and its heat evaporates the vapour in
+    equilibrium with it (Raoult), until the liquid is at its own bubble point. Returns the end
+    temperature K, the kmol evaporated by component and the heat used, kJ."""
+    left = {n: v for n, v in kmols.items() if v > 0}
+    gone = dict.fromkeys(left, 0.0)
+    heat = 0.0
+    t = temperature
+    while True:
+        total = sum(left.values())
+        partial = {n: v / total * psat(n, t) for n, v in left.items()}
+        if sum(partial.values()) <= pressure:
+            return t, gone, heat
+        q = sum(v * CP[n] for n, v in left.items()) * step
+        y = {n: p / sum(partial.values()) for n, p in partial.items()}
+        evaporated = q / sum(y[n] * MATERIALS[n]["heat_of_vaporization"] for n in y)
+        for n in left:
+            left[n] -= y[n] * evaporated
+            gone[n] += y[n] * evaporated
+        heat += q
+        t -= step
+
+
 def state(streams: dict, sid: str) -> dict:
     return streams[sid]["state"]["design"]
 
@@ -171,7 +200,9 @@ def main() -> None:
     liquor_warmed = heat_capacity_rate(s16) * (T_SCRUB - T_CAUSTIC)
     q8 = (reacted - gas_warmed - liquor_warmed) / 3600.0
     q9 = (naoh * DILUTION - heat_capacity_rate(s16) * (T_CAUSTIC - T_AMBIENT)) / 3600.0
-    q10 = heat_capacity_rate(s5) * (t_crude - t_crude_bubble) / 3600.0
+    # the crude's flash on evacuation (a cross-check, no duty of its own: it is in Q3 and Q4)
+    crude = kmol(s5)
+    t_flash, flashed, flash_heat = adiabatic_flash(crude, t_crude, P_STILL)
 
     # cross-checks of what propagate wrote
     ratio = s4["SOCL2"] / s1["MSA"]
@@ -184,7 +215,13 @@ def main() -> None:
     print(f"yield on the acid {yield_acid:.4%}")
     print(f"S14 caustic {caustic:.4f} kg/h ({naoh:.5f} kmol/h NaOH), S15 water {water:.4f} kg/h")
     print(f"S9 {t_distillate:.2f} K, S11 {t_residue:.2f} K at {P_STILL} kPa(a); crude bubble point {t_crude_bubble:.2f} K against {t_crude:.2f} K")
-    print(f"Q7 product cooler {q7:.4f}, Q9 dilution {q9:.4f}, Q10 crude flash {q10:.4f} kW")
+    print(f"Q7 product cooler {q7:.4f}, Q9 dilution {q9:.4f} kW")
+    print(
+        f"the crude's adiabatic flash at {P_STILL} kPa(a) ends at {t_flash:.1f} K, taking "
+        f"{flashed['SOCL2'] / crude['SOCL2']:.1%} of its thionyl chloride and "
+        f"{flashed['MSCL'] / crude['MSCL']:.1%} of its MsCl to E-103, {flash_heat / 3600:.3f} kW "
+        f"year average (in Q3 and Q4, not a duty of its own)"
+    )
     print(f"cross-check of the model duty Q8 (scrubber, written by propagate): {q8:.4f} kW")
 
     write_balance_output(
@@ -198,7 +235,6 @@ def main() -> None:
                 "S11": {"temperature": round(t_residue, 2)},
                 "Q7": {"duty": round(q7, 4)},
                 "Q9": {"duty": round(q9, 4)},
-                "Q10": {"duty": round(q10, 4)},
             }
         }
     )

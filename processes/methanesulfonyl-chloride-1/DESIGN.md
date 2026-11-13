@@ -88,9 +88,13 @@ vacuum broken 0.5 h, the residue drained 0.5 h; C-101 is occupied 4.26 h of the 
 (45 %). The flowsheet's flows are the recipe's year averages: batch size = 126.263 kg/h x 9.531 h,
 so `cheme process recipe` reports no basis finding.
 
-R-101 is sized by the recipe from the model: 1.10 m3 of batch at the end of the dosing in a
-1.6 m3 vessel (69 % full, D 1.19 m), enamelled steel (thionyl chloride, HCl, SO2 and a strong
-acid at 95 C). The vessel's metal is not entered (`metal_heat_capacity` left out): R-101 is not
+R-101 is sized by the recipe from the model: a 1.6 m3 vessel (D 1.19 m), enamelled steel
+(thionyl chloride, HCl, SO2 and a strong acid at 95 C). Core's recipe sizes it on the content at
+the end of the batch, 1.10 m3 (69 % full), but a semi-batch that forms gas holds the most
+liquid at the end of the dosing, before the post-reaction has turned the excess acid's share
+into gas: 1.19 m3 then (74 % full; the liquid molar volumes of materials.yaml summed over
+core's profile), a core limit (L-6). The fill of 0.8 still holds in the base case; with slower
+kinetics it does not (1.50 m3 at k/10, 1.71 m3 at k/100, D-011): design finding 4 (D-014). The vessel's metal is not entered (`metal_heat_capacity` left out): R-101 is not
 cooled between batches (the crude leaves at 368.15 K and the next acid is charged within
 0.75 h), so its metal ends each batch at the temperature it started from and takes no net heat;
 the acid's heat-up from 298.15 K holds the batch's whole heat. The jacket's warming time is then
@@ -162,8 +166,9 @@ recycle S3 and converged by propagate (Wegstein, core ADR 0060), never by hand.
 `scripts/balance.py` gives what core does not compute: the feeds S1 and S2 for 1000 t/a and the
 4/3 dose ratio with the recycle (the balance is linear in the feeds; a few passes of propagate
 and the script converge it), the caustic S14 and its dilution water S15, the temperatures of the
-distillate S9 and the residue S11 (bubble points at 4 kPa(a)), and the duties Q7, Q9 and Q10.
-It cross-checks the dose ratio, the yield and the scrubber's model duty. The values it writes
+distillate S9 and the residue S11 (bubble points at 4 kPa(a)), and the duties Q7 and Q9.
+It cross-checks the dose ratio, the yield, the scrubber's model duty and the crude's adiabatic
+flash on evacuation (D-007). The values it writes
 are checked by the library's `scripts/check_balance_scripts.py` (library ADR 0027).
 
 Results: S1 109.439 kg/h acid, S2 147.287 kg/h fresh thionyl chloride, S3 41.41 kg/h recycle,
@@ -191,9 +196,28 @@ kJ/kg (40.0 kJ/mol, temperature not stated) is 12 % lower and would give a small
 
 Why 4 kPa(a): the pot must stay below SRC-1's 115 C (388.15 K) limit for the heated wall (Note
 5: local overheating chars and decomposes the product). At 4 kPa the forerun ends with the pot at
-346 K and the product cut at 362 K, and the jacket's steam condenses at 382.44 K, below the
-limit throughout. The forerun's thionyl chloride condenses at about 270 to 280 K on brine
-(E-103); the product at 346 K on cooling water (E-104).
+346 K and the product cut at 362 K, and the jacket's steam, desuperheated to saturation after
+its let-down (D-009), condenses at 382.44 K, below the limit throughout. The forerun's thionyl
+chloride condenses at about 270 to 280 K on brine (E-103); the product at 346 K on cooling water
+(E-104).
+
+The vacuum system: E-103 on brine cannot hold thionyl chloride at 4 kPa(a). At its gas outlet,
+263.15 K (10 K above the brine's supply), thionyl chloride's vapour pressure is 2.73 kPa (NIST's
+line, SRC-2), 68 % of the still's pressure, so every mol of non-condensable gas through E-103
+carries 2.15 mol of thionyl chloride to the vacuum pump. The non-condensables are C-101's purge
+nitrogen (2.5 Nm3 a batch, D-012), air leaking in (1 kg/h ASSUMED for a tight enamelled still of
+about 2.5 m3 at 4 kPa(a), over the evacuation and both cuts, 2.76 h a batch) and the SO2 and HCl
+dissolved in the hot crude (none in the model, which vents them all from R-101, D-005). Without
+a measure, about 11 kg of thionyl chloride a batch would pass the pump to the scrubber. The
+design therefore puts an after-condenser E-106 on brine on the dry pump's discharge, at about
+atmospheric pressure, gas out at 263.15 K: there the gas holds 0.028 mol of thionyl chloride per
+mol, 78 times less, and the condensate runs to the forerun receiver T-102. What passes E-106 is
+recorded in D-010 (0.7 kg a batch). Rejected: a colder trap on E-103's outlet at 4 kPa(a) (above
+MsCl's freezing point of 240 K, thionyl chloride still holds 0.9 kPa there, 0.28 mol per mol);
+stripping the forerun at a higher pressure (the pot, nearly pure MsCl at the cut's end, would
+boil above the steam's 382 K at 20 kPa(a)). The product cut's non-condensables pass E-104 at
+308 K with 0.17 mol of MsCl per mol and then the pump and E-106, where MsCl's 0.03 kPa leaves
+almost none; that condensate joins the forerun and returns with the recycle.
 
 Results (cheme process stills, per batch): the charge 1665 kg (20 mol% thionyl chloride); the
 forerun 438 kg (78.4 wt% thionyl chloride, 21.6 wt% MsCl), 0.61 h; the product 1203.4 kg, 99.95
@@ -202,11 +226,20 @@ h; the residue 22.7 kg (50 mol% each of MSA and MsCl). The purity is an upper bo
 shortcut on an ideal liquid (the shortcut never exceeds a rigorous column in purity, core ADR
 0061); no source states it.
 
-The crude arrives at 368.15 K, far above its bubble point at 4 kPa(a) (301.8 K): as C-101 is
-evacuated, it flashes thionyl chloride into E-103 until it reaches it. Core's still models no
-flash of a charge above its bubble point (L-4): `still.heat_up` gives no heat-up, and the
-crude's sensible heat down to its bubble point, Q10 4.02 kW year average, is a hand duty on the
-brine (scripts/balance.py).
+The crude arrives at 368.15 K, far above its first bubble point at 4 kPa(a) (301.8 K): as C-101
+is evacuated, it flashes thionyl chloride into E-103. It cannot cool to 301.8 K that way: its
+sensible heat over that span would evaporate 4.3 kmol of thionyl chloride, and a batch holds
+2.89 kmol; as the thionyl chloride leaves, the liquid's bubble point rises. An adiabatic,
+differential flash at 4 kPa(a) (Raoult with materials.yaml's vapour-pressure lines, liquid heat
+capacities and heats of vaporization; scripts/balance.py prints it) ends at about 321 K, having
+taken about 70 % of the thionyl chloride (2.0 kmol) and 5 % of the MsCl (0.5 kmol) to E-103,
+with 25 kWh a batch, 2.6 kW year average. That heat is not a duty of its own. Core's still
+models no flash of a charge above its bubble point (L-4): `still.heat_up` gives no heat-up, and
+ST101 starts from the bubble point with all of the thionyl chloride in the pot, so its boil-up
+Q3 evaporates and its condenser Q4 condenses the whole forerun, the flashed part included. Q4 is
+therefore the forerun's whole condensation on brine, counted once; Q3, the steam, is
+conservative by up to the flash's 2.6 kW year average, which R-101's steam already supplied as
+the crude's heat. E-103 is sized for the flash's rate at the evacuation, not for Q4's mean.
 
 Rejected: atmospheric distillation (the product boils at 434 K, above the 388 K limit); a
 continuous column (a batch entry; 2.6 t a batch).
@@ -234,10 +267,21 @@ the hot pot; with 22.7 kg a batch not worth the risk at concept stage).
 ## D-009 Utilities and heat (2026-11-12)
 
 Decision:
-- LP steam let down to 140 kPa(a), condensing at 382.44 K (IAPWS-IF97, SRC-5): R-101's jacket
-  and heating loop (Q1) and C-101's jacket (Q3, Q5). Its temperature stays below the 388.15 K
-  limit for the product's heated wall (SRC-1, Note 5). Q1 41.60 kW, Q3 7.64 kW, Q5 20.76 kW
-  year averages, all from core's models.
+- LP steam let down to 140 kPa(a) and desuperheated to saturation, condensing at 382.44 K
+  (IAPWS-IF97, SRC-5): R-101's jacket and heating loop E-105 (Q1) and C-101's jacket (Q3, Q5).
+  Its temperature stays below the 388.15 K limit for the product's heated wall (SRC-1, Note 5),
+  which matters most at the end of the distillation, when C-101's pot is low and the wall above
+  the liquid sees the steam with little heat flux. The let-down is isenthalpic, so steam from a
+  higher LP level arrives superheated: saturated steam from 4 bar(a) (about 2738 kJ/kg) let down
+  to 1.4 bar(a) (saturated vapour about 2690 kJ/kg) arrives near 405 K (132 C), above the limit.
+  So a desuperheater after the let-down valve sprays condensate into the steam until it is
+  saturated, and the protections of the 115 C limit are: the steam's pressure held at 140
+  kPa(a) (pressure control with a high-pressure trip of the let-down valve), its temperature
+  after the desuperheater with a high-temperature trip above 385 K closing the let-down valve,
+  and the pot's temperature (C-101 ends at 362 K). The spray adds about 2 % to the steam's mass
+  and nothing to the heat it gives (the LCI counts the condensing heat, kWh). Q1 41.60 kW, Q3
+  7.64 kW, Q5 20.76 kW year averages, all from core's models; Q3 is conservative by up to the
+  crude's flash, 2.6 kW (D-007).
 - R-101's heating: the reaction is endothermic (D-005), so the batch needs heat throughout the
   dosing: from R101's conversion profile (core's semi-batch, by hand; tests/test_methanesulfonyl_chloride_1.py repeats it) the reaction
   and the dose's warming need 62.4 kW at 1.13 h into the dosing (51 kW on average over it), and
@@ -260,10 +304,11 @@ Decision:
   scrubber's liquor at 308.15 K leaves its cooler 10 K above the water's supply and returns to
   the column; the column's liquor rise sets the hot end.
 - Refrigerated brine 253.15/258.15 K: the vent condenser E-102 (Q2 16.04 kW, from the vent model:
-  condensation 9.69, the vapour cooled 3.91, the gas cooled 2.44 kW), the forerun condenser E-103
-  (Q4 7.64 kW from the still's model) and the crude's flash into E-103 (Q10 4.02 kW). The brine
-  stays 13 K above MsCl's freezing point (240.15 K, SRC-3), and thionyl chloride freezes far
-  lower, so nothing freezes on the tubes.
+  condensation 9.69, the vapour cooled 3.91, the gas cooled 2.44 kW) and the forerun condenser
+  E-103 with the vacuum pump's after-condenser E-106 (Q4 7.64 kW from the still's model: the
+  whole forerun condensed once, the crude's flash on evacuation and what the non-condensables
+  carry past E-103 included, D-007). The brine stays 13 K above MsCl's freezing point (240.15 K,
+  SRC-3), and thionyl chloride freezes far lower, so nothing freezes on the tubes.
 - Power (ASSUMED from the recipe's times, year averages): P1 2.3 kW (R-101's agitator 1.5 kW,
   about 1 kW per m3 of vessel, the whole cycle, and E-105's pump 1.1 kW over the dosing and the
   post-reaction, 7.28 of the 9.531 h cycle: 1.5 + 1.1 x 0.76), P2 1.65 kW (C-101's agitator 1.1
@@ -271,10 +316,12 @@ Decision:
   1.1 x 0.45 + 4 x 0.29), P3 2.6 kW (the scrubber's pump 1.5 kW and fan 1.1 kW all year).
 - Small flows left out, each with its number: the forerun warms from its condensing temperature
   (about 275 K) to 298 K in T-102 by ambient heat, about 0.2 kW; the residue's sensible heat in the
-  drum, about 0.06 kW (D-008); heat losses of the vessels and lines, not estimated.
+  drum, about 0.06 kW (D-008); the vacuum pump's discharge gas cooled in E-106 from about 420 K
+  (ASSUMED for a dry screw pump) to 263 K, about 1.9 MJ a batch, 0.06 kW (the heat of the pump's
+  power P2); heat losses of the vessels and lines, not estimated.
 
 Per kg of product (lca/inventory.csv): steam heat 0.554 kWh, cooling water 1.069 kWh, brine
-0.219 kWh, power 0.052 kWh.
+0.188 kWh, power 0.052 kWh.
 
 ## D-010 Vent, vent condenser and caustic scrubber (2026-11-12)
 
@@ -282,14 +329,23 @@ Decision: R-101's gas leaves saturated with the liquid's thionyl chloride and Ms
 (`vent.vapour`) through E-102 on brine, gas out at 263.15 K (10 K above the brine's supply),
 condensate back to R-101 (`vent.condenser`, `returns: vessel`); E-102 condenses 94 % of the
 thionyl chloride vapour and nearly all the MsCl. The gas past it (S6: SO2 1.152, HCl 1.183,
-thionyl chloride 0.055 kmol/h) goes with the vacuum pump's discharge and the tanks' breathing to
-the scrubber A-101, a packed column with circulating 15 wt% caustic, cooled to 308.15 K. A101 is
+thionyl chloride 0.055 kmol/h) goes with the vacuum pump's discharge (past its after-condenser
+E-106, D-007) and the tanks' breathing to the scrubber A-101, a packed column with circulating 15 wt% caustic, cooled to 308.15 K. A101 is
 a conversion step taking up everything: HCl to NaCl, SO2 to sodium sulfite (two NaOH, the
 caustic in excess), thionyl chloride to sulfite and two chlorides, MsCl to the methanesulfonate.
 Caustic 1.10 times what the gas takes, from chlor-alkali-1's 50 wt% diluted with process water
 to 15 wt% (ASSUMED, a usual scrubbing strength that keeps the sulfite in solution); spent liquor
 about 12.6 wt% sodium sulfite, 6.2 wt% sodium chloride and 1.2 wt% NaOH, 9.59 kg per kg of
 product, to wastewater treatment (the sulfite oxidised there).
+
+The vacuum pump's discharge (D-007): per batch about 0.21 kmol of non-condensable gas (C-101's
+2.5 Nm3 of purge nitrogen and 1 kg/h of air in-leakage, ASSUMED, over 2.76 h) leaves E-106 at
+263.15 K and about atmospheric pressure with 0.028 mol of thionyl chloride per mol: 0.0057 kmol,
+0.7 kg a batch, 0.57 g per kg of product, 0.05 % of the fresh thionyl chloride. The balance does
+not carry it (it lies within the flowsheet's tolerance): the fresh thionyl chloride is low and
+the scrubber's caustic short by as much, 0.023 kmol of NaOH a batch, 0.06 % of the caustic fed,
+which the 10 % excess covers. A larger in-leakage scales it (10 kg/h of air: about 3.5 kg a
+batch); without E-106 it would be about 11 kg a batch.
 
 Heats (reactions.yaml NEU_*, ASSUMED orders of magnitude: an acid gas's heat of solution plus
 about -56 kJ per mol of hydroxide neutralised; no open table of aqueous formation enthalpies was
@@ -312,7 +368,7 @@ Toxic gas and the scrubber's failures (the reason the dosing is interlocked, D-0
 ## D-011 Thermal and gas-release screening, the rate sensitivity (2026-11-12)
 
 Decision: `cheme process reactor-hazards` with `hazard.mtt` 388.15 K and `hazard.vent_capacity`
-400 m3/h (D-014); k/10 and k/100 on scratch copies of the folder (the rate constants of both
+500 m3/h (D-014); k/10 and k/100 on scratch copies of the folder (the rate constants of both
 reactions divided, each copy propagated, its reactors, recipe and screening run); no TD24 (none
 is estimated: only calorimetry gives one).
 
@@ -335,17 +391,23 @@ screening's worst moment has nothing to react).
 Rate sensitivity (scratch copies; k/10 is the base at about 329 K, k/100 at about 298 K for Ea
 60 kJ/mol, so they also stand for a dosing into a batch that is too cold):
 
-| case | accumulation at the end of the dosing | post-reaction to 0.99 | vent peak (SO2 + HCl) | E-102's energy per batch | content at the end of the dosing |
-|---|---|---|---|---|---|
-| k (base) | 0.297 | 3.28 h | 0.001682 kmol/s, 182.9 m3/h at 368 K | 153 kWh | bubble point 390.6 K (27 mol% thionyl chloride) |
-| k/10 | 0.683 | 51.1 h | 0.000760 kmol/s, 82.6 m3/h | 555 kWh (3.6 x) | bubble point 375.6 K (45 mol%), below the MTT |
-| k/100 | 0.935 | about 534 h | 0.000211 kmol/s, 22.9 m3/h | 1108 kWh (7.2 x) | bubble point 370.6 K (53 mol%), 2.4 K above T_p |
+| case | accumulation at the end of the dosing | post-reaction to 0.99 | vent peak (SO2 + HCl) | largest gas with the vapour | E-102's energy per batch | content at the end of the dosing |
+|---|---|---|---|---|---|---|
+| k (base) | 0.297 | 3.28 h | 0.001682 kmol/s, 182.9 m3/h at 368 K | about 226 m3/h at 2 h (vapour 0.27); 0.539 vapour at the end of the dosing | 153 kWh | 1.19 m3 (74 % of 1.6 m3); bubble point 390.6 K (27 mol% thionyl chloride) |
+| k/10 | 0.683 | 51.1 h | 0.000700 kmol/s, 76.1 m3/h | about 388 m3/h at the end of the dosing (vapour 0.815) | 555 kWh (3.6 x) | 1.50 m3 (94 %); bubble point 375.6 K (45 mol%), below the MTT |
+| k/100 | 0.935 | about 534 h | 0.000194 kmol/s, 21.1 m3/h | about 201 m3/h at the end of the dosing (vapour 0.935) | 1108 kWh (7.2 x) | 1.71 m3 (107 %, more than the vessel); bubble point 370.6 K (53 mol%), 2.4 K above T_p |
 
-The bubble points are the lowest over each batch (at the end of the dosing), Raoult with
-materials.yaml over core's profile of the content. So slower kinetics lower the vent's peak but
-leave the thionyl chloride in the pot: at k/10 the cycle is not feasible, and at k/100 the batch
-is within a few kelvin of boiling at 368 K and refluxes thionyl chloride through E-102; in both
-the MTSR stays T_p (endothermic).
+Each copy is propagated again (its recycle and feeds re-converged) before R101 is solved. The
+bubble points and the content are at the end of the dosing, where both are at their extremes,
+over core's profile of the content: Raoult with materials.yaml, and the liquid molar volumes of
+materials.yaml summed (ideal mixing). The gas with the vapour is the SO2 and HCl formed (the
+rate laws over the profile) divided by one less the vapour's share over the liquid (Raoult at
+368.15 K and 101.3 kPa(a)), the basis of the vent capacity (D-014). So slower kinetics lower the
+gas's peak but leave the thionyl chloride in the pot: the vapour it carries makes the k/10
+case's 72 m3/h of gas at the end of the dosing 388 m3/h, more than the base case's largest; at k/10 the cycle is not feasible, and at k/100 the
+batch is within a few kelvin of boiling at 368 K, refluxes thionyl chloride through E-102 and
+holds more liquid than R-101 (design finding 4, D-014); in all three the MTSR stays T_p
+(endothermic).
 The endothermic reaction never heats itself; its hazard is the gas an accumulated dose releases
 once it reacts (D-014).
 
@@ -375,31 +437,52 @@ campaign changeover or cleaning between products is counted.
 
 ## D-014 Vent capacity and the design findings (2026-11-12)
 
-Decision: `hazard.vent_capacity` 400 m3/h at R-101's 368.15 K and 101.3 kPa(a), the design of
-R-101's vent line, E-102 and A-101: the normal peak of SO2 and HCl, 182.9 m3/h, with the liquid's
-vapour at its largest share over the batch (0.432 of the gas, cheme process reactors) is 322
-m3/h, rounded up.
+Decision: `hazard.vent_capacity` 500 m3/h, the design of R-101's vent line, E-102 and A-101, on
+one basis for every case: the SO2 and HCl with the vapour of the liquid they leave, at R-101's
+368.15 K and 101.3 kPa(a) (the gas leaves saturated, D-005; the flow is the gas over one less
+the vapour's share, Raoult with materials.yaml along core's profile, D-011). Over the base batch
+the gas peaks at 182.9 m3/h at 1.1 h into the dosing and the gas with its vapour at about 226
+m3/h at 2 h; the vapour's share is largest at the end of the dosing, 0.539 (27 mol% thionyl
+chloride), and bounds the base case at 182.9 / (1 - 0.539) = 397 m3/h. Core's `vapour_share`,
+0.432, is the share over the liquid at the end of the batch, not the largest. The k/10 case
+(D-011) reaches about 388 m3/h with its vapour at the end of its dosing: 500 m3/h covers it with
+about 30 % margin.
 
-Cases against it:
-- normal operation and the slower-kinetics cases (D-011): within it (k/10 82.6 m3/h);
+Cases against it, all with the vapour:
+- normal operation: about 226 m3/h at most (45 %);
+- the slower-kinetics cases (D-011): k/10 about 388 m3/h (78 %), k/100 about 201 m3/h;
 - a cooling failure: nothing (endothermic);
 - **design finding 1, an accumulated dose**: if the heating fails (steam lost, E-105 stopped)
   while the dosing goes on, the batch cools (the reaction and the cold dose both take heat), the
   reaction slows and the thionyl chloride accumulates; when the heating returns it reacts at
   once. A stoichiometric dose accumulated unreacted on the whole acid and warmed back to 368.15 K
-  starts at about 0.0118 kmol/s of gas, 1280 m3/h, 3.2 times the vent; the content at the end of
-  the k/10 dosing warmed to the base rate starts at about 680 m3/h, 1.7 times. Measures to assess
-  in basic engineering: dosing permissive on R-101's temperature (above about 360 K), on the
-  steam's flow and on the off-gas flow through E-102 (gas confirms the reaction, as an
-  initiation check), a dose-rate limit, and a relief study for the blocked-vent and
-  accumulated-dose cases;
-- **design finding 2, water ingress**: the margin above the normal peak, 78 m3/h, is the gas of
-  about 15 kg/h of water reaching the thionyl chloride; a jacket leak or a suck-back of caustic
-  (D-010) can exceed it: jacket-leak detection (condensate conductivity) or a non-aqueous heating
-  medium, and the anti-suck-back measures of D-010;
+  starts at about 0.0118 kmol/s of SO2 and HCl, 1280 m3/h; over that 50:50 mass thionyl
+  chloride's partial pressure is about 89 kPa (half of 178 kPa), so the vapour is 0.878 of the
+  gas and the flow about 10,500 m3/h, 21 times the capacity, and the mass boils at about 373 K,
+  5 K above T_p. The content at the end of the k/10 dosing warmed to the base rate starts at about
+  720 m3/h of gas, 3,900 m3/h with its vapour (0.815), 7.8 times. Measures to assess in basic
+  engineering: dosing permissive on R-101's temperature (above about 360 K), on the steam's flow
+  and on the off-gas flow through E-102 (gas confirms the reaction, as an initiation check), a
+  dose-rate limit, and a relief study for the blocked-vent and accumulated-dose cases (a
+  two-phase relief near the boiling point);
+- **design finding 2, water ingress**: the margin above the base case's largest flow, 274 m3/h,
+  is the gas of about 25 kg/h of water reaching the thionyl chloride (5.0 m3 of SO2 and HCl per
+  kg at 368 K, with the vapour at its largest share, 0.539); a jacket leak or a suck-back of
+  caustic (D-010) can exceed it: jacket-leak detection (condensate conductivity) or a
+  non-aqueous heating medium, and the anti-suck-back measures of D-010;
 - **design finding 3, R-101's heating**: the jacket cannot hold the batch at 368 K against the
   endothermic dosing (D-009); without E-105 the batch cools and finding 1 follows in normal
-  operation.
+  operation;
+- **design finding 4, overfill and liquid carry-over**: the content is largest at the end of the
+  dosing, 1.19 m3 in the base case (74 % of the 1.6 m3 vessel), 1.50 m3 at k/10 (94 %) and 1.71
+  m3 at k/100, more than the vessel holds (D-011; k/100 also stands for a dosing into a batch
+  that is too cold). If the heating fails and the dosing goes on (finding 1), the whole dose
+  unreacted on the acid, 1798 kg of S4 with the 1043 kg of acid, is about 1.81 m3, also more
+  than the vessel before any gas hold-up. Liquid thionyl chloride would then enter the vent line,
+  E-102 and the caustic scrubber, where it reacts violently with water and releases gas. Measures
+  to assess: a high-level trip on R-101 that stops the dosing, a dose totaliser checked against
+  the off-gas totalised through E-102 (the conversion so far), and a larger vessel (2.5 m3 holds
+  the whole unreacted dose at 72 %).
 
 The TD24 of the crude and of the residue (MsCl, MSA and their decomposition at the hot wall) is
 an open input for calorimetry (DSC/ARC), never estimated here.
@@ -412,7 +495,8 @@ an open input for calorimetry (DSC/ARC), never estimated here.
 | the forerun and product cuts, Q3 to Q6 | core batch still with column (ADRs 0055, 0061, 0063) | Raoult (ASSUMED ideal), 8 stages and reflux ratios ASSUMED (D-007, D-008) |
 | the recycle S3 | core tear (ADR 0060) | the purge share ASSUMED |
 | A101, Q8 | core conversion step | ASSUMED neutralisation heats (D-010) |
-| feeds, caustic, S9 and S11 temperatures, Q7, Q9, Q10 | scripts/balance.py | capacity, ratios, D-009, D-010 |
+| feeds, caustic, S9 and S11 temperatures, Q7, Q9; the crude's flash (a cross-check) | scripts/balance.py | capacity, ratios, D-007, D-009, D-010 |
+| the gas with its vapour, the content's largest volume (base, k/10, k/100) | core's semi-batch profile, by hand | D-011, D-014 |
 | batch size, cycle, vessel, vent per batch | `cheme process recipe` (ADRs 0051, 0052, 0057) | durations ASSUMED (D-003) |
 | screening and sensitivity | `cheme process reactor-hazards`, scratch copies | D-011, D-014 |
 | R-101's heating demand | core's semi-batch profile, by hand | D-009 |
@@ -444,7 +528,15 @@ an open input for calorimetry (DSC/ARC), never estimated here.
   endothermic semi-batch; R-101's heating demand is computed by hand from the model's profile
   (D-009).
 - L-4: the batch still models no flash of a charge above its bubble point at the still's
-  pressure: the crude's flash into E-103 (Q10) is a hand duty.
+  pressure: it starts the forerun from the bubble point with all of the thionyl chloride in the
+  pot. The crude's flash on evacuation (to about 321 K, about 70 % of its thionyl chloride to
+  E-103) is therefore inside Q3 and Q4: Q4 counts the forerun's condensation once, and Q3 is
+  conservative by up to 2.6 kW year average (D-007; scripts/balance.py prints the flash).
+- L-6: the recipe sizes a semi-batch's vessel on the content at the end of the batch; a
+  gas-forming semi-batch holds the most liquid at the end of the dosing (here 1.19 m3 against
+  1.10 m3), and slower kinetics more (D-003, D-014 finding 4). And the screening's
+  `vapour_share` is the share at the end of the batch, not its largest over the batch, which the
+  vent capacity needs (D-014).
 - L-5: the scrubber is a conversion step (no absorption or electrolyte model), and a mixer has no
   heat of dilution: the caustic's dilution heat (Q9) is a hand estimate.
 
