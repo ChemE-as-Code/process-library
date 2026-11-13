@@ -27,7 +27,7 @@ in the sessions that built this entry (2026-11-12 and 13).
 | id | source | locator | access / terms | used for |
 |---|---|---|---|---|
 | SRC-1 | Shirahata, A. (Dow Corning Toray Silicone), US 5 068 386 A, Preparation of tertiary-hydrocarbylsilyl compounds, granted 1991-11-26 (priority JP 1989-06-28), https://patents.google.com/patent/US5068386A/en | Examples 1 and 3: magnesium (12.2 g, 0.5 mol) and tert-butyl chloride (46.3 g, 0.5 mol) in 250 mL of THF to the Grignard reagent; copper cyanide (1 mol%, Example 1) or sodium thiocyanate (0.34 g, 0.004 mol, Example 3) added at room temperature, dichlorodimethylsilane (64.5 g, 0.5 mol) dripped in, the mixture rising to 60 C, then 3 h at reflux; 100 mL of hexane added, the salt filtered off, the solvent distilled and the product distilled at ambient pressure: 60 g (80 %, Example 1) and 59 g (78 %, Example 3) of tert-butyldimethylchlorosilane, identified by NMR, IR and GC-MS (no purity given); claims 1 and 6 to 9: a cyano or thiocyanate compound catalyses the reaction, 0.01 to 10 mol%, preferably 0.1 to 2 mol%; the description says that the reaction was held not to occur without one | read (Google Patents full text); an expired patent, facts only | D-001, D-002, D-004, D-005, D-007 |
-| SRC-2 | Cannady, J. P. and Nguyen, B. T. (Dow Corning), US 5 872 274 A, Method for preparation of tertiary-hydrocarbylsilyl compounds, published 1999-02-16, https://patents.google.com/patent/US5872274A/en | Example 10: tert-butylmagnesium chloride and dichlorodimethylsilane without a catalyst gave only a trace of product after 18 h at 23 C and 4 more at 65 C; Examples 11 to 16: copper salts (acetate, cyanide, chloride, nitrate, sulfate, hydroxide) catalyse it in diethylene glycol dibutyl ether, the silane and the catalyst charged first and the Grignard solution added, two liquid phases within 5 min at 23 C; copper cyanide named as highly toxic; the work under nitrogen or argon | read (Google Patents full text); an expired patent, facts only | D-001, D-004, D-005 |
+| SRC-2 | Cannady, J. P. and Nguyen, B. T. (Dow Corning), US 5 872 274 A, Method for preparation of tertiary-hydrocarbylsilyl compounds, published 1999-02-16, https://patents.google.com/patent/US5872274A/en | Example 10: tert-butylmagnesium chloride in diethylene glycol dibutyl ether (the Grignard solution of its Example 1, not THF) with dichlorodimethylsilane and without a catalyst gave only a trace of product after 18 h at 23 C and 4 more at 65 C; Examples 11 to 16: copper salts (acetate, cyanide, chloride, nitrate, sulfate, hydroxide) catalyse it in diethylene glycol dibutyl ether, the silane and the catalyst charged first and the Grignard solution added, two liquid phases within 5 min at 23 C; copper cyanide named as highly toxic; the work under nitrogen or argon | read (Google Patents full text); an expired patent, facts only | D-001, D-004, D-005 |
 | SRC-3 | PubChem CID 28928 (tert-butylchlorodimethylsilane), https://pubchem.ncbi.nlm.nih.gov/compound/28928 | GHS notifications aggregated from the ECHA C&L inventory: H228 flammable solid (58 % of 236 notifiers), H314 severe skin burns and eye damage (76 %), H318, H335, H411; reacts with water to hydrochloric acid (the hazards summary, citing the Merck Index); a white hygroscopic solid; identity (InChIKey BCNZYOJHNLTNEZ-UHFFFAOYSA-N, ChEBI 85071) | read (PUG View and PUG REST); facts only | D-002, D-011, chemicals registry |
 | SRC-4 | Hessel, G., Hulzer, G., Kryk, H., Palitzsch, P., Schmitt, W., Tefera, N., Weiss, F.-P. (2000) Calorimetric investigation of the formation of Grignard reagents, in: Forschungszentrum Rossendorf, Institute of Safety Research, Annual Report 1999, FZR-284, pp. 29-34, https://www.hzdr.de/publications/Publ-5058 | a bromobenzene derivative and magnesium in THF in a closed RC1 calorimeter: the initiation at 70 C after an induction time, then a steep, autocatalytic rise; molar reaction enthalpy 270 +/- 6 kJ/mol over 40 to 70 C (Table 1); the main stage controlled by the dosing, its rate constants at 40 C 0.65e-2 to 1.57e-2 L/(mol s) (Table 2); a large amount of halide dosed during a long induction time can end in a thermal explosion | read (the report's PDF, pp. 29-33) | D-005, D-011 |
 | SRC-5 | NIST Chemistry WebBook, Methylmagnesium bromide (C75161), reaction thermochemistry, https://webbook.nist.gov/cgi/cbook.cgi?ID=C75161&Mask=8 | HBr(g) + CH3MgBr -> CH4 + MgBr2 (solution), -274.5 +/- 2.2 kJ/mol, Holm (1981) J. Chem. Soc. Perkin Trans. 2, 464 | read (by the session of 2026-11-12, as for methylmagnesium-bromide-1); US government data | D-005 |
@@ -87,7 +87,7 @@ Reason: SRC-1 is the one open source read that makes TBSCl from tert-butyl chlor
 beyond a single flask with an isolated yield (78 %), and its work-up (filtration, solvent
 distillation, product distillation) maps onto the core's batch models. A tertiary Grignard
 reagent does not react with dichlorodimethylsilane without a catalyst (SRC-1's description,
-SRC-2 Example 10): the catalyst is essential, and sodium thiocyanate (SRC-1 Example 3) avoids
+SRC-2 Example 10, in diethylene glycol dibutyl ether): the catalyst is essential, and sodium thiocyanate (SRC-1 Example 3) avoids
 copper cyanide, which SRC-2 names as highly toxic.
 Rejected: copper cyanide (SRC-1 Example 1, 80 %): toxic, a cyanide in the salt cake. Copper
 salts in diethylene glycol dibutyl ether (SRC-2 Examples 11-16): only the top phase's GC was
@@ -123,17 +123,23 @@ unit procedures:
 - REACT on R-101 (`units: [M101, E101, R101]`): nitrogen inerting 1 h, charging the magnesium
   0.5 h and the recycled solvent with the make-up 1 h, the warm-up from 302.9 to 313.15 K from
   the jacket with the vessel's metal (0.415 h), the dosing with its initiation hold (3.25 h)
-  and the post-reaction to 0.999 conversion of the halide (0.195 h), both from R101's model,
+  and the post-reaction to 0.999 conversion of the halide (0.194 h), both from R101's model,
   sampling and titration 0.5 h, and the dosing of the Grignard solution into R-102, 3 h (R102's
   dosing time): 9.86 h;
-- SILYL on R-102: inerting 0.5 h, charging the silane, the heel and the catalyst 0.75 h, the
-  dosing of the Grignard solution 3 h and the post-reaction 1.61 h (R102's model), sampling 0.5 h,
-  pressing the slurry to F-101 0.5 h: 6.86 h;
+- SILYL on R-102, started with R-101's dosing (`start: {after: REACT, operation: dose}`):
+  inerting 0.5 h, charging the silane, the heel and the catalyst 0.75 h, a wait of 2.694 h,
+  charged, until the Grignard solution is ready, the dosing of the Grignard solution 3 h and the
+  post-reaction 1.61 h (R102's model), sampling 0.5 h, pressing the slurry to F-101 0.5 h:
+  9.554 h. The Grignard solution leaves R-101 only as fast as R-102 doses it, so R-102's dosing
+  must run exactly in R-101's transfer (6.86-9.86 h of the batch, a test checks it); the wait is
+  R-101's dosing, post-reaction and sampling (3.25 + 0.194 + 0.5 h) less R-102's inerting and
+  charging (1.25 h). Core's `start` names only an operation's start, with no offset, so the wait
+  is set by hand and must follow a change of R101's times (L-15);
 - FILTER on F-101 (`units: [F101, M102, F102, D101]`): receiving 0.5 h, the filtration 1.98 h and
   the wash's filtration 0.25 h from Ruth's equation, the reslurry 0.5 h, the drying 5.51 h from
   D101's drying rate, discharging 1 h: 9.746 h;
 - DISTIL on C-101: receiving 1 h, the two cuts 6.67 h (ST101's boil-up), draining 0.5 h: 8.166 h.
-R-101 is the bottleneck: cycle 9.86 h, 803.3 batches in 7920 h; one batch takes 29.44 h from
+R-101 is the bottleneck: cycle 9.86 h, 803.3 batches in 7920 h; one batch takes 28.88 h from
 inerting R-101 to draining C-101. The flowsheet's flows are the recipe's year averages, `per
 batch x 803.3 / 7920 h`: per batch 155.3 kg (6.390 kmol) of magnesium, 591.5 kg (6.390 kmol) of
 tert-butyl chloride, 630.2 kg (4.883 kmol) of dichlorodimethylsilane, 87.8 kg of THF and 24.4 kg
@@ -148,7 +154,8 @@ Two reactors, not one: SRC-1 makes the Grignard reagent and silylates it in one 
 unit procedure holds one batch or semi-batch step (core: "several batch or semibatch steps, name
 one as unit"), so the vessel could neither be sized nor its jacket checked for both steps (L-2);
 and the order of addition of D-004 needs the silane in a second vessel anyway. R-101 is then
-free for the next Grignard charge while R-102 finishes.
+free for the next Grignard charge while R-102 finishes. R-102 is occupied 9.554 h of the 9.86 h
+cycle (its wait included), 0.3 h short of becoming the bottleneck.
 Reason: core ADR 0051 keeps the batch basis in one place; the dosing times come from the jackets
 (D-010), the post-reactions, warm-up, filtrations, drying and boil-up from models, so a change of
 the kinetics, a jacket, the cake or the still changes the cycle (D-011 shows by how much). The
@@ -181,13 +188,19 @@ Decision:
   magnesium and the salt of the side reaction, is dosed into the silane and the catalyst in
   R-102 over 3 h, as SRC-2 added its Grignard solution to the silane and catalyst. SRC-1 drips the
   silane into the Grignard solution instead. Here the recycled solvent carries silane into
-  R-101's charge (0.1389 kmol/h, 28 % of the Grignard reagent formed, D-014), where it does not react
-  (no catalyst, SRC-2 Example 10). With SRC-1's order, the catalyst added to that Grignard
+  R-101's charge (0.1389 kmol/h, 28 % of the Grignard reagent formed, D-014), where it is taken
+  not to react, ASSUMED: there is no catalyst in R-101, but the evidence is an extrapolation.
+  SRC-2's Example 10, the one uncatalysed run read, was in diethylene glycol dibutyl ether at 23
+  and 65 C, not in THF/n-hexane at 313 K with fresh magnesium present, and SRC-1 only states that
+  the reaction was held not to occur, without a control run. If SIL ran uncatalysed in R-101, the
+  0.1389 kmol/h at 200 kJ/mol would add about 7.7 kW year average, about 17 % of Q1, to the heat
+  R101's model and its screening (GRIG and DISP only) count: an open input for the calorimetry
+  (D-011). With SRC-1's order, the catalyst added to that Grignard
   solution would set off all of it at once: in a scratch copy with SRC-1's order (and a 630 kg batch)
   the model's peak in R-102 was 730 kW against the 243 kW its jacket removes at the charge
   (`cheme.recipe-jacket`). With the reverse order the heat follows the Grignard dose (at the
-  ASSUMED rate 32 % of the dosed reagent is still unreacted at the end of the dosing, D-011),
-  the peak is 95 kW (D-010).
+  ASSUMED rate 8.6 % of the dosed Grignard reagent is still unreacted at the end of the dosing,
+  D-011), the peak is 95 kW (D-010).
 Reason: SRC-1's catalyst and amount, SRC-2's order; the magnesium ratio is SRC-1's. The
 initiation charge and hold are the established practice against a delayed initiation (SRC-4,
 methylmagnesium-bromide-1 D-004).
@@ -213,8 +226,12 @@ any of them, searched 2026-11-12):
   heating itself to 60 C as the silane was dripped in bounds it only from below (about 50 kJ/mol,
   my arithmetic). k = 5e-3 m3/(kmol s) at 313 K, Ea 40 kJ/mol: fast, as SRC-1's self-heating and
   SRC-2's phases forming within 5 min suggest; the catalyst is not a component (L-5). No reaction
-  of the silane in R-101 (no catalyst there; SRC-2 Example 10): SIL is not among R101's
-  reactions.
+  of the silane in R-101, ASSUMED (no catalyst there; an extrapolation to THF at 313 K of SRC-2
+  Example 10, run in diethylene glycol dibutyl ether, and of SRC-1's statement; its size if it
+  were wrong, about 7.7 kW or 17 % of Q1: D-004): SIL is not among R101's reactions.
+The Grignard solution is carried as molecular pseudo-components (tert-butylmagnesium chloride
+dissolved in the solvent, an inventory basis): the Schlenk equilibrium and the THF solvates of
+the magnesium species are not modelled (materials.yaml).
 R101 is isothermal at 313.15 K (40 C, below SRC-1's 60 C peak and 11 K below the screening's MTT),
 at 101.3 kPa(a) under nitrogen. R102 is isothermal at 301.3 K, the temperature its charge (the
 silane at 298 K and the heel at 303 K) mixes to: SRC-2's copper-catalysed runs went at 23 C, and
@@ -306,6 +323,11 @@ typed with their arithmetic in the stream's `source`, all ASSUMED where not stat
 - chilled brine 263/268 K: Q1, R-101's reactions 45.20 kW (R101's model, with the doses warmed
   and the vent's vapour); Q2, E-103 0.75 kW; Q3, R-102's reaction 29.97 kW (R102's model); Q9,
   E-201 5.10 kW (the dryer's vapour condensed at 268 K, 3.98 kW, and the vacuum pump's 1.12 kW);
+  Q12 and Q13, the agitators' work, which ends as heat in contents held on brine and which no
+  model counts (L-12): R-101's 5 kW over its dosing, post-reaction, sampling and transfer (6.944
+  of 9.86 h), 3.52 kW, and R-102's 6 kW over its charge, dosing, post-reaction and sampling (5.86
+  h), 3.57 kW; they do not change the jacket checks (R-101 178.1 + 5 = 183 kW against 233.8 kW,
+  R-102 95.1 + 6 = 101 kW against 128.1 kW, D-010);
 - LP steam 350 kPa(a) through hot-water loops: Q4, R-101's warm-up 3.014 kW (the recipe's heat
   of the warm operation with the vessel's metal, 107 MJ a batch); Q8, the dryer 12.23 kW
   (core's dryer model, `cheme process crystallizers`, copied at its precision); Q11, the tracing
@@ -314,18 +336,23 @@ typed with their arithmetic in the stream's `source`, all ASSUMED where not stat
 - tempered water 303/313 K (368/373 K for the product cut): Q6, the still's condenser 168.9 kW;
 - cooling water 298/308 K: Q7, the flaker 3.98 kW (liquid cooling, fusion 5.6 kJ/mol and solid
   cooling of the cut); Q10, the recycle cooler E-301 9.55 kW (S26 from its 336.6 K mix to 303 K);
-- electricity: P1, R-101's agitator 5 kW; P4, R-102's 4.17 kW (6 kW over 6.86 of 9.86 h); P2,
+- electricity: P1, R-101's agitator 5 kW; P4, R-102's 4.17 kW (6 kW over its 6.86 h of
+  operations in the 9.86 h cycle, stopped in the 2.694 h wait, D-003); P2,
   F-101's agitator and vacuum pump 5.07 kW; P3, the flaker 0.08 kW: 14.32 kW.
 Mixed-stream temperatures are taken from their inlets with the liquid heat capacities of
 materials.yaml: S6 302.9 K, S12 302.4 K, S21 301.4 K, S26 336.6 K (from S22 at its bubble point,
 340.3 K, and S19 at 268.15 K), S33 301.3 K.
-Per kg of TBSCl (73.18 kg/h): chilled brine 1.11 kWh removed, LP steam 0.236 kWh, MP steam 2.62
-kWh, tempered water 2.31 kWh, cooling water 0.185 kWh, electricity 0.196 kWh.
+Per kg of TBSCl (73.18 kg/h): chilled brine 1.20 kWh removed (Q12 and Q13 0.097 of it), LP steam
+0.236 kWh, MP steam 2.62 kWh, tempered water 2.31 kWh, cooling water 0.185 kWh, electricity 0.196
+kWh.
 Not counted, with their size: the warm salt's and the filter-dryer's heat after the drying (the
 salt, 562 kg at about 0.75 kJ/(kg K), leaves at about 343 K into the quench drum, about 19
 MJ a batch, 0.5 kW, and the steel cools on the next slurry, whose filtrate the still heats
-anyway); the pipes' and tanks' heat losses other than the product's tracing; the heat of the
-agitators' work in the liquids (in the brine duty's uncertainty).
+anyway); the pipes' and tanks' heat losses other than the product's tracing; R-101's agitator
+work over the solvent charge and the warm-up (1.415 h, about 25 MJ a batch, 0.72 kW year
+average), which warms the charge and would shorten the warm-up on hot water, so Q4 (107 MJ a
+batch) is high by at most that; F-101's agitator work (4 kW), which ends in the cake and the
+filtrate, whose heat the dryer and the still supply anyway.
 Reason: the models give the reactions', the vent condenser's, the still's and the dryer's
 duties; the rest are small sensible and latent heats from the stream table (L-7, L-12). The
 refrigeration unit and the tempered-water loop are outside the boundary (LCA gaps, D-012).
@@ -360,9 +387,14 @@ Result at the base rates (`cheme process reactor-hazards`, core ADRs 0050, 0058,
   GRIG MTSR 317.7 K, DISP 316.1 K, so GRIG sets it (the default) and `hazard.reactions` is not
   needed. The MTSR over the batch rises from 313.4 K at the start to 317.7 K at the end of the
   dosing; the initiation charge is not the worst moment at the base rate.
-- R102: adiabatic rise 91.1 K; the Grignard reagent dosed and not yet reacted is 32.4 % at the
-  end of the 3 h dosing (the profile's value; the screening's headline 79 % is the first 38 s,
-  when a few kg have been dosed); MTSR 309.3 K against 324.1 K.
+- R102: adiabatic rise 91.1 K; MTSR 309.3 K against 324.1 K, at the end of the 3 h dosing. The
+  Grignard reagent dosed and not yet reacted is then 8.6 %: core's accumulation profile gives
+  0.324 there, but of the dichlorodimethylsilane, not of the Grignard reagent (L-14), so of the
+  0.663 kmol/h of silane charged (S33, 0.5243) and dosed with the recycle (S7, 0.1387) 0.215 is
+  left, 0.448 has reacted, and of the 0.490 kmol/h of Grignard reagent dosed 0.042 has not (my
+  arithmetic); the MTSR agrees, (309.3 - 301.3) / 91.1 = 8.7 %. The screening's headline 0.791 is
+  likewise the silane's: the silane charged over the silane charged and dosed, 0.5243 / (0.5243 +
+  0.1387), at the start of the dosing; it is not an accumulation of the Grignard reagent.
 - No TD24 is known (none estimated): no criticality class (`cheme.reactor-hazard-missing`,
   info). With the MTSR below the MTT, core's criticality() gives class 1 or 2 if the TD24 lies
   above the MTSR (1 when it is also above the MTT) and class 5 if it lies below the MTSR; at k/10
@@ -382,14 +414,20 @@ the MTSR forms isobutene and isobutane at 47.9 m3/h, with the liquid's vapour 80
 m3; 12.3 m3 with the vapour).
 Sensitivity of the rate (all three rate constants divided; scratch copies, not in the files):
 
-| case | R101 accumulation | R101 MTSR | gas at the MTSR (R101) | R102 accumulation | R102 MTSR | cycle | batches/a | screening reading |
+| case | R101 accumulation | R101 MTSR | gas at the MTSR (R101) | R102 Grignard reagent accumulated (core's X_ac of the silane) | R102 MTSR | cycle | batches/a | screening reading |
 |---|---|---|---|---|---|---|---|---|
-| base (ASSUMED k) | 2.21 % | 317.7 K | 80.1 m3/h | 32.4 % | 309.3 K | 9.86 h | 803.3 | both MTSR below the MTT (324.1 K) and the liquor's bubble point; gas within the vent |
-| k/10 | 15.5 % | 345.1 K | 109.8 m3/h | 54.1 % | 336.2 K | 25.04 h | 316.3 | both above the MTT; R-101's content boils (105.2 kPa at the MTSR); the non-condensables alone 1.1 times the vent |
-| k/100 (sluggish or delayed initiation) | 62.9 % | 441.1 K | 582.2 m3/h | 88.0 % | 377.8 K | 214.8 h | 36.87 | far above: the solvent boils off, the C4 gases alone 5.8 times the vent |
+| base (ASSUMED k) | 2.21 % | 317.7 K | 80.1 m3/h | 8.6 % (0.324) | 309.3 K | 9.86 h | 803.3 | both MTSR below the MTT (324.1 K) and the liquor's bubble point; gas within the vent |
+| k/10 | 15.5 % | 345.1 K | 109.8 m3/h | 37.9 % (0.541) | 336.2 K | 25.04 h | 316.3 | both above the MTT; R-101's content boils (105.2 kPa at the MTSR); the non-condensables alone 1.1 times the vent |
+| k/100 (sluggish or delayed initiation) | 62.9 % | 441.1 K | 582.2 m3/h | 83.8 % (0.880) | 377.8 K | 214.8 h | 36.87 | far above: the solvent boils off, the C4 gases alone 5.8 times the vent |
 | initiation charge uninitiated (5 % only, k/10000) | 99.9 % of the 5 % | 324.9 K | - | - | - | - | - | the 5 % alone reaches the MTT (the halide's boiling point), 15 K below the liquor's |
 | whole dose uninitiated (k/10000, dosing not stopped) | 99.4 % | 514.5 K | - | - | - | - | - | the classic Grignard runaway (SRC-4) |
 
+R102's accumulation is the Grignard reagent's at the end of the dosing, from the silane balance
+as in the base case (the MTSR gives 8.7, 38.3 and 84.0 %); core's X_ac of the silane is in
+brackets (L-14). The cycles of k/10 and k/100 are R-102's occupancy (the bottleneck there) with
+R-102 inerted and charged just before R-101's later transfer, without an idle wait; the start
+of the files (with R-101's dosing) would add a wait of 5.5 h and 38.3 h to align the dosing
+with that transfer, which core's `start` cannot shorten by an offset (L-15).
 The gas release of the k/10 and k/100 cases takes the rate laws at the MTSR, far outside their
 ASSUMED 293-343 K range, and the content boils there, which the screening does not size: an
 order of magnitude, not a value.
@@ -430,7 +468,8 @@ and an interlock of the vent's routing on the scrubber's water flow; the same ho
 and E-201, whose brine also meets chlorosilane-bearing liquid. TBSCl and the cake's traces of
 silane give HCl with moist air in packing and in the quench drum (SRC-3).
 Open: calorimetry (the heats and rates of GRIG and SIL, the induction time, the side reaction's
-share, TD24 of both reaction masses, of the still residue and of the wet salt), the reliefs of
+share, whether the recycled silane reacts uncatalysed in R-101's THF at 313 K (up to about 7.7
+kW, D-004), TD24 of both reaction masses, of the still residue and of the wet salt), the reliefs of
 R-101 and R-102, the dosing interlocks, the brine's water path, the quench drum.
 Screening values only, not a reaction-hazard assessment.
 
@@ -468,7 +507,7 @@ residue (8.1 g/kg) and the solvent purge (0.141 kg/kg, D-014) to incineration wi
 scrubbing; the vent gas (0.135 kg/kg) to the thermal oxidiser with an acid-gas scrubber.
 Per kg of TBSCl: magnesium 0.215 kg, tert-butyl chloride 0.819 kg, dichlorodimethylsilane 0.873
 kg, THF 0.122 kg, n-hexane 0.034 kg, nitrogen 0.233 kg, sodium thiocyanate 5.7 g, electricity
-0.196 kWh, LP steam 0.236 kWh, MP steam 2.62 kWh, brine 1.11 kWh removed, tempered water 2.31 kWh,
+0.196 kWh, LP steam 0.236 kWh, MP steam 2.62 kWh, brine 1.20 kWh removed, tempered water 2.31 kWh,
 cooling water 0.185 kWh. The stoichiometric floors are 0.614 kg of tert-butyl chloride, 0.161 kg
 of magnesium and 0.856 kg of the silane per kg.
 KPIs (`benchmarks/inorganic-chemicals.yaml`): tert-butyl chloride and dichlorodimethylsilane per
@@ -520,7 +559,7 @@ otherwise from building up.
 | batch rectification (C-101 with K-101) | done in cheme (shortcut column), ideal liquid, TBSCl's vapour pressure ASSUMED | D-007 |
 | solvent recycle | converged in cheme at its tear | D-014 |
 | flaking (E-102) | pass-through, duty by hand | D-007, D-009, L-7 |
-| duties | Q1, Q2, Q3, Q5, Q6 in cheme; Q8 from core's dryer model; Q4 from the recipe's heat; the others by hand | D-009 |
+| duties | Q1, Q2, Q3, Q5, Q6 in cheme; Q8 from core's dryer model; Q4 from the recipe's heat; the others (with the agitators' heat Q12, Q13) by hand | D-009 |
 | per-batch exchanges (nitrogen, sodium thiocyanate) | done in cheme, amounts ASSUMED | D-012 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
@@ -541,7 +580,7 @@ otherwise from building up.
 - L-4 (as methylmagnesium-bromide-1 L-4): **a solid reactant works, as a pseudo-liquid**, with no
   surface-area rate.
 - L-5: **no catalyst.** The thiocyanate's effect is only in SIL's ASSUMED rate constant, and a
-  reaction that needs the catalyst is kept out of R101 by not listing it (SRC-2 Example 10). A
+  reaction that needs the catalyst is kept out of R101 by not listing it (ASSUMED, D-004, D-005). A
   catalyst component with an amount, an activity on a rate law and an addition time in the recipe
   would let the screening show what a late or forgotten catalyst does (the silane accumulates
   in R-102 and reacts when the catalyst comes).
@@ -567,12 +606,26 @@ otherwise from building up.
   warm-up of a charge that is not the batch's first step (R-102 before its dosing) has no model
   of its own apart from `batch.heat_up`, which nets the heating into the cooling duty.
 - L-12 (as potassium-tert-butoxide-1 L-12): the agitators' power is not part of any model's energy
-  balance (D-009).
+  balance: the reactors' agitator heat to brine is typed by hand as Q12 and Q13 (7.09 kW, 0.097
+  kWh/kg, 8 % of the brine), the rest excluded with its size (D-009).
 - L-13 (library, not core): the taxonomy has no organosilicon or organometallics family;
   inorganic-chemicals is the nearest (coverage.yaml).
+- L-14: **a semi-batch cannot name the dosed reactant whose accumulation it reports.** Core takes
+  the first component, in the charge's order, that is dosed and a reactant. R-102's dose (the
+  Grignard solution) carries recycled dichlorodimethylsilane, which the charge lists before the
+  Grignard reagent, so the screening's accumulation of R102 (0.791 headline, 0.324 at the end of
+  the dosing) is the excess silane's, not the Grignard reagent's (8.6 %); the MTSR, from the
+  reactants left, is right. D-011 derives the Grignard reagent's from the silane balance and the
+  MTSR. A `hazard.accumulation_of` (or `dosing.reactant`) would name it.
+- L-15: **a unit procedure's `start` names only an operation's start, with no offset or end
+  alignment.** R-102's dosing must run in R-101's transfer, so R-102 starts with R-101's dosing
+  and waits 2.694 h, a hold set by hand from R101's times (D-003); a change of the kinetics needs
+  the wait changed (a test checks the alignment). A start relative to an operation's end, or a
+  dosing tied to another vessel's transfer, would follow the models.
 
 ## Open inputs
-Calorimetry of both steps (heats, rates, the induction time, the side reaction's share, TD24 of
+Calorimetry of both steps (heats, rates, the induction time, the side reaction's share, an
+uncatalysed silylation in R-101, TD24 of
 the reaction masses, the still residue and the wet salt); an activator for the initiation; the
 reliefs of R-101 and R-102 for the boiling-solvent case and the dosing interlocks (D-011); the
 brine's water path to the chlorosilanes and the scrubber's water (D-011); the quench drum's

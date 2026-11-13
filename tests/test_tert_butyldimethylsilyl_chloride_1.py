@@ -130,11 +130,49 @@ def test_batch_basis_cycle_capacity_and_yield(model):
     calc = _kmol(model, "S25")["TBSCL"] / _kmol(model, "S4")["TBUCL"] * 100
     assert abs(yield_ - calc) < 0.05, (yield_, calc)
     assert calc < 78.0, "a headline yield never above the source's 78 % (US 5 068 386 A)"
-    # REACT's stated operations add up to the cycle
-    times = [0.415, 3.25, 0.195]
-    fixed = sum(op["duration"]["value"] for op in model["procedures"]["REACT"]["operations"]
-                if "duration" in op)
-    assert abs(fixed + sum(times) - cycle) < 0.01, fixed + sum(times)
+
+
+@pytest.fixture(scope="module")
+def schedule():
+    """`cheme process recipe`'s own timeline (core importable): {(procedure, operation): step}."""
+    recipe = pytest.importorskip("chemeascode.domains.process.recipe")
+    report = recipe.recipe_report(PROCESS)
+    assert report is not None and report.cycle_time
+    return report, {(s.procedure, s.operation): s for s in report.steps}
+
+
+def _hours(steps, proc: str, *ops: str) -> float:
+    return sum(steps[(proc, op)].end - steps[(proc, op)].start for op in ops)
+
+
+def test_recipe_times_are_d003s(model, schedule):
+    """D-003's model times, R-102's occupancy and the batch's span are the recipe's."""
+    report, steps = schedule
+    d003 = _section("D-003")
+    assert abs(report.cycle_time - model["batch_hours"]) < 0.01, report.cycle_time
+    assert report.bottleneck == "REACT"
+    for label, op in (("the vessel's metal", "warm"), ("initiation hold", "dose"),
+                      ("conversion of the halide", "react")):
+        stated = _number(rf"{re.escape(label)} \(([\d.]+) h\)", d003)
+        assert abs(stated - _hours(steps, "REACT", op)) < 0.001, (op, stated)
+    occupancy = {u.procedure: u.occupancy for u in report.units}
+    assert abs(_number(r"pressing the slurry to F-101 0.5 h:\s*([\d.]+) h", d003)
+               - occupancy["SILYL"]) < 0.001, occupancy
+    assert occupancy["SILYL"] < report.cycle_time
+    assert abs(_number(r"one batch takes ([\d.]+) h", d003) - report.makespan) < 0.01
+
+
+def test_r102_doses_while_r101_transfers(schedule):
+    """The Grignard solution leaves R-101 only as fast as R-102 doses it: R-102's dosing window
+    is R-101's transfer window (else R-101 is occupied longer than the cycle says)."""
+    _, steps = schedule
+    transfer, dose = steps[("REACT", "transfer")], steps[("SILYL", "dose")]
+    assert abs(dose.start - transfer.start) < 0.005, (dose.start, transfer.start)
+    assert abs(dose.end - transfer.end) < 0.005, (dose.end, transfer.end)
+    # the wait the recipe holds is what R101's times leave
+    wait = steps[("SILYL", "wait")]
+    expected = _hours(steps, "REACT", "dose", "react", "sample") - _hours(steps, "SILYL", "inert", "charge")
+    assert abs((wait.end - wait.start) - expected) < 0.005, (wait, expected)
 
 
 def _log_mean_equivalent(content: float, supply: float, ret: float) -> float:
@@ -160,13 +198,18 @@ def test_r101_heating_medium_below_the_mtt(model):
 
 
 def test_condensers_above_the_freezing_points(model):
-    """Brine above tert-butyl chloride's 247 K; the product cut's hot water above TBSCl's
-    358.1 K (D-007)."""
+    """Brine above tert-butyl chloride's melting point (D-008); the product cut's hot water 10 K
+    above TBSCl's, read from materials.yaml (D-007)."""
     brine = next(p for p in model["flowsheet"]["products"] if p["id"] == "BRINE")["utility"]
-    assert brine["supply_temperature"]["value"] > 247.0 + 10
+    halide_mp = _number(r"brine at 263 K against tert-butyl chloride's (\d+) K", _section("D-008"))
+    assert brine["supply_temperature"]["value"] > halide_mp + 10, halide_mp
     tw = next(p for p in model["flowsheet"]["products"] if p["id"] == "TW")["utility"]
-    assert "368.15 K" in tw["supply_temperature"]["source"] and 368.15 > 358.1
-    assert "10 K above TBSCl's melting point (358.1 K" in _section("D-007")
+    hot = _number(r"its hot supply, ([\d.]+) K", tw["supply_temperature"]["source"])
+    materials = " ".join((PROCESS / "process" / "materials.yaml").read_text(encoding="utf-8")
+                         .replace("#", " ").split())
+    melting = _number(r"its fusion at ([\d.]+) K", materials)
+    assert hot >= melting + 10, (hot, melting)
+    assert f"{hot:.2f} K, 10 K above TBSCl's melting point ({melting} K" in _section("D-007")
 
 
 @pytest.mark.parametrize("mixer,inlets", [
@@ -205,7 +248,11 @@ def test_dryer_condenser_q9_with_the_vacuum_pump(model):
     latent = {"THF": 30600, "HEX": 30200, "TBUCL": 25500, "ME2SICL2": 29600, "TBSCL": 37100}
     vap = _kmol(model, "S16")
     q = sum(n * latent[c] for c, n in vap.items()) + _cp_flow(model, "S16") * (343.15 - 268.15)
-    pump = 2.0 * 5.51 / 9.86
+    p2 = model["streams"]["P2"]["state"]["design"]["duty"]["source"]
+    kw = _number(r"the dry vacuum pump ([\d.]+) kW", p2)
+    drying = _number(r"over the ([\d.]+) h drying", p2)
+    pump = kw * drying / model["batch_hours"]
+    assert abs(_number(r"drying \(([\d.]+) kW\)", p2) - pump) < 0.01, pump
     assert abs(_duty(model, "Q9") - (q / 3600 + pump)) < 0.05, (q / 3600, pump)
 
 
@@ -242,7 +289,13 @@ def test_per_batch_consumables(model):
     assert abs(cons["nitrogen"]["per_batch"] - nm3 * N2_DENSITY) < 0.1
     parts = [float(x) for x in re.findall(r"\(([\d.]+)\)", cons["nitrogen"]["source"].split("ASSUMED")[1])]
     assert abs(sum(parts) + 18.9 - nm3) < 0.05, parts
-    assert abs(19.7 - 2 * 9.86) < 0.05
+    # the vent header's purge: its rate over the recipe's cycle
+    rate, cycle, purge = (float(x) for x in re.search(
+        r"purged at ([\d.]+) Nm3/h over the ([\d.]+) h cycle \(([\d.]+)\)",
+        cons["nitrogen"]["source"]).groups())
+    assert abs(cycle - model["batch_hours"]) < 0.01, cycle
+    assert abs(purge - rate * model["batch_hours"]) < 0.05, (purge, rate * model["batch_hours"])
+    assert "R-102" in cons["nitrogen"]["title"]
 
 
 def test_per_kg_statements(model):
@@ -251,7 +304,7 @@ def test_per_kg_statements(model):
     for name, sid in (("magnesium", "S1"), ("tert-butyl chloride", "S4"), ("dichlorodimethylsilane", "S5")):
         stated = _number(rf"Per kg of TBSCl: .*?{re.escape(name)} ([\d.]+) kg", d012)
         assert abs(stated - _state(model, sid)["flow"]["value"] / product) < 0.001, name
-    brine = sum(_duty(model, q) for q in ("Q1", "Q2", "Q3", "Q9")) / product
+    brine = sum(_duty(model, q) for q in ("Q1", "Q2", "Q3", "Q9", "Q12", "Q13")) / product
     assert abs(_number(r"brine ([\d.]+) kWh removed", d012) - brine) < 0.006, brine
     mps = _duty(model, "Q5") / product
     assert abs(_number(r"MP steam ([\d.]+) kWh", d012) - mps) < 0.006, mps
@@ -287,7 +340,91 @@ def test_screening_reproduces_d011(model):
     r101 = next(e for e in report.entries if e.node == "R101")
     r102 = next(e for e in report.entries if e.node == "R102")
     assert abs(r101.mtt - model["comps"]["TBUCL"]["normal_boiling_point"]) < 0.05, r101.mtt
-    assert abs(r101.mtsr - 317.7) < 0.05 and abs(r102.mtsr - 309.3) < 0.05
+    d011 = _section("D-011")
+    assert abs(r101.mtsr - _number(r"MTSR ([\d.]+) K against an MTT of", d011)) < 0.05, r101.mtsr
+    assert abs(r102.mtsr - _number(r"R102: adiabatic rise [\d.]+ K; MTSR ([\d.]+) K", d011)) < 0.05
     release = r101.gas_release
     assert release and release["vent_capacity_m3_h"] == 100.0
     assert abs(release["rate_m3_h"] - _d011_gas()["base"]) < 0.05, release["rate_m3_h"]
+
+
+def test_agitators_heat_to_brine(model, schedule):
+    """Q12 and Q13: the reactors' agitator work, which ends in contents held on brine, over the
+    recipe's operations (L-12, D-009)."""
+    report, steps = schedule
+    cycle = report.cycle_time
+    p1 = _duty(model, "P1")
+    q12 = p1 * _hours(steps, "REACT", "dose", "react", "sample", "transfer") / cycle
+    assert abs(_duty(model, "Q12") - q12) < 0.01, q12
+    p4 = model["streams"]["P4"]["state"]["design"]["duty"]
+    kw = _number(r"([\d.]+) kW for the 8 m3 vessel", p4["source"])
+    occupancy = next(u.occupancy for u in report.units if u.procedure == "SILYL")
+    running = occupancy - _hours(steps, "SILYL", "wait")
+    assert abs(p4["value"] - kw * running / cycle) < 0.01, (p4["value"], kw * running / cycle)
+    q13 = kw * _hours(steps, "SILYL", "charge", "dose", "react", "sample") / cycle
+    assert abs(_duty(model, "Q13") - q13) < 0.01, q13
+    d009 = _section("D-009")
+    assert f"{_duty(model, 'Q12'):.2f} kW, and R-102's" in d009
+    assert f"{_duty(model, 'Q13'):.2f} kW; they do not change the jacket checks" in d009
+
+
+def _r102_silane(model) -> tuple[float, float, float]:
+    """kmol/h of silane charged to R-102 (S33), of silane dosed with the Grignard solution (S7,
+    the recycle's), and of Grignard reagent dosed."""
+    dose = _kmol(model, "S7")
+    return _kmol(model, "S33")["ME2SICL2"], dose["ME2SICL2"], dose["TBUMGCL"]
+
+
+def _grignard_left(model, x_silane: float) -> float:
+    """The Grignard reagent dosed and not yet reacted, from core's X_ac of the silane (L-14):
+    1:1 in SIL, so what the silane lost is what the Grignard reagent lost."""
+    charged, dosed, grignard = _r102_silane(model)
+    reacted = (charged + dosed) * (1.0 - x_silane)
+    return (grignard - reacted) / grignard
+
+
+def _d011_r102() -> dict[str, tuple[float, float, float]]:
+    d011 = _section("D-011")
+    rows = {}
+    for name, key in (("base (ASSUMED k)", "base"), ("k/10", "k/10"),
+                      ("k/100 (sluggish or delayed initiation)", "k/100")):
+        m = re.search(rf"\| {re.escape(name)} \|(?:[^|]*\|){{3}} ([\d.]+) % \(([\d.]+)\) \| ([\d.]+) K \|", d011)
+        assert m, f"D-011: no R102 accumulation for {name}"
+        rows[key] = tuple(float(x) for x in m.groups())
+    return rows
+
+
+def test_r102_accumulation_is_the_grignard_reagents(model):
+    """Core's X_ac of R102 is the excess silane's (the dose carries recycled silane, listed first):
+    its headline is the silane charged over the silane charged and dosed; D-011 reports the
+    Grignard reagent's from the silane balance, and the MTSR agrees."""
+    charged, dosed, _ = _r102_silane(model)
+    d011, d004, limits = _section("D-011"), _section("D-004"), _section("Core limits hit")
+    headline = _number(r"The screening's headline ([\d.]+) is likewise the silane's", d011)
+    assert abs(headline - charged / (charged + dosed)) < 0.0005, charged / (charged + dosed)
+    assert f"({headline} headline" in limits
+    rise = _number(r"R102: adiabatic rise ([\d.]+) K", d011)
+    t_p = _state(model, "S9")["temperature"]["value"]
+    rows = _d011_r102()
+    for key, (pct, x_silane, mtsr) in rows.items():
+        assert abs(pct - 100 * _grignard_left(model, x_silane)) < 0.06, (key, 100 * _grignard_left(model, x_silane))
+        assert abs(pct - 100 * (mtsr - t_p) / rise) < 0.6, (key, 100 * (mtsr - t_p) / rise)
+    base_pct, base_x, _ = rows["base"]
+    assert f"Grignard reagent dosed and not yet reacted is then {base_pct} %" in d011
+    assert f"core's accumulation profile gives {base_x} there" in d011
+    assert f"rate {base_pct} % of the dosed Grignard reagent is still unreacted" in d004
+
+
+def test_r102_screening_is_the_silanes(model):
+    """With core importable: the screening's R102 accumulation and its profile at the end of the
+    dosing are the silane's of D-011."""
+    rh = pytest.importorskip("chemeascode.domains.safety.reaction_hazards")
+    r102 = next(e for e in rh.screen(PROCESS).entries if e.node == "R102")
+    charged, dosed, _ = _r102_silane(model)
+    assert abs(r102.accumulation - charged / (charged + dosed)) < 0.002, r102.accumulation
+    dose_s = model["steps"]["R102"]["batch"]["dosing"][0]["time"]
+    end = next(p for p in r102.mtsr_profile if abs(p["time_s"] - dose_s) < 1.0)
+    base_pct, base_x, base_mtsr = _d011_r102()["base"]
+    assert abs(end["accumulation"] - base_x) < 0.0005, end
+    assert abs(end["mtsr_K"] - base_mtsr) < 0.05, end
+    assert abs(100 * _grignard_left(model, end["accumulation"]) - base_pct) < 0.06

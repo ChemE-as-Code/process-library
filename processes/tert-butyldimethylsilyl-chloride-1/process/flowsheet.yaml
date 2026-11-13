@@ -99,7 +99,7 @@ products:
   - {id: WSOLV, title: Solvent purge to solvent incineration, category: solid_waste, ports: [{id: in, direction: in}]}
   - {id: OXID, title: "Vent gas (isobutene, isobutane, solvent vapour) to the thermal oxidiser", category: off_gas, ports: [{id: in, direction: in}]}
   - id: BRINE
-    title: Chilled brine return (the jackets of R-101 and R-102, R-101's vent condenser, the dryer's vapour condenser)
+    title: "Chilled brine return (the jackets of R-101 and R-102 with R-102's coil, their agitators' heat, R-101's vent condenser, the dryer's vapour condenser)"
     category: utility
     utility:
       kind: refrigerant
@@ -110,6 +110,8 @@ products:
       - {id: r101, direction: in, kind: energy}
       - {id: r101v, direction: in, kind: energy}
       - {id: r102, direction: in, kind: energy}
+      - {id: r101a, direction: in, kind: energy}
+      - {id: r102a, direction: in, kind: energy}
       - {id: e201, direction: in, kind: energy}
   - id: TW
     title: "Tempered-water return (C-101's condenser: 303/313 K for the recovered cut, 368/373 K for the product cut)"
@@ -151,6 +153,8 @@ blocks:
       - {id: brine, direction: out, kind: energy}
       - {id: brinev, direction: out, kind: energy}
       - {id: brine2, direction: out, kind: energy}
+      - {id: brinea, direction: out, kind: energy}
+      - {id: brine2a, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
       - {id: power2, direction: in, kind: energy}
   - id: FILT
@@ -248,6 +252,7 @@ steps:
       - {id: gas, direction: out, delegates: vent}
       - {id: q, direction: out, kind: energy, delegates: brine}
       - {id: qv, direction: out, kind: energy, delegates: brinev}
+      - {id: qa, direction: out, kind: energy, delegates: brinea}
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: M103
     block: REACT
@@ -278,6 +283,7 @@ steps:
       - {id: dose, direction: in}
       - {id: out, direction: out, delegates: slurry}
       - {id: q, direction: out, kind: energy, delegates: brine2}
+      - {id: qa, direction: out, kind: energy, delegates: brine2a}
       - {id: power, direction: in, kind: energy, delegates: power2}
   - id: F101
     block: FILT
@@ -409,7 +415,7 @@ steps:
         - {outlet: product, end: {residue: {key: TBSCL, mole_fraction: 0.5}}}
       outlets: {residue: bottom}
       provenance: assumed
-      source: "the solvent with the excess silane and the unreacted halide distilled to the recycle until dichlorodimethylsilane is 10 ppm (mol) of the still, then the product cut until TBSCl is half of the residue's moles, the rest the salt fines (D-007)"
+      source: "the solvent with the excess silane and the unreacted halide distilled to the recycle until dichlorodimethylsilane is 0.1 mol% (1000 ppm) of the still, then the product cut until TBSCl is half of the residue's moles, the rest the salt fines (D-007)"
     links: [{target: equipment, ref: C-101}, {target: equipment, ref: K-101}]
     ports:
       - {id: in, direction: in}
@@ -562,10 +568,10 @@ streams:
     template: process
     state:
       design:
-        composition: {basis: mole_fraction, values: {TBUCL: 0.000120271, ME2SICL2: 0.0257266, THF: 0.681955, HEX: 0.152081, TBSCL: 0.0199673, MG: 0.0146133, TBUMGCL: 0.0909338, MGCL2: 0.0146027, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
-        flow: {value: 436.665, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
-        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+        composition: {basis: mole_fraction, values: {TBUCL: 0.000120271, ME2SICL2: 0.0257266, THF: 0.681955, HEX: 0.152081, TBSCL: 0.0199673, MG: 0.0146133, TBUMGCL: 0.0909338, MGCL2: 0.0146027, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: b259cb8952ce8a7b}
+        flow: {value: 436.665, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: b259cb8952ce8a7b}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: b259cb8952ce8a7b}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: b259cb8952ce8a7b}
   - id: S8
     title: R-101 vent (C4 gases with the solvent's vapour, past the vent condenser)
     from: R101.gas
@@ -573,10 +579,10 @@ streams:
     template: offgas
     state:
       design:
-        composition: {basis: mole_fraction, values: {IB: 0.476279, IBA: 0.476279, THF: 0.0383777, HEX: 0.00753956, TBUCL: 0.000358178, ME2SICL2: 0.00115816, TBSCL: 8.0665e-06}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
-        flow: {value: 9.58834, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
-        temperature: {value: 268.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: 99ad4db8f929391f}
+        composition: {basis: mole_fraction, values: {IB: 0.476279, IBA: 0.476279, THF: 0.0383777, HEX: 0.00753956, TBUCL: 0.000358178, ME2SICL2: 0.00115816, TBSCL: 8.0665e-06}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: b259cb8952ce8a7b}
+        flow: {value: 9.58834, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: b259cb8952ce8a7b}
+        temperature: {value: 268.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: b259cb8952ce8a7b}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S6B', fingerprint: b259cb8952ce8a7b}
   - id: S9
     title: Reaction slurry to F-101
     from: R102.out
@@ -584,10 +590,10 @@ streams:
     template: process
     state:
       design:
-        composition: {basis: mole_fraction, values: {THF: 0.64577, HEX: 0.14397, TBUCL: 0.000113897, ME2SICL2: 0.025262, TBSCL: 0.090429, MG: 0.0114881, TBUMGCL: 7.1487e-05, MGCL2: 0.0828953, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: e305a5bbd79c73fa}
+        composition: {basis: mole_fraction, values: {THF: 0.64577, HEX: 0.14397, TBUCL: 0.000113897, ME2SICL2: 0.025262, TBSCL: 0.090429, MG: 0.0114881, TBUMGCL: 7.1487e-05, MGCL2: 0.0828953, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: 8f9518ff39a76a6d}
         flow: {value: 576.426, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: a7a6ca45a869a2d1}
-        temperature: {value: 301.3, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: e305a5bbd79c73fa}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: e305a5bbd79c73fa}
+        temperature: {value: 301.3, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: 8f9518ff39a76a6d}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S33', fingerprint: 8f9518ff39a76a6d}
   - id: S10
     title: Filter cake
     from: F101.cake
@@ -731,7 +737,7 @@ streams:
     template: process
     state:
       design:
-        temperature: {value: 308.15, provenance: assumed, source: "cooled on the flaker (D-008)"}
+        temperature: {value: 308.15, provenance: assumed, source: "cooled on the flaker (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         flow: {value: 73.1806, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S23', fingerprint: 468b64bcb3b0a345}
         composition: {basis: mole_fraction, values: {THF: 0.00289786, HEX: 0.00345744, TBUCL: 1.86134e-12, ME2SICL2: 0.00100995, TBSCL: 0.992635, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S23', fingerprint: 468b64bcb3b0a345}
@@ -773,8 +779,8 @@ streams:
     template: process
     state:
       design:
-        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136547, ME2SICL2: 0.0301994, TBSCL: 0.0234068, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, wegstein)', fingerprint: 77d619b835f6d14b}
-        flow: {value: 505.871, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, wegstein)', fingerprint: 77d619b835f6d14b}
+        composition: {basis: mole_fraction, values: {THF: 0.773949, HEX: 0.172308, TBUCL: 0.000136547, ME2SICL2: 0.0301994, TBSCL: 0.0234068, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0, IB: 0.0, IBA: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, wegstein)', fingerprint: 0d8d715599dde250}
+        flow: {value: 505.871, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, wegstein)', fingerprint: 0d8d715599dde250}
   - id: S30
     title: Recycled solvent to R-101
     from: SP302.rec
@@ -824,9 +830,9 @@ streams:
         composition: {basis: mole_fraction, values: {IB: 0.466776, IBA: 0.466776, THF: 0.0527275, HEX: 0.0107555, TBUCL: 0.000353698, ME2SICL2: 0.00172524, TBSCL: 0.000885267, MG: 0.0, TBUMGCL: 0.0, MGCL2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S8 S18', fingerprint: d07419484c1ae26e}
         flow: {value: 9.8563, provenance: calculated, source: 'cheme process propagate: mixer M401 from S8 S18', fingerprint: 4283d8ebef728196}
   # energy
-  - {id: Q1, title: Heat of the Grignard step to brine (R101's model), kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 45.2023, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S4 S6B', fingerprint: 18e4dedb87230166}}}}
-  - {id: Q2, title: R-101 vent condenser to brine (R101's model), kind: energy, from: R101.qv, to: BRINE.r101v, state: {design: {duty: {value: 0.747506, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S4 S6B', fingerprint: d7d089bd872f5c62}}}}
-  - {id: Q3, title: Heat of the silylation to brine (R102's model), kind: energy, from: R102.q, to: BRINE.r102, state: {design: {duty: {value: 29.9723, provenance: calculated, source: 'cheme process propagate: semibatch duty R102 from S7 S33', fingerprint: f1f245f3374e38e8}}}}
+  - {id: Q1, title: Heat of the Grignard step to brine (R101's model), kind: energy, from: R101.q, to: BRINE.r101, state: {design: {duty: {value: 45.2023, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S4 S6B', fingerprint: b4e4570c7f3b482d}}}}
+  - {id: Q2, title: R-101 vent condenser to brine (R101's model), kind: energy, from: R101.qv, to: BRINE.r101v, state: {design: {duty: {value: 0.747506, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S4 S6B', fingerprint: 3a78a45762e0a75c}}}}
+  - {id: Q3, title: Heat of the silylation to brine (R102's model), kind: energy, from: R102.q, to: BRINE.r102, state: {design: {duty: {value: 29.9723, provenance: calculated, source: 'cheme process propagate: semibatch duty R102 from S7 S33', fingerprint: cbbba69966f1d818}}}}
   - {id: Q4, title: "Charge warming (R-101 jacket, hot water from LP steam)", kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 3.014, provenance: assumed, source: "cheme process recipe (core 1.11.0): the warm operation of R-101, the charge from 302.9 to 313.15 K with the vessel's metal, 107 MJ per batch (content 76.24, metal 30.75 MJ) over the 9.86 h cycle, year average 3.014 kW; losses not counted (D-009)"}}}}
   - {id: Q5, title: Still reboiler (ST101's model), kind: energy, from: MPS.st101, to: ST101.steam, state: {design: {duty: {value: 191.938, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S21', fingerprint: f02f9ae68be0d579}}}}
   - {id: Q6, title: Still condenser to tempered water (ST101's model), kind: energy, from: ST101.cond, to: TW.st101, state: {design: {duty: {value: 168.934, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S21', fingerprint: 2e0ad8dc6995d5de}}}}
@@ -835,8 +841,10 @@ streams:
   - {id: Q9, title: Dryer vapour condenser E-201 to brine, kind: energy, from: E201.q, to: BRINE.e201, state: {design: {duty: {value: 5.10, provenance: assumed, source: "hand arithmetic (D-009): S16 condensed at the latent heats of D101 at 343 K (THF 30.6, n-hexane 30.2, Me2SiCl2 29.6, TBSCl 37.1 kJ/mol; 10360 kJ/h) and the condensate cooled to 268.15 K (53.07 kJ/(h K) x 75 K = 3980 kJ/h): 3.98 kW; with the dry vacuum pump's power, 1.12 kW of P2, which heats the gas it compresses: 5.10 kW"}}}}
   - {id: Q10, title: Recovered solvent cooler E-301, kind: energy, from: E301.q, to: CW.e301, state: {design: {duty: {value: 9.545, provenance: assumed, source: "hand arithmetic (D-009): S26 cooled from 336.6 to 303.15 K, 1027.3 kJ/(h K) of the components' liquid heat capacities (materials.yaml) x 33.45 K = 34363 kJ/h: 9.545 kW"}}}}
   - {id: Q11, title: "Tracing of the product's receiver and lines (LP steam)", kind: energy, from: LPS.trace, to: E102.trace, state: {design: {duty: {value: 2.0, provenance: assumed, source: "ASSUMED (D-009): the heat losses of the product receiver and its lines held at about 373 K above TBSCl's melting point, about 2 kW all year (no layout yet)"}}}}
+  - {id: Q12, title: "R-101 agitator's work to brine", kind: energy, from: R101.qa, to: BRINE.r101a, state: {design: {duty: {value: 3.52, provenance: assumed, source: "hand arithmetic (D-009): R-101's agitator, 5 kW (P1), ends as heat in the content held at 313 K on brine over the dosing, the post-reaction, the sampling and the transfer, 3.25 + 0.194 + 0.5 + 3.0 = 6.944 h of the 9.86 h cycle (`cheme process recipe`): 3.52 kW; R101's model leaves it out (L-12); its work over the solvent charge and the warm-up warms the charge and is not counted (D-009)"}}}}
+  - {id: Q13, title: "R-102 agitator's work to brine", kind: energy, from: R102.qa, to: BRINE.r102a, state: {design: {duty: {value: 3.57, provenance: assumed, source: "hand arithmetic (D-009): R-102's agitator, 6 kW (P4), ends as heat in the content held at 301.3 K on brine over the charge, the dosing, the post-reaction and the sampling, 0.75 + 3 + 1.61 + 0.5 = 5.86 h of the 9.86 h cycle (`cheme process recipe`): 3.57 kW; R102's model leaves it out (L-12)"}}}}
   - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: "ASSUMED (D-009): about 0.8 kW/m3 for a 6.3 m3 vessel stirring a slurry of magnesium turnings, 5 kW over R-101's whole cycle (100 % occupied)"}}}}
   - {id: P2, title: "F-101 agitator and dry vacuum pump", kind: energy, from: POWER.d101, to: D101.power, state: {design: {duty: {value: 5.07, provenance: assumed, source: "ASSUMED (D-009): the agitator 4 kW over F-101's 9.746 h of the 9.86 h cycle (3.95 kW) and the dry vacuum pump 2 kW over the 5.51 h drying (1.12 kW)"}}}}
   - {id: P3, title: Flaker drive, kind: energy, from: POWER.e102, to: E102.power, state: {design: {duty: {value: 0.081, provenance: assumed, source: "ASSUMED (D-009): the flaker's drum and knife, 1.5 kW while the product cut runs, 0.532 h of the 9.86 h cycle"}}}}
-  - {id: P4, title: R-102 agitator, kind: energy, from: POWER.r102, to: R102.power, state: {design: {duty: {value: 4.17, provenance: assumed, source: "ASSUMED (D-009): about 0.75 kW/m3, 6 kW for the 8 m3 vessel, over R-102's 6.86 h of the 9.86 h cycle"}}}}
+  - {id: P4, title: R-102 agitator, kind: energy, from: POWER.r102, to: R102.power, state: {design: {duty: {value: 4.17, provenance: assumed, source: "ASSUMED (D-009): about 0.75 kW/m3, 6 kW for the 8 m3 vessel, over R-102's 6.86 h of operations in the 9.86 h cycle (inerting, charge, dosing, post-reaction, sampling, transfer); stopped while R-102 stands charged for the 2.694 h wait (`cheme process recipe`, D-003)"}}}}
 layout: {bfd: {}, pfd: {}}

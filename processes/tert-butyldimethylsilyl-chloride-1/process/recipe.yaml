@@ -1,5 +1,5 @@
 # The batch recipe of tert-butyldimethylsilyl-chloride-1 (schema cheme/recipe/v1, `cheme process
-# recipe`, DESIGN.md D-003). One batch makes 630 kg of TBSCl flakes (stream S25); the
+# recipe`, DESIGN.md D-003). One batch makes 721.9 kg of TBSCl flakes (stream S25); the
 # flowsheet's rates are the year averages.
 # - R-101 is one vessel over the charge (M101), its warm-up (E101) and the Grignard step (R101):
 #   `units`, core ADR 0057; R-102 takes the Grignard solution for the silylation (R102): a unit
@@ -43,9 +43,13 @@ unit_procedures:
   - id: SILYL
     unit: R102
     title: Silylation (R-102)
-    # R-102 is inerted and charged while R-101 finishes its post-reaction and sampling, so that
-    # its dosing starts about when R-101's transfer does (the occupancy does not depend on it)
-    start: {after: REACT, operation: react}
+    # R-102 is inerted and charged while R-101 doses its halide, then waits, charged, until the
+    # Grignard solution is ready: its dosing must run exactly in R-101's transfer, because the
+    # solution leaves R-101 only as fast as R-102 takes it. The wait is R-101's dose, react and
+    # sample (3.25 + 0.194 + 0.5 h, two from R101's model) less R-102's inerting and charging
+    # (1.25 h): 2.694 h, so R-102 doses over 6.86-9.86 h as R-101 transfers (a test checks the
+    # two windows in `cheme process recipe`; a change of R101's times needs the wait changed).
+    start: {after: REACT, operation: dose}
     vessel:
       fill_fraction: 0.8
       aspect_ratio: 1.2
@@ -56,6 +60,7 @@ unit_procedures:
     operations:
       - {id: inert, kind: other, title: Inert R-102 with nitrogen, duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: charge, kind: charge, title: "Charge the dichlorodimethylsilane and the heel of recovered solvent, add the sodium thiocyanate through the solids port", duration: {value: 0.75, provenance: assumed, source: "D-003, D-004"}}
+      - {id: wait, kind: hold, title: "Charged, waiting for the Grignard solution (R-101's dosing, post-reaction and sampling)", duration: {value: 2.694, provenance: assumed, source: "aligns R-102's dosing with R-101's transfer: 3.25 + 0.194 + 0.5 - 0.5 - 0.75 h (D-003)"}}
       - {id: dose, kind: dose, title: Dose the Grignard solution from R-101, from: R102}
       - {id: react, kind: react, title: Post-reaction of the silylation, from: R102}
       - {id: sample, kind: hold, title: "Sample (GC) for the conversion of the Grignard reagent", duration: {value: 0.5, provenance: assumed, source: D-003}}
