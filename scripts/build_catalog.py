@@ -16,7 +16,8 @@ Output (``--out``), all JSON with sorted keys, no timestamps, so two runs on the
 byte-identical:
 
 - ``catalog.json``: the list of processes (summaries, each with ``preliminary`` and ``gap_count``
-  from the LCI mapping gaps, ADR 0026; an LCA headline's ``value`` is null and ``not_computed``
+  from the LCI mapping gaps, ADR 0026, and ``estimated`` and ``estimate_count`` from the exchanges
+  linked to an estimate proxy, which keep the process ``preliminary`` too, ADR 0039; an LCA headline's ``value`` is null and ``not_computed``
   true where nothing was characterised, never 0, with ``not_computed_reason``; a category every
   contribution of which is a gap has no total in ``processes/<id>.json`` either, ADR 0029), families (with their taxonomy title,
   group and ISIC Rev.4 / NACE Rev. 2 classes, ``taxonomy/families.yaml``), library commit
@@ -291,10 +292,11 @@ def _name_functional_unit(functional_unit: dict, flows: dict[str, list[dict]], p
     functional_unit["label"] = f"{functional_unit.get('amount', '')} {functional_unit.get('unit', '')} {_display_name(name)}".strip()
 
 
-def _lci_gaps(library: Path, public: bool, report: Report) -> dict[str, list[dict]] | None:
-    """Each process's LCI mapping gaps, as ``build_lci.py`` reports them (a process with any is
-    preliminary, ADR 0026), from a throwaway LCI build. None when that build fails: an error in a
-    public build, which must not publish a value unmarked, otherwise a warning."""
+def _lci_gaps(library: Path, public: bool, report: Report) -> tuple[dict[str, list[dict]], dict[str, list[dict]]] | None:
+    """Each process's LCI mapping gaps (a process with any is preliminary, ADR 0026) and its
+    exchanges linked to an estimate proxy (ADR 0039: preliminary too, and ``estimated``), as
+    ``build_lci.py`` reports them, from a throwaway LCI build. None when that build fails: an
+    error in a public build, which must not publish a value unmarked, otherwise a warning."""
     import tempfile
 
     import build_lci
@@ -308,7 +310,10 @@ def _lci_gaps(library: Path, public: bool, report: Report) -> dict[str, list[dic
     gaps: dict[str, list[dict]] = defaultdict(list)
     for gap in lci.gaps:
         gaps[gap["process"]].append({key: gap[key] for key in ("dataset", "key", "type", "link")})
-    return gaps
+    estimates: dict[str, list[dict]] = defaultdict(list)
+    for found in lci.estimates:
+        estimates[found["process"]].append({key: found[key] for key in ("dataset", "key", "proxy", "chemical", "basis")})
+    return gaps, estimates
 
 
 def _not_computed(lca: dict) -> list[str]:
@@ -905,7 +910,11 @@ def build(
         render = _render_info(artifacts, pid)
         stale = bool(render) and _behind(library, render.get("source_commit"), source_commit)
         withhold = bool(lca) and not lca["publishable"]
-        gaps = (lci_gaps or {}).get(pid, [])
+        gaps = lci_gaps[0].get(pid, []) if lci_gaps else []
+        # ADR 0039: an exchange linked to an estimate proxy is estimated, not modelled; the entry
+        # stays preliminary, with its own flag and list, also when no gap is left
+        estimates = lci_gaps[1].get(pid, []) if lci_gaps else []
+        preliminary = bool(gaps or estimates)
         publish = {"manifest": manifest, "withhold": withhold} if public else None
         viewer = _viewer(snapshots, pid, out, where, report, publish) if plant else None
         if viewer:
@@ -943,9 +952,12 @@ def build(
             "design_basis": _design_basis(folder) if plant else None,
             "gates": _gates(folder) if plant else None,
             "lca": lca,
-            "preliminary": bool(gaps),
+            "preliminary": preliminary,
             "gap_count": len(gaps),
             "lci_gaps": gaps,
+            "estimated": bool(estimates),
+            "estimate_count": len(estimates),
+            "lci_estimates": estimates,
             "issues": _issues(issues_data, pid, forms),
             "benchmarks": kpis,
             "provenance": {
@@ -973,7 +985,8 @@ def build(
                 # never a 0 where nothing was characterised, and never a value without its marking
                 "value": None if first["id"] in not_computed else baseline.get(first["id"]),
                 "not_computed": first["id"] in not_computed,
-                "preliminary": bool(gaps),
+                "preliminary": preliminary,
+                "estimated": bool(estimates),
                 "unit": first["unit"],
                 "functional_unit": lca["functional_unit"]["label"],
                 "factors_status": lca["factors_status"],
@@ -1000,8 +1013,10 @@ def build(
                 "engineering_project": plant is not None,
                 "interactive": viewer is not None,
                 "lca": headline,
-                "preliminary": bool(gaps),
+                "preliminary": preliminary,
                 "gap_count": len(gaps),
+                "estimated": bool(estimates),
+                "estimate_count": len(estimates),
                 "open_issues": None if issues_data is None else sum(
                     1 for i in issues_data["issues"] if pid in i.get("processes", []) and i["state"] == "open"
                 ),

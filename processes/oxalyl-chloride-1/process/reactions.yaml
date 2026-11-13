@@ -1,0 +1,98 @@
+# Reactions of oxalyl-chloride-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The route is Bayer's one-pot process of US 4 341 720 A (priority DE 2840435, 1978), Examples 19
+# and 20 (DESIGN.md D-001): phosphorus trichloride is chlorinated to phosphorus pentachloride in
+# phosphoryl chloride with an amine catalyst (2,4-dimethylpyridine), then anhydrous oxalic acid,
+# suspended in phosphoryl chloride, is dosed in; oxalyl chloride, phosphoryl chloride and HCl
+# form, and the residue (the excess PCl5 in POCl3 with the catalyst) is chlorinated again for the
+# next batch.
+# - CHL (R101): PCl3 + Cl2 -> PCl5, chlorine dosed as a gas into the recycled residue with the
+#   fresh PCl3 (D-005);
+# - OXC (R102): (COOH)2 + 2 PCl5 -> (COCl)2 + 2 POCl3 + 2 HCl, the main reaction (the patent's
+#   overall equation);
+# - DEC (R102): (COOH)2 + PCl5 -> CO + CO2 + POCl3 + 2 HCl, the loss: the patent names the
+#   decomposition of the acid's monochloride to CO, CO2 and HCl as the by-product route; its
+#   share is calibrated to the yields of Examples 19 and 20 (D-005, D-006);
+# - OXH, POH (A101): the oxalyl chloride and phosphoryl chloride vapour that passes the vent
+#   condenser is hydrolysed by the absorber water (D-010).
+# No open kinetics or calorimetry was found (searched 2026-11-12): the rate laws are ASSUMED.
+# The heats of reaction are from the standard formation enthalpies of the CRC Handbook as
+# packaged in the chemicals 1.5.2 package (CRC_standard_data; SRC-5): oxalyl chloride (l)
+# -367.6 (as NIST WebBook, Pedley et al. 1986), phosphoryl chloride (l) -597.1, phosphorus
+# trichloride (l) -319.7, phosphorus pentachloride (s) -443.5, oxalic acid (s) -829.9, phosphoric
+# acid (l) -1271.7, water (l) -285.8, hydrogen chloride (g) -92.3, carbon monoxide (g) -110.5,
+# carbon dioxide (g) -393.5, oxalyl chloride (g) -335.8 and phosphoryl chloride (g) -558.5
+# kJ/mol, at 298 K and used at 333 K (D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CHL
+    title: Chlorination of phosphorus trichloride to phosphorus pentachloride
+    equation: PCl3 + Cl2 -> PCl5
+    stoichiometry: {PCL3: -1, CL2: -1, PCL5: 1}
+    phase: liquid
+    heat_of_reaction: {value: -103400, provenance: assumed, source: "CRC formation enthalpies packaged in chemicals 1.5.2: PCl5 (s) -443.5 less PCl3 (l) -319.7 is -123.8 kJ/mol with chlorine as the gas; on the dissolved basis, the chlorine's heat of solution (-20.4 kJ/mol, the dose's heat_of_solution in R101) taken off: -103.4 kJ/mol; the PCl5 precipitates as the solid, its heat of solution in POCl3 not known (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 0.1 m3/(kmol s) at 333.15 K, Ea 40 kJ/mol:
+      # A = 0.1 x exp(40000 / (8.314 x 333.15))
+      k: {A: 1.870e5, Ea: 40000}
+      orders: {PCL3: 1, CL2: 1}
+      temperature_range: [313.15, 363.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics found (2026-11-12); US 4 341 720 A chlorinates the PCl3 in POCl3 with the amine at 85 C as fast as the chlorine is fed (Examples 19 and 20: 6 h and 3 h), so the rate is taken as limited by the dosing"
+    sources: ["US 4 341 720 A (Bayer AG, priority 1978), Examples 19 and 20: PCl3 and the amine in POCl3 (or the previous batch's residue), chlorine introduced at 85 C"]
+  - id: OXC
+    title: Oxalic acid and phosphorus pentachloride to oxalyl chloride, phosphoryl chloride and HCl
+    equation: C2H2O4 + 2 PCl5 -> C2Cl2O2 + 2 Cl3OP + 2 HCl
+    stoichiometry: {OXA: -1, PCL5: -2, OXCL: 1, POCL3: 2, HCL: 2}
+    phase: liquid
+    heat_of_reaction: {value: -29500, provenance: assumed, source: "CRC formation enthalpies packaged in chemicals 1.5.2: -367.6 + 2 x -597.1 + 2 x -92.3 + 829.9 + 2 x 443.5 = -29.5 kJ/mol, oxalic acid and PCl5 as the solids, oxalyl chloride and POCl3 as liquids, HCl formed as a gas (core ADR 0054); US 4 390 708 A describes the classic solid-solid reaction as having endothermic and exothermic stages, no value (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order (first in each): k = 1.02e-3 m3/(kmol s) at 333.15 K (0.85 of 1.2e-3),
+      # Ea 60 kJ/mol: A = 1.02e-3 x exp(60000 / (8.314 x 333.15)) = 1.02e-3 x 2.5571e9
+      k: {A: 2.608e6, Ea: 60000}
+      orders: {OXA: 1, PCL5: 1}
+      temperature_range: [313.15, 363.15]
+      provenance: assumed
+      source: "ASSUMED effective rate of the suspended acid with the PCl5 slurry (D-005): no open kinetics found (2026-11-12); the sum of OXC and DEC, 1.2e-3 m3/(kmol s) at 333 K, sized so that the acid dosed over the 4 h of US 4 341 720 A, Examples 19 and 20, reacts to 0.999 within about the 0.5 h after-reaction of the examples; to be replaced by reaction calorimetry"
+    sources: ["US 4 341 720 A (Bayer AG), the overall equation 2 PCl5 + HOOC-COOH -> ClCO-COCl + 2 HCl + 2 POCl3; Examples 19 and 20: 375 g of oxalic acid in 375 g of POCl3 added over 4 h at 60 C and 250 mbar, 0.5 h at 70 C"]
+  - id: DEC
+    title: Decomposition of the oxalic acid to CO and CO2 (the yield loss)
+    equation: C2H2O4 + PCl5 -> CO + CO2 + Cl3OP + 2 HCl
+    stoichiometry: {OXA: -1, PCL5: -1, CO: 1, CO2: 1, POCL3: 1, HCL: 2}
+    phase: liquid
+    heat_of_reaction: {value: -12300, provenance: assumed, source: "CRC formation enthalpies packaged in chemicals 1.5.2: -110.5 - 393.5 - 597.1 + 2 x -92.3 + 829.9 + 443.5 = -12.3 kJ/mol, the gases formed as gases (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 1.8e-4 m3/(kmol s) at 333.15 K (0.15 of 1.2e-3), Ea 60 kJ/mol as OXC, so that the
+      # selectivity to oxalyl chloride is 0.85 at every moment (D-006)
+      k: {A: 4.603e5, Ea: 60000}
+      orders: {OXA: 1, PCL5: 1}
+      temperature_range: [313.15, 363.15]
+      provenance: assumed
+      source: "ASSUMED (D-005, D-006): the share of the acid lost to CO and CO2 calibrated to the oxalyl chloride in the crude distillate of US 4 341 720 A, Examples 19 and 20: 2052 g at 21.9 wt%, 449 g or 3.54 mol from 375 g (4.17 mol) of acid, 85.0 % of theory (445 g, 84.2 %, isolated); the patent states the monochloride's decomposition to CO, CO2 and HCl as the by-product route, no rate"
+    sources: ["US 4 341 720 A (Bayer AG): the oxalic acid monochloride decomposes to CO, CO2 and HCl (the by-products of the prior art it improves on)"]
+  - id: OXH
+    title: Hydrolysis of the oxalyl chloride vapour in the absorber
+    equation: C2Cl2O2 + H2O -> CO + CO2 + 2 HCl
+    stoichiometry: {OXCL: -1, H2O: -1, CO: 1, CO2: 1, HCL: 2}
+    phase: liquid
+    conversion: {key: OXCL, value: 1.0, provenance: assumed, source: "ASSUMED (D-010): oxalyl chloride gives only gaseous products with water (Wikipedia, after Staudinger); the absorber's water is in large excess"}
+    heat_of_reaction: {value: -67000, provenance: assumed, source: "CRC formation enthalpies packaged in chemicals 1.5.2 with oxalyl chloride as the vapour (-335.8) and HCl as a gas: 2 x -92.3 - 110.5 - 393.5 + 335.8 + 285.8 = -67.0 kJ/mol; the HCl's dissolution is in scripts/balance.py (D-010)"}
+    sources: ["Wikipedia, Oxalyl chloride: with water it gives HCl, CO2 and CO (after Staudinger)"]
+  - id: POH
+    title: Hydrolysis of the phosphoryl chloride vapour in the absorber
+    equation: Cl3OP + 3 H2O -> H3O4P + 3 HCl
+    stoichiometry: {POCL3: -1, H2O: -3, H3PO4: 1, HCL: 3}
+    phase: liquid
+    conversion: {key: POCL3, value: 1.0, provenance: assumed, source: "ASSUMED (D-010): phosphoryl chloride hydrolyses in the excess of water to phosphoric acid and HCl"}
+    heat_of_reaction: {value: -132700, provenance: assumed, source: "CRC formation enthalpies packaged in chemicals 1.5.2 with POCl3 as the vapour (-558.5), phosphoric acid as the liquid and HCl as a gas: -1271.7 + 3 x -92.3 + 558.5 + 3 x 285.8 = -132.7 kJ/mol (D-010)"}
+    sources: ["PubChem CID 24813, phosphoryl chloride (HSDB): reacts with water to phosphoric acid and hydrogen chloride"]

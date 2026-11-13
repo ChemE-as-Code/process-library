@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-12 | DESIGN.md | source register SRC-6 no longer calls the package values open data: it names chemicals 1.5.2 and thermo 0.6.1 and the method of each value (ATcT, the packaged CRC tables, WAGNER_MCGARRY, HEOS_FIT, and thermo's VDI_PPDS correlation, VDI Heat Atlas 2nd ed., behind phosgene's heat of vaporization of 26.019 kJ/mol at 253.15 K), the underlying works not read | issue #426: ADR 0037 sweep of the older source registers; text only, no number changes |
 | 2026-10-28 | DESIGN.md, process.yaml, PROGRESS.md | Source register, decisions D-001..D-013, maturity note, Atlas manifest (internal, concept, unreviewed) | Document the concept stage of issue #164 |
 | 2026-10-28 | lca/lca.yaml, lca/mappings.yaml, lca/*.csv, dataset.yaml, manifest.json | Preliminary gate-to-gate LCI per kg liquid phosgene, every background unmapped (12 gaps); mass, element and carbon-origin balances closed | Case scope step 4 (D-012) |
 | 2026-10-28 | process/simulation.yaml | X301 declared adiabatic | Its energy is in no utility; core confirms duty 0 |

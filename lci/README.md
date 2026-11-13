@@ -72,7 +72,7 @@ to handle.
 
 | file | |
 |---|---|
-| `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `markets` sheet, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier` and the linking fields |
+| `lci/cheme-as-code-atlas-<version>.xlsx` | the database `cheme-as-code-atlas-<version>`: an `about` sheet (skipped by the importer), a `database` sheet, one sheet per process, a `markets` sheet, a `proxies` sheet. Exchange columns beyond bw2io's: `atlas key`, `atlas flow uuid`, `atlas pedigree`, `atlas carrier`, the linking fields and, for an exchange linked to an estimate proxy, `atlas proxy` and `atlas estimate` (ADR 0039) |
 | `lci/datapackage.json` | version, library commit, per process: title, design maturity, review status, data status (exchanges by provenance), factor status of the study, allocation and shares, functional unit, activities (each with its `chemical` slug and registry `grade`, null when none), and per dataset its `property_checks` and `benchmarks` (below) |
 | | `activities`: one entry per exported activity (datasets, markets and proxies) with what its Atlas page `/lci/<code>/` shows: exchanges per unit of the reference product with unit, provenance, source, pedigree and lognormal, background link target by name or Atlas activity by code, elementary flows with biosphere3 UUID and compartment, the flowsheet `streams` an exchange derives from, `used_by`, header (geography, time, technology, classification with ISIC from the families and CPC/HS and CAS from the registry), allocation share, `closure` (or `not-assessed` with the reason), citation (the Process Atlas paper and the database version; DOI null), each database file that holds it with how to find it there (workbook and multifunctional JSON by code, or the dataset code of the unallocated form; openLCA JSON-LD by process id and member), a market's suppliers, shares, transport and losses with status and source (`market`, from `markets`), and `publication` (a market is public when all its suppliers are). No impact values (ADR 0015, `scripts/lci_activities.py`) |
 | `lci/benchmarks.json` | the stored benchmark report of the build: every KPI result (process, dataset, value, allocated value, status, reference, reason) and the counts by status, in total and per process ([benchmarks](../docs/benchmarks.md)) |
@@ -221,6 +221,35 @@ market is preliminary when a supplier is), `index.json` `preliminary`, `gaps` an
 null with `not_computed: true` where nothing was characterised, never 0. `publication`
 stays a separate field: a public activity can be preliminary. `install()` reports a gap as
 unlinked and writes nothing.
+
+**Estimate proxies** (ADR 0039). A proxy of `proxies:` with a `basis` stands for a substance no
+library process makes (`chemical`, a registry slug) by other products: background entries
+(`use`) and **library products** (`dataset: {path, product}`), each with its amount per kg of the
+proxy and, for a mixture, the `content` (component and mass fraction) that counts on the basis
+(on a library product only: the schema refuses a content on a background entry, which states no
+composition to check it against).
+`basis: mass` and `basis: stoichiometric` (with its `reaction`) must sum to 1 kg per kg on the
+basis, in kilogram throughout; `basis: non-mass` states its `basis_reason`. The build refuses a
+mass that is not conserved and, once an exchange uses the proxy, a missing product, a content
+whose component the product's composition does not state (or states with another fraction) and a
+circular link (the proxy's products reaching back to an activity that consumes it). A library
+producer of the proxy's `chemical` in the build always takes precedence, also over a proxy the
+build refuses or cannot use: the exchange links it inside the Atlas and the build advises that
+the proxy can go. Otherwise the exchange links the
+proxy and is marked an **estimate**: columns `atlas proxy` and `atlas estimate`, the activity's
+`atlas estimates` and an `ESTIMATE:` comment line, its further technological correlation pedigree
+raised to at least 4 (the lognormal widens), `datapackage.json` `estimate` on the exchange,
+`estimated` and `estimates` on the activity, the proxy's own `estimate` entry (preliminary when a
+product it names is, preview unless all of them are public), and the dataset's `data_quality`
+recomputed with the penalty (`proxy_penalty`, below). The proxy's library products are Atlas
+links with their check (`atlas_links`, kind `proxy`). Each such exchange is listed per process
+(`datapackage.json` `processes[].estimates`, `estimate_count`, `estimated`; `index.json`
+`estimated` and `estimates`; an `ESTIMATED` caveat) and in the catalog (`estimated`,
+`estimate_count`, `lci_estimates`), where the process stays `preliminary` even with no gap left.
+`preliminary` in the LCI files keeps meaning gaps (install() links an estimate). A public build
+that does not hold a product a proxy names leaves the exchange a gap, unless a producer is
+linked. First use: chlorosulfonic acid for
+p-toluenesulfonyl-chloride-1 (SO3 from the background, HCl from hydrogen-chloride-1).
 
 Everything else stays an error or warning for every process: a unit mismatch with a mapping, an
 override naming an unknown entry, dataset or `chemical`, an override key matching no exchange of a
@@ -374,6 +403,13 @@ the plant's dataset in `data_quality`: the TfS DQR with TeR, GeR and TiR, the
 PEF-style P, C and DQR, the primary data share, the basis it is weighted by and the weakest
 indicator. It is copied unchanged into the dataset's `data_quality` in `datapackage.json`; a
 dataset without a manifest, or with one written before core recorded it, has `null`.
+
+A dataset with an exchange linked to an estimate proxy (ADR 0039) gets the penalty: the build
+raises that exchange's technological score (TeR) to at least 4 and, for an unweighted rating its
+pedigrees reproduce, recomputes TeR, DQR, DQR_PEF and the weakest indicator as core does;
+`data_quality.proxy_penalty` names the exchanges, the rule and the values before. A weighted
+rating is kept, with `proxy_penalty.recomputed: false` (the exported pedigrees carry the
+penalty).
 
 ## Caveats
 

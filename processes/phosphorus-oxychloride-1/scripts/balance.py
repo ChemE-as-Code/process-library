@@ -146,6 +146,9 @@ def run(p4_kmol):
     s8 = {k: s6[k] - s13[k] for k in s6}
     s12 = {"POCL3": RESIDUE_FRAC * s8["POCL3"]}
     s9 = {"PCL3": s8["PCL3"], "POCL3": s8["POCL3"] - s12["POCL3"]}
+    # the reaction heat only: the flowsheet's Q3 (E-201) is core's conversion-step duty, which
+    # adds the feeds' warming and the loop pump's work (D-016); the circulation stays sized on
+    # the reaction heat (D-005)
     q_r201 = -(reacted * DH_R2) / 3600.0
     vap308 = vent_vapour(liq, sum(gas.values()), 308.15, P_VENT)
     q_v201 = sum((vap308[k] - vap[k]) * hvap(n, T_VENT) for k, n in (("PCL3", "PCl3"), ("POCL3", "POCl3"))) / 3600.0
@@ -246,7 +249,7 @@ def main():
                             "basis": "mole_fraction"}}
     q, w = r["q"], r["power"]
     flowsheet.update({qid: {"duty": v} for qid, v in {
-        "Q1": q["Q_R101"], "Q2": q["Q_V101"], "Q3": q["Q_R201"], "Q4": q["Q_V201"],
+        "Q1": q["Q_R101"], "Q2": q["Q_V101"], "Q4": q["Q_V201"],
         "Q5": q["Q_C301_REB"], "Q6": q["Q_C301_COND"], "Q7": q["Q_C302_REB"],
         "Q8": q["Q_C302_COND"], "Q9": q["Q_E303"], "Q10": w["R101"], "Q11": w["R201"],
         "Q12": w["C301"] + w["C302"], "Q13": w["T401"]}.items()})

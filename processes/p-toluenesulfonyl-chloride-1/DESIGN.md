@@ -36,7 +36,7 @@ the locator is the part of the document).
 | SRC-8 | processes/btx-1, chlor-alkali-1, asu-1 (this library) | toluene (a co-product of reformate extraction), caustic soda 50 wt%, gaseous nitrogen | library, internal | feed links (D-004, D-012) |
 | SRC-9 | Ullmann's Encyclopedia of Industrial Chemistry: Benzenesulfonic Acids and Their Derivatives (doi:10.1002/14356007.a03_507) and Chlorosulfuric Acid (doi:10.1002/14356007.a07_017.pub2) | - | not read (licensed); named by the route scouting and by Wikipedia | leads only, nothing taken |
 | SRC-10 | Harding, V. J. (1921) J. Chem. Soc., Trans. 119, 1261: the sulphonation of toluene with chlorosulphonic acid | - | not read (title and metadata only; named by SRC-1 as giving a favourable p:o ratio at higher temperature) | lead only |
-| SRC-11 | Property data of core's environment and the NIST WebBook: the `chemicals` 1.5.2 package (its packaged CRC Handbook tables: `chemicals.miscdata.CRC_inorganic_data` and `CRC_organic_data` for densities and boiling points, `chemicals.heat_capacity.CRC_standard_data` for heat capacities; `chemicals.phase_change.Tb`), CoolProp's IAPWS water (saturation, latent heat, viscosity, heat capacity), and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov: toluene and NH4Cl condensed-phase data, toluene and HCl phase-change data) | per component in `process/materials.yaml`; the dryer's latent heats (D-008); LP steam saturation; the wash filtrates' viscosity (D-007) | open data packages queried and WebBook pages read (2026-11-05); facts only. The CRC values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook | materials, D-007, D-008, D-009 |
+| SRC-11 | Property data of core's environment and the NIST WebBook: the `chemicals` 1.5.2 package (open-source, MIT; the version core pins; its packaged CRC Handbook tables: `chemicals.miscdata.CRC_inorganic_data` and `CRC_organic_data` for densities and boiling points, `chemicals.heat_capacity.CRC_standard_data` for heat capacities; `chemicals.phase_change.Tb`), CoolProp's IAPWS water (saturation, latent heat, viscosity, heat capacity), and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov: toluene and NH4Cl condensed-phase data, toluene and HCl phase-change data) | per component in `process/materials.yaml`; the dryer's latent heats (D-008); LP steam saturation; the wash filtrates' viscosity (D-007) | open-source packages queried and WebBook pages read (2026-11-05); single values, facts only; not open data (library ADR 0037). The CRC values come from the tables packaged in `chemicals`, not from the printed handbook (the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here) | materials, D-007, D-008, D-009 |
 
 Searched and not found openly (2026-11-05): kinetics or reaction calorimetry of the
 chlorosulfonation of toluene, a sourced formation enthalpy of liquid chlorosulfonic acid or a
@@ -399,7 +399,8 @@ shared vocabulary entry: its proxy, SO3 + HCl in their stoichiometric 0.687 and 
 (SRC-6: the industrial route), is recorded in lca.yaml and here and not linked, since
 sulfuric-acid-1's SO3 is internal to it and a stoichiometric proxy would leave out the oleum
 handling (CONTRIBUTING, "Gaps": a correct gap rather than a doubtful link). Ammonium chloride is
-a gap as well.
+a gap as well. (Superseded for the chlorosulfonic acid by D-016: linked through the library's
+estimate proxy, marked as an estimate.)
 Per batch, not in the flowsheet (core ADR 0053, library ADR 0035): nitrogen 175 kg (about 140
 Nm3: R-101's purge, F-101 pressed for three filtrations, DR-101's vacuum broken twice; ASSUMED),
 0.100 kg per kg; rinses of Q-101 and F-101, 2 x 1 m3 (ASSUMED), 1.14 kg per kg, to the
@@ -545,6 +546,33 @@ Decision, on the core pin's rise to 1.10.0 (c55e9c7):
 Rejected: keeping Q10 (a hand copy of what the model now holds, and the jacket margin and dT_ad
 by hand); adopting the vent vapour for a 0.03 mol% effect that would put the toluene in the
 wrong outlet.
+
+## D-016 Chlorosulfonic acid through the library's estimate proxy (2026-11-12)
+Decision: feed:CSA links to the shared estimate proxy `chlorosulfonic-acid` of
+`lci/mappings.yaml` (library ADR 0039, issue #419), through this entry's `lca/mappings.yaml`
+(`chemical: chlorosulfonic-acid`): per kg of acid, by the stoichiometry of SO3 + HCl -> HSO3Cl
+with the registry's molar masses (80.057, 36.458 and 116.515 g/mol), 0.687096 kg SO3 and
+0.312904 kg HCl. The HCl is hydrogen-chloride-1's product, hydrochloric acid 33 wt-%, counted by
+its HCl (0.948194 kg of the acid, `content` HCl 0.33, which the build checks against that
+product's composition). The SO3 is the background's (`sulfur-trioxide`, market for sulfur
+trioxide, RER, a name not yet checked against a licensed copy): sulfuric-acid-1's only product
+is 98.5 wt-% acid, its SO3 absorbed inside the plant, and taking SO3 back out of the acid would
+count a step that is not made; no library entry makes SO3 or oleum. The build marks the exchange
+as an estimate in the exported dataset (`atlas estimate`, the technological pedigree raised from
+3 to 4, the dataset's TfS DQR 2.3333 -> 2.3556, TeR 3.0 -> 3.0667) and links a library producer
+of chlorosulfonic acid instead once one exists. ASSUMED: the HCl of the 33 wt-% acid stands for
+the dry gas the route takes (the absorption is counted, the drying or desorption is not). Not
+counted by the proxy: the oleum handling, the SO3 distillation, the reaction's heat removal, the
+acid's purification, its losses and transport; so it is low by an unknown amount. This entry's
+own LCI, the gate-to-gate inventory, is unchanged: only the Atlas link of the feed changes, and
+the LCA outputs are regenerated for the lca.yaml text.
+Reason: issue #419; D-012 kept the proxy unlinked because the library could not mark a proxy as
+an estimate or link part of it to a library product. ADR 0039 does both, so the feed's burden
+is no longer left out (a gap counts none) while the Atlas does not show it as modelled.
+Rejected: SO3 as sulfuric-acid-1's acid by its SO3 content (a step not made, and the wrong
+direction of the plant's chemistry); keeping the gap (ADR 0039 makes the estimate visible, which
+was the reason for it). Ammonium chloride stays a gap: the same mechanism could link it as NH3
+(ammonia-1) and HCl (hydrogen-chloride-1), left for its own change.
 
 ## Core features used (cheme-as-code 1.10.0)
 

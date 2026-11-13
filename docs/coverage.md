@@ -221,7 +221,8 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 110 | `phthalimide` | Phthalimide | nitrogen-organics | n/a, to be sourced | n/a | tube-reactor, countercurrent-column, urea | - | 0 | phthalimide-1 (T0) |
 | 111 | `potassium-tert-butoxide` | Potassium tert-butoxide | oxygenates | n/a, to be sourced | n/a | - | - | 2 | potassium-tert-butoxide-1 (T2) |
 | 112 | `lng-export-terminal` | LNG export terminal (storage, ship loading, boil-off gas) | fuels | n/a, to be sourced | n/a | - | - | 2 | lng-terminal-1 (T2) |
-| 113 | `methanesulfonyl-chloride` | Methanesulfonyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | methanesulfonyl-chloride-1 (T2) |
+| 113 | `oxalyl-chloride` | Oxalyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | oxalyl-chloride-1 (T2) |
+| 114 | `methanesulfonyl-chloride` | Methanesulfonyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | methanesulfonyl-chloride-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

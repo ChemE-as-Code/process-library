@@ -1,0 +1,16 @@
+# oxalyl-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the chlorine to chlor-alkali-1 (dry chlorine gas), the
+# nitrogen consumable to asu-1's gaseous nitrogen, and the LP steam counted as heat delivered
+# (kWh), as acetyl-chloride-1 does. Phosphorus trichloride, the anhydrous oxalic acid and the
+# catalyst stay gaps: no library process exports them; their proxies are recorded in lca.yaml
+# and DESIGN.md D-012, not linked (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:CL2F": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a), let down to R-101's dip pipe; kg for kg (D-004)"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges, blankets and vacuum breaks need only a few hundred kPa"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to R-101's hot-water loop (Q1, the strip Q5) and C-201's jacket (Q7, the reboiler from core's still model with its column: the boil-up at reflux 6 and the charge's heat-up), counted as heat delivered (kWh), D-009"}

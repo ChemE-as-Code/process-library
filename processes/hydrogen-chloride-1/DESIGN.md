@@ -125,8 +125,8 @@ report, not a design one. Rejected: inventing a burner efficiency below 100 %.
 
 ## D-006 Balance method: independent script for the absorption section (2026-10-28)
 Decision: `scripts/balance.py` (run `cheme run scripts/balance.py`) gives the flows and
-compositions of S1, S2, S4-S9 and the duties Q1-Q4, entered as `assumed` with
-`source: scripts/balance.py`; S3 is calculated by cheme (propagate) and agrees with the script
+compositions of S1, S2, S4-S9 and the duties Q2-Q5, entered as `assumed` with
+`source: scripts/balance.py` (Q1 is written by cheme from R101's model less Q5, D-014); S3 is calculated by cheme (propagate) and agrees with the script
 (3 388.2 kg/h; HCl 0.9740, H2O 0.0232, H2 0.0028 by mass). Reason: cheme cannot solve the
 absorber or the scrubber (electrolyte). The script closes mass (10 013.0 kg/h) and Cl, H
 and O; cheme validate confirms every block, step and element balance.
@@ -135,8 +135,8 @@ and O; cheme validate confirms every block, step and element balance.
 Decision: the furnace gas leaves the steam-raising section at 250 degC (SRC-3, Description);
 steam is raised at 1000 kPa(a) saturated (inside SRC-3's 7-16 bar, and chlor-alkali-1's MP steam
 level, so it could serve that plant's evaporator) from BFW at 378 K (ASSUMED deaerator
-temperature); heat loss 3 % of the reaction heat (ASSUMED). Result: Q1 = 2 195 kW, 3 383 kg/h
-steam = 1.03 t per t HCl. Rejected: a graphite furnace raising hot water or low-pressure steam
+temperature); heat loss 3 % of the reaction heat (ASSUMED; its own energy stream Q5, 72.8 kW,
+since D-014). Result: Q1 = 2 195 kW, 3 383 kg/h steam = 1.03 t per t HCl. Rejected: a graphite furnace raising hot water or low-pressure steam
 only (SRC-3: graphite limits steam to about 3.5 bar); the metallic furnace keeps its process-side
 walls above the acid dew point (SRC-3), which is a materials question for basic engineering.
 
@@ -166,7 +166,8 @@ ASSUMED, as chlor-alkali-1. Only C201 is cooled (Q3 = 1 672 kW = 0.507 kWh/kg HC
 ## D-011 Electric power (2026-10-28)
 Decision: Q4 product pump 0.62 kW (130 kPa, 1 160 kg/m3 (SRC-5: 32-34 % acid 1.159-1.169 kg/l),
 efficiency 0.5); Q2 BFW pump 1.98 kW (1 000 kPa rise, efficiency 0.5) plus 3 kW for instruments,
-burner management and analysers. All ASSUMED; 5.6 kW in total (1.7 kWh/t HCl). No blower: the
+burner management and analysers. All ASSUMED; 5.6 kW in total (1.7 kWh/t HCl). Q2 goes to its
+own step U101 in block SYN, not to the furnace R101 (D-014). No blower: the
 feed pressures drive the gas through the unit to the vent (SRC-3: reactor gas about 0.5 bar(g)).
 
 ## D-012 Equipment list: PFD items only (2026-10-28)
@@ -188,6 +189,33 @@ exclusions without amounts. `lca/mappings.yaml` has no overrides: the feeds' reg
 `inventory_key`s are left out of process.yaml, because the Atlas build would otherwise link the
 wet hydrogen by wet-gas mass to a hydrogen producer (47 % too much H2) and demineralised water
 to raw water.
+
+## D-014 Steam duty from core's conversion-step model; heat loss and auxiliaries apart (2026-11-12)
+Context: since core 1.9.0 (its ADR 0059) a conversion step's model gives the duty of its heat
+stream and counts the step's other energy streams as work into its fluid. For R101 it gave
+2 272.86 kW for the steam Q1, against the typed 2 195.1 kW, and `cheme.process-duty` warned
+(issue #396). The model's enthalpy term is the script's: H(out) - H(in) = -2 267.88 kW on the
+elements basis, ideal gas (the script's reaction heat 2 427.6 kW at 298.15 K, plus 23.7 kW
+brought in by the feeds, less 183.4 kW left in the gas at 523.15 K). Two terms made the gap:
+(1) the 3 % heat loss of D-007, 72.83 kW, which the script takes off the steam and the model
+did not know; (2) Q2, the 4.98 kW of the BFW pump, burner management and analysers, which the
+model added as work into the furnace gas.
+Decision: keep both of the script's terms and give the model what it lacked. The hand value
+holds a heat the model leaves out, so the stream is split. The loss is its own assumed energy
+stream Q5 (R101 to a new terminal AMBIENT, utility kind `other`, so it is not a heat utility),
+72.83 kW from scripts/balance.py. R101 names `energy_port: steam`, and the model's heat less Q5
+goes on Q1. Q2's power never reaches the gas: the BFW pump's work goes to the water side of the
+steam system, and the instruments' and analysers' power heats the air. As core's ADR 0059 asks,
+Q2 now ends at its own step U101 (BFW pump, burner management and analysers of R-101, class
+ProcessStep, in block SYN, linked to R-101) through the block's same port `aux`. The typed Q1 is
+removed and `cheme process propagate --fill` writes it. scripts/balance.py gives Q5 and keeps
+its steam duty as a cross-check.
+Result: Q1 = 2 267.88 - 72.83 = 2 195.05 kW (calculated), 0.05 kW below the typed 2 195.1 kW.
+Steam export stays 0.665 kWh per kg HCl, 3 383 kg/h. The inventory gains the heat loss,
+product:AMBIENT, 0.0221 kWh per kg HCl, free (heat to the air carries no burden, lca/lca.yaml).
+Rejected: taking the model's 2 272.86 kW (it would export the casing's loss and the electricity
+as steam, 3.5 % more than the furnace can raise); a 3 % lower heat of reaction (it would hide
+the loss in the chemistry).
 
 ## 5. Results of this stage
 

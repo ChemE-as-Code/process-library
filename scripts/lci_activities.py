@@ -36,7 +36,12 @@ single-output activity per 1 unit of its reference product. It carries
   public processes only, so every entry of it is ``public``;
 - ``preliminary`` and ``gaps``: whether the activity has unlinked exchanges, and how many (ADR
   0026). Publication and completeness are separate facts: a public activity can be preliminary. A
-  market is preliminary when a supplier is (``gaps`` then 0: it has none of its own).
+  market is preliminary when a supplier is (``gaps`` then 0: it has none of its own);
+- ``estimated`` and ``estimates`` (ADR 0039): whether, and how many of, the activity's exchanges
+  link to an estimate proxy; each such exchange carries ``estimate`` (the proxy's code, the
+  ``atlas estimate`` text and the pedigree before its penalty) and the penalised ``pedigree``. An
+  estimate proxy's entry carries ``estimate`` (the chemical it stands for and its basis), is
+  preliminary when a library product it names is, and public only when each of them is.
 
 Dataset-level facts the page also shows (review, data quality, data status, benchmarks,
 property checks, cut-off exclusions) stay where they are, in ``processes[].datasets[]``; an entry
@@ -145,6 +150,13 @@ def _exchange(entry: dict, source: dict | None, db_name: str, codes: dict[tuple,
     pedigree = source.get("pedigree") or {}
     if pedigree.get("scores"):
         out["pedigree"] = {"scores": list(pedigree["scores"]), "rule": pedigree.get("rule", "")}
+    if entry.get("atlas estimate"):
+        # linked to an estimate proxy (ADR 0039): marked, with the pedigree as exported (penalised)
+        out["estimate"] = {"proxy": f"proxy:{entry['atlas proxy']}", "text": entry["atlas estimate"]}
+        exported = [int(x) for x in str(entry.get("atlas pedigree") or "").split(",") if x]
+        if exported and out.get("pedigree") and exported != out["pedigree"]["scores"]:
+            out["estimate"]["pedigree_before"] = out["pedigree"]["scores"]
+            out["pedigree"] = {"scores": exported, "rule": f"{out['pedigree']['rule']}; technological correlation raised for the estimate proxy (ADR 0039)"}
     if entry.get("uncertainty type") == 2:
         out["uncertainty"] = {"distribution": "lognormal", "loc": entry["loc"], "scale": entry["scale"], **({"negative": True} if entry.get("negative") else {})}
     streams = [s for s in source.get("streams") or [] if s in stream_ids]
@@ -322,10 +334,17 @@ def entries(
                 "publication": "public" if is_public(process.manifest) else "preview",
                 "preliminary": gaps_of[row["code"]] > 0,
                 "gaps": gaps_of[row["code"]],
+                # ADR 0039: exchanges linked to an estimate proxy; the chain is estimated, not modelled
+                "estimated": meta.get("atlas estimates", 0) > 0,
+                "estimates": meta.get("atlas estimates", 0),
             }
         )
+    publication_of = {e["code"]: e["publication"] for e in out}
     for proxy in proxies:
         meta, row = proxy.metadata, proxy.row
+        # an estimate proxy's library products (ADR 0039): public when each is, preliminary when one is
+        providers = [e.get("atlas code") for e in proxy.exchanges[1:] if e.get("atlas code")]
+        estimate = {"chemical": meta["atlas chemical"], "basis": meta["atlas basis"]} if meta.get("atlas estimate") else None
         out.append(
             {
                 "code": row["code"],
@@ -339,12 +358,14 @@ def entries(
                 "system_model": {"id": model, "label": model_label},
                 "reference_exchange": {"key": None, "amount": 1, "unit": row["unit"]},
                 "exchanges": [_exchange(e, {"title": e.get("atlas key", ""), "provenance": "assumed", "source": e.get("comment", "")}, db_name, codes) for e in proxy.exchanges[1:]],
-                "closure": {"status": "not-assessed", "reason": "a screening proxy of lci/mappings.yaml, not a dataset"},
+                "closure": {"status": "not-assessed", "reason": f"{'an estimate' if estimate else 'a screening'} proxy of lci/mappings.yaml, not a dataset"},
+                "estimate": estimate,
                 "citation": {"text": f"{row['name']}, ChemE-as-Code Process Atlas LCI database {version}, activity {row['code']}. {database_citation(version)}", "authors": [], "doi": None},
                 "downloads": _downloads(resources, row["code"], model=model, default=default),
-                "publication": "public",
-                "preliminary": False,
+                "publication": "preview" if any(publication_of.get(c) == "preview" for c in providers) else "public",
+                "preliminary": any(gaps_of.get(c, 0) > 0 for c in providers),
                 "gaps": 0,
+                "estimated": estimate is not None,
             }
         )
     by_market = {m["code"]: m for m in market_entries or []}
