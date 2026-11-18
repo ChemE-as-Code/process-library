@@ -24,6 +24,18 @@ The 22 example tests passed on both Windows and Ubuntu. After a successful Windo
 
 With the same staged example on Ubuntu, a browser check compared 12 rows and seven quantities in the native Stream table against the new run's CSV and checked all seven quantities on the effluent stream's PFD panel. The saved HTML report's links and image resolved within its own run folder.
 
+## Merged-core pin check, 2026-11-18
+
+Library validation and release workflows pin core merge commit `0e858853e159ded7fc408a98bc294a671cd75c60` (PR #254, version 1.12.0). Its source tree matches the tested PR head `73c1d7e`. This check installed that exact merge commit into a fresh core environment and retained the existing pinned QSDsan numerical environment.
+
+On Windows, `cheme process simulate --fill` completed the 200-day baseline in an isolated copy of the committed example. All 170 integrated model states and all 804 time points matched the preserved Windows baseline exactly. All 84 derived stream values matched at relative tolerance 1e-6 and absolute tolerance 1e-8: 72 were identical and 12 differed only at floating-point precision, with a maximum absolute difference of 4.55e-13 in their reported units. Inputs and model parameters were unchanged.
+
+The native viewer was built from the same merged core source. A browser check compared every displayed quantity against the new CSV: all twelve streams and seven quantities matched at six significant digits, all units were correct, and none was marked stale. Wastewater volume flow remained `m3/day` in **Liquid flow**, separate from the generic mass-flow column.
+
+All 22 example tests, Ruff checks and the workflow pin-consistency test passed. `cheme validate` reported zero errors and zero warnings on the committed example. Filling the validation copy made its two drawings outdated; rebuilding them with `cheme process build` restored zero errors and zero warnings without changing the simulation results. Informational findings, including the generic mass-balance checks without mass-flow inputs, remain explicit.
+
+The 1,506 archived A2/O result files matched their existing SHA-256 manifest, with none changed or missing. This is a new Windows verification; the Ubuntu results above remain the earlier verification and were not rerun for this pin change. These checks establish software reproduction and display consistency, not plant validity or whole-system conservation.
+
 ## Outstanding numerical questions
 
 Previous tighter BDF and LSODA runs were interrupted after extended runtimes. A Radau run failed at about day 0.1413. Solver and initialization sensitivity, whole-system nitrogen and phosphorus balances including accumulation, sludge and gas, and steady-state robustness remain open. No plant data were used. Chemical dosing, sludge treatment and blower energy fall outside this case.

@@ -6,14 +6,13 @@ The process configuration and inputs come from the ASM2d CSTR branch of EXPOsan 
 
 ## Run the baseline
 
-Use Python 3.12.13 and `uv`. Place the `core` and `process-library` checkouts side by side. The shared command and wastewater stream columns require the QSDsan integration from [core PR #254](https://github.com/ChemE-as-Code/core/pull/254). If core lives elsewhere, set `CHEME_CORE_PATH` to its checkout. The example locates core's Python in its virtual environment.
+Use Python 3.12.13 and `uv`. Place the `core` and `process-library` checkouts side by side. The shared command and wastewater stream columns use the QSDsan integration merged in [core PR #254](https://github.com/ChemE-as-Code/core/pull/254). Library CI pins merge commit `0e858853e159ded7fc408a98bc294a671cd75c60`. If core lives elsewhere, set `CHEME_CORE_PATH` to its checkout. The example locates core's Python in its virtual environment.
 
-To review the two PRs together before the core change is merged, use a fresh checkout of the tested core revision. Run these commands from the parent of your `process-library` clone, in a directory where `core` does not already exist.
+To reproduce the same core revision as library CI, use a fresh checkout of the merged commit. Run these commands from the parent of your `process-library` clone, in a directory where `core` does not already exist.
 
 ```sh
 git clone https://github.com/ChemE-as-Code/core.git core
-git -C core fetch origin pull/254/head
-git -C core switch --detach 5437b17511b05b0b4316d50c1fcbcff131e67056
+git -C core switch --detach 0e858853e159ded7fc408a98bc294a671cd75c60
 ```
 
 1. From the core checkout, create the command-line environment with `uv sync --locked --python 3.12.13 --no-dev --extra serve`.
@@ -41,7 +40,11 @@ export CHEME_QSDSAN_PYTHON="$PWD/.venv/bin/python"
 
 Open the `report.html` path printed by the command for the final effluent, stream results, trajectories and numerical checks. Each fill saves a new directory under `process/simulation-runs/`. Both `--fill` and `--check` execute this repository's worker with your account's permissions using the interpreter you select in `CHEME_QSDSAN_PYTHON`. Run them only on a checkout you trust. Core stages the declared files and discards check-only results. The shared viewer reads the filled project and the record in `process/simulation-run.json`. The BFD groups the biological zones, and the PFD shows the seven tanks and the clarifier.
 
+After a fill, run `cheme process build` with the same core environment to refresh the BFD and PFD fingerprints. The filled flowsheet otherwise makes the saved drawings appear outdated; rebuilding them does not rerun the numerical model.
+
 To open the native viewer, build it once with `npm ci` and `npm run build` from `core/viewer` (use `npm.cmd` in PowerShell if needed). Back in this example, run `.venv/Scripts/python.exe run_viewer.py` on Windows or `.venv/bin/python run_viewer.py` on Ubuntu. Choose **Stream table** or click a stream on the PFD. Water flow is in m³/day, COD in mg COD/L, TN and ammonium in mg N/L, TP and orthophosphate in mg P/L, and TSS in mg TSS/L. Historical reports open directly from their saved folders. The optional local launchers use `CHEME_CORE_PATH` to find the core checkout and accept `CHEME_CORE_PYTHON` to override its virtual-environment interpreter.
+
+The **Liquid flow** column carries the wastewater volume flow; the generic **Flow** column is reserved for mass flow in kg/h. The generic nonreactive mass-balance section remains not evaluable without mass-flow inputs. It does not establish nitrogen or phosphorus conservation for this biological model.
 
 ## Files
 
