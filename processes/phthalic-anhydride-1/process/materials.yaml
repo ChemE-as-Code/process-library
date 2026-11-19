@@ -1,0 +1,109 @@
+# Components and templates of phthalic-anhydride-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Gas data printed by `cheme chemistry thermo` (chemicals 1.5.2 and thermo 0.6.1, the versions
+# core pins): formation enthalpies from ATcT (ATCT_G) or the CRC tables packaged in chemicals,
+# entropies from the CRC, WebBook or Yaws tables packaged in chemicals, cp/R fitted to thermo's
+# TRCIG or HEOS_FIT correlations. thermo has no ideal-gas heat capacity for phthalic and maleic
+# anhydride: their cp/R is the Joback group contribution (Joback and Reid 1987) evaluated by
+# thermo 0.6.1 (`thermo.group_contribution.Joback.Cpig_coeffs`) with the groups assigned by
+# hand (ring =CH-, ring =C<, ring >C=O, ring -O-), because thermo's own SMARTS matching counts
+# the anhydride ring as two esters (DESIGN.md SRC-8, L-2). Single values with their source,
+# not open data (library ADR 0037).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: OX
+    name: o-Xylene
+    formula: C8H10
+    cas: 95-47-6
+    molar_mass: 106.165
+    normal_boiling_point: 417.52
+    critical: {Tc: 630.259, Pc: 3737.5, omega: 0.312, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 19100.0, S_298: 353.6, cp_R: [-2.16059, 0.0720297, -4.21825e-05, 1.01424e-08, -3.73715e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 CRC, S_298 WEBBOOK, cp_R fitted to thermo TRCIG 298.15-1500 K (max deviation 0.61 %)"}
+  - id: PA
+    name: Phthalic anhydride
+    formula: C8H4O3
+    cas: 85-44-9
+    molar_mass: 148.116
+    normal_boiling_point: 558.45
+    critical: {Tc: 791.0, Pc: 4720.0, omega: 0.708, source: "chemicals: Tc YAWS, Pc YAWS, omega YAWS"}
+    ideal_gas: {dHf_298: -371400.0, S_298: 399.91, cp_R: [1.20393, 0.0557102, -1.79519e-05, -2.71816e-09, 0.0], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 YAWS; cp_R the Joback group contribution evaluated by thermo 0.6.1 (groups 4 ring =CH-, 2 ring =C<, 2 ring >C=O, 1 ring -O-, assigned by hand), ESTIMATED"}
+  - id: MA
+    name: Maleic anhydride
+    formula: C4H2O3
+    cas: 108-31-6
+    molar_mass: 98.057
+    normal_boiling_point: 475.15
+    critical: {Tc: 726.0, Pc: 6484.8, omega: 0.3897, source: "chemicals: Tc PSRK, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: -398300.0, S_298: 316.14, cp_R: [3.70319, 0.0176079, 1.66e-05, -1.52024e-08, 0.0], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 YAWS; cp_R the Joback group contribution evaluated by thermo 0.6.1 (groups 2 ring =CH-, 2 ring >C=O, 1 ring -O-, assigned by hand), ESTIMATED"}
+  - id: BA
+    name: Benzoic acid
+    formula: C7H6O2
+    cas: 65-85-0
+    molar_mass: 122.121
+    normal_boiling_point: 523.35
+    critical: {Tc: 752.0, Pc: 4559.6, omega: 0.6383, source: "chemicals: Tc PSRK, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: -294000.0, S_298: 369.72, cp_R: [-1.4765, 0.042471, 3.19495e-05, -7.49082e-08, 3.33713e-11], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 1.14 %)"}
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.999
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.33121, 3.73673e-05, 2.68405e-06, -2.58548e-09, 7.32021e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation 0.42 %)"}
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.79935, -0.00209702, 4.57541e-06, -3.03024e-09, 6.85763e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation 0.09 %)"}
+  - id: AR
+    name: Argon
+    formula: Ar
+    cas: 7440-37-1
+    molar_mass: 39.948
+    normal_boiling_point: 87.30
+    critical: {Tc: 150.687, Pc: 4863.0, omega: -0.00219, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 154.8, cp_R: [2.5, 0.0, 0.0, 0.0, 0.0], temperature_range: [50, 3000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC; monatomic ideal gas"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [3.95742, -0.000363702, 2.42862e-06, -1.27073e-09, 2.12761e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation 0.17 %)"}
+  - id: CO
+    name: Carbon monoxide
+    formula: CO
+    cas: 630-08-0
+    molar_mass: 28.010
+    normal_boiling_point: 81.6
+    critical: {Tc: 132.86, Pc: 3494.0, omega: 0.0497, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -110525.0, S_298: 197.7, cp_R: [3.77154, -0.0020965, 5.00055e-06, -3.5253e-09, 8.41146e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1500 K (max deviation 0.11 %)"}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.010
+    normal_boiling_point: 194.67
+    critical: {Tc: 304.128, Pc: 7377.3, omega: 0.22394, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [2.35127, 0.00919285, -7.99057e-06, 3.68269e-09, -7.05913e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1500 K (max deviation 0.15 %)"}
+templates:
+  - {id: oxylene, title: o-Xylene feed, components: [OX]}
+  - {id: air, title: Dry air, components: [N2, O2, AR]}
+  - {id: process, title: Reactor feed and product gas, components: [OX, PA, MA, BA, O2, N2, AR, H2O, CO, CO2]}
+  # The melt streams leave the component separators with every component of the gas at zero.
+  - {id: crude, title: Crude and purified phthalic anhydride melt, components: [PA, MA, BA, OX, O2, N2, AR, H2O, CO, CO2]}
+  - {id: flue, title: Oxidiser flue gas, components: [OX, PA, MA, BA, O2, N2, AR, H2O, CO, CO2]}
+# No benchmarked property package of core covers phthalic or maleic anhydride: the condenser,
+# column and melt values are the hand calculation of DESIGN.md (D-006 to D-009), given as
+# ASSUMED with their arithmetic.
+property_method:
+  adapter: thermo
+  status: placeholder

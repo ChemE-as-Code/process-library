@@ -1,0 +1,117 @@
+# Goal and scope of the power-generation-1 LCA. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, results.csv, results.md, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand. Decisions: DESIGN.md D-011.
+#
+# Preliminary gate-to-gate inventory per kWh of net electricity at the 345 kV busbar: every
+# exchange of the balanced flowsheet, the SCR's aqueous ammonia as a consumable, and the
+# combustion emissions the flowsheet does not carry (NETL's own stack rates, AP-42 for CH4 and
+# N2O). The backgrounds are linked in the Atlas build by lca/mappings.yaml (natural gas,
+# deionised water, ammonia-1, the wastewater treatment), as utility-steam-ng-boiler links its
+# fuel; here they are `missing:` with what to connect.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of electricity from a 2x1 F-class natural-gas
+  combined cycle at NETL's Case B31A operating point (727 MW net, base load, ISO ambient), for
+  the concept stage: the foreground exchanges per kWh of net electricity delivered at high
+  voltage, ready to be linked to background datasets (natural gas supply first). No impact
+  assessment is claimed.
+functional_unit: {product: ELEC, amount: 1, unit: kWh}
+boundary: gate-to-gate
+year: 2026
+location: GLO
+technology: "Natural-gas combined cycle, 2x1 F-class gas turbines with dry low-NOx combustors, three-pressure reheat HRSGs with SCR, reheat steam turbine 16.5 MPa/585 degC/584 degC, surface condenser at 50.8 mm Hg, mechanical-draft wet cooling tower; 726 MW net, 53.6 % net efficiency (HHV)"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA), on numbers of NETL's Cost and Performance Baseline Revision 4a (a US government report)"
+case: design
+system_model: cutoff
+flows:
+  # raw materials (D-001)
+  - {key: feed:NG, missing: "not linked here: pipeline natural gas, high pressure, at the plant (production, processing, transmission); linked in the Atlas build by lca/mappings.yaml (natural-gas, per kg as methane, atlas: false). Its combustion is in this dataset (STACK and the combustion estimate)", source: "S2: 93,272 kg/h, 0.1285 kg/kWh (D-004)"}
+  - {key: feed:AIR, free: true, source: "S1: ambient combustion air, a resource taken without burden"}
+  - {key: feed:DMW, missing: "not linked here: demineralised water (RO and electro-deionisation on site from raw water, SRC-1); linked in the Atlas build by lca/mappings.yaml (water, deionised)", source: "S13: condenser make-up (D-008)"}
+  - {key: feed:RW, missing: "not linked here: untreated raw water withdrawn for the cooling tower (half municipal, half ground water in SRC-1); a water resource, no treatment beyond clarification counted", source: "S20: cooling tower make-up (D-009)"}
+  # outputs to the environment
+  - {key: product:STACK, emission: true, source: "S4: HRSG stack gas to atmosphere through two 46 m stacks (D-006)"}
+  - {key: product:VENT, emission: true, source: "S14: deaerator vent, liquid water at 38 degC to atmosphere (SRC-1 Exhibit 5-14 books it as process water discharge; burden-free water either way, D-008)"}
+  - {key: product:EVAP, emission: true, source: "S21: cooling tower evaporation and drift (D-009)"}
+  - {key: emission:CO2, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "S4: CO2 of the fuel's carbon and of the fuel's own CO2 (246,852 kg/h, 0.3401 kg/kWh), plus the combustion air's CO2 (0.03 mol%, 1,754 kg/h, 0.0024 kg/kWh) passing through; the air's share, 0.7 % of the flow, is counted as fossil with the rest (ASSUMED, D-011, as ammonia-1). SRC-1 Exhibit 5-12: 67,890 kg/h carbon out, of which 521 kg/h came in with the air"}
+  - {key: emission:H2O, free: true, source: "water vapour of the stack gas and the cooling tower, and the liquid water of the deaerator vent (S4, S21, S14; D-008); the water taken is counted at feed:RW and feed:DMW"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 of the combustion air and the fuel's N2 returned"}
+  - {key: emission:O2, free: true, source: "excess O2 of the combustion air returned (12.0 mol% in the stack gas)"}
+  - {key: emission:AR, free: true, source: "argon of the combustion air returned (the library pass-through AR)"}
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "0 kg in the flowsheet after complete combustion (D-004); the unburnt methane is the combustion estimate below (add: true)"}
+  - {key: emission:C2H6, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "0 kg: burnt out completely in R101 (D-004), a template component of the stack gas (as ethylene-1); an unburnt-hydrocarbon emission, not burden-free; the unburnt hydrocarbons are counted as methane in the combustion estimate"}
+  - {key: emission:C3H8, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "0 kg: burnt out completely in R101 (D-004), a template component of the stack gas (as ethylene-1); an unburnt-hydrocarbon emission, not burden-free; the unburnt hydrocarbons are counted as methane in the combustion estimate"}
+  - {key: emission:C4H10, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "0 kg: burnt out completely in R101 (D-004), a template component of the stack gas (as ethylene-1); an unburnt-hydrocarbon emission, not burden-free; the unburnt hydrocarbons are counted as methane in the combustion estimate"}
+  - {key: emission:NOx, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "combustion estimate, as NO2 (D-011)"}
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "combustion estimate (D-011)"}
+  - {key: emission:SO2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "combustion estimate: the odorant's sulfur (D-004, D-011)"}
+  - {key: emission:N2O, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "combustion estimate (D-011)"}
+  - {key: emission:PM, missing: "elementary flow to name later: particulate matter (total, size not known) to air, high stack; no CAS-based identity in the packaged crosswalk (as ethylene-1)", source: "combustion estimate (D-011)"}
+  # wastes
+  - key: product:BLOWDOWN
+    treatment: {kind: waste, route: wastewater-treatment}
+    missing: "not linked here: treatment of cooling tower blowdown (chloride and metals, SRC-1 Exhibit 5-6); linked in the Atlas build by lca/mappings.yaml (wastewater, the library's utility-wwtp)"
+    source: "S22 (D-009)"
+  # losses: heat to the surroundings
+  - {key: product:AMBIENT, free: true, source: "Q2, Q4, Q10: generator and transformer losses, heat to the surroundings, no burden (D-005, D-007, D-010)"}
+# The SCR's aqueous ammonia (19 wt%), not a flowsheet stream (D-011): SRC-1 Exhibit 5-19, 3.45
+# short tons (907.185 kg) a day = 3,129.8 kg/d of solution at full load: 594.66 kg/d NH3 and
+# 2,535.13 kg/d water; x 7446 h / 24 h a year.
+consumables:
+  - id: scr-ammonia
+    title: Ammonia (NH3 content of the 19 wt% aqueous ammonia) for the SCR
+    unit: kg
+    per_year: 184493
+    source: "SRC-1 Exhibit 5-19 (Case B31A consumables): 3.45 ton/d of 19 wt% ammonia, x 907.185 kg/ton x 0.19 = 594.66 kg/d NH3, x 7446/24 d/a (D-011)"
+    missing: "not linked here: anhydrous ammonia; linked to processes/ammonia-1 in the Atlas build (lca/mappings.yaml); the dilution to 19 wt% is the next consumable"
+  - id: scr-dilution-water
+    title: Water of the 19 wt% aqueous ammonia
+    unit: kg
+    per_year: 786523
+    source: "SRC-1 Exhibit 5-19: 3.45 ton/d x 907.185 kg/ton x 0.81 = 2,535.13 kg/d water, x 7446/24 d/a (D-011)"
+    missing: "not linked here: deionised water; linked in the Atlas build by lca/mappings.yaml (water)"
+operation:
+  hours_per_year: 7446
+  life_years: 30
+  source: "design basis: SRC-1's 85 % capacity factor x 8760 h taken as full-load hours (ASSUMED, D-002); 30 a operating period as SRC-1 levelises its costs (section 2.2)"
+# Emissions the flowsheet does not carry (D-011). Activity: the fuel's HHV input 93,272 kg/h x
+# 52.295 MJ/kg = 4,877.66 GJ/h (SRC-1 Exhibit 2-6, 5-9: 1,354,905 kWt). NETL's stack rates are
+# tonnes a year at an 85 % capacity factor (Exhibit 5-11): / 7446 h / 4,877.66 GJ.
+emission_estimates:
+  - id: gt-combustion
+    title: Gas turbine combustors (GT-101) with SCR in the HRSGs (H-101)
+    method: combustion
+    equipment: [GT-101, H-101]
+    add: true
+    activity: {value: 4877.66, unit: GJ, source: "fuel input on HHV per hour: S2 93,272 kg/h x 52.295 MJ/kg (SRC-1 Exhibit 2-6; Exhibit 5-9 HHV thermal input 1,354,905 kWt)"}
+    factors:
+      NOx: {value: 1.542, unit: g/GJ, source: "SRC-1 Exhibit 5-11: NOx 56 t/a at 85 % capacity factor (DLN about 9 ppmvd and SCR 85.4 %, about 1.8 ppmvd at 15 % O2, section 5.2.4.1): 56,000 kg / 7446 h / 4,877.66 GJ; as NO2"}
+      CO: {value: 0.7985, unit: g/GJ, source: "SRC-1 Exhibit 5-11: CO 29 t/a (about 1 ppmv, section 5.2.4.1): 29,000 kg / 7446 h / 4,877.66 GJ"}
+      SO2: {value: 0.4130, unit: g/GJ, source: "SRC-1 Exhibit 5-11: SO2 15 t/a (Exhibit 5-13: 1.0 kg/h S from the odorant, all to SO2): 15,000 kg / 7446 h / 4,877.66 GJ"}
+      PM: {value: 0.7985, unit: g/GJ, source: "SRC-1 Exhibit 5-11: particulate 29 t/a (about 1 ppmw, section 5.2.4.1): 29,000 kg / 7446 h / 4,877.66 GJ"}
+      CH4: {value: 3.697, unit: g/GJ, source: "US EPA AP-42 Section 3.1 (April 2000) Table 3.1-2a: natural-gas-fired turbines, uncontrolled, methane 8.6E-03 lb/MMBtu HHV (rating C) x 453.59 g/lb / 1.05506 GJ/MMBtu (SRC-3)"}
+      N2O: {value: 1.290, unit: g/GJ, source: "US EPA AP-42 Section 3.1 (April 2000) Table 3.1-2a: natural-gas-fired turbines, N2O 0.003 lb/MMBtu HHV (rating E, one turbine with water-steam injection) x 453.59 / 1.05506 (SRC-3)"}
+    cas: {N2O: 10024-97-2, NOx: 10102-44-0, SO2: 7446-09-5, CO: 630-08-0}
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: >-
+      D-011: NETL's own stack rates for the criteria pollutants of this plant (with its DLN burners
+      and SCR), AP-42's uncontrolled turbine factors for CH4 and N2O (no NETL value). NETL's
+      rates are given to two significant figures; the carbon of CO, CH4 and PM is not taken out
+      of the CO2: CH4 and CO carry 15.2 kg/h of carbon against 67,850 kg/h in the CO2, 0.022 %
+      (the PM's carbon is not known; all of it carbon would add 0.006 %), so the CO2 is counted
+      about 0.02 % high.
+emission_exclusions:
+  - {id: ammonia-slip, method: combustion, equipment: [H-101], reason: "NH3 slip of the SCR: SRC-1 states a design limit of 10 ppmv at the end of the catalyst's life (Exhibit 5-5), not a time-average; the average slip is not sourced, so not estimated (D-011)", source: "D-011"}
+  - {id: startup, method: non-routine, equipment: [GT-101, H-101], reason: "start-ups, shutdowns and part load (higher CO and NOx before the SCR is in its window) are not modelled: base load only (D-002)", source: "D-002"}
+  - {id: leaks, method: equipment-leaks, reason: "fugitive natural gas from the fuel skids and the plant's gas piping is not estimated at the concept stage; the pipeline's own losses belong to the natural gas background", source: "D-011"}
+  - {id: blowdown-effluent, method: effluent, exchange: product:BLOWDOWN, reason: "the blowdown's dissolved solids, treatment chemicals and biocide are not modelled; it goes to treatment (gap above)", source: "D-009"}
+dataset:
+  version: 0.1.0
+  classification: {isic: "3510", cpc: "17100"}
+  geography: {description: "Generic site at ISO ambient conditions, country not chosen (NETL's reference site is in the midwestern United States); no regional background applied"}
+  system_model: cutoff
+  technology_level: current
+  modelling: {principle: attributional}
+  review: unreviewed
+  data_generator: "ChemE-as-Code process library, power-generation-1 concept design (agent run, unreviewed)"
