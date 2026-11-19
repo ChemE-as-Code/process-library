@@ -46,6 +46,13 @@
 # The selectivity reference is a patent (Sumitomo Chemical) that the dataset does not use: the dataset's
 # by-product rate is from another applicant's patent (Nippon Oil, US 4,180,688, Example 4). The selectivity
 # examples are laboratory tests, not plant data. No energy KPI has an open reference.
+#
+# salicylic-acid-1 (#507; a hydroxy acid, filed among the oxygenates): benchmarks must be
+# independent of the dataset (docs/benchmarks.md). The dataset takes its charge, CO2 dose and
+# conversion from US 4 376 867 A, Example I, and its water from the same patent's background (8 to
+# 10 t per t of sodium salicylate), so neither binds it; the suspension route of Mohammad et al.
+# (Molecules 2024) gives a laboratory molar yield for another variant (92.68 %), not a plant's
+# consumption. The stoichiometric floor of the phenol, 0.681 kg/kg, is a limit, not a range.
 schema: cheme-as-code/benchmarks/v1
 family: oxygenates
 
@@ -397,6 +404,14 @@ kpis:
     title: tert-Butanol consumption per kg of potassium tert-butoxide
     unit: kg/kg
     no_open_reference: "No open source with a plant's tert-butanol use per kg of potassium tert-butoxide found (searched 2026-11-06, the sources named under kotbu-specific-potassium; US 4 577 045 A says the alcohol is recycled almost completely, without a figure). The stoichiometric floor is 0.6606 kg/kg; the losses to the vent, the purge and the sieve's regeneration are this design's ASSUMED values (potassium-tert-butoxide-1, DESIGN.md D-006, D-007)."
+  salicylic-acid-specific-phenol:
+    title: Fresh phenol consumption per kg of salicylic acid
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's phenol use per kg of salicylic acid found (searched 2026-11-19: US 4 376 867 A read, the dataset's own source; Mohammad, Onwudili and Yuan, Molecules 29 (2024) 2527, laboratory yields only; Wikipedia, Salicylic acid). The stoichiometric floor is 0.681 kg/kg."
+  salicylic-acid-specific-wastewater:
+    title: Wastewater (mother liquor after phenol recovery, wash filtrate, condensates) per kg of salicylic acid
+    unit: kg/kg
+    no_open_reference: "No open source with the liquor volume of salicylic acid manufacture independent of the dataset found (searched 2026-11-19 as for salicylic-acid-specific-phenol); US 4 376 867 A's 8 to 10 t of water per t of sodium salicylate is the dataset's own source."
 
 datasets:
   - process: terephthalic-acid-1
@@ -516,3 +531,9 @@ datasets:
     kpis:
       kotbu-specific-potassium: {expression: feed:K / product:KOTBU, per: product:KOTBU}
       kotbu-specific-tert-butanol: {expression: feed:TBAF / product:KOTBU, per: product:KOTBU}
+  - process: salicylic-acid-1
+    dataset: salicylic-acid-by-batch-kolbe-schmitt-carboxylation-of-dry-sodium-phenoxide-1000-t-a
+    conditions: {technology: "one-stage Kolbe-Schmitt carboxylation of dry sodium phenoxide at 463 K in a kneader-reactor (semi-batch CO2 dosing), acidification with sulfuric acid at 328 K, two crops, centrifuge, vacuum drying, phenol recovered", basis: "concept balance, ratios from US 4 376 867 A Example I and ASSUMED (DESIGN.md D-004 to D-008)"}
+    kpis:
+      salicylic-acid-specific-phenol: {expression: feed:PHF / product:SA, per: product:SA}
+      salicylic-acid-specific-wastewater: {expression: product:WW / product:SA, per: product:SA}
