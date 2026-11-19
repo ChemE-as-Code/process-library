@@ -1,0 +1,84 @@
+# Reactions of acrylic-acid-1. Schema: `cheme schema process-reactions`. Heats of reaction (kJ
+# per kmol of extent as written, 298.15 K) from the ideal-gas formation enthalpies of
+# materials.yaml (chemicals 1.5.2: ATcT, API TDB, WebBook and CRC values named there). The two
+# reactors are conversion steps with the key's conversion and selectivities from US 4 873 368 A
+# (flowsheet.yaml, DESIGN.md D-005): a conversion model, not kinetics. The by-products are lumped:
+# CO, acetaldehyde, formaldehyde, propionic acid and the like are not modelled (D-005, L-1).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # --- first stage, Mo-Bi mixed oxide (R101) ---------------------------------------------------
+  - id: R1
+    equation: C3H6 + O2 -> C3H4O + H2O
+    stoichiometry: {C3H6: -1.0, O2: -1.0, ACR: 1.0, H2O: 1.0}
+    reversible: false
+    heat_of_reaction: {value: -343192.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: Mo-Bi multicomponent oxide (Mo12Bi5Ni3Co2Fe0.4Na0.2B0.2K0.15Si24 in US 4 873 368 A)
+    sources: ["US 4 873 368 A (Mitsubishi Petrochemical, 1989), description and Examples 1 to 3"]
+  - id: R2
+    equation: C3H6 + 3/2 O2 -> C3H4O2 + H2O
+    stoichiometry: {C3H6: -1.0, O2: -1.5, AA: 1.0, H2O: 1.0}
+    reversible: false
+    heat_of_reaction: {value: -592775.17, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: Mo-Bi multicomponent oxide
+    sources: ["US 4 873 368 A, Table 1: acrylic acid formed in the first stage beside acrolein"]
+  - id: R3
+    equation: C3H6 + 9/2 O2 -> 3 CO2 + 3 H2O
+    stoichiometry: {C3H6: -1.0, O2: -4.5, CO2: 3.0, H2O: 3.0}
+    reversible: false
+    heat_of_reaction: {value: -1926258.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    sources: ["lumped by-product reaction (D-005): the propylene converted but not to acrolein or acrylic acid in US 4 873 368 A, Example 2"]
+  # --- second stage, Mo-V mixed oxide (R201) ---------------------------------------------------
+  - id: R4
+    equation: C3H4O + 1/2 O2 -> C3H4O2
+    stoichiometry: {ACR: -1.0, O2: -0.5, AA: 1.0}
+    reversible: false
+    conversion: {key: ACR, value: 0.948877805, provenance: assumed, source: "scripts/aa_balance.py: US 4 873 368 A, Example 5 (87.8 % acrylic acid and 0.4 % acrolein on the propylene fed, after the first stage of Example 2), acetic acid at 1.5 wt% beside 55 wt% acrylic acid (US 5 910 607 A, Example 1), the rest of the acrolein burnt; fraction of the inlet acrolein converted by this reaction (D-005)"}
+    heat_of_reaction: {value: -249583.17, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: Mo-V multicomponent oxide (US 4 365 087 A, US 4 873 368 A)
+    sources: ["US 4 873 368 A, Examples 4 and 5", "US 4 365 087 A (Mitsubishi Petrochemical, 1982), Example 8"]
+  - id: R5
+    equation: C3H4O + 3/2 O2 -> C2H4O2 + CO2
+    stoichiometry: {ACR: -1.0, O2: -1.5, HAC: 1.0, CO2: 1.0}
+    reversible: false
+    conversion: {key: ACR, value: 0.035828908, provenance: assumed, source: "scripts/aa_balance.py: US 4 873 368 A, Example 5 (87.8 % acrylic acid and 0.4 % acrolein on the propylene fed, after the first stage of Example 2), acetic acid at 1.5 wt% beside 55 wt% acrylic acid (US 5 910 607 A, Example 1), the rest of the acrolein burnt; fraction of the inlet acrolein converted by this reaction (D-005)"}
+    heat_of_reaction: {value: -744674.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    sources: ["acetic acid as the main acid by-product (US 5 910 607 A: 1 to 5 wt% in the crude aqueous acid); its route from acrolein written here, D-005, ASSUMED"]
+  - id: R6
+    equation: C3H4O + 7/2 O2 -> 3 CO2 + 2 H2O
+    stoichiometry: {ACR: -1.0, O2: -3.5, CO2: 3.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: ACR, value: 0.010305755, provenance: assumed, source: "scripts/aa_balance.py: US 4 873 368 A, Example 5 (87.8 % acrylic acid and 0.4 % acrolein on the propylene fed, after the first stage of Example 2), acetic acid at 1.5 wt% beside 55 wt% acrylic acid (US 5 910 607 A, Example 1), the rest of the acrolein burnt; fraction of the inlet acrolein converted by this reaction (D-005)"}
+    heat_of_reaction: {value: -1583066.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    sources: ["lumped by-product reaction (D-005)"]
+  # --- catalytic oxidiser (X401): the off-gas's organics burnt -----------------------------------
+  - id: OX_C3H6
+    equation: C3H6 + 9/2 O2 -> 3 CO2 + 3 H2O
+    stoichiometry: {C3H6: -1.0, O2: -4.5, CO2: 3.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: C3H6, value: 0.99, provenance: assumed, source: "D-011: destruction efficiency of the catalytic oxidiser, ASSUMED"}
+    heat_of_reaction: {value: -1926258.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: OX_C3H8
+    equation: C3H8 + 5 O2 -> 3 CO2 + 4 H2O
+    stoichiometry: {C3H8: -1.0, O2: -5.0, CO2: 3.0, H2O: 4.0}
+    reversible: false
+    conversion: {key: C3H8, value: 0.99, provenance: assumed, source: "D-011, ASSUMED"}
+    heat_of_reaction: {value: -2043320.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: OX_ACR
+    equation: C3H4O + 7/2 O2 -> 3 CO2 + 2 H2O
+    stoichiometry: {ACR: -1.0, O2: -3.5, CO2: 3.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: ACR, value: 0.99, provenance: assumed, source: "D-011, ASSUMED"}
+    heat_of_reaction: {value: -1583066.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: OX_AA
+    equation: C3H4O2 + 3 O2 -> 3 CO2 + 2 H2O
+    stoichiometry: {AA: -1.0, O2: -3.0, CO2: 3.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: AA, value: 0.99, provenance: assumed, source: "D-011, ASSUMED"}
+    heat_of_reaction: {value: -1333482.83, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: OX_HAC
+    equation: C2H4O2 + 2 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {HAC: -1.0, O2: -2.0, CO2: 2.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: HAC, value: 0.99, provenance: assumed, source: "D-011, ASSUMED"}
+    heat_of_reaction: {value: -838392.0, provenance: calculated, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
