@@ -1,4 +1,4 @@
-# Benchmarks of polymers: for now PET. Schema: schemas/benchmarks.schema.json; rules:
+# Benchmarks of polymers: PET and suspension PVC. Schema: schemas/benchmarks.schema.json; rules:
 # docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
 #
 # How independent these are:
@@ -63,6 +63,37 @@ kpis:
           kind: iea
           accessed: "2026-11-05"
 
+  pvc-specific-electricity:
+    title: Electricity per t of suspension PVC
+    unit: kWh/t
+    references:
+      - id: bref-pol-spvc-electricity
+        range: [194.4, 305.6]
+        basis: unallocated
+        note: "Typical electrical energy of S-PVC processes, 0.7 to 1.1 GJ/t (1999 data), converted at 3.6 MJ/kWh. The same section gives one example S-PVC plant at 139 kWh/t for 2003, without off-site and utilities (Table 5.10), below the range."
+        conditions: {technology: "suspension PVC, batch polymerisation, stripping and drying", region: EU, year: 1999}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: section 5.3.3, Table 5.9, p. 103
+          kind: bref
+          accessed: "2026-11-19"
+  pvc-specific-wastewater:
+    title: Process wastewater per t of suspension PVC
+    unit: t/t
+    references:
+      - id: bref-pol-spvc-wastewater
+        range: [1.0, 4.0]
+        basis: unallocated
+        note: "Wastewater of German S-PVC plants, 1 to 4 m3/t, as Germany reported it, taken at 1 t/m3. Not independent of the dataset's water, which takes the charge's ratio from a patent and the cake's moisture as ASSUMED."
+        conditions: {technology: "suspension PVC", region: DE}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: section 5.3.2.1, p. 102
+          kind: bref
+          accessed: "2026-11-19"
+
 datasets:
   - process: pet-1
     dataset: pet-pta-continuous-ssp
@@ -79,3 +110,13 @@ datasets:
         per: product:pet
         reference: iea-2009-pet-electricity
         out_of_range_reason: "The dataset's 230 kWh/t is NAPCOR's figure for US bottle-grade plants of 2015 (melt phase with SSP, some MTR), 4 % above the IEA's Western European average, which is itself the best-practice value plus 20 % (Table 13, footnote 1) rather than plant data."
+  - process: pvc-1
+    dataset: polyvinyl-chloride-by-batch-suspension-polymerisation-of-vinyl-chloride-with-vcm-recovery-steam-stripping-centrifuge-and-fluid-bed-drying
+    conditions: {technology: "suspension polymerisation in four 130 m3 batch autoclaves at 330 K to 90 % conversion, VCM recovery, continuous steam stripping, decanter centrifuge, fluid-bed dryer on LP steam", basis: "concept balance, the charge of US 6 825 288 B2, Example 1, ASSUMED rate, splits, cake moisture and dryer efficiency (DESIGN.md D-004 to D-009)"}
+    kpis:
+      pvc-specific-electricity:
+        expression: feed:POWER / product:PVCP
+        per: product:PVCP
+        reference: bref-pol-spvc-electricity
+        out_of_range_reason: "The dataset's 139 kWh/t is the BREF's own example plant (Table 5.10), which leaves out off-site and utilities; the refrigeration of the chilled water (0.44 kWh of heat per kg) is a separate exchange, product:CHW, whose electricity a chiller at a COP of 4 to 5 would add (about 90 to 110 kWh/t), bringing the total into the range (D-008)."
+      pvc-specific-wastewater: {expression: product:WW / product:PVCP, per: product:PVCP, reference: bref-pol-spvc-wastewater}
