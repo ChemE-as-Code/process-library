@@ -29,6 +29,12 @@
 # zero-width range and bound, independent of the dataset (whose phosgene ratio comes from
 # US 10 364 214 B1). No open source gives a plant's aniline use per kg of MDI; the stoichiometric
 # floor depends on the oligomer content of the MDA and is not a range.
+#
+# Paracetamol (paracetamol-1, #481): benchmarks must be independent of the dataset
+# (docs/benchmarks.md). The dataset takes its ratios and yields from US 3 917 695 A's examples
+# (110 to 140 g of product from 109 g of 4-aminophenol, 0.78 to 0.99 kg aminophenol per kg), so
+# they are not bound; no other open figure for a plant's aminophenol use or liquor volume was
+# found. The stoichiometric floor of the aminophenol, 0.722 kg/kg, is a limit, not a range.
 schema: cheme-as-code/benchmarks/v1
 family: nitrogen-organics
 
@@ -52,6 +58,14 @@ kpis:
     title: Aniline consumption per kg of MDI (crude, monomeric and polymeric together)
     unit: kg/kg
     no_open_reference: "No open source with a plant's aniline use per kg of MDI found (searched 2026-11-19: the LVOC BREF Chapter 10 gives phosgene and chlorine only; US 10 640 455 B1 and US 7 186 857 B2 give feed rates with recycled aniline, not a net use; the ISOPA 2021 and ACC 2022 eco-profiles give no foreground inventory). The stoichiometric use depends on the MDA's oligomer content (0.744 kg/kg for the two-ring MDA alone)."
+  paracetamol-specific-aminophenol:
+    title: 4-Aminophenol consumption per kg of paracetamol
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's 4-aminophenol use per kg of paracetamol found (searched 2026-11-19: Google Patents for the preparation of N-acetyl-p-aminophenol, US 3 917 695 A, US 4 565 890 A and US 4 524 217 A read; web search for paracetamol production yields and LCI). US 3 917 695 A's examples are the dataset's own source; the stoichiometric floor is 0.722 kg/kg."
+  paracetamol-specific-wastewater:
+    title: Wastewater (mother liquor purge, wash and condensate) per kg of paracetamol
+    unit: kg/kg
+    no_open_reference: "No open source with the liquor volume of paracetamol manufacture found (searched 2026-11-19 as for paracetamol-specific-aminophenol); US 4 565 890 A says the mother liquor is saturated with the product and holds much acetic acid, no amount per kg."
   nbs-specific-bromine:
     title: Bromine consumption per kg of N-bromosuccinimide
     unit: kg/kg
@@ -237,3 +251,9 @@ datasets:
         reference: lvoc-bref-mdi-phosgene
         out_of_range_reason: "Rounding: the reference is given to two digits (0.78) and the dataset's 0.7844 kg/kg rounds to it; a zero-width range from one example plant cannot hold a value to four digits. The dataset's ratio is the independent one of US 10 364 214 B1 (2.0588 kg phosgene per kg MDA), not fitted to the BREF."
       mdi-specific-aniline: {expression: feed:ANLF / (product:MDIP + product:PMDIP), per: product:MDIP}
+  - process: paracetamol-1
+    dataset: paracetamol-by-semi-batch-acetylation-of-4-aminophenol-in-aqueous-acetic-acid-2000-t-a
+    conditions: {technology: "acetylation of 4-aminophenol in aqueous acetic acid, semi-batch at 313 K, cooling crystallisation, centrifuge, vacuum drying, half the mother liquor recycled", basis: "concept balance, ratios from US 3 917 695 A and ASSUMED (DESIGN.md D-004, D-007)"}
+    kpis:
+      paracetamol-specific-aminophenol: {expression: feed:PAPF / product:APAP, per: product:APAP}
+      paracetamol-specific-wastewater: {expression: product:WW / product:APAP, per: product:APAP}

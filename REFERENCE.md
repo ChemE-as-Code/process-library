@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 125 public process folders: 85 engineering projects (a `plant.yaml` with a process
+The table lists 126 public process folders: 86 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -117,6 +117,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`npk-fertilizers-1`](processes/npk-fertilizers-1/) | NPK 15-15-15 by the nitrophosphate (ODDA) route, with ammonium nitrate and lime co-products (LVIC-AAF BREF, EFMA BAT booklet) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`oxalyl-chloride-1`](processes/oxalyl-chloride-1/) | Oxalyl chloride from oxalic acid and PCl5 made in situ in a recycled heel, semi-batches with an HCl/CO/CO2 vent and vent condenser, vacuum strip and batch rectification, POCl3 and hydrochloric acid co-products (500 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`p-toluenesulfonyl-chloride-1`](processes/p-toluenesulfonyl-chloride-1/) | p-Toluenesulfonyl chloride by semi-batch chlorosulfonation of toluene with an HCl vent, a drown-out quench and precipitation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
+| [`paracetamol-1`](processes/paracetamol-1/) | Paracetamol by semi-batch acetylation of 4-aminophenol with acetic anhydride in aqueous acetic acid, cooling crystallisation, centrifuge, vacuum dryer, half the mother liquor recycled (2000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`pet-1`](processes/pet-1/) | Polyethylene terephthalate by continuous PTA polycondensation and SSP (POL BREF losses, NAPCOR energy) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`phosgene-1`](processes/phosgene-1/) | Phosgene from CO and chlorine over activated carbon (17.3 t/h liquid phosgene, captive) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`phosphoric-acid-1`](processes/phosphoric-acid-1/) | Phosphoric acid by the wet dihydrate process (merchant grade; LVIC-AAF BREF and EFMA ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
