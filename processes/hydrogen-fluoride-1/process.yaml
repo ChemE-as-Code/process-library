@@ -1,0 +1,101 @@
+# Process Atlas manifest of hydrogen-fluoride-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: hydrogen-fluoride-1
+title: Anhydrous hydrogen fluoride from fluorspar and sulfuric acid in a rotary kiln (18 400 t/a, concept)
+summary: >-
+  Anhydrous HF from fluorspar and sulfuric acid in a zoned, indirectly fired rotary kiln; the gas
+  scrubbed with acid returned to the kiln, HF condensed against brine and distilled; anhydrite and
+  fluorosilicic acid as co-products. Concept stage, 2.08 kg of spar and 2.62 kg of H2SO4 per kg
+  of HF, preliminary gate-to-gate LCI.
+description: |
+  Dried acid spar (97.5 wt% CaF2) is preheated indirectly to 400 C, mixed in a screw mixer with
+  feed acid at 120 C and reacted in a 20 m x 2.5 m rotary kiln heated by nine natural-gas
+  combustion chambers in three zones (US 6 699 455 B2, Example 4: 4800 kg/h of spar): CaF2 +
+  H2SO4 -> 2 HF + CaSO4, endothermic by 59 kJ/mol (BREF LVIC-AAF 2007, chapter 6), with the
+  spar's silica, carbonate, oxides and flotation fatty acids giving SiF4, CO2, water and SO2.
+  The anhydrite leaves at 204 C with 0.8 wt% CaF2 and 1.0 wt% free acid, which lime neutralises.
+  The kiln gas (205 C) is scrubbed with sulfuric acid, which takes out the water and returns to
+  the kiln; the acid comes from a final scrubber that recovers the HF of the vent gas with the
+  fresh acid, and oleum binds the loop's water. The HF is condensed against brine and distilled
+  free of low boilers (SO2, SiF4, CO2) and high boilers (water, acid). SiF4 is absorbed in water
+  to 25 wt% fluorosilicic acid, SO2 scrubbed with caustic soda.
+
+  cheme process propagate solves the whole flowsheet: the kiln, the oleum hydration, the
+  neutraliser and the absorbers as conversion reactors, the scrubbers, condenser and columns as
+  component splits, two recycles torn (the feed acid and the final scrubber acid) and two design
+  specifications (the fresh acid for 1.0 wt% free acid in the kiln solids, the oleum for 3.0 wt%
+  water in the feed acid). The duties are hand balances on the streams with property values of
+  the chemicals and thermo packages; the kiln's 899 kW is checked against the patent's natural
+  gas. See DESIGN.md for every assumption.
+families: [inorganic-chemicals]
+keywords: [hydrogen fluoride, anhydrous HF, AHF, hydrofluoric acid, fluorspar, acid spar, calcium fluoride, sulfuric acid, oleum, rotary kiln, indirect firing, anhydrite, calcium sulfate, fluorosilicic acid, hexafluorosilicic acid, silicon tetrafluoride, refrigerated condensation, distillation, fluorochemicals]
+facets:
+  feedstock_basis: [mineral, fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, absorption, condensation, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Spar composition, conversions,
+# scrubber and column splits and the duties are assumed; the spar rate, kiln size, temperatures
+# and residues from US 6 699 455 B2, the consumptions and ranges from the BREF (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: 4 blocks and 18 steps within tolerance; the loops converged at the tears S3 and S21
+    with the design specifications acid and oleum). The kiln is a conversion reactor (R1 to R5)
+    with ASSUMED conversions that leave the patent's residues; the scrubbers, condenser and
+    columns are component splits (no HF-H2O vapour-liquid model, L-2). The duties are hand
+    balances with single property values of chemicals 1.5.2 and thermo 0.6.1 (ADR 0037): kiln
+    899 kW absorbed, spar preheater 478 kW, 2.15 GJ per t of HF, which with the BREF's 4-5 GJ/t
+    of fuel for new plants means a furnace efficiency of 0.43-0.54 (the patent's 189 m3/h of
+    natural gas gives 0.48). Spar 2.08 kg per kg (BREF: 2.1-2.2 kg CaF2), H2SO4 2.62 kg (BREF:
+    2.6-2.7), anhydrite 3.63 kg (BREF: about 3.7). Preliminary gate-to-gate LCI, all burdens to
+    the HF; sulfuric acid, lime and caustic linked to library producers, the oleum, water, fuel,
+    steam, landfill and effluent to shared entries; fluorspar and refrigeration (and electricity
+    in cheme assess lca) are gaps. cheme maturity reaches no level; the claim `maturity: concept`
+    is the lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code
+    1.13.0.
+chemistry:
+  inputs:
+    - {chemical: calcium-fluoride, role: feedstock, inventory_key: "feed:SPAR", note: "Acid-grade fluorspar, dried, 97.5 wt% CaF2, 2.08 kg/kg HF (BREF: 2.1-2.2 kg CaF2 per kg)"}
+    - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:ACID", note: "Sulfuric acid 98.5 wt% (sulfuric-acid-1), 2.32 kg/kg; with the oleum 2.62 kg H2SO4 equivalent (BREF: 2.6-2.7)"}
+    - {chemical: sulfur-trioxide, role: feedstock, inventory_key: "feed:OLEUM", note: "The free SO3 of oleum, 0.275 kg/kg, binds the loop's water (the oleum's H2SO4 part is in the fresh acid, D-007)"}
+    - {chemical: calcium-oxide, role: feedstock, inventory_key: "feed:LIME", note: "Quicklime (lime-1) for the anhydrite's free acid, 21.7 g/kg"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the SiF4 absorber, 0.087 kg/kg"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt% (chlor-alkali-1) to the tail-gas scrubber, 0.067 kg/kg"}
+  outputs:
+    - {chemical: hydrogen-fluoride, role: main-product, inventory_key: "product:AHF", note: "Anhydrous hydrogen fluoride (modelled 99.997 wt% HF), to storage"}
+    - {chemical: calcium-sulfate, role: co-product, inventory_key: "product:ANH", note: "Neutralised anhydrite, 3.63 kg/kg, to landfill in the LCI (no burden allocated, D-011)"}
+    - {chemical: fluosilicic-acid, role: co-product, inventory_key: "product:FSA", note: "25 wt% fluorosilicic acid with its silica, 0.12 kg/kg, burden-free by-product (D-011)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Alkaline scrubber effluent (sulfite, excess caustic), 0.091 kg/kg"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "CO2 of the spar's carbonate and fatty acids, 15.0 g/kg"}
+    - {chemical: sulfur-dioxide, role: emission, inventory_key: "emission:SO2", note: "SO2 slip after the alkaline scrubber, 0.024 g/kg (BREF: 0.001-0.065 g/kg)"}
+  utilities:
+    - {chemical: methane, role: utility, inventory_key: "feed:FUEL", note: "Fired heat from natural gas, 0.598 kWh/kg absorbed (2.15 GJ/t; BREF fuel 4-5 GJ/t for new plants)"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.225 kWh/kg (BREF: 0.15-0.30)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) for the column reboilers, 0.178 kWh/kg (0.30 kg of steam per kg; BREF: 0.15-0.8 kg)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:REF", note: "Refrigeration (brine 258 K) for the HF condensers, 0.344 kWh/kg (1.24 GJ/t; BREF: 2-3 GJ/t)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "Pre-purification scrubber cooler, 0.089 kWh/kg removed"}
+basis:
+  capacity: "18 439 t/a anhydrous HF, 2304.8 kg/h in 8000 h, from 4800 kg/h of fluorspar to one kiln (US 6 699 455 B2, Example 4; DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic chemicals site with fluorspar supply, natural gas and a sulfuric acid plant nearby (not chosen)
+references:
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers (LVIC-AAF BREF), chapter 6 Hydrofluoric acid: reactions (1)-(9), acid-spar specification (Table 6.2), kiln, pre-reactor and spar calcination (6.2.3, Tables 6.3 and 6.9), process and tail gas treatment (6.2.4, 6.2.5), consumption per t HF (Table 6.4), emissions (Tables 6.5-6.8), BAT fuel 4-5 GJ/t for new AHF plants (Table 6.14)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf"}
+  - {title: "Bayer AG (2004) Process for preparing hydrogen fluoride in a rotary tube furnace. US Patent 6,699,455 B2: a 20 m x 2.5 m kiln heated in three zones by nine combustion chambers; Example 4: 80 kg/min of spar at about 400 C, 109 kg/min of H2SO4 at about 120 C, at most 189 m3/h of natural gas, walls 370 C falling to 210 C, HF gas out at 205 C, solids at 204 C with 0.5-1.1 % CaF2 and 0.5-1.7 % H2SO4", url: "https://patents.google.com/patent/US6699455B2/en"}
+  - {title: "Bell, C.; et al.: chemicals 1.5.2 and thermo 0.6.1 Python packages (formation enthalpies, heats of vaporisation and heat capacities of HF, water, CaF2, CaSO4, H2SO4, SO3, SO2, CO2, SiF4; normal boiling points; single values, ADR 0037)", url: "https://github.com/CalebBell/chemicals"}
+  - {title: "PubChem CIDs 14917 (hydrogen fluoride), 84512 (calcium fluoride), 24497 (calcium sulfate), 21863527 (hexafluorosilicic acid), 24682 (sulfur trioxide); ChEBI (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/hydrogen-fluoride-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

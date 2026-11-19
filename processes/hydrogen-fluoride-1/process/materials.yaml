@@ -1,0 +1,51 @@
+# Components and templates of hydrogen-fluoride-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol from the formula
+# with the IUPAC 2021 abridged standard atomic weights (Ca 40.078, F 18.998, S 32.06, O 15.999,
+# H 1.008, Si 28.085, C 12.011, Fe 55.845, Na 22.990); normal_boiling_point in K at 101.325 kPa
+# from the chemicals 1.5.2 package (method CRC_INORG, or HEOS for water and SO2; single values,
+# library ADR 0037; DESIGN.md SRC-4).
+#
+# The solids are separate components with phase: solid (core ADR 0025). The acid spar is written
+# as CaF2 with lumped impurities (DESIGN.md D-004): SiO2, CaCO3, Fe2O3 for the iron and aluminium
+# oxides, and stearic acid for the flotation fatty acids (BREF LVIC-AAF 2007, Table 6.2). The
+# residual H2SO4 that the anhydrite carries is written as H2SO4, not as a sorbed phase. The
+# fluosilicic acid and the scrubber effluent are neutral species in water, an inventory basis and
+# not a speciation (L-3).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: CaF2, name: Calcium fluoride (acid-grade fluorspar), formula: CaF2, cas: 7789-75-5, molar_mass: 78.074, phase: solid}
+  - {id: SiO2, name: Silica (spar impurity; precipitated silica in the fluosilicic acid), formula: SiO2, cas: 7631-86-9, molar_mass: 60.083, phase: solid}
+  - {id: CaCO3, name: Calcium carbonate (spar impurity), formula: CaCO3, cas: 471-34-1, molar_mass: 100.086, phase: solid}
+  - {id: Fe2O3, name: "Iron and aluminium oxides (spar impurity), as Fe2O3", formula: Fe2O3, cas: 1309-37-1, molar_mass: 159.687, phase: solid}
+  - {id: C18H36O2, name: "Flotation fatty acids (spar), as stearic acid", formula: C18H36O2, cas: 57-11-4, molar_mass: 284.484, phase: solid}
+  - {id: CaSO4, name: Calcium sulfate (anhydrite), formula: CaSO4, cas: 7778-18-9, molar_mass: 136.134, phase: solid}
+  - {id: Fe2SO43, name: "Iron(III) sulfate (from the spar's oxides)", formula: Fe2S3O12, cas: 10028-22-5, molar_mass: 399.858, phase: solid}
+  - {id: CaO, name: Quicklime (anhydrite neutralisation), formula: CaO, cas: 1305-78-8, molar_mass: 56.077, phase: solid}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.072, normal_boiling_point: 610.15}
+  - {id: SO3, name: "Sulfur trioxide (as oleum's free SO3)", formula: SO3, cas: 7446-11-9, molar_mass: 80.057, normal_boiling_point: 317.65}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: HF, name: Hydrogen fluoride, formula: HF, cas: 7664-39-3, molar_mass: 20.006, normal_boiling_point: 293.15}
+  - {id: SiF4, name: Silicon tetrafluoride, formula: SiF4, cas: 7783-61-1, molar_mass: 104.077, normal_boiling_point: 187.15}
+  - {id: CO2, name: Carbon dioxide, formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+  - {id: SO2, name: Sulfur dioxide, formula: SO2, cas: 7446-09-5, molar_mass: 64.058, normal_boiling_point: 263.14}
+  - {id: H2SiF6, name: Fluorosilicic acid (dissolved), formula: H2SiF6, cas: 16961-83-4, molar_mass: 144.089}
+  - {id: NaOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997}
+  - {id: Na2SO3, name: Sodium sulfite (dissolved), formula: Na2SO3, cas: 7757-83-7, molar_mass: 126.037}
+templates:
+  - {id: spar, title: Acid-grade fluorspar, components: [CaF2, SiO2, CaCO3, Fe2O3, C18H36O2]}
+  - {id: lime, title: Quicklime, components: [CaO]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: acid, title: "Sulfuric acid and oleum (feeds)", components: [H2SO4, SO3, H2O]}
+  - {id: caustic, title: Caustic soda (feed), components: [NaOH, H2O]}
+  # propagate writes every component that meets a stream through the loop and the absorbers (as
+  # zero where it is absent), so the process streams share one template
+  - id: process
+    title: "Process streams: kiln, gas, acid loop, HF, anhydrite, absorbers"
+    components: [CaF2, SiO2, CaCO3, Fe2O3, C18H36O2, CaSO4, Fe2SO43, CaO, H2SO4, SO3, H2O, HF, SiF4, CO2, SO2, H2SiF6, NaOH, Na2SO3]
+# No property package covers these streams (core's packages are gas mixtures; HF associates in
+# the vapour and HF-H2O is strongly non-ideal, L-2): the separators are component splits, the
+# duties hand balances (DESIGN.md D-009).
+property_method:
+  adapter: thermo
+  status: placeholder

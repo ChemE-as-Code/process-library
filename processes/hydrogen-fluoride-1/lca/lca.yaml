@@ -1,0 +1,132 @@
+# Goal and scope of the hydrogen-fluoride-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-011): every exchange of the plant per
+# kg of anhydrous HF, from the flowsheet's design case. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer or a shared entry: a gap, never zero, and no values from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of anhydrous hydrogen fluoride made from
+  acid-grade fluorspar and sulfuric acid in an indirectly fired rotary kiln, at the concept stage:
+  which raw materials, fuel, utilities, co-products and emissions the plant exchanges per kg of
+  AHF, as the foreground for a later cradle-to-gate study and for the fluorochemicals the library
+  buys (aluminium-1's aluminium fluoride).
+functional_unit: {product: AHF, amount: 1, unit: kg, source: "1 kg of anhydrous HF, stream S17 (modelled 99.997 wt% HF, 29 ppm water) at the plant gate to storage (D-002, D-011)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as other entries do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Continuous plant: dried acid spar (97.5 wt% CaF2) preheated indirectly to 400 C, mixed in a screw mixer with feed acid at 120 C and reacted in a 20 m x 2.5 m rotary kiln heated by nine natural-gas combustion chambers in three zones (walls 370 C falling to 210 C); kiln gas scrubbed with sulfuric acid (acid loop, oleum binds the water), HF condensed against brine, low- and high-boiler columns; final sulfuric acid scrubber, SiF4 absorbed in water to fluorosilicic acid, SO2 scrubbed with caustic soda; the anhydrite's free acid neutralised with lime (BREF LVIC-AAF 2007 chapter 6; US 6 699 455 B2)"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  method: none
+  source: >-
+    D-011 (agent proposal, for the LCA practitioner to confirm): all burdens to the anhydrous HF.
+    The anhydrite is sent to landfill, as the BREF says most excess anhydrite is (SRC-1, 6.4.3),
+    and the fluorosilicic acid leaves burden-free under the cut-off as a by-product others may
+    use (SRC-1, 6.4.4). No prices are sourced, and a mass allocation would give the anhydrite
+    (3.6 kg per kg of HF) most of the burden, which no source supports.
+  deviation: >-
+    Where the anhydrite is sold (to cement or floor screed), an economic allocation would move a
+    small share of the burden to it and the landfill would drop out; this dataset is the
+    conservative bound for the HF.
+flows:
+  # raw materials
+  - key: feed:SPAR
+    missing: "not mapped yet (D-011): no library producer and no shared entry for acid-grade fluorspar. Connect to: fluorspar, acid grade (97 % CaF2), from mining, flotation and drying, per kg as delivered"
+    source: "flowsheet stream S1, 4800 kg/h (SRC-2, Example 4), D-004"
+  - key: feed:ACID
+    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt%"
+    source: "flowsheet stream S20, set by the design specification for 1.0 wt% free acid in the kiln solids (D-006)"
+  - key: feed:OLEUM
+    missing: "linked to the shared sulfur-trioxide entry (lca/mappings.yaml): the oleum's free SO3; sulfuric-acid-1 makes no oleum"
+    source: "flowsheet stream S31, set by the design specification for 3.0 wt% water in the feed acid (D-007)"
+  - key: feed:LIME
+    missing: "linked to processes/lime-1 (lca/mappings.yaml): quicklime"
+    source: "flowsheet stream S8 (D-008)"
+  - key: feed:PW
+    missing: "linked to the shared water entry (lca/mappings.yaml): process water"
+    source: "flowsheet stream S23 (D-008)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt%"
+    source: "flowsheet stream S27 (D-008)"
+  # utilities
+  - key: feed:FUEL
+    missing: "linked as heat from natural gas, counted as the heat absorbed (lca/mappings.yaml)"
+    source: "flowsheet energy streams Q1 (spar preheater) and Q2 (kiln), hand balances, D-009"
+  - key: feed:POWER
+    missing: "not mapped yet in this folder (D-011; the Atlas build links it through the shared lci/mappings.yaml electricity entry): electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy stream P1, 225 kWh/t (SRC-1, Table 6.4), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml), per kWh of condensing heat"
+    source: "flowsheet energy streams Q5 and Q7, the column reboilers, D-009"
+  - key: product:CW
+    missing: "heat rejected to a recirculating cooling-water system (prefer_atlas: processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy stream Q3 (pre-purification scrubber cooler), D-009"
+  - key: product:REF
+    missing: "not mapped yet (D-011): no library producer or shared entry for refrigeration. Connect to: brine at 258 K from a compression refrigeration plant, per kWh of cold"
+    source: "flowsheet energy streams Q4, Q6 and Q8 (HF condensers and the column condensers), D-009"
+  # co-products, wastes and emissions
+  - key: product:ANH
+    treatment: {kind: waste, route: "neutralised anhydrite to landfill, as the excess anhydrite of most plants (SRC-1, 6.4.3)"}
+    missing: "linked to the shared inert-waste-landfill entry (lca/mappings.yaml)"
+    source: "flowsheet stream S9 (D-008, D-011)"
+  - key: product:FSA
+    free: true
+    source: "flowsheet stream S25, 25 wt% fluorosilicic acid with its precipitated silica, a by-product that leaves burden-free under the cut-off (SRC-1, 6.4.4) (D-011)"
+  - key: product:EFF
+    treatment: {kind: waste, route: "alkaline scrubber effluent (sulfite, excess caustic) to the site's waste-water treatment, neutralised with lime (SRC-1, 6.4.9)"}
+    missing: "linked to the shared wastewater entry (lca/mappings.yaml), per kg"
+    source: "flowsheet stream S29 (D-008)"
+  - key: product:STACK
+    emission: true
+    source: "flowsheet stream S30: the tail gas after the alkaline scrubber (D-008)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "CO2 of the spar's carbonate (R3) and flotation fatty acids (R5), 15.0 g per kg of HF; the fatty acids are vegetable (SRC-1, 6.2.2) but lumped with the carbonate as fossil (L-3)"
+  - key: emission:SO2
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "SO2 slip of the alkaline scrubber, 0.024 g per kg of HF (SRC-1, Table 6.6: 0.001-0.065 kg/t with alkaline scrubbing)"
+  - {key: emission:SiF4, missing: "not a flow: 0 kg in S30 (the caustic scrubber keeps the SiF4 traces, D-008)", source: "flowsheet stream S30"}
+  - {key: emission:H2O, free: true, source: "water vapour of the tail gas (0 kg in the model: the vapour is left out, D-008)"}
+  # The tail gas S30 shares the process template (materials.yaml), so every other component is
+  # listed with 0 kg: none of them leaves to air in the model (D-008, D-011).
+  - {key: emission:HF, missing: "not a flow: 0 kg in S30; the HF slip of the final scrubber is absorbed in the fluorosilicic acid (D-008); the fluoride traces of real plants are excluded (emission_exclusions)", source: "flowsheet stream S30"}
+  - {key: emission:C18H36O2, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:CaCO3, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:CaF2, missing: "not a flow: 0 kg in S30 (process template); spar dust is excluded (emission_exclusions)", source: "flowsheet stream S30"}
+  - {key: emission:CaO, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:CaSO4, missing: "not a flow: 0 kg in S30 (process template); anhydrite dust is excluded (emission_exclusions)", source: "flowsheet stream S30"}
+  - {key: emission:Fe2O3, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:Fe2SO43, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:H2SO4, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:H2SiF6, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:Na2SO3, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:NaOH, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:SO3, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+  - {key: emission:SiO2, missing: "not a flow: 0 kg in S30 (process template)", source: "flowsheet stream S30"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+emission_exclusions:
+  - id: dust-and-fluorides
+    method: storage-tank
+    equipment: [H-101, R-101, M-501, T-402]
+    reason: "the spar and anhydrite dust (SRC-1, Table 6.5: 0.01-0.1 kg/t) and the fluoride traces of the tail gas and the anhydrite handling (Table 6.6: 0.002-0.015 kg/t as HF) are not estimated: no dust filter or anhydrite treatment is modelled at the concept stage, and the flowsheet's fluorine leaves only in the product, the anhydrite and the acids (D-011, L-3)"
+    source: "DESIGN.md D-011"
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic chemicals site with fluorspar supply, natural gas and a sulfuric acid plant nearby, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #513, unreviewed"
