@@ -46,15 +46,18 @@ Reason: the issue's route; HCl suits a sodium catalyst (NaCl removed in the stil
 The plant described by Attarbachi et al. (2024, section 1, an industrial biodiesel refinery)
 runs the same front end: acidulation to about pH 3, three-phase separation of fatty acids,
 glycerol and salt, neutralisation, methanol distillation, dewatering.
-Rejected: H2SO4 or H3PO4 acidulation (gives Na2SO4 / phosphate salts, used with KOH
-catalysts when the salt is sold as fertiliser, Attarbachi et al. 2024 section 2); extraction
+Rejected: H2SO4 or H3PO4 acidulation (with a sodium catalyst it gives Na2SO4 or sodium
+phosphate instead of NaCl; general knowledge, not sourced here). Attarbachi et al. (2024,
+section 2) treat low-grade glycerol with 12.5 M KOH and then 85 % H3PO4, which gives a
+potassium phosphate salt sold as fertiliser; that is their KOH/H3PO4 purification, not this
+plant's sodium front end. Also rejected: extraction
 (no extraction step: core's extraction support not needed); ion exchange and membrane routes (section 1).
 Assumptions: the feed reaches the refinery unstripped (methanol still in it).
 
 ## D-002 Capacity and operating hours (2026-10-28)
 Decision: 1250 kg/h refined glycerol (10 000 t/a at 8000 h/a). ASSUMED.
 Reason: a normalisation basis for the inventory, about the glycerol of a 100 000 t/a
-biodiesel plant (crude glycerol is about 10 % of the oil, Thompson & He 2006 p. 261); not a
+biodiesel plant (glycerol is about 10 % of the oil by weight, Thompson & He 2006 p. 261); not a
 claim about a commercial plant (issue #186 scope notes). Geography not chosen.
 
 ## D-003 Product specification (2026-10-28)
@@ -81,8 +84,9 @@ of glycerol (39 wt% C) and methanol (37.5 wt% C) has more than 37 wt% C; the sam
 was probably dried or diluted differently. The model follows Tables 1, 3 and 6.
 The design basis (process/design-basis.yaml) carries the same composition (corrected
 2026-10-28 after review #1, which found an older draft composition with water and NaOH there).
-Variability: industrial crude glycerols range 30-80 wt% glycerol with up to 16 wt% ash and up
-to 40 wt% MONG (Attarbachi et al. 2024, Table 1); a second design case should cover a
+Variability: industrial crude glycerols from transesterification hold 30-60 wt% glycerol (the
+five sites 37-63 wt%), 10-19 wt% ash, up to 40 wt% MONG and up to 10 wt% water (the sites up
+to about 40 wt%) (Attarbachi et al. 2024, Table 1); a second design case should cover a
 high-ash, high-MONG feed.
 
 ## D-005 Acidulation and neutralisation (2026-10-28)
@@ -208,9 +212,16 @@ glycerol, recovered methanol and the fatty layer (glycerol share 0.594), declare
 deviation from the library hierarchy until prices are sourced; economic allocation and
 substitution are open sensitivities. Carbon origin: biogenic fraction of the crude glycerol
 carbon 0.710 (glycerol and fatty chains from vegetable oil; methanol, methoxide and ester
-methyl fossil). No construction, transport or end of life at this stage. lca/mappings.yaml has
-no overrides (internal process, ADR 0022).
+methyl fossil). No construction, transport or end of life at this stage. lca/mappings.yaml had
+no overrides at first (internal process, ADR 0022).
 Note 2026-11-01: the owner has since marked all 50 processes public, so this one is no longer internal.
+Note 2026-11-01, mapping step (ADR 0026): lca/mappings.yaml now links 9 exchanges for the Atlas
+LCI build: feed:HCLA to hydrochloric-acid-32; feed:HPS, feed:LPS and feed:MPS to steam-heat;
+feed:LSTM and feed:MSTM to steam; feed:NAOHS to processes/chlor-alkali-1/lca/dataset.yaml;
+feed:POWER to electricity; product:CW to cooling-water. In `cheme assess lca` (lca/lca.yaml)
+every background stays a `missing:` gap; those 9 entries now say where the Atlas build links
+them. Still unlinked anywhere: feed:CRUDE, feed:ACF and the waste treatments (product:SALT,
+product:FOOTS, product:SPAC, product:WW).
 Allocation variants (added 2026-10-28, review #5): the recovered methanol S8 is the biodiesel
 plant's own excess reactant, which arrives in the crude and leaves unchanged; under mass
 allocation it takes 32 % of the burden, including 32 % of the crude glycerol it arrived in.
@@ -259,14 +270,15 @@ climate category only.
 
 ## 5. Missing registry and vocabulary entries (for the consolidated shared PR)
 
-- `chemicals/chemicals.yaml`: glycerol (and a USP / 99.7 % grade), crude glycerol (biodiesel
-  glycerol phase), methanol, hydrochloric acid (32 wt%), sodium hydroxide (50 wt% solution),
-  activated carbon, sodium chloride (salt cake), fatty acids / fatty matter; a glycerol family
-  in `taxonomy/families.yaml` (process.yaml uses bio-based-chemicals).
-- `lci/mappings.yaml` technosphere entries for: crude glycerol from biodiesel, caustic soda
-  50 %, activated carbon, spent activated carbon treatment, salt residue landfill,
-  glycerol-residue digestion or incineration; existing candidates for the rest
-  (hydrochloric-acid-32, steam, steam-heat, electricity, wastewater-kg, cooling water).
+- `chemicals/chemicals.yaml`: a USP / 99.7 % grade of glycerol, activated carbon, fatty acids /
+  fatty matter (the fatty layer); a glycerol family in `taxonomy/families.yaml` (process.yaml
+  uses bio-based-chemicals). Present since this list was written: glycerol, crude-glycerol,
+  methanol, hydrogen-chloride, sodium-hydroxide, sodium-chloride (process.yaml uses them).
+- `lci/mappings.yaml` technosphere entries for: crude glycerol from biodiesel, activated carbon,
+  spent activated carbon treatment, salt residue landfill, glycerol-residue digestion or
+  incineration; wastewater-kg exists as the candidate for product:WW. Linked in the 2026-11-01
+  mapping step (D-013): hydrochloric-acid-32, steam, steam-heat, electricity, cooling-water,
+  and caustic soda 50 % to the chlor-alkali-1 dataset.
 
 ## 6. Open items
 

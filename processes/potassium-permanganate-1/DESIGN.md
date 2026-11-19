@@ -23,7 +23,7 @@ locators are the patent sections because the HTML has no column numbers.
 | SRC-4 | US 4,911,802 (1990, MacDermid) *Conversion of manganate to permanganate* https://patents.google.com/patent/US4911802A/en | read | regeneration of etch baths, no plant data; only the solubility remark of KMnO4 in water; not used for numbers |
 | SRC-5 | Subramanian, K.; Gomathi, K.; Asokan, K. (2008) Ind. Eng. Chem. Res. 47(22), 8526-8532 (CECRI record https://cecri.csircentral.net/119/) | abstract only | membrane cell with coated Ti anodes and steel cathode; ~1.5-1.7 water per K+ across the membrane; current efficiency NOT available (open input, D-006) |
 | SRC-6 | Ullmann's, *Potassium Compounds*, doi:10.1002/14356007.a22_039 (issue #146 lead) | not accessed | route reference lead; production sections still to be audited |
-| SRC-7 | Wagman, D. D. et al. (1982) NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref. Data 11 Suppl. 2 | values recalled, not re-read | formation enthalpies and Gibbs energies of reactions (D-009); to be checked against the table |
+| SRC-7 | Wagman, D. D. et al. (1982) NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref. Data 11 Suppl. 2 | values recalled, not re-read | formation enthalpies and Gibbs energies of reactions, and the KMnO4 heat of solution derived from them (D-009); to be checked against the table |
 | SRC-8 | Cox, J. D. et al. (1989) CODATA Key Values for Thermodynamics | recalled (as in chlor-alkali-1) | heat of WATER_SPLIT (provenance assumed until the table is re-read, like SRC-7) |
 
 Searches that found nothing usable (open): an open source for the current efficiency and the
@@ -44,7 +44,7 @@ in `process/design-basis.yaml`, `process/flowsheet.yaml`, `process/cells.yaml` a
 | route steps (roast, leach + lime, membrane cell, crystallise, KOH recovery) | D-001 | sourced | SRC-1 Description; SRC-2 Description |
 | capacity 1250 kg/h, 8000 h/a, grade >= 98.5 wt% | D-002 | assumed | normalisation basis, no source |
 | ore 70-80 % MnO2 (78 % chosen); gangue split Fe2O3/SiO2 | D-003 | sourced range / assumed point; gangue assumed | SRC-2 Description |
-| grind 98 % < 80 um | D-003 | sourced | SRC-2 Claims |
+| grind 98 % < 80 um | D-003 | sourced | SRC-2 Description (Claim 12 gives only the < 80 um bound) |
 | KOH/MnO2 2.5 mol/mol | D-004 | sourced (range 2-3, optimum ~2.5) | SRC-2 Description |
 | roaster 523 K (range 200-300 degC; ~225 degC) | D-004 | sourced range / assumed point | SRC-2 Description; SRC-1 Description |
 | MnO2 conversion 0.90; silicate dissolution 25 %; air 2.0 x O2 | D-004 | assumed | below SRC-2's > 95 % claim |
@@ -62,7 +62,7 @@ in `process/design-basis.yaml`, `process/flowsheet.yaml`, `process/cells.yaml` a
 | purge 3 %; evaporator concentrate 50 wt% KOH; economy 1.8 | D-008 | assumed | - |
 | KMnO4/K2MnO4 solubility in KOH liquors | D-007 | missing | - |
 | impurity balance (silicate, aluminate, carbonate) | D-008 | missing | - |
-| formation enthalpies and Gibbs energies | D-009 | assumed (recalled, not re-read) | SRC-7, SRC-8 |
+| formation enthalpies and Gibbs energies; KMnO4 crystallisation heat 43.42 kJ/mol derived from them | D-009 | assumed (recalled, not re-read) | SRC-7, SRC-8 |
 | KOH heat of solution at 50 wt% | D-009 | missing (review #1) | - |
 | heat capacities, latent heats, losses, efficiencies, auxiliaries 150 kWh/t | D-009 | assumed | - |
 | backgrounds of ore, KOH, lime, fired heat, power, steam, residue, purge | D-011 | missing | lca/gaps.csv |
@@ -229,13 +229,15 @@ Decision: duties from a lumped enthalpy balance in scripts/kmno4_balance.py: roa
 evaporation (2257 kJ/kg plus sensible heat) and heating of cake and air to 523 K less the heats
 of OX and REDKM, with 15 % losses -> 1.24 MW fired heat; leach heating to 333 K including the
 KOH dissolution heat (-57.6 kJ/mol) -> 0.68 MW LP steam; crystalliser 333 -> 303 K (cp 3.4
-kJ/(kg K), crystallisation heat 43.56 kJ/mol) -> 0.96 MW cooling water; evaporator 2400 kJ/kg
+kJ/(kg K), crystallisation heat 43.42 kJ/mol) -> 0.96 MW cooling water; evaporator 2400 kJ/kg
 vapour at an economy of 1.8 -> 1.40 MW LP steam and the same to cooling water; dryer 2600 kJ/kg
 water at efficiency 0.65 -> 72 kW; rectifier efficiency 0.97; auxiliaries 150 kWh/t.
 Utilities: LP steam 450 kPa(a), cooling water 298/308 K, natural gas firing, grid power.
 Thermochemical data: standard formation enthalpies and Gibbs energies at 298 K from the NBS
 tables (SRC-7) as recalled; heat of ELEC 334.9 kJ per 2 mol K2MnO4 (aqueous ions), reversible
-cell voltage 1.38 V; heat of OX -112.7 kJ per 2 mol MnO2 (solids, water vapour).
+cell voltage 1.38 V; heat of OX -112.7 kJ per 2 mol MnO2 (solids, water vapour); heat of
+crystallisation of KMnO4 43.42 kJ/mol, minus the heat of solution at infinite dilution from the same
+NBS values (K+ -252.38 + MnO4- -541.4 - KMnO4(s) -837.2 kJ/mol; replaces an unsourced 43.56).
 Reason: no property package covers concentrated KOH-manganate electrolytes, KOH melts or the
 solids (D-010), so core cannot close the energy balance; a lumped estimate is the honest
 concept-stage substitute.
@@ -284,7 +286,9 @@ exhaust (open item). lca/mappings.yaml only sets the utility unit conventions of
 build (steam and fired heat as kWh heat, process water by mass); ore, KOH, lime, residue and
 purge stay unmapped (gaps).
 Result (`cheme assess lca --coverage`): mass, element and carbon-origin balances closed;
-partial screening carbon footprint with 11 gaps and no total; DQR 2.33.
+partial screening carbon footprint with 10 gaps (missing backgrounds) and no total, plus H2
+outside the GWP100 method (no characterisation factor; its lca/gaps.csv row is tagged
+elementary-uncharacterised, so that file has 11 rows); DQR 2.33.
 Assumptions: construction, transport and end of life not included; the flows inherit every
 ASSUMED parameter above.
 
