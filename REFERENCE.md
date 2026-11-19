@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 104 public process folders: 64 engineering projects (a `plant.yaml` with a process
+The table lists 109 public process folders: 69 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -143,6 +143,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`utility-wwtp`](processes/utility-wwtp/) | Wastewater treatment, activated sludge (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
 | [`vcm-1`](processes/vcm-1/) | Vinyl chloride monomer by the balanced EDC process, oxygen-based oxychlorination (LVOC BREF ranges, IPCC factors) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`waste-incineration-1`](processes/waste-incineration-1/) | Waste incineration with energy recovery (mixed MSW, moving grate, heat-oriented CHP; WI BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`wwtp-a2o`](processes/wwtp-a2o/) | A2/O wastewater waterline with direct QSDsan simulation (ASM2d, software example) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, QSDsan simulation, no LCI dataset) |
 
 Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md):
 
