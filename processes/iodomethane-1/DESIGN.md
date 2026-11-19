@@ -18,6 +18,11 @@ Core 1.10.0 (2026-11-06): library `main` at e8edcb4b moved to its pin v1.10.0 (c
 became core's batch rectification with its column and its charge's heat-up; the vent, ST101's
 heat-up and the MTT stay by hand (D-016).
 
+Core 1.12.0 (2026-11-19, library pin 0e85885, issue #427): the thermal screening rerun with core's
+new default MTT, bubble-point MTT, release over the batch and boil-up at the bubble point, and the
+condensers' freezing check; the measured MTT stays, the reflux and relief basis is settled as far
+as a model can, and what stays open is named (D-017).
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -249,7 +254,8 @@ the dosing stopped and about 53 kW if it goes on. E-101 on cooling water, with i
 independent of R-101's chilled water, is to be designed for 55 kW (ASSUMED; it takes the still's
 start, about 36 kW, anyway). Then the reflux holds a jacket failure, and the dosing interlock
 halves the load. A slower reaction (k/10, k/100) accumulates more but releases its heat more
-slowly, so the boil-off falls. The cycle shows it first: 30.7 h at k/10, 123 h at k/100, which
+slowly, so the boil-off falls at 313.15 K (amended by D-017 (c): the slow reaction's accumulated
+mass boils hotter, and at its own bubble point the boil-off rises, to 61 kW at k/100). The cycle shows it first: 30.7 h at k/10, 123 h at k/100, which
 rules that design out. The hazard is the loss of both heat sinks, or a blocked vent with the condenser lost (D-012).
 Vent capacity (ADR 0058): `hazard.vent_capacity: 20` m3/h at R-101's 101.3 kPa(a), ASSUMED: R-101's
 vent line through E-101 and E-102 to the adsorber, sized for the nitrogen purge of R-101 and the
@@ -300,7 +306,10 @@ Release cases (not assessed, reasoning only; for the HAZOP of the next stage; ca
   accumulation by sample or calorimetry, and quench it or dose it out under full cooling with
   E-101 in service. The accumulation after an agitator stop, the safe restart procedure and the
   feeder's failure modes are open inputs for the HAZOP and the reaction calorimetry.
-Screening values only, not a reaction-hazard assessment.
+Screening values only, not a reaction-hazard assessment. Rerun on core 1.12.0 (D-017): the MTSR,
+the accumulation and the gas release are unchanged; core's boil-up at the content's bubble point
+confirms the boil-off above within 7 % at the design kinetics, and the E-101 duty, the relief
+basis and what stays open are recorded there.
 
 ## D-007 Still ST101: the crude distilled off the residue in R-101 (2026-11-06)
 Decision: ST101 is core's batch still (`still:`, core ADR 0055) in R-101: the reaction mass S6 boiled
@@ -611,6 +620,106 @@ boil-up (10.59 kW) lies below the first version's Q8 + Q13 (10.95 kW) since less
 The MTSR (322.6 K), the accumulation and the dT_ad are intensive and unchanged; the boil-off at
 the MTT and the cycle in D-006's sensitivity were rerun.
 
+## D-017 Core 1.12.0: the reflux reactor's screening rerun (the MTT, the boil-up at the bubble point, E-101, the relief basis, the condensers' freezing) (2026-11-19)
+Issue #427 lists for this entry: "MTSR 322.6 K above the MTT of 313.15 K (reflux reactor); the
+reflux and relief basis is not screened by core." Rerun on core 1.12.0 (0e85885, the library's pin;
+ADRs 0069, 0071) with `cheme process reactor-hazards --json`, on the entry as it is and on scratch
+copies of the folder (not committed).
+(a) As it is: unchanged. dT_ad 520.1 K, accumulation 0.0228 at 10 h, MTSR 322.6 K against
+`hazard.mtt` 313.15 K, `cheme.reactor-hazard-mtsr` (warning, exit 1, by design, D-006). New: the
+largest gas release over the batch is 0.192 m3/h at 10 h (its MTSR 322.6 K), 0.0096 of the vent
+capacity: the same moment and rate as the release at the MTSR, so D-006's figure is the largest
+over the batch. One dosed reactant without excess (no `accumulations`: the iodine's 2.28 % is
+all reactive), one reaction (no network), no dosed or dissolved gas (no `dissolved_release`).
+(b) The MTT. Decision: `hazard.mtt` stays 313.15 K, the measured reflux temperature (SRC-1,
+Example 1). Core's own MTTs on scratch copies:
+- the default, `hazard.mtt` removed: 315.7 K, iodomethane's normal boiling point (a product, 48 %
+  of the liquid after MEI). Core now counts the product (L-5's cause is resolved); it lies 2.5 K
+  above the measured value, the MTSR above both;
+- `hazard.mtt_from: bubble-point` on the ideal liquid (Raoult's law over the NIST Antoine
+  constants): 330.8 K for the content after MEI, 331.3 K for the worst moment's content (the
+  script's 329.53 K for S6, D-006). The MTSR would lie 8.2 K below it and the warning clear.
+  Rejected: that margin rests on an ideal liquid that boils 17.7 K above the measured reflux;
+- the same with a constant activity coefficient of iodomethane (`vent.vapour.activity`, below):
+  2.0 gives 313.4 K (worst moment 314.1 K), the largest the semi-batch model accepts at 313.15 K.
+  At 2.82, the coefficient that ST101's relative volatility of 6 implies against the ideal ratio of
+  2.13 at 330 K (D-007), the content boils at 313.15 K (136.3 kPa against 101.3 kPa) and core
+  refuses the semi-batch. So the measured reflux fits an activity coefficient of iodomethane of
+  about 2 in the reaction mass; ST101's 6 lies above it (in a residue whose phosphorous acid binds
+  the methanol, D-007). Both stay ASSUMED; the VLE is an open input.
+(c) The boil-up at the bubble point (the reflux reactor's barrier, L-9). Core 1.12.0 sizes a
+content boiling at the MTSR (`gas_release.boil_up`, ADR 0069) only with the vent's vapour and with
+iodomethane a `vapour` component, not a vent component at a fraction. On a scratch copy R101's vent
+became `{inerts: [N2], vapour: {components: [MEI, MEOH, H2O], activity: {MEI: 2.0}}}` with nitrogen
+as a component (screening only: D-012's vent fraction is gone there, so its streams are not used;
+its MTSR is 322.56 K, as the entry's). Dosing stopped, the worst moment's content at its bubble
+point T_b, the reaction at its rate law there, the vapour at the vessel's 101.3 kPa(a):
+
+| case (core 1.12.0) | MTSR | T_b | reaction heat at T_b | boil-up | over the vent's 20 m3/h | D-006 at 313.15 K, dose stopped | core's with the dose going on (+27.1 kW, D-006) |
+|---|---|---|---|---|---|---|---|
+| design k | 322.6 K | 314.1 K | 27.6 kW | 87.6 m3/h | 4.4 | 25.8 kW | 54.7 kW |
+| design k / 10 | 378.6 K | 317.9 K | 31.7 kW | 100.7 m3/h | 5.0 | 22.4 kW | 58.8 kW |
+| design k / 100 | 603.6 K | 333.5 K | 61.0 kW | 190.9 m3/h | 9.5 | 14.9 kW | 88.1 kW |
+
+At the design kinetics core confirms D-006's script within 7 % (its T_b is 0.9 K above 313.15 K).
+At the slower kinetics it corrects it: the script took every case at 313.15 K, but the worst
+moment's content of a slow reaction holds more methanol and less iodomethane and boils hotter
+(333.5 K at k/100, 61.6 % of the iodine accumulated), where the rate is 4.1 times that at 313.15 K
+(Ea 60 kJ/mol). **The boil-off rises as the kinetics slow**, not falls as D-006 read it.
+Decision: E-101's design duty stays 55 kW (ASSUMED, D-006). It covers core's boil-up at the design
+kinetics with the dosing going on (54.7 kW, 0.5 % margin) and at k/10 with the dosing stopped
+(31.7 kW). It does not cover k/10 with the dosing going on (58.8 kW) nor k/100 even with the
+dosing stopped (61.0 kW). Not raised now: a further assumed number would not be more credible than
+this one; the duty is to come from the measured heat-release rate (open, below). Beyond the design
+kinetics E-101 holds only if the dosing stops on a cooling failure; that trip is proposed in D-006
+(a), and its credit and reliability are for the HAZOP and a LOPA (none claimed here).
+(d) The vent and the relief basis. With E-101 lost or the vent blocked, the boil-up of (c) is 4.4
+to 9.5 times the vent capacity, so R-101 pressurises (D-006 cases (b) to (d)): the vent is not the
+barrier, E-101 and a relief device are. What a model settles at concept stage: the modelled
+reaction forms no gas (the gas release is the vented iodomethane, 0.19 m3/h), so on its own the
+relief case is a tempered vapour system, the boiling content capping the temperature at the set
+pressure's bubble point; the relief load is the boil-up there plus case (c)'s jacket heat (54 kW,
+D-006), as vapour or as a two-phase flow. What it does not settle: core 1.12.0 screens no closed
+vessel's pressure, level swell or two-phase relief (ADR 0069's known limitations, ADR 0071's
+follow-up), and the side reactions not modelled (dimethyl ether, D-005; phosphine from
+phosphorous acid on strong heating, D-006 (e)) would add non-condensable gas and make it a hybrid
+system. L-9 stays open for the relief.
+(e) The condensers' freezing (`cheme.process-condenser-freezing`, ADR 0071). The components got
+their melting points (CRC via chemicals 1.5.2, `process/materials.yaml`). Core checks ST102's
+condenser (Q10, cooling water supplied at 298.15 K, against iodomethane's 207.15 K and methanol's
+175.65 K): no finding. ST101 has no column and so no condenser port; E-101 by hand: its crude
+(iodomethane 73.0, methanol 26.8, water 0.21 mol%, iodine 1.3e-5 mole fraction, `cheme process
+stills`) freezes nowhere near 298.15 K. E-102 and E-105 are hand streams (Q7, Q11) that core does
+not check. On the brine supplied at 258.15 K, below water's 273.15 K, E-105's product holds 0.2
+ppm of water (no concern), but **E-102 ices**: the vents of V-102's aqueous washes carry water
+vapour. Upper bound: the batch's 0.228 kmol of wet nitrogen (D-012) saturated with water at 303.15
+K (4.28 kPa, NIST Antoine of water, SRC-6) beside iodomethane's 64.7 kPa carries 0.030 kmol (0.54
+kg) of water a batch into E-102; 0.001 kmol leaves at 268.15 K (0.39 kPa); up to 0.52 kg of ice a
+batch on tubes at 258-263 K, about 180 kg a year (an upper bound: only V-102's head space lies over
+water). A design finding, not settled here: a cooling-water knock-out before E-102, two E-102 in
+alternation with a defrost, or brine above 273 K with a larger vent loss are the options for basic
+engineering; each changes D-012's vent fraction and the LCI.
+Changed: `melting_point` on five components and the hazard source text of R101 (no stream,
+duty or LCI value changes). What stays open, each with what it decides:
+- reaction calorimetry (isothermal, 313 K, the solid iodine dose): the heat-release rate over the
+  dosing, the accumulation at its end and after an agitator stop (D-006 (g)), and the rate of the
+  accumulated iodine at 313 to 335 K: it replaces R101's assumed k, sets E-101's design duty
+  (instead of the 55 kW) and the rows of (c);
+- adiabatic calorimetry in a closed low-phi test cell of the end-of-dosing mass (2.3 % and up to
+  15 % of the iodine accumulated) through R-101's 120 kPa(a) interlock pressure: the temperature
+  and pressure rise rates and whether the system is tempered, gassy or hybrid: it decides the relief
+  method (DIERS), R-101's relief area, the catch tank and whether the adsorber can take the
+  discharge;
+- DSC screening, then adiabatic calorimetry, of the reaction mass and of ST101's residue
+  (phosphorous acid, red phosphorus, methanol, up to 363 K): the decomposition's onset, energy and
+  TD24: they decide the class (3 if the TD24 lies at or above the MTSR of 322.6 K, 4 between the
+  MTT and the MTSR, 5 at or below the MTT, D-006) and whether ST101 may heat the residue to 357 K;
+- the VLE of iodomethane with methanol in the reaction mass (the activity coefficient of about 2
+  above, an azeotrope?): it decides whether the bubble-point MTT can replace the measured one and
+  ST101's relative volatility;
+- human sign-off (HAZOP, LOPA, the process safety engineer): E-101's design duty, the credit and
+  reliability of the dosing trip, the relief design, and E-102's freezing.
+
 ## Method and dependency table
 
 | step | status | basis |
@@ -682,6 +791,21 @@ Core 1.10.0 (D-016):
   H101 on another utility), `vessel.metal_heat_capacity` and a still's recipe `vessel` (no vessel
   mass at the concept stage).
 
+Core 1.12.0 (D-017):
+
+- The screening of ADR 0069: the largest gas release over the batch (0.192 m3/h at 10 h, the
+  release at the MTSR), the default MTT that counts the product (315.7 K) and `hazard.mtt_from:
+  bubble-point` (330.8 K), both tried on scratch copies and not used; `gas_release.boil_up` at the
+  content's bubble point on a scratch copy with `vent.vapour.activity` and `vent.inerts` (ADR
+  0071), not in the entry (L-9).
+- `melting_point` on the components and `cheme.process-condenser-freezing` (ADR 0071): ST102's
+  condenser checked by core, clean; E-101, E-102 and E-105 by hand (L-11).
+- Not used: `hazard.potential: network` (one reaction), `vent.head_space` with the blanket's
+  nitrogen as the vent's carrier (it would replace D-012's hand fraction for R-101 alone, while
+  the fraction lumps the work-up's vents, L-3), the still's `separate_phase` and `heat_up_time`
+  (ADR 0068; ST101 keeps its constant relative volatility, D-007), design specifications (ADR
+  0070; L-7).
+
 ## Core limits hit (each a candidate core issue)
 
 - L-1 (core#173), **resolved by core 1.10.0** (ADR 0061, `still.column`; D-016): no batch
@@ -724,7 +848,10 @@ Core 1.10.0 (D-016):
   methanol's 337.8 K, 24.7 K above the end mass's measured reflux temperature (313.15 K, SRC-1),
   and the screening would put the MTSR below it; `hazard.mtt` is set by hand (unchanged by core
   1.10.0, D-016). Core's own bubble
-  point of that mass, if it gave one, would be the ideal liquid's 329.53 K (D-006).
+  point of that mass, if it gave one, would be the ideal liquid's 329.53 K (D-006). **Cause
+  resolved by core 1.12.0** (ADR 0069, D-017): the default counts the product and gives
+  iodomethane's 315.7 K, and `mtt_from: bubble-point` gives 330.8 K on the ideal liquid; the
+  measured 313.15 K stays by hand, since both lie above it (an ideal liquid, L-10).
 - L-6: a semi-batch has one `heat_of_reaction` per reaction and no heat of solution of a dosed
   solid or of a dissolving product (as acetyl-chloride-1's L-11): the iodine's and the phosphorous
   acid's are exclusions (D-011). Partly addressed by core 1.10.0: a dose's `heat_of_solution` (ADR
@@ -744,7 +871,16 @@ Core 1.10.0 (D-016):
   {condenser_capacity}` that caps the MTSR at the MTT and compares the boil-off with it, and a
   pressure for the closed case, would cover it. Unchanged by core 1.10.0: its boiling check at the
   MTSR (ADR 0062, `boils`) needs the vent's vapour, not used here (L-3), and a reflux at the
-  boiling point is ADR 0062's follow-up (D-016).
+  boiling point is ADR 0062's follow-up (D-016). **Partly resolved by core 1.12.0** (ADR 0069,
+  D-017): the boil-up of a content boiling at the MTSR at its bubble point (`gas_release.boil_up`),
+  which replaces the script's boil-off on a scratch copy (iodomethane as a vapour component with an
+  activity coefficient of 2.0, not as the vent's component at a fraction, so not in the entry), and
+  the largest release over the batch. Open: the condenser's capacity against the boil-up, a closed
+  vessel's pressure, level swell and two-phase relief (ADR 0069's known limitations), and the
+  boil-up with the vent's hand fraction (L-3).
+- L-11 (core 1.12.0, ADR 0071): the freezing check covers a vent condenser modelled on the vent
+  and a column's condenser only; E-102 (a hand stream, L-3) and E-105 were checked by hand, and E-102
+  ices on its 258 K brine (D-017 (e)).
 - L-10 (as acetyl-chloride-1's L-10): an ideal liquid only; ST102's basis is "not sourced", and no
   azeotrope can be represented (D-010). Since core 1.10.0 it limits the batch rectification too:
   its 99.86 wt% (the shortcut on the ideal liquid; a rigorous column would give at least this, the
@@ -759,5 +895,6 @@ phosphoric acid) by analysis of the residue; the VLE of iodomethane with methano
 and the relative volatility in the residue; the LLE of the washes and the wash volumes; the
 column's stages and reflux; the product specification (assay, methanol, water, stabiliser); the
 residue's treatment and the iodine's recovery; E-101's design duty for the boil-off, the relief of
-R-101 and the vent system's sizing; the adsorber's capacity and breakthrough; prices and a TEA
+R-101 and the vent system's sizing (each with the measurement that decides it, D-017); E-102's
+freezing on brine (D-017 (e)); the adsorber's capacity and breakthrough; prices and a TEA
 (`operation.batch: {recipe: true}`).
