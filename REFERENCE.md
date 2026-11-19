@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 129 public process folders: 89 engineering projects (a `plant.yaml` with a process
+The table lists 130 public process folders: 90 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -59,6 +59,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`benzyl-bromide-1`](processes/benzyl-bromide-1/) | Benzyl bromide by semi-batch light-driven side-chain bromination of toluene with an HBr vent through a reflux condenser, toluene recycle and batch vacuum distillation through a packed column (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`benzyl-chloroformate-1`](processes/benzyl-chloroformate-1/) | Benzyl chloroformate by semi-batch phosgenation of benzyl alcohol at reduced pressure (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`bio-ethylene-1`](processes/bio-ethylene-1/) | Bio-ethylene by catalytic dehydration of ethanol (open process model, adiabatic fixed beds) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`biodiesel-1`](processes/biodiesel-1/) | Biodiesel (FAME) by base-catalysed transesterification of refined soybean oil with methanol in two CSTRs with glycerol decanters, methanol flash and recycle, acid water wash and vacuum drying, crude glycerol co-product (32 420 t/a, continuous) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`bioethanol-1`](processes/bioethanol-1/) | Fuel ethanol from corn by dry grind: enzymatic liquefaction and saccharification, continuous cascade yeast fermentation, beer column, rectifier and molecular sieves to 99.5 wt%, stillage to DDGS (633 dry t/d of corn, 71 300 t/a, USDA-ARS/NREL dry-mill basis) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`biogas-1`](processes/biogas-1/) | Biogas from cattle slurry and biowastes in two-stage mesophilic digesters (FNR model plant VII), three-stage membrane upgrading to 98 mol% biomethane, digestate to land (704 t/a biomethane) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`bromine-1`](processes/bromine-1/) | Bromine from bromide brine by chlorine oxidation and steaming-out (Smackover-type brine) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
