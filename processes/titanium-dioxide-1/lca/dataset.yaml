@@ -33,15 +33,20 @@ cutoff:
     0.10 kg NOx per t from chlorination, 1999 average); the fired heaters'' combustion emissions are in
     the background of the fired-heat entry.'
 - key: emission-excluded:dust
-  title: equipment-leaks emissions of F-201, S-101
+  title: equipment-leaks emissions of the plant
   direction: output
-  reason: 'Dust from raw material handling and from the pigment filters (BREF LVIC-S Tables 3.18 and 3.23:
-    0.002 and 0.158 kg per t, 1999 averages) not in the balance: no P&ID or abatement design yet.'
+  reason: 'Dust from the raw material import and preparation (ore and coke handling, closed systems with
+    cyclones and filters; BREF LVIC-S 3.2.2.1 and Table 3.18: 0.002 kg per t, 1999 average) not in the
+    balance: the feedstock handling is not drawn and has no P&ID or abatement design yet. The in-boundary
+    filters do not vent: the pigment bag filter F-201 returns its gas to the chlorinator (S4) and the
+    cyclone S-101 passes its gas to the condensers. The BREF''s oxidation-stage table (3.22) reports no
+    dust; its finishing-section dust (Table 3.23) is outside the boundary (D-002).'
 - key: emission-excluded:waste-tanks
   title: storage-tank emissions of M-401, R-401
   direction: output
-  reason: 'The lime slaker and the neutralisation tank are open aqueous tanks at 313-323 K holding no
-    volatile component in the balance (the TiCl4 and HCl are neutralised); their vapour is water: negligible.'
+  reason: 'The lime slaker (about 366 K, adiabatic) and the neutralisation tank (323 K, cooled) are aqueous
+    tanks holding no volatile component in the balance (the TiCl4 and HCl are neutralised); their vapour
+    is water (D-010). The slaker''s water vapour is not in the balance: open for basic engineering.'
 - key: emission-excluded:fugitive-chlorine
   title: equipment-leaks emissions of the plant
   direction: output
@@ -100,7 +105,7 @@ exchanges:
 - key: feed:COKE
   title: Calcined petroleum coke
   type: input
-  amount: 3944.51
+  amount: 3944.56
   unit: kg
   link:
     source: flowsheet stream S2 (D-005)
@@ -123,7 +128,7 @@ exchanges:
 - key: feed:CL2
   title: Make-up chlorine (chlor-alkali-1)
   type: input
-  amount: 1596.43
+  amount: 1596.41
   unit: kg
   link:
     source: flowsheet stream S3 (D-006)
@@ -146,7 +151,7 @@ exchanges:
 - key: feed:OXY
   title: Gaseous oxygen (asu-1)
   type: input
-  amount: 5780.87
+  amount: 5780.92
   unit: kg
   link:
     source: flowsheet stream S17 (D-007)
@@ -169,7 +174,7 @@ exchanges:
 - key: feed:NAOH
   title: Caustic soda 50 wt% (chlor-alkali-1)
   type: input
-  amount: 389.742
+  amount: 389.745
   unit: kg
   link:
     source: flowsheet stream S30 (D-008)
@@ -192,7 +197,7 @@ exchanges:
 - key: feed:PW
   title: Process water to the scrubber
   type: input
-  amount: 779.484
+  amount: 779.49
   unit: kg
   link:
     source: flowsheet stream S31 (D-008)
@@ -256,7 +261,7 @@ exchanges:
 - key: feed:AIR
   title: Combustion air
   type: input
-  amount: 46323.546
+  amount: 46323.935
   unit: kg
   free: true
   streams:
@@ -283,13 +288,15 @@ exchanges:
   amount: 13976.500000000002
   unit: kWh
   link:
-    source: 'flowsheet energy streams P1 and P2: BREF LVIC-S Table 3.16 site averages (D-011)'
+    source: flowsheet energy streams P1 and P2 (BREF LVIC-S Table 3.16 site averages) and P3 (the air
+      fan, scripts/energy_balance.py), D-011
     missing: linked through the registry slug electricity (medium voltage, the site's grid) in lca/mappings.yaml
   streams:
   - P1
   - P2
   - P3
-  source: 'flowsheet energy streams P1 and P2: BREF LVIC-S Table 3.16 site averages (D-011)'
+  source: flowsheet energy streams P1 and P2 (BREF LVIC-S Table 3.16 site averages) and P3 (the air fan,
+    scripts/energy_balance.py), D-011
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -300,7 +307,7 @@ exchanges:
 - key: feed:HPS
   title: High-pressure steam (4000 kPa(a), saturated)
   type: input
-  amount: 5979.4
+  amount: 5979.5
   unit: kWh
   link:
     source: flowsheet energy streams Q5 (still reboiler) and Q7 (TiCl4 vaporiser), scripts/energy_balance.py
@@ -369,7 +376,7 @@ exchanges:
 - key: product:CAKE
   title: Neutralised filter cake to landfill
   type: output
-  amount: 4947.69
+  amount: 4947.73
   unit: kg
   provenance: calculated
   link:
@@ -390,16 +397,16 @@ exchanges:
       excess lime and retained liquor), as BREF LVIC-S 3.2.2.15 describes
   composition:
     fractions:
-      TIO2: 0.173412726
-      SIO2: 0.122720124
-      C: 0.119586213
-      CAO: 0.02346761
-      FEOH2: 0.306986615
-      H2O: 0.176099295
-      NAOH: 0.001968412
-      NACL: 0.004567421
-      NAOCL: 0.001514327
-      CACL2: 0.069677256
+      TIO2: 0.17341336
+      SIO2: 0.122720132
+      C: 0.119587917
+      CAO: 0.023468223
+      FEOH2: 0.306983218
+      H2O: 0.176099776
+      NAOH: 0.00196824
+      NACL: 0.004567597
+      NAOCL: 0.00151452
+      CACL2: 0.069677016
     formulas:
       TIO2: TiO2
       SIO2: SiO2
@@ -415,7 +422,7 @@ exchanges:
 - key: product:EFF
   title: Neutralised filtrate to the effluent outfall
   type: output
-  amount: 7116.51
+  amount: 7116.57
   unit: kg
   provenance: calculated
   link:
@@ -435,11 +442,11 @@ exchanges:
       as BREF LVIC-S 3.2.2.15 describes
   composition:
     fractions:
-      H2O: 0.693777553
-      NAOH: 0.007754952
-      NACL: 0.017994243
-      NAOCL: 0.005966007
-      CACL2: 0.274507245
+      H2O: 0.693777903
+      NAOH: 0.00775425
+      NACL: 0.017994937
+      NAOCL: 0.005966746
+      CACL2: 0.274506165
     formulas:
       H2O: H2O
       NAOH: NaOH
@@ -450,7 +457,7 @@ exchanges:
 - key: product:STACK
   title: Thermal oxidiser flue gas to stack
   type: output
-  amount: 55816.7
+  amount: 55817.2
   unit: kg
   provenance: calculated
   streams:
@@ -479,18 +486,20 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 23676.5
+  amount: 25267.399999999998
   unit: kWh
   link:
-    source: flowsheet energy streams Q2, Q3, Q6 and Q10, scripts/energy_balance.py (D-011)
+    source: flowsheet energy streams Q3 (condenser, with the quench heat), Q6, Q10 and Q11 (neutraliser),
+      scripts/energy_balance.py (D-006, D-010, D-011)
     missing: linked through the registry slug cooling-water (processes/utility-cooling-tower with prefer_atlas)
       in lca/mappings.yaml
   streams:
-  - Q2
   - Q3
   - Q6
   - Q10
-  source: flowsheet energy streams Q2, Q3, Q6 and Q10, scripts/energy_balance.py (D-011)
+  - Q11
+  source: flowsheet energy streams Q3 (condenser, with the quench heat), Q6, Q10 and Q11 (neutraliser),
+    scripts/energy_balance.py (D-006, D-010, D-011)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -522,7 +531,7 @@ exchanges:
 - key: product:AMB
   title: Heat lost to ambient (chlorinator shell)
   type: output
-  amount: 1039.4
+  amount: 203.2
   unit: kWh
   free: true
   streams:
@@ -535,7 +544,7 @@ exchanges:
 - key: emission:AR
   title: AR to the environment
   type: emission
-  amount: 615.0897021046284
+  amount: 615.0952120059171
   unit: kg
   provenance: calculated
   free: true
@@ -580,7 +589,7 @@ exchanges:
 - key: emission:CL2
   title: CL2 to the environment
   type: emission
-  amount: 0.004758172750470918
+  amount: 0.004758774292411607
   unit: kg
   provenance: calculated
   link:
@@ -604,7 +613,7 @@ exchanges:
 - key: emission:CO
   title: CO to the environment
   type: emission
-  amount: 4.924434550703361
+  amount: 4.924478663209529
   unit: kg
   provenance: calculated
   link:
@@ -639,7 +648,7 @@ exchanges:
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 12277.594511967378
+  amount: 12277.704493216605
   unit: kg
   provenance: calculated
   link:
@@ -749,11 +758,15 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: HCl slip of the scrubber (0.01 % of the HCl, ASSUMED, D-008), stream S37
+    source: 'zero in S37: the TiCl4 slip is hydrolysed and neutralised in one step (HYD_NAOH, DESIGN.md
+      L-4), so the model carries no HCl; the small HCl residue the BREF reports (Table 3.19) is not resolved
+      (D-008): a zero-amount exchange'
   cas: 7647-01-0
   streams:
   - S37
-  source: HCl slip of the scrubber (0.01 % of the HCl, ASSUMED, D-008), stream S37
+  source: 'zero in S37: the TiCl4 slip is hydrolysed and neutralised in one step (HYD_NAOH, DESIGN.md
+    L-4), so the model carries no HCl; the small HCl residue the BREF reports (Table 3.19) is not resolved
+    (D-008): a zero-amount exchange'
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -767,7 +780,7 @@ exchanges:
 - key: emission:N2
   title: N2 to the environment
   type: emission
-  amount: 35005.629661246596
+  amount: 35005.943237564534
   unit: kg
   provenance: calculated
   free: true
@@ -860,7 +873,7 @@ exchanges:
 - key: emission:O2
   title: O2 to the environment
   type: emission
-  amount: 7913.456931957943
+  amount: 7913.5278197754415
   unit: kg
   provenance: calculated
   free: true
@@ -1057,9 +1070,9 @@ provenance:
   plant: Titanium dioxide by the chloride process (100 kt/a raw rutile TiO2)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:e8ed1dae19bb5617b844dac358e4d83b5ac26edcc6726591f23d9103c3302f81
-    lca/lca.yaml: sha256:a1eb28bc4a61efe8f09d359906730337529227911d38df630404b2d0a4041e2d
-    process.yaml: sha256:2a240d1d271b9b48c0dea5ca32a49a3e058f783e0abbd8267b9d15702cd381bf
-    process/flowsheet.yaml: sha256:99b3ba8b8fea3c9834b5f6d1f3cffa986aef6b6232b814e2822a22afee0b76bb
-    process/materials.yaml: sha256:b7e687f5cf8bc7c39ec892c59589b1980643c165ba8ab3ab2aabaface89033cd
-    process/simulation.yaml: sha256:d72d1e735d2e23e7d65d7e32fc2eb7cf0f693f1175c7853b69f3cfa4dc2b7082
+    equipment/equipment-list.yaml: sha256:a6353aefc4398485b0c9613ff72e4aa8271b4e657610ddc5749714f6cf89b4d0
+    lca/lca.yaml: sha256:917f7040a6ecbaf517a9c32a7f90942951e2c908309be2cf2b9a5e93ff00ccff
+    process.yaml: sha256:95d4be56f746077393659d76ca911e93777dfb8497fae87929bae2a8f77c018f
+    process/flowsheet.yaml: sha256:786dce477520f5be6434e13b6b54c350a91aaea9ad4abb1f681235d7c062a77c
+    process/materials.yaml: sha256:01d06d5e52789cfbf0f6eccdcd9ffc7b0dc64658dccb5235abdcbebad8150048
+    process/simulation.yaml: sha256:e88cf23231645e8f09f298dc0a4464317ad59131cf54339ad4c7f4cb1e5cd197

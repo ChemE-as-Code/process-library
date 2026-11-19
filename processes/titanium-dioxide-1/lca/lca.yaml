@@ -57,7 +57,7 @@ flows:
   # utilities
   - key: feed:POWER
     missing: "linked through the registry slug electricity (medium voltage, the site's grid) in lca/mappings.yaml"
-    source: "flowsheet energy streams P1 and P2: BREF LVIC-S Table 3.16 site averages (D-011)"
+    source: "flowsheet energy streams P1 and P2 (BREF LVIC-S Table 3.16 site averages) and P3 (the air fan, scripts/energy_balance.py), D-011"
   - key: feed:HPS
     missing: "linked as heat from steam (lca/mappings.yaml, steam-heat); connect to: HP steam 4000 kPa(a) from a natural-gas-fired site boiler, per kWh of condensing heat"
     source: "flowsheet energy streams Q5 (still reboiler) and Q7 (TiCl4 vaporiser), scripts/energy_balance.py (D-011)"
@@ -66,7 +66,7 @@ flows:
     source: "flowsheet energy streams Q8 and Q9 (fired preheaters), scripts/energy_balance.py (D-007)"
   - key: product:CW
     missing: "linked through the registry slug cooling-water (processes/utility-cooling-tower with prefer_atlas) in lca/mappings.yaml"
-    source: "flowsheet energy streams Q2, Q3, Q6 and Q10, scripts/energy_balance.py (D-011)"
+    source: "flowsheet energy streams Q3 (condenser, with the quench heat), Q6, Q10 and Q11 (neutraliser), scripts/energy_balance.py (D-006, D-010, D-011)"
   - key: product:BRINE
     missing: "not mapped yet (D-013); connect to: refrigeration at 243 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller at a lower level), per kWh of heat removed"
     source: "flowsheet energy stream Q4 (after-condenser E-103), scripts/energy_balance.py"
@@ -109,7 +109,7 @@ flows:
     source: "chlorine slip of the caustic scrubber (0.01 %, ASSUMED, D-008), stream S37"
   - key: emission:HCL
     elementary: {compartment: air, subcompartment: non-urban-high-stack}
-    source: "HCl slip of the scrubber (0.01 % of the HCl, ASSUMED, D-008), stream S37"
+    source: "zero in S37: the TiCl4 slip is hydrolysed and neutralised in one step (HYD_NAOH, DESIGN.md L-4), so the model carries no HCl; the small HCl residue the BREF reports (Table 3.19) is not resolved (D-008): a zero-amount exchange"
 # What the plant uses and the flowsheet does not carry: the oil that complexes the vanadium in
 # the still and the abrasive solids that scour the oxidiser product cooler (both separated and
 # sent to the solid waste, not modelled as streams), at the BREF LVIC-S means per t of TiO2.
@@ -142,8 +142,8 @@ operation:
 emission_exclusions:
   - {id: cos-so2, method: combustion, equipment: [R-101, X-301], reason: "The coke's sulfur (0.8-1.8 wt%, BREF LVIC-S 3.2.3.4.2) leaves as COS, burnt to SO2 in the thermal oxidiser: not modelled (the coke is carried as carbon only, L-3). BREF LVIC-S Table 3.19 reports 2.39 kg COS and 1.14 kg SO2 per t from chlorination (1999 averages): open for the next stage."}
   - {id: oxidiser-nox, method: combustion, equipment: [X-301, E-202, E-203], reason: "NOx of the thermal oxidiser and of the fired preheaters not estimated (BREF LVIC-S Table 3.19: 0.10 kg NOx per t from chlorination, 1999 average); the fired heaters' combustion emissions are in the background of the fired-heat entry."}
-  - {id: dust, method: equipment-leaks, equipment: [F-201, S-101], reason: "Dust from raw material handling and from the pigment filters (BREF LVIC-S Tables 3.18 and 3.23: 0.002 and 0.158 kg per t, 1999 averages) not in the balance: no P&ID or abatement design yet."}
-  - {id: waste-tanks, method: storage-tank, equipment: [M-401, R-401], reason: "The lime slaker and the neutralisation tank are open aqueous tanks at 313-323 K holding no volatile component in the balance (the TiCl4 and HCl are neutralised); their vapour is water: negligible."}
+  - {id: dust, method: equipment-leaks, reason: "Dust from the raw material import and preparation (ore and coke handling, closed systems with cyclones and filters; BREF LVIC-S 3.2.2.1 and Table 3.18: 0.002 kg per t, 1999 average) not in the balance: the feedstock handling is not drawn and has no P&ID or abatement design yet. The in-boundary filters do not vent: the pigment bag filter F-201 returns its gas to the chlorinator (S4) and the cyclone S-101 passes its gas to the condensers. The BREF's oxidation-stage table (3.22) reports no dust; its finishing-section dust (Table 3.23) is outside the boundary (D-002)."}
+  - {id: waste-tanks, method: storage-tank, equipment: [M-401, R-401], reason: "The lime slaker (about 366 K, adiabatic) and the neutralisation tank (323 K, cooled) are aqueous tanks holding no volatile component in the balance (the TiCl4 and HCl are neutralised); their vapour is water (D-010). The slaker's water vapour is not in the balance: open for basic engineering."}
   - {id: fugitive-chlorine, method: equipment-leaks, reason: "No P&ID yet: fugitive chlorine, TiCl4 and CO from flanges, valves and seals cannot be counted; the black end is totally enclosed (BREF LVIC-S 3.2.2.1). Open for basic engineering."}
 dataset:
   version: 0.1.0

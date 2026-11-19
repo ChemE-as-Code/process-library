@@ -43,7 +43,7 @@ specs:
     vary: {stream: S1, initial: 15000.0, low: 1000.0, high: 40000.0}
     target: {stream: S21, component: TIO2, quantity: flow, value: 12500.0}
     provenance: assumed
-    source: "D-002: 100 kt/a raw TiO2 at 8000 h, within the 30-150 kt/a of the EU chloride sites (BREF LVIC-S Table 3.5)"
+    source: "D-002: 100 kt/a raw TiO2 at 8000 h, within the 55-150 kt/a of the five EU chloride sites (BREF LVIC-S Table 3.5)"
   - id: coke-excess
     vary: {stream: S2, initial: 4000.0, low: 100.0, high: 20000.0}
     target: {stream: S6, component: C, quantity: ratio, basis: mole, per: {stream: S2, component: C}, value: 0.15}
@@ -120,10 +120,10 @@ products:
       return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
       min_approach: {value: 5, provenance: assumed, source: "design basis"}
     ports:
-      - {id: e101, direction: in, kind: energy}
       - {id: e102, direction: in, kind: energy}
       - {id: t101, direction: in, kind: energy}
       - {id: e204, direction: in, kind: energy}
+      - {id: r401, direction: in, kind: energy}
   - id: BRINE
     title: Refrigerated brine return (248 K)
     category: utility
@@ -152,7 +152,6 @@ blocks:
       - {id: solids, direction: out}
       - {id: power, direction: in, kind: energy}
       - {id: amb, direction: out, kind: energy}
-      - {id: cw, direction: out, kind: energy}
   - id: COND
     title: TiCl4 condensation
     class: SeparatingByThermalProcess
@@ -206,6 +205,7 @@ blocks:
       - {id: cake, direction: out}
       - {id: filtrate, direction: out}
       - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
 
 steps:
   # --- CHLOR -----------------------------------------------------------------------------------
@@ -235,13 +235,12 @@ steps:
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: E101
     block: CHLOR
-    title: Chlorinator gas quench (spray cooler with cold TiCl4)
+    title: Chlorinator gas quench (spray of cold crude TiCl4, evaporated; its heat leaves in E102)
     class: Cooling
     links: [{target: equipment, ref: E-101}]
     ports:
       - {id: in, direction: in}
       - {id: out, direction: out}
-      - {id: q, direction: out, kind: energy, delegates: cw}
   - id: S101
     block: CHLOR
     title: Blow-over and metal chloride cyclone
@@ -440,6 +439,7 @@ steps:
       - {id: lime, direction: in}
       - {id: out, direction: out}
       - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: q, direction: out, kind: energy, delegates: cw}
   - id: F401
     block: WASTE
     title: Filter press
@@ -467,7 +467,7 @@ streams:
         pressure: {value: 250.0, provenance: assumed, source: "pneumatic injection into the bed (D-011)"}
         temperature: {value: 298.15, provenance: assumed, source: "dry feedstock from closed storage (BREF LVIC-S 3.2.2.1: no drying needed)"}
         composition: {basis: mass_fraction, values: {TIO2: 0.88, FEO: 0.08, SIO2: 0.04}, provenance: assumed, source: "D-003: a slag and synthetic rutile blend, 88 wt% TiO2 (BREF LVIC-S Table 3.7: slag 86-87, synthetic rutile 90-93 wt%); impurities lumped"}
-        flow: {value: 15179.5, provenance: calculated, source: 'cheme process propagate: spec product-rate (S21 TIO2 flow kg/h 12500)', fingerprint: b7b32d3cfcc80f6d}
+        flow: {value: 15179.5, provenance: calculated, source: 'cheme process propagate: spec product-rate (S21 TIO2 flow kg/h 12500)', fingerprint: a686a2f87b2db230}
   - id: S2
     title: Calcined petroleum coke
     from: COKE.out
@@ -478,7 +478,7 @@ streams:
         pressure: {value: 250.0, provenance: assumed, source: "pneumatic injection (D-011)"}
         temperature: {value: 298.15, provenance: assumed, source: "ambient storage"}
         composition: {basis: mass_fraction, values: {C: 1.0}, provenance: assumed, source: "D-005: fixed carbon only; sulfur, ash and volatiles not modelled (L-3)"}
-        flow: {value: 3944.51, provenance: calculated, source: 'cheme process propagate: spec coke-excess (S6 C per S2 C (mole) 0.15)', fingerprint: b7b32d3cfcc80f6d}
+        flow: {value: 3944.56, provenance: calculated, source: 'cheme process propagate: spec coke-excess (S6 C per S2 C (mole) 0.15)', fingerprint: a686a2f87b2db230}
   - id: S3
     title: Make-up chlorine
     from: CL2.out
@@ -490,7 +490,7 @@ streams:
         temperature: {value: 313.15, provenance: assumed, source: "chlor-alkali-1 chlorine product (its stream S42)"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
         composition: {basis: mass_fraction, values: {CL2: 0.9918815, O2: 0.008118535}, provenance: assumed, source: "chlor-alkali-1 dry chlorine gas (its stream S42)"}
-        flow: {value: 1596.43, provenance: calculated, source: 'cheme process propagate: spec chlorine-slip (S6 CL2 per S5 CL2 (mole) 0.002)', fingerprint: b7b32d3cfcc80f6d}
+        flow: {value: 1596.41, provenance: calculated, source: 'cheme process propagate: spec chlorine-slip (S6 CL2 per S5 CL2 (mole) 0.002)', fingerprint: a686a2f87b2db230}
   - id: S4
     title: Recycle chlorine (from the bag filter)
     from: F201.gas
@@ -500,8 +500,8 @@ streams:
       design:
         pressure: {value: 200.0, provenance: assumed, source: "oxidiser train above the chlorinator pressure for the direct recycle (BREF LVIC-S 3.2.2.12; D-011)"}
         temperature: {value: 423.15, provenance: assumed, source: "bag filter outlet (D-007)"}
-        flow: {value: 23030.4, provenance: calculated, source: 'cheme process propagate: recycle F201 from S20 (tear, broyden)', fingerprint: f2ec6af3ead62aa3}
-        composition: {basis: mole_fraction, values: {TIO2: 4.63944e-05, TICL4: 0.000929748, CL2: 0.927889, O2: 0.0695916, AR: 0.0015437}, provenance: calculated, source: 'cheme process propagate: recycle F201 from S20 (tear, broyden)', fingerprint: f2ec6af3ead62aa3}
+        flow: {value: 23030.7, provenance: calculated, source: 'cheme process propagate: recycle F201 from S20 (tear, broyden)', fingerprint: 37ec6e238116c58a}
+        composition: {basis: mole_fraction, values: {TIO2: 4.63944e-05, TICL4: 0.000929748, CL2: 0.927889, O2: 0.0695916, AR: 0.0015437}, provenance: calculated, source: 'cheme process propagate: recycle F201 from S20 (tear, broyden)', fingerprint: 37ec6e238116c58a}
   - id: S5
     title: Chlorine to the bed
     from: M101.out
@@ -511,8 +511,8 @@ streams:
       design:
         pressure: {value: 180.0, provenance: assumed, source: "D-011"}
         temperature: {value: 416.26, provenance: assumed, source: "scripts/energy_balance.py: adiabatic mixing of S3 and S4"}
-        flow: {value: 24626.8, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4', fingerprint: 027027719a5e241b}
-        composition: {basis: mole_fraction, values: {CL2: 0.931317, O2: 0.0663225, AR: 0.00144623, TICL4: 0.000871046, TIO2: 4.34652e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4', fingerprint: 55a8c4fe33712c99}
+        flow: {value: 24627.1, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4', fingerprint: 2053d732850edde3}
+        composition: {basis: mole_fraction, values: {CL2: 0.931317, O2: 0.0663226, TIO2: 4.34653e-05, TICL4: 0.000871048, AR: 0.00144624}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4', fingerprint: f7268dbdc2678a45}
   - id: S6
     title: Chlorinator outlet (gas and blow-over)
     from: R101.out
@@ -522,8 +522,8 @@ streams:
       design:
         pressure: {value: 150.0, provenance: assumed, source: "freeboard pressure (D-011)"}
         temperature: {value: 1273.15, provenance: given, source: "BREF LVIC-S 3.2.2.2: fluidised bed at 1000 C"}
-        flow: {value: 43750.8, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2 S5', fingerprint: ec56424978540218}
-        composition: {basis: mole_fraction, values: {TIO2: 0.015955, FEO: 0.0, SIO2: 0.0192786, C: 0.0939751, CL2: 0.00128016, O2: 0.0, AR: 0.000993564, TICL4: 0.303744, CO: 0.335391, CO2: 0.197137, FECL2: 0.0322453}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2 S5', fingerprint: f8ecd9554f28c0f9}
+        flow: {value: 43751.2, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2 S5', fingerprint: 4a8ebe5a82841ff5}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0159551, FEO: 0.0, SIO2: 0.0192783, C: 0.0939756, TICL4: 0.303744, CL2: 0.00128031, O2: 0.0, AR: 0.000993571, CO: 0.335391, CO2: 0.197137, FECL2: 0.0322449}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2 S5', fingerprint: dda1a96c13ddffc1}
   - id: S7
     title: Quenched chlorinator gas
     from: E101.out
@@ -533,8 +533,8 @@ streams:
       design:
         pressure: {value: 145.0, provenance: assumed, source: "D-011"}
         temperature: {value: 473.15, provenance: assumed, source: "D-006: quenched with cold TiCl4 below the condensation of the metal chlorides and above the TiCl4 dew point"}
-        flow: {value: 43750.8, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: ba2376633877fd87}
-        composition: {basis: mole_fraction, values: {TIO2: 0.015955, FEO: 0.0, SIO2: 0.0192786, C: 0.0939751, CL2: 0.00128016, O2: 0.0, AR: 0.000993564, TICL4: 0.303744, CO: 0.335391, CO2: 0.197137, FECL2: 0.0322453}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: ba2376633877fd87}
+        flow: {value: 43751.2, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: d31d2c8429325840}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0159551, FEO: 0.0, SIO2: 0.0192783, C: 0.0939756, TICL4: 0.303744, CL2: 0.00128031, O2: 0.0, AR: 0.000993571, CO: 0.335391, CO2: 0.197137, FECL2: 0.0322449}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: d31d2c8429325840}
   - id: S8
     title: Blow-over solids and metal chlorides
     from: S101.solids
@@ -544,8 +544,8 @@ streams:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "lock hopper discharge"}
         temperature: {value: 473.15, provenance: assumed, source: "cyclone temperature"}
-        flow: {value: 4049.62, provenance: calculated, source: 'cheme process propagate: separator S101 from S7', fingerprint: e28ac811a3c09712}
-        composition: {basis: mole_fraction, values: {TICL4: 0.00376727, CO: 0.0, CO2: 0.0, CL2: 0.0, O2: 0.0, AR: 0.0, FECL2: 0.198966, TIO2: 0.0984484, FEO: 0.0, SIO2: 0.118956, C: 0.579862}, provenance: calculated, source: 'cheme process propagate: separator S101 from S7', fingerprint: e28ac811a3c09712}
+        flow: {value: 4049.62, provenance: calculated, source: 'cheme process propagate: separator S101 from S7', fingerprint: d77b6a4d04e0d7d2}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0984491, FEO: 0.0, SIO2: 0.118955, C: 0.579866, FECL2: 0.198963, TICL4: 0.00376727, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: separator S101 from S7', fingerprint: d77b6a4d04e0d7d2}
   - id: S9
     title: Cleaned TiCl4 gas
     from: S101.gas
@@ -555,8 +555,8 @@ streams:
       design:
         pressure: {value: 140.0, provenance: assumed, source: "D-011"}
         temperature: {value: 473.15, provenance: assumed, source: "cyclone temperature"}
-        flow: {value: 39701.2, provenance: calculated, source: 'cheme process propagate: separator S101 from S7', fingerprint: e28ac811a3c09712}
-        composition: {basis: mole_fraction, values: {TICL4: 0.361417, CO: 0.399872, CO2: 0.235038, CL2: 0.00152628, O2: 0.0, AR: 0.00118458, FECL2: 0.000192223, TIO2: 9.51123e-05, FEO: 0.0, SIO2: 0.000114925, C: 0.000560212}, provenance: calculated, source: 'cheme process propagate: separator S101 from S7', fingerprint: e28ac811a3c09712}
+        flow: {value: 39701.6, provenance: calculated, source: 'cheme process propagate: separator S101 from S7', fingerprint: d77b6a4d04e0d7d2}
+        composition: {basis: mole_fraction, values: {TIO2: 9.51129e-05, FEO: 0.0, SIO2: 0.000114923, C: 0.000560215, FECL2: 0.000192221, TICL4: 0.361416, CL2: 0.00152646, O2: 0.0, CO: 0.399872, CO2: 0.235038, AR: 0.00118459}, provenance: calculated, source: 'cheme process propagate: separator S101 from S7', fingerprint: d77b6a4d04e0d7d2}
   # --- condensation and purification -----------------------------------------------------------
   - id: S10
     title: Partly condensed TiCl4
@@ -568,8 +568,8 @@ streams:
         pressure: {value: 135.0, provenance: assumed, source: "D-011"}
         temperature: {value: 308.15, provenance: assumed, source: "D-006: cooling-water condenser outlet"}
         phase: {value: two-phase, provenance: assumed, source: "TiCl4 condensed, CO and CO2 as gas"}
-        flow: {value: 39701.2, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: ea3a0c30ad53075e}
-        composition: {basis: mole_fraction, values: {TICL4: 0.361417, CO: 0.399872, CO2: 0.235038, CL2: 0.00152628, O2: 0.0, AR: 0.00118458, FECL2: 0.000192223, TIO2: 9.51123e-05, FEO: 0.0, SIO2: 0.000114925, C: 0.000560212}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: ea3a0c30ad53075e}
+        flow: {value: 39701.6, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 0b047fd38b312364}
+        composition: {basis: mole_fraction, values: {TIO2: 9.51129e-05, FEO: 0.0, SIO2: 0.000114923, C: 0.000560215, FECL2: 0.000192221, TICL4: 0.361416, CL2: 0.00152646, O2: 0.0, CO: 0.399872, CO2: 0.235038, AR: 0.00118459}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 0b047fd38b312364}
   - id: S11
     title: Cooled TiCl4 and off-gas
     from: E103.out
@@ -580,8 +580,8 @@ streams:
         pressure: {value: 130.0, provenance: assumed, source: "D-011"}
         temperature: {value: 263.15, provenance: assumed, source: "D-006: brine after-condenser and cold TiCl4 jet scrubber outlet"}
         phase: {value: two-phase, provenance: assumed, source: "liquid TiCl4 and off-gas"}
-        flow: {value: 39701.2, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S10', fingerprint: f4376bb0170caa73}
-        composition: {basis: mole_fraction, values: {TICL4: 0.361417, CO: 0.399872, CO2: 0.235038, CL2: 0.00152628, O2: 0.0, AR: 0.00118458, FECL2: 0.000192223, TIO2: 9.51123e-05, FEO: 0.0, SIO2: 0.000114925, C: 0.000560212}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S10', fingerprint: f4376bb0170caa73}
+        flow: {value: 39701.6, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S10', fingerprint: 66f5232d1f5e6bab}
+        composition: {basis: mole_fraction, values: {TIO2: 9.51129e-05, FEO: 0.0, SIO2: 0.000114923, C: 0.000560215, FECL2: 0.000192221, TICL4: 0.361416, CL2: 0.00152646, O2: 0.0, CO: 0.399872, CO2: 0.235038, AR: 0.00118459}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S10', fingerprint: 66f5232d1f5e6bab}
   - id: S12
     title: Crude TiCl4
     from: V101.liquid
@@ -592,8 +592,8 @@ streams:
         pressure: {value: 130.0, provenance: assumed, source: "D-011"}
         temperature: {value: 263.15, provenance: assumed, source: "separator"}
         phase: {value: liquid, provenance: assumed, source: "TiCl4 with the fines"}
-        flow: {value: 30070.0, provenance: calculated, source: 'cheme process propagate: separator V101 from S11', fingerprint: 2b0de40be2d72c1c}
-        composition: {basis: mole_fraction, values: {TICL4: 0.997336, CO: 0.0, CO2: 0.0, CL2: 0.0, O2: 0.0, AR: 0.0, FECL2: 0.000532039, TIO2: 0.000263254, FEO: 0.0, SIO2: 0.000318092, C: 0.00155057}, provenance: calculated, source: 'cheme process propagate: separator V101 from S11', fingerprint: 2b0de40be2d72c1c}
+        flow: {value: 30070.3, provenance: calculated, source: 'cheme process propagate: separator V101 from S11', fingerprint: 81168650723d4cb0}
+        composition: {basis: mole_fraction, values: {TIO2: 0.000263256, FEO: 0.0, SIO2: 0.000318087, C: 0.00155058, FECL2: 0.000532035, TICL4: 0.997336, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S11', fingerprint: 81168650723d4cb0}
   - id: S13
     title: Condenser off-gas
     from: V101.gas
@@ -604,8 +604,8 @@ streams:
         pressure: {value: 125.0, provenance: assumed, source: "D-011"}
         temperature: {value: 263.15, provenance: assumed, source: "separator"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
-        flow: {value: 9631.18, provenance: calculated, source: 'cheme process propagate: separator V101 from S11', fingerprint: 2b0de40be2d72c1c}
-        composition: {basis: mole_fraction, values: {TICL4: 0.00169758, CO: 0.626067, CO2: 0.367991, CL2: 0.00238965, O2: 0.0, AR: 0.00185466, FECL2: 0.0, TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S11', fingerprint: 2b0de40be2d72c1c}
+        flow: {value: 9631.3, provenance: calculated, source: 'cheme process propagate: separator V101 from S11', fingerprint: 81168650723d4cb0}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.00169757, CL2: 0.00238993, O2: 0.0, CO: 0.626067, CO2: 0.367991, AR: 0.00185467}, provenance: calculated, source: 'cheme process propagate: separator V101 from S11', fingerprint: 81168650723d4cb0}
   - id: S14
     title: Pure TiCl4
     from: T101.top
@@ -616,8 +616,8 @@ streams:
         pressure: {value: 101.325, provenance: assumed, source: "still at atmospheric pressure (D-006); pumped to the vaporiser"}
         temperature: {value: 409.6, provenance: assumed, source: "boiling point of TiCl4 (chemicals 1.5.2, CRC), the still's distillate"}
         phase: {value: liquid, provenance: assumed, source: "distillate"}
-        flow: {value: 29749.5, provenance: calculated, source: 'cheme process propagate: separator T101 from S12', fingerprint: d71c7d260bd6cc82}
-        composition: {basis: mole_fraction, values: {TICL4: 1.0, TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, CL2: 0.0, CO: 0.0, CO2: 0.0, O2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T101 from S12', fingerprint: d71c7d260bd6cc82}
+        flow: {value: 29749.8, provenance: calculated, source: 'cheme process propagate: separator T101 from S12', fingerprint: c867e4c26fde22af}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 1.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T101 from S12', fingerprint: c867e4c26fde22af}
   - id: S15
     title: Still bottoms (sludge)
     from: T101.bottoms
@@ -627,8 +627,8 @@ streams:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "still"}
         temperature: {value: 413.15, provenance: assumed, source: "still bottoms, ASSUMED"}
-        flow: {value: 320.546, provenance: calculated, source: 'cheme process propagate: separator T101 from S12', fingerprint: d71c7d260bd6cc82}
-        composition: {basis: mole_fraction, values: {TICL4: 0.789199, TIO2: 0.0208315, FEO: 0.0, SIO2: 0.0251709, C: 0.122698, FECL2: 0.0421006, CL2: 0.0, CO: 0.0, CO2: 0.0, O2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T101 from S12', fingerprint: d71c7d260bd6cc82}
+        flow: {value: 320.549, provenance: calculated, source: 'cheme process propagate: separator T101 from S12', fingerprint: c867e4c26fde22af}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0208316, FEO: 0.0, SIO2: 0.0251705, C: 0.122699, FECL2: 0.0421003, TICL4: 0.789199, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T101 from S12', fingerprint: c867e4c26fde22af}
   # --- oxidation -------------------------------------------------------------------------------
   - id: S16
     title: TiCl4 vapour
@@ -640,8 +640,8 @@ streams:
         pressure: {value: 280.0, provenance: assumed, source: "D-011"}
         temperature: {value: 493.15, provenance: assumed, source: "D-007: vaporised and superheated with HP steam (4000 kPa(a), 523 K)"}
         phase: {value: vapor, provenance: assumed, source: "TiCl4 vapour"}
-        flow: {value: 29749.5, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S14', fingerprint: efd3c072dbde066a}
-        composition: {basis: mole_fraction, values: {TICL4: 1.0, TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, CL2: 0.0, CO: 0.0, CO2: 0.0, O2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S14', fingerprint: efd3c072dbde066a}
+        flow: {value: 29749.8, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S14', fingerprint: 3b9051049170130a}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 1.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S14', fingerprint: 3b9051049170130a}
   - id: S17
     title: Gaseous oxygen
     from: OXY.out
@@ -653,7 +653,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "pipeline gas"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
         composition: {basis: mole_fraction, values: {O2: 0.997115, AR: 0.002885}, provenance: assumed, source: "asu-1 GOX product (its stream to GOXP)"}
-        flow: {value: 5780.87, provenance: calculated, source: 'cheme process propagate: spec oxygen-excess (S19 O2 per S19 TIO2 (mole) 0.15)', fingerprint: b7b32d3cfcc80f6d}
+        flow: {value: 5780.92, provenance: calculated, source: 'cheme process propagate: spec oxygen-excess (S19 O2 per S19 TIO2 (mole) 0.15)', fingerprint: a686a2f87b2db230}
   - id: S18
     title: TiCl4 superheated
     from: E202.out
@@ -664,8 +664,8 @@ streams:
         pressure: {value: 260.0, provenance: assumed, source: "D-011"}
         temperature: {value: 723.15, provenance: assumed, source: "D-007: TiCl4 preheated to 450 C in a fired superheater (BREF LVIC-S 3.2.2.9: preheated before mixing)"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
-        flow: {value: 29749.5, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S16', fingerprint: e192956a6656c572}
-        composition: {basis: mole_fraction, values: {TICL4: 1.0, TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, CL2: 0.0, CO: 0.0, CO2: 0.0, O2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S16', fingerprint: e192956a6656c572}
+        flow: {value: 29749.8, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S16', fingerprint: 9039f037112ffe20}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 1.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S16', fingerprint: 9039f037112ffe20}
   - id: S19
     title: Oxidiser outlet (pigment in chlorine)
     from: R201.out
@@ -674,9 +674,9 @@ streams:
     state:
       design:
         pressure: {value: 250.0, provenance: assumed, source: "D-011"}
-        temperature: {value: 1996.77, provenance: assumed, source: "scripts/energy_balance.py: adiabatic oxidiser, inside the 900-2000 C of BREF LVIC-S 3.2.2.9"}
-        flow: {value: 35530.4, provenance: calculated, source: 'cheme process propagate: reactor R201 from S18 S22', fingerprint: 89cef50f51e27c0d}
-        composition: {basis: mole_fraction, values: {TICL4: 0.000635118, TIO2: 0.316924, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, CL2: 0.633848, CO: 0.0, CO2: 0.0, O2: 0.0475384, AR: 0.00105452}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S18 S22', fingerprint: 3795aca7c35a180c}
+        temperature: {value: 1996.78, provenance: assumed, source: "scripts/energy_balance.py: adiabatic oxidiser, inside the 900-2000 C of BREF LVIC-S 3.2.2.9"}
+        flow: {value: 35530.7, provenance: calculated, source: 'cheme process propagate: reactor R201 from S18 S22', fingerprint: 255ee15be2a31250}
+        composition: {basis: mole_fraction, values: {TIO2: 0.316924, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.000635119, CL2: 0.633848, O2: 0.0475379, CO: 0.0, CO2: 0.0, AR: 0.00105452}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S18 S22', fingerprint: 8f75c3c0ce0851c0}
   - id: S20
     title: Cooled pigment suspension
     from: E204.out
@@ -686,8 +686,8 @@ streams:
       design:
         pressure: {value: 220.0, provenance: assumed, source: "D-011"}
         temperature: {value: 423.15, provenance: assumed, source: "D-007: indirect water cooling (BREF LVIC-S 3.2.2.10)"}
-        flow: {value: 35530.4, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S19', fingerprint: 83c100ee81023de2}
-        composition: {basis: mole_fraction, values: {TICL4: 0.000635118, TIO2: 0.316924, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, CL2: 0.633848, CO: 0.0, CO2: 0.0, O2: 0.0475384, AR: 0.00105452}, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S19', fingerprint: 83c100ee81023de2}
+        flow: {value: 35530.7, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S19', fingerprint: c93ca12d7461f678}
+        composition: {basis: mole_fraction, values: {TIO2: 0.316924, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.000635119, CL2: 0.633848, O2: 0.0475379, CO: 0.0, CO2: 0.0, AR: 0.00105452}, provenance: calculated, source: 'cheme process propagate: pass-through E204 from S19', fingerprint: c93ca12d7461f678}
   - id: S21
     title: Raw TiO2 product
     from: F201.solid
@@ -697,8 +697,8 @@ streams:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "to the finishing plant (outside the boundary, D-002)"}
         temperature: {value: 423.15, provenance: assumed, source: "bag filter"}
-        flow: {value: 12500.0, provenance: calculated, source: 'cheme process propagate: separator F201 from S20', fingerprint: 2d37a9ecfdafb0d9}
-        composition: {basis: mole_fraction, values: {TIO2: 1.0, CL2: 0.0, O2: 0.0, AR: 0.0, TICL4: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator F201 from S20', fingerprint: 2d37a9ecfdafb0d9}
+        flow: {value: 12500.0, provenance: calculated, source: 'cheme process propagate: separator F201 from S20', fingerprint: 2d9296b6f4e538d6}
+        composition: {basis: mole_fraction, values: {TIO2: 1.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0}, provenance: calculated, source: 'cheme process propagate: separator F201 from S20', fingerprint: 2d9296b6f4e538d6}
   - id: S22
     title: Preheated oxygen
     from: E203.out
@@ -709,8 +709,8 @@ streams:
         pressure: {value: 260.0, provenance: assumed, source: "D-011"}
         temperature: {value: 1273.15, provenance: assumed, source: "D-007: oxygen preheated to 1000 C in a fired preheater"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
-        flow: {value: 5780.87, provenance: calculated, source: 'cheme process propagate: pass-through E203 from S17', fingerprint: c3ec6c5daa4df8ce}
-        composition: {basis: mole_fraction, values: {O2: 0.997115, AR: 0.002885}, provenance: calculated, source: 'cheme process propagate: pass-through E203 from S17', fingerprint: c3ec6c5daa4df8ce}
+        flow: {value: 5780.92, provenance: calculated, source: 'cheme process propagate: pass-through E203 from S17', fingerprint: cc26815a115275c3}
+        composition: {basis: mole_fraction, values: {O2: 0.997115, AR: 0.002885}, provenance: calculated, source: 'cheme process propagate: pass-through E203 from S17', fingerprint: cc26815a115275c3}
   # --- off-gas ---------------------------------------------------------------------------------
   - id: S30
     title: Caustic soda 50 wt%
@@ -723,7 +723,7 @@ streams:
         temperature: {value: 323.15, provenance: assumed, source: "chlor-alkali-1 caustic product"}
         phase: {value: liquid, provenance: assumed, source: "solution"}
         composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: "chlor-alkali-1 50 wt% caustic"}
-        flow: {value: 389.742, provenance: calculated, source: 'cheme process propagate: spec caustic-excess (S32 NAOH per S30 NAOH (mole) 0.3333)', fingerprint: b7b32d3cfcc80f6d}
+        flow: {value: 389.745, provenance: calculated, source: 'cheme process propagate: spec caustic-excess (S32 NAOH per S30 NAOH (mole) 0.3333)', fingerprint: a686a2f87b2db230}
   - id: S31
     title: Scrubber water
     from: PW.out
@@ -735,7 +735,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         phase: {value: liquid, provenance: assumed, source: "water"}
         composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
-        flow: {value: 779.484, provenance: calculated, source: 'cheme process propagate: spec caustic-excess (2 x S30)', fingerprint: b7b32d3cfcc80f6d}
+        flow: {value: 779.49, provenance: calculated, source: 'cheme process propagate: spec caustic-excess (2 x S30)', fingerprint: a686a2f87b2db230}
   - id: S32
     title: Scrubber contents
     from: R301.out
@@ -745,8 +745,8 @@ streams:
       design:
         pressure: {value: 115.0, provenance: assumed, source: "D-011"}
         temperature: {value: 313.15, provenance: assumed, source: "D-008: scrubber outlet"}
-        flow: {value: 10800.4, provenance: calculated, source: 'cheme process propagate: reactor R301 from S13 S30 S31', fingerprint: cddfe03d75572f9d}
-        composition: {basis: mole_fraction, values: {TIO2: 0.00139909, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 1.96947e-07, O2: 0.0, CO: 0.515984, CO2: 0.303286, AR: 0.00152855, H2O: 0.163503, NAOH: 0.00476427, NACL: 0.00756563, NAOCL: 0.00196927, HCL: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S13 S30 S31', fingerprint: 92519d784faf652a}
+        flow: {value: 10800.5, provenance: calculated, source: 'cheme process propagate: reactor R301 from S13 S30 S31', fingerprint: 4f104f9491737987}
+        composition: {basis: mole_fraction, values: {TIO2: 0.00139908, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 1.9697e-07, O2: 0.0, CO: 0.515984, CO2: 0.303286, AR: 0.00152856, H2O: 0.163503, NAOH: 0.00476378, NACL: 0.00756583, NAOCL: 0.00196951, HCL: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S13 S30 S31', fingerprint: c7e8283a8b727cbf}
   - id: S33
     title: Scrubbed off-gas
     from: V301.gas
@@ -757,8 +757,8 @@ streams:
         pressure: {value: 112.0, provenance: assumed, source: "D-011"}
         temperature: {value: 313.15, provenance: assumed, source: "scrubber outlet"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
-        flow: {value: 9493.18, provenance: calculated, source: 'cheme process propagate: separator V301 from S32', fingerprint: 20ce17c7da00ab3b}
-        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 2.39946e-07, O2: 0.0, CO: 0.628636, CO2: 0.369501, AR: 0.00186227, H2O: 0.0, HCL: 0.0, NAOH: 0.0, NACL: 0.0, NAOCL: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S32', fingerprint: 20ce17c7da00ab3b}
+        flow: {value: 9493.26, provenance: calculated, source: 'cheme process propagate: separator V301 from S32', fingerprint: 1b80b16bb8a61ddb}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 2.39974e-07, O2: 0.0, CO: 0.628636, CO2: 0.369501, AR: 0.00186228, H2O: 0.0, HCL: 0.0, NAOH: 0.0, NACL: 0.0, NAOCL: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S32', fingerprint: 1b80b16bb8a61ddb}
   - id: S34
     title: Spent scrubber liquor
     from: V301.liquid
@@ -769,8 +769,8 @@ streams:
         pressure: {value: 200.0, provenance: assumed, source: "liquor pump"}
         temperature: {value: 313.15, provenance: assumed, source: "scrubber outlet"}
         phase: {value: liquid, provenance: assumed, source: "solution"}
-        flow: {value: 1307.22, provenance: calculated, source: 'cheme process propagate: separator V301 from S32', fingerprint: 20ce17c7da00ab3b}
-        composition: {basis: mole_fraction, values: {TIO2: 0.00780737, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0, H2O: 0.912399, HCL: 0.0, NAOH: 0.0265861, NACL: 0.0422186, NAOCL: 0.0109892}, provenance: calculated, source: 'cheme process propagate: separator V301 from S32', fingerprint: 20ce17c7da00ab3b}
+        flow: {value: 1307.24, provenance: calculated, source: 'cheme process propagate: separator V301 from S32', fingerprint: 1b80b16bb8a61ddb}
+        composition: {basis: mole_fraction, values: {TIO2: 0.00780731, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0, H2O: 0.912399, HCL: 0.0, NAOH: 0.0265834, NACL: 0.0422198, NAOCL: 0.0109905}, provenance: calculated, source: 'cheme process propagate: separator V301 from S32', fingerprint: 1b80b16bb8a61ddb}
   - id: S35
     title: Combustion air
     from: AIR.out
@@ -781,7 +781,7 @@ streams:
         pressure: {value: 101.325, provenance: assumed, source: "ambient"}
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
-        flow: {value: 46323.546, basis: mass, provenance: assumed, source: "scripts/energy_balance.py: air for an adiabatic oxidiser outlet of 1123 K (D-009)"}
+        flow: {value: 46323.935, basis: mass, provenance: assumed, source: "scripts/energy_balance.py: air for an adiabatic oxidiser outlet of 1123 K (D-009)"}
         composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: assumed, source: "dry air, CO2 lumped into N2"}
   - id: S36
     title: Air to the oxidiser
@@ -793,8 +793,8 @@ streams:
         pressure: {value: 106.3, provenance: assumed, source: "fan discharge, 5 kPa (D-011)"}
         temperature: {value: 303.15, provenance: assumed, source: "D-011"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
-        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S35', fingerprint: 38c0b7e2d6fc2718}
-        flow: {value: 46323.546, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S35', fingerprint: 38c0b7e2d6fc2718}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S35', fingerprint: cab394bfffd1723c}
+        flow: {value: 46323.935, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S35', fingerprint: cab394bfffd1723c}
   - id: S37
     title: Flue gas to stack
     from: X301.out
@@ -805,8 +805,8 @@ streams:
         pressure: {value: 101.325, provenance: assumed, source: "stack"}
         temperature: {value: 1123.15, provenance: assumed, source: "D-009: thermal oxidiser outlet 850 C, the air set for it; no heat recovery in the design case"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
-        flow: {value: 55816.7, provenance: calculated, source: 'cheme process propagate: reactor X301 from S33 S36', fingerprint: 203d4e3aef4371b6}
-        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 3.74583e-08, O2: 0.138045, CO: 9.81373e-05, CO2: 0.155723, AR: 0.00859477, H2O: 0.0, HCL: 0.0, NAOH: 0.0, NACL: 0.0, NAOCL: 0.0, N2: 0.69754}, provenance: calculated, source: 'cheme process propagate: reactor X301 from S33 S36', fingerprint: 0f994f9e27488243}
+        flow: {value: 55817.2, provenance: calculated, source: 'cheme process propagate: reactor X301 from S33 S36', fingerprint: ea062a2640daf2d5}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, TICL4: 0.0, CL2: 3.74627e-08, O2: 0.138045, CO: 9.81373e-05, CO2: 0.155723, AR: 0.00859477, H2O: 0.0, HCL: 0.0, NAOH: 0.0, NACL: 0.0, NAOCL: 0.0, N2: 0.69754}, provenance: calculated, source: 'cheme process propagate: reactor X301 from S33 S36', fingerprint: 2f343c13e4281e7f}
   # --- waste neutralisation --------------------------------------------------------------------
   - id: S40
     title: Quicklime
@@ -818,7 +818,7 @@ streams:
         pressure: {value: 101.325, provenance: assumed, source: "silo"}
         temperature: {value: 298.15, provenance: assumed, source: "ambient"}
         composition: {basis: mass_fraction, values: {CAO: 1.0}, provenance: assumed, source: "D-010: counted as CaO, as lime-1 counts its product"}
-        flow: {value: 1277.37, provenance: calculated, source: 'cheme process propagate: spec lime-excess (S43 CAO per S40 CAO (mole) 0.0909)', fingerprint: b7b32d3cfcc80f6d}
+        flow: {value: 1277.37, provenance: calculated, source: 'cheme process propagate: spec lime-excess (S43 CAO per S40 CAO (mole) 0.0909)', fingerprint: a686a2f87b2db230}
   - id: S41
     title: Slaking water
     from: PWL.out
@@ -830,7 +830,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         phase: {value: liquid, provenance: assumed, source: "water"}
         composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
-        flow: {value: 5109.48, provenance: calculated, source: 'cheme process propagate: spec lime-excess (4 x S40)', fingerprint: b7b32d3cfcc80f6d}
+        flow: {value: 5109.48, provenance: calculated, source: 'cheme process propagate: spec lime-excess (4 x S40)', fingerprint: a686a2f87b2db230}
   - id: S42
     title: Lime slurry
     from: M401.out
@@ -839,7 +839,7 @@ streams:
     state:
       design:
         pressure: {value: 200.0, provenance: assumed, source: "slurry pump"}
-        temperature: {value: 313.15, provenance: assumed, source: "D-010: slaking heat not counted, ASSUMED"}
+        temperature: {value: 365.6, provenance: assumed, source: "scripts/energy_balance.py: adiabatic slaking of the quicklime in the slaking water (D-010)"}
         flow: {value: 6386.85, provenance: calculated, source: 'cheme process propagate: mixer M401 from S40 S41', fingerprint: 04ccbb1eed30540e}
         composition: {basis: mole_fraction, values: {CAO: 0.0743429, H2O: 0.925657}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S40 S41', fingerprint: dd7df46f2b327ba5}
   - id: S43
@@ -850,9 +850,9 @@ streams:
     state:
       design:
         pressure: {value: 600.0, provenance: assumed, source: "filter press feed pump"}
-        temperature: {value: 323.15, provenance: assumed, source: "D-010: neutraliser outlet, ASSUMED"}
-        flow: {value: 12064.2, provenance: calculated, source: 'cheme process propagate: reactor R401 from S8 S15 S34 S42', fingerprint: bef37f002e3178a1}
-        composition: {basis: mole_fraction, values: {TIO2: 0.0245781, FEO: 0.0, SIO2: 0.0231203, C: 0.112702, FECL2: 0.0, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0, H2O: 0.737668, HCL: 0.0, NAOH: 0.00371387, NACL: 0.00589761, NAOCL: 0.00153511, CAO: 0.00473711, CACL2: 0.0473771, FEOH2: 0.038671}, provenance: calculated, source: 'cheme process propagate: reactor R401 from S8 S15 S34 S42', fingerprint: 9501c799fc743312}
+        temperature: {value: 323.15, provenance: assumed, source: "D-010: neutraliser outlet held by its cooling coil (Q11), ASSUMED"}
+        flow: {value: 12064.3, provenance: calculated, source: 'cheme process propagate: reactor R401 from S8 S15 S34 S42', fingerprint: ce8fe642f94a08b5}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0245784, FEO: 0.0, SIO2: 0.0231202, C: 0.112703, FECL2: 0.0, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0, H2O: 0.737667, HCL: 0.0, NAOH: 0.00371353, NACL: 0.00589783, NAOCL: 0.0015353, CAO: 0.00473723, CACL2: 0.0473768, FEOH2: 0.0386706}, provenance: calculated, source: 'cheme process propagate: reactor R401 from S8 S15 S34 S42', fingerprint: 0773285fff9306ea}
   - id: S44
     title: Filter cake
     from: F401.cake
@@ -862,8 +862,8 @@ streams:
       design:
         pressure: {value: 101.325, provenance: assumed, source: "cake discharge"}
         temperature: {value: 318.15, provenance: assumed, source: "ASSUMED"}
-        flow: {value: 4947.69, provenance: calculated, source: 'cheme process propagate: separator F401 from S43', fingerprint: 89aaa27d0b0ebf89}
-        composition: {basis: mole_fraction, values: {TIO2: 0.0760373, FEO: 0.0, SIO2: 0.0715273, C: 0.348666, FECL2: 0.0, CAO: 0.0146552, FEOH2: 0.119637, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0, H2O: 0.342319, HCL: 0.0, NAOH: 0.00172344, NACL: 0.00273682, NAOCL: 0.000712376, CACL2: 0.0219856}, provenance: calculated, source: 'cheme process propagate: separator F401 from S43', fingerprint: 89aaa27d0b0ebf89}
+        flow: {value: 4947.73, provenance: calculated, source: 'cheme process propagate: separator F401 from S43', fingerprint: 4330e90328c3ed6d}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0760381, FEO: 0.0, SIO2: 0.0715269, C: 0.348669, FECL2: 0.0, CAO: 0.0146555, FEOH2: 0.119635, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0, H2O: 0.342318, HCL: 0.0, NAOH: 0.00172328, NACL: 0.00273691, NAOCL: 0.000712463, CACL2: 0.0219854}, provenance: calculated, source: 'cheme process propagate: separator F401 from S43', fingerprint: 4330e90328c3ed6d}
   - id: S45
     title: Filtrate
     from: F401.filtrate
@@ -874,20 +874,20 @@ streams:
         pressure: {value: 101.325, provenance: assumed, source: "outfall"}
         temperature: {value: 318.15, provenance: assumed, source: "ASSUMED"}
         phase: {value: liquid, provenance: assumed, source: "solution"}
-        flow: {value: 7116.51, provenance: calculated, source: 'cheme process propagate: separator F401 from S43', fingerprint: 89aaa27d0b0ebf89}
-        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, CAO: 0.0, FEOH2: 0.0, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0, H2O: 0.926495, HCL: 0.0, NAOH: 0.00466454, NACL: 0.00740727, NAOCL: 0.00192807, CACL2: 0.0595046}, provenance: calculated, source: 'cheme process propagate: separator F401 from S43', fingerprint: 89aaa27d0b0ebf89}
+        flow: {value: 7116.57, provenance: calculated, source: 'cheme process propagate: separator F401 from S43', fingerprint: 4330e90328c3ed6d}
+        composition: {basis: mole_fraction, values: {TIO2: 0.0, FEO: 0.0, SIO2: 0.0, C: 0.0, FECL2: 0.0, CAO: 0.0, FEOH2: 0.0, TICL4: 0.0, CL2: 0.0, O2: 0.0, CO: 0.0, CO2: 0.0, AR: 0.0, H2O: 0.926496, HCL: 0.0, NAOH: 0.00466412, NACL: 0.00740756, NAOCL: 0.00192831, CACL2: 0.0595044}, provenance: calculated, source: 'cheme process propagate: separator F401 from S43', fingerprint: 4330e90328c3ed6d}
   # --- energy ----------------------------------------------------------------------------------
   - {id: P1, title: "Electric power, ore preparation to oxidation (blowers, compressors, solids handling, pumps)", kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 7986.1, provenance: given, source: "BREF LVIC-S Table 3.16: 2.3 GJ/t TiO2 electricity, ore preparation to oxidation, 1999 site average, x 12.5 t/h"}}}}
   - {id: P2, title: "Electric power, effluent and waste treatment", kind: energy, from: POWER.r401, to: R401.power, state: {design: {duty: {value: 5902.8, provenance: given, source: "BREF LVIC-S Table 3.16: 1.7 GJ/t TiO2 electricity, effluent treatment, 1999 site average, x 12.5 t/h"}}}}
-  - {id: Q1, title: "Chlorinator heat lost through the shell", kind: energy, from: R101.amb, to: AMB.r101, state: {design: {duty: {value: 1039.4, provenance: assumed, source: "scripts/energy_balance.py: inlets at their temperatures, outlet S6 at 1273 K: the bed's surplus heat"}}}}
-  - {id: Q2, title: "Quench cooler duty", kind: energy, from: E101.q, to: CW.e101, state: {design: {duty: {value: 7037.4, provenance: assumed, source: "scripts/energy_balance.py: S6 cooled to 473 K, TiCl4 vapour"}}}}
-  - {id: Q3, title: "TiCl4 condenser duty (cooling water)", kind: energy, from: E102.q, to: CW.e102, state: {design: {duty: {value: 2882.1, provenance: assumed, source: "scripts/energy_balance.py: to 308 K, TiCl4 condensed by Raoult's law"}}}}
+  - {id: Q1, title: "Chlorinator heat lost through the shell", kind: energy, from: R101.amb, to: AMB.r101, state: {design: {duty: {value: 203.2, provenance: assumed, source: "scripts/energy_balance.py: inlets at their temperatures, outlet S6 at 1273 K with the FeCl2 as vapour: the bed's surplus heat"}}}}
+  - {id: Q3, title: "TiCl4 condenser duty (cooling water), with the quench heat", kind: energy, from: E102.q, to: CW.e102, state: {design: {duty: {value: 10755.8, provenance: assumed, source: "scripts/energy_balance.py: the E-101 quench heat (the sprayed TiCl4 evaporated there and condensed here) plus S9 to 308 K, TiCl4 condensed by Raoult's law"}}}}
   - {id: Q4, title: "TiCl4 after-condenser duty (brine)", kind: energy, from: E103.q, to: BRINE.e103, state: {design: {duty: {value: 458.9, provenance: assumed, source: "scripts/energy_balance.py: to 263 K, TiCl4 condensed to V101's recovery"}}}}
   - {id: Q5, title: "Still reboiler (HP steam)", kind: energy, from: HPS.t101, to: T101.reb, state: {design: {duty: {value: 4052.8, provenance: assumed, source: "scripts/energy_balance.py: distillate and bottoms out, reflux ratio 1.0 (D-006)"}}}}
-  - {id: Q6, title: "Still condenser (cooling water)", kind: energy, from: T101.cond, to: CW.t101, state: {design: {duty: {value: 3113.8, provenance: assumed, source: "scripts/energy_balance.py: (reflux + 1) x distillate x heat of vaporization at 409.6 K"}}}}
-  - {id: Q7, title: "TiCl4 vaporiser (HP steam)", kind: energy, from: HPS.e201, to: E201.q, state: {design: {duty: {value: 1926.6, provenance: assumed, source: "scripts/energy_balance.py: liquid at 409.6 K to vapour at 493 K"}}}}
+  - {id: Q6, title: "Still condenser (cooling water)", kind: energy, from: T101.cond, to: CW.t101, state: {design: {duty: {value: 3113.9, provenance: assumed, source: "scripts/energy_balance.py: (reflux + 1) x distillate x heat of vaporization at 409.6 K"}}}}
+  - {id: Q7, title: "TiCl4 vaporiser (HP steam)", kind: energy, from: HPS.e201, to: E201.q, state: {design: {duty: {value: 1926.7, provenance: assumed, source: "scripts/energy_balance.py: liquid at 409.6 K to vapour at 493 K"}}}}
   - {id: Q8, title: "TiCl4 superheater (fired heat absorbed)", kind: energy, from: FUEL.e202, to: E202.q, state: {design: {duty: {value: 1046.5, provenance: assumed, source: "scripts/energy_balance.py: 493 to 723 K"}}}}
   - {id: Q9, title: "Oxygen preheater (fired heat absorbed)", kind: energy, from: FUEL.e203, to: E203.q, state: {design: {duty: {value: 1622.5, provenance: assumed, source: "scripts/energy_balance.py: 298 to 1273 K"}}}}
-  - {id: Q10, title: "Oxidiser product cooler duty", kind: energy, from: E204.q, to: CW.e204, state: {design: {duty: {value: 10643.2, provenance: assumed, source: "scripts/energy_balance.py: S19 cooled to 423 K"}}}}
+  - {id: Q10, title: "Oxidiser product cooler duty", kind: energy, from: E204.q, to: CW.e204, state: {design: {duty: {value: 10643.4, provenance: assumed, source: "scripts/energy_balance.py: S19 cooled to 423 K"}}}}
+  - {id: Q11, title: "Neutraliser cooling (cooling water)", kind: energy, from: R401.q, to: CW.r401, state: {design: {duty: {value: 754.3, provenance: assumed, source: "scripts/energy_balance.py: hot blow-over, still bottoms, liquor and lime slurry in, the HYD_LIME and FECL_LIME heat released, S43 held at 323 K (CaCl2 heat of solution not counted, D-010)"}}}}
   - {id: P3, title: "Combustion air fan power", kind: energy, from: POWER.k301, to: K301.power, state: {design: {duty: {value: 87.6, provenance: assumed, source: "scripts/energy_balance.py: 5 kPa, fan 0.65, motor 0.95 (D-009)"}}}}
 layout: {bfd: {}, pfd: {}}

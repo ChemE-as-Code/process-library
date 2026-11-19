@@ -5,7 +5,9 @@
 # CAS 1317-80-2), FeO(s) -272.0 (CRC), FeCl2(s) -341.8 (CRC), CaO(s) -634.9 (CRC), CaCl2(s)
 # -795.4 (CRC), Fe(OH)2(s) -574.04 (WEBBOOK), TiCl4(g) -763.2 (CRC), the gases as in
 # materials.yaml; the solid-phase values are not in materials.yaml (L-1), so the heats are given
-# here and scripts/energy_balance.py prints them as a cross-check.
+# here and scripts/energy_balance.py prints them as a cross-check. CRC: the CRC Handbook of
+# Chemistry and Physics tables packaged in chemicals; WEBBOOK: the NIST Chemistry WebBook; ATcT:
+# the Active Thermochemical Tables (DESIGN.md SRC-2; the handbooks were not read here).
 schema: cheme/reactions/v1
 kind: reactions
 reactions:
@@ -21,7 +23,7 @@ reactions:
       source: >-
         D-004: 95 % of the TiO2 entering the bed chlorinated per pass, the rest blown over with
         the fines and the bed purge; set so that the TiO2 in the feedstock per t of product
-        (1.06 t) lies near the BREF LVIC-S mean of 1075 kg/t (Table 3.8, range 975-1145)
+        (1.069 t) lies near the BREF LVIC-S mean of 1075 kg/t (Table 3.8, range 975-1145)
     heat_of_reaction: {value: -126462.0, provenance: given, source: "formation enthalpies above (chemicals 1.5.2), 298.15 K, TiCl4 gas, rutile and graphite solid; scripts/energy_balance.py"}
     sources:
       - "European Commission JRC (2007) BREF LVIC-S, section 3.2.2.2 (p. 110): the primary reaction 2 TiO2 + 4 Cl2 + 3 C -> 2 TiCl4 + 2 CO + CO2 in a fluidised bed at 1000 C, written here per mol TiO2"
@@ -50,7 +52,7 @@ reactions:
       source: "D-007: 99.8 % per pass; the TiCl4 not oxidised returns with the chlorine to the chlorinator and is condensed again (no loss)"
     heat_of_reaction: {value: -180800.0, provenance: given, source: "formation enthalpies above (chemicals 1.5.2), 298.15 K, TiCl4 gas, rutile solid"}
     sources: ["BREF LVIC-S section 3.2.2.9 (p. 111): TiCl4 + O2 -> TiO2 + 2 Cl2, 900-2000 C, preheated TiCl4 and oxygen, plasma or toluene-fired furnace"]
-  # --- R-301 off-gas scrubber (water, then caustic) ----------------------------------------------
+  # --- T-301 off-gas scrubber, step R301 (water, then caustic) -----------------------------------
   - id: HYD_NAOH
     equation: TiCl4 + 4 NaOH -> TiO2 + 4 NaCl + 2 H2O
     stoichiometry: {TICL4: -1.0, NAOH: -4.0, TIO2: 1.0, NACL: 4.0, H2O: 2.0}

@@ -2,7 +2,8 @@
 
 Fast and without core: the flowsheet's streams (propagated by core, the temperatures, air and
 duties given by scripts/energy_balance.py) are read as YAML, and the statements the folder makes
-in DESIGN.md, README.md, process.yaml and the benchmarks are checked against them:
+in DESIGN.md, README.md, process.yaml, the equipment list and the benchmarks are checked
+against them (the numbers named below; prose elsewhere is not parsed):
 
 - the product rate and the specific consumptions per t of TiO2 (feedstock, coke, chlorine,
   oxygen, lime, caustic, CO2, filter cake) are the stated ones and lie inside the BREF LVIC-S
@@ -11,8 +12,11 @@ in DESIGN.md, README.md, process.yaml and the benchmarks are checked against the
   oxidiser frees;
 - the design specifications hold on the written streams (coke excess, chlorine slip, oxygen
   excess, caustic and lime excess);
-- the duties DESIGN.md and the equipment list quote are the flowsheet's, and the steam and fired
-  heat per t are the stated ones; the electricity lumps are the BREF's GJ/t times the rate;
+- the duties DESIGN.md quotes are the flowsheet's, and the steam, fired heat and cooling water
+  per t are the stated ones (DESIGN.md, process.yaml); the electricity lumps are the BREF's GJ/t
+  times the rate, and the air fan P3 is counted on top of them;
+- the equipment list's lime rate and duties (R-101, E-101, E-102, R-401, K-301) are the
+  flowsheet's;
 - the LCA links the library producers it names, every energy stream reaches the inventory, and
   the benchmark binds the dataset's KPIs;
 - the process is public with CC-BY-4.0 and requires cheme-as-code 1.12.
@@ -102,7 +106,7 @@ def test_the_product_rate_and_the_specific_consumptions(streams, mw):
     design = _text("DESIGN.md")
     for row in ("| TiO2 in the feedstock | 1069 kg | mean 1075, 975-1145", "| make-up chlorine | 128 kg |",
                 "| coke | 316 kg |", "| oxygen | 462 kg |", "| lime | 102 kg |", "| NaOH (100 %) | 15.6 kg |",
-                "| CO2 to air | 982 kg |", "| solid waste | 396 kg |"):
+                "| CO2 to air | 982 kg |", "| solid waste (wet cake; 295 kg undissolved solids) | 396 kg |"):
         assert row in design, row
 
 
@@ -159,10 +163,16 @@ def test_the_duties_and_energy_per_t(sheet, streams):
     kwh_kg = (duty["P1"] + duty["P2"] + duty["P3"]) / 12500.0
     assert kwh_kg == pytest.approx(1.12, abs=0.005)
     design = _text("DESIGN.md")
-    assert "quench 7.04 MW, condenser 2.88 MW and still condenser 3.11 MW, product cooler 10.6 MW" in design
-    assert f"{duty['Q2'] / 1000:.2f}" == "7.04" and f"{duty['Q3'] / 1000:.2f}" == "2.88"
+    assert "Q2" not in duty  # the spray quench rejects no heat itself; its heat leaves in E-102
+    assert ("condenser 10.76 MW (with the 7.87 MW quench heat, D-006), still condenser 3.11 MW, product "
+            "cooler 10.6 MW and neutraliser 0.75 MW on cooling water (25/35 C; 2.02 kWh/kg TiO2 in all)") in design
+    assert f"{duty['Q3'] / 1000:.2f}" == "10.76" and f"{duty['Q11'] / 1000:.2f}" == "0.75"
     assert f"{duty['Q6'] / 1000:.2f}" == "3.11" and f"{duty['Q10'] / 1000:.1f}" == "10.6"
-    assert f"{duty['Q1'] / 1000:.2f}" == "1.04" and "1.04 MW lost through the shell" in design
+    cw = (duty["Q3"] + duty["Q6"] + duty["Q10"] + duty["Q11"]) / 12500.0
+    assert f"{cw:.2f}" == "2.02" and "2.02 kWh/kg TiO2 rejected" in _text("process.yaml")
+    assert f"{duty['Q1'] / 1000:.2f}" == "0.20" and "0.20 MW lost through the shell" in design
+    assert streams["S42"]["temperature"]["value"] == pytest.approx(365.6, abs=0.05)
+    assert "taking the slurry S42 to 366 K" in design
     assert streams["S19"]["temperature"]["value"] == pytest.approx(1997, abs=0.5)
     assert 1173.15 <= streams["S19"]["temperature"]["value"] <= 2273.15  # BREF 900-2000 C
 
@@ -180,7 +190,24 @@ def test_the_lca_links_and_inventory():
     for key in ("feed:POWER", "feed:HPS", "feed:FUEL", "product:CW", "product:BRINE", "product:AMB"):
         assert key in rows, key
     assert float(rows["emission:CO2"]["quantity"]) == pytest.approx(0.982, abs=5e-4)
-    assert set(rows["product:CW"]["streams"].split()) == {"Q2", "Q3", "Q6", "Q10"}
+    assert set(rows["product:CW"]["streams"].split()) == {"Q3", "Q6", "Q10", "Q11"}
+    assert set(rows["feed:POWER"]["streams"].split()) == {"P1", "P2", "P3"}
+    assert float(rows["emission:HCL"]["quantity"]) == 0.0
+
+
+def test_the_equipment_list_matches_the_flowsheet(sheet, streams):
+    duty = {s["id"]: s["state"]["design"]["duty"]["value"] for s in sheet["streams"] if s.get("kind") == "energy"}
+    notes = {e["tag"]: " ".join(e.get("notes", "").split()) for e in _load("equipment/equipment-list.yaml")["equipment"]}
+    assert f"{streams['S40']['flow']['value'] / 1000:.2f} t/h quicklime" in notes["M-401"]
+    assert f"about {duty['Q1'] / 1000:.1f} MW" in notes["R-101"]
+    # the quench heat (7.87 MW, printed by scripts/energy_balance.py) is part of Q3
+    assert "The 7.87 MW it takes from the gas" in _text("DESIGN.md")
+    assert "its 7.9 MW leaves in E-102" in notes["E-101"] and "the 7.9 MW quench heat" in notes["E-102"]
+    assert f"{duty['Q3'] / 1000:.1f} MW" in notes["E-102"]
+    assert f"{duty['Q11'] / 1000:.2f} MW (Q11)" in notes["R-401"]
+    assert f"Power {duty['P3']:.0f} kW counted separately as P3" in notes["K-301"]
+    for tag in ("R-301", "V-301"):
+        assert tag not in notes  # the scrubber is T-301 (steps R301, V301)
 
 
 def test_the_benchmark_binds_the_dataset():

@@ -13,8 +13,8 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 Titanium dioxide by the chloride process, as the EU LVIC-S BREF (2007) describes it: a blend of
 titanium slag and synthetic rutile (88 wt% TiO2) and calcined petroleum coke are chlorinated in a
 fluidised bed at 1273 K, TiO2 + 2 Cl2 + 3/2 C -> TiCl4 + CO + 1/2 CO2, the impurities to metal
-chlorides. The gas is quenched with cold TiCl4, the blow-over and metal chlorides leave by a
-cyclone, and the TiCl4 is condensed (cooling water, then brine), distilled, vaporised, preheated
+chlorides. The gas is quenched with recycled cold TiCl4 (which evaporates; its heat leaves in the
+condenser), the blow-over and metal chlorides leave by a cyclone, and the TiCl4 is condensed (cooling water, then brine), distilled, vaporised, preheated
 and oxidised with 15 % excess oxygen: TiCl4 + O2 -> TiO2 + 2 Cl2. The pigment is cooled and
 collected in a bag filter, and the chlorine with the oxygen excess goes straight back to the
 chlorinator (the direct recycle). The CO/CO2 off-gas is scrubbed with water and caustic and its CO
@@ -36,11 +36,16 @@ Headline numbers and their caveats:
   396 kg filter cake to landfill. Each lies inside the range the EU chloride sites reported in
   the BREF (DESIGN.md D-012), which the assumptions aimed at: plausibility, not prediction.
 - The oxidiser's adiabatic outlet is 1997 K with TiCl4 preheated to 723 K and oxygen to 1273 K
-  (the BREF gives 900-2000 C); the chlorinator is autothermal with a 1.0 MW surplus lost through
-  its shell.
-- Steam 1.72 GJ/t and fired heat 0.77 GJ/t are the thermal minimum of this flowsheet, below the
-  BREF's 1999 averages (2.4 and 3.2 GJ/t), which include drying, an abandoned chlorine recovery
-  and furnace losses. Electricity is the BREF's 1999 site average (1.12 kWh/kg with the air fan).
+  (the BREF gives 900-2000 C); the chlorinator is autothermal with a small surplus, 0.2 MW lost
+  through its shell, once the metal chlorides leave it as vapour.
+- Steam 1.72 GJ/t lies inside the BREF's 1999 range up to oxidation (1.3-7.6 GJ/t). Fired heat
+  0.77 GJ/t lies below the BREF's minimum (1.3 GJ/t): it counts the heat absorbed, without
+  furnace losses, and leaves out the thermal oxidiser's natural gas (support fuel not counted),
+  so it is a lower bound. Cooling water 2.02 kWh/kg, including the neutraliser's 0.75 MW.
+  Electricity is the BREF's 1999 site average (1.12 kWh/kg with the air fan).
+- The hazards (chlorine loop, liquid TiCl4, the CO-rich off-gas, oxygen at 1273 K, NORM in some
+  feedstocks) are screened in DESIGN.md D-014, not designed; HAZOP and release cases are out of
+  scope.
 - The LCI is preliminary: the titanium feedstock (slag or synthetic rutile, the main upstream
   burden) and the coke have no library producer and stay gaps.
 
