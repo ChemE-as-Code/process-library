@@ -1,0 +1,409 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# A 2x1 F-class natural-gas combined cycle (two gas turbine generators, two three-pressure
+# reheat HRSGs, one reheat steam turbine generator, a surface condenser on a wet cooling tower)
+# at the operating point of NETL's Case B31A (DESIGN.md D-001 to D-010). The two gas turbine and
+# HRSG trains are one step each, at the flows of both (as NETL's stream table gives them).
+# Where the values come from:
+# - the air and fuel S1, S2 and the water/steam states S5 to S13: NETL Case B31A (SRC-1,
+#   Exhibit 5-8 stream table, Exhibit 5-15 heat and mass balance), given;
+# - the gas turbine exhaust S3 and its power Q1: core's conversion-step model R101 (complete
+#   combustion, D-004) from S1, S2 and the exhaust temperature, with the generator loss Q2
+#   given; Q1 is the model's duty less Q2 (`cheme process propagate --fill`, D-005);
+# - the stack gas, the loop's closure, the steam turbine generator, the condenser, the cooling
+#   tower's water and the auxiliary loads: scripts/ngcc_balance.py (run with `cheme run`, D-006
+#   to D-010), from NETL's numbers, given as ASSUMED with the script named;
+# - the net export Q11 is the electrical bus's balance, by hand from Q1, Q3 and Q6 to Q10
+#   (D-010; tests/test_power_generation_1.py checks it).
+# The steam loop's enthalpies are NETL's (steam-table reference); core calculates none of them
+# (no property package of core covers water and steam, L-2).
+schema: cheme/process/v1
+kind: flowsheet
+title: Natural-gas combined cycle, 2x1 F-class, 726 MW net
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: ISO ambient (15 degC, 101.3 kPa, 60 % RH), both trains at base load, 477 MW gas turbine and 263 MW steam turbine generation (NETL Case B31A, D-002, D-003)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: AIR, title: Ambient air to the gas turbine inlet filters, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NG, title: "Pipeline natural gas at the turbine fuel skids (2.96 MPa, 27 degC)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: Demineralised water make-up to the condenser, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: RW, title: Raw water make-up to the cooling tower (municipal and ground water), category: raw_material, ports: [{id: out, direction: out}]}
+products:
+  - id: ELEC
+    title: Net electricity to the 345 kV grid (generation less own use)
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: in, direction: in, kind: energy}]
+  - {id: STACK, title: HRSG stack gas to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Deaerator and air ejector vent to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: EVAP, title: Cooling tower evaporation to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: BLOWDOWN, title: Cooling tower blowdown to treatment and discharge, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: AMBIENT
+    title: Generator and transformer losses to the surroundings
+    category: utility
+    utility: {kind: other}
+    ports:
+      - {id: gt, direction: in, kind: energy}
+      - {id: st, direction: in, kind: energy}
+      - {id: tr, direction: in, kind: energy}
+
+blocks:
+  - id: GT
+    title: Gas turbine generators (2 x F-class)
+    class: ReactingChemicals
+    ports:
+      - {id: air, direction: in}
+      - {id: fuel, direction: in}
+      - {id: exhaust, direction: out}
+      - {id: power, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy}
+  - id: HRSG
+    title: Heat recovery steam generators (2 x three-pressure reheat, with SCR)
+    class: ExchangingThermalEnergy
+    ports:
+      - {id: exhaust, direction: in}
+      - {id: stack, direction: out}
+      - {id: crh, direction: in}
+      - {id: hp, direction: out}
+      - {id: hrh, direction: out}
+      - {id: lp, direction: out}
+      - {id: bfw, direction: in}
+      - {id: bfp, direction: in, kind: energy}
+  - id: STC
+    title: Steam turbine generator, condenser and condensate pumps
+    class: DrivingByTurbine
+    ports:
+      - {id: hp, direction: in}
+      - {id: hrh, direction: in}
+      - {id: lp, direction: in}
+      - {id: crh, direction: out}
+      - {id: bfw, direction: out}
+      - {id: dmw, direction: in}
+      - {id: vent, direction: out}
+      - {id: power, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: aux, direction: in, kind: energy}
+  - id: CW
+    title: Circulating water system and wet cooling tower
+    class: Cooling
+    ports:
+      - {id: heat, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: makeup, direction: in}
+      - {id: evap, direction: out}
+      - {id: blowdown, direction: out}
+  - id: EL
+    title: Generator step-up transformers, auxiliary power and balance-of-plant loads
+    class: ProcessStep
+    ports:
+      - {id: gt, direction: in, kind: energy}
+      - {id: st, direction: in, kind: energy}
+      - {id: cp, direction: out, kind: energy}
+      - {id: bfp, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: tr, direction: out, kind: energy}
+      - {id: net, direction: out, kind: energy}
+
+steps:
+  # GT: compressor, dry low-NOx combustors and expander of both machines as one conversion step
+  # from ambient air and fuel to the exhaust; its duty is the shaft work and losses (D-005)
+  - id: R101
+    block: GT
+    title: Gas turbine generators (compressor, DLN combustors, expander, generator)
+    class: ReactingChemicals
+    reactions: [CH4_OX, C2H6_OX, C3H8_OX, C4H10_OX]
+    reactor: conversion
+    energy_port: power   # the model's duty less the generator loss Q2 (core ADR 0059, D-005)
+    links: [{target: equipment, ref: GT-101}]
+    ports:
+      - {id: air, direction: in, delegates: air}
+      - {id: fuel, direction: in, delegates: fuel}
+      - {id: out, direction: out, delegates: exhaust}
+      - {id: power, direction: out, kind: energy, delegates: power}
+      - {id: loss, direction: out, kind: energy, delegates: loss}
+  # HRSG: superheaters, reheaters, evaporators and economisers of the three pressure levels,
+  # the SCR between the HP and IP sections, and the boiler feed pumps (D-006)
+  - id: H101
+    block: HRSG
+    title: Heat recovery steam generators with SCR and boiler feed pumps
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: gas_in, direction: in, delegates: exhaust}
+      - {id: gas_out, direction: out, delegates: stack}
+      - {id: crh, direction: in, delegates: crh}
+      - {id: bfw, direction: in, delegates: bfw}
+      - {id: hp, direction: out, delegates: hp}
+      - {id: hrh, direction: out, delegates: hrh}
+      - {id: lp, direction: out, delegates: lp}
+      - {id: bfp, direction: in, kind: energy, delegates: bfp}
+  # STC: HP, IP and LP turbine with its generator (D-007), condenser with its deaerator (D-008)
+  - id: X201
+    block: STC
+    title: Steam turbine generator (HP, IP and LP sections, reheat, triple admission)
+    class: DrivingByTurbine
+    links: [{target: equipment, ref: X-201}]
+    ports:
+      - {id: hp, direction: in, delegates: hp}
+      - {id: hrh, direction: in, delegates: hrh}
+      - {id: lp, direction: in, delegates: lp}
+      - {id: crh, direction: out, delegates: crh}
+      - {id: exhaust, direction: out}
+      - {id: power, direction: out, kind: energy, delegates: power}
+      - {id: loss, direction: out, kind: energy, delegates: loss}
+  - id: E201
+    block: STC
+    title: Surface condenser with integrated deaerator
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: exhaust, direction: in}
+      - {id: dmw, direction: in, delegates: dmw}
+      - {id: condensate, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: P201
+    block: STC
+    title: Condensate pumps
+    class: GeneratingFlow
+    links: [{target: equipment, ref: P-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: bfw}
+      - {id: power, direction: in, kind: energy, delegates: aux}
+  # CW: circulating water pumps and the mechanical-draft cooling tower (D-009)
+  - id: CT301
+    block: CW
+    title: Wet cooling tower with circulating water pumps and fans
+    class: Cooling
+    links: [{target: equipment, ref: CT-301}]
+    ports:
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: makeup, direction: in, delegates: makeup}
+      - {id: evap, direction: out, delegates: evap}
+      - {id: blowdown, direction: out, delegates: blowdown}
+  # EL: the generators' output, the plant's own use and the export (D-010)
+  - id: T901
+    block: EL
+    title: Generator step-up transformers and auxiliary power distribution
+    class: ProcessStep
+    links: [{target: equipment, ref: T-901}]
+    ports:
+      - {id: gt, direction: in, kind: energy, delegates: gt}
+      - {id: st, direction: in, kind: energy, delegates: st}
+      - {id: cp, direction: out, kind: energy, delegates: cp}
+      - {id: bfp, direction: out, kind: energy, delegates: bfp}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: bop, direction: out, kind: energy}
+      - {id: tr, direction: out, kind: energy, delegates: tr}
+      - {id: net, direction: out, kind: energy, delegates: net}
+  - id: U901
+    block: EL
+    title: "Balance-of-plant loads: turbine auxiliaries, ground water pumps, SCR, controls, lighting, HVAC"
+    class: ProcessStep
+    ports:
+      - {id: power, direction: in, kind: energy}
+
+streams:
+  # ---- gas turbines (NETL Case B31A, SRC-1 Exhibit 5-8 streams 1 to 3)
+  - id: S1
+    title: Ambient air to the compressors
+    from: AIR.out
+    to: R101.air
+    template: air
+    state:
+      design:
+        temperature: {value: 288.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1 (15 degC; ISO ambient, Exhibit 2-2)"}
+        pressure: {value: 101.4, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1 (14.7 psia)"}
+        flow: {value: 3834126.0, basis: mass, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1, both trains"}
+        composition: {basis: mole_fraction, values: {N2: 0.7732, O2: 0.2074, Ar: 0.0092, CO2: 0.0003, H2O: 0.0099}, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1 (air at 60 % relative humidity)"}
+  - id: S2
+    title: Natural gas to the combustors
+    from: NG.out
+    to: R101.fuel
+    template: fuel
+    state:
+      design:
+        temperature: {value: 300.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 2 (27 degC)"}
+        pressure: {value: 2964.7, provenance: given, source: "SRC-1 Exhibit 5-8 stream 2 (430 psia, 2.96 MPa)"}
+        flow: {value: 93272.0, basis: mass, provenance: given, source: "SRC-1 Exhibit 5-8 stream 2 and Exhibit 5-9 (natural gas feed flow), both trains"}
+        composition: {basis: mole_fraction, values: {CH4: 0.931, C2H6: 0.032, C3H8: 0.007, C4H10: 0.004, CO2: 0.010, N2: 0.016}, provenance: given, source: "SRC-1 Exhibit 2-6 and Exhibit 5-8 stream 2; the methanethiol odorant (5.75e-6 mol%, 1.0 kg/h S) left out (D-004)"}
+  - id: S3
+    title: Turbine exhaust to the HRSGs
+    from: R101.out
+    to: H101.gas_in
+    template: flue
+    state:
+      design:
+        temperature: {value: 898.15, provenance: given, source: "SRC-1 section 5.2.3 and Exhibit 5-8 stream 3 (625 degC)"}
+        pressure: {value: 106.9, provenance: given, source: "SRC-1 Exhibit 5-8 stream 3 (15.5 psia)"}
+        flow: {value: 3927400.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: 01adb5e3dda5209f}
+        composition: {basis: mole_fraction, values: {N2: 0.742879, O2: 0.119956, Ar: 0.00883182, CO2: 0.040813, H2O: 0.0875203, CH4: 0.0, C2H6: 0.0, C3H8: 0.0, C4H10: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: dcb2957a4ab9eb5b}
+  - id: S4
+    title: Stack gas
+    from: H101.gas_out
+    to: STACK.in
+    template: flue
+    state:
+      design:
+        temperature: {value: 356.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 4 (83 degC; Exhibit 5-5 stack 82 degC)"}
+        pressure: {value: 102.0, provenance: given, source: "SRC-1 Exhibit 5-8 stream 4 (14.8 psia)"}
+        flow: {value: 3927398.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: = S3, the HRSG does not change the gas (SCR ammonia and NOx not in the balance, D-006, D-011); SRC-1 stream 4 3,927,398 kg/h"}
+        composition: {basis: mole_fraction, values: {N2: 0.7428793, O2: 0.1199556, Ar: 0.0088318, CO2: 0.040813, H2O: 0.0875203}, provenance: assumed, source: "scripts/ngcc_balance.py: complete combustion of S2 in S1 (D-004), = S3; SRC-1 stream 4: N2 0.7428, O2 0.1200, Ar 0.0089, CO2 0.0408, H2O 0.0875"}
+  # ---- water/steam loop (SRC-1 Exhibit 5-8 streams 5 to 11; the loop closed on stream 10, D-006)
+  - id: S5
+    title: HP steam to the HP turbine
+    from: H101.hp
+    to: X201.hp
+    template: water
+    state:
+      design:
+        temperature: {value: 858.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 5 (585 degC)"}
+        pressure: {value: 16500.0, provenance: given, source: "SRC-1 Exhibit 5-8 stream 5 (16.50 MPa)"}
+        flow: {value: 485855.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-8 stream 5 (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "steam"}
+  - id: S6
+    title: Cold reheat (HP turbine exhaust) to the HRSGs
+    from: X201.crh
+    to: H101.crh
+    template: water
+    state:
+      design:
+        temperature: {value: 629.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 6 (356 degC)"}
+        pressure: {value: 3740.0, provenance: given, source: "SRC-1 Exhibit 5-8 stream 6 (3.74 MPa)"}
+        flow: {value: 485855.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-8 stream 6 (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "steam"}
+  - id: S7
+    title: Hot reheat (with the IP steam) to the IP turbine
+    from: H101.hrh
+    to: X201.hrh
+    template: water
+    state:
+      design:
+        temperature: {value: 857.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 7 (584 degC)"}
+        pressure: {value: 3510.0, provenance: given, source: "SRC-1 Exhibit 5-8 stream 7 (3.51 MPa)"}
+        flow: {value: 561194.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-8 stream 7, the cold reheat plus 75,339 kg/h IP steam (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "steam"}
+  - id: S9
+    title: LP steam to the LP turbine
+    from: H101.lp
+    to: X201.lp
+    template: water
+    state:
+      design:
+        temperature: {value: 554.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 9 (281 degC)"}
+        pressure: {value: 510.0, provenance: given, source: "SRC-1 Exhibit 5-8 stream 9 (0.51 MPa)"}
+        flow: {value: 72598.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-8 stream 9 (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "steam"}
+  - id: S10
+    title: LP turbine exhaust to the condenser (wet steam)
+    from: X201.exhaust
+    to: E201.exhaust
+    template: water
+    state:
+      design:
+        temperature: {value: 311.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 10 (38 degC)"}
+        pressure: {value: 6.77, provenance: given, source: "SRC-1 Exhibit 5-5 condenser pressure 50.8 mm Hg (stream 10: 0.01 MPa)"}
+        flow: {value: 633792.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-8 stream 10, = S7 + S9 (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "steam and condensate"}
+  - id: S11
+    title: Condensate from the hotwell
+    from: E201.condensate
+    to: P201.in
+    template: water
+    state:
+      design:
+        temperature: {value: 311.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 11 (38 degC)"}
+        pressure: {value: 6.77, provenance: given, source: "SRC-1 Exhibit 5-5 condenser pressure (stream 11: 0.01 MPa)"}
+        flow: {value: 633792.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: the loop closed on S10; SRC-1 stream 11 carries 790 kg/h more (gland seal and ejector flows it does not show, D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "condensate"}
+  - id: S12
+    title: Condensate to the HRSGs (feedwater preheaters and boiler feed pumps)
+    from: P201.out
+    to: H101.bfw
+    template: water
+    state:
+      design:
+        temperature: {value: 311.95, provenance: given, source: "SRC-1 Exhibit 5-15, condensate pump discharge (102 degF)"}
+        pressure: {value: 599.8, provenance: given, source: "SRC-1 Exhibit 5-15, condensate pump discharge (87 psia)"}
+        flow: {value: 633792.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: = S11 (D-006)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "condensate"}
+  - id: S13
+    title: Demineralised water make-up
+    from: DMW.out
+    to: E201.dmw
+    template: water
+    state:
+      design:
+        temperature: {value: 288.15, provenance: given, source: "SRC-1 Exhibit 5-15, condenser make-up (59 degF)"}
+        pressure: {value: 103.4, provenance: given, source: "SRC-1 Exhibit 5-15, condenser make-up (15 psia)"}
+        flow: {value: 1271.9, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-15, 2,804 lb/h (Exhibit 5-14: 5.6 gpm BFW make-up)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "demineralised water"}
+  - id: S14
+    title: Deaerator vent
+    from: E201.vent
+    to: VENT.in
+    template: water
+    state:
+      design:
+        temperature: {value: 311.15, provenance: assumed, source: "D-008: at the condensate temperature (SRC-1 Exhibit 5-16 gives the vent 0.2 GJ/h)"}
+        pressure: {value: 101.3, provenance: assumed, source: "D-008: to atmosphere"}
+        flow: {value: 1271.9, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-14, the deaerator vent equals the make-up (5.6 gpm, 2,804 lb/h); non-condensables not in the balance"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "water vapour"}
+  # ---- cooling tower (SRC-1 Exhibit 5-14, D-009)
+  - id: S20
+    title: Cooling tower make-up water
+    from: RW.out
+    to: CT301.makeup
+    template: water
+    state:
+      design:
+        temperature: {value: 288.15, provenance: assumed, source: "D-009: at the ambient temperature"}
+        pressure: {value: 300.0, provenance: assumed, source: "D-009: raw water pump discharge"}
+        flow: {value: 657161.2, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: evaporation + blowdown, SRC-1 Exhibit 5-14 (2,245 + 651 gpm; the exhibit's withdrawal 2,897 gpm, rounding), 999.1 kg/m3 (D-009)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "dissolved solids not modelled (D-009)"}
+  - id: S21
+    title: Evaporation and drift to atmosphere
+    from: CT301.evap
+    to: EVAP.in
+    template: water
+    state:
+      design:
+        temperature: {value: 300.15, provenance: assumed, source: "D-009: the tower's hot water temperature (27 degC, SRC-1 Exhibit 5-5)"}
+        pressure: {value: 101.3, provenance: assumed, source: "D-009"}
+        flow: {value: 509436.1, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-14 cooling tower consumption 2,245 gpm, 999.1 kg/m3 (D-009)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "water vapour and drift"}
+  - id: S22
+    title: Cooling tower blowdown
+    from: CT301.blowdown
+    to: BLOWDOWN.in
+    template: water
+    state:
+      design:
+        temperature: {value: 289.15, provenance: assumed, source: "D-009: the cold water temperature (16 degC, SRC-1 Exhibit 5-5)"}
+        pressure: {value: 300.0, provenance: assumed, source: "D-009"}
+        flow: {value: 147725.1, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-14 process water discharge 651 gpm, 999.1 kg/m3 (D-009)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "dissolved solids concentrated from the make-up not modelled (D-009)"}
+  # ---- energy streams (D-005, D-007 to D-010)
+  - {id: Q1, title: Gas turbine generators' power, kind: energy, from: R101.power, to: T901.gt, state: {design: {duty: {value: 476622.0, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S1 S2 S3', fingerprint: 2fe45e8c08b563a4}}}}
+  - {id: Q2, title: Gas turbine generator loss, kind: energy, from: R101.loss, to: AMBIENT.gt, state: {design: {duty: {value: 7264.0, provenance: assumed, source: "scripts/ngcc_balance.py: 477,000 kW x (1/0.985 - 1), SRC-1 Exhibit 5-9 CT power and section 5.2.4.2 generator efficiency 98.5 % (D-005)"}}}}
+  - {id: Q3, title: Steam turbine generator's power, kind: energy, from: X201.power, to: T901.st, state: {design: {duty: {value: 262744.3, provenance: assumed, source: "scripts/ngcc_balance.py: HP, IP and LP expansion on SRC-1 Exhibit 5-8's enthalpies (266,205 kW) x 0.987 (section 5.2.4.2); SRC-1 Exhibit 5-9: 263 MWe (D-007)"}}}}
+  - {id: Q4, title: Steam turbine generator loss, kind: energy, from: X201.loss, to: AMBIENT.st, state: {design: {duty: {value: 3460.7, provenance: assumed, source: "scripts/ngcc_balance.py: 266,205 kW x 0.013 (D-007)"}}}}
+  - {id: Q5, title: Condenser duty to the cooling water, kind: energy, from: E201.cw, to: CT301.heat, state: {design: {duty: {value: 390435.9, provenance: assumed, source: "scripts/ngcc_balance.py: S10 condensed to S11 and the make-up warmed, SRC-1 Exhibit 5-8 enthalpies; SRC-1 Exhibit 5-9: 1,406 GJ/h (D-008)"}}}}
+  - {id: Q6, title: Condensate pumps' power, kind: energy, from: T901.cp, to: P201.power, state: {design: {duty: {value: 150.0, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-10 condensate pumps (D-010)"}}}}
+  - {id: Q7, title: Boiler feed pumps' power, kind: energy, from: T901.bfp, to: H101.bfp, state: {design: {duty: {value: 4830.0, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-10 feedwater pumps (D-010)"}}}}
+  - {id: Q8, title: Circulating water pumps' and cooling tower fans' power, kind: energy, from: T901.cw, to: CT301.power, state: {design: {duty: {value: 4280.0, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-10, circulating water pumps 2,820 + cooling tower fans 1,460 kW (D-010)"}}}}
+  - {id: Q9, title: Balance-of-plant loads, kind: energy, from: T901.bop, to: U901.power, state: {design: {duty: {value: 2052.0, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-10, CT auxiliaries 1,020 + ST auxiliaries 200 + ground water pumps 260 + miscellaneous 570 + SCR 2 kW (D-010)"}}}}
+  - {id: Q10, title: Transformer losses, kind: energy, from: T901.tr, to: AMBIENT.tr, state: {design: {duty: {value: 2250.0, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-10 transformer losses (D-010)"}}}}
+  - {id: Q11, title: Net electricity export, kind: energy, from: T901.net, to: ELEC.in, state: {design: {duty: {value: 725804.3, provenance: assumed, source: "D-010: the bus T901 by hand, Q1 476,622.0 + Q3 262,744.3 - (Q6 150 + Q7 4,830 + Q8 4,280 + Q9 2,052 + Q10 2,250) kW; SRC-1 Exhibit 5-9: 727 MWe net"}}}}
+layout: {bfd: {}, pfd: {}}
