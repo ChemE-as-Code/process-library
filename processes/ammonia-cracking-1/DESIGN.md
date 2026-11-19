@@ -237,9 +237,9 @@ kWh to cooling water; no steam is imported or exported.
 
 `lca/lca.yaml` takes every exchange of the design case per kg of hydrogen (`cheme assess lca
 --write`). In the Atlas LCI (`scripts/build_lci.py`), lca/mappings.yaml links the ammonia
-directly to ammonia-1 (as acrylonitrile-1 and caprolactam-1 do); the library has no ammonia
-market yet (a parallel change adds `markets/ammonia.yaml`; once it is merged this feed may link
-through it). The shared lci/mappings.yaml links electricity (medium voltage) and cooling water
+directly to ammonia-1 (as acrylonitrile-1 and caprolactam-1 do). The library's ammonia market
+(`markets/ammonia.yaml`, market:ammonia:RER, supplier ammonia-1, #550) now exists; the pin to
+ammonia-1 is kept, as in those two entries, and the feed may move to the market later. The shared lci/mappings.yaml links electricity (medium voltage) and cooling water
 (its screening proxy per kWh rejected). Air is free. The flue gas's N2, O2, Ar and water are
 free; its hydrogen and ammonia are elementary flows at zero (not estimated, see the exclusion);
 no CO2 is emitted on site. One product, no allocation.
