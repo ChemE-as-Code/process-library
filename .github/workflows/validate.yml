@@ -4,8 +4,10 @@ on: [pull_request, push]
 permissions:
   contents: read
 
-# core is pinned to a commit (c21e6c7: core v1.11.0, 2026-11-06, generator 7 BFD/PFD written without
-# indentation, core ADR 0048, and the cheme.offpage-not-on-edge drawing lint, core ADR 0049, core#159/#160). An unpinned
+# core v1.12.0 0e85885 (core#254 merged, 2026-11-18): shared QSDsan execution and
+# measured-basis stream results. Keep the version and short SHA together: the NBS regression
+# test reads this version note. The installed source is pinned by full SHA in every URL below.
+# This retains the generator 7 and offpage-lint support. An unpinned
 # install turned validate red when core changed its generated LCA records (#91). Bump the pin
 # deliberately, in every URL of validate.yml and release.yml at once, together with the records
 # that core regenerates (cheme assess lca-scenarios --write); tests/test_workflows.py checks that
@@ -40,16 +42,25 @@ jobs:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
       # core and pyDEXPI are public: no credentials.
       - uses: astral-sh/setup-uv@v6
-      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) (pinned by commit, tests/test_workflows.py)
-      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
+      # core#254 merge, pinned by commit (tests/test_workflows.py)
+      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@0e858853e159ded7fc408a98bc294a671cd75c60"
       - run: cheme fmt --check
       - run: cheme validate
       # core's per-scenario LCA records (lca/scenarios/<id>.json) must be current
       - name: LCA scenario records current
         run: if [ -d lca/scenarios ]; then cheme assess lca-scenarios --check; fi
       # Stage gates report progress (e.g. no design review recorded yet); they do not fail the build.
+      # Bound this optional report separately: check can repeat expensive validation and otherwise
+      # exhaust the whole job's timeout even with continue-on-error. A timeout is not a gate pass.
       - name: Engineering-step gates (informational)
-        run: cheme check --no-write
+        run: |
+          status=0
+          timeout --kill-after=30s 5m cheme check --no-write || status=$?
+          if [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
+            echo "::warning::Engineering-step gates exceeded their time budget; review incomplete, not passed. Required validation ran separately."
+            printf '%s\n' "Engineering-step gates: INCOMPLETE (time limit). No stage sign-off was written. Run cheme check --no-write locally for the full report." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
         continue-on-error: true
 
   # The library contract: manifests, chemical registry, catalog and LCI database build strictly;
@@ -58,8 +69,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160)
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
+      # core#254 merge (the same commit as every job)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@0e858853e159ded7fc408a98bc294a671cd75c60"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         # Full history here only: the catalog records each process folder's last commit
@@ -102,8 +113,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) (the same commit as every job, tests/test_workflows.py)
-      CORE: "cheme-as-code[units,props,png] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
+      # core#254 merge (the same commit as every job, tests/test_workflows.py)
+      CORE: "cheme-as-code[units,props,png] @ git+https://github.com/ChemE-as-Code/core.git@0e858853e159ded7fc408a98bc294a671cd75c60"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -126,9 +137,9 @@ jobs:
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
       - uses: astral-sh/setup-uv@v6
-      # core v1.11.0 c21e6c7 (generator 7 sheets, offpage-not-on-edge lint: core#159/#160) with the property extras the balance scripts import (thermo,
+      # core#254 merge with the property extras the balance scripts import (thermo,
       # CoolProp, scipy through thermo, Cantera); the same commit as the validate job
-      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@c21e6c7f35d9debcfd5b2589fcaddee438bb1e7e"
+      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@0e858853e159ded7fc408a98bc294a671cd75c60"
       - name: balance scripts reproduce the flowsheet
         run: |
           uv run --python 3.12 scripts/check_balance_scripts.py --library . --strict --jobs 4 \

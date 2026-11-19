@@ -1,0 +1,242 @@
+schema: cheme/process/v1
+kind: flowsheet
+title: Generic A2/O waterline - EXPOsan ASM2d example
+cases:
+- id: baseline
+  default: true
+  provenance: assumed
+  source: process/case-inputs.json
+  description: Generic A2/O waterline using the EXPOsan 1.5.3 ASM2d CSTR example defaults.
+    No plant measurements or calibration.
+feeds:
+- id: INF
+  title: Wastewater influent
+  category: wastewater
+  ports:
+  - id: out
+    direction: out
+products:
+- id: EFF
+  title: Treated effluent
+  category: wastewater
+  ports:
+  - id: in
+    direction: in
+- id: SLUDGE
+  title: Waste sludge
+  category: wastewater
+  ports:
+  - id: in
+    direction: in
+blocks:
+- id: ANAEROBIC
+  title: Anaerobic zone (A1, A2)
+  class: ProcessStep
+  ports:
+  - id: INFLUENT
+    direction: in
+  - id: RAS
+    direction: in
+  - id: A2_OUT
+    direction: out
+- id: ANOXIC
+  title: Anoxic zone (A3, A4)
+  class: ProcessStep
+  ports:
+  - id: INTERNAL
+    direction: in
+  - id: A2_OUT
+    direction: in
+  - id: A4_OUT
+    direction: out
+- id: AEROBIC
+  title: Aerobic zone (O1, O2, O3)
+  class: ProcessStep
+  ports:
+  - id: INTERNAL
+    direction: out
+  - id: TO_CLARIFIER
+    direction: out
+  - id: A4_OUT
+    direction: in
+- id: CLARIFIER
+  title: Secondary clarifier
+  class: ProcessStep
+  ports:
+  - id: RAS
+    direction: out
+  - id: TO_CLARIFIER
+    direction: in
+  - id: EFFLUENT
+    direction: out
+  - id: WAS
+    direction: out
+steps:
+- id: A1
+  block: ANAEROBIC
+  class: ProcessStep
+  title: 'A1: 1000 m3'
+  ports:
+  - id: INFLUENT
+    direction: in
+    delegates: INFLUENT
+  - id: RAS
+    direction: in
+    delegates: RAS
+  - id: A1_OUT
+    direction: out
+- id: A2
+  block: ANAEROBIC
+  class: ProcessStep
+  title: 'A2: 1000 m3'
+  ports:
+  - id: A1_OUT
+    direction: in
+  - id: A2_OUT
+    direction: out
+    delegates: A2_OUT
+- id: A3
+  block: ANOXIC
+  class: ProcessStep
+  title: 'A3: 1000 m3'
+  ports:
+  - id: INTERNAL
+    direction: in
+    delegates: INTERNAL
+  - id: A2_OUT
+    direction: in
+    delegates: A2_OUT
+  - id: A3_OUT
+    direction: out
+- id: A4
+  block: ANOXIC
+  class: ProcessStep
+  title: 'A4: 1000 m3'
+  ports:
+  - id: A3_OUT
+    direction: in
+  - id: A4_OUT
+    direction: out
+    delegates: A4_OUT
+- id: O1
+  block: AEROBIC
+  class: ProcessStep
+  title: 'O1: 1333 m3'
+  ports:
+  - id: A4_OUT
+    direction: in
+    delegates: A4_OUT
+  - id: O1_OUT
+    direction: out
+- id: O2
+  block: AEROBIC
+  class: ProcessStep
+  title: 'O2: 1333 m3'
+  ports:
+  - id: O1_OUT
+    direction: in
+  - id: O2_OUT
+    direction: out
+- id: O3
+  block: AEROBIC
+  class: ProcessStep
+  title: 'O3: 1333 m3'
+  ports:
+  - id: INTERNAL
+    direction: out
+    delegates: INTERNAL
+  - id: TO_CLARIFIER
+    direction: out
+    delegates: TO_CLARIFIER
+  - id: O2_OUT
+    direction: in
+- id: C1
+  block: CLARIFIER
+  class: ProcessStep
+  title: 'C1: 10-layer nonreactive settler'
+  ports:
+  - id: RAS
+    direction: out
+    delegates: RAS
+  - id: TO_CLARIFIER
+    direction: in
+    delegates: TO_CLARIFIER
+  - id: EFFLUENT
+    direction: out
+    delegates: EFFLUENT
+  - id: WAS
+    direction: out
+    delegates: WAS
+streams:
+- id: INFLUENT
+  title: Influent
+  from: INF.out
+  to: A1.INFLUENT
+  template: wastewater
+  state: {}
+- id: RAS
+  title: Ras
+  from: C1.RAS
+  to: A1.RAS
+  template: wastewater
+  state: {}
+- id: INTERNAL
+  title: Internal
+  from: O3.INTERNAL
+  to: A3.INTERNAL
+  template: wastewater
+  state: {}
+- id: TO_CLARIFIER
+  title: To Clarifier
+  from: O3.TO_CLARIFIER
+  to: C1.TO_CLARIFIER
+  template: wastewater
+  state: {}
+- id: EFFLUENT
+  title: Effluent
+  from: C1.EFFLUENT
+  to: EFF.in
+  template: wastewater
+  state: {}
+- id: WAS
+  title: Was
+  from: C1.WAS
+  to: SLUDGE.in
+  template: wastewater
+  state: {}
+- id: A1_OUT
+  title: A1 Out
+  from: A1.A1_OUT
+  to: A2.A1_OUT
+  template: wastewater
+  state: {}
+- id: A2_OUT
+  title: A2 Out
+  from: A2.A2_OUT
+  to: A3.A2_OUT
+  template: wastewater
+  state: {}
+- id: A3_OUT
+  title: A3 Out
+  from: A3.A3_OUT
+  to: A4.A3_OUT
+  template: wastewater
+  state: {}
+- id: A4_OUT
+  title: A4 Out
+  from: A4.A4_OUT
+  to: O1.A4_OUT
+  template: wastewater
+  state: {}
+- id: O1_OUT
+  title: O1 Out
+  from: O1.O1_OUT
+  to: O2.O1_OUT
+  template: wastewater
+  state: {}
+- id: O2_OUT
+  title: O2 Out
+  from: O2.O2_OUT
+  to: O3.O2_OUT
+  template: wastewater
+  state: {}

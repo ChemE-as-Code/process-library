@@ -58,6 +58,7 @@ in active development.
 
 - **One folder per process**: 44 engineering projects (`plant.yaml`) and 6 library utilities
   (steam, cooling water, chilled water, instrument air, wastewater treatment, flaring).
+  The [A2/O wastewater example](processes/wwtp-a2o/) runs a dynamic treatment flowsheet with QSDsan.
 - **A manifest per process** (`process.yaml`, with a JSON Schema): families mapped to the ISIC
   Rev. 4 and NACE Rev. 2 industry classifications, and separate fields for design maturity and
   review status.
