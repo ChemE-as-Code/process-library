@@ -464,15 +464,23 @@ Decision:
 - **R-101's vent path** (the line from R-101, E-104's gas side, the line to the flare header) is
   sized for 400 m3/h at 101 kPa(a) and up to 356 K (`hazard.vent_capacity: 400`, ASSUMED design
   value, no hydraulic design yet): the largest release over the batch for every accumulation up to
-  the content's boiling point (387.4 m3/h at 12.3 %). The 200 m3/h of D-006 (about twice the
-  normal peak of 102.5 m3/h before E-104) held only to k/1.5, so a 1.5 times slower dispersion
-  than the ASSUMED rate would already have overloaded it.
+  the 11.3 % limit of the next bullet, where the MTSR reaches the MTT (355.45 K), with margin
+  (387.4 m3/h, 0.969 of it, at 12.3 %; by linear interpolation 400 m3/h is reached at about
+  13.5 %). It does not cover every accumulation up to the content's boiling point (corrected after
+  the review of PR #505): at k/5 (15.4 %, MTSR 358.0 K) the content is still below its Raoult
+  bubble point (358.6 K, vapour share 0.977) and the release is 418.6 m3/h, 1.05 times the vent.
+  **The vent therefore rests on the accumulation trip of the next bullet**: without it, or with a
+  setpoint too close to the limit for the measurement's uncertainty, an accumulation between
+  about 13.5 % and the boiling content (k/7 and slower) overloads it. The 200 m3/h of D-006 (about
+  twice the normal peak of 102.5 m3/h before E-104) held only to k/1.5, so a 1.5 times slower
+  dispersion than the ASSUMED rate would already have overloaded it.
 - **The accumulation is limited to 11.3 % of the batch's potassium** (32.9 kg of the 289.5 kg a
   batch, 0.841 kmol), so that a cooling failure leaves the MTSR at or below the MTT: the dosing
   trips on the potassium dosed but not yet reacted, the dosed metal less twice the hydrogen
-  measured (the hydrogen-flow interlock of D-011, now with a quantity). Its setpoint below the
-  limit, the measurement's uncertainty integrated over the 3 h dosing and the trip's reliability
-  are not set here (basic engineering, LOPA and sign-off).
+  measured (the hydrogen-flow interlock of D-011, now with a quantity). The vent's 400 m3/h holds
+  only with this trip acting (above). Its setpoint below the limit, the measurement's uncertainty
+  integrated over the 3 h dosing and the trip's reliability are not set here (basic engineering,
+  LOPA and sign-off).
 - **The MTT stays core's default**, tert-butanol's normal boiling point 355.45 K, not
   `hazard.mtt_from: bubble-point`: on a scratch copy the content after KTBA boils at 358.6 K
   (Raoult's law with the alkoxide as an ideal non-volatile solute), 3.2 K higher only because the
@@ -483,9 +491,12 @@ Decision:
   reaction), `vent.inerts`/`head_space` (the head space's nitrogen and the per-batch purge are
   consumables, D-012; the pad changes no hazard result, which leaves inerts out of the content),
   `vapour.henry` (no dissolved gas, D-006).
-Beyond the limit the content boils (k/7 and slower): the boil-up at its bubble point, 359.5 to
-371.1 m3/h of vapour from about 135 kW of reaction heat with the hydrogen on top, is the tempered
-reaction's load; core gives no two-phase relief load (L-10), so R-101's emergency relief stays open
+Beyond the limit the MTSR is above the MTT. At k/4 and k/5 (12.3 and 15.4 %) the content is
+still below its Raoult bubble point (358.6 K): the release is the hydrogen with the alcohol's
+vapour that the reactions' heat evaporates (vapour shares 0.905 and 0.977), heat-limited, up to
+1.05 times the vent at k/5. From k/7 on (21.4 % and more) the content boils: the boil-up at its
+bubble point, 359.5 to 371.1 m3/h of vapour from about 135 kW of reaction heat with the hydrogen
+on top, is the tempered reaction's load; core gives no two-phase relief load (L-10), so R-101's emergency relief stays open
 (calorimetry: the dispersion's rate and its accumulation decide which column of this table holds).
 Open, with what it gates: reaction calorimetry of the dispersed metal in the alcohol at 348 K (heat
 flow against the dosing, the accumulation at the design agitation and at reduced agitation): it

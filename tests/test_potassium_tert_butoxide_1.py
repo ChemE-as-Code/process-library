@@ -274,10 +274,14 @@ def _hazard() -> dict:
 
 def test_vent_capacity_basis_and_sensitivity_are_recorded():
     """D-006, D-011, D-015: the vent's 400 m3/h (ASSUMED; 200 m3/h before D-015) covers every
-    accumulation up to the content's boiling point, its basis in the node's source, the rate
-    sensitivity recorded as a design finding; no TD24 estimated."""
+    accumulation up to the 11.3 % limit (not up to the content's boiling point: k/5 exceeds it
+    without boiling, review of PR #505), so it rests on the accumulation trip; its basis in the
+    node's source, the rate sensitivity recorded as a design finding; no TD24 estimated."""
     hazard = _hazard()
     assert hazard["vent_capacity"] == 400 and hazard["provenance"] == "assumed"
+    assert "rests on the dosing's trip" in hazard["source"] and "1.86 times 200" not in hazard["source"]
+    assert "**The vent therefore rests on the accumulation trip of the next bullet**" in _text("DESIGN.md")
+    assert "It does not cover every accumulation up to the content's boiling point" in _text("DESIGN.md")
     assert "td24" not in hazard and "mtt" not in hazard
     # the normal peak before the vent condenser, from the recipe's rate past it
     past = 0.3817  # mol/s, cheme process recipe
