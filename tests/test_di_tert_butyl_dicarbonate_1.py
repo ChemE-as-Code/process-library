@@ -664,7 +664,7 @@ def test_requires_core_1_12_and_records_the_change():
     ):
         assert limit in design, limit
     assert "L-14: **resolved" not in design
-    assert "Needs cheme-as-code 1.12.0" in _text("README.md") and "Needs cheme-as-code\n    1.12.0" in _text("process.yaml")
+    assert "Needs cheme-as-code 1.12.0" in _text("README.md") and "Needs cheme-as-code 1.12.0" in _text("process.yaml")
     assert "core 1.10.0" in _text("PROGRESS.md")
 
 
