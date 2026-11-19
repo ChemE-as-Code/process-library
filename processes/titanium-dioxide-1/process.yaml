@@ -1,0 +1,87 @@
+# Process Atlas manifest of titanium-dioxide-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: titanium-dioxide-1
+title: Titanium dioxide by the chloride process (100 kt/a raw rutile TiO2)
+summary: >-
+  A slag and synthetic rutile blend is chlorinated with petroleum coke in a fluidised bed, the
+  TiCl4 condensed, distilled and oxidised with oxygen to rutile TiO2, and the chlorine recycled
+  directly to the chlorinator; the off-gas is scrubbed and its CO burnt, the solid wastes
+  neutralised with lime. Concept stage, BREF-anchored consumptions, preliminary gate-to-gate LCI.
+description: |
+  An 88 wt% TiO2 feedstock (a blend of titanium slag and synthetic rutile) and calcined petroleum
+  coke are chlorinated at 1273 K in a fluidised bed with the chlorine that the oxidiser returns
+  and 128 g of make-up chlorine per kg of TiO2 from chlor-alkali-1. The chlorinator gas is
+  quenched, the blow-over and metal chlorides are separated in a cyclone, and the TiCl4 is
+  condensed (cooling water, then brine), distilled, vaporised, superheated and oxidised with 15 %
+  excess oxygen (asu-1) in an adiabatic reactor whose outlet reaches about 2000 K. The pigment
+  is cooled and collected in a bag filter; the chlorine and oxygen excess go straight back to the
+  chlorinator (the direct recycle of the BREF LVIC-S). The CO/CO2 off-gas is scrubbed with water
+  and caustic and burnt in a thermal oxidiser; the blow-over, the still sludge and the scrubber
+  liquor are neutralised with lime (lime-1) and filtered to a landfilled cake and a saline
+  filtrate.
+
+  Core solves the whole mass balance, including the chlorine recycle and six design
+  specifications (cheme process propagate); the energy balance with the solids and liquid TiCl4
+  comes from scripts/energy_balance.py, because core has no condensed-phase enthalpy in a
+  flowsheet step. The specific consumptions (feedstock TiO2 1.07 t, coke 316 kg, chlorine 128 kg,
+  oxygen 462 kg, lime 102 kg per t) lie inside the ranges the EU chloride plants reported in the
+  LVIC-S BREF. Finishing (coating, drying, micronising) is outside the boundary. See DESIGN.md.
+families: [inorganic-chemicals]
+keywords: [titanium dioxide, TiO2, rutile, pigment, chloride process, carbochlorination, titanium tetrachloride, TiCl4, fluidised bed, oxidation, chlorine recycle, petroleum coke, titanium slag, synthetic rutile]
+facets:
+  feedstock_basis: [mineral, fossil, electricity]
+  product_classes: [chemicals, materials]
+  unit_operations: [reaction, condensation, distillation, filtration, absorption, incineration]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Feeds, conversions, recoveries and
+# temperatures are assumed (DESIGN.md D-002..D-011), anchored to the BREF ranges.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances: core's cheme process propagate
+    solves every flow and composition, the chlorine recycle (tear S4) and six design
+    specifications. The energy balance (heat of the chlorinator, the condensers, the still, the
+    preheaters, the adiabatic oxidiser and thermal oxidiser) is an independent script on the
+    chemicals/thermo packages' data (scripts/energy_balance.py), because core has no
+    condensed-phase enthalpy for a flowsheet step (DESIGN.md L-1). Electric power is the BREF's
+    1999 site average. Conversions, recoveries and excesses are ASSUMED. Preliminary gate-to-gate
+    LCI: the titanium feedstock and the coke are gaps. Not reviewed.
+chemistry:
+  inputs:
+    - {chemical: titanium-feedstock, role: feedstock, inventory_key: "feed:ORE", note: "Slag and synthetic rutile blend, 88 wt% TiO2 (ASSUMED), 1.214 kg/kg TiO2; no library producer (gap)"}
+    - {chemical: petroleum-coke, role: feedstock, inventory_key: "feed:COKE", note: "Calcined petroleum coke as fixed carbon, 0.316 kg/kg TiO2; no library producer (gap)"}
+    - {chemical: chlorine, role: feedstock, inventory_key: "feed:CL2", note: "Make-up chlorine (chlor-alkali-1), 0.128 kg/kg TiO2"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "GOX (asu-1), 0.462 kg/kg TiO2"}
+    - {chemical: calcium-oxide, role: feedstock, inventory_key: "feed:LIME", note: "Quicklime (lime-1) for the waste neutralisation, 0.102 kg/kg TiO2"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt% (chlor-alkali-1) for the off-gas scrubber, counted as the solution, 0.031 kg/kg TiO2"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Scrubber water"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PWL", note: "Lime slaking water"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the thermal oxidiser"}
+  outputs:
+    - {chemical: titanium-dioxide, role: main-product, inventory_key: "product:TIO2P", note: "Raw rutile TiO2 to the finishing plant (outside the boundary)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "0.98 kg/kg TiO2, fossil: the coke carbon, burnt in the chlorinator and in the thermal oxidiser"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:EFF", note: "Neutralised saline filtrate (CaCl2, NaCl), 0.57 kg/kg TiO2"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.12 kWh/kg TiO2: BREF LVIC-S 1999 site averages for ore preparation to oxidation and for effluent treatment, plus the air fan"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "0.48 kWh/kg TiO2 of HP steam heat: still reboiler and TiCl4 vaporiser"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "2.02 kWh/kg TiO2 rejected: condensers (with the quench heat), oxidiser product cooler, neutraliser"}
+basis:
+  capacity: "12.5 t/h raw TiO2, 100 kt/a at 8000 h (ASSUMED, inside the 55-150 kt/a of the five EU chloride sites in the BREF LVIC-S)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "European Commission, Joint Research Centre (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry (LVIC-S BREF), chapter 3 Titanium dioxide, sections 3.2 (chloride process) and 3.3 (sulphate process)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic-s_bref_0907.pdf"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/titanium-dioxide-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

@@ -1,0 +1,100 @@
+# Process Atlas manifest of power-generation-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+#
+# The electricity carries no inventory_key (ADR 0028 allows a stated reason): with one, the build
+# would offer this one NGCC plant as the Atlas producer of `electricity` to every consumer of grid
+# power in the library, whose default is the site's grid mix at medium voltage
+# (lci/mappings.yaml). A study that wants NGCC power pins this dataset (link.dataset), as
+# waste-incineration-1 states for its electricity. The natural gas is `methane` without an
+# inventory_key for the same reason as utility-steam-ng-boiler's (its mappings: atlas: false).
+schema: cheme-as-code/process/v1
+id: power-generation-1
+title: Electricity from a natural-gas combined cycle, 2x1 F-class gas turbines, reheat HRSGs, wet cooling tower (726 MW net)
+summary: >-
+  A 2x1 F-class natural-gas combined cycle at the operating point of NETL's Case B31A: two gas
+  turbine generators with dry low-NOx combustors, two three-pressure reheat HRSGs with SCR, one
+  reheat steam turbine generator, a surface condenser and a wet cooling tower. Concept stage,
+  726 MW net at 53.6 % (HHV, 59.3 % LHV), 0.343 kg CO2 per kWh at the stack, preliminary gate-to-gate LCI.
+description: |
+  Ambient air at ISO conditions and pipeline natural gas (93.1 mol% methane) are burnt in two
+  F-class gas turbines; the exhaust leaves at 625 degC to two heat recovery steam generators
+  that raise HP steam at 16.5 MPa and 585 degC, reheat steam at 3.5 MPa and 584 degC and LP
+  steam, with an SCR between the HP and IP sections, and leaves the stacks at 83 degC. A reheat,
+  triple-admission steam turbine exhausts at 50.8 mm Hg to a surface condenser cooled by a
+  mechanical-draft wet cooling tower. The design point, the stream states, the auxiliary loads,
+  the water balance and the stack emissions are those of NETL's Cost and Performance Baseline
+  Revision 4a, Case B31A (DOE/NETL-2023/4320, 2022).
+
+  The gas turbines are one conversion step of cheme-as-code (complete combustion on ideal-gas
+  formation data): its energy balance from the air and fuel to the exhaust at 625 degC gives
+  483.9 MW of work and losses, 0.08 % below NETL's 484.3 MW, and 476.6 MWe after the generator
+  loss. The steam turbine's 262.7 MWe (NETL 263) comes from NETL's stream enthalpies with
+  NETL's generator efficiency, the condenser's 390.4 MW (NETL 1,406 GJ/h) the same way. Less the
+  13.6 MW own use, 725.8 MW go to the 345 kV grid: 0.1285 kg of gas per kWh, 6,720 kJ (HHV) per
+  kWh. Core has no gas turbine, HRSG or steam turbine model and no water/steam property package,
+  so those numbers are sourced, not predicted (DESIGN.md L-1 to L-3). See DESIGN.md for every
+  assumption.
+families: [power-generation]
+keywords: [electricity, power generation, natural gas, combined cycle, NGCC, gas turbine, F-class, dry low-NOx, HRSG, heat recovery steam generator, reheat, steam turbine, Rankine cycle, condenser, cooling tower, SCR, NETL baseline]
+facets:
+  feedstock_basis: [fossil, water]
+  unit_operations: [combustion, power-generation, heat-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. The design point is a published
+# reference case; the turbines' and the steam cycle's performance are taken from it, not
+# predicted (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: 4 blocks and 6 steps within tolerance; the energy-only block EL with its steps T901
+    and U901 is not balanced by core and is closed by the folder's tests, L-3). The gas turbines R101 are calculated by
+    cheme process propagate (conversion step, complete combustion, ideal-gas data of the
+    chemicals package): the exhaust S3 (138,413 kmol/h, NETL 138,406, composition within 0.0001
+    mole fraction of NETL's stream 3) and their power Q1 (476.6 MW after NETL's 98.5 % generator
+    efficiency; NETL 477 MW). scripts/ngcc_balance.py gives the stack gas, the water/steam loop
+    closed on NETL's stream table, the steam turbine generator (262.7 MW from NETL's enthalpies
+    at 98.7 %; NETL 263), the condenser (390.4 MW; NETL 390.6), the cooling tower's water and
+    NETL's auxiliary loads (13.6 MW); the net export (725.8 MW, NETL 727) is the bus's balance,
+    checked by the folder's tests. Net efficiency 53.57 % HHV, 59.35 % LHV (NETL 53.6 and 59.4).
+    No core model exists for the turbines' internals, the HRSG or the steam cycle (L-1 to L-3).
+    Preliminary gate-to-gate LCI: CO2 from the balance (0.3425 kg/kWh, of which 0.3401 from the
+    fuel and 0.0024 the combustion air's CO2, counted as fossil, ASSUMED, D-011; NETL 342 kg/MWh
+    net, the air's CO2 included), NOx, CO, SO2 and particulates from NETL's stack rates, CH4 and N2O from AP-42 Section
+    3.1; the natural gas, water and the SCR's ammonia (ammonia-1) linked in the Atlas build. Not
+    reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: methane, role: feedstock, note: "feed:NG: pipeline natural gas, 93.1 mol% methane with ethane, propane, butane, CO2 and N2 (NETL), 0.1285 kg/kWh; no inventory_key (see the header), linked as natural gas by lca/mappings.yaml"}
+    - {chemical: air, role: feedstock, note: "feed:AIR: combustion air, free; 5.28 kg/kWh"}
+    - {chemical: water, role: feedstock, note: "feed:RW: raw water make-up to the cooling tower, 0.905 kg/kWh (NETL water balance); no inventory_key: the slug water links deionised water, which this is not"}
+    - {chemical: water, role: feedstock, note: "feed:DMW: demineralised condenser make-up, 1.75 g/kWh, linked as deionised water by lca/mappings.yaml"}
+    - {chemical: ammonia, role: reactant, note: "consumable:scr-ammonia: NH3 of the SCR's 19 wt% aqueous ammonia, 0.034 g/kWh, linked to ammonia-1 in lca/mappings.yaml"}
+  outputs:
+    - {chemical: electricity/high-voltage, role: main-product, note: "product:ELEC: net electricity at 345 kV, 725.8 MW; no inventory_key (see the header)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "CO2 at the stack, 0.3425 kg/kWh: 0.3401 from the fuel, 0.0024 (0.7 %) the combustion air's CO2 passing through, counted as fossil (ASSUMED, D-011)"}
+    - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "Water vapour of the stack gas and the cooling tower's evaporation"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:BLOWDOWN", note: "Cooling tower blowdown to treatment, 0.204 kg/kWh"}
+basis:
+  capacity: "725.8 MW net (NETL Case B31A: 727 MW), 5.40 TWh/a at 7446 full-load hours (NETL's 85 % capacity factor, ASSUMED as full-load hours; DESIGN.md D-002)"
+  operating_hours_per_year: 7446
+  location: generic site at ISO ambient conditions (NETL's reference site is a greenfield site in the midwestern United States)
+references:
+  - {title: "Schmitt, T., Leptinsky, S., Turner, M., Zoelle, A., White, C. W., Hughes, S., Homsy, S., Woods, M., Hoffman, H., Shultz, T., James, R. (2022) Cost and Performance Baseline for Fossil Energy Plants Volume 1: Bituminous Coal and Natural Gas to Electricity, Revision 4a. National Energy Technology Laboratory, DOE/NETL-2023/4320 (Case B31A: Exhibits 5-5 to 5-16 and 5-19, section 5.1 NGCC process areas; Exhibits 2-2 and 2-6)", url: "https://netl.doe.gov/projects/files/CostAndPerformanceBaselineForFossilEnergyPlantsVolume1BituminousCoalAndNaturalGasToElectricity_101422.pdf"}
+  - {title: "U.S. EPA (2000) AP-42, Fifth Edition, Volume I, Section 3.1 Stationary Gas Turbines, April 2000, Table 3.1-2a (CH4 and N2O of natural-gas-fired turbines)", url: "https://www.epa.gov/sites/default/files/2020-10/documents/c03s01.pdf"}
+  - {title: "Ruscic, B., Bross, D. H. Active Thermochemical Tables (ATcT); Poling, B. E., Prausnitz, J. M., O'Connell, J. P. (2001) The Properties of Gases and Liquids, 5th ed. (ideal-gas formation enthalpies and heat capacities as the chemicals package 1.5.2 packages them, via cheme chemistry thermo; the works themselves not read here)"}
+  - {title: "CRC Handbook of Chemistry and Physics, standard thermodynamic properties of chemical substances (standard entropies of eight components as the chemicals package 1.5.2 packages them, CRC_standard_data; the printed handbook not read here)"}
+  - {title: "Yaws, C. L. Yaws' Handbook of Thermodynamic Properties (standard entropy of n-butane as the chemicals package 1.5.2 packages it, Hfg_S0g_YAWS_data; the handbook not read here)"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/power-generation-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
