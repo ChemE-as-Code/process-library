@@ -1,0 +1,14 @@
+# Step specifications for core's energy checks. Schema: `cheme schema process-simulation`.
+# Only the energy mode of R101, the reactive zone of the catalytic distillation column C-101, is
+# declared: its heat of reaction stays inside the column, where it boils up liquid, and the
+# column's reboiler and condenser duties (Q3, Q4) are the source's for the whole column with its
+# reaction (Murat et al. 2003, Table 2; DESIGN.md D-008). R101's outlet S8 has an ASSUMED
+# temperature, not one calculated from this mode, so `cheme process reactors` reports a duty of
+# about -11.1 MW for R101: that is the reaction heat, which leaves through C-101's condenser Q4,
+# and it is not booked again. No simulator is run for this flowsheet:
+# no property package of core covers methanol, C4, MTBE and water (L-2), and core has no
+# reactive-distillation model (L-1).
+schema: cheme/simulation/v1
+kind: simulation
+specs:
+  R101: {mode: adiabatic}

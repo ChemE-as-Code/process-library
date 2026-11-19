@@ -1,7 +1,9 @@
 # Benchmarks of oxygenated intermediates: purified terephthalic acid, adipic acid and propylene
 # oxide, and vinyl acetate (vinyl-acetate-1: the ethylene KPI is bound to the reactor
 # selectivity of the patent the dataset takes its own selectivity from, so it tests the plant's
-# losses beside the reactor, not new data; the acetic acid KPI has no open reference). Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
+# losses beside the reactor, not new data; the acetic acid KPI has no open reference), and MTBE
+# (mtbe-1: the isobutene KPI is bound to the industrial and Nijhuis et al.'s conversions that
+# the dataset's source reports beside its own model's; the methanol KPI has no open reference). Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
 # from the cited source, in our own form.
 #
 # terephthalic-acid-1:
@@ -589,6 +591,25 @@ kpis:
     title: Acetic anhydride consumption per kg of acetylsalicylic acid
     unit: kg/kg
     no_open_reference: "No open source with a plant's acetic anhydride use per kg of aspirin found (searched 2026-11-19: US 2 731 492 A read, which regenerates the anhydride from the liquor's acetic acid with ketene, so its anhydride use is not a consumption; US 2 987 539 A read, laboratory charges with the excess recycled in the liquor; US 6 278 014 B1 read, a solvent-free route). The stoichiometric floor is 0.5667 kg/kg (102.089 / 180.159), a limit, not a range of real plants."
+  mtbe-specific-isobutene:
+    title: Isobutene consumed per kg of MTBE (catalytic distillation of a C4 raffinate)
+    unit: kg/kg
+    references:
+      - id: bao-2002-isobutene-conversion
+        range: [0.6389, 0.6462]
+        basis: unallocated
+        note: "Our conversion of the isobutene conversions an open study reports for MTBE catalytic distillation columns into isobutene per kg of MTBE (56.106 / 88.148 = 0.6365 kg/kg at full conversion, divided by the conversion): 99.62 % in Bao et al.'s industrial column (0.6389), 98.5 % in Nijhuis et al.'s simulation (0.6462), both as Murat et al. (2003) report them (Tables 2 and 4). The isobutene not converted leaves with the raffinate-2."
+        conditions: {technology: "catalytic distillation of a C4 raffinate with methanol over acidic ion-exchange resin, with or without a pre-reactor", region: generic, year: 2003}
+        source: &murat-2003
+          citation: "Murat, M.N.; Mohamed, A.R.; Bhatia, S. (2003) Modeling of a reactive distillation column: methyl tertiary butyl ether (MTBE) simulation studies. IIUM Engineering Journal 4(2), 13-30"
+          url: https://journals.iium.edu.my/ejournal/index.php/iiumej/article/download/371/319/1573
+          locator: "Table 2 (Nijhuis et al.'s column), Tables 3 and 4 (Bao et al.'s industrial column)"
+          kind: peer-reviewed
+          accessed: "2026-11-19"
+  mtbe-specific-methanol:
+    title: Methanol consumed per kg of MTBE
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's methanol use per kg of MTBE found (searched 2026-11-19: Murat et al. 2003 and Svandova et al. 2007 read, which model the column with its methanol feed but not the recovery; US 4 918 243 A and US 5 336 841 A read, which recover the excess methanol and give no consumption). The stoichiometric floor is 0.3635 kg/kg (32.042 / 88.148), a limit, not a range of real plants."
 datasets:
   - process: terephthalic-acid-1
     dataset: pta-px-air-oxidation
@@ -776,3 +797,13 @@ datasets:
     kpis:
       salicylic-acid-specific-phenol: {expression: feed:PHF / product:SA, per: product:SA}
       salicylic-acid-specific-wastewater: {expression: product:WW / product:SA, per: product:SA}
+  - process: mtbe-1
+    dataset: methyl-tert-butyl-ether-by-catalytic-distillation-of-a-c4-raffinate-with-methanol-500-kt-a
+    conditions: {technology: "catalytic distillation of a C4 raffinate (35.6 mol% isobutene, the inert C4 as 1-butene) with methanol at 11 bar over acidic ion-exchange resin on 8 of 17 stages, reflux 7, water wash of the raffinate-2, low-pressure methanol column", basis: "concept balance on Murat et al. (2003) Tables 1 and 2 (99.5 % conversion, the bottoms composition, the column's duties); ASSUMED wash and methanol column splits (mtbe-1 DESIGN.md D-004 to D-008)"}
+    kpis:
+      mtbe-specific-isobutene:
+        expression: feed:IBC / product:MTBEP
+        per: product:MTBEP
+        reference: bao-2002-isobutene-conversion
+        out_of_range_reason: "The KPI is per kg of the product, 99.10 wt% MTBE with 0.90 wt% C4 (Murat et al.'s bottoms, 1.4 mol% C4): 0.634 kg/kg. Per kg of the MTBE it holds, 0.6397 kg/kg, at the dataset's 99.5 % conversion (Murat et al.'s own model), inside the range. The reference's source is also the dataset's, for its own model's conversion; the bound figures are the other two columns it reports."
+      mtbe-specific-methanol: {expression: feed:MEOH / product:MTBEP, per: product:MTBEP}
