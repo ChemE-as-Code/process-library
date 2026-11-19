@@ -150,6 +150,72 @@ kpis:
     title: Dichlorodimethylsilane consumption per kg of tert-butyldimethylsilyl chloride
     unit: kg/kg
     no_open_reference: "No open source with a plant's silane use per kg of TBSCl found (searched 2026-11-12 as for tbscl-specific-tert-butyl-chloride). Only the stoichiometric floor, 0.856 kg/kg, is known."
+  tio2-specific-coke:
+    title: Coke per kg of titanium dioxide (chloride process)
+    unit: kg/kg
+    description: >-
+      Coke fed to the fluidised-bed chlorinator per kg of TiO2.
+    references:
+      - id: lvic-s-2007-table-3-10
+        range: [0.285, 0.429]
+        basis: unallocated
+        conditions:
+          technology: chloride process, fluidised-bed carbochlorination, TiCl4 oxidation with oxygen
+          product: titanium dioxide pigment (per t of pigment)
+          region: EU (five chloride sites)
+          year: 1999
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry (LVIC-S BREF), chapter 3.2 Titanium dioxide - the chloride process"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic-s_bref_0907.pdf
+          locator: "section 3.2.3.2.1, Table 3.10 (coke usage: mean 366, max 429, min 285 kg/t TiO2)"
+          kind: bref
+          accessed: "2026-11-19"
+        note: >-
+          The minimum and maximum of the five EU chloride sites in 1999, per t of finished pigment (slightly more than TiO2); the dataset counts per kg of raw TiO2 before finishing. The dataset aims its ASSUMED excesses at these site averages (titanium-dioxide-1 DESIGN.md D-012), so the range checks plausibility, not an independent prediction.
+  tio2-specific-chlorine:
+    title: Make-up chlorine per kg of titanium dioxide (chloride process)
+    unit: kg/kg
+    description: >-
+      Chlorine bought in to replace what the impurities and losses take, the rest recycled, per kg of TiO2.
+    references:
+      - id: lvic-s-2007-table-3-9
+        range: [0.114, 0.3]
+        basis: unallocated
+        conditions:
+          technology: chloride process, fluidised-bed carbochlorination, TiCl4 oxidation with oxygen
+          product: titanium dioxide pigment (per t of pigment)
+          region: EU (five chloride sites)
+          year: 1999
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry (LVIC-S BREF), chapter 3.2 Titanium dioxide - the chloride process"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic-s_bref_0907.pdf
+          locator: "section 3.2.3.2.1, Table 3.9 (chlorine usage: mean 201, max 300, min 114 kg/t TiO2)"
+          kind: bref
+          accessed: "2026-11-19"
+        note: >-
+          The minimum and maximum of the five EU chloride sites in 1999, per t of finished pigment (slightly more than TiO2); the dataset counts per kg of raw TiO2 before finishing. The dataset aims its ASSUMED excesses at these site averages (titanium-dioxide-1 DESIGN.md D-012), so the range checks plausibility, not an independent prediction.
+  tio2-specific-oxygen:
+    title: Oxygen per kg of titanium dioxide (chloride process)
+    unit: kg/kg
+    description: >-
+      Pure oxygen to the TiCl4 oxidiser per kg of TiO2.
+    references:
+      - id: lvic-s-2007-table-3-13
+        range: [0.395, 0.573]
+        basis: unallocated
+        conditions:
+          technology: chloride process, fluidised-bed carbochlorination, TiCl4 oxidation with oxygen
+          product: titanium dioxide pigment (per t of pigment)
+          region: EU (five chloride sites)
+          year: 1999
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry (LVIC-S BREF), chapter 3.2 Titanium dioxide - the chloride process"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic-s_bref_0907.pdf
+          locator: "section 3.2.3.2.4, Table 3.13 (oxygen: mean 467, max 573, min 395 kg/t TiO2; the maximum one site in 1999)"
+          kind: bref
+          accessed: "2026-11-19"
+        note: >-
+          The minimum and maximum of the five EU chloride sites in 1999, per t of finished pigment (slightly more than TiO2); the dataset counts per kg of raw TiO2 before finishing. The dataset aims its ASSUMED excesses at these site averages (titanium-dioxide-1 DESIGN.md D-012), so the range checks plausibility, not an independent prediction.
 
 datasets:
   - process: phosphorus-tribromide-1
@@ -192,3 +258,10 @@ datasets:
     kpis:
       tbscl-specific-tert-butyl-chloride: {expression: feed:TBUCLF / product:TBSCLP, per: product:TBSCLP}
       tbscl-specific-dichlorodimethylsilane: {expression: feed:SILF / product:TBSCLP, per: product:TBSCLP}
+  - process: titanium-dioxide-1
+    dataset: titanium-dioxide-by-the-chloride-process-100-kt-a-raw-rutile-tio2
+    conditions: {technology: "fluidised-bed carbochlorination at 1273 K of an 88 wt% TiO2 slag and synthetic rutile blend with calcined petroleum coke, TiCl4 condensation and distillation, oxidation with 15 % excess oxygen, direct chlorine recycle, lime neutralisation of the wastes", basis: "concept balance by core with ASSUMED conversions and excesses (DESIGN.md D-003 to D-010)"}
+    kpis:
+      tio2-specific-coke: {expression: feed:COKE / product:TIO2P, per: product:TIO2P, reference: lvic-s-2007-table-3-10}
+      tio2-specific-chlorine: {expression: feed:CL2 / product:TIO2P, per: product:TIO2P, reference: lvic-s-2007-table-3-9}
+      tio2-specific-oxygen: {expression: feed:OXY / product:TIO2P, per: product:TIO2P, reference: lvic-s-2007-table-3-13}

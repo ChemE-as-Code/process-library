@@ -304,7 +304,8 @@ def test_liquid_nitrogen_consumer_links_to_the_market_with_trailer_and_boil_off(
     the chain, and a pin sends it to ASU-1's tank instead."""
     co2 = project
     library = _asu_library(tmp_path)
-    shutil.copytree(KIT / "markets", library / "markets")
+    # the markets of ASU-1's products only: the fixture library has no other supplier
+    shutil.copytree(KIT / "markets", library / "markets", ignore=shutil.ignore_patterns("water.yaml"))
     shutil.copytree(FIXTURES / "lin-user", library / "processes" / "fixture-lin-user")
     out = tmp_path / "out"
     report = build_lci.build(library, out, "mk")

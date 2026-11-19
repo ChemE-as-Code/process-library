@@ -1,0 +1,20 @@
+# titanium-dioxide-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `dataset` (an Atlas producer).
+#
+# Linked here: the make-up chlorine and the caustic to chlor-alkali-1, the oxygen to asu-1's GOX,
+# the quicklime to lime-1, the HP steam as heat delivered, the fired heat as heat from natural
+# gas, the rock salt to the shared sodium chloride entry. Electricity, cooling water and process
+# water link through their registry slugs (process.yaml inventory keys). The titanium feedstock,
+# the petroleum coke, the still oil, the scouring sand, the brine refrigeration and the two
+# wastes stay gaps: no library producer or shared entry fits (DESIGN.md D-013).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:CL2": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:CL2"}, source: "the Atlas producer chlor-alkali-1, dry chlorine gas 400 kPa(a), kg for kg (D-006)"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, counted as the solution as this exchange counts it (D-008)"}
+  "feed:OXY": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GOXP"}, source: "the Atlas producer asu-1, GOX (99.7 mol% O2) at 31 bar(a), let down to 400 kPa(a) (D-007)"}
+  "feed:LIME": {dataset: {path: processes/lime-1/lca/datasets/quicklime-pfrk-natural-gas.yaml, product: "product:quicklime"}, source: "the Atlas producer lime-1, quicklime counted as CaO, as this exchange counts it (D-010)"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 4000 kPa(a) to the still reboiler (Q5) and the TiCl4 vaporiser (Q7), counted as heat delivered (kWh), scripts/energy_balance.py"}
+  "feed:FUEL": {use: heat-natural-gas, source: "the fired TiCl4 superheater (Q8) and oxygen preheater (Q9), counted as the heat absorbed (kWh), as hda-1 counts its feed heater; natural gas in place of the toluene of BREF LVIC-S 3.2.2.9 (D-007)"}
+  "consumable:scouring-salt": {use: sodium-chloride, source: "rock salt to scour the oxidiser product cooler, counted 1:1 as sodium chloride as chlor-alkali-1 counts its rock salt"}

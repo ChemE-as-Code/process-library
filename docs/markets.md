@@ -104,7 +104,9 @@ beside the input's background link, and `install(prefer_atlas=True)` links to it
    `test_a_consumer_of_liquid_nitrogen_links_to_the_market` checks it for ASU-1's LIN. A site
    utility (steam, cooling water, wastewater treatment; kind `utility` in the registry) has no
    market yet: it links to the utility plant without that warning, and its check notes the
-   plant gate. The utility's carrier (pressure, temperature) must cover the consumer's
+   plant gate. Demineralised water is different: it is a grade of the substance `water`
+   (`water/demineralised`, kind `substance`), made on the site that uses it, and has a market
+   (`markets/water.yaml`) that the `water` inputs of the library link by default. The utility's carrier (pressure, temperature) must cover the consumer's
    (`carrier_refusal`): outside its operating range a default link is refused (a warning, and a
    `refused` entry in `atlas_links`) and a `link.dataset` is an error.
 
@@ -152,6 +154,9 @@ comparisons (for example cryogenic versus PSA oxygen) without changing the regio
 
 ## The first markets
 
+The oxygen, nitrogen and argon markets came first (#49); the demineralised water market followed
+with its plant (#470).
+
 | market | supplier | distribution | losses | status |
 |---|---|---|---|---|
 | `market:oxygen/lox:RER` | ASU-1 LOX (3948 t/a, calculated from the dataset) | cryogenic road tanker, 100 km, ASSUMED | boil-off 0.5 %, transfer 1 %, ASSUMED (O2, not exported) | exported |
@@ -159,6 +164,7 @@ comparisons (for example cryogenic versus PSA oxygen) without changing the regio
 | `market:oxygen/gox-30barg-99.5:RER` | ASU-1 GOX (175224 t/a, calculated) | pipeline, 5 km, ASSUMED (no recompression) | leakage 0, ASSUMED | exported |
 | `market:nitrogen/gan-8barg-10ppm:RER` | ASU-1 GAN (105084 t/a, calculated) | pipeline, 5 km, ASSUMED | leakage 0, ASSUMED | exported |
 | `market:argon/lar:RER`, `market:argon/gar:RER` | none: ASU-1 has no argon column | | | planned |
+| `market:water/demineralised:GLO` | demineralised-water-1 (400000 t/a, calculated) | on-site pipeline header, 1 km, ASSUMED (no recompression) | none counted | exported |
 
 What is behind the numbers:
 
@@ -181,7 +187,10 @@ What is behind the numbers:
 - **Representativeness:** ASU-1 is the only Atlas producer. Each market stands for the Atlas's
   own cryogenic technology, not for the region's actual production, and the build's caveats say so.
 
-A utility market (steam, cooling water) follows when the utility processes exist (#45).
+A utility market (steam, cooling water) follows when the utility processes exist (#45). The
+first site utility with a market is demineralised water (a substance grade, see above): an
+on-site header, consumption equal to production, its consumers 96 `water` inputs of 55
+processes in the Atlas build of #470 (processes/demineralised-water-1 DESIGN.md D-008).
 
 ## References
 
