@@ -1,0 +1,761 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# 4-Aminophenol by the hydrogenation of nitrobenzene in dilute sulfuric acid over Pt/C with the
+# Bamberger rearrangement in situ (DESIGN.md D-001), a batch plant on the route of
+# US 3 383 416 A (SRC-1) and US 4 307 249 A (SRC-2):
+# - R-101 is charged hot with water, 98 % sulfuric acid (its heat of dilution warms the charge),
+#   the recycled distillates and fresh nitrobenzene on the nitrobenzene heel that holds the
+#   Pt/C catalyst (M101); hydrogen is dosed at 358 K and near atmospheric pressure (R101, a
+#   semi-batch) until 0.88 of the nitrobenzene is reduced (SRC-1: stopped short so that the
+#   unreacted nitrobenzene keeps the catalyst);
+# - the hydrogen is purged with nitrogen to the vent, the mass cooled to 333 K and settled: the
+#   nitrobenzene layer with the catalyst stays in R-101 for the next batch (V101, the tear S20),
+#   the acid aqueous layer goes to the work-up still R-102;
+# - R-102 strips water with the dissolved nitrobenzene (ST101, the distillate back to the next
+#   charge, tear S21; SRC-1) and the liquor is neutralised with ammonia (N101); in R-103 the
+#   aniline is distilled off with water while process water is fed at constant level, so that
+#   the liquor keeps its water (ST102, S29); the distillate settles in V-102 into crude aniline
+#   (a co-product) and a water layer saturated with aniline, back to the next charge (tear S22);
+# - after a carbon treatment (lca/lca.yaml, per batch) the liquor is filtered hot and cooled to
+#   283 K in K-101 to crystallise 4-aminophenol (CR101), washed with cold water on the centrifuge
+#   C-101 (W101) and dried under vacuum (D101); the liquors leave the plant (M103, D-008).
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-009, ASSUMED or from
+#   SRC-1 and SRC-2;
+# - R101: cheme's semi-batch model (the ASSUMED rate laws of HYDP and HYDA, D-005), hydrogen
+#   dosed and taken up, to 0.88 conversion of the nitrobenzene; V101, V102: component
+#   separators with specified recoveries (D-006, D-008); ST101, ST102: cheme's batch still on
+#   constant relative volatilities (D-007); N101: a conversion step (NEU); CR101, W101: core's
+#   crystallizer with the liquor's other solutes as spectators and the solubility of
+#   4-aminophenol in water (SRC-4, D-008); D101: core's dryer; M101, M103: mixers (all by
+#   `cheme process propagate --fill`, the recycles converged at the tears S20, S21 and S22,
+#   core ADR 0060; the specs CAP, WAT, CONV and ANL with them);
+# - the duties of R101 (Q2), ST101 (Q3, Q3C), N101 (Q4), ST102 (Q5, Q6) and CR101 (Q7) are
+#   written by `cheme process propagate --fill` from the models (core ADRs 0059, 0063), D101's
+#   (Q9) by `cheme process crystallizers`; the heats those models leave out (the charge's
+#   heating with the acid's heat of dilution, the sensible heats of the stills' charges and
+#   distillates, the cool-down before the settling, the vessels' metal, the dryer's condenser:
+#   Q1, Q10 to Q17) and R-101's agitator (P1) come from scripts/balance.py (D-009).
+schema: cheme/process/v1
+kind: flowsheet
+title: 4-Aminophenol by batch hydrogenation of nitrobenzene in dilute sulfuric acid (Bamberger route)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: dried 4-aminophenol, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# Three recycles (core ADR 0060): the nitrobenzene heel with the catalyst (S20), the strip's
+# distillate with the dissolved nitrobenzene (S21) and the aniline-saturated water from V-102
+# (S22), each back into the next charge (D-006, D-007). Their tolerance is far tighter than the
+# balances'.
+tears:
+  - stream: S20
+    initial: {flow: 17.0, unit: kg/h, basis: mass_fraction, composition: {NB: 1.0}}
+  - stream: S21
+    initial: {flow: 234.0, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.97, NB: 0.03}}
+  - stream: S22
+    initial: {flow: 450.0, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.965, AN: 0.035}}
+convergence: {method: wegstein, max_iterations: 500, tolerance: {abs: 1.0e-6, rel: 1.0e-8}}
+# Design specifications (core ADR 0070), solved with the tears: the fresh nitrobenzene that
+# makes the capacity, with the other charge feeds in fixed ratios to it (D-002, D-004), and the
+# hydrogen that reduces 0.88 of the nitrobenzene charged (SRC-1; D-005).
+specs:
+  - id: CAP
+    vary: {stream: S2, initial: 178.0, low: 50.0, high: 500.0, with: {S3: 0.85843, S10: 0.29208, S23: 0.73}}
+    target: {stream: S26, quantity: annual, value: 1000, unit: t, hours: 7920}
+    provenance: assumed
+    source: "D-002: 1000 t/a of dried 4-aminophenol in 7920 h; the ratios: process water, 98 % acid, ammonia (2 mol per mol of the acid) and the cake wash per kg of fresh nitrobenzene (D-004, D-008)"
+  - id: WAT
+    vary: {stream: S1, initial: 600.0, low: 0.0, high: 3000.0}
+    target: {stream: S4, component: H2O, quantity: ratio, per: {stream: S4, component: NB}, basis: mass, value: 6.27}
+    provenance: given
+    source: "SRC-1 Example 1(A): 1700 g of water on 271 g of nitrobenzene in the charge, 6.27 kg per kg (D-004); the make-up S1 is what the recycled distillates S21 and S22 leave to it"
+  - id: CONV
+    vary: {stream: S5, initial: 6.3, low: 1.0, high: 20.0}
+    target: {stream: S6, component: NB, quantity: ratio, per: {stream: S4, component: NB}, basis: mass, value: 0.12}
+    provenance: given
+    source: "SRC-1 Example 1(A): 88 % of the nitrobenzene reduced, 33 g (12 %) left as the layer that holds the catalyst (D-005)"
+  - id: ANL
+    vary: {stream: S29, initial: 540.0, low: 50.0, high: 3000.0}
+    target: {stream: S13, component: AN, quantity: fraction, basis: mole, value: 0.0005}
+    provenance: assumed
+    source: "D-007: the water fed to R-103 at constant level until 0.0005 mole fraction of aniline is left in the liquor (SRC-1 does not say how far it distils the aniline)"
+
+feeds:
+  - {id: PW, title: Process water (charge make-up and the water fed to R-103), category: raw_material, ports: [{id: out, direction: out}, {id: r103, direction: out}]}
+  - {id: NBF, title: Nitrobenzene (merchant; no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACIDF, title: Sulfuric acid 98 % (sulfuric-acid-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2F, title: Hydrogen (hydrogen-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NH3F, title: Ammonia (ammonia-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: WASHW, title: Cold process water (cake wash), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: r102, direction: out, kind: energy}
+      - {id: r103, direction: out, kind: energy}
+      - {id: k101, direction: out, kind: energy}
+      - {id: c101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (jackets, still heating, dryer)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: m101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+      - {id: st101h, direction: out, kind: energy}
+      - {id: st102, direction: out, kind: energy}
+      - {id: st102h, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+products:
+  - {id: PAPP, title: 4-Aminophenol crystals to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: ANP, title: "Crude wet aniline (co-product, to aniline purification)", category: product, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Excess hydrogen purged with nitrogen to the vent stack, category: emission, ports: [{id: in, direction: in}]}
+  - {id: WW, title: "Ammonium sulfate liquor (mother liquor, wash filtrate, condensate) to ammonium sulfate recovery", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: v101, direction: in, kind: energy}
+      - {id: st101, direction: in, kind: energy}
+      - {id: st101s, direction: in, kind: energy}
+      - {id: n101, direction: in, kind: energy}
+      - {id: n101m, direction: in, kind: energy}
+      - {id: st102, direction: in, kind: energy}
+      - {id: st102s, direction: in, kind: energy}
+      - {id: d101, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 278.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 283.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: cr101, direction: in, kind: energy}
+      - {id: k101m, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Hydrogenation and phase split
+    class: ReactingChemicals
+    ports:
+      - {id: pw, direction: in}
+      - {id: nb, direction: in}
+      - {id: acid, direction: in}
+      - {id: h2, direction: in}
+      - {id: rdist, direction: in}
+      - {id: ranw, direction: in}
+      - {id: aq, direction: out}
+      - {id: vent, direction: out}
+      - {id: qh, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: qcool, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: WORKUP
+    title: Strip, neutralisation and aniline distillation
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: in, direction: in}
+      - {id: nh3, direction: in}
+      - {id: water, direction: in}
+      - {id: rdist, direction: out}
+      - {id: ranw, direction: out}
+      - {id: aniline, direction: out}
+      - {id: out, direction: out}
+      - {id: qh1, direction: in, kind: energy}
+      - {id: qs1, direction: in, kind: energy}
+      - {id: qc1, direction: out, kind: energy}
+      - {id: qsub1, direction: out, kind: energy}
+      - {id: qn, direction: out, kind: energy}
+      - {id: qnm, direction: out, kind: energy}
+      - {id: qh2, direction: in, kind: energy}
+      - {id: qs2, direction: in, kind: energy}
+      - {id: qc2, direction: out, kind: energy}
+      - {id: qsub2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+  - id: ISOL
+    title: Crystallisation, centrifuging, washing and drying
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: product, direction: out}
+      - {id: ww, direction: out}
+      - {id: qcr, direction: out, kind: energy}
+      - {id: qcm, direction: out, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: qcd, direction: out, kind: energy}
+      - {id: power_k, direction: in, kind: energy}
+      - {id: power_c, direction: in, kind: energy}
+      - {id: power_d, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: REACT
+    title: Charge (water, acid, recycled distillates and nitrobenzene on the heel, 358 K)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: T-101}]
+    ports:
+      - {id: pw, direction: in, delegates: pw}
+      - {id: nb, direction: in, delegates: nb}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: heel, direction: in}
+      - {id: rdist, direction: in, delegates: rdist}
+      - {id: ranw, direction: in, delegates: ranw}
+      - {id: out, direction: out}
+      - {id: qh, direction: in, kind: energy, delegates: qh}
+  - id: R101
+    block: REACT
+    title: Hydrogenation (hydrogen dosed into the charge at 358 K)
+    class: ReactingChemicals
+    reactions: [HYDP, HYDA]
+    reactor: semibatch
+    energy_port: q
+    batch:
+      dosing: [{stream: S5, time: 19800, absorbed: 1.0}]
+      heat: isothermal
+      provenance: assumed
+      source: "hydrogen dosed at a constant rate over 5.5 h into the charge at 358.15 K and taken up (SRC-1 Example 1(A): 88 % reduced in about 5.5 h; SRC-2 Example 1: 85 C), the batch ending with the dose: the hydrogen dosed is what reduces 0.88 of the nitrobenzene charged (spec CONV; SRC-1: the run is stopped with at least 5 % of the nitrobenzene left so that its layer keeps the catalyst); the plant's hydrogen is fed on demand at constant pressure, modelled as a constant dose (D-004, D-005)"
+    hazard:
+      mtt: 373.12
+      provenance: assumed
+      source: "MTT: the normal boiling point of water, the lowest of the mass at about atmospheric pressure (R-101 runs at 103.8 kPa(a), SRC-2's 10 in. water gauge; the acid raises the bubble point a little, not counted); R-101 is vented to the stack, so the mass boils there; the vent's capacity is a basic-engineering item (D-011)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: h2, direction: in, delegates: h2}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: V101
+    block: REACT
+    title: Phase split under nitrogen (heel with the catalyst kept in R-101, hydrogen purged)
+    class: SeparatingByGravity
+    recovery:
+      outlets:
+        heel: {NB: 0.6}
+        vent: {H2: 1.0}
+      provenance: assumed
+      source: "D-006: the aqueous layer takes the 4-aminophenol, the aniline (as its salt) and the acid, and 0.4 of the nitrobenzene that reaches the split, 0.75 wt% of its water at the converged recycle (solubility 0.19 wt% at 20 C and 0.8 wt% at 80 C, SRC-5, about 0.6 at the split's 333 K by interpolation: the rest taken as droplets carried over with the layer, ASSUMED; D-006); the rest, 0.6, is the heel with the catalyst; the dissolved hydrogen is purged with nitrogen to the vent"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: heel, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: aq, direction: out, delegates: aq}
+      - {id: q, direction: out, kind: energy, delegates: qcool}
+  - id: ST101
+    block: WORKUP
+    title: Strip of water and dissolved nitrobenzene from the acid liquor (R-102)
+    class: Distilling
+    still:
+      volatility:
+        model: constant
+        alpha: {H2O: 1.0, NB: 23.5}
+        provenance: assumed
+        source: "D-007: nitrobenzene dilute in water, alpha = gamma_inf x Psat(NB) / Psat(water) at 373.15 K, gamma_inf taken as 1/x at saturation (0.8 wt% at 80 C, SRC-5: x 1.18e-3, gamma 847), Psat 2.814 and 101.42 kPa (thermo 0.6.1, VDI_PPDS and IAPWS); 847 x 2.814 / 101.42 = 23.5"
+      nonvolatile: [H2SO4, PAP, AN, H2]
+      boilup: {value: 390, unit: kW, provenance: assumed, source: "R-102's jacket on LP steam: U 400 W/(m2 K) (glass-lined, ASSUMED) x 25 m2 wetted x (412 - 373) K = 390 kW (D-007, D-009)"}
+      end: {distilled: 0.15, basis: mass}
+      outlets: {distillate: dist, residue: res}
+      condenser_port: qc
+      provenance: assumed
+      source: "SRC-1 Example 1(A): 300 cm3 of water distilled from the aqueous layer, about 0.15 of it, with the dissolved nitrobenzene, recycled to the next charge (Example 2); the aniline stays as its sulfate in the acid liquor (ASSUMED non-volatile)"
+    energy_port: qs
+    links: [{target: equipment, ref: R-102}, {target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: dist, direction: out, delegates: rdist}
+      - {id: res, direction: out}
+      - {id: qh, direction: in, kind: energy, delegates: qh1}
+      - {id: qs, direction: in, kind: energy, delegates: qs1}
+      - {id: qc, direction: out, kind: energy, delegates: qc1}
+      - {id: qsub, direction: out, kind: energy, delegates: qsub1}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: N101
+    block: WORKUP
+    title: Neutralisation with ammonia (R-102)
+    class: ReactingChemicals
+    reactions: [NEU]
+    reactor: conversion
+    energy_port: q
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: qn}
+      - {id: qm, direction: out, kind: energy, delegates: qnm}
+  - id: ST102
+    block: WORKUP
+    title: Aniline distillation with water at pH about 6 (R-103)
+    class: Distilling
+    still:
+      volatility:
+        model: constant
+        alpha: {H2O: 1.0, NB: 23.5, AN: 4.92}
+        provenance: assumed
+        source: "D-007: aniline dilute in water, alpha = gamma_inf x Psat(AN) / Psat(water) at 373.15 K, gamma_inf taken as 1/x at saturation (6.4 parts per 100 parts water at 90 C, SRC-5: x 0.01224, gamma 81.7), Psat 6.108 and 101.42 kPa (thermo 0.6.1, WAGNER_MCGARRY and IAPWS); 81.7 x 6.108 / 101.42 = 4.92; nitrobenzene as ST101"
+      nonvolatile: [H2SO4, PAP, AS, NH3]
+      boilup: {value: 600, unit: kW, provenance: assumed, source: "R-103's jacket on LP steam as R-102's, 390 kW, and an internal coil of about 13.5 m2 at U 400 W/(m2 K) and (412 - 373) K, 210 kW (ASSUMED): with the water fed at constant level the still boils off about half again as much as the liquor's water, which the jacket alone would not do within the cycle (D-003, D-007, D-009)"}
+      feed: {stream: S29, mode: constant_level}
+      outlets: {distillate: dist, residue: res}
+      condenser_port: qc
+      provenance: assumed
+      source: "SRC-1 Example 1(A): the liquor brought to pH 6.0 and the aniline distilled; how far is not stated: ASSUMED until 0.0005 mole fraction of aniline is left in the liquor (spec ANL, D-007); process water S29 fed as fast as the still boils (constant level), so that the liquor keeps its water and the 4-aminophenol stays dissolved at about SRC-1's concentration (D-008)"
+    energy_port: qs
+    links: [{target: equipment, ref: R-103}, {target: equipment, ref: E-104}, {target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: dist, direction: out}
+      - {id: res, direction: out, delegates: out}
+      - {id: qh, direction: in, kind: energy, delegates: qh2}
+      - {id: qs, direction: in, kind: energy, delegates: qs2}
+      - {id: qc, direction: out, kind: energy, delegates: qc2}
+      - {id: qsub, direction: out, kind: energy, delegates: qsub2}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  - id: V102
+    block: WORKUP
+    title: Aniline separator (crude aniline layer and aniline-saturated water)
+    class: SeparatingByGravity
+    recovery:
+      outlets:
+        aniline: {AN: 0.535, H2O: 0.0022, NB: 1.0}
+      provenance: assumed
+      source: "D-008: the distillate cooled to 298 K separates into an aniline layer, taken with about 5 wt% water (ASSUMED), and water saturated with aniline (3.5 parts per 100 parts water at 25 C, SRC-5); the recoveries are set so that the water layer leaves at about that saturation at the converged recycle (DESIGN.md D-008); the nitrobenzene traces go with the aniline"
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: aniline, direction: out, delegates: aniline}
+      - {id: water, direction: out, delegates: ranw}
+  - id: CR101
+    block: ISOL
+    title: Cooling crystallisation at 283 K, first crop (K-101, centrifuged on C-101)
+    class: Crystallizing
+    crystallizer:
+      solute: PAP
+      solvent: H2O
+      crystal: PAP_S
+      basis: solubility
+      temperature: 283.15
+      solubility:
+        unit: kg/kg_solvent
+        points: [[273.15, 0.003915], [297.15, 0.006543], [303.15, 0.008065]]
+        provenance: given
+        source: "4-aminophenol in water, 0.39 wt% at 0 C, 0.65 wt% at 24 C and 0.80 wt% at 30 C (The Merck Index via PubChem CID 403, SRC-4), converted to kg per kg water, w/(1-w); the liquor's ammonium sulfate taken as without effect (salting-out coefficients 0, ASSUMED, D-008)"
+        salting_out:
+          coefficients: {H2SO4: 0.0, NB: 0.0, AN: 0.0, NH3: 0.0, AS: 0.0}
+          provenance: assumed
+          source: "no open solubility of 4-aminophenol in ammonium sulfate liquor read; 0 (D-008)"
+      separation:
+        solid_recovery: 0.995
+        cake_liquid: {value: 0.12, basis: per_kg_solid}
+        provenance: assumed
+        source: "a vertical peeler centrifuge, 99.5 % of the crystals to the cake, 0.12 kg of liquor per kg of crystals (D-008)"
+      energy: {heat_capacity: 3.547, heat_of_crystallization: 0.0, provenance: assumed, source: "the feed S13's heat capacity, 3.547 kJ/(kg K), from the components' liquid heat capacities of process/materials.yaml with ideal mixing (scripts/balance.py prints it; ASSUMED constant from 371 to 283 K, D-009); the heat of crystallisation is counted in HYDP's heat of reaction (the product taken as formed solid, D-005), so 0 here"}
+      spectators: [H2SO4, NB, AN, NH3, AS]
+      outlets: {cake: cake, mother_liquor: ml}
+    energy_port: q
+    links: [{target: equipment, ref: K-101}, {target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out}
+      - {id: ml, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: qcr}
+      - {id: qm, direction: out, kind: energy, delegates: qcm}
+      - {id: power, direction: in, kind: energy, delegates: power_k}
+  - id: W101
+    block: ISOL
+    title: Cake wash with cold water on the centrifuge
+    class: Crystallizing
+    crystallizer:
+      solute: PAP
+      solvent: H2O
+      crystal: PAP_S
+      basis: solubility
+      temperature: 283.15
+      solubility:
+        unit: kg/kg_solvent
+        points: [[273.15, 0.003915], [297.15, 0.006543], [303.15, 0.008065]]
+        provenance: given
+        source: "as CR101 (SRC-4, D-008)"
+        salting_out:
+          coefficients: {H2SO4: 0.0, NB: 0.0, AN: 0.0, NH3: 0.0, AS: 0.0}
+          provenance: assumed
+          source: "as CR101 (D-008)"
+      separation:
+        solid_recovery: 0.995
+        cake_liquid: {value: 0.12, basis: per_kg_solid}
+        provenance: assumed
+        source: "as CR101 (D-008)"
+      spectators: [H2SO4, NB, AN, NH3, AS]
+      outlets: {cake: cake, mother_liquor: filtrate}
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: cake1, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power_c}
+  - id: D101
+    block: ISOL
+    title: Vacuum drying at 333 K under nitrogen
+    class: Drying
+    dryer:
+      volatiles: [H2O, NB, AN, NH3]
+      residual_moisture: {value: 0.002, basis: mass_fraction, provenance: assumed, source: "0.2 wt% volatiles in the dried product (D-008)"}
+      temperature: 333.15
+      energy:
+        heat_capacity: 1.6
+        inlet_temperature: 283.15
+        latent_heat: {H2O: 2357.7, NB: 413.5, AN: 532.4, NH3: 1166.0}
+        vessel_heat_capacity: 2000
+        efficiency: 0.7
+        port: steam
+        provenance: assumed
+        source: "wet cake about 1.6 kJ/(kg K) (4-aminophenol 1.20 with 0.2 kg of liquor per kg), 70 % efficiency (D-009); latent heats: water 2357.7 kJ/kg at 333.15 K, nitrobenzene 413.5 and aniline 532.4 at 373.15 K, ammonia 1166 at 298.15 K (thermo 0.6.1, Chemical(...).Hvap: water and ammonia HEOS_FIT, nitrobenzene and aniline VDI_PPDS, the VDI Heat Atlas's coefficients, not read here; SRC-7); the dryer's metal, about 4 t of steel at 0.5 kJ/(kg K), heated each batch, ASSUMED (D-009)"
+      drying_rate: {value: 4.0, provenance: assumed, source: "ASSUMED mean rate of a jacketed conical vacuum dryer (as paracetamol-1, D-009)"}
+      cake_density: {value: 750, provenance: assumed, source: "ASSUMED bulk density of the wet cake: 4-aminophenol crystals 1.29 g/cm3 (PubChem CID 403) with 0.2 kg of water per kg and about 45 % voids (D-009)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: D-101}, {target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: qc, direction: out, kind: energy, delegates: qcd}
+      - {id: power, direction: in, kind: energy, delegates: power_d}
+  - id: M103
+    block: ISOL
+    title: Liquor collection (T-102)
+    class: Mixing
+    links: [{target: equipment, ref: T-102}]
+    ports:
+      - {id: ml, direction: in}
+      - {id: wf, direction: in}
+      - {id: cond, direction: in}
+      - {id: out, direction: out, delegates: ww}
+
+streams:
+  - id: S1
+    title: Process water
+    from: PW.out
+    to: M101.pw
+    template: charge
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+        flow: {value: 475.812, provenance: calculated, source: 'cheme process propagate: spec WAT (S4 H2O per S4 NB (mass) 6.27)', fingerprint: a0c51a3fce9257c3}
+  - id: S2
+    title: Nitrobenzene
+    from: NBF.out
+    to: M101.nb
+    template: charge
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {NB: 1.0}, provenance: assumed, source: "thiophene-free nitrobenzene (SRC-1), impurities not modelled (D-004)"}
+        flow: {value: 178.704, provenance: calculated, source: 'cheme process propagate: spec CAP (S26 t/a 1000)', fingerprint: a0c51a3fce9257c3}
+  - id: S3
+    title: Sulfuric acid 98 %
+    from: ACIDF.out
+    to: M101.acid
+    template: charge
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.98, H2O: 0.02}, provenance: assumed, source: "98 wt% sulfuric acid (SRC-1; sulfuric-acid-1 makes 98.5 wt%)"}
+        flow: {value: 153.405, provenance: calculated, source: 'cheme process propagate: spec CAP (0.85843 x S2)', fingerprint: a0c51a3fce9257c3}
+  - id: S20
+    title: Nitrobenzene heel with the catalyst (kept in R-101)
+    from: V101.heel
+    to: M101.heel
+    template: charge
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "the split at 333 K (SRC-2: below 60 C, D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 14.6138, provenance: calculated, source: 'cheme process propagate: recycle V101 from S6 (tear, broyden)', fingerprint: fd3beb8f69107c74}
+        composition: {basis: mole_fraction, values: {H2O: 0.0, H2SO4: 0.0, NB: 1.0, H2: 0.0, PAP: 0.0, AN: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle V101 from S6 (tear, broyden)', fingerprint: fd3beb8f69107c74}
+  - id: S21
+    title: Strip distillate (water with dissolved nitrobenzene) to the next charge
+    from: ST101.dist
+    to: M101.rdist
+    template: charge
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "the condensate from E-102 held in T-101 until the next charge (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 245.084, provenance: calculated, source: 'cheme process propagate: recycle ST101 from S7 (tear, broyden)', fingerprint: fd3beb8f69107c74}
+        composition: {basis: mole_fraction, values: {H2O: 0.994036, H2SO4: 0.0, NB: 0.00596366, H2: 0.0, PAP: 0.0, AN: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle ST101 from S7 (tear, broyden)', fingerprint: fd3beb8f69107c74}
+  - id: S22
+    title: Aniline-saturated water to the next charge
+    from: V102.water
+    to: M101.ranw
+    template: charge
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "V-102 at 298 K (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 574.574, provenance: calculated, source: 'cheme process propagate: recycle V102 from S12 (tear, broyden)', fingerprint: fd3beb8f69107c74}
+        composition: {basis: mole_fraction, values: {H2O: 0.994397, H2SO4: 0.0, NB: 0.0, H2: 0.0, PAP: 0.0, AN: 0.00560342}, provenance: calculated, source: 'cheme process propagate: recycle V102 from S12 (tear, broyden)', fingerprint: fd3beb8f69107c74}
+  - id: S4
+    title: Charge (358 K)
+    from: M101.out
+    to: R101.charge
+    template: charge
+    state:
+      design:
+        temperature: {value: 358.15, provenance: assumed, source: "SRC-2 Example 1: the water at 70 C rises to 90 to 95 C as the acid is added; the charge held at the reaction's 85 C (D-005, D-009)"}
+        pressure: {value: 103.8, provenance: assumed, source: "about 10 in. water gauge of hydrogen (SRC-2), 101.3 + 2.5 kPa (D-005)"}
+        flow: {value: 1642.19, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S20 S21 S22', fingerprint: f4ec89705789a9d3}
+        composition: {basis: mole_fraction, values: {H2O: 0.954645, H2SO4: 0.0207156, NB: 0.0222798, H2: 0.0, PAP: 0.0, AN: 0.00236}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S20 S21 S22', fingerprint: b6658c447b37d2b3}
+  - id: S5
+    title: Hydrogen (dosed)
+    from: H2F.out
+    to: R101.h2
+    template: charge
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 103.8, provenance: assumed, source: "let down from the supply to R-101's pressure (D-005)"}
+        composition: {basis: mass_fraction, values: {H2: 1.0}, provenance: assumed, source: "hydrogen 99.9 mol% of hydrogen-1, taken as pure"}
+        flow: {value: 6.341, provenance: calculated, source: 'cheme process propagate: spec CONV (S6 NB per S4 NB (mass) 0.12)', fingerprint: a0c51a3fce9257c3}
+  - id: S6
+    title: Hydrogenated mass (two liquid layers with the catalyst)
+    from: R101.out
+    to: V101.in
+    template: charge
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.955508, H2SO4: 0.0202518, NB: 0.00261367, H2: 0.000152383, PAP: 0.0161005, AN: 0.00537397}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 61ca42a29a4f88f3}
+        flow: {value: 1648.53, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 2fdd39e994a7f104}
+        temperature: {value: 358.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 61ca42a29a4f88f3}
+        pressure: {value: 103.8, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 61ca42a29a4f88f3}
+  - id: S8
+    title: Excess hydrogen purged to the vent
+    from: V101.vent
+    to: VENT.in
+    template: charge
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.0232532, provenance: calculated, source: 'cheme process propagate: separator V101 from S6', fingerprint: 158cb987f1975e8d}
+        composition: {basis: mole_fraction, values: {H2O: 0.0, H2SO4: 0.0, NB: 0.0, H2: 1.0, PAP: 0.0, AN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S6', fingerprint: 158cb987f1975e8d}
+  - id: S7
+    title: Acid aqueous layer to R-102
+    from: V101.aq
+    to: ST101.in
+    template: charge
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "the split at 333 K (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1633.89, provenance: calculated, source: 'cheme process propagate: separator V101 from S6', fingerprint: 158cb987f1975e8d}
+        composition: {basis: mole_fraction, values: {H2O: 0.957155, H2SO4: 0.0202867, NB: 0.00104727, H2: 0.0, PAP: 0.0161282, AN: 0.00538323}, provenance: calculated, source: 'cheme process propagate: separator V101 from S6', fingerprint: 158cb987f1975e8d}
+  - id: S9
+    title: Stripped acid liquor
+    from: ST101.res
+    to: N101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 373.15, provenance: assumed, source: "the stripped liquor at its boiling point, about 373 K (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mole_fraction, values: {H2O: 0.949386, H2SO4: 0.0245598, NB: 1.17239e-05, PAP: 0.0195254, AN: 0.00651713}, provenance: calculated, source: 'cheme process propagate: still ST101 from S7', fingerprint: a56e08513c6065b6}
+        flow: {value: 1388.81, provenance: calculated, source: 'cheme process propagate: still ST101 from S7', fingerprint: a56e08513c6065b6}
+  - id: S10
+    title: Ammonia
+    from: NH3F.out
+    to: N101.nh3
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {NH3: 1.0}, provenance: assumed, source: "anhydrous ammonia of ammonia-1, introduced as a gas (D-004)"}
+        flow: {value: 52.1959, provenance: calculated, source: 'cheme process propagate: spec CAP (0.29208 x S2)', fingerprint: a0c51a3fce9257c3}
+  - id: S11
+    title: Neutralised liquor (pH about 6)
+    from: N101.out
+    to: ST102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 363.15, provenance: assumed, source: "D-007: the neutralisation held at about 363 K before the aniline distillation"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1441.01, provenance: calculated, source: 'cheme process propagate: reactor N101 from S9 S10', fingerprint: 270aab7fc8cdd8a6}
+        composition: {basis: mole_fraction, values: {H2O: 0.949339, H2SO4: 3.31785e-05, NB: 1.17233e-05, PAP: 0.0195244, PAP_S: 0.0, AN: 0.00651681, NH3: 4.90999e-05, AS: 0.0245254}, provenance: calculated, source: 'cheme process propagate: reactor N101 from S9 S10', fingerprint: b6177f9f6690bfe6}
+  - id: S29
+    title: Process water fed to R-103 during the aniline distillation (constant level)
+    from: PW.r103
+    to: ST102.water
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+        flow: {value: 566.32, provenance: calculated, source: 'cheme process propagate: spec ANL (S13 AN mole fraction 0.0005)', fingerprint: a0c51a3fce9257c3}
+  - id: S12
+    title: Aniline-water distillate
+    from: ST102.dist
+    to: V102.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.98803, H2SO4: 0.0, NB: 2.32775e-05, PAP: 0.0, AN: 0.0119469, NH3: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST102 from S11 S29', fingerprint: 38672328b9dc0724}
+        flow: {value: 594.607, provenance: calculated, source: 'cheme process propagate: still ST102 from S11 S29', fingerprint: 38672328b9dc0724}
+  - id: S14
+    title: Crude aniline layer
+    from: V102.aniline
+    to: ANP.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "V-102 at 298 K (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 20.0331, provenance: calculated, source: 'cheme process propagate: separator V102 from S12', fingerprint: f358baa435020788}
+        composition: {basis: mole_fraction, values: {H2O: 0.253089, H2SO4: 0.0, NB: 0.0027103, PAP: 0.0, PAP_S: 0.0, AN: 0.7442, NH3: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V102 from S12', fingerprint: f358baa435020788}
+  - id: S13
+    title: Aniline-free liquor (carbon-treated, polished) to K-101
+    from: ST102.res
+    to: CR101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 371.15, provenance: assumed, source: "SRC-1 Example 1(A): the carbon treatment at 98 to 100 C, the liquor filtered hot to K-101 (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mole_fraction, values: {H2O: 0.955368, H2SO4: 3.31785e-05, NB: 5.53404e-11, PAP: 0.0195244, AN: 0.000500004, NH3: 4.90999e-05, AS: 0.0245254}, provenance: calculated, source: 'cheme process propagate: still ST102 from S11 S29', fingerprint: 38672328b9dc0724}
+        flow: {value: 1412.72, provenance: calculated, source: 'cheme process propagate: still ST102 from S11 S29', fingerprint: 38672328b9dc0724}
+  - id: S15
+    title: First crop cake
+    from: CR101.cake
+    to: W101.cake1
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PAP: 0.00030944, H2O: 0.374146, PAP_S: 0.615712, H2SO4: 1.29935e-05, NB: 2.16727e-11, AN: 0.000195814, NH3: 1.92288e-05, AS: 0.00960476}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S13', fingerprint: a034c814280f9512}
+        flow: {value: 142.21, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S13', fingerprint: a034c814280f9512}
+  - id: S16
+    title: Mother liquor
+    from: CR101.ml
+    to: M103.ml
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PAP: 0.000805152, H2O: 0.973514, PAP_S: 9.65957e-05, H2SO4: 3.38087e-05, NB: 5.63915e-11, AN: 0.000509501, NH3: 5.00325e-05, AS: 0.0249912}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S13', fingerprint: a034c814280f9512}
+        flow: {value: 1270.51, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S13', fingerprint: a034c814280f9512}
+  - id: S23
+    title: Cold wash water
+    from: WASHW.out
+    to: W101.wash
+    template: liquor
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: "chilled process water (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+        flow: {value: 130.454, provenance: calculated, source: 'cheme process propagate: spec CAP (0.73 x S2)', fingerprint: a0c51a3fce9257c3}
+  - id: S24
+    title: Washed cake
+    from: W101.cake
+    to: D101.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PAP: 0.000343301, H2O: 0.415087, PAP_S: 0.5836, H2SO4: 1.28227e-06, NB: 2.13879e-12, AN: 1.93241e-05, NH3: 1.89761e-06, AS: 0.000947854}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S15 S23', fingerprint: 67c6aad50a4847b6}
+        flow: {value: 140.771, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S15 S23', fingerprint: 67c6aad50a4847b6}
+  - id: S25
+    title: Wash filtrate
+    from: W101.filtrate
+    to: M103.wf
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {PAP: 0.000823782, H2O: 0.996039, PAP_S: 0.000808606, H2SO4: 3.07694e-06, NB: 5.13223e-12, AN: 4.63699e-05, NH3: 4.5535e-06, AS: 0.00227446}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S15 S23', fingerprint: 67c6aad50a4847b6}
+        flow: {value: 131.893, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S15 S23', fingerprint: 67c6aad50a4847b6}
+  - id: S26
+    title: 4-Aminophenol, dried
+    from: D101.product
+    to: PAPP.in
+    template: liquor
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 126.262, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: b5e920e489615f05}
+        composition: {basis: mole_fraction, values: {H2O: 0.0119951, H2SO4: 2.16602e-06, NB: 6.18061e-14, PAP: 0.000579906, PAP_S: 0.985821, AN: 5.58422e-07, NH3: 5.48365e-08, AS: 0.00160112}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: b5e920e489615f05}
+  - id: S27
+    title: Dryer vapour (condensed in E-103)
+    from: D101.vapour
+    to: M103.cond
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.999949, NB: 5.15237e-12, AN: 4.6552e-05, NH3: 4.57136e-06}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: b5e920e489615f05}
+        flow: {value: 14.5087, provenance: calculated, source: 'cheme process propagate: dryer D101 from S24', fingerprint: b5e920e489615f05}
+  - id: S28
+    title: Ammonium sulfate liquor to recovery
+    from: M103.out
+    to: WW.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "the liquors mixed, about 293 K (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1416.91, provenance: calculated, source: 'cheme process propagate: mixer M103 from S16 S25 S27', fingerprint: ab6e32966f219512}
+        composition: {basis: mole_fraction, values: {H2O: 0.976178, H2SO4: 3.01997e-05, NB: 5.04324e-11, PAP: 0.000797633, PAP_S: 0.000169867, AN: 0.00045566, NH3: 4.47454e-05, AS: 0.0223234}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S16 S25 S27', fingerprint: 54f0ac0c5da765d1}
+  # energy
+  - {id: Q1, title: Charge heated (R-101's jacket on LP steam), kind: energy, from: LPS.m101, to: M101.qh, state: {design: {duty: {value: 73.887, provenance: assumed, source: "scripts/balance.py: the inlets S1, S2, S3, S22 from 298.15 K, the heel S20 from 333.15 K and the distillate S21 from 313.15 K to 358.15 K with the liquid heat capacities of process/materials.yaml, 93.29 kW, and R-101's metal back from 333.15 K, 8000 kJ/K x 25 K a batch, 5.80 kW, less the acid's heat of dilution, 59.2 kJ per mol of H2SO4 (derived from SRC-2 Example 1's 70 to 92.5 C rise, ASSUMED), 25.21 kW (D-009); the same dilution heat is taken off NEU's heat of reaction"}}}}
+  - {id: Q2, title: Heat of hydrogenation to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 200.368, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S4 S5', fingerprint: adc38d5c7220650e}}}}
+  - {id: Q3, title: "Strip heating (R-102's jacket, LP steam)", kind: energy, from: LPS.st101, to: ST101.qs, state: {design: {duty: {value: 148.675, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S7', fingerprint: 6d408f97381a95a6}}}}
+  - {id: Q3C, title: Strip condenser E-102 to cooling water, kind: energy, from: ST101.qc, to: CW.st101, state: {design: {duty: {value: 148.675, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S7', fingerprint: 62740b8f95ebefbd}}}}
+  - {id: Q4, title: Heat of neutralisation to cooling water, kind: energy, from: N101.q, to: CW.n101, state: {design: {duty: {value: 100.451, provenance: calculated, source: 'cheme process propagate: conversion duty N101 from S9 S10 S11', fingerprint: e86562de36eb5775}}}}
+  - {id: Q5, title: "Aniline distillation heating (R-103's jacket, LP steam)", kind: energy, from: LPS.st102, to: ST102.qs, state: {design: {duty: {value: 355.899, provenance: calculated, source: 'cheme process propagate: still duty ST102 from S11 S29', fingerprint: aa3ff5338d0979e6}}}}
+  - {id: Q6, title: Aniline distillation condenser E-104 to cooling water, kind: energy, from: ST102.qc, to: CW.st102, state: {design: {duty: {value: 355.899, provenance: calculated, source: 'cheme process propagate: still condenser duty ST102 from S11 S29', fingerprint: 9386b7382d41f017}}}}
+  - {id: Q7, title: First crop cooled to 283 K on chilled water, kind: energy, from: CR101.q, to: CHW.cr101, state: {design: {duty: {value: 122.489, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR101 from S13', fingerprint: 05c6389c9b345842}}}}
+  - {id: Q9, title: Dryer jacket (hot-water loop from LP steam), kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 22.1835, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the cake from 283 to 333 K, the water evaporated, D-101's metal heated each batch, 70 % efficiency (D-009)"}}}}
+  - {id: Q10, title: "R-101 cooled to 333 K for the settling, with its metal (jacket to cooling water)", kind: energy, from: V101.q, to: CW.v101, state: {design: {duty: {value: 46.891, provenance: assumed, source: "scripts/balance.py: the mass S6 from 358.15 to 333.15 K at the liquid heat capacities of materials.yaml and R-101's metal, 8000 kJ/K x 25 K a batch (D-006, D-009); cheme process recipe's cool-down gives the same, 46.89 kW year average"}}}}
+  - {id: Q11, title: "Strip charge heated to the boil, with R-102's metal (LP steam)", kind: energy, from: LPS.st101h, to: ST101.qh, state: {design: {duty: {value: 74.132, provenance: assumed, source: "scripts/balance.py: the aqueous layer S7 from 333.15 K to the boil, 373.12 K, at the liquid heat capacities of materials.yaml and R-102's metal, 7500 kJ/K x 40 K a batch; core's batch still counts only the vapour's latent heat in Q3 (D-007, D-009)"}}}}
+  - {id: Q12, title: Strip distillate subcooled to 313 K in E-102 (cooling water), kind: energy, from: ST101.qsub, to: CW.st101s, state: {design: {duty: {value: 16.732, provenance: assumed, source: "scripts/balance.py: the distillate S21 from 373.12 to 313.15 K, held in T-101 (D-009)"}}}}
+  - {id: Q13, title: "Aniline still: liquor heated to the boil, the water fed warmed, R-103's metal (LP steam)", kind: energy, from: LPS.st102h, to: ST102.qh, state: {design: {duty: {value: 65.737, provenance: assumed, source: "scripts/balance.py: the water fed S29 from 298.15 to 363.15 K in its preheater E-105, 42.97 kW, and in R-103 the liquor S11 and S29 from 363.15 K to the boil, 373.12 K, with R-103's metal, 7500 kJ/K x 10 K a batch, 22.77 kW; core's batch still counts only the vapour's latent heat in Q5 (D-007, D-009)"}}}}
+  - {id: Q14, title: Aniline distillate cooled to 298 K for V-102 (cooling water), kind: energy, from: ST102.qsub, to: CW.st102s, state: {design: {duty: {value: 50.545, provenance: assumed, source: "scripts/balance.py: the distillate S12 from 373.12 to 298.15 K for V-102 (D-008, D-009)"}}}}
+  - {id: Q15, title: Dryer vapour condensed in E-103 (cooling water), kind: energy, from: D101.qc, to: CW.d101, state: {design: {duty: {value: 9.839, provenance: assumed, source: "scripts/balance.py: the dryer's vapour S27 condensed at the latent heats of D101 and cooled from 333.15 to 313.15 K (D-009)"}}}}
+  - {id: Q16, title: "K-101's metal cooled to 283 K (chilled water)", kind: energy, from: CR101.qm, to: CHW.k101m, state: {design: {duty: {value: 13.015, provenance: assumed, source: "scripts/balance.py: K-101's metal, 5100 kJ/K (ASSUMED, about 10 t for 16 m3), from 371.15 to 283.15 K a batch (D-009)"}}}}
+  - {id: Q17, title: "R-102's metal cooled with the liquor during the neutralisation (cooling water)", kind: energy, from: N101.qm, to: CW.n101m, state: {design: {duty: {value: 2.168, provenance: assumed, source: "scripts/balance.py: R-102's metal, 7500 kJ/K, from 373.12 to 363.15 K a batch (D-009)"}}}}
+  - {id: P1, title: R-101 agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 40.338, provenance: assumed, source: "scripts/balance.py: the gas-inducing agitator at SRC-1's lower end, 15 HP per 1000 US gallons (2.95 kW/m3), on R-101's 15.24 m3 of batch, 45.0 kW, running through the charge, the dose, the purge and the cool-down, 8.58 h of the 9.578 h cycle; a year average (D-009)"}}}}
+  - {id: P2, title: R-102 agitator, kind: energy, from: POWER.r102, to: ST101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "ASSUMED (D-009): R-102's agitator, about 3 kW running through the batch"}}}}
+  - {id: P3, title: Centrifuge C-101, kind: energy, from: POWER.c101, to: W101.power, state: {design: {duty: {value: 8.0, provenance: assumed, source: "ASSUMED (D-009), as paracetamol-1's centrifuge"}}}}
+  - {id: P4, title: Dryer agitator and vacuum pump, kind: energy, from: POWER.d101, to: D101.power, state: {design: {duty: {value: 4.0, provenance: assumed, source: "ASSUMED (D-009)"}}}}
+  - {id: P5, title: R-103 agitator, kind: energy, from: POWER.r103, to: ST102.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "ASSUMED (D-009): R-103's agitator, about 3 kW running through the batch, as R-102's"}}}}
+  - {id: P6, title: K-101 agitator, kind: energy, from: POWER.k101, to: CR101.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "ASSUMED (D-009): K-101's agitator, about 2 kW running through the batch"}}}}

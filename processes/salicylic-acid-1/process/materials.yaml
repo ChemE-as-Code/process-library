@@ -1,0 +1,66 @@
+# Components and templates of salicylic-acid-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula: C 12.011, H 1.008, O 15.999,
+# Na 22.990, S 32.06), normal_boiling_point in K at 101.325 kPa.
+#
+# The liquors are carried as molecular pseudo-components (sodium hydroxide, sodium phenoxide,
+# sodium salicylate, sodium 4-hydroxybenzoate, sulfuric acid and sodium sulfate as dissolved
+# molecules), an inventory basis, not a speciation: core has no property package for these
+# liquors (DESIGN.md D-006). Sodium phenoxide melts at 657.15 K (CRC via chemicals 1.5.2), so the
+# dried phenoxide that R102 carboxylates at 463 K is a powder: the semi-batch carries it
+# pseudo-homogeneously, its volume and heat capacity as if it were a liquid (L-1). The
+# salicylic acid crystals are a separate solid component, SA_S (phase: solid).
+#
+# Property sources (DESIGN.md SRC-4, SRC-5):
+# - densities, melting and boiling points from the CRC Handbook tables packaged in the
+#   `chemicals` 1.5.2 package (CRC_organic_data, CRC_inorganic_data: phenol 454.95 K, NaOH
+#   2130 kg/m3, Na2SO4 2700 kg/m3, salicylic acid 1443.2 kg/m3, 4-hydroxybenzoic acid
+#   1462.5 kg/m3), heat capacities from its CRC_standard_data (water 75.3 and sulfuric acid 138.9
+#   (liquid), NaOH 59.5 and Na2SO4 128.2 (solid), kJ/(kmol K)): single facts with the package
+#   named, not open data (library ADR 0037); the printed handbook was not read;
+# - phenol's liquid density at 353.15 K (1023.8 kg/m3, thermo 0.6.1, method DIPPR_PERRY_8E:
+#   Perry's Chemical Engineers' Handbook, 8th ed., drawing on DIPPR 801, not read) and liquid
+#   heat capacity at 353.15 K (197.5 kJ/(kmol K), thermo 0.6.1 HeatCapacityLiquid,
+#   ROWLINSON_POLING, a corresponding-states estimate; its VDI_TABULAR default gave a value in the
+#   wrong unit and was not used); sulfuric acid's liquid density 1830 kg/m3 (thermo 0.6.1, method
+#   CRC_INORG_L_CONST: the CRC Handbook, not read); single values, facts only (SRC-5);
+# - carbon dioxide's ideal-gas data from chemicals 1.5.2: dHf_298 from its ATcT table (Active
+#   Thermochemical Tables), S_298 from its CRC table, cp_R the ideal-gas heat-capacity
+#   polynomial chemicals packages from Poling et al., The Properties of Gases and Liquids (5th
+#   ed., not read), as oxalyl-chloride-1 and other library entries give them (SRC-4);
+# - ASSUMED, no open value read: the densities of sodium phenoxide (1300 kg/m3), sodium
+#   salicylate and sodium 4-hydroxybenzoate (1450 kg/m3), the liquid heat capacities of sodium
+#   phenoxide (160), the two sodium hydroxybenzoates (190) and the two hydroxybenzoic acids (160
+#   kJ/(kmol K)); dissolved CO2's liquid molar volume (0.0373 m3/kmol, 1180 kg/m3 near its
+#   triple point, as oxalyl-chloride-1's placeholder) and heat capacity (its gas's 37.1 kJ/(kmol
+#   K), CRC via chemicals 1.5.2). The dissolved solids' volumes are their solids' (ideal mixing,
+#   no partial molar volumes).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01802, liquid_heat_capacity: 75.3}
+  - {id: PHOH, name: Phenol, formula: C6H6O, cas: 108-95-2, molar_mass: 94.113, normal_boiling_point: 454.95, liquid_molar_volume: 0.09192, liquid_heat_capacity: 197.5}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997, liquid_molar_volume: 0.01878, liquid_heat_capacity: 59.5}
+  - {id: NAOPH, name: Sodium phenoxide (dissolved; the dried powder in R102), formula: C6H5NaO, cas: 139-02-6, molar_mass: 116.095, liquid_molar_volume: 0.0893, liquid_heat_capacity: 160.0}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.009
+    liquid_molar_volume: 0.0373
+    liquid_heat_capacity: 37.1
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [3.259, 0.001356, 1.502e-05, -2.374e-08, 1.056e-11], temperature_range: [50, 1000], provenance: given, source: "chemicals 1.5.2: dHf_298 ATcT, S_298 CRC, cp_R Poling et al. (5th ed.)"}
+  - {id: NASAL, name: Sodium salicylate, formula: C7H5NaO3, cas: 54-21-7, molar_mass: 160.104, liquid_molar_volume: 0.1104, liquid_heat_capacity: 190.0}
+  - {id: NA4HB, name: Sodium 4-hydroxybenzoate (lumped non-salicylic by-products), formula: C7H5NaO3, cas: 114-63-6, molar_mass: 160.104, liquid_molar_volume: 0.1104, liquid_heat_capacity: 190.0}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.072, liquid_molar_volume: 0.05359, liquid_heat_capacity: 138.9}
+  - {id: NA2SO4, name: Sodium sulfate (dissolved), formula: Na2SO4, cas: 7757-82-6, molar_mass: 142.036, liquid_molar_volume: 0.05261, liquid_heat_capacity: 128.2}
+  - {id: SA, name: Salicylic acid (dissolved), formula: C7H6O3, cas: 69-72-7, molar_mass: 138.122, liquid_molar_volume: 0.09571, liquid_heat_capacity: 160.0}
+  - {id: SA_S, name: Salicylic acid (crystals), formula: C7H6O3, cas: 69-72-7, molar_mass: 138.122, phase: solid, liquid_molar_volume: 0.09571, liquid_heat_capacity: 160.0}
+  - {id: HBA, name: 4-Hydroxybenzoic acid (dissolved; lumped by-product acids), formula: C7H6O3, cas: 99-96-7, molar_mass: 138.122, liquid_molar_volume: 0.09444, liquid_heat_capacity: 160.0}
+templates:
+  - {id: phenoxide, title: "Phenol, caustic, phenoxide and the carboxylated mass", components: [H2O, PHOH, NAOH, NAOPH, CO2, NASAL, NA4HB]}
+  - {id: gas, title: Carbon dioxide, components: [CO2]}
+  - {id: liquor, title: "Acidified liquor, slurry and cake", components: [H2O, PHOH, NAOH, NAOPH, CO2, NASAL, NA4HB, H2SO4, NA2SO4, SA, SA_S, HBA]}
+property_method:
+  adapter: thermo
+  status: placeholder

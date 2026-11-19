@@ -59,6 +59,13 @@
 # Example 5, and it leaves out the losses of the separation (the dataset's whole-plant figure sits
 # inside it). The steam KPIs record no_open_reference (searched 2026-11-19, DESIGN.md source
 # register and D-012).
+#
+# salicylic-acid-1 (#507; a hydroxy acid, filed among the oxygenates): benchmarks must be
+# independent of the dataset (docs/benchmarks.md). The dataset takes its charge, CO2 dose and
+# conversion from US 4 376 867 A, Example I, and its water from the same patent's background (8 to
+# 10 t per t of sodium salicylate), so neither binds it; the suspension route of Mohammad et al.
+# (Molecules 2024) gives a laboratory molar yield for another variant (92.68 %), not a plant's
+# consumption. The stoichiometric floor of the phenol, 0.681 kg/kg, is a limit, not a range.
 schema: cheme-as-code/benchmarks/v1
 family: oxygenates
 
@@ -451,6 +458,14 @@ kpis:
           locator: Examples 1 and 2
           kind: other
           accessed: "2026-11-19"
+  salicylic-acid-specific-phenol:
+    title: Fresh phenol consumption per kg of salicylic acid
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's phenol use per kg of salicylic acid found (searched 2026-11-19: US 4 376 867 A read, the dataset's own source; Mohammad, Onwudili and Yuan, Molecules 29 (2024) 2527, laboratory yields only; Wikipedia, Salicylic acid). The stoichiometric floor is 0.681 kg/kg."
+  salicylic-acid-specific-wastewater:
+    title: Wastewater (mother liquor after phenol recovery, wash filtrate, condensates) per kg of salicylic acid
+    unit: kg/kg
+    no_open_reference: "No open source with the liquor volume of salicylic acid manufacture independent of the dataset found (searched 2026-11-19 as for salicylic-acid-specific-phenol); US 4 376 867 A's 8 to 10 t of water per t of sodium salicylate is the dataset's own source."
 
   vam-specific-ethylene:
     title: Ethylene consumption per kg of vinyl acetate (gas-phase acetoxylation)
@@ -755,3 +770,9 @@ datasets:
         per: product:PROD
         reference: us2731492-example1-sa
       asa-specific-acetic-anhydride: {expression: feed:AC2OF / product:PROD, per: product:PROD}
+  - process: salicylic-acid-1
+    dataset: salicylic-acid-by-batch-kolbe-schmitt-carboxylation-of-dry-sodium-phenoxide-1000-t-a
+    conditions: {technology: "one-stage Kolbe-Schmitt carboxylation of dry sodium phenoxide at 463 K in a kneader-reactor (semi-batch CO2 dosing), acidification with sulfuric acid at 328 K, two crops, centrifuge, vacuum drying, phenol recovered", basis: "concept balance, ratios from US 4 376 867 A Example I and ASSUMED (DESIGN.md D-004 to D-008)"}
+    kpis:
+      salicylic-acid-specific-phenol: {expression: feed:PHF / product:SA, per: product:SA}
+      salicylic-acid-specific-wastewater: {expression: product:WW / product:SA, per: product:SA}

@@ -1,0 +1,549 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Sodium chlorate by electrolysis of brine in undivided cells with dichromate, crystallisation
+# and drying, hydrogen a co-product; 6250 kg/h of crystal, 50 000 t/a (DESIGN.md D-001, D-002).
+# Where the values come from:
+# - cheme process propagate solves every stream: the cells and the reaction tanks are conversion
+#   reactors (process/reactions.yaml), the crystallizer, centrifuge and dryer are core's models,
+#   the gas separator a component separator, the rest mixers and splitters; the loop is torn at
+#   the cell feed S6, and two design specifications set the salt feed for the product rate and
+#   the process water for the liquor's chlorate content (D-005);
+# - the cells' power and heat are core's Faraday balance (process/cells.yaml, cheme process cell),
+#   the crystallizer's heat its lumped energy balance, the dryer's its model; the other duties
+#   are hand balances on the propagated streams (D-009), every one marked ASSUMED;
+# - small auxiliaries (HCl and NaOH for the pH, dichromate, soda ash, hydrogen peroxide,
+#   nitrogen) are not streams but LCA consumables at the BREF's rates (D-010, L-3).
+schema: cheme/process/v1
+kind: flowsheet
+title: Sodium chlorate by electrolysis of brine in undivided cells, crystallisation and drying (6250 kg/h)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: 6250 kg/h sodium chlorate crystal (50 000 t/a at 8000 h/a, D-002)"
+    default: true
+    capacity: 6250 kg/h NaClO3 crystal
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, of the order of a Western European site (SRC-1, Table 7.78: 687 kt/a on 15 sites in 2002)"
+tolerance: {abs: 0.5, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+tears:
+  - stream: S6
+    initial:
+      flow: 875000
+      basis: mass_fraction
+      composition: {NaCl: 0.0839, NaClO3: 0.4036, NaOCl: 0.0021, H2O: 0.5104}
+convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 0.001, rel: 1.0e-9}}
+specs:
+  - id: rate
+    vary: {stream: S1, initial: 3436}
+    target: {stream: S20, component: NaClO3_s, quantity: flow, value: 6250}
+    provenance: assumed
+    source: "D-002: 6250 kg/h of sodium chlorate crystal, 50 000 t/a in 8000 h"
+  - id: liquor
+    vary: {stream: S2, initial: 3200}
+    target: {stream: S6, component: NaClO3, quantity: fraction, basis: mass, value: 0.40357}
+    provenance: assumed
+    source: "D-005: 565 g/L NaClO3 (SRC-2, US 5 419 818 A: 550-580 g/L preferred) at an ASSUMED liquor density of 1.40 kg/L"
+
+feeds:
+  - {id: SALT, title: "Salt (vacuum or rock salt, as NaCl)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water (demineralised), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (AC, grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: rect, direction: out, kind: energy}
+      - {id: aux, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 450 kPa(a) (dryer air heater; condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports:
+      - {id: dr401, direction: out, kind: energy}
+products:
+  - {id: NACLO3P, title: Sodium chlorate crystal (dried) to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: H2P, title: Hydrogen (scrubbed) to users as fuel or feedstock, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: H2V, title: Hydrogen not used to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Mother-liquor bleed to effluent treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: DRYV, title: Dryer exhaust vapour (with the dryer air) to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: t201, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+      - {id: e301, direction: in, kind: energy}
+
+blocks:
+  - id: BRN
+    title: Salt dissolving (brine preparation)
+    class: Mixing
+    ports:
+      - {id: salt, direction: in}
+      - {id: water, direction: in}
+      - {id: ml, direction: in}
+      - {id: cond, direction: in}
+      - {id: out, direction: out}
+  - id: ELY
+    title: Electrolysis, reaction tanks and liquor cooling
+    class: ReactingChemicals
+    ports:
+      - {id: brine, direction: in}
+      - {id: gas, direction: out}
+      - {id: cry, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: aux, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: hr, direction: out, kind: energy}
+  - id: CRY
+    title: Crystallisation, centrifuging and drying
+    class: Crystallizing
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out}
+      - {id: vap, direction: out}
+      - {id: purge, direction: out}
+      - {id: ml, direction: out}
+      - {id: cond, direction: out}
+      - {id: hr, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: HYD
+    title: Hydrogen to users and vent
+    class: SplittingMaterial
+    ports:
+      - {id: in, direction: in}
+      - {id: users, direction: out}
+      - {id: vent, direction: out}
+
+steps:
+  # D-005: solid salt dissolved in the mother liquor, the crystallizer's condensate and make-up
+  # water (brine purification by precipitation is lumped into the consumables, L-3)
+  - id: D101
+    block: BRN
+    title: Salt dissolver
+    class: Mixing
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: salt, direction: in, delegates: salt}
+      - {id: water, direction: in, delegates: water}
+      - {id: ml, direction: in, delegates: ml}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: out, direction: out, delegates: out}
+  # D-005: the strong liquor joins the circulating electrolyte (75-200 m3/t, SRC-2); the cell
+  # heat kept in the circulating liquor (Q7) brings it from 321.2 K back to the loop's 343.15 K
+  # (D-009)
+  - id: M201
+    block: ELY
+    title: Cell feed (strong liquor into the circulating electrolyte)
+    class: Mixing
+    ports:
+      - {id: brine, direction: in, delegates: brine}
+      - {id: circ, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: P201
+    block: ELY
+    title: Electrolyte circulation pumps (with the plant's auxiliary power, lumped)
+    class: Pumping
+    links: [{target: equipment, ref: P-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: aux}
+  # D-006: rectifiers and the cells (process/cells.yaml)
+  - id: T201
+    block: ELY
+    title: Transformer-rectifiers
+    class: ProcessStep
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: ac, direction: in, kind: energy, delegates: power}
+      - {id: dc, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy, delegates: cw1}
+  - id: EL201
+    block: ELY
+    title: Undivided chlorate cells (400 in series)
+    class: ReactingChemicals
+    reactions: [HYPO]
+    reactor: conversion
+    links: [{target: equipment, ref: EL-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: dc, direction: in, kind: energy}
+      - {id: heat, direction: out, kind: energy}
+  # D-007: the reaction tanks, sized from the disproportionation kinetics of SRC-3
+  - id: R201
+    block: ELY
+    title: Reaction tanks (active chlorine to chlorate)
+    class: ReactingChemicals
+    reactions: [CHEM, OXY]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: V201
+    block: ELY
+    title: Cell gas separation (hydrogen and oxygen off the liquor)
+    class: SeparatingByPhaseSeparation
+    recovery:
+      outlets: {gas: {H2: 1.0, O2: 1.0, NaCl: 0.0, NaClO3: 0.0, NaOCl: 0.0, H2O: 0.0}}
+      provenance: assumed
+      source: "D-008: the gases leave the liquor completely; the water vapour, chlorine traces and the scrubber are left out (L-4)"
+    links: [{target: equipment, ref: V-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: liq, direction: out}
+  - id: E201
+    block: ELY
+    title: Electrolyte coolers (heat recovery to the crystallizer, rest to cooling water)
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: hr, direction: out, kind: energy, delegates: hr}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+      - {id: loop, direction: out, kind: energy}
+  - id: SP201
+    block: ELY
+    title: Liquor to the crystallizer (side stream) and back to the cells
+    class: SplittingMaterial
+    # D-005, ASSUMED: the side stream from which 15 % of the chlorate crystallises (D-008) gives
+    # the plant's chlorate at the loop's 565 g/L
+    split: {cry: 0.117994}
+    ports:
+      - {id: in, direction: in}
+      - {id: cry, direction: out, delegates: cry}
+      - {id: circ, direction: out}
+  # D-008: vacuum evaporative crystallizer with centrifuge, heated by the cells' heat
+  - id: X301
+    block: CRY
+    title: Vacuum crystallizer and centrifuge
+    class: Crystallizing
+    links: [{target: equipment, ref: X-301}]
+    energy_port: heat
+    crystallizer:
+      solute: NaClO3
+      solvent: H2O
+      crystal: NaClO3_s
+      basis: yield
+      temperature: 323.15
+      yield: {value: 0.15, provenance: assumed, source: "D-008: equal to the share of the water evaporated, i.e. the mother liquor leaves with the feed's chlorate-to-water ratio (a liquor saturated in chlorate at the crystallizer, SRC-2); no open solubility data of NaClO3 in the NaCl liquor were read (L-5)"}
+      evaporation: {solvent_fraction: 0.15, provenance: assumed, source: "D-008: 15 % of the side stream's water evaporated under vacuum (SRC-1, 7.13.2.4: concentration using heat and vacuum)"}
+      spectators: [NaCl, NaOCl]
+      separation:
+        solid_recovery: 1.0
+        cake_liquid: {value: 0.03, basis: per_kg_solid}
+        provenance: assumed
+        source: "D-008: centrifuge, 3 kg of mother liquor per 100 kg of crystal, ASSUMED; no wash modelled (L-5)"
+      energy:
+        heat_capacity: 2.9
+        heat_of_crystallization: 0.0
+        latent_heat: 2382
+        feed_temperature: 343.15
+        provenance: assumed
+        source: "D-009: liquor heat capacity 2.9 kJ/(kg K) ASSUMED (no open value read); heat of crystallization left out, no open heat of solution of NaClO3 read (L-2); latent heat of water at 323.15 K, 2382 kJ/kg, thermo 0.6.1 (HEOS_FIT, SRC-5)"
+      outlets: {cake: cake, mother_liquor: ml, vapour: vap}
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out}
+      - {id: ml, direction: out}
+      - {id: vap, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: hr}
+  - id: E301
+    block: CRY
+    title: Crystallizer vapour condenser (condensate to the salt dissolver)
+    class: Cooling
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: cond}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: SP301
+    block: CRY
+    title: Mother-liquor bleed
+    class: SplittingMaterial
+    # D-008, ASSUMED: a bleed against impurities that sends about 0.17 kg NaClO3 per t to water,
+    # inside the 10-300 g/t chlorate of SRC-1 (Table 7.79)
+    split: {purge: 3.0e-05}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: ret, direction: out, delegates: ml}
+  - id: DR401
+    block: CRY
+    title: Fluidised-bed dryer (steam-heated air)
+    class: Drying
+    links: [{target: equipment, ref: DR-401}]
+    dryer:
+      volatiles: [H2O]
+      residual_moisture: {value: 0.001, basis: mass_fraction, provenance: assumed, source: "D-008: 0.1 wt% water in the dried crystal, ASSUMED"}
+      temperature: 353.15
+      energy:
+        heat_capacity: 1.0
+        latent_heat: {H2O: 2308}
+        efficiency: 0.5
+        inlet_temperature: 323.15
+        port: heat
+        provenance: assumed
+        source: "D-009: wet cake 1.0 kJ/(kg K) ASSUMED, latent heat of water at 353.15 K 2308 kJ/kg (thermo 0.6.1 HEOS_FIT, SRC-5), half of the air heater's heat to the cake (the rest leaves with the exhaust air), ASSUMED; SRC-1 7.13.2.5: fluidised bed with air at about 150 C"
+      outlets: {product: prod, vapour: vap}
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out, delegates: prod}
+      - {id: vap, direction: out, delegates: vap}
+      - {id: heat, direction: in, kind: energy, delegates: steam}
+  # D-008: hydrogen use, 69 % of it (SRC-1: 53-85 %)
+  - id: SP501
+    block: HYD
+    title: Hydrogen to users and vent
+    class: SplittingMaterial
+    # D-008, ASSUMED: 69 % of the hydrogen used, the middle of the 53-85 % utilisation of SRC-1
+    # (Table 7.79)
+    split: {users: 0.69}
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: users, direction: out, delegates: users}
+      - {id: vent, direction: out, delegates: vent}
+
+streams:
+  - id: S1
+    title: Salt
+    from: SALT.out
+    to: D101.salt
+    template: salt
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from the salt store (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {NaCl: 1.0}, provenance: assumed, source: "D-005: pure NaCl; the salt's impurities and their removal are left out (L-3)"}
+        flow: {value: 3492.46, provenance: calculated, source: 'cheme process propagate: spec rate (S20 NaClO3_s flow kg/h 6250)', fingerprint: bbf8395a15bfc7e7}
+  - id: S2
+    title: Process water
+    from: PW.out
+    to: D101.water
+    template: water
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 300, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "demineralised water (SRC-1, Table 7.79)"}
+        flow: {value: 3459.36, provenance: calculated, source: 'cheme process propagate: spec liquor (S6 NaClO3 mass fraction 0.40357)', fingerprint: bbf8395a15bfc7e7}
+  - id: S3
+    title: Mother liquor to the dissolver
+    from: SP301.ret
+    to: D101.ml
+    template: liquor
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-008: the crystallizer's 323.15 K, ASSUMED"}
+        composition: {basis: mole_fraction, values: {NaClO3: 0.115175, H2O: 0.834256, NaClO3_s: 0.0, NaCl: 0.0495276, NaOCl: 0.00104137}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S16', fingerprint: 8342a0c20e56a989}
+        flow: {value: 87232.6, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S16 S18', fingerprint: a7e473f4afe01e92}
+  - id: S4
+    title: Condensate to the dissolver
+    from: E301.out
+    to: D101.cond
+    template: water
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-009: condensed at the crystallizer's 323.15 K, not subcooled, ASSUMED"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S17', fingerprint: 4c3907ddb5bf719b}
+        flow: {value: 7662.37, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S17', fingerprint: 4c3907ddb5bf719b}
+  - id: S5
+    title: Strong liquor
+    from: D101.out
+    to: M201.brine
+    template: liquor
+    state:
+      design:
+        temperature: {value: 321.18, provenance: assumed, source: "D-009: hand balance of the dissolver, S3 and S4 at 323.15 K, S1 and S2 at 298.15 K, liquor 2.9 and water 4.18 kJ/(kg K) ASSUMED, salt 0.872 kJ/(kg K) (SRC-5), heat of solution left out (L-2)"}
+        composition: {basis: mole_fraction, values: {NaCl: 0.0568945, H2O: 0.848994, NaClO3: 0.0932678, NaOCl: 0.000843293, NaClO3_s: 0.0, H2: 0.0, O2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer D101 from S1 S2 S3 S4', fingerprint: 66d35d84b0c3af43}
+        flow: {value: 101847.0, provenance: calculated, source: 'cheme process propagate: mixer D101 from S1 S2 S3 S4', fingerprint: 87b47f2868906ec0}
+  - id: S6
+    title: Cell feed
+    from: M201.out
+    to: P201.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 343.15, provenance: assumed, source: "D-005: 70 C (SRC-1, 7.13.2.3: 60-80 C)"}
+        pressure: {value: 250, provenance: assumed, source: "design basis"}
+        flow: {value: 859326.0, provenance: calculated, source: 'cheme process propagate: recycle M201 from S14 S5 (tear, broyden)', fingerprint: 11d206b38dc8607f}
+        composition: {basis: mole_fraction, values: {NaCl: 0.0442109, NaClO3: 0.113236, NaOCl: 0.000885917, H2O: 0.841667, NaClO3_s: 0.0, H2: 0.0, O2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle M201 from S14 S5 (tear, broyden)', fingerprint: 11d206b38dc8607f}
+  - id: S7
+    title: Electrolyte to the cells
+    from: P201.out
+    to: EL201.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0442109, NaClO3: 0.113236, NaOCl: 0.000885917, H2O: 0.841667, NaClO3_s: 0.0, H2: 0.0, O2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S6', fingerprint: cd2675b8788df2a3}
+        flow: {value: 859326.0, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S6', fingerprint: cd2675b8788df2a3}
+  - id: S8
+    title: Cell liquor with cell gas
+    from: EL201.out
+    to: R201.in
+    template: loop
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0377194, NaClO3: 0.113236, NaOCl: 0.0073774, H2O: 0.835176, NaClO3_s: 0.0, H2: 0.00649149, O2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor EL201 from S7', fingerprint: c1279c9532454854}
+        flow: {value: 859326.0, provenance: calculated, source: 'cheme process propagate: reactor EL201 from S7', fingerprint: 7b951d68fe24c1b9}
+  - id: S9
+    title: Reaction tank outlet
+    from: R201.out
+    to: V201.in
+    template: loop
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0421386, NaClO3: 0.115285, NaOCl: 0.000886013, H2O: 0.835053, H2: 0.00649054, O2: 0.000146767, NaClO3_s: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S8', fingerprint: 5264a26c50f792e0}
+        flow: {value: 859326.0, provenance: calculated, source: 'cheme process propagate: reactor R201 from S8', fingerprint: b82456a9f0d2fe56}
+  - id: S10
+    title: Cell gas
+    from: V201.gas
+    to: SP501.in
+    template: cellgas
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0, NaClO3: 0.0, NaOCl: 0.0, H2O: 0.0, H2: 0.977888, O2: 0.0221124, NaClO3_s: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V201 from S9', fingerprint: 74b94476a6bceac0}
+        flow: {value: 511.709, provenance: calculated, source: 'cheme process propagate: separator V201 from S9', fingerprint: 74b94476a6bceac0}
+  - id: S11
+    title: Degassed liquor
+    from: V201.liq
+    to: E201.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0424202, NaClO3: 0.116055, NaOCl: 0.000891933, H2O: 0.840633, H2: 0.0, O2: 0.0, NaClO3_s: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V201 from S9', fingerprint: 74b94476a6bceac0}
+        flow: {value: 858814.0, provenance: calculated, source: 'cheme process propagate: separator V201 from S9', fingerprint: 74b94476a6bceac0}
+  - id: S12
+    title: Cooled liquor
+    from: E201.out
+    to: SP201.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0424202, NaClO3: 0.116055, NaOCl: 0.000891933, H2O: 0.840633, H2: 0.0, O2: 0.0, NaClO3_s: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S11', fingerprint: 75ed41c62a82c3aa}
+        flow: {value: 858814.0, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S11', fingerprint: 75ed41c62a82c3aa}
+  - id: S13
+    title: Liquor to the crystallizer
+    from: SP201.cry
+    to: X301.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0424202, NaClO3: 0.116055, NaOCl: 0.000891933, H2O: 0.840633, H2: 0.0, O2: 0.0, NaClO3_s: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S12', fingerprint: 3aa04e8adc36aad4}
+        flow: {value: 101335.0, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S12', fingerprint: 1ca82a10d45deddf}
+  - id: S14
+    title: Circulating electrolyte
+    from: SP201.circ
+    to: M201.circ
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0424202, NaClO3: 0.116055, NaOCl: 0.000891933, H2O: 0.840633, H2: 0.0, O2: 0.0, NaClO3_s: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S12', fingerprint: 3aa04e8adc36aad4}
+        flow: {value: 757479.0, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S12 S13', fingerprint: c7bc13161d464190}
+  - id: S15
+    title: Wet crystal (centrifuge cake)
+    from: X301.cake
+    to: DR401.in
+    template: slurry
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaClO3: 0.0109935, H2O: 0.0796303, NaClO3_s: 0.904549, NaCl: 0.00472744, NaOCl: 9.93998e-05}, provenance: calculated, source: 'cheme process propagate: crystallizer X301 from S13', fingerprint: ce85d05863acecbf}
+        flow: {value: 6437.48, provenance: calculated, source: 'cheme process propagate: crystallizer X301 from S13', fingerprint: ce85d05863acecbf}
+  - id: S16
+    title: Mother liquor
+    from: X301.ml
+    to: SP301.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaClO3: 0.115175, H2O: 0.834256, NaClO3_s: 0.0, NaCl: 0.0495276, NaOCl: 0.00104137}, provenance: calculated, source: 'cheme process propagate: crystallizer X301 from S13', fingerprint: ce85d05863acecbf}
+        flow: {value: 87235.2, provenance: calculated, source: 'cheme process propagate: crystallizer X301 from S13', fingerprint: ce85d05863acecbf}
+  - id: S17
+    title: Crystallizer vapour
+    from: X301.vap
+    to: E301.in
+    template: water
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: crystallizer X301 from S13', fingerprint: ce85d05863acecbf}
+        flow: {value: 7662.37, provenance: calculated, source: 'cheme process propagate: crystallizer X301 from S13', fingerprint: ce85d05863acecbf}
+  - id: S18
+    title: Mother-liquor bleed
+    from: SP301.purge
+    to: PURGE.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaClO3: 0.115175, H2O: 0.834256, NaClO3_s: 0.0, NaCl: 0.0495276, NaOCl: 0.00104137}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S16', fingerprint: 8342a0c20e56a989}
+        flow: {value: 2.61706, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S16', fingerprint: edd4c955804d1170}
+  - id: S19
+    title: Dryer vapour
+    from: DR401.vap
+    to: DRYV.in
+    template: water
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: dryer DR401 from S15', fingerprint: 5cc2e8ac76c33fe8}
+        flow: {value: 86.7744, provenance: calculated, source: 'cheme process propagate: dryer DR401 from S15', fingerprint: 5cc2e8ac76c33fe8}
+  - id: S20
+    title: Sodium chlorate crystal
+    from: DR401.prod
+    to: NACLO3P.in
+    template: slurry
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaClO3_s: 0.977046, NaCl: 0.00510633, NaClO3: 0.0118746, NaOCl: 0.000107366, H2O: 0.00586566}, provenance: calculated, source: 'cheme process propagate: dryer DR401 from S15', fingerprint: 5cc2e8ac76c33fe8}
+        flow: {value: 6350.71, provenance: calculated, source: 'cheme process propagate: dryer DR401 from S15', fingerprint: 5cc2e8ac76c33fe8}
+  - id: S21
+    title: Hydrogen to users
+    from: SP501.users
+    to: H2P.in
+    template: cellgas
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0, NaClO3: 0.0, NaOCl: 0.0, H2O: 0.0, H2: 0.977888, O2: 0.0221124, NaClO3_s: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP501 from S10', fingerprint: a8dd27ab0e649e9c}
+        flow: {value: 353.079, provenance: calculated, source: 'cheme process propagate: splitter SP501 from S10', fingerprint: a619ca28ffd25e32}
+  - id: S22
+    title: Hydrogen vent
+    from: SP501.vent
+    to: H2V.in
+    template: cellgas
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {NaCl: 0.0, NaClO3: 0.0, NaOCl: 0.0, H2O: 0.0, H2: 0.977888, O2: 0.0221124, NaClO3_s: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP501 from S10', fingerprint: a8dd27ab0e649e9c}
+        flow: {value: 158.63, provenance: calculated, source: 'cheme process propagate: splitter SP501 from S10 S21', fingerprint: a4aa226bc46a74c9}
+  - {id: P1, title: AC power to the rectifiers, kind: energy, from: POWER.rect, to: T201.ac, state: {design: {duty: {value: 31120.45, provenance: assumed, source: "D-009: P2 / 0.97, transformer-rectifier efficiency 0.97 ASSUMED; 4919 AC kWh per t NaClO3 formed, inside the 4700-5200 kWh/t for electrolysis of SRC-1 (Table 7.80)"}}}}
+  - {id: P2, title: DC power to the cells, kind: energy, from: T201.dc, to: EL201.dc, state: {design: {duty: {value: 30186.84, provenance: assumed, source: "cheme process cell (process/cells.yaml, EL201): 400 x 25.1557 kA x 3.0 V (D-006)"}}}}
+  - {id: P3, title: "Auxiliary power (pumps, centrifuge, dryer fans, liquid-ring vacuum pumps, conveyors; lumped)", kind: energy, from: POWER.aux, to: P201.power, state: {design: {duty: {value: 1875.0, provenance: assumed, source: "D-009: 300 kWh per t of crystal x 6.25 t/h, the middle of the 100-500 kWh/t of SRC-1 (Table 7.80); dissipated to the building's air and the dryer exhaust, not to the liquor"}}}}
+  - {id: Q1, title: Rectifier losses, kind: energy, from: T201.loss, to: CW.t201, state: {design: {duty: {value: 933.61, provenance: assumed, source: "D-009: P1 - P2"}}}}
+  - {id: Q2, title: Cell heat, kind: energy, from: EL201.heat, to: E201.heat, state: {design: {duty: {value: 14607.62, provenance: assumed, source: "cheme process cell (process/cells.yaml, EL201): P - sum(extent dH) at the isothermal 343.15 K boundary, dH at 298.15 K (D-006, L-2)"}}}}
+  - {id: Q3, title: Heat recovered to the crystallizer (hot-water loop), kind: energy, from: E201.hr, to: X301.heat, state: {design: {duty: {value: 3437.31, provenance: calculated, source: 'cheme process propagate: crystallizer duty X301 from S13', fingerprint: 39f7b4b560c20f63}}}}
+  - {id: Q4, title: Cell heat rejected to cooling water, kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 9368.13, provenance: assumed, source: "D-009: Q2 - Q3 - Q7, the cell heat neither the crystallizer nor the returned liquor takes"}}}}
+  - {id: Q7, title: Cell heat kept in the circulating liquor (warms the strong liquor to 343.15 K), kind: energy, from: E201.loop, to: M201.heat, state: {design: {duty: {value: 1802.18, provenance: assumed, source: "D-009: S5 (321.18 K) brought to the loop's 343.15 K, i.e. S3 87 232.6 kg/h x 2.9 x 20 K + S4 7662.37 kg/h x 4.18 x 20 K + S2 3459.36 kg/h x 4.18 x 45 K + S1 3492.46 kg/h x 0.872 x 45 K, in kJ/h / 3600 (heat capacities as for S5)"}}}}
+  - {id: Q5, title: Crystallizer condenser, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 5069.94, provenance: assumed, source: "D-009: S17 7662.37 kg/h x 2382 kJ/kg (water at 323.15 K, thermo 0.6.1 HEOS_FIT, SRC-5) / 3600"}}}}
+  - {id: Q6, title: Dryer air heater steam, kind: energy, from: LPS.dr401, to: DR401.heat, state: {design: {duty: {value: 218.56, provenance: assumed, source: "cheme process crystallizers (DR401, core dryer model): the cake heated from 323.15 to 353.15 K and 86.8 kg/h of water evaporated, over an efficiency of 0.5 (D-009)"}}}}
+layout: {bfd: {}, pfd: {}}

@@ -1,0 +1,60 @@
+# Components and templates of 4-aminophenol-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula), normal_boiling_point in K at
+# 101.325 kPa.
+#
+# The acid liquor is carried as molecular pseudo-components (sulfuric acid, 4-aminophenol,
+# aniline and ammonium sulfate dissolved), an inventory basis, not a speciation: the
+# aminophenol's and the aniline's sulfate salts, the bisulfate and the pH are not resolved, and
+# core has no property package for this liquor (DESIGN.md D-006). The nitrobenzene layer that
+# carries the catalyst is lumped into the one liquid (L-1). The 4-aminophenol crystals are a
+# separate solid component, PAP_S (phase: solid). The data the semi-batch, the stills and the
+# duties need (D-005, D-007, D-009):
+# - liquid_molar_volume, m3/kmol: water 968.6, nitrobenzene 1138.5, aniline 966.5 and sulfuric
+#   acid 1830.3 kg/m3 at 358.15 K (thermo 0.6.1, Chemical(...).rho, the liquid-density methods
+#   HEOS_FIT, VDI_PPDS (VDI Heat Atlas), VDI_PPDS and CRC_INORG_L_CONST (CRC Handbook)); 4-aminophenol 1.290 g/cm3, the
+#   crystal's density (PubChem CID 403, as paracetamol-1 uses it), taken as its volume in the
+#   solution (ideal mixing; ASSUMED); dissolved hydrogen 0.025 m3/kmol, ASSUMED (a dissolved
+#   gas's partial molar volume, order of magnitude; the model's dissolved hydrogen stays below
+#   0.1 mol% of the liquid, D-005); ammonium sulfate 1770 kg/m3, the solid's (thermo 0.6.1,
+#   CRC_INORG_S, CRC Handbook), ammonia 0.025 m3/kmol ASSUMED: neither enters a rate law (N101 is a
+#   conversion step);
+# - liquid_heat_capacity, kJ/(kmol K), thermo 0.6.1 Chemical(...).Cplm at 358.15 K: water 75.7
+#   (HEOS_FIT, fits to the reference Helmholtz equation of state), nitrobenzene 192.9 and
+#   sulfuric acid 105.2 (DADGOSTAR_SHAW, Dadgostar and Shaw's estimation method from the
+#   molecular structure), aniline 201.8 (ZABRANSKY_SPLINE_C, the coefficients of Zabransky,
+#   Ruzicka, Majer and Domalski's critical review of liquid heat capacities); 4-aminophenol
+#   131.5, the solid's at 298.15 K (Cpsm, LASTOVKA_S, Lastovka's estimation method), standing for
+#   the dissolved solute (ASSUMED, as paracetamol-1); ammonium sulfate 215.9, the solid's at
+#   298.15 K (Cpsm, PERRY151, the coefficients of a table of Perry's Chemical Engineers'
+#   Handbook, 8th ed.); hydrogen 29.1 and ammonia 35.6, their ideal-gas heat capacities near
+#   300 K (Cpgm, HEOS_FIT) standing for the dissolved gases (ASSUMED);
+# - normal boiling points (chemicals 1.5.2, Tb): water 373.12 K, hydrogen 20.37 K and ammonia
+#   239.83 K (HEOS, the Helmholtz equations of state); nitrobenzene 483.85 K and aniline
+#   457.25 K (CRC_ORG, the organic-compounds table of the CRC Handbook of Chemistry and
+#   Physics). Sulfuric acid, ammonium sulfate and 4-aminophenol are taken as non-volatile;
+# - heat_of_vaporization, kJ/kmol near 373 K (the stills' boil-up in kW): water 40650
+#   (HEOS_FIT), nitrobenzene 50906 and aniline 49586 (VDI_PPDS, the PPDS coefficients of the VDI
+#   Heat Atlas, 2nd ed.), thermo 0.6.1, Chemical(...).Hvapm at 373.15 K.
+# Single values from open-source packages, each with its method; not open data (library ADR
+# 0037). The underlying works (the CRC Handbook, Perry's Handbook, the VDI Heat Atlas,
+# Zabransky et al.'s review) were not read here (DESIGN.md SRC-7).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.018599, liquid_heat_capacity: 75.7, heat_of_vaporization: 40650}
+  - {id: H2SO4, name: Sulfuric acid (dissolved), formula: H2SO4, cas: 7664-93-9, molar_mass: 98.072, liquid_molar_volume: 0.053583, liquid_heat_capacity: 105.2}
+  - {id: NB, name: Nitrobenzene, formula: C6H5NO2, cas: 98-95-3, molar_mass: 123.111, normal_boiling_point: 483.85, liquid_molar_volume: 0.10813, liquid_heat_capacity: 192.9, heat_of_vaporization: 50906}
+  - {id: H2, name: Hydrogen (dissolved), formula: H2, cas: 1333-74-0, molar_mass: 2.016, normal_boiling_point: 20.37, liquid_molar_volume: 0.025, liquid_heat_capacity: 29.1}
+  - {id: PAP, name: 4-Aminophenol (dissolved), formula: C6H7NO, cas: 123-30-8, molar_mass: 109.128, liquid_molar_volume: 0.08460, liquid_heat_capacity: 131.5}
+  - {id: PAP_S, name: 4-Aminophenol (crystals), formula: C6H7NO, cas: 123-30-8, molar_mass: 109.128, phase: solid, liquid_molar_volume: 0.08460, liquid_heat_capacity: 131.5}
+  - {id: AN, name: Aniline, formula: C6H7N, cas: 62-53-3, molar_mass: 93.129, normal_boiling_point: 457.25, liquid_molar_volume: 0.09636, liquid_heat_capacity: 201.8, heat_of_vaporization: 49586}
+  - {id: NH3, name: Ammonia, formula: H3N, cas: 7664-41-7, molar_mass: 17.031, normal_boiling_point: 239.83, liquid_molar_volume: 0.025, liquid_heat_capacity: 35.6}
+  - {id: AS, name: Ammonium sulfate (dissolved), formula: H8N2O4S, cas: 7783-20-2, molar_mass: 132.134, liquid_molar_volume: 0.07465, liquid_heat_capacity: 215.9}
+templates:
+  - {id: charge, title: "Hydrogenation charge and mass: water, sulfuric acid, nitrobenzene, dissolved hydrogen, 4-aminophenol, aniline", components: [H2O, H2SO4, NB, H2, PAP, AN]}
+  - {id: liquor, title: "Work-up liquor and slurry: water, sulfuric acid, ammonium sulfate, 4-aminophenol, aniline, nitrobenzene, ammonia", components: [H2O, H2SO4, NB, PAP, PAP_S, AN, NH3, AS]}
+  - {id: gas, title: "Hydrogen and ammonia feeds, vent", components: [H2, NH3]}
+property_method:
+  adapter: thermo
+  status: placeholder

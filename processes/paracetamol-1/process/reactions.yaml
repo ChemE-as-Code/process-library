@@ -1,0 +1,56 @@
+# Reactions of paracetamol-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# ACET: the N-acetylation of 4-aminophenol by acetic anhydride in aqueous acetic acid, the
+# route of US 3 917 695 A (Mallinckrodt, 1975; DESIGN.md SRC-1, D-001). HYD: the hydrolysis of
+# acetic anhydride by the water of the liquor, which takes the anhydride's excess (1.15 mol per
+# mol of the amine, SRC-1) and competes with ACET while the anhydride is dosed. No open kinetics
+# of either in this liquor were found: both rate laws are ASSUMED (D-005), ACET fast and
+# second order, HYD pseudo-first order in the anhydride (water in large excess), so that the
+# dosing at 313 K is dosing-controlled and the anhydride left at its end hydrolyses within
+# minutes at the digestion's 358 K; reaction calorimetry must confirm them.
+# Heats of reaction (D-005): HYD from the standard enthalpies of formation of the liquids,
+# 2 x (-483.58) - (-624.4) - (-285.825) = -56.94 kJ/mol (chemicals 1.5.2, Hfl: acetic acid and
+# water ATcT, acetic anhydride CRC); ACET has no formation enthalpy of paracetamol in chemicals
+# 1.5.2 or the NIST WebBook, so it is ASSUMED equal to that of the analogue aniline(l) +
+# acetic anhydride(l) -> acetanilide(s) + acetic acid(l), -209.4 - 484.3 - 31.6 + 624.4 =
+# -100.9 kJ/mol (chemicals 1.5.2, CRC values): the product taken as formed solid (it
+# precipitates in R-101 at 313 K), so the screening counts its heat of crystallisation in R101
+# (conservative) and the crystallizer CR101 none (D-005, D-007).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ACET
+    title: N-Acetylation of 4-aminophenol
+    equation: C6H7NO + C4H6O3 -> C8H9NO2 + C2H4O2
+    stoichiometry: {PAP: -1, AC2O: -1, APAP: 1, HOAC: 1}
+    phase: liquid
+    heat_of_reaction: {value: -100900, provenance: assumed, source: "ASSUMED (D-005): the analogue aniline + acetic anhydride -> acetanilide(s) + acetic acid from the CRC formation enthalpies in chemicals 1.5.2 (aniline(l) 31.6, acetic anhydride(l) -624.4, acetanilide(s) -209.4, acetic acid(l) -484.3 kJ/mol); no formation enthalpy of paracetamol found (chemicals 1.5.2, NIST WebBook)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 0.5 m3/(kmol s) at 313.15 K: with the charge's 1.4 kmol/m3 of the amine the
+      # anhydride's pseudo-first-order lifetime is about 1.5 s against HYD's 200 s
+      k: {A: 1.09e8, Ea: 50000}
+      orders: {PAP: 1, AC2O: 1}
+      temperature_range: [283.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): no open kinetics of the acetylation in aqueous acetic acid found (2026-11-19); to be replaced by reaction calorimetry"
+    sources: ["US 3 917 695 A (Schulman, Baron, Weinberg; Mallinckrodt, 1975), description and Examples 1, 4 to 6: 4-aminophenol acetylated with 1.0 to 1.2 (Example 6: 1.15) mol acetic anhydride per mol in 7 to 10 wt% aqueous acetic acid at 35 to 40 C"]
+  - id: HYD
+    title: Hydrolysis of acetic anhydride
+    equation: C4H6O3 + H2O -> 2 C2H4O2
+    stoichiometry: {AC2O: -1, H2O: -1, HOAC: 2}
+    phase: liquid
+    heat_of_reaction: {value: -56935, provenance: given, source: "chemicals 1.5.2, Hfl: acetic acid -483.58 kJ/mol and water -285.825 kJ/mol (ATcT), acetic anhydride -624.4 kJ/mol (CRC); 2 x (-483.58) + 624.4 + 285.825"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # pseudo-first order (water in excess): k = 0.005 1/s at 313.15 K, 0.044 1/s at 358.15 K
+      k: {A: 1.6e5, Ea: 45000}
+      orders: {AC2O: 1}
+      temperature_range: [283.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): the anhydride's hydrolysis in the dilute acid liquor, no open rate constant read; to be replaced by reaction calorimetry"
+    sources: ["stoichiometry; the excess anhydride of US 3 917 695 A leaves as acetic acid"]

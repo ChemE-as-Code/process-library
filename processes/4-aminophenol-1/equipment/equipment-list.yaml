@@ -1,0 +1,35 @@
+schema: cheme/equipment/v1
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes per batch from the recipe (process/recipe.yaml, D-003: 1209.4 kg every 9.578 h, 826.9
+# batches a year) and the flowsheet's year averages; design pressures, temperatures and
+# materials are not set yet (basic engineering); the materials named are usual choices for hot
+# dilute sulfuric acid, to be confirmed (open input). All values ASSUMED.
+equipment:
+  - {tag: R-101, type: StirredTankReactor, service: "Hydrogenator: charge on the nitrobenzene heel with the Pt/C catalyst, hydrogen dosed at 358 K and about 104 kPa(a), cooled to 333 K, settled and decanted",
+     notes: "15.2 m3 of batch in 25 m3 (preferred size, 61 % full, D 2.98 m) as the recipe sizes it from R101's semi-batch model (core ADR 0052); glass-lined, gas-inducing agitator (45 kW while running, SRC-1's lower end; P1 40.3 kW year average); jacket on cooling water: peak 350 kW against 451 kW the jacket removes at the charge's 27.4 m2, and the cool-down to 333 K in 1.33 h (cheme process recipe, Q10); hydrogen on flow control interlocked with the temperature, the agitator and the cooling water; nitrogen purge before and after the hydrogen; vented to the vent stack, the vent's capacity a basic-engineering item (D-003, D-005, D-011)."}
+  - {tag: T-101, type: Tank, service: "Recycle water tank: strip distillate and aniline-saturated water for the next charge",
+     notes: "About 7.9 m3 per batch (S21 and S22 x 9.578 h); 10 m3, stainless steel, nitrogen-blanketed (D-006, D-008)."}
+  - {tag: R-102, type: StirredTankReactor, service: "Strip still: the layer heated, water with the dissolved nitrobenzene stripped, neutralisation with ammonia to pH about 6",
+     notes: "15.1 m3 of batch in 25 m3 (preferred size, 60 % full, cheme process recipe); glass-lined, jacket on LP steam (boil-up 390 kW: U 400 W/(m2 K) ASSUMED x 25 m2 x 39 K, checked by hand, L-4) and on cooling water for the neutralisation (Q4, Q17: about 490 kW, 2.1 h); ammonia sparged below the liquid; agitator 3 kW (P2) (D-007, D-009)."}
+  - {tag: E-102, type: HeatExchanger, service: "R-102's overhead condenser (water with nitrobenzene), the condensate subcooled to 313 K",
+     notes: "390 kW while R-102 boils, on cooling water; year average Q3C and Q12; the condensate to T-101 (D-009)."}
+  - {tag: R-103, type: StirredTankReactor, service: "Aniline still: aniline distilled with water at pH about 6, process water fed at constant level, carbon treatment at 371 K",
+     notes: "18.6 m3 of batch at its fullest in 25 m3 (preferred size, 74 % full, cheme process recipe); glass-lined, jacket on LP steam and an internal coil of about 13.5 m2 (boil-up 600 kW, ASSUMED, L-4); 5.7 h of distillation and 7.9 h in all a batch; agitator 3 kW (P5) (D-003, D-007)."}
+  - {tag: E-105, type: HeatExchanger, service: "Preheater of the process water fed to R-103 (to 363 K on LP steam)",
+     notes: "Part of Q13, 43 kW year average, about 75 kW while R-103 distils (D-007, D-009)."}
+  - {tag: E-104, type: HeatExchanger, service: "R-103's overhead condenser (water with aniline), the condensate cooled to 298 K",
+     notes: "600 kW while R-103 boils, on cooling water; year average Q6 and Q14; the condensate to V-102 (D-008, D-009)."}
+  - {tag: V-102, type: Vessel, service: "Aniline separator: crude aniline layer and aniline-saturated water at 298 K",
+     notes: "About 5.7 m3 of distillate a batch; 8 m3, stainless steel; the aniline layer to the crude aniline tank, the water to T-101 (D-008)."}
+  - {tag: F-101, type: Filter, service: "Hot polish filter: the spent activated carbon off the liquor at 371 K and pH about 6",
+     notes: "Candle or bag filter, about 12.5 m3 a batch in 0.8 h; the spent carbon (62.8 kg a batch, SRC-1) to incineration; not in the balance (lca/lca.yaml consumable, D-008)."}
+  - {tag: K-101, type: Vessel, service: "Cooling crystalliser: ammonia to pH 7.2, crystallisation at 283 K under nitrogen",
+     notes: "About 12.3 m3 of liquor a batch; 16 m3, glass-lined, jacket and an internal coil, about 32 m2, on chilled water (Q7 and Q16, 135.5 kW year average, 1298 kWh a batch over its 5 h cool-down, checked by hand: 4.5 h); agitator 2 kW (P6) (D-003, D-008, D-009)."}
+  - {tag: C-101, type: Centrifuge, service: "Vertical peeler centrifuge: the crop spun off, washed with cold water, spun dry",
+     notes: "About three loads a batch (1.2 t of crystals), 4 h a batch; 99.5 % of the crystals to the cake, 0.12 kg of liquor per kg of crystals; drive 8 kW year average; nitrogen-inerted (D-008, D-009)."}
+  - {tag: D-101, type: Dryer, service: "Conical vacuum dryer at 333 K under nitrogen",
+     notes: "1.8 m3 of wet cake a batch in 3.15 m3 (preferred size, 57 % full), 6.5 m2 heated; drying 5.3 h at an ASSUMED 4 kg/(m2 h) (core's dryer model, the recipe); jacket on a hot-water loop from LP steam, 22.2 kW year average (Q9) (D-003, D-009)."}
+  - {tag: E-103, type: HeatExchanger, service: "Dryer vacuum condenser",
+     notes: "Condenses about 139 kg of water a batch to T-102 on cooling water at about 313 K, 9.8 kW year average (Q15) (D-009)."}
+  - {tag: T-102, type: Tank, service: "Liquor collection: mother liquor (ammonium sulfate), wash filtrate and the dryer's condensate",
+     notes: "About 12.4 m3 a batch to the ammonium sulfate recovery outside the boundary (D-008); 16 m3, stainless steel."}

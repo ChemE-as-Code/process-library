@@ -29,6 +29,19 @@
 # zero-width range and bound, independent of the dataset (whose phosgene ratio comes from
 # US 10 364 214 B1). No open source gives a plant's aniline use per kg of MDI; the stoichiometric
 # floor depends on the oligomer content of the MDA and is not a range.
+#
+# Paracetamol (paracetamol-1, #481): benchmarks must be independent of the dataset
+# (docs/benchmarks.md). The dataset takes its ratios and yields from US 3 917 695 A's examples
+# (110 to 140 g of product from 109 g of 4-aminophenol, 0.78 to 0.99 kg aminophenol per kg), so
+# they are not bound; no other open figure for a plant's aminophenol use or liquor volume was
+# found. The stoichiometric floor of the aminophenol, 0.722 kg/kg, is a limit, not a range.
+#
+# 4-Aminophenol (4-aminophenol-1, #506): benchmarks must be independent of the dataset
+# (docs/benchmarks.md). The dataset takes its ratios and selectivity from US 3 383 416 A's and
+# US 4 307 249 A's examples, so they are not bound. US 3 953 509 A's yields (about 78 % crude
+# 4-aminophenol) are for another route (sulfided catalysts at 132 to 155 C and 1.4 to 3.4 MPa)
+# and are not bound either. The stoichiometric floor of the nitrobenzene, 1.128 kg/kg, is a
+# limit, not a range.
 schema: cheme-as-code/benchmarks/v1
 family: nitrogen-organics
 
@@ -52,6 +65,14 @@ kpis:
     title: Aniline consumption per kg of MDI (crude, monomeric and polymeric together)
     unit: kg/kg
     no_open_reference: "No open source with a plant's aniline use per kg of MDI found (searched 2026-11-19: the LVOC BREF Chapter 10 gives phosgene and chlorine only; US 10 640 455 B1 and US 7 186 857 B2 give feed rates with recycled aniline, not a net use; the ISOPA 2021 and ACC 2022 eco-profiles give no foreground inventory). The stoichiometric use depends on the MDA's oligomer content (0.744 kg/kg for the two-ring MDA alone)."
+  paracetamol-specific-aminophenol:
+    title: 4-Aminophenol consumption per kg of paracetamol
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's 4-aminophenol use per kg of paracetamol found (searched 2026-11-19: Google Patents for the preparation of N-acetyl-p-aminophenol, US 3 917 695 A, US 4 565 890 A and US 4 524 217 A read; web search for paracetamol production yields and LCI). US 3 917 695 A's examples are the dataset's own source; the stoichiometric floor is 0.722 kg/kg."
+  paracetamol-specific-wastewater:
+    title: Wastewater (mother liquor purge, wash and condensate) per kg of paracetamol
+    unit: kg/kg
+    no_open_reference: "No open source with the liquor volume of paracetamol manufacture found (searched 2026-11-19 as for paracetamol-specific-aminophenol); US 4 565 890 A says the mother liquor is saturated with the product and holds much acetic acid, no amount per kg."
   nbs-specific-bromine:
     title: Bromine consumption per kg of N-bromosuccinimide
     unit: kg/kg
@@ -184,6 +205,15 @@ kpis:
     unit: kg/kg
     no_open_reference: "No open source with a plant's cyclohexanone use per kg of caprolactam found (searched 2026-11-19: Google Patents for oximation and Beckmann rearrangement, US 4,031,139, US 4,804,754, US 7,339,056 B2 read; the LVOC BREF 2017 section 2.1.4.7.1; Wikipedia). Only the stoichiometric floor, 0.867 kg/kg, is known."
 
+  pap-specific-nitrobenzene:
+    title: Nitrobenzene consumption per kg of 4-aminophenol
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's nitrobenzene use per kg of 4-aminophenol found (searched 2026-11-19: Google Patents US 3 383 416 A, US 4 307 249 A and US 3 953 509 A read; PubChem CID 403). US 3 383 416 A's examples are the dataset's own source (Example 1(A): 73 % isolated on the nitrobenzene reacted, 79 % with the 6 % found in the filtrate by analysis; Examples 3 and 4: 73 to 78 % isolated on new nitrobenzene charged); US 3 953 509 A is another route; the stoichiometric floor is 1.128 kg/kg."
+  pap-specific-wastewater:
+    title: Ammonium sulfate liquor (mother liquor, wash and condensate) per kg of 4-aminophenol
+    unit: kg/kg
+    no_open_reference: "No open source with the liquor volume of 4-aminophenol manufacture found (searched 2026-11-19 as for pap-specific-nitrobenzene); the patents give laboratory charges (1700 g of water on 271 g of nitrobenzene, about 6.3 g per g, in US 3 383 416 A Example 1(A)), no plant figure."
+
 datasets:
   - process: caprolactam-1
     dataset: caprolactam-from-cyclohexanone-oxime-by-beckmann-rearrangement-in-oleum-100-kt-a
@@ -237,3 +267,15 @@ datasets:
         reference: lvoc-bref-mdi-phosgene
         out_of_range_reason: "Rounding: the reference is given to two digits (0.78) and the dataset's 0.7844 kg/kg rounds to it; a zero-width range from one example plant cannot hold a value to four digits. The dataset's ratio is the independent one of US 10 364 214 B1 (2.0588 kg phosgene per kg MDA), not fitted to the BREF."
       mdi-specific-aniline: {expression: feed:ANLF / (product:MDIP + product:PMDIP), per: product:MDIP}
+  - process: paracetamol-1
+    dataset: paracetamol-by-semi-batch-acetylation-of-4-aminophenol-in-aqueous-acetic-acid-2000-t-a
+    conditions: {technology: "acetylation of 4-aminophenol in aqueous acetic acid, semi-batch at 313 K, cooling crystallisation, centrifuge, vacuum drying, half the mother liquor recycled", basis: "concept balance, ratios from US 3 917 695 A and ASSUMED (DESIGN.md D-004, D-007)"}
+    kpis:
+      paracetamol-specific-aminophenol: {expression: feed:PAPF / product:APAP, per: product:APAP}
+      paracetamol-specific-wastewater: {expression: product:WW / product:APAP, per: product:APAP}
+  - process: 4-aminophenol-1
+    dataset: 4-aminophenol-by-batch-hydrogenation-of-nitrobenzene-in-dilute-sulfuric-acid-bamberger-route
+    conditions: {technology: "Pt/C hydrogenation of nitrobenzene in dilute sulfuric acid with the Bamberger rearrangement, semi-batch at 358 K stopped at 0.88 conversion on a recycled heel, ammonia neutralisation, aniline distillation with water fed at constant level, one crop crystallised", basis: "concept balance, ratios from US 3 383 416 A and ASSUMED (DESIGN.md D-004, D-008)"}
+    kpis:
+      pap-specific-nitrobenzene: {expression: feed:NBF / product:PAPP, per: product:PAPP}
+      pap-specific-wastewater: {expression: product:WW / product:PAPP, per: product:PAPP}
