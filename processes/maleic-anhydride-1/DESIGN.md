@@ -18,16 +18,18 @@ steam export). Requires cheme-as-code 1.12 (plant.yaml).
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
 in this work (Google Patents machine text; NIST WebBook, PubChem and Wikipedia pages; the paper's
-open web page; the tables packaged in the `chemicals` and `thermo` Python packages).
+open web page). Values queried from the `chemicals` and `thermo` Python packages are not
+"read": SRC-6 names each package method and the underlying work it comes from, which was not
+read here (library ADR 0037).
 
 | id | source | locator | access / terms | used for |
 |---|---|---|---|---|
 | SRC-1 | US 7 589 217 B2, A. S. Padia, H. Sachs, M. Millman (SD Lizenzverwertungs GmbH), filed 2006-04-24, granted 2009-09-15: Yield improvement in the production of maleic anhydride, https://patents.google.com/patent/US7589217B2/en | description and Examples 1 to 5: VPO catalyst in a fixed-bed multitubular reactor (commercial tubes 0.5 to 1.5 in inside, 5 to 25 ft long), a eutectic nitrate-nitrite salt bath at 380 to 460 C (examples 395 to 402 C), hot spot 30 to 60 C above the salt and kept at or below about 480 C; feed 0.5 to 3.0 vol% butane (pilot 1.8), water 0.5 to 5 vol% (pilot 1.7), 15 to 35 vol% oxygen (air usual), inlet 0.6 to 4.0 kg/cm2 gauge (pilot 20 psig), GHSV 1000 to 4000 (pilot 1850); pilot tube 0.834 in inside with 15 ft of catalyst; conversion target 80 to 82 %; Example 3 (20.9 % O2, no CO added, salt 402 C) selectivity 69.5 mol%, yield 95.2 wt%; the invention adds CO to the feed; the gas cooled to 50 to 200 C and scrubbed with water or an organic solvent | read (Google Patents); patent, facts only | D-001, D-003 to D-005, D-011 |
 | SRC-2 | US 4 118 403 A, J. E. White (Monsanto), filed 1976-11-18, granted 1978-10-03: Recovery of maleic anhydride, https://patents.google.com/patent/US4118403A/en | description and example: absorption in a dialkyl phthalate (dibutyl phthalate with up to 10 wt% phthalic anhydride); reactor gas about 18 000 m3 with 0.75 mol% MA at about 915 torr and 145 to 155 C, about 2200 kg of lean solvent at 32 to 36 C, 20-tray absorber, overhead 56 to 60 C at 825 to 885 torr, rich solvent out at 101 to 105 C; about 99.4 % of the MA, 0.6 % of the water, 10 % of the acetic acid and 53 % of the acrylic acid absorbed; 12-tray stripper, condenser 66 to 70 C at 48 to 52 torr, reflux 2, crude drawn near the top, reboiler 244 to 248 C at 85 to 89 torr, lean solvent about 0.3 wt% MA; a sponge absorber recovers about 77 % of the MA in the stripper's vapour; about 10 % of the solvent purified in a solvent still, filtered of fumaric acid; crude refined by distillation (about 100 torr, 140 C); overall recovery 98.5 to 99 %; water scrubbing turns MA into fumaric acid (losses, plugging) | read (Google Patents); patent, facts only | D-001, D-007, D-008 |
-| SRC-3 | US 5 688 970 A, R. Ruggieri, S. Cassarino (Italiana Serie Acetica Sintetica, SISAS), priority 1994-06-30, published 1997-11-18: Process to recycle exhaust gases from n-butane conversion into maleic anhydride, https://patents.google.com/patent/US5688970A/en | Example 2 (conventional once-through, fixed bed, dibutyl phthalate absorption): 74 868 kg/h of air and 3289 kg/h of butane (2.1 vol%), air compressed in two stages to 3.55 bar for 3283 kW, conversion 86.5 %, selectivity 65 %, 3100 kg/h of MA, 0.94 kg per kg, the absorber's exhaust (75 057 kg/h) to an incinerator burning mostly butane; Example 1 (off-gas recycle): 3008 kg/h of butane and 2264 kW for the same MA; heat to a molten-salt coolant and from it to a steam generator; acetic and acrylic acid named as by-products | read (Google Patents); patent, facts only | D-001, D-002, D-010, benchmarks |
+| SRC-3 | US 5 688 970 A, R. Ruggieri, S. Cassarino (Italiana Serie Acetica Sintetica, SISAS), priority 1994-06-30, published 1997-11-18: Process to recycle exhaust gases from n-butane conversion into maleic anhydride, https://patents.google.com/patent/US5688970A/en | Example 2 (conventional once-through, fixed bed, dibutyl phthalate absorption): 74 868 kg/h of air and 3289 kg/h of butane (2.1 vol%), air compressed in two stages to 3.55 bar for 3283 kW, conversion 86.5 %, selectivity 65 %, 3100 kg/h of MA recovered from the solvent (line 30, after the absorber and the stripping; the summary tables call it the MA produced), 0.94 kg per kg, the absorber's exhaust (75 057 kg/h) to an incinerator (no fuel or temperature stated); Example 1 (off-gas recycle): 3008 kg/h of butane and 2264 kW for the same MA; heat to a molten-salt coolant and from it to a steam generator; acetic and acrylic acid named as by-products | read (Google Patents); patent, facts only | D-001, D-002, D-010, benchmarks |
 | SRC-4 | Wikipedia, Maleic anhydride, https://en.wikipedia.org/wiki/Maleic_anhydride | the benzene route (V2O5/MoO3, about a third of the carbon lost as CO2, few plants left by 2006) and the butane route over vanadium phosphate; C4H10 + 3.5 O2 -> C4H2O3 + 4 H2O, about -1236 kJ/mol; air-to-hydrocarbon ratio kept to avoid ignition; GHS H302, H314, H317, H334, H372; a skin and respiratory sensitiser | read; CC BY-SA, facts only | D-001, D-004, D-011 |
 | SRC-5 | Zhang, X.; Wang, H.; Gou, L.; Li, L.; Duan, A.; Cao, Z. (2021) Reaction behaviors and crystal transformation of industrial VPO catalysts for n-butane oxidation, ACS Omega 6, 23558-23563, doi:10.1021/acsomega.1c03652 | section 3.1: an industrial VPO catalyst at 400 C, 1.392 vol% butane in air, GHSV 2000: CO selectivity 18.1 to 21.1 %, CO2 11.1 to 14.1 % over its run | read (PMC); CC BY-NC-ND 4.0: two numbers used as facts with the source, nothing adapted or copied | D-004 |
-| SRC-6 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment), through `cheme chemistry thermo` and directly | ideal-gas formation enthalpies and heat capacities (ATcT, CRC, WebBook, Poling 5th ed., TRCIG, Joback) of materials.yaml; liquid heat capacities, heats of vaporisation and butane's vapour pressure in scripts/balance.py; normal boiling points (CRC tables); butane's lower and upper flammable limits 1.4 and 9.3 vol% (IEC 60079-20-1 (2010) table packaged in `chemicals`) | open-source packages queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037) | materials, D-003, D-010, D-011 |
+| SRC-6 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment), through `cheme chemistry thermo` and directly | materials.yaml: ideal-gas formation enthalpies, entropies and heat capacities by the methods named per component (ATCT_G, CRC, YAWS, WEBBOOK; Poling et al. 5th ed. heat-capacity coefficients; TRCIG; a Joback estimate for dibutyl phthalate); normal boiling points CRC_ORG / CRC_INORG (CRC Handbook tables), CO2's 194.7 K the YAWS sublimation point. scripts/balance.py, thermo's default methods: liquid heat capacity VDI_TABULAR (VDI Heat Atlas) for acetic acid, ZABRANSKY_SPLINE_C (Zabransky et al.'s liquid heat-capacity compilation) for acrylic acid and dibutyl phthalate, DADGOSTAR_SHAW (estimation method) for MA, HEOS_FIT (fits to CoolProp's reference equations of state) for n-butane and water; heat of vaporisation DIPPR_PERRY_8E (Perry's Chemical Engineers' Handbook 8th ed., from DIPPR 801) for acetic and acrylic acid, MORGAN_KOBAYASHI (correlation) for dibutyl phthalate, HEOS_FIT for n-butane and water (MA's from SRC-7); butane's vapour pressure HEOS_FIT. Butane's lower and upper flammable limits 1.4 and 9.3 vol% (the IEC 60079-20-1 (2010) table packaged in `chemicals`) | open-source packages queried 2026-11-19; single values, facts only, with the package and method; the underlying works (ATcT, the CRC Handbook, Yaws, Poling et al., TRC, the VDI Heat Atlas, Zabransky et al., Perry's 8th ed. / DIPPR 801, CoolProp's sources, IEC 60079-20-1) were not read here; not open data (library ADR 0037) | materials, D-003, D-010, D-011 |
 | SRC-7 | NIST Chemistry WebBook, SRD 69, maleic anhydride (C108316) | solid formation enthalpy -469.6 +/- 0.3 kJ/mol (Parks et al. 1950), sublimation 71.5 +/- 5.0 kJ/mol (Winstrom and Kulp 1949), vaporisation 54.8 kJ/mol (326 to 350 K, Winstrom and Kulp), gas heat capacities at 273.15, 298.15, 500 and 800 K, S(298.15) 300.75 J/(mol K) (Joshi 1970), melting point 326.0 +/- 0.9 K | read | materials, D-008, D-010 |
 | SRC-8 | PubChem CIDs 7923 (maleic anhydride), 3026 (dibutyl phthalate), 7843 (n-butane), 6581 (acrylic acid), 176 (acetic acid) | identity (formula, InChIKey, CAS, ChEBI cross-references) | read (PUG REST) | registry, materials |
 | SRC-9 | processes/oxalyl-chloride-1, nitric-acid-1, sulfuric-acid-1, natural-gas-processing-1 (this library) | the balance-script pattern, the steam export at share 0, the NGL recovery without a butane cut | library, internal | D-010, D-012 |
@@ -42,7 +44,8 @@ for an MA plant's off-gas oxidiser; the solvent loss of a dibutyl phthalate reco
 Decision: n-butane oxidised in air, once through, over a VPO catalyst in a multitubular
 fixed-bed reactor cooled by molten salt that raises HP steam (SRC-1, SRC-3); the anhydride
 recovered by absorption in dibutyl phthalate, vacuum stripping and vacuum distillation (SRC-2);
-the off-gas and the liquid wastes burnt in a thermal oxidiser with a waste-heat boiler.
+the off-gas and the liquid wastes burnt in a recuperative thermal oxidiser with a waste-heat
+boiler (D-009).
 Boundary: gate to gate, from liquid n-butane, ambient air, the solvent make-up and the utilities
 to molten maleic anhydride, HP steam and the flue gas.
 Reason: the butane route is the current one (SRC-4); the fixed bed is the reactor of the three
@@ -79,8 +82,8 @@ Decision: the reactor feed of SRC-1's pilot: 1.8 mol% butane and 1.7 mol% water 
 239 kPa(a) (20 psig). The air carries the water (humid air, its humidity ASSUMED: a site may
 add steam instead; the flowsheet does not model humidification). Dry air 78.084 N2, 20.946 O2,
 0.934 Ar mol% (CO2 left out), normalised. That gives 98.2 kmol of humid air per 1.8 kmol of
-butane, 27.0054 kg of air per kg of butane (scripts/balance.py), the `with:` ratio of the
-design specification `rate`, which solves the butane S1 for 25 000 t/a (3337.14 kg/h). The
+butane, 27.0045 kg of air per kg of butane (scripts/balance.py), the `with:` ratio of the
+design specification `rate`, which solves the butane S1 for 25 000 t/a (3337.25 kg/h). The
 oxygen is 20.2 mol% of the feed. Liquid n-butane from pressure storage at 450 kPa(a), 298 K,
 vaporised at 400 kPa(a) and superheated to 333 K on LP steam (E-101); the air compressed to
 260 kPa(a) (K-102), about 20 kPa above the reactor inlet for the mixer and the feed train,
@@ -100,12 +103,13 @@ step): MAF 0.56295, COF 0.14094, CO2F 0.08586, AAF 0.01215, ACRF 0.0081.
   industrial VPO catalyst at 400 C (18.1 % CO, 11.1 % CO2 at its start), ASSUMED for this
   catalyst.
 The heats are those of the formation enthalpies in materials.yaml at 298.15 K (MAF -1239.7
-kJ/mol; SRC-4 gives about -1236). Core writes R201's duty Q2, 10 547.6 kW, to the salt and its
+kJ/mol; SRC-4 gives about -1236). Core writes R201's duty Q2, 10 547.7 kW, to the salt and its
 steam generator from the inlet at 407.0 K and the outlet at 683.15 K, 8 K above the salt at
 675 K (ASSUMED); scripts/balance.py reproduces it.
 Result: 3169.4 kg/h of MA in the reactor gas, 0.950 kg per kg of butane fed (SRC-1's Example
-3: 95.2 wt%; SRC-3's once-through example 0.94); after the recovery (D-007), 1.068 kg of butane
-per kg of product, 55.5 mol% overall.
+3: 95.2 wt%; SRC-3's once-through example gives 0.94 kg of MA recovered from the solvent per kg
+of butane, about 0.95 in its reactor gas at its 86.5 % and 65 %); after the recovery (D-007),
+1.068 kg of butane per kg of product, 55.5 mol% overall.
 Rejected: a kinetic fixed-bed model (no open kinetics read and none in core with a coolant
 temperature, L-3).
 
@@ -132,6 +136,14 @@ Decision: SRC-2's recovery:
   of the MA, 90 % of the acetic acid and 47 % of the acrylic acid (SRC-2's absorbed shares);
   0.01 % of the solvent leaves with it (ASSUMED). Lean solvent at 307 K, gas in at 423 K and
   about 130 kPa(a), off-gas at 331 K and 115 kPa(a), rich solvent at 376 K (SRC-2).
+- A-301's heat: at these four end temperatures the absorber's heat balance does not close by
+  itself. Cooling the 93.5 t/h of gas from 423 to 331 K releases 2552 kW and condensing the
+  absorbate (MA, water and the acids) 510 kW, while the lean solvent and the absorbate take up
+  only 586 kW on their way to 376 K (scripts/balance.py). The other 2476 kW (Q10) go to
+  pump-around coolers E-306 on cooling water: liquid drawn from the lower trays, cooled by 40 K
+  and returned, about 123 t/h (ASSUMED arrangement; SRC-2 names no absorber cooling, only the
+  gas cooling before it and the lean solvent's cooler). Without them the absorber could not
+  hold SRC-2's rich-solvent and off-gas temperatures together.
 - Circulation: 4.8 kg of lean dibutyl phthalate per kg of MA in the gas, from SRC-2's example
   (2200 kg per 18 000 m3 at 915 torr and about 423 K, which hold 4.68 kmol, 459 kg, of MA, ideal
   gas, our arithmetic): the design specification `solvent`, which solves the make-up S15
@@ -165,12 +177,27 @@ reboiler's duty; the condenser on tempered cooling water above MA's 326 K meltin
 Decision: the absorber's off-gas (634 kg/h of butane, 907 kg/h of CO), the stripper's and the
 column's lights and residue and the solvent purge are burnt in F-501 (a conversion step):
 butane 99.9 %, CO 99.8 %, MA, the acids and the solvent 99.99 % destroyed, ASSUMED. The off-gas
-holds 14.3 mol% O2 and needs no combustion air; its heat of combustion sustains the burn
-without support fuel in normal operation (start-up fuel not modelled). The flue gas leaves the
-waste-heat boiler and economiser at 453 K (ASSUMED); core writes the heat raised as HP steam,
-Q9 8363.4 kW, from the reactions' heats and the ideal-gas data (the liquid feeds, 0.1 % of the
-mass, counted as gas, L-4). Stack: 1.451 kg of fossil CO2 per kg of MA; NOx not estimated
-(lca.yaml exclusion).
+holds 14.3 mol% O2 and needs no combustion air.
+The off-gas is lean: 0.34 mol% butane and 1.0 mol% CO, about a third of its lower flammable
+limit (Le Chatelier with the limits of SRC-6's IEC 60079-20-1 table, 1.4 vol% for butane and
+10.9 vol% for CO): it cannot hold a flame of its own. Burnt as it
+comes, at 331 K, it reaches only about 743 K (scripts/balance.py, ideal gas with
+materials.yaml's data), too cold for the ASSUMED destruction without a catalyst. F-501 is
+therefore a recuperative thermal oxidiser, ASSUMED: a gas-gas recuperator preheats the feed
+from 331 to about 691 K against the flue gas (about 9.9 MW) so that the chamber runs at
+1073 K (ASSUMED, a usual order for a thermal oxidiser; no source on this off-gas's oxidiser was
+read, SRC-3 states neither fuel nor temperature); the flue gas leaves the recuperator at about
+743 K into the waste-heat boiler and the economiser and leaves them at 453 K (ASSUMED). The
+recuperator moves heat inside F-501 and does not change its balance: in normal operation the
+combustion heat sustains the chamber without support fuel. Burner fuel for start-up and a
+pilot is not modelled (open input). Rejected: support fuel instead of the recuperator (about
+9 to 10 MW of natural gas, about 0.6 kg more fossil CO2 per kg of MA); a catalytic oxidiser
+(lower temperature, but no open data on its destruction of this off-gas read).
+Core writes the heat raised as HP steam, Q9 8116.6 kW, from the reactions' heats and the
+ideal-gas data (the liquid feeds, 0.1 % of the mass, counted as gas, L-4). The induced-draught
+fan (P4, 246.9 kW) is its own step K502 after the economiser: its work heats the stack gas to
+461.9 K (S23) and raises no steam. Stack: 1.451 kg of fossil CO2 per kg of MA; NOx not
+estimated (lca.yaml exclusion).
 
 ## D-010 Utilities and heat: every energy flow (2026-11-19)
 Decision: scripts/balance.py gives what core does not:
@@ -181,20 +208,30 @@ Decision: scripts/balance.py gives what core does not:
 - E-101 (Q1): 387.6 kW of LP steam (450 kPa(a)) to vaporise the butane at 315.1 K (400
   kPa(a)) and superheat it to 333 K (thermo 0.6.1).
 - E-202 (Q3): D-006.
-- T-302 (Q4, Q5): the rich solvent heated from 376 to 519 K, the crude boiled up and the
-  lights at SRC-2's reflux 2 (MA's heat of vaporisation from SRC-7, the others thermo 0.6.1):
-  2026.9 kW of HP steam; the condensers 613.2 kW to cooling water. The reboiler at 519 K leaves
-  12 K to the 531 K steam: tight, to be checked against hot oil (open input).
+- A-301 (Q10): the pump-around coolers E-306, 2476.1 kW to cooling water (D-007).
+- T-302 (Q4, Q5): the part of the rich solvent that leaves as lean solvent heated from 376 to
+  519 K, the crude to its 400 K draw near the top (SRC-2) and the lights to their outlet; the
+  crude boiled up and the lights at SRC-2's reflux 2 (MA's heat of vaporisation from SRC-7, the
+  others thermo 0.6.1): 1858.5 kW of HP steam; the condensers 613.2 kW to cooling water. Q4 less
+  Q5 is the outlets' enthalpy less the rich solvent's, so the stripper's heat balance closes.
+  The reboiler at 519 K leaves 12 K to the 531 K steam: tight, to be checked against hot oil
+  (open input).
 - E-305 (Q6): the lean solvent from 519 to 307 K, 1803.4 kW to cooling water (no interchanger,
   D-007).
-- C-401 (Q7, Q8): 1323.8 kW of HP steam, 1302.9 kW to cooling water.
-- P2, P3, P4: pumps at 0.60, vacuum pumps 30 and 15 kW, the oxidiser fan for 5 kPa at 0.70
-  (ASSUMED): 36.6, 15.9 and 246.9 kW.
-- The mixed temperatures S5 (407.0 K), S16 (519.0 K) and S21 (331.2 K).
-Per kg of MA: electricity 1.067 kWh, HP steam raised 8.46 kWh (Q2 + Q3 + Q9) and 1.072 kWh
-drawn back for the reboilers (net export 7.39 kWh, 26.6 MJ), LP steam 0.124 kWh, cooling water
-1.190 kWh. The reboilers draw from the site header (HPSI), which the plant feeds: the flowsheet
-keeps both so that each terminal has one level and direction.
+- C-401 (Q7, Q8): the residue heated to the 433 K bottom and the product and lights to the
+  413 K top and boiled up, 1298.0 kW of HP steam; the overhead condensed and the product and
+  lights cooled to 343 K, 1303.5 kW to cooling water; the column's heat balance closes the same
+  way.
+- P2, P3, P4: pumps at 0.60 (P2 with the absorber's pump-around pumps, 250 kPa), vacuum pumps
+  30 and 15 kW, the oxidiser's induced-draught fan for 5 kPa at 0.70 (ASSUMED): 50.6, 15.9 and
+  246.9 kW.
+- The mixed temperatures S5 (407.0 K), S16 (519.0 K) and S21 (331.2 K); the stack gas after
+  the fan S23 (461.9 K); the oxidiser's recuperator (D-009).
+Per kg of MA: electricity 1.072 kWh, HP steam raised 8.38 kWh (Q2 + Q3 + Q9) and 1.010 kWh
+drawn back for the reboilers (net export 7.37 kWh, 26.5 MJ), LP steam 0.124 kWh, cooling water
+1.983 kWh (Q10 + Q5 + Q6 + Q8, the absorber's coolers 0.792 of it). The reboilers draw from the
+site header (HPSI), which the plant feeds: the flowsheet keeps both so that each terminal has
+one level and direction.
 Utilities: cooling water 298/308 K, LP steam 450 kPa(a), HP steam 4500 kPa(a), all ASSUMED.
 
 ## D-011 Hazards (2026-11-19)
@@ -224,10 +261,13 @@ Screening notes for a later HAZOP (no study yet):
 Decision: `lca/lca.yaml` with `boundary: cradle-to-gate` so that the purchased inputs stay open
 gaps, as oxalyl-chloride-1. All burdens to the anhydride; the exported HP steam is a co-product
 with share 0 (as nitric-acid-1 and sulfuric-acid-1), its credit left to the receiving site.
-Linked: the LP and HP steam drawn, counted as heat delivered (steam-heat). Gaps, each naming
-the activity it should connect to: n-butane (no library producer; natural-gas-processing-1
-recovers NGL without a butane cut), dibutyl phthalate, electricity, cooling water, the VPO
-catalyst (39 m3 at an ASSUMED 0.9 t/m3, replaced every 4 years, ASSUMED: 8.8 t/a). Emissions:
+Linked: the LP and HP steam drawn, counted as heat delivered (steam-heat). Gaps in lca/lca.yaml
+(the `cheme assess lca` view), each naming the activity it should connect to: n-butane (no
+library producer; natural-gas-processing-1 recovers NGL without a butane cut), dibutyl
+phthalate, electricity, cooling water, the VPO catalyst (39 m3 at an ASSUMED 0.9 t/m3, replaced
+every 4 years, ASSUMED: 8.8 t/a). The library's Atlas build (scripts/build_lci.py) links
+electricity and cooling water through the shared lci/mappings.yaml; there only butane, the
+solvent, the catalyst and the oxidiser's organic slips stay unlinked. Emissions:
 fossil CO2 (1.451 kg/kg) characterised; CO, butane, MA, the acids and the solvent at their
 oxidiser slips as elementary flows without a GWP factor. The screening footprint (1.45 kg
 CO2-eq/kg) is the direct CO2 only, a partial result.
@@ -242,7 +282,9 @@ CO2-eq/kg) is the direct CO2 only, a partial result.
 | feeds for 25 000 t/a, solvent make-up for the circulation | done in cheme (design specifications) | D-003, D-007, core ADR 0070 |
 | solvent loop | done in cheme (tear S17, Broyden) | D-007, core ADR 0060 |
 | thermal oxidiser R501 (conversion, duty Q9) | done in cheme, destruction ASSUMED | D-009 |
-| air ratio, compressor, mixing temperatures, Q1, Q3 to Q8, P1 to P4 | script | D-003, D-010 |
+| air ratio, compressor, mixing and stack temperatures, Q1, Q3 to Q8, Q10, P1 to P4 | script | D-003, D-010 |
+| absorber heat balance (Q10), the separators' heat balances closed | script | D-007, D-010 |
+| oxidiser's adiabatic temperature, preheat and recuperator | script, chamber temperature ASSUMED | D-009 |
 | R201's duty cross-check, the adiabatic outlet without cooling | script | D-004, D-011 |
 | catalyst volume and tubes | by hand from SRC-1's GHSV and tube | D-005 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
@@ -265,7 +307,8 @@ CO2-eq/kg) is the direct CO2 only, a partial result.
 
 - L-1: no liquid property method for MA, dibutyl phthalate and the acids: the absorber, the
   stripper and the column are fixed splits without temperatures, stages or duties, and their
-  heats are the script's (D-007, D-008, D-010).
+  heats are the script's, each closed over the unit from its inlets to its outlets at their
+  stated temperatures (D-007, D-008, D-010).
 - L-2: propagate writes no duty for a pass-through exchanger even where every component has
   ideal-gas data (E-202 on the reactor gas): the script computes Q3 with the same data core
   uses for the conversion steps.
@@ -283,6 +326,8 @@ CO2-eq/kg) is the direct CO2 only, a partial result.
 Commercial catalyst data (selectivities to the acids, CO/CO2, life, bulk density); a fluid-bed
 case; the lean/rich interchanger and a heat-integration study (the reboilers and the solvent
 cooler); the reboiler medium of T-302 (12 K approach to HP steam); the solvent loss and still;
-the oxidiser's destruction, NOx and support fuel; a steam turbine drive for K-102; the off-gas
+the absorber's cooling arrangement (pump-arounds or intercoolers, their number and range); the
+oxidiser's chamber temperature and residence time against its destruction, the recuperator or a
+catalytic oxidiser, its NOx and its start-up and pilot fuel; a steam turbine drive for K-102; the off-gas
 recycle of SRC-3; the receiving site of the steam and its credit; prices for a TEA; the
 deflagration protection of the feed train (D-011).

@@ -22,7 +22,6 @@ README.md, process.yaml and lca/lca.yaml are checked against them:
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import os
 import re
@@ -88,12 +87,14 @@ def _duty(streams, sid: str) -> float:
 def test_reactor_conversions_are_conversion_times_selectivity(reactions):
     x = 0.81
     sel = {"MAF": 0.695, "COF": 0.174, "CO2F": 0.106, "AAF": 0.015, "ACRF": 0.010}
-    assert sum(sel.values()) == pytest.approx(1.0)
+    conv = {rid: reactions[rid]["conversion"]["value"] for rid in sel}
     for rid, s in sel.items():
         assert reactions[rid]["conversion"]["key"] == "NC4"
-        assert reactions[rid]["conversion"]["value"] == pytest.approx(x * s, abs=1e-6)
-    # CO : CO2 on carbon after SRC-5's 18.1 and 11.1 %
-    assert sel["COF"] / (sel["COF"] + sel["CO2F"]) == pytest.approx(18.1 / 29.2, abs=0.005)
+        assert conv[rid] == pytest.approx(x * s, abs=1e-6)
+    # the file's conversions add up to the overall conversion of SRC-1
+    assert sum(conv.values()) == pytest.approx(x, abs=1e-5)
+    # CO : CO2 on carbon after SRC-5's 18.1 and 11.1 %, from the file's conversions
+    assert conv["COF"] / (conv["COF"] + conv["CO2F"]) == pytest.approx(18.1 / 29.2, abs=0.005)
 
 
 def test_reactor_gas_follows_the_conversions(streams, materials):
@@ -132,7 +133,7 @@ def test_reactor_feed_is_src1s(streams, materials):
     assert n5["H2O"] / total == pytest.approx(0.017, abs=2e-5)
     assert float(streams["S5"]["pressure"]["value"]) == pytest.approx(239.0)
     s1, s3 = _kg(streams, materials, "S1"), _kg(streams, materials, "S3")
-    assert sum(s3.values()) / sum(s1.values()) == pytest.approx(27.0054, rel=1e-5)
+    assert sum(s3.values()) / sum(s1.values()) == pytest.approx(27.0045, rel=1e-5)
 
 
 def test_consumptions_and_yield_as_stated(streams, materials):
@@ -144,7 +145,7 @@ def test_consumptions_and_yield_as_stated(streams, materials):
     assert ma / (butane / materials["NC4"]["molar_mass"]) == pytest.approx(0.555, abs=0.0005)
     solvent = sum(_kg(streams, materials, "S15").values())
     assert solvent / product * 1000 == pytest.approx(5.45, abs=0.01)
-    co2 = _kg(streams, materials, "S22")["CO2"]
+    co2 = _kg(streams, materials, "S23")["CO2"]
     assert co2 / product == pytest.approx(1.451, abs=0.0005)
     for rel in ("process.yaml", "README.md", "DESIGN.md"):
         text = _text(rel)
@@ -161,11 +162,17 @@ def test_absorber_and_recovery_as_src2(sheet, streams, materials):
     assert 1 - off["ACR"] == pytest.approx(0.53)
     lean = _kg(streams, materials, "S17")
     assert lean["MA"] / sum(lean.values()) == pytest.approx(0.003, abs=0.0005)
+    spec = next(s for s in sheet["specs"] if s["id"] == "solvent")["target"]["value"]
     ratio = _kg(streams, materials, "S16")["DBP"] / _kg(streams, materials, "S7")["MA"]
-    assert ratio == pytest.approx(4.8, rel=1e-4)
-    # SRC-2's example: 2200 kg per 18 000 m3 at 915 torr and 150 C with 0.75 mol% MA
+    assert ratio == pytest.approx(spec, rel=1e-4)
+    # the spec's target is SRC-2's example: 2200 kg per 18 000 m3 at 915 torr and 150 C with
+    # 0.75 mol% MA
     n_gas = 915 / 760 * 101.325 * 18000 / (8.314462618 * 423.15)
-    assert 2200 / (n_gas * 0.0075 * materials["MA"]["molar_mass"]) == pytest.approx(4.8, abs=0.05)
+    assert 2200 / (n_gas * 0.0075 * materials["MA"]["molar_mass"]) == pytest.approx(spec, abs=0.05)
+    # the absorber's heat goes to cooling water (Q10), SRC-2's end temperatures held
+    q10 = next(s for s in sheet["streams"] if s["id"] == "Q10")
+    assert (q10["from"], q10["to"]) == ("A301.q", "CW.a301")
+    assert _duty(streams, "Q10") > 2000
     recovery = _kg(streams, materials, "S18")["MA"] / _kg(streams, materials, "S6")["MA"]
     assert 0.985 <= recovery <= 0.99
 
@@ -196,16 +203,23 @@ def test_script_values_in_the_flowsheet(sheet, tmp_path):
             assert state[q]["source"].startswith("scripts/balance.py"), (sid, q)
 
 
-def test_energy_totals_as_stated(streams):
-    product = 3125.0
+def test_energy_totals_as_stated(sheet, streams, materials):
+    product = sum(_kg(streams, materials, "S18").values())
     raised = _duty(streams, "Q2") + _duty(streams, "Q3") + _duty(streams, "Q9")
     drawn = _duty(streams, "Q4") + _duty(streams, "Q7")
     power = sum(_duty(streams, k) for k in ("P1", "P2", "P3", "P4"))
-    cw = sum(_duty(streams, k) for k in ("Q5", "Q6", "Q8"))
-    assert raised / product == pytest.approx(8.46, abs=0.005)
-    assert drawn / product == pytest.approx(1.072, abs=0.001)
-    assert power / product == pytest.approx(1.067, abs=0.001)
-    assert cw / product == pytest.approx(1.190, abs=0.001)
+    cw = sum(_duty(streams, k) for k in ("Q10", "Q5", "Q6", "Q8"))
+    assert raised / product == pytest.approx(8.38, abs=0.005)
+    assert drawn / product == pytest.approx(1.010, abs=0.001)
+    assert power / product == pytest.approx(1.072, abs=0.001)
+    assert cw / product == pytest.approx(1.983, abs=0.001)
+    # every CW, HP steam and power terminal is counted above
+    for s in sheet["streams"]:
+        if s.get("kind") == "energy" and s["to"].startswith("CW."):
+            assert s["id"] in ("Q10", "Q5", "Q6", "Q8"), s["id"]
+    # the draught fan is its own step after the boiler: its work raises no steam in Q9
+    p4 = next(s for s in sheet["streams"] if s["id"] == "P4")
+    assert p4["to"] == "K502.power"
     for sid in ("Q2", "Q9"):  # core's conversion steps write these (ADR 0059)
         assert streams[sid]["duty"]["provenance"] == "calculated"
         assert streams[sid]["duty"]["source"].startswith("cheme process propagate: conversion duty")

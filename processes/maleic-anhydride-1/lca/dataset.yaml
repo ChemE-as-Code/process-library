@@ -70,7 +70,7 @@ exchanges:
 - key: feed:BUTF
   title: n-Butane (no library process)
   type: input
-  amount: 3337.14
+  amount: 3337.25
   unit: kg
   link:
     source: flowsheet stream S1, 1.068 kg/kg (D-003)
@@ -141,11 +141,11 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 3334.5
+  amount: 3348.5
   unit: kWh
   link:
     source: flowsheet energy streams P1 (air compressor, 3035 kW), P2, P3 (pumps and vacuum pumps) and
-      P4 (oxidiser fan), 1.067 kWh/kg (D-010)
+      P4 (oxidiser fan), 1.072 kWh/kg (D-010)
     missing: 'not mapped yet (D-012): connect to grid electricity, medium voltage, of the (undecided)
       site country'
   streams:
@@ -154,7 +154,7 @@ exchanges:
   - P3
   - P4
   source: flowsheet energy streams P1 (air compressor, 3035 kW), P2, P3 (pumps and vacuum pumps) and P4
-    (oxidiser fan), 1.067 kWh/kg (D-010)
+    (oxidiser fan), 1.072 kWh/kg (D-010)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -187,16 +187,16 @@ exchanges:
 - key: feed:HPSI
   title: HP steam 4500 kPa(a) from the site header (reboilers)
   type: input
-  amount: 3350.7
+  amount: 3156.5
   unit: kWh
   link:
-    source: flowsheet energy streams Q4 (stripper reboiler) and Q7 (column reboiler), 1.072 kWh/kg (D-010)
+    source: flowsheet energy streams Q4 (stripper reboiler) and Q7 (column reboiler), 1.010 kWh/kg (D-010)
     missing: 'linked as heat from steam (lca/mappings.yaml): HP steam drawn back from the site header
       for the reboilers; in practice part of the steam the plant raises (D-010, D-012)'
   streams:
   - Q4
   - Q7
-  source: flowsheet energy streams Q4 (stripper reboiler) and Q7 (column reboiler), 1.072 kWh/kg (D-010)
+  source: flowsheet energy streams Q4 (stripper reboiler) and Q7 (column reboiler), 1.010 kWh/kg (D-010)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -227,9 +227,9 @@ exchanges:
     component: MA
   composition:
     fractions:
-      MA: 0.999912059
+      MA: 0.999912058
       AA: 2.681e-06
-      ACR: 8.526e-05
+      ACR: 8.5261e-05
     formulas:
       MA: C4H2O3
       AA: C2H4O2
@@ -238,11 +238,11 @@ exchanges:
 - key: product:STACK
   title: Thermal oxidiser flue gas to the stack
   type: output
-  amount: 90349.9
+  amount: 90350.1
   unit: kg
   provenance: calculated
   streams:
-  - S22
+  - S23
   source: 'released to the environment: counted by its emission:* exchanges'
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -250,7 +250,7 @@ exchanges:
   basic_uncertainty: 1.05
   composition:
     fractions:
-      N2: 0.745509328
+      N2: 0.745509327
       O2: 0.129725919
       AR: 0.012716778
       H2O: 0.061821821
@@ -273,11 +273,11 @@ exchanges:
       AA: C2H4O2
       ACR: C3H4O2
       DBP: C16H22O4
-    source: stream table (S22)
+    source: stream table (S23)
 - key: product:HPS
   title: HP steam export 4500 kPa(a) (salt and gas-cooler steam generators, waste-heat boiler)
   type: product
-  amount: 26437.95
+  amount: 26191.17
   unit: kWh
   properties:
     exergy: 1578.644068
@@ -299,17 +299,18 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 3719.5000000000005
+  amount: 6196.200000000001
   unit: kWh
   link:
-    source: flowsheet energy streams Q5, Q6 and Q8, 1.190 kWh/kg (D-010)
+    source: flowsheet energy streams Q10 (absorber pump-around coolers), Q5, Q6 and Q8, 1.983 kWh/kg (D-010)
     missing: 'not mapped yet (D-012): connect to heat rejected to a recirculating cooling-water system
       (processes/utility-cooling-tower), per kWh'
   streams:
+  - Q10
   - Q5
   - Q6
   - Q8
-  source: flowsheet energy streams Q5, Q6 and Q8, 1.190 kWh/kg (D-010)
+  source: flowsheet energy streams Q10 (absorber pump-around coolers), Q5, Q6 and Q8, 1.983 kWh/kg (D-010)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -321,7 +322,7 @@ exchanges:
 - key: emission:AA
   title: AA to the environment
   type: emission
-  amount: 0.00837767082553139
+  amount: 0.008377689368458867
   unit: kg
   provenance: calculated
   link:
@@ -330,7 +331,7 @@ exchanges:
     source: acetic acid slip of the oxidiser, 0.01 %, ASSUMED (D-009)
   cas: 64-19-7
   streams:
-  - S22
+  - S23
   source: acetic acid slip of the oxidiser, 0.01 %, ASSUMED (D-009)
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -341,11 +342,11 @@ exchanges:
       AA: 1.0
     formulas:
       AA: C2H4O2
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:ACR
   title: ACR to the environment
   type: emission
-  amount: 0.0033247964186907592
+  amount: 0.003324803777712156
   unit: kg
   provenance: calculated
   link:
@@ -354,7 +355,7 @@ exchanges:
     source: acrylic acid slip of the oxidiser, 0.01 %, ASSUMED (D-009)
   cas: 79-10-7
   streams:
-  - S22
+  - S23
   source: acrylic acid slip of the oxidiser, 0.01 %, ASSUMED (D-009)
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -365,17 +366,17 @@ exchanges:
       ACR: 1.0
     formulas:
       ACR: C3H4O2
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:AR
   title: AR to the environment
   type: emission
-  amount: 1148.9595951786848
+  amount: 1148.9621382571715
   unit: kg
   provenance: calculated
   free: true
   cas: 7440-37-1
   streams:
-  - S22
+  - S23
   source: atmospheric argon returned
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -386,11 +387,11 @@ exchanges:
       AR: 1.0
     formulas:
       AR: Ar
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:CO
   title: CO to the environment
   type: emission
-  amount: 1.813308517641203
+  amount: 1.8133125311730107
   unit: kg
   provenance: calculated
   link:
@@ -408,7 +409,7 @@ exchanges:
     - non-urban air or from high stacks
     unit: kg
   streams:
-  - S22
+  - S23
   source: CO slip of the oxidiser, 0.2 % of its CO, ASSUMED (D-009)
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -419,11 +420,11 @@ exchanges:
       CO: 1.0
     formulas:
       CO: CO
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 4535.4627453526655
+  amount: 4535.472784032689
   unit: kg
   provenance: calculated
   link:
@@ -442,7 +443,7 @@ exchanges:
     - non-urban air or from high stacks
     unit: kg
   streams:
-  - S22
+  - S23
   source: CO2 formed in the reactor and the oxidiser from the fossil butane and solvent, 1.451 kg/kg (D-009)
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -453,11 +454,11 @@ exchanges:
       CO2: 1.0
     formulas:
       CO2: CO2
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:DBP
   title: DBP to the environment
   type: emission
-  amount: 0.0017036993088368748
+  amount: 0.001703703079762396
   unit: kg
   provenance: calculated
   link:
@@ -466,7 +467,7 @@ exchanges:
     source: dibutyl phthalate slip of the oxidiser, 0.01 %, ASSUMED (D-009)
   cas: 84-74-2
   streams:
-  - S22
+  - S23
   source: dibutyl phthalate slip of the oxidiser, 0.01 %, ASSUMED (D-009)
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -477,17 +478,17 @@ exchanges:
       DBP: 1.0
     formulas:
       DBP: C16H22O4
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:H2O
   title: H2O to the environment
   type: emission
-  amount: 5585.595374171873
+  amount: 5585.607737189242
   unit: kg
   provenance: calculated
   free: true
   cas: 7732-18-5
   streams:
-  - S22
+  - S23
   source: 'water vapour: air humidity and water formed in the reactor and the oxidiser'
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -498,11 +499,11 @@ exchanges:
       H2O: 1.0
     formulas:
       H2O: H2O
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:MA
   title: MA to the environment
   type: emission
-  amount: 0.004470631701238485
+  amount: 0.004470610094174589
   unit: kg
   provenance: calculated
   link:
@@ -511,7 +512,7 @@ exchanges:
     source: maleic anhydride slip of the oxidiser, 0.01 %, ASSUMED (D-009)
   cas: 108-31-6
   streams:
-  - S22
+  - S23
   source: maleic anhydride slip of the oxidiser, 0.01 %, ASSUMED (D-009)
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -522,17 +523,17 @@ exchanges:
       MA: 1.0
     formulas:
       MA: C4H2O3
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:N2
   title: N2 to the environment
   type: emission
-  amount: 67356.69319738648
+  amount: 67356.8422830098
   unit: kg
   provenance: calculated
   free: true
   cas: 7727-37-9
   streams:
-  - S22
+  - S23
   source: atmospheric nitrogen returned
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -543,11 +544,11 @@ exchanges:
       N2: 1.0
     formulas:
       N2: N2
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:NC4
   title: NC4 to the environment
   type: emission
-  amount: 0.634058452726296
+  amount: 0.6340816743748795
   unit: kg
   provenance: calculated
   link:
@@ -556,7 +557,7 @@ exchanges:
     source: butane slip of the oxidiser, 0.1 %, ASSUMED (D-009)
   cas: 106-97-8
   streams:
-  - S22
+  - S23
   source: butane slip of the oxidiser, 0.1 %, ASSUMED (D-009)
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -567,17 +568,17 @@ exchanges:
       NC4: 1.0
     formulas:
       NC4: C4H10
-    source: stream table (S22)
+    source: stream table (S23)
 - key: emission:O2
   title: O2 to the environment
   type: emission
-  amount: 11720.723844141656
+  amount: 11720.749786499233
   unit: kg
   provenance: calculated
   free: true
   cas: 7782-44-7
   streams:
-  - S22
+  - S23
   source: atmospheric oxygen not consumed, returned
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -588,7 +589,7 @@ exchanges:
       O2: 1.0
     formulas:
       O2: O2
-    source: stream table (S22)
+    source: stream table (S23)
 - key: consumable:vpo-catalyst
   title: VPO catalyst of R-201
   type: input
@@ -635,7 +636,7 @@ allocation:
   deviation: 'The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
     Energy allocation on the anhydride''s heating value against the steam''s heat, or a credit for the
     avoided boiler steam (system expansion), would lower the anhydride''s burden markedly: the plant exports
-    about 7.4 kWh of net HP steam per kg (8.46 raised less 1.07 drawn back for the reboilers). Shares
+    about 7.4 kWh of net HP steam per kg (8.38 raised less 1.01 drawn back for the reboilers). Shares
     1/0 are the conservative choice until the receiving site and its steam are known.'
 provenance:
   generator: cheme assess lca
@@ -643,8 +644,8 @@ provenance:
     raising, dibutyl phthalate absorption and vacuum distillation (25 kt/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:167105035a4ad28c84849415b6fd314933890cf692e3099fc818acc945eeb919
-    lca/lca.yaml: sha256:58c07fde4cbd8871cecc02f3c1aeb1ee3c0616a96bd5e3b51631337fecc228ab
-    process.yaml: sha256:a8b4debda90c38facf9a6e54841f1bed5ed42e867b3f9f6658e655af26419e88
-    process/flowsheet.yaml: sha256:054b63512bd04d34d0213e80526a871a6299e7029a73a3b909fd8edefddf067f
-    process/materials.yaml: sha256:c5f67b04eee9339d57ee9642203f5eae168aa3604ca6c2554e83a23ced62da98
+    equipment/equipment-list.yaml: sha256:1d034018623c462e8e706347935b9f1b305026af282e60c5bc2c293f12d2241d
+    lca/lca.yaml: sha256:ced4a94324a9839b3fac9c432f5df402b6418b5deab829eab059c4f64b83c406
+    process.yaml: sha256:b4adda81c4ec2f38efeae81e8bd901fd2d87e6c904b8f93b626d1bed66eb7d2d
+    process/flowsheet.yaml: sha256:a14a669313f0582e354b640a4fb3ff0e0c4f282243d795c6fc3337c157afc82b
+    process/materials.yaml: sha256:441efc24983d4340d30c6c60493e84e097c287c38c8ce0a0078fb07586070642

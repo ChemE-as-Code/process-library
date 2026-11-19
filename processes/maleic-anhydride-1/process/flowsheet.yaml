@@ -12,14 +12,16 @@
 #   generator (energy stream Q2 to the HP steam export);
 # - the reactor gas is cooled to 423 K in a steam generator (E-202) and enters the absorber
 #   A-301, where lean dibutyl phthalate takes up 99.4 % of the anhydride (A301, a component
-#   separator, D-007); the off-gas goes to the thermal oxidiser;
+#   separator, D-007), its heat of absorption and the gas's sensible heat removed by pump-around
+#   coolers on cooling water (Q10); the off-gas goes to the thermal oxidiser;
 # - the rich solvent is stripped under vacuum in T-302 (T302): the crude anhydride as a side
 #   draw, water and the light acids to the vacuum system and the oxidiser, the lean solvent
 #   from the bottom back to the absorber through the solvent cooler E-305, a small purge burnt
 #   and made up with fresh solvent (the tear S17, D-007);
 # - the crude is distilled under vacuum in C-401 to the product (C401, D-008);
 # - the off-gas, the stripper's and the column's lights and residues and the solvent purge are
-#   burnt in the thermal oxidiser F-501 with its waste-heat boiler (R501, D-009).
+#   burnt in the recuperative thermal oxidiser F-501 with its waste-heat boiler (R501, D-009);
+#   its induced-draught fan (K502) sends the flue gas to the stack.
 # Where the values come from:
 # - the reactor feed's composition (1.8 mol% butane, 1.7 mol% water), pressure and the
 #   conversion and selectivity: SRC-1 (US 7 589 217 B2); the absorber and stripper conditions
@@ -50,10 +52,10 @@ tears:
 convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 1.0e-5, rel: 1.0e-8}}
 specs:
   - id: rate
-    vary: {stream: S1, initial: 3350.0, with: {S3: 27.0054}}
+    vary: {stream: S1, initial: 3350.0, with: {S3: 27.0045}}
     target: {stream: S18, quantity: annual, value: 25000, unit: t, hours: 8000}
     provenance: assumed
-    source: "D-002: 25 000 t/a of maleic anhydride in 8000 h, ASSUMED; the humid air follows the butane at 27.0054 kg/kg, 98.2 kmol of humid air per 1.8 kmol of butane (scripts/balance.py, D-003)"
+    source: "D-002: 25 000 t/a of maleic anhydride in 8000 h, ASSUMED; the humid air follows the butane at 27.0045 kg/kg, 98.2 kmol of humid air per 1.8 kmol of butane (scripts/balance.py, D-003)"
   - id: solvent
     vary: {stream: S15, initial: 20.0}
     target: {stream: S16, component: DBP, quantity: ratio, per: {stream: S7, component: MA}, basis: mass, value: 4.8}
@@ -121,6 +123,7 @@ products:
       return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-010)"}
       min_approach: {value: 5, provenance: assumed, source: "D-010"}
     ports:
+      - {id: a301, direction: in, kind: energy}
       - {id: t302, direction: in, kind: energy}
       - {id: e305, direction: in, kind: energy}
       - {id: c401, direction: in, kind: energy}
@@ -154,6 +157,7 @@ blocks:
       - {id: lights, direction: out}
       - {id: purge, direction: out}
       - {id: steam, direction: in, kind: energy}
+      - {id: q_abs, direction: out, kind: energy}
       - {id: q_cond, direction: out, kind: energy}
       - {id: q_cool, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
@@ -169,7 +173,7 @@ blocks:
       - {id: q, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: OXID
-    title: Thermal oxidiser with waste-heat boiler (F-501)
+    title: Recuperative thermal oxidiser with waste-heat boiler and draught fan (F-501)
     class: ReactingChemicals
     ports:
       - {id: offgas, direction: in}
@@ -232,9 +236,9 @@ steps:
       - {id: q, direction: out, kind: energy, delegates: q_gas}
   - id: A301
     block: RECOV
-    title: Absorber, lean dibutyl phthalate (component separator)
+    title: Absorber, lean dibutyl phthalate, with pump-around coolers (component separator)
     class: Absorbing
-    links: [{target: equipment, ref: A-301}]
+    links: [{target: equipment, ref: A-301}, {target: equipment, ref: E-306}]
     recovery:
       outlets:
         offgas: {N2: 1.0, O2: 1.0, AR: 1.0, CO: 1.0, CO2: 1.0, NC4: 1.0, H2O: 0.994, MA: 0.006, AA: 0.90, ACR: 0.47, DBP: 0.0001}
@@ -245,6 +249,7 @@ steps:
       - {id: lean, direction: in}
       - {id: offgas, direction: out, delegates: offgas}
       - {id: rich, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q_abs}
   - id: T302
     block: RECOV
     title: Vacuum stripper with crude side draw (component separator)
@@ -325,7 +330,7 @@ steps:
       - {id: out, direction: out}
   - id: R501
     block: OXID
-    title: Thermal oxidiser and waste-heat boiler (flue gas to 453 K)
+    title: Recuperative thermal oxidiser and waste-heat boiler (flue gas to 453 K)
     class: ReactingChemicals
     reactions: [NC4_OX, CO_OX, MA_OX, AA_OX, ACR_OX, DBP_OX]
     reactor: conversion
@@ -333,8 +338,16 @@ steps:
     links: [{target: equipment, ref: F-501}]
     ports:
       - {id: in, direction: in}
-      - {id: out, direction: out, delegates: flue}
+      - {id: out, direction: out}
       - {id: q, direction: out, kind: energy, delegates: q}
+  - id: K502
+    block: OXID
+    title: Induced-draught fan (flue gas to the stack)
+    class: Compressing
+    links: [{target: equipment, ref: F-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: flue}
       - {id: power, direction: in, kind: energy, delegates: power}
 
 streams:
@@ -349,7 +362,7 @@ streams:
         pressure: {value: 450, provenance: assumed, source: "battery limit (D-003)"}
         phase: {value: liquid, provenance: assumed, source: "liquefied butane from storage (D-003)"}
         composition: {basis: mass_fraction, values: {NC4: 1.0}, provenance: assumed, source: "D-003: n-butane, the feed's isobutane and propane not modelled"}
-        flow: {value: 3337.14, provenance: calculated, source: 'cheme process propagate: spec rate (S18 t/a 25000)', fingerprint: 1143fb14000f6f0e}
+        flow: {value: 3337.25, provenance: calculated, source: 'cheme process propagate: spec rate (S18 t/a 25000)', fingerprint: 68153e813d3d59e3}
   - id: S2
     title: n-Butane vapour
     from: E101.out
@@ -360,8 +373,8 @@ streams:
         temperature: {value: 333.15, provenance: assumed, source: "D-003: vaporised and superheated with LP steam"}
         pressure: {value: 400, provenance: assumed, source: "D-003"}
         phase: {value: vapor, provenance: assumed, source: "superheated about 20 K above the dew point at 400 kPa(a)"}
-        flow: {value: 3337.14, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: 0aee37a697431131}
-        composition: {basis: mass_fraction, values: {NC4: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: 0aee37a697431131}
+        flow: {value: 3337.25, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: e41cf09ec44b6b75}
+        composition: {basis: mass_fraction, values: {NC4: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S1', fingerprint: e41cf09ec44b6b75}
   - id: S3
     title: Ambient air (humid)
     from: AIRF.out
@@ -372,7 +385,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design ambient (D-003)"}
         pressure: {value: 101.325, provenance: assumed, source: "atmospheric (D-003)"}
         composition: {basis: mole_fraction, values: {N2: 0.767598, O2: 0.205908, AR: 0.009182, H2O: 0.017312}, provenance: assumed, source: "dry air (N2 78.084, O2 20.946, Ar 0.934 mol%, CO2 left out, normalised; N2 rounded so the fractions sum to 1) carrying the water that gives 1.7 mol% in the reactor feed, SRC-1's pilot inlet (D-003; humidification not modelled)"}
-        flow: {value: 90120.8, provenance: calculated, source: 'cheme process propagate: spec rate (27.0054 x S1)', fingerprint: 1143fb14000f6f0e}
+        flow: {value: 90120.8, provenance: calculated, source: 'cheme process propagate: spec rate (27.0045 x S1)', fingerprint: 68153e813d3d59e3}
   - id: S4
     title: Compressed air
     from: K102.out
@@ -393,8 +406,8 @@ streams:
       design:
         temperature: {value: 407.0, provenance: assumed, source: "scripts/balance.py: adiabatic mixing of S2 and S4 (D-010)"}
         pressure: {value: 239, provenance: given, source: "SRC-1 (US 7 589 217 B2): pilot inlet 20 psig"}
-        flow: {value: 93457.9, provenance: calculated, source: 'cheme process propagate: mixer M103 from S2 S4', fingerprint: d00ac368225281b9}
-        composition: {basis: mole_fraction, values: {NC4: 0.018, N2: 0.753781, O2: 0.202202, AR: 0.00901672, H2O: 0.0170004}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S2 S4', fingerprint: 3ca6709c053208ec}
+        flow: {value: 93458.1, provenance: calculated, source: 'cheme process propagate: mixer M103 from S2 S4', fingerprint: 686c20f20d82a070}
+        composition: {basis: mole_fraction, values: {NC4: 0.018, N2: 0.753781, O2: 0.202202, AR: 0.00901672, H2O: 0.0170004}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S2 S4', fingerprint: 41f760554b39f531}
   - id: S6
     title: Reactor gas
     from: R201.out
@@ -404,8 +417,8 @@ streams:
       design:
         temperature: {value: 683.15, provenance: assumed, source: "D-004: 8 K above the salt at 675 K (SRC-1's Example 3 salt bath, 402 C)"}
         pressure: {value: 160, provenance: assumed, source: "D-004: pressure drop over the packed tubes, ASSUMED"}
-        flow: {value: 93457.9, provenance: calculated, source: 'cheme process propagate: reactor R201 from S5', fingerprint: 94440f66e05bf380}
-        composition: {basis: mole_fraction, values: {NC4: 0.00336539, O2: 0.141914, N2: 0.741744, AR: 0.00887274, H2O: 0.0773458, CO: 0.00998564, CO2: 0.00622668, MA: 0.00997129, AA: 0.000430415, ACR: 0.000143472}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S5', fingerprint: 84a103e878e2cb8e}
+        flow: {value: 93458.1, provenance: calculated, source: 'cheme process propagate: reactor R201 from S5', fingerprint: 1ce32e8470d8ac3c}
+        composition: {basis: mole_fraction, values: {NC4: 0.00336539, O2: 0.141914, N2: 0.741744, AR: 0.00887274, H2O: 0.0773458, CO: 0.00998564, CO2: 0.00622668, MA: 0.00997129, AA: 0.000430415, ACR: 0.000143472}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S5', fingerprint: e5c6afc93a368aa6}
   - id: S7
     title: Cooled reactor gas to the absorber
     from: E202.out
@@ -415,8 +428,8 @@ streams:
       design:
         temperature: {value: 423.15, provenance: given, source: "SRC-2 (US 4 118 403 A): reactor gas enters the absorber at about 145 to 155 C"}
         pressure: {value: 130, provenance: assumed, source: "D-007: SRC-2's absorber gas at about 915 torr (122 kPa), slightly above it"}
-        flow: {value: 93457.9, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S6', fingerprint: 189a40fe61d6528a}
-        composition: {basis: mole_fraction, values: {NC4: 0.00336539, O2: 0.141914, N2: 0.741744, AR: 0.00887274, H2O: 0.0773458, CO: 0.00998564, CO2: 0.00622668, MA: 0.00997129, AA: 0.000430415, ACR: 0.000143472}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S6', fingerprint: 189a40fe61d6528a}
+        flow: {value: 93458.1, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S6', fingerprint: d6359e7ccd999e0e}
+        composition: {basis: mole_fraction, values: {NC4: 0.00336539, O2: 0.141914, N2: 0.741744, AR: 0.00887274, H2O: 0.0773458, CO: 0.00998564, CO2: 0.00622668, MA: 0.00997129, AA: 0.000430415, ACR: 0.000143472}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S6', fingerprint: d6359e7ccd999e0e}
   - id: S8
     title: Absorber off-gas to the thermal oxidiser
     from: A301.offgas
@@ -426,8 +439,8 @@ streams:
       design:
         temperature: {value: 331.15, provenance: given, source: "SRC-2: absorber overhead 56 to 60 C"}
         pressure: {value: 115, provenance: given, source: "SRC-2: absorber overhead 825 to 885 torr"}
-        flow: {value: 90256.0, provenance: calculated, source: 'cheme process propagate: separator A301 from S7 S17', fingerprint: 44106af28b3137cc}
-        composition: {basis: mole_fraction, values: {NC4: 0.00340108, O2: 0.143419, N2: 0.749609, AR: 0.00896683, H2O: 0.077697, CO: 0.0100915, CO2: 0.00629271, MA: 6.13145e-05, AA: 0.000391481, ACR: 6.81469e-05, DBP: 1.70398e-06}, provenance: calculated, source: 'cheme process propagate: separator A301 from S7 S17', fingerprint: 44106af28b3137cc}
+        flow: {value: 90256.2, provenance: calculated, source: 'cheme process propagate: separator A301 from S7 S17', fingerprint: 770a8fce74cc7c29}
+        composition: {basis: mole_fraction, values: {NC4: 0.00340108, O2: 0.143419, N2: 0.749609, AR: 0.00896683, H2O: 0.077697, CO: 0.0100915, CO2: 0.00629271, MA: 6.13145e-05, AA: 0.000391481, ACR: 6.81469e-05, DBP: 1.70398e-06}, provenance: calculated, source: 'cheme process propagate: separator A301 from S7 S17', fingerprint: 770a8fce74cc7c29}
   - id: S9
     title: Rich solvent
     from: A301.rich
@@ -437,8 +450,8 @@ streams:
       design:
         temperature: {value: 376.15, provenance: given, source: "SRC-2: rich solvent leaves the absorber at 101 to 105 C"}
         pressure: {value: 300, provenance: assumed, source: "D-007: rich solvent pump discharge"}
-        flow: {value: 18459.9, provenance: calculated, source: 'cheme process propagate: separator A301 from S7 S17', fingerprint: 44106af28b3137cc}
-        composition: {basis: mole_fraction, values: {NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.0168793, CO: 0.0, CO2: 0.0, MA: 0.365582, AA: 0.00156551, ACR: 0.00276573, DBP: 0.613207}, provenance: calculated, source: 'cheme process propagate: separator A301 from S7 S17', fingerprint: 44106af28b3137cc}
+        flow: {value: 18459.9, provenance: calculated, source: 'cheme process propagate: separator A301 from S7 S17', fingerprint: 770a8fce74cc7c29}
+        composition: {basis: mole_fraction, values: {NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.0168793, CO: 0.0, CO2: 0.0, MA: 0.365582, AA: 0.00156551, ACR: 0.00276574, DBP: 0.613207}, provenance: calculated, source: 'cheme process propagate: separator A301 from S7 S17', fingerprint: 770a8fce74cc7c29}
   - id: S10
     title: Crude maleic anhydride
     from: T302.crude
@@ -448,8 +461,8 @@ streams:
       design:
         temperature: {value: 348.15, provenance: given, source: "SRC-2: crude cooled to 70 to 80 C"}
         pressure: {value: 200, provenance: assumed, source: "D-007: crude pump discharge"}
-        flow: {value: 3146.36, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: ca1656cb156e82dc}
-        composition: {basis: mole_fraction, values: {DBP: 3.3955e-05, MA: 0.992934, H2O: 0.00233664, AA: 0.000866867, ACR: 0.00382866, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: ca1656cb156e82dc}
+        flow: {value: 3146.36, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: b64b9f96b7b55398}
+        composition: {basis: mole_fraction, values: {DBP: 3.3955e-05, MA: 0.992934, H2O: 0.00233664, AA: 0.000866867, ACR: 0.00382867, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: b64b9f96b7b55398}
   - id: S11
     title: Stripper lights (water, acids) from the vacuum system
     from: T302.lights
@@ -459,8 +472,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "D-007: SRC-2's overhead condensation at 66 to 70 C, the uncondensed part and the vacuum system's discharge"}
         pressure: {value: 110, provenance: assumed, source: "D-007: vacuum pump discharge"}
-        flow: {value: 57.3037, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: ca1656cb156e82dc}
-        composition: {basis: mole_fraction, values: {DBP: 0.0, MA: 0.0891728, H2O: 0.782268, AA: 0.0610975, ACR: 0.0674617, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: ca1656cb156e82dc}
+        flow: {value: 57.3037, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: b64b9f96b7b55398}
+        composition: {basis: mole_fraction, values: {DBP: 0.0, MA: 0.0891728, H2O: 0.782268, AA: 0.0610975, ACR: 0.0674619, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: b64b9f96b7b55398}
   - id: S12
     title: Lean solvent from the stripper bottom
     from: T302.lean
@@ -470,8 +483,8 @@ streams:
       design:
         temperature: {value: 519.15, provenance: given, source: "SRC-2: reboiler at 244 to 248 C"}
         pressure: {value: 300, provenance: assumed, source: "D-007: bottoms pump discharge"}
-        flow: {value: 15256.2, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: ca1656cb156e82dc}
-        composition: {basis: mole_fraction, values: {DBP: 0.991722, MA: 0.0082776, H2O: 0.0, AA: 0.0, ACR: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: ca1656cb156e82dc}
+        flow: {value: 15256.2, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: b64b9f96b7b55398}
+        composition: {basis: mole_fraction, values: {DBP: 0.991722, MA: 0.0082776, H2O: 0.0, AA: 0.0, ACR: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T302 from S9', fingerprint: b64b9f96b7b55398}
   - id: S13
     title: Solvent purge to the thermal oxidiser
     from: SP303.purge
@@ -504,7 +517,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "battery limit (D-007)"}
         pressure: {value: 300, provenance: assumed, source: "D-007"}
         composition: {basis: mass_fraction, values: {DBP: 1.0, MA: 0.0, H2O: 0.0, AA: 0.0, ACR: 0.0}, provenance: assumed, source: "D-007: dibutyl phthalate, the phthalic anhydride SRC-2 allows in it not modelled"}
-        flow: {value: 17.037, provenance: calculated, source: 'cheme process propagate: spec solvent (S16 DBP per S7 MA (mass) 4.8)', fingerprint: 1143fb14000f6f0e}
+        flow: {value: 17.037, provenance: calculated, source: 'cheme process propagate: spec solvent (S16 DBP per S7 MA (mass) 4.8)', fingerprint: 68153e813d3d59e3}
   - id: S16
     title: Lean solvent to the cooler
     from: M304.out
@@ -515,7 +528,7 @@ streams:
         temperature: {value: 519.0, provenance: assumed, source: "scripts/balance.py: S14 with the make-up, thermo 0.6.1 liquid heat capacities (D-010)"}
         pressure: {value: 300, provenance: assumed, source: "as S12"}
         flow: {value: 15257.9, provenance: calculated, source: 'cheme process propagate: mixer M304 from S14 S15', fingerprint: 6544948fdd6796b1}
-        composition: {basis: mole_fraction, values: {DBP: 0.991732, MA: 0.00826841, H2O: 0.0, AA: 0.0, ACR: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M304 from S14 S15', fingerprint: ebc8f53fabed2e6d}
+        composition: {basis: mole_fraction, values: {DBP: 0.991732, MA: 0.00826841, H2O: 0.0, AA: 0.0, ACR: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M304 from S14 S15', fingerprint: 2c537a45e23a24b4}
   - id: S17
     title: Cooled lean solvent to the absorber
     from: E305.out
@@ -525,8 +538,8 @@ streams:
       design:
         temperature: {value: 307.15, provenance: given, source: "SRC-2: lean solvent at 32 to 36 C"}
         pressure: {value: 250, provenance: assumed, source: "D-007"}
-        flow: {value: 15258.0, provenance: calculated, source: 'cheme process propagate: recycle E305 from S16 (tear, broyden)', fingerprint: 24159221aabccea1}
-        composition: {basis: mole_fraction, values: {DBP: 0.991732, MA: 0.00826841, H2O: 0.0, AA: 0.0, ACR: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle E305 from S16 (tear, broyden)', fingerprint: 24159221aabccea1}
+        flow: {value: 15258.0, provenance: calculated, source: 'cheme process propagate: recycle E305 from S16 (tear, broyden)', fingerprint: 1591237b228562b9}
+        composition: {basis: mole_fraction, values: {DBP: 0.991732, MA: 0.00826841, H2O: 0.0, AA: 0.0, ACR: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle E305 from S16 (tear, broyden)', fingerprint: 1591237b228562b9}
   - id: S18
     title: Maleic anhydride product (molten)
     from: C401.product
@@ -536,8 +549,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "D-008: molten, about 17 K above the 326 K melting point (NIST WebBook)"}
         pressure: {value: 200, provenance: assumed, source: "D-008: product pump discharge"}
-        flow: {value: 3125.02, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: 16ad74217fd8630c}
-        composition: {basis: mole_fraction, values: {MA: 0.99988, H2O: 0.0, AA: 4.37779e-06, ACR: 0.000116011, DBP: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: 16ad74217fd8630c}
+        flow: {value: 3125.02, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: e8ed1f862059b7a4}
+        composition: {basis: mole_fraction, values: {MA: 0.99988, H2O: 0.0, AA: 4.37779e-06, ACR: 0.000116012, DBP: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: e8ed1f862059b7a4}
   - id: S19
     title: Column lights to the thermal oxidiser
     from: C401.lights
@@ -547,8 +560,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "D-008: vacuum system discharge"}
         pressure: {value: 110, provenance: assumed, source: "D-008"}
-        flow: {value: 16.3385, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: 16ad74217fd8630c}
-        composition: {basis: mole_fraction, values: {MA: 0.17726, H2O: 0.278093, AA: 0.102653, ACR: 0.441994, DBP: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: 16ad74217fd8630c}
+        flow: {value: 16.3385, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: e8ed1f862059b7a4}
+        composition: {basis: mole_fraction, values: {MA: 0.177259, H2O: 0.278093, AA: 0.102653, ACR: 0.441995, DBP: 0.0, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: e8ed1f862059b7a4}
   - id: S20
     title: Column residue to the thermal oxidiser
     from: C401.residue
@@ -558,8 +571,8 @@ streams:
       design:
         temperature: {value: 433.15, provenance: assumed, source: "D-008: column bottom at about 13 kPa(a)"}
         pressure: {value: 200, provenance: assumed, source: "D-008: residue pump discharge"}
-        flow: {value: 5.00545, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: 16ad74217fd8630c}
-        composition: {basis: mole_fraction, values: {MA: 0.97771, H2O: 0.0, AA: 0.0, ACR: 0.0, DBP: 0.0222896, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: 16ad74217fd8630c}
+        flow: {value: 5.00545, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: e8ed1f862059b7a4}
+        composition: {basis: mole_fraction, values: {MA: 0.97771, H2O: 0.0, AA: 0.0, ACR: 0.0, DBP: 0.0222896, NC4: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, CO: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S10', fingerprint: e8ed1f862059b7a4}
   - id: S21
     title: Oxidiser feed
     from: M501.out
@@ -569,30 +582,45 @@ streams:
       design:
         temperature: {value: 331.2, provenance: assumed, source: "scripts/balance.py: the mixed feeds, the small liquid streams counted as ideal gas (D-010)"}
         pressure: {value: 110, provenance: assumed, source: "D-009"}
-        flow: {value: 90349.9, provenance: calculated, source: 'cheme process propagate: mixer M501 from S8 S11 S13 S19 S20', fingerprint: 0dd1dd41a8eb518e}
-        composition: {basis: mole_fraction, values: {N2: 0.749095, O2: 0.143321, AR: 0.00896068, H2O: 0.0781124, CO: 0.0100846, CO2: 0.0062884, NC4: 0.00339875, MA: 0.000142043, AA: 0.000434637, ACR: 0.000143742, DBP: 1.90694e-05}, provenance: calculated, source: 'cheme process propagate: mixer M501 from S8 S11 S13 S19 S20', fingerprint: 882538f9e80f7b46}
+        flow: {value: 90350.1, provenance: calculated, source: 'cheme process propagate: mixer M501 from S8 S11 S13 S19 S20', fingerprint: b52c08c8778c372a}
+        composition: {basis: mole_fraction, values: {N2: 0.749095, O2: 0.143321, AR: 0.00896068, H2O: 0.0781124, CO: 0.0100846, CO2: 0.0062884, NC4: 0.00339875, MA: 0.000142042, AA: 0.000434637, ACR: 0.000143742, DBP: 1.90694e-05}, provenance: calculated, source: 'cheme process propagate: mixer M501 from S8 S11 S13 S19 S20', fingerprint: c4ccc7b7b07001df}
   - id: S22
-    title: Flue gas to the stack
+    title: Flue gas from the economiser to the draught fan
     from: R501.out
-    to: STACK.in
+    to: K502.in
     template: flue_gas
     state:
       design:
         temperature: {value: 453.15, provenance: assumed, source: "D-009: after the waste-heat boiler and the feed-water economiser, ASSUMED"}
+        pressure: {value: 96.3, provenance: assumed, source: "D-009: the stack pressure less the draught fan's 5 kPa (ASSUMED)"}
+        flow: {value: 90350.1, provenance: calculated, source: 'cheme process propagate: reactor R501 from S21', fingerprint: 44341fe43d95c66c}
+        composition: {basis: mole_fraction, values: {N2: 0.748417, O2: 0.114017, AR: 0.00895257, H2O: 0.0965102, CO: 2.0151e-05, CO2: 0.0320788, NC4: 3.39568e-06, MA: 1.41914e-08, AA: 4.34244e-08, ACR: 1.43612e-08, DBP: 1.90521e-09}, provenance: calculated, source: 'cheme process propagate: reactor R501 from S21', fingerprint: 1aea71f300651720}
+  - id: S23
+    title: Flue gas to the stack
+    from: K502.out
+    to: STACK.in
+    template: flue_gas
+    state:
+      design:
+        temperature: {value: 461.9, provenance: assumed, source: "scripts/balance.py: S22 heated by the draught fan's shaft work (D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "stack"}
-        flow: {value: 90349.9, provenance: calculated, source: 'cheme process propagate: reactor R501 from S21', fingerprint: 8816cda691792763}
-        composition: {basis: mole_fraction, values: {N2: 0.748417, O2: 0.114017, AR: 0.00895257, H2O: 0.0965102, CO: 2.0151e-05, CO2: 0.0320788, NC4: 3.39568e-06, MA: 1.41915e-08, AA: 4.34244e-08, ACR: 1.43612e-08, DBP: 1.90521e-09}, provenance: calculated, source: 'cheme process propagate: reactor R501 from S21', fingerprint: 647fd093a6b7257d}
+        flow: {value: 90350.1, provenance: calculated, source: 'cheme process propagate: pass-through K502 from S22', fingerprint: f1671bdce85d1c6b}
+        composition: {basis: mole_fraction, values: {N2: 0.748417, O2: 0.114017, AR: 0.00895257, H2O: 0.0965102, CO: 2.0151e-05, CO2: 0.0320788, NC4: 3.39568e-06, MA: 1.41914e-08, AA: 4.34244e-08, ACR: 1.43612e-08, DBP: 1.90521e-09}, provenance: calculated, source: 'cheme process propagate: pass-through K502 from S22', fingerprint: f1671bdce85d1c6b}
   # --- energy -------------------------------------------------------------------------------
   - {id: Q1, title: Butane vaporiser duty, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 387.6, provenance: assumed, source: "scripts/balance.py: liquid butane heated to its 315.1 K saturation at 400 kPa(a), vaporised and superheated to 333.15 K (thermo 0.6.1), D-010"}}}}
   - {id: P1, title: Air compressor power, kind: energy, from: POWER.k102, to: K102.power, state: {design: {duty: {value: 3035.1, provenance: assumed, source: "scripts/balance.py: humid air 101.325 to 260 kPa(a), isentropic efficiency 0.80, motor 0.96 (ASSUMED), ideal gas (D-010)"}}}}
-  - {id: Q2, title: Reactor heat to the salt and its steam generator, kind: energy, from: R201.q, to: HPS.r201, state: {design: {duty: {value: 10547.6, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S5 S6', fingerprint: b10997f8619068f2}}}}
+  - {id: Q2, title: Reactor heat to the salt and its steam generator, kind: energy, from: R201.q, to: HPS.r201, state: {design: {duty: {value: 10547.7, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S5 S6', fingerprint: a50f7052ebc8f668}}}}
   - {id: Q3, title: Gas cooler steam generation, kind: energy, from: E202.q, to: HPS.e202, state: {design: {duty: {value: 7526.9, provenance: assumed, source: "scripts/balance.py: reactor gas 683.15 to 423.15 K, ideal gas with materials.yaml's data; HP steam above about 551 K, boiler feed water preheated below (D-010)"}}}}
-  - {id: Q4, title: Stripper reboiler (HP steam), kind: energy, from: HPSI.t302, to: T302.steam, state: {design: {duty: {value: 2026.9, provenance: assumed, source: "scripts/balance.py: rich solvent 376.15 to 519.15 K, the crude boiled up and the lights at SRC-2's reflux 2, no lean/rich interchanger (D-007, D-010)"}}}}
+  - {id: Q10, title: Absorber pump-around coolers, kind: energy, from: A301.q, to: CW.a301, state: {design: {duty: {value: 2476.1, provenance: assumed, source: "scripts/balance.py: the absorber's heat balance at SRC-2's four end temperatures (gas 423.15 to 331.15 K, the absorbate condensed, the lean solvent 307.15 to 376.15 K), removed by pump-around coolers on cooling water, ASSUMED (D-007, D-010)"}}}}
+  - {id: Q4, title: Stripper reboiler (HP steam), kind: energy, from: HPSI.t302, to: T302.steam, state: {design: {duty: {value: 1858.5, provenance: assumed, source: "scripts/balance.py: the lean part of the rich solvent 376.15 to 519.15 K, the crude to its 400 K draw near the top and the lights to their outlet, the crude boiled up and the lights at SRC-2's reflux 2, no lean/rich interchanger; Q4 less Q5 closes the stripper's heat balance (D-007, D-010)"}}}}
   - {id: Q5, title: Stripper condenser and sponge cooler, kind: energy, from: T302.q, to: CW.t302, state: {design: {duty: {value: 613.2, provenance: assumed, source: "scripts/balance.py: the boil-up condensed and the crude cooled from its 400 K draw to 348.15 K (D-007, D-010)"}}}}
   - {id: Q6, title: Lean solvent cooler, kind: energy, from: E305.q, to: CW.e305, state: {design: {duty: {value: 1803.4, provenance: assumed, source: "scripts/balance.py: lean solvent 519.0 to 307.15 K, thermo 0.6.1 liquid heat capacities (D-007, D-010)"}}}}
-  - {id: Q7, title: Column reboiler (HP steam), kind: energy, from: HPSI.c401, to: C401.steam, state: {design: {duty: {value: 1323.8, provenance: assumed, source: "scripts/balance.py: crude 348.15 to 433.15 K, the product and lights boiled up at reflux 1.5 (ASSUMED), MA's heat of vaporisation from the NIST WebBook (D-008, D-010)"}}}}
-  - {id: Q8, title: Column condenser, kind: energy, from: C401.q, to: CW.c401, state: {design: {duty: {value: 1302.9, provenance: assumed, source: "scripts/balance.py: the overhead condensed and the product cooled to 343.15 K (D-008, D-010)"}}}}
-  - {id: Q9, title: Oxidiser waste-heat boiler steam, kind: energy, from: R501.q, to: HPS.r501, state: {design: {duty: {value: 8363.45, provenance: calculated, source: 'cheme process propagate: conversion duty R501 from S21 S22', fingerprint: 86784d9d1f74edbd}}}}
-  - {id: P2, title: Recovery pumps and stripper vacuum, kind: energy, from: POWER.recov, to: T302.power, state: {design: {duty: {value: 36.6, provenance: assumed, source: "scripts/balance.py: rich, lean and crude pumps (efficiency 0.60) and a 30 kW vacuum pump, ASSUMED (D-010)"}}}}
+  - {id: Q7, title: Column reboiler (HP steam), kind: energy, from: HPSI.c401, to: C401.steam, state: {design: {duty: {value: 1298.0, provenance: assumed, source: "scripts/balance.py: the crude from 348.15 K, the residue to the 433.15 K bottom and the product and lights to the 413.15 K top, boiled up at reflux 1.5 (ASSUMED), MA's heat of vaporisation from the NIST WebBook (D-008, D-010)"}}}}
+  - {id: Q8, title: Column condenser, kind: energy, from: C401.q, to: CW.c401, state: {design: {duty: {value: 1303.5, provenance: assumed, source: "scripts/balance.py: the overhead condensed and the product and lights cooled from 413.15 to 343.15 K; Q7 less Q8 closes the column's heat balance (D-008, D-010)"}}}}
+  # Q9: the heat of combustion and the feed's sensible heat down to the flue gas at 453 K. The
+  # recuperator inside F-501 (feed preheated against the flue gas, scripts/balance.py, D-009)
+  # moves heat within the step and does not change it.
+  - {id: Q9, title: Oxidiser waste-heat boiler steam, kind: energy, from: R501.q, to: HPS.r501, state: {design: {duty: {value: 8116.57, provenance: calculated, source: 'cheme process propagate: conversion duty R501 from S21 S22', fingerprint: c65236e94bad60db}}}}
+  - {id: P2, title: Recovery pumps and stripper vacuum, kind: energy, from: POWER.recov, to: T302.power, state: {design: {duty: {value: 50.6, provenance: assumed, source: "scripts/balance.py: rich, lean, crude and absorber pump-around pumps (efficiency 0.60) and a 30 kW vacuum pump, ASSUMED (D-007, D-010)"}}}}
   - {id: P3, title: Column vacuum and pumps, kind: energy, from: POWER.c401, to: C401.power, state: {design: {duty: {value: 15.9, provenance: assumed, source: "scripts/balance.py: product pump and a 15 kW vacuum pump, ASSUMED (D-010)"}}}}
-  - {id: P4, title: Oxidiser fan, kind: energy, from: POWER.f501, to: R501.power, state: {design: {duty: {value: 246.9, provenance: assumed, source: "scripts/balance.py: flue gas at 453 K, 5 kPa, fan 0.70, motor 0.96, ASSUMED (D-010)"}}}}
+  - {id: P4, title: Oxidiser fan, kind: energy, from: POWER.f501, to: K502.power, state: {design: {duty: {value: 246.9, provenance: assumed, source: "scripts/balance.py: induced-draught fan after the economiser on the flue gas at 453 K, 5 kPa, fan 0.70, motor 0.96, ASSUMED; its work heats the stack gas S23, it raises no steam (D-009, D-010)"}}}}

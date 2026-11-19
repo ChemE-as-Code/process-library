@@ -6,7 +6,9 @@
 # kg of maleic anhydride from the balanced flowsheet. The backgrounds are left unmapped
 # (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
 # shared entry: a gap, never zero, and no values from licensed databases. n-Butane and dibutyl
-# phthalate have no library producer.
+# phthalate have no library producer. The gaps are this file's (`cheme assess lca`); the library's
+# Atlas build (scripts/build_lci.py) links electricity and cooling water through the shared
+# lci/mappings.yaml, and its remaining gaps are butane, the solvent and the catalyst.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -39,7 +41,7 @@ allocation:
     The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
     Energy allocation on the anhydride's heating value against the steam's heat, or a credit
     for the avoided boiler steam (system expansion), would lower the anhydride's burden markedly:
-    the plant exports about 7.4 kWh of net HP steam per kg (8.46 raised less 1.07 drawn back for
+    the plant exports about 7.4 kWh of net HP steam per kg (8.38 raised less 1.01 drawn back for
     the reboilers). Shares 1/0 are the conservative choice until the receiving site and its
     steam are known.
 flows:
@@ -52,17 +54,17 @@ flows:
     source: "flowsheet stream S15, the solvent make-up (D-007)"
   - key: feed:POWER
     missing: "not mapped yet (D-012): connect to grid electricity, medium voltage, of the (undecided) site country"
-    source: "flowsheet energy streams P1 (air compressor, 3035 kW), P2, P3 (pumps and vacuum pumps) and P4 (oxidiser fan), 1.067 kWh/kg (D-010)"
+    source: "flowsheet energy streams P1 (air compressor, 3035 kW), P2, P3 (pumps and vacuum pumps) and P4 (oxidiser fan), 1.072 kWh/kg (D-010)"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: LP steam 450 kPa(a) from the site steam system, per kWh of heat"
     source: "flowsheet energy stream Q1, the butane vaporiser (D-010)"
   - key: feed:HPSI
     missing: "linked as heat from steam (lca/mappings.yaml): HP steam drawn back from the site header for the reboilers; in practice part of the steam the plant raises (D-010, D-012)"
-    source: "flowsheet energy streams Q4 (stripper reboiler) and Q7 (column reboiler), 1.072 kWh/kg (D-010)"
+    source: "flowsheet energy streams Q4 (stripper reboiler) and Q7 (column reboiler), 1.010 kWh/kg (D-010)"
   - key: product:CW
     missing: "not mapped yet (D-012): connect to heat rejected to a recirculating cooling-water system (processes/utility-cooling-tower), per kWh"
-    source: "flowsheet energy streams Q5, Q6 and Q8, 1.190 kWh/kg (D-010)"
-  - {key: product:STACK, emission: true, source: "thermal oxidiser flue gas to the stack, stream S22 (D-009)"}
+    source: "flowsheet energy streams Q10 (absorber pump-around coolers), Q5, Q6 and Q8, 1.983 kWh/kg (D-010)"
+  - {key: product:STACK, emission: true, source: "thermal oxidiser flue gas to the stack after the draught fan, stream S23 (D-009)"}
   - {key: emission:N2, free: true, source: "atmospheric nitrogen returned"}
   - {key: emission:O2, free: true, source: "atmospheric oxygen not consumed, returned"}
   - {key: emission:AR, free: true, source: "atmospheric argon returned"}

@@ -17,16 +17,19 @@ description: |
   (C4H10 + 3.5 O2 -> C4H2O3 + 4 H2O), the rest to CO, CO2, acetic and acrylic acid. The salt
   raises 10.5 MW of HP steam (4500 kPa(a)); the reactor gas is cooled to 423 K in a second steam
   generator (7.5 MW) and enters an absorber where lean dibutyl phthalate, 4.8 kg per kg of
-  anhydride in the gas, takes up 99.4 % of it (US 4 118 403 A, Monsanto). The rich solvent is
+  anhydride in the gas, takes up 99.4 % of it (US 4 118 403 A, Monsanto); pump-around coolers
+  remove the absorber's 2.5 MW of heat. The rich solvent is
   stripped under vacuum: the crude anhydride as a side draw, water and the acids to the vacuum
   system, the lean solvent at 519 K back through a cooler, 0.1 % of it purged and made up. The
-  crude is distilled under vacuum to the product. The off-gas (about 0.7 t/h of unconverted
-  butane and 0.9 t/h of CO) and the plant's liquid wastes are burnt in a thermal oxidiser whose
-  waste-heat boiler raises another 8.4 MW.
+  crude is distilled under vacuum to the product. The off-gas (about 0.6 t/h of unconverted
+  butane and 0.9 t/h of CO, a third of its lower flammable limit) and the plant's liquid wastes
+  are burnt in a recuperative thermal oxidiser (the feed preheated against the flue gas, as
+  assumed in DESIGN.md D-009) whose waste-heat boiler raises another 8.1 MW.
 
   Per kg of anhydride: 1.068 kg butane (55.5 mol% overall yield; SRC-3's once-through example
-  1.061), 1.07 kWh of electricity (0.97 for the air compressor), 8.46 kWh of HP steam raised and
-  1.07 drawn back for the reboilers, 1.45 kg of fossil CO2 to the stack, 5.5 g of solvent. The
+  1.061), 1.07 kWh of electricity (0.97 for the air compressor), 8.38 kWh of HP steam raised and
+  1.01 drawn back for the reboilers, 1.98 kWh of heat to cooling water, 1.45 kg of fossil CO2 to
+  the stack, 5.5 g of solvent. The
   1.8 mol% butane feed lies above butane's lower flammable limit (1.4 vol%): the feed train and
   the reactor heads are the main hazard (DESIGN.md D-011).
 
@@ -51,7 +54,7 @@ validation:
   status: unreviewed
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
-    streams: 5 blocks and 13 steps within tolerance). cheme process propagate solves the
+    streams: 5 blocks and 14 steps within tolerance). cheme process propagate solves the
     reactor R201 and the oxidiser R501 as conversion steps and writes their duties Q2 and Q9
     from the heats of reaction and ideal-gas data (core ADR 0059), the absorber A301, the
     stripper T302 and the column C401 as component separators (core ADR 0070), the feeds for
@@ -59,12 +62,15 @@ validation:
     (design specifications), and the solvent loop at the tear S17 (ADR 0060).
     scripts/balance.py gives the air ratio, the compressor, the mixing temperatures and the
     other duties and powers (no property package of core covers these liquids) and cross-checks
-    R201's duty (10 547.6 kW, equal to core's). Conversion 0.81 and selectivity 0.695 from US
+    R201's duty (10 547.6 kW against core's 10 547.7). Each separator's heat balance closes,
+    the absorber's surplus going to pump-around coolers (2476 kW); the oxidiser's off-gas burns
+    only to about 743 K as it comes, so a recuperator (ASSUMED) preheats it for a 1073 K chamber. Conversion 0.81 and selectivity 0.695 from US
     7 589 217 B2; the absorber's conditions and splits from US 4 118 403 A; by-product
     selectivities, the stripper's and column's other splits, the oxidiser's destruction
     efficiencies and the efficiencies of machines ASSUMED. Preliminary gate-to-gate LCI with
-    all burdens on the anhydride (the exported steam at share 0); butane, solvent and
-    electricity are gaps, the steam drawn linked as heat. cheme maturity not evaluated; the
+    all burdens on the anhydride (the exported steam at share 0); in lca/lca.yaml butane,
+    solvent, electricity and cooling water are gaps, the steam drawn linked as heat (the
+    library's Atlas build links electricity and cooling water through lci/mappings.yaml). cheme maturity not evaluated; the
     claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
     reviewed. Needs cheme-as-code 1.12.0.
 chemistry:
@@ -74,13 +80,13 @@ chemistry:
     - {chemical: dibutyl-phthalate, role: feedstock, inventory_key: "feed:SOLF", note: "Absorption solvent make-up (no library process), 5.5 g/kg"}
   outputs:
     - {chemical: maleic-anhydride, role: main-product, inventory_key: "product:MAP", note: "Molten maleic anhydride, modelled 99.99 wt% (specification at least 99.5 wt%, ASSUMED), to storage"}
-    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4500 kPa(a), 8.46 kWh/kg raised (salt cooler, gas cooler, oxidiser's waste-heat boiler); allocation share 0 (DESIGN.md D-012)"}
+    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4500 kPa(a), 8.38 kWh/kg raised (salt cooler, gas cooler, oxidiser's waste-heat boiler); allocation share 0 (DESIGN.md D-012)"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "1.451 kg/kg fossil CO2 in the flue gas to the stack from the reactor's and the oxidiser's combustion"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.067 kWh/kg: air compressor 0.971, oxidiser fan 0.079, pumps and vacuum pumps"}
-    - {chemical: steam, role: utility, inventory_key: "feed:HPSI", note: "1.072 kWh/kg of HP steam to the stripper and column reboilers (drawn back from the header the plant feeds)"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.072 kWh/kg: air compressor 0.971, oxidiser fan 0.079, pumps and vacuum pumps 0.021"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPSI", note: "1.010 kWh/kg of HP steam to the stripper and column reboilers (drawn back from the header the plant feeds)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.124 kWh/kg of LP steam to the butane vaporiser"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.190 kWh/kg removed: stripper condenser, lean solvent cooler, column condenser"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.983 kWh/kg removed: absorber pump-around coolers (0.792), stripper condenser, lean solvent cooler, column condenser"}
 basis:
   capacity: "25 000 t/a maleic anhydride in 8000 h (3125 kg/h), ASSUMED (DESIGN.md D-002)"
   operating_hours_per_year: 8000

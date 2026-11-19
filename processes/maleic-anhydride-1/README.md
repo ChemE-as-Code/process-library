@@ -17,10 +17,11 @@ reactor of US 7 589 217 B2. A multitubular fixed-bed reactor with a vanadium pho
 it to maleic anhydride (C4H10 + 3.5 O2 -> C4H2O3 + 4 H2O) and the rest to CO, CO2, acetic and
 acrylic acid (`reactor: conversion`). The salt raises HP steam; the reactor gas is cooled to
 423 K in a second steam generator and enters an absorber, where lean dibutyl phthalate takes up
-99.4 % of the anhydride (US 4 118 403 A). The rich solvent is stripped under vacuum, the crude
-distilled under vacuum to the product, and the lean solvent cooled and returned. The off-gas,
-with the unconverted butane and the CO, and the plant's liquid wastes are burnt in a thermal
-oxidiser whose waste-heat boiler raises more HP steam.
+99.4 % of the anhydride (US 4 118 403 A), its heat removed by pump-around coolers. The rich
+solvent is stripped under vacuum, the crude distilled under vacuum to the product, and the lean
+solvent cooled and returned. The off-gas, with the unconverted butane and the CO, and the
+plant's liquid wastes are burnt in a recuperative thermal oxidiser (the lean off-gas preheated
+against the flue gas) whose waste-heat boiler raises more HP steam.
 
 cheme-as-code solves the whole mass balance: the reactor and the oxidiser as conversion steps
 with their duties (core ADR 0059), the absorber, the stripper and the column as component
@@ -36,8 +37,13 @@ Headline numbers and their caveats:
   5 688 970 A's once-through example. Conversion and selectivity are patent figures from a
   pilot tube; the acid by-products' selectivities and the CO/CO2 split are ASSUMED (D-004).
 - 1.07 kWh of electricity per kg, 0.97 of it the air compressor (D-010).
-- 8.46 kWh of HP steam raised per kg (salt cooler, gas cooler, oxidiser) and 1.07 drawn back
+- 8.38 kWh of HP steam raised per kg (salt cooler, gas cooler, oxidiser) and 1.01 drawn back
   for the reboilers, which are upper bounds without a lean/rich interchanger (D-006, D-010).
+- 1.98 kWh of heat to cooling water per kg, 0.79 of it from the absorber's pump-around coolers
+  (D-007, D-010).
+- The oxidiser's off-gas is lean (about a third of its lower flammable limit) and would burn
+  only to about 743 K as it comes; a recuperator preheating it for a 1073 K chamber is ASSUMED,
+  and the start-up and pilot fuel is not modelled (D-009).
 - 1.45 kg of fossil CO2 per kg to the stack. The preliminary LCI gives all burdens to the
   anhydride and none to the exported steam; most backgrounds are gaps (D-012).
 - The feed, 1.8 mol% butane, lies above butane's lower flammable limit (1.4 vol%): the feed

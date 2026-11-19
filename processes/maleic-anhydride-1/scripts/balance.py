@@ -11,12 +11,16 @@ data of process/materials.yaml (ADR 0059). This script gives, from the streams p
   mol% water): the `with:` ratio of the spec `rate`;
 - the air compressor K-102: outlet temperature (S4) and shaft and motor power (P1);
 - the mixed temperatures S5 (butane and air), S16 (lean solvent and make-up) and S21 (the
-  oxidiser's feeds);
+  oxidiser's feeds), and the stack temperature S23 after the draught fan;
 - the duties core has no model for: the butane vaporiser Q1, the reactor gas cooler Q3 (ideal
-  gas, the data of materials.yaml), the stripper's reboiler and condenser Q4 and Q5, the lean
-  solvent cooler Q6, the column's reboiler and condenser Q7 and Q8 (liquid heat capacities and
-  heats of vaporisation from thermo 0.6.1 / chemicals 1.5.2, MA's heat of vaporisation from the
-  NIST WebBook);
+  gas, the data of materials.yaml), the absorber's pump-around coolers Q10, the stripper's
+  reboiler and condenser Q4 and Q5, the lean solvent cooler Q6, the column's reboiler and
+  condenser Q7 and Q8 (liquid heat capacities and heats of vaporisation from thermo 0.6.1 /
+  chemicals 1.5.2, MA's heat of vaporisation from the NIST WebBook); each separator's duties
+  close its heat balance from its inlet to its outlets at their stated temperatures;
+- the oxidiser F-501's burn: the adiabatic temperature of its feed as it comes, and the
+  recuperator duty that preheats the feed so that it burns at T_BURN (internal to F-501, no
+  utility; core's Q9 is the heat left for the waste-heat boiler and economiser);
 - the powers of the pumps and vacuum systems (P2, P3) and the oxidiser fan (P4).
 
 Run: `cheme run scripts/balance.py`, after `cheme process propagate --fill`. With BALANCE_OUTPUT
@@ -56,6 +60,12 @@ T_COL_BOTTOM, REFLUX_COL = 433.15, 1.5
 HVAP_MA = 54.8e3  # J/mol, NIST WebBook (Winstrom and Kulp 1949, 326 to 350 K)
 # pumps and vacuum (D-010)
 ETA_PUMP = 0.60
+# absorber A-301: pump-around coolers on cooling water (D-007), the circulating liquid cooled
+# by 40 K and pumped by 250 kPa, ASSUMED
+PUMPAROUND_DT, PUMPAROUND_DP = 40.0, 250.0
+# thermal oxidiser F-501 (D-009): combustion chamber temperature, ASSUMED for the ASSUMED
+# destruction without a catalyst; the feed preheated in a recuperator against the flue gas
+T_BURN = 1073.15
 VACUUM_STRIP_KW, VACUUM_COL_KW = 30.0, 15.0  # liquid-ring vacuum pumps, ASSUMED allowances
 FAN_DP_KPA, ETA_FAN = 5.0, 0.70  # oxidiser draught fan, ASSUMED
 
@@ -224,13 +234,36 @@ def main() -> None:
     print(f"E-202: {q3:.1f} kW")
     out["Q3"] = {"duty": round(q3, 1)}
 
-    # T-302: the rich solvent heated to the reboiler's temperature, the crude and the lights
-    # boiled up (the lights at the external reflux 2), the condenser takes the overhead's
-    # latent heat and the crude is cooled from its draw to S10
-    s9, s10, s11 = (component_flows(streams, k) for k in ("S9", "S10", "S11"))
+    # A-301: heat balance at SRC-2's four end temperatures. The gas is cooled from S7 to S8's
+    # temperature, the absorbate (what S8 does not carry on) condensed there and heated with the
+    # lean solvent to S9's temperature; the rest goes to the pump-around coolers (Q10)
+    s7, s8, s17 = (component_flows(streams, k) for k in ("S7", "S8", "S17"))
+    t8 = float(streams["S8"]["state"]["design"]["temperature"]["value"])
+    t17 = float(streams["S17"]["state"]["design"]["temperature"]["value"])
     t9 = float(streams["S9"]["state"]["design"]["temperature"]["value"])
+    absorbed = {k: s7[k] - s8.get(k, 0.0) for k in ("MA", "H2O", "AA", "ACR")}  # the gases pass
+    gas_cool = h_gas(s7, t7) - h_gas(s7, t8)
+    condense = latent(absorbed, t8)
+    liq_heat = liquid_heat(s17, t17, t9) + liquid_heat(absorbed, t8, t9)
+    q10 = gas_cool + condense - liq_heat
+    cp_pa = (sum(m * cpl(k, 0.5 * (t9 + t17)) for k, m in s17.items() if m > 0)
+             / sum(s17.values()))  # kJ/(kg K), the lean solvent's
+    m_pa = q10 / (cp_pa * PUMPAROUND_DT) * 3600.0  # kg/h circulated through the coolers
+    print(f"A-301: gas cooled {gas_cool:.1f} kW, absorbate condensed {condense:.1f} kW, liquids "
+          f"heated {liq_heat:.1f} kW; pump-around coolers {q10:.1f} kW "
+          f"({m_pa / 1000:.0f} t/h circulated, {PUMPAROUND_DT:.0f} K range)")
+    out["Q10"] = {"duty": round(q10, 1)}
+
+    # T-302: the part of the rich solvent that leaves as lean solvent heated to the reboiler's
+    # temperature, the crude to its draw near the top and the lights to their outlet; the crude
+    # and the lights boiled up (the lights at the external reflux 2); the condensers take the
+    # overhead's latent heat and cool the crude from its draw to S10. Q4 - Q5 is then the
+    # outlets' enthalpy less the inlet's
+    s9, s10, s11, s12 = (component_flows(streams, k) for k in ("S9", "S10", "S11", "S12"))
     t10 = float(streams["S10"]["state"]["design"]["temperature"]["value"])
-    sens = liquid_heat(s9, t9, T_STRIP_BOTTOM)
+    t11 = float(streams["S11"]["state"]["design"]["temperature"]["value"])
+    sens = (liquid_heat(s12, t9, T_STRIP_BOTTOM) + liquid_heat(s10, t9, T_CRUDE_DRAW)
+            + liquid_heat(s11, t9, t11))
     boil = latent(s10, T_CRUDE_DRAW) + (1.0 + REFLUX_STRIP) * latent(s11, T_STRIP_COND)
     q4 = sens + boil
     q5 = boil + liquid_heat(s10, t10, T_CRUDE_DRAW)
@@ -253,13 +286,16 @@ def main() -> None:
     out["S16"] = {"temperature": round(t16, 1)}
     out["Q6"] = {"duty": round(q6, 1)}
 
-    # C-401: the crude heated to the bottom, the product and lights boiled up at the reflux
-    s18, s19 = component_flows(streams, "S18"), component_flows(streams, "S19")
+    # C-401: the residue heated to the bottom, the product and lights to the top and boiled up
+    # at the reflux; the condenser takes the overhead's latent heat and cools the product and
+    # the lights to their outlets (Q7 - Q8 is the outlets' enthalpy less the crude's)
+    s18, s19, s20 = (component_flows(streams, k) for k in ("S18", "S19", "S20"))
     over = {k: s18.get(k, 0.0) + s19.get(k, 0.0) for k in set(s18) | set(s19)}
     boil_c = (1.0 + REFLUX_COL) * latent(over, 413.15)
-    q7 = liquid_heat(s10, t10, T_COL_BOTTOM) + boil_c
+    q7 = liquid_heat(s20, t10, T_COL_BOTTOM) + liquid_heat(over, t10, 413.15) + boil_c
     t18 = float(streams["S18"]["state"]["design"]["temperature"]["value"])
-    q8 = boil_c + liquid_heat(s18, t18, 413.15)
+    t19 = float(streams["S19"]["state"]["design"]["temperature"]["value"])
+    q8 = boil_c + liquid_heat(s18, t18, 413.15) + liquid_heat(s19, t19, 413.15)
     print(f"C-401: reboiler {q7:.1f} kW, condenser and product cooling {q8:.1f} kW")
     out["Q7"] = {"duty": round(q7, 1)}
     out["Q8"] = {"duty": round(q8, 1)}
@@ -267,7 +303,8 @@ def main() -> None:
     # pumps and vacuum
     s12 = component_flows(streams, "S12")
     p2_kw = (pump_kw(sum(s9.values()), 350.0) + pump_kw(sum(s12.values()), 300.0)
-             + pump_kw(sum(s10.values()), 200.0, 1300.0) + VACUUM_STRIP_KW) / ETA_MOTOR
+             + pump_kw(sum(s10.values()), 200.0, 1300.0) + pump_kw(m_pa, PUMPAROUND_DP)
+             + VACUUM_STRIP_KW) / ETA_MOTOR
     p3_kw = (pump_kw(sum(s18.values()), 200.0, 1300.0) + VACUUM_COL_KW) / ETA_MOTOR
     s22 = component_flows(streams, "S22")
     v22 = sum(kmol(s22).values()) / 3600.0 * R * 453.15 / 101.325  # m3/s
@@ -276,6 +313,15 @@ def main() -> None:
     out["P2"] = {"duty": round(p2_kw, 1)}
     out["P3"] = {"duty": round(p3_kw, 1)}
     out["P4"] = {"duty": round(p4, 1)}
+    # S23: the fan's shaft work heats the flue gas (after the boiler: no steam from it)
+    w_fan = p4 * ETA_MOTOR
+    lo, hi = 453.15, 600.0
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if h_gas(s22, mid) - h_gas(s22, 453.15) < w_fan else (lo, mid)
+    t23 = 0.5 * (lo + hi)
+    print(f"S23 {t23:.1f} K after the fan")
+    out["S23"] = {"temperature": round(t23, 1)}
 
     # S21: the oxidiser's feeds mixed (gases and the small liquid streams as ideal gas: a
     # concept estimate, the liquids are 0.1 % of the mass)
@@ -286,6 +332,30 @@ def main() -> None:
     print(f"S21 {t21:.1f} K")
     out["S21"] = {"temperature": round(t21, 1)}
 
+    # F-501: total enthalpy (formation + sensible, ideal gas as core counts it, L-4) of the feed
+    # S21 and the flue gas S22's composition. The adiabatic temperature of the feed as it comes,
+    # the preheat that gives T_BURN, the recuperator's duty and the flue gas into the boiler
+    s21 = component_flows(streams, "S21")
+
+    def h_tot(flows: dict[str, float], t: float) -> float:
+        return sum(n * (hf[k] + h_ig(k, t)) for k, n in kmol(flows).items()) / 3600.0
+
+    def solve_t(flows: dict[str, float], h: float, lo: float, hi: float) -> float:
+        for _ in range(80):
+            mid = 0.5 * (lo + hi)
+            lo, hi = (mid, hi) if h_tot(flows, mid) < h else (lo, mid)
+        return 0.5 * (lo + hi)
+
+    t_ad = solve_t(s22, h_tot(s21, t21), t21, 2000.0)
+    t_pre = solve_t(s21, h_tot(s22, T_BURN), t21, T_BURN)
+    q_rec = h_gas(s21, t_pre) - h_gas(s21, t21)
+    t_boil = solve_t(s22, h_tot(s22, T_BURN) - q_rec, 453.15, T_BURN)
+    q9_check = h_tot(s21, t21) - h_tot(s22, 453.15)
+    print(f"F-501: adiabatic {t_ad:.0f} K from {t21:.1f} K (too cold to burn out); preheat to "
+          f"{t_pre:.0f} K burns at {T_BURN:.0f} K; recuperator {q_rec:.0f} kW, flue gas to the "
+          f"boiler at {t_boil:.0f} K; heat to the boiler and economiser {q9_check:.1f} kW "
+          f"(core writes Q9)")
+
     # summary per kg of product
     prod = sum(s18.values())
     q2c = float(next(s for s in sheet["streams"] if s["id"] == "Q2")["state"]["design"]["duty"]["value"])
@@ -293,7 +363,7 @@ def main() -> None:
     steam_out = q2c + q3 + q9c
     print(f"per kg MA: butane {sum(s1.values()) / prod:.4f} kg, power {(p1 + p2_kw + p3_kw + p4) / prod:.4f} kWh, "
           f"HP steam raised {steam_out / prod:.4f} kWh, HP steam used {(q4 + q7) / prod:.4f} kWh, "
-          f"LP steam {q1 / prod:.4f} kWh, cooling water {(q5 + q6 + q8) / prod:.4f} kWh")
+          f"LP steam {q1 / prod:.4f} kWh, cooling water {(q10 + q5 + q6 + q8) / prod:.4f} kWh")
 
     out.pop("S5_t")
     write_balance_output({"design": out})
