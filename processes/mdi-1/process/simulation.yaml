@@ -1,9 +1,12 @@
 # Simulation specs. Schema: `cheme schema process-simulation`.
 # Not run (DESIGN.md L-2): no property package of core covers MDA, MDI or the brine. The file
-# records what is decided already: the neutraliser R-102 is adiabatic (D-003), the heat of
-# neutralisation of about 23 kmol/h of HCl warming the mixture to the 388 K of US 10 640 455 B1;
-# it exchanges no heat with a utility.
+# records what is decided already: the neutraliser R-102 is held at the 388 K of
+# US 10 640 455 B1 (D-003). It is not adiabatic: the cascade effluent arrives at 429 K and the
+# neutralisation of about 23 kmol/h of HCl releases heat, so the cooler Q15 (about 1.2 MW to
+# cooling water) removes both before the let-down to 140 kPa(a).
 schema: cheme/simulation/v1
 kind: simulation
 specs:
-  R102: {mode: adiabatic}
+  R102:
+    mode: outlet_temperature
+    outlet_temperature: {value: 388.15, unit: K, provenance: assumed, source: "D-003: neutralisation at 115 C, US 10 640 455 B1; the heat goes to cooling water (Q15)"}

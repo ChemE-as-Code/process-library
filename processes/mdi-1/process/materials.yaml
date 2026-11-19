@@ -2,16 +2,24 @@
 # process-materials`). Every component has a stable id; molar_mass in kg/kmol, normal_boiling_point
 # in K at 101.325 kPa.
 #
-# Property sources (DESIGN.md source register SRC-6, library ADR 0037):
+# Property sources (DESIGN.md source register SRC-7, library ADR 0037):
 # - molar masses: the IUPAC 2021 abridged standard atomic weights applied to the formula, or the
 #   value `cheme chemistry thermo` prints (chemicals 1.5.2) where it knows the component;
-# - normal boiling points and melting points: chemicals 1.5.2 (`chemicals.Tb`, `chemicals.Tm`),
-#   the method named in each source (CRC_ORG / CRC_INORG are the CRC Handbook tables as packaged
-#   in chemicals, HEOS the CoolProp equations of state, YAWS the packaged Yaws table): single
-#   facts with the package named, not open data; the underlying works were not read;
+# - normal boiling points: chemicals 1.5.2 `chemicals.Tb`, its default method for each
+#   component: CRC_ORG (the CRC Handbook's organic table as packaged in chemicals) for aniline,
+#   formaldehyde, MDA and phosgene; HEOS (the CoolProp equations of state) for methanol, water,
+#   HCl and MCB; CRC_INORG (the CRC Handbook's inorganic table) for NaOH and NaCl; YAWS (the
+#   packaged Yaws table) for MDI;
+# - melting points: chemicals 1.5.2 `chemicals.Tm`, default method OPEN_NTBKM (the Open
+#   Notebook Science melting point data as packaged in chemicals) for aniline (267.15 K, CRC_ORG
+#   the same), MDA (364.4 K; CRC_ORG 363.15 K) and MDI (310.75 K; CRC_ORG 313.56 K);
+# - all of these are single facts with the package and method named, not open data; the
+#   underlying works were not read;
 # - ideal-gas data where chemicals has them (`cheme chemistry thermo`, copied unchanged with
-#   the method named). chemicals 1.5.2 has no formation enthalpy for MDA, MDI or the
-#   three-ring lumps, so no reactor duty can be calculated by core (DESIGN.md L-1).
+#   the method named). chemicals 1.5.2 holds formation enthalpies for MDI (`Hfg` WEBBOOK 189.0,
+#   YAWS -55.8 and JOBACK 86.4 kJ/mol, two measured sources that disagree in sign; `Hfs` WEBBOOK
+#   -54.4 kJ/mol) but only a Joback estimate for MDA (206.05 kJ/mol) and none for the three-ring
+#   lumps, so no reactor duty is calculated by core (DESIGN.md L-1).
 #
 # The MDA and MDI mixtures are lumped (DESIGN.md D-004): MDA stands for the two-ring diamines
 # (4,4'-, 2,4'- and 2,2'-MDA), PMDA for the three-ring and higher polyamines, written as the

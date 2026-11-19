@@ -39,7 +39,7 @@ products:
     purity: "two-ring MDI about 40 wt%, the rest three-ring and higher polyisocyanates (lumped); NCO content and viscosity not modelled (D-004)"
     delivery: {temperature_K: 323.15, pressure_kPa_a: 300, battery_limit: "to storage"}
   - name: Hydrogen chloride gas (co-product)
-    purity: "99.999 mol% HCl in the model; phosgene about 5 ppmv, MCB about 2 ppmv (D-007)"
+    purity: "99.93 mol% HCl in the model; phosgene about 5 ppmv, MCB about 740 ppmv (saturation over the 258 K absorber top, D-007); a consumer that needs ppm-level MCB needs a further step (deeper chilling or adsorption), open (D-007)"
     delivery: {temperature_K: 258.15, pressure_kPa_a: 150, battery_limit: "to an adjacent consumer (oxychlorination, HCl oxidation or acid production, outside the boundary)"}
   - name: MDA brine
     note: "NaCl about 11 wt% with the caustic excess and traces of aniline and MDA, to the site wastewater treatment (D-006)"
@@ -47,16 +47,17 @@ products:
     note: "methanol and water from the formalin, to the site's thermal oxidiser as fuel (LVOC BREF 10.4.4.2; D-006)"
 utilities:
   - {name: Electric power, use: "agitators, pumps and vacuum systems (D-009)", note: ASSUMED allowances}
-  - {name: LP steam 600 kPa(a), use: "condensation cascade, brine stripper, phosgenation tower, dephosgenation and solvent columns", note: ASSUMED}
+  - {name: LP steam 600 kPa(a), use: "brine stripper, phosgenation tower", note: "ASSUMED; saturation 432 K"}
+  - {name: MP steam 1600 kPa(a), use: "condensation cascade (last reactors at 429 K), dephosgenation column (bottoms 428 K), solvent column and countercurrent evaporator (bottoms 443 K)", note: "ASSUMED; saturation 474.5 K, at least 31 K above each (D-009)"}
   - {name: HP steam 4000 kPa(a), use: "MDA column and MDI column reboilers", note: "ASSUMED; hot oil is the usual alternative"}
-  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "condensers, product coolers, HCl absorber", note: ASSUMED}
-  - {name: Refrigerated brine, supply_K: 248.15, return_K: 253.15, use: "phosgene absorber T-201", note: "ASSUMED; from a refrigeration unit outside the boundary"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "condensers, the cascade's reflux condenser, the neutraliser, separator, brine and MDA solution coolers, product coolers, HCl absorber", note: ASSUMED}
+  - {name: Refrigerated brine, supply_K: 248.15, return_K: 253.15, use: "phosgene absorber T-201 and its absorbent chiller", note: "ASSUMED; from a refrigeration unit outside the boundary"}
 site:
   location: ASSUMED generic site, integrated with aniline-1, formaldehyde-1, phosgene-1 and chlor-alkali-1, an HCl consumer and a wastewater treatment for saline effluent, not chosen
   design_ambient_K: 298.15              # ASSUMED
   atmospheric_pressure_kPa: 101.325
 assumptions:
-  - "ASSUMED: 2.25 mol aniline per mol formaldehyde, protonation 0.10 mol HCl per mol amino groups from 30 % hydrochloric acid, cascade 363 to 429 K, caustic 1.10 mol per mol HCl at 388 K: the nameplate conditions of US 10 640 455 B1 (D-003)."
+  - "ASSUMED: 2.25 mol aniline per mol formaldehyde, protonation 0.10 mol HCl per mol amino groups from 30 % hydrochloric acid, aminal at 363 K, cascade 323 to 429 K, caustic 1.10 mol per mol HCl at 388 K: the nameplate conditions of US 10 640 455 B1 (D-003)."
   - "ASSUMED: the MDA mixture lumped as 51.0 wt% two-ring diamines (US 10 640 455 B1, nameplate) and 49.0 wt% three-ring triamine (D-004)."
   - "ASSUMED: 27.1 % MDA in MCB, 35 % phosgene in MCB at 273 K, 2.0588 kg phosgene per kg MDA, tower top 384 K and 160 kPa(a): US 10 364 214 B1 (D-005)."
   - "ASSUMED: complete conversion of formaldehyde and of the amines, no by-products (ureas, carbodiimides, N-methyl and N-formyl MDA, acridines) (D-004, D-005)."

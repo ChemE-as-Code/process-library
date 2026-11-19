@@ -77,7 +77,7 @@ def _flow(streams, sid: str) -> float:
     return streams[sid]["state"]["design"]["flow"]["value"]
 
 
-def test_the_sourced_ratios_hold_on_the_streams(streams, mw):
+def test_the_sourced_ratios_hold_on_the_streams(sheet, streams, mw):
     s5 = _kmol(streams, mw, "S5")
     assert s5["ANL"] / s5["HCHO"] == pytest.approx(2.25, rel=1e-4)
     assert s5["HCL"] / s5["ANL"] == pytest.approx(0.10, rel=1e-4)
@@ -88,9 +88,35 @@ def test_the_sourced_ratios_hold_on_the_streams(streams, mw):
     assert 1 - mda["MCB"] / sum(mda.values()) == pytest.approx(0.271, rel=1e-3)
     phos = _kg(streams, mw, "S25")
     assert phos["COCL2"] / sum(phos.values()) == pytest.approx(0.35, rel=1e-3)
-    assert phos["COCL2"] / _flow(streams, "S14") == pytest.approx(2.0588, rel=1e-3)
-    # 42 t/h of phosgene per 20.4 t/h of MDA in US 10 364 214 B1
-    assert 42.0 / 20.4 == pytest.approx(2.0588, rel=1e-4)
+    # SP-PHOSGENE's target is US 10 364 214 B1's 42 t/h of phosgene per 20.4 t/h of MDA
+    target = next(s for s in sheet["specs"] if s["id"] == "SP-PHOSGENE")["target"]["value"]
+    assert target == pytest.approx(42.0 / 20.4, rel=1e-4)
+    assert phos["COCL2"] / _flow(streams, "S14") == pytest.approx(target, rel=1e-3)
+
+
+def test_each_steam_level_is_hot_enough_for_what_it_heats(sheet):
+    """A steam level heats a step only if its saturation temperature is at least the declared
+    min_approach above the hottest material stream leaving that step (DESIGN.md D-009)."""
+    steam = {f["id"]: f["utility"] for f in sheet["feeds"] if f.get("utility", {}).get("kind") == "steam"}
+    hottest: dict[str, float] = {}
+    for s in sheet["streams"]:
+        if s.get("kind") == "energy":
+            continue
+        step = s["from"].split(".")[0]
+        temp = s["state"]["design"]["temperature"]["value"]
+        hottest[step] = max(hottest.get(step, 0.0), temp)
+    checked = 0
+    for s in sheet["streams"]:
+        if s.get("kind") != "energy":
+            continue
+        source, user = s["from"].split(".")[0], s["to"].split(".")[0]
+        if source not in steam:
+            continue
+        supply = steam[source]["supply_temperature"]["value"]
+        approach = steam[source]["min_approach"]["value"]
+        assert hottest[user] + approach <= supply, (s["id"], source, user, hottest[user], supply)
+        checked += 1
+    assert checked >= 7
 
 
 def test_the_mda_is_51_percent_two_ring_and_r101_accounts_for_the_formaldehyde(sheet, streams, mw):
@@ -143,8 +169,17 @@ def test_the_stated_consumptions_and_split_follow_from_the_streams(streams):
     assert _flow(streams, "S36") / crude == pytest.approx(0.20, abs=0.002)
     assert _flow(streams, "S37") / _flow(streams, "S36") == pytest.approx(4.0, rel=0.01)
     text = _text("README.md")
-    for stated in ("0.740 kg aniline", "0.784 kg phosgene", "4.44 t/h monomeric MDI", "17.75 t/h polymeric MDI"):
+    for stated in ("0.740 kg aniline", "0.784 kg phosgene", "4.44 t/h monomeric MDI", "17.75 t/h polymeric MDI", "1.56 g of MCB make-up"):
         assert stated in text
+    assert 1000 * _flow(streams, "S20") / crude == pytest.approx(1.56, abs=0.005)
+
+
+def test_the_hcl_gas_leaves_saturated_with_mcb(streams, mw):
+    # MCB's vapour pressure at 258.15 K, 110.9 Pa (thermo 0.6.1, HEOS_FIT), over S33's pressure
+    s33 = streams["S33"]["state"]["design"]
+    y = s33["composition"]["values"]
+    assert s33["temperature"]["value"] == pytest.approx(258.15)
+    assert y["MCB"] == pytest.approx(110.9 / (1000 * s33["pressure"]["value"]), rel=0.01)
     # phosgene-1 supplies the whole fresh phosgene within 0.4 % (DESIGN.md D-005)
     phosgene1 = yaml.safe_load((KIT / "processes" / "phosgene-1" / "process" / "flowsheet.yaml").read_text(encoding="utf-8"))
     s7 = next(s for s in phosgene1["streams"] if s["id"] == "S7")["state"]["design"]["flow"]["value"]

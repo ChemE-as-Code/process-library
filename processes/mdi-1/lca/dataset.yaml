@@ -25,7 +25,7 @@ technology: Aniline and 50 wt% formalin (2.25 mol per mol) condensed with 30 % h
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:start-up-vents
-  title: storage-tank emissions of R-201, D-201, T-201, A-301
+  title: storage-tank emissions of R-201, C-201, T-201, A-301
   direction: output
   reason: 'No P&ID yet: the waste gas of start-up and shutdown, which the LVOC BREF (10.3.7) reports is
     often treated by caustic scrubbing only and carries most of a plant''s tetrachloromethane, is not
@@ -38,7 +38,7 @@ cutoff:
     (aniline, water, methanol and formaldehyde vapour) go to the waste-gas treatment and are not estimated
     (D-011).'
 - key: emission-excluded:storage-breathing
-  title: storage-tank emissions of M-101, V-102, D-203
+  title: storage-tank emissions of M-101, V-102, C-203
   direction: output
   reason: The breathing of the aniline, MCB, MDI and PMDI tanks (nitrogen-blanketed, vented to the waste-gas
     treatment) is not estimated (D-011).
@@ -164,16 +164,18 @@ exchanges:
 - key: feed:MCBF
   title: Monochlorobenzene make-up (no library process)
   type: input
-  amount: 5.34849
+  amount: 34.6068
   unit: kg
   link:
-    source: flowsheet stream S20, the solvent losses to the lights cut and the HCl (D-005)
+    source: flowsheet stream S20, the solvent losses to the HCl gas (about 29 kg/h, D-007) and the lights
+      cut (D-005, D-008)
     missing: 'not mapped yet (D-012); no library process makes monochlorobenzene. Connect to: chlorobenzene
       by liquid-phase chlorination of benzene over an iron(III) chloride catalyst, with HCl and dichlorobenzenes
-      as co-products (a recorded proxy, not linked); 0.24 g per kg of crude MDI'
+      as co-products (a recorded proxy, not linked); 1.56 g per kg of crude MDI'
   streams:
   - S20
-  source: flowsheet stream S20, the solvent losses to the lights cut and the HCl (D-005)
+  source: flowsheet stream S20, the solvent losses to the HCl gas (about 29 kg/h, D-007) and the lights
+    cut (D-005, D-008)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -231,19 +233,16 @@ exchanges:
 - key: feed:LPS
   title: LP steam 600 kPa(a)
   type: input
-  amount: 18190.0
+  amount: 3130.0
   unit: kWh
   link:
-    source: flowsheet energy streams Q1, Q4, Q6, Q7 and Q9, ASSUMED estimates (D-009)
+    source: flowsheet energy streams Q4 and Q6, ASSUMED estimates (D-009)
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry
       from a natural-gas-fired site boiler, per kWh of condensing heat'
   streams:
-  - Q1
   - Q4
   - Q6
-  - Q7
-  - Q9
-  source: flowsheet energy streams Q1, Q4, Q6, Q7 and Q9, ASSUMED estimates (D-009)
+  source: flowsheet energy streams Q4 and Q6, ASSUMED estimates (D-009)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -254,6 +253,30 @@ exchanges:
     pressure: 6.0
     level: LP
     source: utility of LPS in process/flowsheet.yaml
+- key: feed:MPS
+  title: MP steam 1600 kPa(a)
+  type: input
+  amount: 13310.0
+  unit: kWh
+  link:
+    source: flowsheet energy streams Q1, Q7 and Q9, ASSUMED estimates (D-009)
+    missing: 'linked as heat from steam (lca/mappings.yaml); connect to: medium-pressure steam in the
+      chemical industry from a natural-gas-fired site boiler, per kWh of condensing heat'
+  streams:
+  - Q1
+  - Q7
+  - Q9
+  source: flowsheet energy streams Q1, Q7 and Q9, ASSUMED estimates (D-009)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  carrier:
+    kind: steam
+    temperature: 201.35
+    pressure: 16.0
+    level: MP
+    source: utility of MPS in process/flowsheet.yaml
 - key: feed:HPS
   title: HP steam 4000 kPa(a)
   type: input
@@ -340,7 +363,7 @@ exchanges:
 - key: product:HCLG
   title: Hydrogen chloride gas to an adjacent consumer
   type: product
-  amount: 11992.7
+  amount: 12020.1
   unit: kg
   provenance: calculated
   streams:
@@ -353,14 +376,14 @@ exchanges:
     phase: gas
     pressure: 1.5
     temperature: -15.0
-    purity: 0.999993
+    purity: 0.999255
     basis: mole
     component: HCL
   composition:
     fractions:
-      HCL: 0.999980059
-      COCL2: 1.4702e-05
-      MCB: 5.239e-06
+      HCL: 0.997705209
+      COCL2: 1.4668e-05
+      MCB: 0.002280122
     formulas:
       HCL: HCl
       COCL2: CCl2O
@@ -467,7 +490,7 @@ exchanges:
 - key: product:VENT
   title: Absorber vent to the phosgene destruction and thermal oxidiser
   type: output
-  amount: 0.0167375
+  amount: 1.93053
   unit: kg
   provenance: calculated
   link:
@@ -487,8 +510,8 @@ exchanges:
       caustic scrubbing (LVOC BREF 10.3.1.3)
   composition:
     fractions:
-      COCL2: 0.737259199
-      MCB: 0.262740801
+      COCL2: 0.006391951
+      MCB: 0.993608049
     formulas:
       COCL2: CCl2O
       MCB: C6H5Cl
@@ -496,10 +519,10 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 17060.0
+  amount: 21940.0
   unit: kWh
   link:
-    source: flowsheet energy streams Q3, Q5, Q10, Q13 and Q14 (D-009)
+    source: flowsheet energy streams Q3, Q5, Q10, Q13, Q14, Q15, Q16, Q17, Q18 and Q19 (D-009)
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
@@ -508,7 +531,12 @@ exchanges:
   - Q10
   - Q13
   - Q14
-  source: flowsheet energy streams Q3, Q5, Q10, Q13 and Q14 (D-009)
+  - Q15
+  - Q16
+  - Q17
+  - Q18
+  - Q19
+  source: flowsheet energy streams Q3, Q5, Q10, Q13, Q14, Q15, Q16, Q17, Q18 and Q19 (D-009)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -520,15 +548,15 @@ exchanges:
 - key: product:REFR
   title: Refrigerated brine return (253 K)
   type: output
-  amount: 3400.0
+  amount: 3790.0
   unit: kWh
   link:
-    source: flowsheet energy stream Q8, the phosgene absorber (D-009)
+    source: flowsheet energy stream Q8, the phosgene absorber and its absorbent chiller (D-009)
     missing: 'not mapped yet (D-012); connect to: refrigeration at 248 K from an electric vapour-compression
       unit (compressor electricity at its COP, condenser cooling water), per kWh of heat removed'
   streams:
   - Q8
-  source: flowsheet energy stream Q8, the phosgene absorber (D-009)
+  source: flowsheet energy stream Q8, the phosgene absorber and its absorbent chiller (D-009)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -556,9 +584,9 @@ provenance:
     kt/a crude MDI)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:3e1f9e09d11171e795020e0400070e90eaac7b86b61e1e6c58f10f1ab3ce7f04
-    lca/lca.yaml: sha256:263b2f28bfbf3b54abd8a699360e92b0c6cda316df6ae5bbd21c6c4e88c7453d
-    process.yaml: sha256:303edafde6361f1e6ac5d6963aa89ee7824d8bc0126c83571ec9f0a5c8b41dae
-    process/flowsheet.yaml: sha256:2c79cfa29b65578513ac1e81dd0bfd57089472ad139fd666642d2be8e316df79
-    process/materials.yaml: sha256:38f8f7682bf01aac3eb1a5c7ac408769c3cdd354926f4afe05432c133387ff6f
-    process/simulation.yaml: sha256:0897388a99fd2ac1552f597c23e46b99a861bddf7c9882080b27d93842dac052
+    equipment/equipment-list.yaml: sha256:e8165cb19e70844b171f77abdf967ed9af6cfc5ba777b2bf31785d6599a21aaa
+    lca/lca.yaml: sha256:363873cf7bc4605c44c0ffbeb2c481ab72e6f66a6e5074129c23bc4be2808a42
+    process.yaml: sha256:6c28e1e682958b3483d9a7fb9a3cec84d5b4e199087dfc35074f223be2a13bec
+    process/flowsheet.yaml: sha256:85e974945c8f053f2b3e8ee3cabd91054808edff84264279ce3cf42c70ecdacd
+    process/materials.yaml: sha256:92d2196a3fe3a54d37f4bfada2098b981ddaa53f6cec601e5b1c55cd39bf882f
+    process/simulation.yaml: sha256:deb783e00449b5b54b57071072e4caba03387adcfb5c9625c8e6925d6c5c4ffa

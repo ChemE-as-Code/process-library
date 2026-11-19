@@ -36,28 +36,32 @@ Headline numbers (design case, 8000 h/a) and their caveats:
 - 22.2 t/h of crude MDI (178 kt/a): 4.44 t/h monomeric MDI and 17.75 t/h polymeric MDI, a 1:4
   split taken from the BREF's 2013 production ratio (D-008); 12.0 t/h of HCl gas exported.
 - Per kg of crude MDI: 0.740 kg aniline, 0.784 kg phosgene (the BREF's example plant: 0.78),
-  0.277 kg of 50 wt% formalin, 0.091 kg of 50 wt% caustic soda, 0.24 g of MCB make-up; 0.574 kg
-  of brine (11 wt% NaCl) to treatment.
+  0.277 kg of 50 wt% formalin, 0.091 kg of 50 wt% caustic soda, 1.56 g of MCB make-up (most of
+  it lost with the HCl gas, which leaves the 258 K absorber saturated with MCB, about 740 ppmv,
+  D-007); 0.574 kg of brine (11 wt% NaCl) to treatment.
 - The MDA and MDI mixtures are lumped as a two-ring and a three-ring component (D-004); the
   isomers, the by-products and the NCO content of the PMDI are not modelled.
-- Every duty is an ASSUMED estimate with its arithmetic in the flowsheet (D-009): 0.98 kWh of
-  steam heat per kg of crude MDI, well above the about 0.58 kWh of natural gas burnt on site per
+- Every duty is an ASSUMED estimate with its arithmetic in the flowsheet (D-009): 0.90 kWh of
+  steam heat per kg of crude MDI (LP, MP and HP steam; the solvent column, the dephosgenation
+  and the cascade need MP steam), well above the about 0.58 kWh of natural gas burnt on site per
   kg that the ACC 2022 study reports for US plants (phosgene, MDA and MDI together), because no
-  heat integration is assumed and the phosgenation's heat release is not counted (no open heat
-  of reaction, L-1).
+  heat integration is assumed and the condensation's heat (about 2.9 MW, a Joback estimate, L-1)
+  is not credited; 0.99 kWh to cooling water and 0.17 kWh of refrigeration per kg.
 - Phosgene is the dominant hazard: 36.3 t/h go to the phosgenation as a 35 % solution, 18.9
   t/h of it the absorber's recycle. The hazards and what a basic design must add are in D-011.
 
 The LCI is preliminary (lca/lca.yaml): the aniline, formalin, caustic soda and phosgene link
-their library producers; the MCB, power, cooling, refrigeration, water and waste treatments are
-gaps. Monomeric MDI, polymeric MDI and HCl share the burdens by mass (D-012).
+their library producers; the Atlas build also links power, cooling water, process water and
+the brine through the library's shared mappings, and leaves the MCB, refrigeration, the
+methanol condensate, the residue and the vent as gaps (in `cheme assess lca` the shared links
+do not apply, and those four are gaps too). Monomeric MDI, polymeric MDI and HCl share the burdens by mass (D-012).
 
 | path | what |
 |---|---|
 | `plant.yaml` | name, stage, sheets |
 | `process/design-basis.yaml` | capacity, feeds, products, utilities, site |
 | `process/materials.yaml`, `process/reactions.yaml`, `process/flowsheet.yaml` | components, reactions, blocks, steps and streams: the source of the generated BFD and PFD (`process/*.xml`, `cheme process build`) |
-| `process/simulation.yaml` | the adiabatic neutraliser |
+| `process/simulation.yaml` | the neutraliser held at 388 K by its cooler |
 | `equipment/equipment-list.yaml` | the equipment of the PFD |
 | `lca/` | the preliminary LCI (`lca/lca.yaml`, `lca/mappings.yaml`, outputs of `cheme assess lca --write`) |
 | `checks/checks.yaml` | engineering-step gates |

@@ -4,10 +4,13 @@
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant
 # per kg of monomeric MDI, from the flowsheet's design case. The aniline, formalin, caustic soda
-# and phosgene link their library producers (lca/mappings.yaml); the MCB make-up, power,
-# cooling, refrigeration, process water and the waste treatments are left unmapped (`missing:`
-# with the activity each should connect to): a gap, never zero, and no values from licensed
-# databases.
+# and phosgene link their library producers (lca/mappings.yaml); for `cheme assess lca` the MCB
+# make-up, power, cooling, refrigeration, process water and the waste treatments are left
+# unmapped (`missing:` with the activity each should connect to): a gap, never zero, and no
+# values from licensed databases. The Atlas build (scripts/build_lci.py) links power, cooling
+# water, process water and the brine through the shared lci/mappings.yaml by their chemical
+# slugs (process.yaml); its gaps are the MCB make-up, refrigeration, the methanol condensate,
+# the residue and the vent (D-012).
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -56,8 +59,8 @@ flows:
     missing: "linked to processes/phosgene-1 (lca/mappings.yaml): liquid phosgene, captive"
     source: "flowsheet stream S24 (D-005)"
   - key: feed:MCBF
-    missing: "not mapped yet (D-012); no library process makes monochlorobenzene. Connect to: chlorobenzene by liquid-phase chlorination of benzene over an iron(III) chloride catalyst, with HCl and dichlorobenzenes as co-products (a recorded proxy, not linked); 0.24 g per kg of crude MDI"
-    source: "flowsheet stream S20, the solvent losses to the lights cut and the HCl (D-005)"
+    missing: "not mapped yet (D-012); no library process makes monochlorobenzene. Connect to: chlorobenzene by liquid-phase chlorination of benzene over an iron(III) chloride catalyst, with HCl and dichlorobenzenes as co-products (a recorded proxy, not linked); 1.56 g per kg of crude MDI"
+    source: "flowsheet stream S20, the solvent losses to the HCl gas (about 29 kg/h, D-007) and the lights cut (D-005, D-008)"
   - key: feed:PW
     missing: "not mapped yet (D-012); connect to: process (demineralised) water from the site water treatment, for the MDA wash and the HCl absorber"
     source: "flowsheet streams S11 and S40 (D-006, D-007)"
@@ -67,16 +70,19 @@ flows:
     source: "flowsheet energy streams P1, P2 and P3, ASSUMED allowances (D-009)"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry from a natural-gas-fired site boiler, per kWh of condensing heat"
-    source: "flowsheet energy streams Q1, Q4, Q6, Q7 and Q9, ASSUMED estimates (D-009)"
+    source: "flowsheet energy streams Q4 and Q6, ASSUMED estimates (D-009)"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: medium-pressure steam in the chemical industry from a natural-gas-fired site boiler, per kWh of condensing heat"
+    source: "flowsheet energy streams Q1, Q7 and Q9, ASSUMED estimates (D-009)"
   - key: feed:HPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: high-pressure steam or hot oil from a natural-gas-fired site boiler, per kWh of heat delivered"
     source: "flowsheet energy streams Q2 and Q12, ASSUMED estimates (D-009)"
   - key: product:CW
     missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q3, Q5, Q10, Q13 and Q14 (D-009)"
+    source: "flowsheet energy streams Q3, Q5, Q10, Q13, Q14, Q15, Q16, Q17, Q18 and Q19 (D-009)"
   - key: product:REFR
     missing: "not mapped yet (D-012); connect to: refrigeration at 248 K from an electric vapour-compression unit (compressor electricity at its COP, condenser cooling water), per kWh of heat removed"
-    source: "flowsheet energy stream Q8, the phosgene absorber (D-009)"
+    source: "flowsheet energy stream Q8, the phosgene absorber and its absorbent chiller (D-009)"
   # wastes
   - key: product:BRINE
     treatment: {kind: waste, route: "site wastewater treatment for saline effluent: about 11 wt% NaCl with the caustic excess and traces of aniline and MDA (LVOC BREF 10.3.2.5: plants sit near an outlet that can take the salt water)"}
@@ -99,9 +105,9 @@ operation:
   life_years: 25
   source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
 emission_exclusions:
-  - {id: start-up-vents, method: storage-tank, equipment: [R-201, D-201, T-201, A-301], reason: "No P&ID yet: the waste gas of start-up and shutdown, which the LVOC BREF (10.3.7) reports is often treated by caustic scrubbing only and carries most of a plant's tetrachloromethane, is not estimated (D-011)."}
+  - {id: start-up-vents, method: storage-tank, equipment: [R-201, C-201, T-201, A-301], reason: "No P&ID yet: the waste gas of start-up and shutdown, which the LVOC BREF (10.3.7) reports is often treated by caustic scrubbing only and carries most of a plant's tetrachloromethane, is not estimated (D-011)."}
   - {id: cascade-vents, method: storage-tank, equipment: [R-101, R-102], reason: "No P&ID yet: the cascade's first reactor runs under vacuum with a reflux condenser fed with aniline (US 10 640 455 B1) and the neutraliser is liquid-full under 140 kPa(a); their small vents (aniline, water, methanol and formaldehyde vapour) go to the waste-gas treatment and are not estimated (D-011)."}
-  - {id: storage-breathing, method: storage-tank, equipment: [M-101, V-102, D-203], reason: "The breathing of the aniline, MCB, MDI and PMDI tanks (nitrogen-blanketed, vented to the waste-gas treatment) is not estimated (D-011)."}
+  - {id: storage-breathing, method: storage-tank, equipment: [M-101, V-102, C-203], reason: "The breathing of the aniline, MCB, MDI and PMDI tanks (nitrogen-blanketed, vented to the waste-gas treatment) is not estimated (D-011)."}
 dataset:
   version: 0.1.0
   classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
