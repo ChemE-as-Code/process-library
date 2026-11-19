@@ -11,11 +11,13 @@
 # electricity, cooling water and the purge's treatment through its proxies.
 #
 # Subdivision of the C4 raffinate (D-010): the etherification takes only the isobutene out of
-# the raffinate; its inert C4 passes the plant and goes back to the supplier as raffinate-2.
-# The flowsheet books the one raffinate stream as two terminals: its isobutene (feed:IBC),
-# which carries the raffinate's burden per kg, and its inert C4 (feed:C4I), which is outside
-# the system like the raffinate-2 it returns as (product:RAF2). So MTBE is the one product and
-# needs no allocation.
+# the raffinate; nearly all its inert C4 passes the plant and goes back to the supplier as
+# raffinate-2 (1.138 kg/kg), and 0.0090 kg/kg leaves dissolved in the MTBE product (C-101's
+# bottoms, D-005). The flowsheet books the one raffinate stream as two terminals: its isobutene
+# (feed:IBC), which carries the raffinate's burden per kg, and its inert C4 (feed:C4I), which is
+# outside the system like the raffinate-2 it returns as (product:RAF2). The inert C4 in the
+# product thus enters free; its upstream burden is declared as the cut-off c4-in-product. So
+# MTBE is the one product and needs no allocation.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -41,7 +43,7 @@ flows:
     source: "flowsheet stream S1, the raffinate's isobutene, 0.634 kg/kg (D-003, D-010)"
   - key: feed:C4I
     free: true
-    source: "flowsheet stream S2: the raffinate's inert C4, which passes the plant and returns to the supplier as raffinate-2 (S14); outside the system by subdivision (D-010)"
+    source: "flowsheet stream S2: the raffinate's inert C4, 1.147 kg/kg; 1.138 kg/kg passes the plant and returns to the supplier as raffinate-2 (S14), outside the system by subdivision, and 0.0090 kg/kg leaves in the MTBE product (S11), whose upstream burden is the declared cut-off c4-in-product (D-010)"
   - key: feed:MEOH
     missing: "linked to processes/methanol-1 (lca/mappings.yaml): Grade AA methanol from natural gas"
     source: "flowsheet stream S5, 0.360 kg/kg (D-003)"
@@ -57,10 +59,10 @@ flows:
     source: "flowsheet energy stream Q3, C-101's reboiler, 39.3 MW of Murat et al. (2003) Table 2, 0.631 kWh/kg (D-008)"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q1 (raffinate vaporiser), Q2 (methanol heater) and Q7 (C-202's reboiler), 0.259 kWh/kg (D-008)"
+    source: "flowsheet energy streams Q1 (raffinate vaporiser), Q2 (methanol heater) and Q7 (C-202's reboiler), 0.245 kWh/kg (D-008)"
   - key: product:CW
     missing: "linked in the Atlas LCI by the shared mapping (cooling water service per kWh rejected, a screening proxy); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q4, Q5, Q6, Q8 and Q9: C-101's condenser (49.7 MW, SRC-1), the coolers and C-202's condenser, 0.938 kWh/kg (D-008)"
+    source: "flowsheet energy streams Q4, Q5, Q6, Q8 and Q9: C-101's condenser (49.7 MW, SRC-1), the coolers and C-202's condenser, 0.934 kWh/kg (D-008)"
   # --- outputs outside the system and wastes
   - key: product:RAF2
     free: true
@@ -73,7 +75,8 @@ emission_exclusions:
   - {id: fugitive-losses, method: equipment-leaks, reason: "No P&ID yet: fugitive losses of C4, methanol and MTBE from flanges, seals and valves are not estimated at the concept stage (D-010)."}
   - {id: storage-breathing, method: storage-tank, reason: "The MTBE product and methanol tanks' breathing (floating roof or blanketed, ASSUMED) is not estimated (D-010)."}
 cutoff:
-  - {id: resin-replacement, title: "Acidic ion-exchange resin of C-101's reactive zone", unit: kg, per_year: 3200, reason: "6400 kg of resin in the column (Murat et al. 2003, section 3.1), replaced every 2 years (ASSUMED: no open source read here gives its life); 6.4 ppm of the input mass, its manufacture and the spent resin's disposal cut off with the amount", source: "D-010; SRC-1 for the charge, the life ASSUMED"}
+  - {id: resin-replacement, title: "Acidic ion-exchange resin of C-101's reactive zone", unit: kg, per_year: 3200, reason: "6400 kg of resin in the column (Murat et al. 2003, section 3.1), replaced every 2 years (ASSUMED: no open source read here gives its life); 3.0 ppm of the input mass (0.4 of 133 567 kg/h; 6.4 ppm of the product mass), its manufacture and the spent resin's disposal cut off with the amount", source: "D-010; SRC-1 for the charge, the life ASSUMED"}
+  - {id: c4-in-product, title: "Upstream burden of the raffinate's inert C4 that leaves in the MTBE product", unit: kg, per_year: 4462400, reason: "C-101 sends 0.781 % of the inert C4 (9.94 kmol/h, 557.8 kg/h; 0.0090 kg/kg, the product's 0.90 wt% C4) into the bottoms (D-005). It is booked inside the free feed:C4I, so the raffinate-1 burden of this mass is not charged: 0.42 % of the input mass (557.8 of 133 567 kg/h). Net of the unconverted isobutene in the raffinate-2 (0.0032 kg/kg), which feed:IBC charges to MTBE, about 0.006 kg/kg of raffinate burden is not charged, about 0.9 % of feed:IBC", source: "D-010; flowsheet streams S2, S11 and S14 (8000 h, ASSUMED)"}
 operation:
   hours_per_year: 8000
   life_years: 20

@@ -138,9 +138,15 @@ def test_the_stated_consumptions_and_the_product(streams, comps):
     lps = sum(_duty(streams, q) for q in ("Q1", "Q2", "Q7")) / product
     cw = sum(_duty(streams, q) for q in ("Q4", "Q5", "Q6", "Q8", "Q9")) / product
     power = (_duty(streams, "P1") + _duty(streams, "P2")) / product
-    assert (round(mps, 3), round(lps, 3), round(cw, 3), round(power, 4)) == (0.631, 0.259, 0.938, 0.0038)
+    assert (round(mps, 3), round(lps, 3), round(cw, 3), round(power, 4)) == (0.631, 0.245, 0.934, 0.0038)
+    # the inert C4: most returns in the raffinate-2, 0.009 kg/kg leaves in the product (D-010)
+    c4_product = kg["B1"] / product
+    c4_returned = _kg(streams["S14"], comps)["B1"] / product
+    assert c4_product == pytest.approx(0.0090, abs=5e-5)
+    assert c4_returned == pytest.approx(1.138, abs=5e-4)
+    assert c4_product + c4_returned == pytest.approx(per["S2"], rel=1e-4)
     text = _text("process.yaml") + _text("README.md")
-    for stated in ("0.634 kg", "1.147 kg", "0.360 kg", "0.631 kWh", "0.259 kWh", "0.938 kWh", "0.0038 kWh", "99.10 wt%", "99.5 %"):
+    for stated in ("0.634 kg", "1.147 kg", "0.009 kg", "0.360 kg", "0.631 kWh", "0.245 kWh", "0.934 kWh", "0.0038 kWh", "99.10 wt%", "99.5 %"):
         assert stated in text, stated
 
 

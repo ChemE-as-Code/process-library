@@ -23,9 +23,18 @@ cutoff:
   title: Acidic ion-exchange resin of C-101's reactive zone
   amount: 0.4
   reason: '6400 kg of resin in the column (Murat et al. 2003, section 3.1), replaced every 2 years (ASSUMED:
-    no open source read here gives its life); 6.4 ppm of the input mass, its manufacture and the spent
-    resin''s disposal cut off with the amount'
+    no open source read here gives its life); 3.0 ppm of the input mass (0.4 of 133 567 kg/h; 6.4 ppm
+    of the product mass), its manufacture and the spent resin''s disposal cut off with the amount'
   source: D-010; SRC-1 for the charge, the life ASSUMED
+- key: cutoff:c4-in-product
+  title: Upstream burden of the raffinate's inert C4 that leaves in the MTBE product
+  amount: 557.8
+  reason: 'C-101 sends 0.781 % of the inert C4 (9.94 kmol/h, 557.8 kg/h; 0.0090 kg/kg, the product''s
+    0.90 wt% C4) into the bottoms (D-005). It is booked inside the free feed:C4I, so the raffinate-1 burden
+    of this mass is not charged: 0.42 % of the input mass (557.8 of 133 567 kg/h). Net of the unconverted
+    isobutene in the raffinate-2 (0.0032 kg/kg), which feed:IBC charges to MTBE, about 0.006 kg/kg of
+    raffinate burden is not charged, about 0.9 % of feed:IBC'
+  source: D-010; flowsheet streams S2, S11 and S14 (8000 h, ASSUMED)
 - key: emission-excluded:fugitive-losses
   title: equipment-leaks emissions of the plant
   direction: output
@@ -91,8 +100,9 @@ exchanges:
   free: true
   streams:
   - S2
-  source: 'flowsheet stream S2: the raffinate''s inert C4, which passes the plant and returns to the supplier
-    as raffinate-2 (S14); outside the system by subdivision (D-010)'
+  source: 'flowsheet stream S2: the raffinate''s inert C4, 1.147 kg/kg; 1.138 kg/kg passes the plant and
+    returns to the supplier as raffinate-2 (S14), outside the system by subdivision, and 0.0090 kg/kg
+    leaves in the MTBE product (S11), whose upstream burden is the declared cut-off c4-in-product (D-010)'
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (given, design maturity concept)
@@ -149,11 +159,11 @@ exchanges:
 - key: feed:LPS
   title: LP steam 450 kPa(a)
   type: input
-  amount: 16113.6
+  amount: 15272.8
   unit: kWh
   link:
     source: flowsheet energy streams Q1 (raffinate vaporiser), Q2 (methanol heater) and Q7 (C-202's reboiler),
-      0.259 kWh/kg (D-008)
+      0.245 kWh/kg (D-008)
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       450 kPa(a), from a natural-gas-fired site boiler (processes/utility-steam-ng-boiler), per kWh of
       condensing heat'
@@ -162,7 +172,7 @@ exchanges:
   - Q2
   - Q7
   source: flowsheet energy streams Q1 (raffinate vaporiser), Q2 (methanol heater) and Q7 (C-202's reboiler),
-    0.259 kWh/kg (D-008)
+    0.245 kWh/kg (D-008)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -308,11 +318,11 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 58386.99999999999
+  amount: 58152.700000000004
   unit: kWh
   link:
     source: 'flowsheet energy streams Q4, Q5, Q6, Q8 and Q9: C-101''s condenser (49.7 MW, SRC-1), the
-      coolers and C-202''s condenser, 0.938 kWh/kg (D-008)'
+      coolers and C-202''s condenser, 0.934 kWh/kg (D-008)'
     missing: 'linked in the Atlas LCI by the shared mapping (cooling water service per kWh rejected, a
       screening proxy); connect to: heat rejected to a recirculating cooling-water system with cooling
       tower (processes/utility-cooling-tower), per kWh removed'
@@ -323,7 +333,7 @@ exchanges:
   - Q8
   - Q9
   source: 'flowsheet energy streams Q4, Q5, Q6, Q8 and Q9: C-101''s condenser (49.7 MW, SRC-1), the coolers
-    and C-202''s condenser, 0.938 kWh/kg (D-008)'
+    and C-202''s condenser, 0.934 kWh/kg (D-008)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -338,9 +348,9 @@ provenance:
   plant: Methyl tert-butyl ether by catalytic distillation of a C4 raffinate with methanol (500 kt/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:6851280dce570642c53534993d491818d4dec0fdfa454b0fa753b2b5a683922f
-    lca/lca.yaml: sha256:8cf366a61d2f23a9b576bbcd29b57a5fa3089f5331f4f7fb9d1d8e5e26c530f5
-    process.yaml: sha256:9d28b3e4c9badac331f1f165bb4fb78aef2e5981cd522584ea47f4d72e2b590e
-    process/flowsheet.yaml: sha256:87c23ab234e6be1161b1b76d4826f733c006ce0eefad973f81470d5cc4024163
+    equipment/equipment-list.yaml: sha256:6a0680cb6917475a1f7f323729d091c7d3070badfe986b887a5f4aa965997eb4
+    lca/lca.yaml: sha256:7a5ab83eb1806c5a7b355e30c7c0eac34b58786851b24299191785b5c521041c
+    process.yaml: sha256:d7d304eaeb2a44d971c883c7050568f3283d27f3c085a99a3221fe4a545f70e9
+    process/flowsheet.yaml: sha256:cb632565d6609801f90ff73b2c650caa514f680497458636e354f3639beb0fe9
     process/materials.yaml: sha256:631b12745694d339752edfd8b7aa656229cfa13eac5fddf57735da7edd73b822
-    process/simulation.yaml: sha256:bf92ea7e2d42e81956ad384436ad08410bc9e5b4c8bb6e1b861a692ebf2641dd
+    process/simulation.yaml: sha256:ab78830dd3cb4dad8161470770be73d155ccc411b78da0dc96a22668ce3200c2

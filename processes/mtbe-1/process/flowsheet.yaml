@@ -20,8 +20,8 @@
 #   with two design specifications (core ADR 0070): the fresh methanol S5 for the column's
 #   206 mol/s of methanol, the make-up water S21 for 0.15 kg of wash water per kg of distillate;
 #   `cheme process propagate --fill` writes every flow and composition but the feeds';
-# - the duties other than the column's, the pumps and the mixers' outlet temperatures come from
-#   scripts/balance.py (D-008).
+# - the duties other than the column's, the pumps, the mixer M101's outlet temperature and the
+#   temperature of C-202's condensate come from scripts/balance.py (D-008).
 schema: cheme/process/v1
 kind: flowsheet
 title: Methyl tert-butyl ether by catalytic distillation of a C4 raffinate with methanol (500 kt/a)
@@ -352,7 +352,7 @@ streams:
         pressure: {value: 1300, provenance: assumed, source: "D-003: pumped"}
         phase: {value: liquid, provenance: assumed, source: "D-003"}
         composition: {basis: mole_fraction, values: {MEOH: 1.0}, provenance: assumed, source: "D-003: methanol-1's Grade AA product taken as pure methanol (its 500 ppm water not modelled)"}
-        flow: {value: 22432.7, provenance: calculated, source: 'cheme process propagate: spec methanol (S7 MEOH flow kg/h 23762.3)', fingerprint: 7c99196622c8622e}
+        flow: {value: 22432.7, provenance: calculated, source: 'cheme process propagate: spec methanol (S7 MEOH flow kg/h 23762.3)', fingerprint: dc5b8fad8586ff52}
   - id: S6
     title: Methanol to the feed heater
     from: M101.out
@@ -360,7 +360,7 @@ streams:
     template: mixture
     state:
       design:
-        temperature: {value: 300.82, provenance: assumed, source: "scripts/balance.py: S5 and S16 mixed adiabatically (D-008)"}
+        temperature: {value: 300.43, provenance: assumed, source: "scripts/balance.py: S5 and S16 mixed adiabatically (D-008)"}
         pressure: {value: 1300, provenance: assumed, source: "D-003"}
         phase: {value: liquid, provenance: assumed, source: "D-003"}
         flow: {value: 23777.9, provenance: calculated, source: 'cheme process propagate: mixer M101 from S5 S16', fingerprint: e75b1056da081ac1}
@@ -384,7 +384,7 @@ streams:
     template: mixture
     state:
       design:
-        temperature: {value: 370.0, provenance: assumed, source: "D-005: inside the reactive zone's profile of SRC-1 (348-424 K); an internal stream of C-101, no duty on it"}
+        temperature: {value: 370.0, provenance: assumed, source: "D-005: inside the reactive zone's profile of SRC-1 (348-424 K); an internal stream of C-101, set here, not R101's calculated adiabatic outlet: the duty `cheme process reactors` reports for R101 from it (about -11.1 MW) is the reaction heat, which boils liquid in the column and leaves in C-101's condenser Q4 (D-008)"}
         pressure: {value: 1100, provenance: given, source: "Murat et al. (2003): 11 bar"}
         phase: {value: liquid, provenance: assumed, source: "D-005"}
         flow: {value: 134666.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S7', fingerprint: d0d192749b8370ef}
@@ -432,7 +432,7 @@ streams:
     template: mixture
     state:
       design:
-        temperature: {value: 313.15, provenance: assumed, source: "D-006: inside the 20-50 C to which US 5 336 841 A cools a C4 overhead (SRC-4, claim 4)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006: ASSUMED, a cooling-water cooler's outlet; no source read here gives the temperature of the wash feed"}
         pressure: {value: 1050, provenance: assumed, source: "D-006"}
         phase: {value: liquid, provenance: assumed, source: "D-006"}
         flow: {value: 72396.0, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 70641da58adb4b08}
@@ -480,11 +480,11 @@ streams:
     template: mixture
     state:
       design:
-        temperature: {value: 345.3, provenance: assumed, source: "D-007: methanol's bubble point at the column top, 136 kPa(a) (thermo 0.6.1 vapour pressure), total condenser"}
+        temperature: {value: 336.58, provenance: assumed, source: "scripts/balance.py: the condensate's bubble point at the top's 136 kPa(a) with its dissolved C4 (modified UNIFAC, thermo 0.6.1), total condenser with the overhead vapour at 345.3 K (D-007)"}
         pressure: {value: 1300, provenance: assumed, source: "D-007: pumped"}
         phase: {value: liquid, provenance: assumed, source: "D-007"}
-        flow: {value: 1345.2, provenance: calculated, source: 'cheme process propagate: recycle C202 from S15 (tear, broyden)', fingerprint: 2a8f739c2a9ef1be}
-        composition: {basis: mole_fraction, values: {IB: 1.68226e-05, B1: 0.00604003, MEOH: 0.992175, MTBE: 0.0, H2O: 0.00176786}, provenance: calculated, source: 'cheme process propagate: recycle C202 from S15 (tear, broyden)', fingerprint: 2a8f739c2a9ef1be}
+        flow: {value: 1345.2, provenance: calculated, source: 'cheme process propagate: recycle C202 from S15 (tear, broyden)', fingerprint: f9eaeec9832d688a}
+        composition: {basis: mole_fraction, values: {IB: 1.68226e-05, B1: 0.00604003, MEOH: 0.992175, MTBE: 0.0, H2O: 0.00176786}, provenance: calculated, source: 'cheme process propagate: recycle C202 from S15 (tear, broyden)', fingerprint: f9eaeec9832d688a}
   - id: S17
     title: C-202 bottoms water
     from: C202.bot
@@ -531,8 +531,8 @@ streams:
         temperature: {value: 313.15, provenance: assumed, source: "D-007"}
         pressure: {value: 1100, provenance: assumed, source: "D-007"}
         phase: {value: liquid, provenance: assumed, source: "D-007"}
-        flow: {value: 10612.9, provenance: calculated, source: 'cheme process propagate: recycle X201 from S18 (tear, broyden)', fingerprint: 2a8f739c2a9ef1be}
-        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0, MEOH: 6.91041e-05, MTBE: 0.0, H2O: 0.999931}, provenance: calculated, source: 'cheme process propagate: recycle X201 from S18 (tear, broyden)', fingerprint: 2a8f739c2a9ef1be}
+        flow: {value: 10612.9, provenance: calculated, source: 'cheme process propagate: recycle X201 from S18 (tear, broyden)', fingerprint: f9eaeec9832d688a}
+        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0, MEOH: 6.91041e-05, MTBE: 0.0, H2O: 0.999931}, provenance: calculated, source: 'cheme process propagate: recycle X201 from S18 (tear, broyden)', fingerprint: f9eaeec9832d688a}
   - id: S21
     title: Make-up water
     from: DMW.out
@@ -544,18 +544,18 @@ streams:
         pressure: {value: 1100, provenance: assumed, source: "D-006"}
         phase: {value: liquid, provenance: assumed, source: "D-006"}
         composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-006: demineralised water"}
-        flow: {value: 246.453, provenance: calculated, source: 'cheme process propagate: spec wash (S13 per S12 (mass) 0.15)', fingerprint: 7c99196622c8622e}
+        flow: {value: 246.453, provenance: calculated, source: 'cheme process propagate: spec wash (S13 per S12 (mass) 0.15)', fingerprint: dc5b8fad8586ff52}
   # energy streams: Q3 and Q4 are the column's duties of the source; the rest from
   # scripts/balance.py (D-008)
-  - {id: Q1, title: "Raffinate vaporiser E-104 (LP steam)", kind: energy, from: LPS.e104, to: E104.stm, state: {design: {duty: {value: 13746.7, provenance: assumed, source: "scripts/balance.py: S3 heated as liquid to 350 K and vaporised"}}}}
-  - {id: Q2, title: "Methanol feed heater E-103 (LP steam)", kind: energy, from: LPS.e103, to: E103.stm, state: {design: {duty: {value: 391.9, provenance: assumed, source: "scripts/balance.py: S6 heated to S7"}}}}
+  - {id: Q1, title: "Raffinate vaporiser E-104 (LP steam)", kind: energy, from: LPS.e104, to: E104.stm, state: {design: {duty: {value: 12954.5, provenance: assumed, source: "scripts/balance.py: S3 heated as liquid to 350 K and vaporised"}}}}
+  - {id: Q2, title: "Methanol feed heater E-103 (LP steam)", kind: energy, from: LPS.e103, to: E103.stm, state: {design: {duty: {value: 337.9, provenance: assumed, source: "scripts/balance.py: S6 heated to S7"}}}}
   - {id: Q3, title: "C-101 reboiler (MP steam)", kind: energy, from: MPS.c101, to: C101.stm, state: {design: {duty: {value: 39300.0, provenance: given, source: "Murat et al. (2003) Table 2 (SRC-1): reboiler 39.3 MW in their model (35.1 MW in Nijhuis et al.'s), D-008"}}}}
   - {id: Q4, title: "C-101 overhead condenser", kind: energy, from: C101.cw, to: CW.c101, state: {design: {duty: {value: 49700.0, provenance: given, source: "Murat et al. (2003) Table 2 (SRC-1): condenser 49.7 MW, reflux ratio 7, D-008"}}}}
-  - {id: Q5, title: "MTBE product cooler E-101", kind: energy, from: E101.cw, to: CW.e101, state: {design: {duty: {value: 4623.5, provenance: assumed, source: "scripts/balance.py: S10 cooled to S11"}}}}
-  - {id: Q6, title: "Distillate cooler E-102", kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 2125.6, provenance: assumed, source: "scripts/balance.py: S9 cooled to S12"}}}}
-  - {id: Q7, title: "C-202 reboiler (LP steam)", kind: energy, from: LPS.c202, to: C202.stm, state: {design: {duty: {value: 1975.0, provenance: assumed, source: "scripts/balance.py: C-202's balance with its condenser Q8"}}}}
-  - {id: Q8, title: "C-202 overhead condenser", kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 1007.7, provenance: assumed, source: "scripts/balance.py: the top product at reflux 1.5, ASSUMED"}}}}
-  - {id: Q9, title: "Wash-water cooler E-201", kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 930.2, provenance: assumed, source: "scripts/balance.py: S17 cooled to S18"}}}}
+  - {id: Q5, title: "MTBE product cooler E-101", kind: energy, from: E101.cw, to: CW.e101, state: {design: {duty: {value: 4686.8, provenance: assumed, source: "scripts/balance.py: S10 cooled to S11"}}}}
+  - {id: Q6, title: "Distillate cooler E-102", kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 1809.3, provenance: assumed, source: "scripts/balance.py: S9 cooled to S12"}}}}
+  - {id: Q7, title: "C-202 reboiler (LP steam)", kind: energy, from: LPS.c202, to: C202.stm, state: {design: {duty: {value: 1980.4, provenance: assumed, source: "scripts/balance.py: C-202's balance with its condenser Q8"}}}}
+  - {id: Q8, title: "C-202 overhead condenser", kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 1030.9, provenance: assumed, source: "scripts/balance.py: the top product at reflux 1.5, ASSUMED, condensed and cooled to its bubble point"}}}}
+  - {id: Q9, title: "Wash-water cooler E-201", kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 925.7, provenance: assumed, source: "scripts/balance.py: S17 cooled to S18"}}}}
   - {id: P1, title: "Pumps of C-101: reflux, feeds and product", kind: energy, from: POWER.rxd, to: C101.pw, state: {design: {duty: {value: 232.3, provenance: assumed, source: "scripts/balance.py: V dP / efficiency, ASSUMED"}}}}
   - {id: P2, title: "Pumps of the methanol recovery: wash water, C-202 reflux, recycle methanol", kind: energy, from: POWER.mrc, to: C202.pw, state: {design: {duty: {value: 5.5, provenance: assumed, source: "scripts/balance.py: V dP / efficiency, ASSUMED"}}}}
 layout: {bfd: {}, pfd: {}}

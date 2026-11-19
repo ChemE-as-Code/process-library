@@ -22,10 +22,10 @@ in this work.
 |---|---|---|---|---|
 | SRC-1 | Murat, M.N.; Mohamed, A.R.; Bhatia, S. (2003) Modeling of a reactive distillation column: methyl tertiary butyl ether (MTBE) simulation studies. IIUM Engineering Journal 4(2), 13-30, https://journals.iium.edu.my/ejournal/index.php/iiumej/article/download/371/319/1573 | section 2 (equilibrium-stage model, liquid-phase reaction, UNIQUAC liquid, ideal vapour; the activity-based rate law of Rehfinger and Hoffmann with 4.9 equiv H+ per kg of resin, a forward rate constant 3.67e12 exp(-11110/T) mol/(s equiv) and an equilibrium constant 284 exp(f(T)), equations 7 to 11); section 3.1 and Table 1 (basis 197 mol/s of MTBE, 500 000 t/a; 17 stages numbered from the top with the total condenser 0 and the partial reboiler 16; reactive stages 3 to 10 with 800 kg of catalyst each, 6400 kg; 11 bar; reflux ratio 7; methanol 206 mol/s liquid at 320 K and butenes 549 mol/s vapour at 350 K with 0.356 isobutene and 0.644 1-butene, both on stage 10; bottoms 197 mol/s); section 3.2 (1-butene stands for every inert C4; by-products neglected); Table 2 (their model against Nijhuis et al. 1993: top 348.8 K, bottom 423.8 K; distillate 363.7 mol/s with 0.032 methanol, 0.003 isobutene, 0.965 1-butene; bottoms 0.986 MTBE, 0.014 1-butene; condenser 49.7 MW, reboiler 39.3 MW (35.1 MW in Nijhuis et al.); isobutene conversion 99.5 % (98.5 %); reflux 2.55 kmol/s); Figure 6 text (methanol activity coefficients up to 11.6); Tables 3 and 4 (Bao et al.'s 2002 industrial column: distillate 5494 kg/h with 4.61 wt% methanol, bottoms 5428 kg/h at 98.64 wt% MTBE, isobutene conversion 99.62 %; top 336 K, bottom 417 K; a pre-reactor upstream of the column) | read (open access PDF, text extracted); facts only | D-001, D-002, D-004, D-005, D-008, benchmarks |
 | SRC-2 | Svandova, Z.; Labovsky, J.; Markos, J.; Jelemensky, L. (2007) Impact of mathematical model selection on prediction of steady state and dynamic behaviour of a reactive distillation column. ESCAPE17, https://skoge.folk.ntnu.no/prost/proceedings/escape17/papers/T5-410.pdf | section 2.2 (MTBE from isobutene and methanol on strong ion-exchange resin, Rehfinger and Hoffmann kinetics, 1-butene as the inert, side reactions ignored, UNIQUAC); section 2.3 (Jacobs and Krishna's column: total condenser, 15 trays as 2 rectifying, 8 reactive with 1000 kg of catalyst each and 5 stripping, partial reboiler; 1110 kPa; methanol 775.8 kmol/h and butenes 1976.4 kmol/h on stage 10; reflux ratio 7; bottoms 675 kmol/h; 60 % stage efficiency); section 2.4 (three steady states at the operating feeds in both the equilibrium and the rate-based model; isolated branches of solutions; transitions between steady states after feed disturbances) | read (open PDF, text extracted); facts only | D-001, D-004, D-009 |
-| SRC-3 | US 4 918 243 A, L.A. Smith, E.M. Jones, D. Hearn (Chemical Research and Licensing Co.), priority 1988-10-28: Heat recovery in MTBE methanol recovery, https://patents.google.com/patent/US4918243A/en | detailed description and claims: C4 raffinate from the MTBE unit with about 3 wt% methanol washed with water at 0.21 kg/kg (preferably 0.1-0.4) in a mixer and decanter, the water leaving with about 15 wt% methanol; methanol/water column, 99.9+ wt% methanol overhead, the water back to the wash with make-up; the conventional column at about 5 psig with an overhead of about 74 C (the invention raises it to 40-60 psig for heat recovery); feed of 5-60 wt% isobutene, methanol 10 % below to 100 % above stoichiometric, acidic cation-exchange resin | read (Google Patents, via a fetch summary of the full text); patent, facts only | D-001, D-006, D-007 |
-| SRC-4 | US 5 336 841 A, J.R. Adams (Chemical Research and Licensing Co.), priority 1993-04-05: Oxygenate removal in MTBE process, https://patents.google.com/patent/US5336841A/en | background (water washing of the C4 raffinate leaves methanol, DME and MTBE traces); description of the figure (the washed C4, stream 27, with about 10 wppm methanol and 400 wppm water); claim 4 (a C4 overhead cooled to 20-50 C); MTBE units commercially at 85 %+ conversion | read (Google Patents, via a fetch summary of the full text); patent, facts only | D-006 |
+| SRC-3 | US 4 918 243 A, L.A. Smith, E.M. Jones, D. Hearn (Chemical Research and Licensing Co.), priority 1988-10-28: Heat integration process, https://patents.google.com/patent/US4918243A/en | detailed description and claims: the worked example with a fixed-bed reactor (a mixed C4 feed with 11 wt% isobutene, methanol at a 38 % stoichiometric excess, 93 % of the isobutene converted, about 0.85 % isobutene left in the unreacted C4); C4 raffinate from the MTBE unit with about 3 wt% methanol washed with water at 0.21 kg/kg (preferably 0.1-0.4) in a mixer and decanter, the water leaving with about 15 wt% methanol; methanol/water column, 99.9+ wt% methanol overhead, the water back to the wash with make-up; the conventional column at about 5 psig with an overhead of about 74 C (the invention raises it to 40-60 psig for heat recovery); feed of 5-60 wt% isobutene, methanol 10 % below to 100 % above stoichiometric, acidic cation-exchange resin | read (Google Patents, via a fetch summary of the full text; title and worked example re-read in the page text 2026-11-20); patent, facts only | D-001, D-006, D-007 |
+| SRC-4 | US 5 336 841 A, J.R. Adams (Chemical Research and Licensing Co.), priority 1993-04-05: Oxygenate removal in MTBE process, https://patents.google.com/patent/US5336841A/en | background (water washing of the C4 raffinate leaves methanol, DME and MTBE traces); description of the figure (the washed C4, stream 27, with about 10 wppm methanol and 400 wppm water); claims 1 to 4 (the oxygenate-removal distillation column reactor downstream of the wash, at 200-300 psig, its liquid overhead cooled to 20-50 C: not the wash feed, for which the patent gives no temperature); MTBE units commercially at 85 %+ conversion | read (Google Patents, via a fetch summary of the full text; claims 1 to 4 re-read in the page text 2026-11-20); patent, facts only | D-001, D-006 |
 | SRC-5 | processes/methanol-1, butadiene-1, isobutene-1 (this library) | methanol-1's Grade AA product; butadiene-1's raffinate-1 co-product (mass allocation); isobutene-1 cracks MTBE back to isobutene | library, internal | D-003, D-010 |
-| SRC-6 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment, C. Bell, MIT) | ideal-gas data of process/materials.yaml (`cheme chemistry thermo`); liquid heat capacities (HEOS_FIT; ZABRANSKY_SPLINE for MTBE) averaged over 298-424 K: methanol 99.1, water 76.0, MTBE 212.5, 1-butene 166.2, isobutene 171.6 kJ/(kmol K); heats of vaporization (HEOS_FIT): isobutene 16.23, 1-butene 16.37 kJ/mol at 350 K, methanol 34.79 and water 41.93 kJ/mol at 345.3 K; vapour pressures: 1-butene boils at 349.3 K at 1100 kPa(a), MTBE at 426.5 K at 1100 kPa(a), methanol at 345.3 K at 136 kPa(a), water at 386.5 K at 160 kPa(a); liquid densities at 313 K | open-source packages queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037); the underlying works (ATcT, CRC, NIST WebBook, Yaws, the TRC tables, Zabransky et al., the DIPPR and HEOS correlations) were not read here | materials, scripts/balance.py, D-005, D-007, D-008 |
+| SRC-6 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment, C. Bell, MIT) | ideal-gas data of process/materials.yaml (`cheme chemistry thermo`); liquid heat capacities (HeatCapacityLiquid: HEOS_FIT for methanol, water, isobutene and 1-butene; ZABRANSKY_SPLINE for MTBE) integrated over each stream's own temperature range in scripts/balance.py, for example 1-butene 138.8 and isobutene 143.0 kJ/(kmol K) as means over 298-350 K, methanol 87.2 (298-350 K), MTBE 215.4 (313-424 K); heats of vaporization (EnthalpyVaporization, HEOS_FIT): isobutene 16.23, 1-butene 16.37 kJ/mol at 350 K, methanol 34.79 and water 41.93 kJ/mol at 345.3 K, and at 298.15 K for the C-101 cross-check (MTBE there DIPPR_PERRY_8E); vapour pressures (VaporPressure): 1-butene boils at 349.3 K at 1100 kPa(a) and methanol at 345.3 K at 136 kPa(a) (HEOS_FIT), MTBE at 426.5 K at 1100 kPa(a) (DIPPR_PERRY_8E), water at 386.5 K at 160 kPa(a) (IAPWS_PSAT); liquid densities at 313 K (VolumeLiquid: HEOS_FIT for 1-butene, methanol and water; DIPPR_PERRY_8E for MTBE, 720.4 kg/m3); the bubble point of C-202's condensate, 336.6 K at 136 kPa(a), with thermo's modified UNIFAC (Dortmund) group parameters and the vapour pressures above, ideal vapour (an estimate) | open-source packages queried 2026-11-19 and 2026-11-20; single values, facts only, with their source; not open data (library ADR 0037); the underlying works (ATcT, CRC, NIST WebBook, Yaws, the TRC tables, Zabransky et al., the HEOS correlations, the IAPWS vapour-pressure equation, Perry's Chemical Engineers' Handbook 8th ed. drawing on DIPPR 801 for MTBE's DIPPR_PERRY_8E coefficients, the Dortmund UNIFAC parameter tables) were not read here | materials, scripts/balance.py, D-005, D-007, D-008 |
 | SRC-7 | Rehfinger and Hoffmann (1990) Chem. Eng. Sci. 45(6); Nijhuis, Kerkhof and Mak (1993) Ind. Eng. Chem. Res. 32; Bao et al. (2002) Chem. Eng. J. 90(3); Ullmann's, Methyl tert-butyl ether | - | not read (licensed); the primary works behind SRC-1 and SRC-2 | route lead only |
 
 ## D-001 Route and boundary (2026-11-19)
@@ -42,10 +42,12 @@ methanol-1; utilities from the site.
 
 Rejected:
 - **Fixed-bed reactors followed by conventional distillation** (the older layout; SRC-3's
-  background: fixed-bed resin reactors and a debutaniser). Equilibrium limits the isobutene
-  conversion in the reactors to about 90 % unless a second stage follows (SRC-4: commercial
-  units 85 %+); the open sources read here give no reactor data for it. Catalytic distillation
-  reaches 99.5 % in one column with open numbers.
+  background: fixed-bed resin reactors and a debutaniser). SRC-3's worked example converts 93 %
+  of the isobutene in a fixed-bed reactor (11 wt% isobutene in the C4, 38 % methanol excess),
+  and SRC-4 puts commercial MTBE units at 85 %+; a second stage would be needed to approach the
+  column's conversion. Catalytic distillation reaches 99.5 % in one column with open numbers
+  (SRC-1), and SRC-1 gives the whole column; neither patent gives the duties of a fixed-bed
+  plant.
 - **A pre-reactor ahead of the catalytic distillation column** (the industrial arrangement
   SRC-1 names for Bao et al.'s plant): it would take most of the conversion and leave the column
   the polishing, but no open source read here gives the pre-reactor's conversion or the column
@@ -59,8 +61,10 @@ Rejected:
 
 The capacity is SRC-1's basis: 197 mol/s of bottoms, which SRC-1 equates with 500 000 t/a of
 MTBE. With the source's conversion and bottoms composition the product is 62.27 t/h, 498 kt/a in
-8000 h (ASSUMED hours), 99.10 wt% MTBE (98.6 mol%) with 0.90 wt% C4: within commercial MTBE
-grades for gasoline blending, not a solvent grade. Cooled to 313 K for storage.
+8000 h (ASSUMED hours), 99.10 wt% MTBE (98.6 mol%) with 0.90 wt% C4, SRC-1's bottoms; for
+comparison, SRC-1 reports Bao et al.'s industrial column at 98.64 wt% MTBE. No product
+specification was read here, so whether this composition meets a given commercial grade is
+open. Cooled to 313 K for storage (ASSUMED).
 
 ## D-003 Feeds (2026-11-19)
 
@@ -93,14 +97,17 @@ and the unconverted isobutene overhead. The result reproduces the source's disti
 mol/s, 3.2 mol% methanol, 0.3 mol% isobutene) and bottoms (197.2 mol/s). The trace water of the
 recycle methanol (1.3 kg/h) goes with the MTBE (ASSUMED; 21 ppm(wt)). Temperatures: top 348.8 K
 and bottom 423.8 K (SRC-1), consistent with the boiling points of 1-butene and MTBE at 1100
-kPa(a) (349.3 and 426.5 K, SRC-6). The internal stream S8 between the two steps has no duty
-and an ASSUMED temperature.
+kPa(a) (349.3 and 426.5 K, SRC-6). The 1-butene sent to the bottoms (557.8 kg/h, 0.0090 kg per
+kg of product) is inert C4 of the raffinate that leaves in the MTBE, not in the raffinate-2
+(D-010). The internal stream S8 between the two steps has no duty of its own and an ASSUMED
+temperature (370 K); it is set, not calculated as R101's adiabatic outlet (D-008).
 
 ## D-006 Water wash (2026-11-19)
 
-The cooled distillate (313 K, inside SRC-4's 20-50 C) is washed countercurrently with 0.15 kg
-of water per kg (ASSUMED inside SRC-3's 0.1-0.4; design specification `wash`). The washed
-raffinate-2 keeps 0.05 % of the methanol (about 9 ppm(wt)) and 400 ppm(wt) water, the washed C4
+The cooled distillate (313 K, ASSUMED: a cooling-water cooler's outlet; no source read here
+gives the wash feed's temperature, and SRC-4's 20-50 C is the overhead of a different, downstream
+column) is washed countercurrently with 0.15 kg of water per kg (ASSUMED inside SRC-3's
+0.1-0.4; design specification `wash`). The washed raffinate-2 keeps 0.05 % of the methanol (about 9 ppm(wt)) and 400 ppm(wt) water, the washed C4
 of SRC-4; 0.02 % of the C4 dissolve in the extract (ASSUMED). The extract holds 10.9 wt%
 methanol (SRC-3's example: about 15 wt% from a 3 wt% raffinate at 0.21 kg/kg). The stages are
 not sized: core has no liquid-liquid equilibrium system for methanol, water and C4 (L-3); a
@@ -112,8 +119,13 @@ left (ASSUMED).
 C-202 runs at about atmospheric pressure, the usual column SRC-3 names (top 136 kPa(a) and
 345.3 K, bottom 160 kPa(a) and 386.5 K, SRC-6; ASSUMED), so LP steam heats it. It takes 99.9 %
 of the methanol overhead at 99.9 wt% on a C4-free basis (SRC-3: 99.9+ wt%), with the dissolved
-C4 (1.05 wt% of the overhead, held in the condensate under pressure after the pump, ASSUMED;
-a vent to fuel gas is a next-stage detail), back to the methanol feed. The bottoms water (about
+C4 (1.05 wt% of the overhead, 0.60 mol% 1-butene), back to the methanol feed. With that C4 the
+condensate's bubble pressure at 345.3 K is above the top's 136 kPa (141 kPa by Raoult's law
+alone, higher with the C4's activity coefficients of about 8 in methanol), so the total
+condenser subcools it: the reflux drum runs at the condensate's bubble point at 136 kPa(a),
+336.6 K (modified UNIFAC, SRC-6; an estimate), where the C4 stays dissolved, and S16 and the
+reflux leave at that temperature. Q8 includes the subcooling. A vent from the drum for
+non-condensables to fuel gas is a next-stage detail. The bottoms water (about
 120 ppm(wt) methanol) is cooled and 2 % of it purged (ASSUMED) to keep non-volatile impurities
 out of the loop; make-up demineralised water closes it. Reflux ratio 1.5 (ASSUMED). The heat
 recovery of SRC-3 (the column pressurised so that its overhead reboils another column) is not
@@ -123,37 +135,59 @@ taken: an open improvement.
 
 C-101's reboiler (Q3, 39.3 MW) and condenser (Q4, 49.7 MW) are SRC-1's values for the whole
 column with its reaction (its own model; Nijhuis et al.'s reboiler 35.1 MW). The reaction's heat
-stays inside the column (R101 declared adiabatic in process/simulation.yaml). The reboiler needs
+stays inside the column (R101 declared adiabatic in process/simulation.yaml): it boils liquid
+and leaves through the condenser, which is why Q4 exceeds Q3 by 10.4 MW. The outlet temperature
+of R101 (S8, 370 K) is ASSUMED, not calculated, so `cheme process reactors` reports a duty of
+-11.1 MW for R101 from it (the gas-basis reaction heat, 700.08 kmol/h x 65.1 MJ/kmol = 12.7 MW,
+less the sensible heat to 370 K). That figure is for information and is not booked: the
+reaction heat is already inside SRC-1's Q3 and Q4. The reboiler needs
 MP steam: the bottoms boil at 423.8 K, above LP steam's 421 K. Every other duty comes from
 `scripts/balance.py` (balance-output contract, library ADR 0027):
 
 | stream | duty, kW | basis |
 |---|---|---|
-| Q1 | 13746.7 | E-104: the raffinate heated as liquid to 350 K and vaporised |
-| Q2 | 391.9 | E-103: methanol from the mixer's 300.8 K to 320 K |
+| Q1 | 12954.5 | E-104: the raffinate heated as liquid to 350 K and vaporised |
+| Q2 | 337.9 | E-103: methanol from the mixer's 300.4 K to 320 K |
 | Q3 | 39300.0 | C-101's reboiler, SRC-1 Table 2 |
 | Q4 | 49700.0 | C-101's condenser, SRC-1 Table 2 |
-| Q5 | 4623.5 | E-101: MTBE from 423.8 to 313.15 K |
-| Q6 | 2125.6 | E-102: distillate from 348.8 to 313.15 K |
-| Q7 | 1975.0 | C-202's reboiler, from its balance with the condenser |
-| Q8 | 1007.7 | C-202's condenser, reflux 1.5 (ASSUMED) |
-| Q9 | 930.2 | E-201: wash water from 386.45 to 313.15 K |
+| Q5 | 4686.8 | E-101: MTBE from 423.8 to 313.15 K |
+| Q6 | 1809.3 | E-102: distillate from 348.8 to 313.15 K |
+| Q7 | 1980.4 | C-202's reboiler, from its balance with the condenser |
+| Q8 | 1030.9 | C-202's condenser, reflux 1.5 (ASSUMED), the condensate subcooled to its bubble point (D-007) |
+| Q9 | 925.7 | E-201: wash water from 386.45 to 313.15 K |
 | P1 | 232.3 | pumps of C-101 (raffinate and methanol feeds, reflux, bottoms), efficiency 0.65 (ASSUMED) |
 | P2 | 5.5 | pumps of the methanol recovery |
 
-The enthalpy basis: liquids at constant heat capacities from 298.15 K, vaporisation at the
-temperature named, no heats of mixing (SRC-6; L-2). The vaporiser E-104 is the largest steam
-user after C-101: the source feeds the C4 as vapour, which lowers the column's reboiler. Per kg
-of product: 0.631 kWh MP steam, 0.259 kWh LP steam, 0.938 kWh to cooling water, 0.0038 kWh of
-electricity. No heat integration: the bottoms (Q5, 4.6 MW at 424-313 K) could preheat the
-raffinate, and C-202 could run on the condensing duty of a pressurised column (SRC-3); both open.
+The enthalpy basis: liquids from 298.15 K with thermo's liquid heat capacity integrated over
+each stream's own temperature range, vaporisation at the temperature named, no heats of mixing
+(SRC-6; L-2). A constant heat capacity averaged up to the column bottom's 424 K would pass the
+critical temperatures of 1-butene and isobutene (419 and 418 K), where the pure liquid's heat
+capacity diverges, and overstate the duties of streams that stay at 298-350 K. The vaporiser
+E-104 is the largest steam user after C-101: the source feeds the C4 as vapour, which lowers
+the column's reboiler. Per kg of product: 0.631 kWh MP steam, 0.245 kWh LP steam, 0.934 kWh to
+cooling water, 0.0038 kWh of electricity. No heat integration: the bottoms (Q5, 4.7 MW at
+424-313 K) could preheat the raffinate, and C-202 could run on the condensing duty of a
+pressurised column (SRC-3); both open.
+
+C-101 is not closed on one enthalpy basis. With the source's Q3 and Q4 and this script's
+basis (liquids at 298.15 K; the liquid heat of reaction -37.98 kJ/mol, the gas value corrected
+by thermo's heats of vaporization), the column's inputs (the vapour feed S4 12.95 MW, the
+methanol S7 0.38 MW, Q3 39.3 MW, the reaction heat 7.39 MW) exceed its outputs (the distillate
+2.52 MW, the bottoms 5.25 MW, Q4 49.7 MW) by about 2.5 MW, 4 % of the input. The cause is the
+mix of the source's own enthalpy model (UNIQUAC, SRC-1) with the script's; the gap is smaller
+than the spread of the two reboiler duties SRC-1 reports (39.3 against 35.1 MW). The script
+prints this cross-check; no flowsheet or LCI number depends on it.
 
 ## D-009 Hazards and operability (2026-11-19)
 
-- **Multiple steady states.** SRC-2 finds three steady states of this column at the same feeds,
-  in both the equilibrium and the rate-based model, and isolated branches when the butenes feed
-  varies; a feed disturbance can move the column to another state with a far lower isobutene
-  conversion. For the next stage: a start-up procedure that reaches the high-conversion branch,
+- **Multiple steady states.** SRC-2 finds three steady states, in both the equilibrium and the
+  rate-based model, and isolated branches when the butenes feed varies, for a closely similar
+  column: Jacobs and Krishna's, with the same butenes feed (549 mol/s) and reflux ratio (7) at
+  1110 kPa, but 15 trays at 60 % efficiency, 8000 kg of catalyst (here 6400 kg) and 215.5 mol/s
+  of methanol (here 206 mol/s). A feed disturbance can move that column to another state with a
+  far lower isobutene conversion. Whether this column at its own feeds has the same
+  multiplicity is unchecked (L-1); the warning is taken over as a precaution. For the next
+  stage: a start-up procedure that reaches the high-conversion branch,
   control of the methanol-to-isobutene ratio (the design specification here), and the
   continuation check of a stage-by-stage model (L-1).
 - **Flammability.** Isobutene, 1-butene, methanol and MTBE are highly flammable; the column
@@ -172,20 +206,27 @@ raffinate, and C-202 could run on the condensing duty of a pressurised column (S
 ## D-010 Preliminary gate-to-gate LCI (2026-11-19)
 
 `lca/lca.yaml` takes every exchange of the design case per kg of product (`cheme assess lca
---write`). The raffinate is subdivided: the etherification takes only its isobutene, and its
-inert C4 pass the plant and return to the supplier as raffinate-2. So the raffinate's isobutene
+--write`). The raffinate is subdivided: the etherification takes only its isobutene, and of its
+inert C4 (1.147 kg/kg) 1.138 kg/kg pass the plant and return to the supplier as raffinate-2,
+while 0.0090 kg/kg leave dissolved in the MTBE product (D-005). So the raffinate's isobutene
 (feed:IBC) carries the burden, and the inert C4 feed (feed:C4I) and the raffinate-2
 (product:RAF2) are outside the system (`free`); MTBE is the one product, with no allocation. In
 the Atlas LCI, lca/mappings.yaml links feed:IBC to butadiene-1's raffinate-1 by mass: that
 dataset allocates by mass, so a kg of its raffinate's isobutene carries the burden of a kg of
 raffinate-1. The unconverted isobutene (0.32 % of the product mass) and the methanol in the
-raffinate-2 are charged to MTBE (conservative). Methanol is linked to methanol-1, both steams
+raffinate-2 are charged to MTBE (conservative). The inert C4 that ends in the product enters
+with the free feed:C4I, so its raffinate-1 burden is not charged: it is declared as the cut-off
+`c4-in-product` (557.8 kg/h, 0.42 % of the input mass). Net of the charged isobutene in the
+raffinate-2 (0.0032 kg/kg), about 0.006 kg/kg of raffinate burden goes uncharged, about 0.9 % of
+feed:IBC. Splitting feed:C4I to link this part to the raffinate-1 is open. Methanol is linked
+to methanol-1, both steams
 counted as heat (kWh), the make-up water to deionised water; the shared lci/mappings.yaml links
 electricity, cooling water and the purge's treatment. The core study links no background, so
 lca/gaps.csv lists every input as missing with the activity it should connect to.
 
 Inputs not in the inventory: the ion-exchange resin (6400 kg in the column, SRC-1) is cut off
-with an ASSUMED 2-year life (3.2 t/a, 6 ppm of the input mass): no open source read here gives
+with an ASSUMED 2-year life (3.2 t/a, 3.0 ppm of the input mass of 133 567 kg/h; 6.4 ppm of the
+product mass): no open source read here gives
 its life. Fugitive and storage losses are declared exclusions (no P&ID yet).
 
 ## Method and dependency table
@@ -194,7 +235,7 @@ its life. Fugitive and storage losses are declared exclusions (no P&ID yet).
 |---|---|---|
 | S5, S21 and every flow and composition but the feeds' | propagate: specs, R101, separators, tears | reactions.yaml, the splits, the targets |
 | Q3, Q4, the column's temperatures | SRC-1 | the column basis |
-| Q1, Q2, Q5 to Q9, P1, P2, S6's temperature | scripts/balance.py | any stream (rerun the script after propagate) |
+| Q1, Q2, Q5 to Q9, P1, P2, the temperatures of S6 and S16 | scripts/balance.py | any stream (rerun the script after propagate) |
 | LCA outputs | cheme assess lca --write | the flowsheet or lca.yaml |
 
 ## Core features used (core 1.13.0)
