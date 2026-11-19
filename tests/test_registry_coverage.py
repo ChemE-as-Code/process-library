@@ -3,7 +3,9 @@ excluded (issue #251; docs/registry.md, "Feeds and products a process does not n
 
 A dataset exchange counts as named when the process's ``chemistry`` names it: a flow with that
 ``inventory_key``, or a flow whose note names the key (the library's form for a flow without an
-``inventory_key``, docs/registry.md, "How processes name these chemicals"). Every other feed
+``inventory_key``, docs/registry.md, "How processes name these chemicals"). A note that starts
+with the key names it; a later mention names it unless its sentence says the flow has no registry
+entry ("... (feed:X) has no registry entry yet" is not a name). Every other feed
 (``feed:``, ``input:`` and ``consumable:`` inputs counted in kg) and every product counted in kg
 is listed here, either with the registry slug it is (the process names it under ``chemistry`` in
 its own review, which then removes it here) or with the reason it has no registry identity.
@@ -40,6 +42,7 @@ UNNAMED_REGISTRY_FLOWS = {
     "e-fuels-1/feed:O2": "air",  # combustion oxygen from ambient air
     "ethanol-1/consumable:caustic-soda": "sodium-hydroxide",
     "ethanol-1/consumable:phosphoric-acid": "phosphoric-acid",
+    "glycerol-1/feed:ACF": "activated-carbon",  # its water note still says "no registry entry yet"
     "hydrogen-peroxide-1/consumable:activated-carbon": "activated-carbon",
     "hydrogen-peroxide-1/consumable:nitric-acid": "nitric-acid",
     "hydrogen-peroxide-1/consumable:sodium-hydroxide": "sodium-hydroxide",
@@ -74,6 +77,7 @@ NO_REGISTRY_IDENTITY = {
     "aniline-1/consumable:hydrogenation-catalyst": CATALYST,
     "asu-1/consumable:lube-oil": ARTICLE,
     "asu-1/consumable:molecular-sieve": SORBENT,
+    "bromine-1/feed:BRINE": "natural bromide brine from the brine field, of no fixed composition (chemistry has water as its stand-in)",
     "btx-1/input:clay": "treating clay of the clay treaters, a sorbent; the registry's clay is the cement raw-meal material",
     "catalytic-reforming-1/input:catalyst": CATALYST,
     "co2-electrolysis-bpm-1/consumable:anode-ni-foam": ARTICLE,
@@ -85,11 +89,13 @@ NO_REGISTRY_IDENTITY = {
     "ethanol-1/consumable:molecular-sieve": SORBENT,
     "ethylbenzene-1/product:flux_oil": FUEL_RESIDUE,
     "ethylene-glycol-1/consumable:eo-catalyst": CATALYST,
+    "glycerol-1/product:FAL": "the fatty-acid layer to the biodiesel plant, a mixture of no fixed composition",
     "fcc-1/input:catalyst": CATALYST,
     "formaldehyde-1/consumable:ecs-catalyst": CATALYST,
     "formaldehyde-1/consumable:femo-catalyst": CATALYST,
     "formaldehyde-1/consumable:oil-filters": ARTICLE,
     "hydrocracking-1/input:catalyst": CATALYST,
+    "hydrogen-peroxide-1/feed:MKS": "the working-solution solvent make-up, a blend of C9 aromatic solvent and diisobutylcarbinol (process.yaml note), not one substance",
     "hydrogen-peroxide-1/consumable:ion-exchange-resin": SORBENT,
     "hydrogen-peroxide-1/consumable:palladium-catalyst-loss": PRECIOUS_METAL_LOSS,
     "hydrotreating-1/input:catalyst": CATALYST,
@@ -146,12 +152,30 @@ def _dataset_flows() -> dict[str, str]:
     return flows
 
 
+#: A sentence that says a flow is *not* in the registry ("has no registry entry yet", "no registry
+#: slug"); a key mentioned in it is not named by it.
+NOT_IN_REGISTRY = re.compile(r"\bno registry (?:entr|slug|identit)", re.IGNORECASE)
+
+
+#: The key or key list a naming note starts with ("feed:CUM: ...", "feed:A, feed:B, ...").
+LEADING_KEYS = re.compile(r"(?:[a-z]+:[A-Za-z0-9_\-]+(?:,\s*|\s+and\s+|\s*\([^)]*\)\s*(?:and\s+)?)?)+")
+
+
+def _naming_texts(note: str) -> list[str]:
+    """The parts of *note* that name keys: the key or key list it starts with, and each sentence
+    that does not say a flow has no registry entry."""
+    leading = LEADING_KEYS.match(note)
+    sentences = [sentence for sentence in re.split(r"(?<=[.;])\s+", note) if not NOT_IN_REGISTRY.search(sentence)]
+    return ([leading.group(0)] if leading else []) + sentences
+
+
 def _named(pid: str, key: str, cache: dict[str, tuple[set[str], str]]) -> bool:
     """Whether *pid*'s ``chemistry`` names the exchange *key*: by ``inventory_key`` or in a note."""
     if pid not in cache:
         chemistry = (_yaml(PROCESSES / pid / "process.yaml") or {}).get("chemistry") or {}
         items = [item for group in ("inputs", "outputs", "utilities") for item in chemistry.get(group) or []]
-        cache[pid] = ({item["inventory_key"] for item in items if item.get("inventory_key")}, " ".join(item.get("note") or "" for item in items))
+        texts = [text for item in items for text in _naming_texts(item.get("note") or "")]
+        cache[pid] = ({item["inventory_key"] for item in items if item.get("inventory_key")}, "\n".join(texts))
     keys, notes = cache[pid]
     return key in keys or re.search(re.escape(key) + r"(?![A-Za-z0-9_\-])", notes) is not None
 

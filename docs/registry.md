@@ -260,7 +260,9 @@ without a main product.
 `tests/test_registry_coverage.py` checks every feed (`feed:`, `input:` and `consumable:` inputs
 in kg) and every product (in kg) of each process's LCI datasets. Each must be named by the
 process's `chemistry`, with that `inventory_key` or in a note that names the key, or be listed
-in the test:
+in the test. A note names a key when it starts with it (or with a key list), or mentions it in a
+sentence that does not say the flow has no registry entry: "Activated carbon (feed:ACF) has no
+registry entry yet" does not name `feed:ACF`. The flows are:
 
 - `UNNAMED_REGISTRY_FLOWS`: the substance is in the registry (nitrogen for inerting, propane
   from cumene-1, activated carbon, MDEA, DMDS, ...), but the process does not name it yet.
