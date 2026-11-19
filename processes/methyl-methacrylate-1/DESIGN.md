@@ -215,9 +215,11 @@ hazards named for the next stage:
 chemical exergy of MMA, not sourced yet; all burdens on the MMA, conservative). The Atlas
 build links acetone-1, methanol-1 and sulfuric-acid-1 (`lca/mappings.yaml`, `dataset:`),
 natural gas by mass and demineralised water through the shared entries, power and cooling
-water by their default mappings. Gaps: liquid HCN (no producer, D-003) and the weak acid
-condensate (no curated background for its treatment; the average municipal treatment would
-not represent it). The tail gas CO2 (0.80 kg per kg MMA, fossil: natural gas and the burned
+water by their default mappings. The weak acid condensate links by its slug to the library's
+utility-wwtp (biological treatment), which does not count its neutralisation: an
+understatement, to be replaced by a neutralisation background. Gaps: liquid HCN (no producer,
+D-003), and the biosphere identities of seven tail-gas components whose flow is zero in this
+design (acetone, ACH, NH4HSO4, H2SO4, HCN, methacrylamide, MMA). The tail gas CO2 (0.80 kg per kg MMA, fossil: natural gas and the burned
 organics) and SO2 are elementary flows. Not estimated (emission exclusions): fugitive leaks,
 furnace NOx and acid mist, process vents, storage.
 
