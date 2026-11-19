@@ -32,6 +32,9 @@ the part of the document).
 | SRC-10 | processes/tert-butanol-1, asu-1 (this library) | tert-butanol by direct hydration of isobutene, a Tier 0 dataset per kg of tert-butanol contained, the drying past the azeotrope left out (its README); gaseous nitrogen | library, internal | D-004, D-012 |
 | SRC-11 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and the criticality classes of a semi-batch (method, implemented in core ADRs 0050, 0058) | method reference, no data taken | D-011 |
 | SRC-12 | Ullmann's Encyclopedia of Industrial Chemistry, Alkoxides (and Potassium) | - | not read (licensed) | nothing taken |
+| SRC-13 | Wikipedia, Potassium, https://en.wikipedia.org/wiki/Potassium (read again 2026-11-19); Wikipedia, tert-Butyl alcohol, https://en.wikipedia.org/wiki/Tert-Butyl_alcohol | Potassium, Properties: unreactive toward nitrogen and saturated hydrocarbons such as mineral oil or kerosene; air-free techniques for handling it; tert-butyl alcohol, infobox: melting point 298 to 299 K, boiling point 355 to 356 K, flash point 11 C (284 K), autoignition temperature 480 C, explosive limits 2.4-8.0 % | read 2026-11-19; CC BY-SA, facts only | D-016, D-017 |
+| SRC-14 | Wikipedia, Limiting oxygen concentration, https://en.wikipedia.org/wiki/Limiting_oxygen_concentration | lead: the oxygen concentration below which combustion is not possible whatever the fuel's concentration, dependent on the inert gas, pressure and temperature; table of gases: hydrogen 5 vol% oxygen with nitrogen as the inert (5.2 with CO2); no safety margin given | read 2026-11-19; CC BY-SA, facts only | D-017 |
+| SRC-15 | Wikipedia, Electrical equipment in hazardous areas, https://en.wikipedia.org/wiki/Electrical_equipment_in_hazardous_areas | gas groups of the zone system: IIC acetylene and hydrogen, the most severe group, equipment for IIC also fit for IIB and IIA; temperature classes T1 450 C to T6 85 C (maximum surface temperatures) | read 2026-11-19; CC BY-SA, facts only | D-017 |
 
 Searched and not found openly (2026-11-06): kinetics or reaction calorimetry of potassium with
 tert-butanol; a formation enthalpy of potassium tert-butoxide; its solubility in tert-butanol
@@ -171,6 +174,9 @@ reactions' 42.17 kW less the vent vapour's 14.16 kW of evaporative cooling, less
 3.54 kW warmed back, the dose 0.05 kW) on Q2; the yield is 99.55 % on potassium.
 
 ## D-006 The vent, its vapour and condenser (2026-11-06)
+Amended 2026-11-19: E-104 is on R-101's own hydrocarbon heat-transfer loop at the same 303/313 K
+(D-016), and the vent path's capacity is 400 m3/h, set from core 1.12.0's largest release over the
+batch (D-015); the 200 m3/h below is the superseded value.
 Decision: the hydrogen leaves the liquid as it forms (batch.vent, core ADR 0054), saturated with
 tert-butanol at 348.15 K (vent vapour, core ADR 0062: Raoult on the NIST line, the dissolved
 alkoxide counted in the liquid), through the vent condenser E-104 at 308.15 K, whose condensate
@@ -245,6 +251,9 @@ The product is cooled in DR-101 to 313.15 K before discharge (E103, Q7 15.77 kW:
 20346 kJ/h and the metal's 240 MJ a batch) and packed under nitrogen.
 
 ## D-009 Utilities and heat (2026-11-06)
+Amended 2026-11-19 (D-016): R-101's jacket and E-104 are on their own closed loop of a
+saturated-hydrocarbon heat-transfer fluid at the same 303/313 K, not on the tempered water; the
+model's CW stands for both loops (both end in the site's cooling water), so the table is unchanged.
 Decision: LP steam 350 kPa(a) (412.0 K), MP steam 1000 kPa(a) (453.0 K), tempered water 303/313 K
 on a closed loop cooled by the site's cooling water 298/308 K, electricity (ASSUMED design basis).
 Every cooling duty is on the tempered water (the flowsheet's CW): R-101's jacket and its vent
@@ -294,6 +303,10 @@ warmed on steam before any metal or alkoxide is in it.
 No aqueous waste from the reaction: the plant is kept dry (D-011).
 
 ## D-011 Thermal screening, the rate sensitivity and the hazards (2026-11-06)
+Amended 2026-11-19 on core 1.12.0: the largest gas release over the batch is not at the end of the
+dosing but at 0.458 h, 179.2 m3/h; the vent capacity is now 400 m3/h and the accumulation limited
+(D-015); the water path is closed by a hydrocarbon coolant on R-101 and E-104 (D-016); the hydrogen
+hazards are made concrete in D-017. The text below is the 1.10.0 screening as it was.
 Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058, 0062):
 - R101: T_p 348.15 K, dT_ad 60.2 K (KTBA; WAT 0.3 K), accumulation of the dosed potassium 3.09 %
   at the end of the dosing, MTSR 350.1 K at that moment, against an MTT of 355.45 K, tert-butanol's
@@ -411,6 +424,160 @@ the dry powder; this product's modelled 0.23 % KOH and 0.30 % tert-butanol are t
 grade's impurities that entry leaves out (its D-004), so the link counts this entry's burden per
 kg of powder, not per kg of KOtBu contained (0.53 % apart).
 
+## D-015 Re-screening on core 1.12.0: the vent capacity and the accumulation limit (2026-11-19)
+Issue ChemE-as-Code/process-library#427 (this entry's row). Library `main` at c241d8d7 pins core
+0e85885 (1.12.0); `cheme process reactor-hazards --json` rerun on the entry as it stands, and on
+scratch copies (not committed) with both rate constants divided as in D-011.
+Result on the entry (core ADR 0069):
+- T_p 348.15 K, dT_ad 60.2 K, accumulation 3.09 %, MTSR 350.1 K, MTT 355.45 K: as on 1.10.0.
+  KTBA and WAT compete for the metal; core finds no consecutive pair (no `network`), so the largest
+  single reaction sets dT_ad.
+- **The largest gas release over the batch** (each moment's content at its own MTSR, with the
+  liquid's vapour, at most what the reactions' heat evaporates; E-104 not credited) is 179.2 m3/h
+  at 0.458 h of the dosing (MTSR 350.0 K, vapour share 0.789: 0.3662 mol/s of hydrogen with 1.367
+  mol/s of tert-butanol), not the 133.4 m3/h at the end of the dosing that D-011 took as the
+  largest: early in the dosing the liquid holds less alkoxide, so its vapour pressure is higher.
+  Against the 200 m3/h of D-006 that is 0.896.
+- No dissolved release (`dissolved_release` empty): the hydrogen leaves as it forms and nothing is
+  dosed or held as a gas.
+
+The rate sensitivity on core 1.12.0 (scratch copies; the largest release over the batch, the
+boil-up where the content boils at the MTSR, its bubble point with the alkoxide as an ideal
+solute; MTT 355.45 K throughout):
+
+| case | accumulation | MTSR | largest release over the batch | to 400 m3/h | boil-up at the bubble point |
+|---|---|---|---|---|---|
+| k (design) | 3.09 % | 350.1 K | 179.2 m3/h at 0.458 h | 0.448 | - |
+| k/1.5 | 4.63 % | 351.1 K | 211.1 m3/h at 0.615 h | 0.528 | - |
+| k/2 | 6.17 % | 352.1 K | 254.7 m3/h at 0.788 h | 0.637 | - |
+| k/3 | 9.26 % | 354.1 K | 355.2 m3/h at 1.85 h (heat-limited) | 0.888 | - |
+| k/4 | 12.3 % | 356.0 K | 387.4 m3/h at 3 h (heat-limited) | 0.969 | - (vapour share 0.905) |
+| k/5 | 15.4 % | 358.0 K | 418.6 m3/h at 3 h (heat-limited) | 1.05 | - (vapour share 0.977) |
+| k/7 | 21.4 % | 361.7 K | 482.3 m3/h at 3 h (boils) | 1.21 | 371.1 m3/h of vapour at 358.6 K, 136.9 kW |
+| k/10 | 29.6 % | 366.9 K | 571.4 m3/h at 3 h (boils) | 1.43 | 359.5 m3/h at 358.5 K, 132.6 kW |
+| k/100 | 85.1 % | 399.9 K | 527.6 m3/h at 3 h (boils) | 1.32 | 102.4 m3/h at 358.3 K, 37.79 kW |
+
+The MTSR rises 0.643 K per % of potassium accumulated in every case (1.99 K at 3.09 %, 5.95 K at
+9.26 %, 7.85 K at 12.3 %: the content's heat capacity at the end of the dosing), so the MTSR
+reaches the MTT at 11.3 % accumulated.
+Decision:
+- **R-101's vent path** (the line from R-101, E-104's gas side, the line to the flare header) is
+  sized for 400 m3/h at 101 kPa(a) and up to 356 K (`hazard.vent_capacity: 400`, ASSUMED design
+  value, no hydraulic design yet): the largest release over the batch for every accumulation up to
+  the 11.3 % limit of the next bullet, where the MTSR reaches the MTT (355.45 K), with margin
+  (387.4 m3/h, 0.969 of it, at 12.3 %; by linear interpolation 400 m3/h is reached at about
+  13.5 %). It does not cover every accumulation up to the content's boiling point (corrected after
+  the review of PR #505): at k/5 (15.4 %, MTSR 358.0 K) the content is still below its Raoult
+  bubble point (358.6 K, vapour share 0.977) and the release is 418.6 m3/h, 1.05 times the vent.
+  **The vent therefore rests on the accumulation trip of the next bullet**: without it, or with a
+  setpoint too close to the limit for the measurement's uncertainty, an accumulation between
+  about 13.5 % and the boiling content (k/7 and slower) overloads it. The 200 m3/h of D-006 (about
+  twice the normal peak of 102.5 m3/h before E-104) held only to k/1.5, so a 1.5 times slower
+  dispersion than the ASSUMED rate would already have overloaded it.
+- **The accumulation is limited to 11.3 % of the batch's potassium** (32.9 kg of the 289.5 kg a
+  batch, 0.841 kmol), so that a cooling failure leaves the MTSR at or below the MTT: the dosing
+  trips on the potassium dosed but not yet reacted, the dosed metal less twice the hydrogen
+  measured (the hydrogen-flow interlock of D-011, now with a quantity). The vent's 400 m3/h holds
+  only with this trip acting (above). Its setpoint below the limit, the measurement's uncertainty
+  integrated over the 3 h dosing and the trip's reliability are not set here (basic engineering,
+  LOPA and sign-off).
+- **The MTT stays core's default**, tert-butanol's normal boiling point 355.45 K, not
+  `hazard.mtt_from: bubble-point`: on a scratch copy the content after KTBA boils at 358.6 K
+  (Raoult's law with the alkoxide as an ideal non-volatile solute), 3.2 K higher only because the
+  dissolved alkoxide dilutes the alcohol, whose activity in that solution is not known (L-2); core
+  cannot give the worst moment's bubble point without a vapour pressure of the accumulated metal.
+  The lower MTT is the conservative one; the class is the same with either (MTSR below both).
+- Core's other new screening decides nothing here and is not used: `network` (no consecutive
+  reaction), `vent.inerts`/`head_space` (the head space's nitrogen and the per-batch purge are
+  consumables, D-012; the pad changes no hazard result, which leaves inerts out of the content),
+  `vapour.henry` (no dissolved gas, D-006).
+Beyond the limit the MTSR is above the MTT. At k/4 and k/5 (12.3 and 15.4 %) the content is
+still below its Raoult bubble point (358.6 K): the release is the hydrogen with the alcohol's
+vapour that the reactions' heat evaporates (vapour shares 0.905 and 0.977), heat-limited, up to
+1.05 times the vent at k/5. From k/7 on (21.4 % and more) the content boils: the boil-up at its
+bubble point, 359.5 to 371.1 m3/h of vapour from about 135 kW of reaction heat with the hydrogen
+on top, is the tempered reaction's load; core gives no two-phase relief load (L-10), so R-101's emergency relief stays open
+(calorimetry: the dispersion's rate and its accumulation decide which column of this table holds).
+Open, with what it gates: reaction calorimetry of the dispersed metal in the alcohol at 348 K (heat
+flow against the dosing, the accumulation at the design agitation and at reduced agitation): it
+replaces the ASSUMED k and -135 kJ/mol, picks the row of the table above, and so decides whether the
+11.3 % limit is ever approached, the trip's setpoint and R-101's relief; DSC/ARC of the end
+solution, the solvate paste and the dry product for TD24 (the class, D-011).
+
+## D-016 R-101's jacket and E-104 on a non-aqueous heat-transfer fluid (2026-11-19)
+Issue #427: cooling water on molten potassium; D-011 left open a non-aqueous loop or double walls
+with leak detection.
+Decision: R-101's jacket (cooling and the warm-up) and its vent condenser E-104 are served by their
+own closed single-fluid loop of a saturated-hydrocarbon (paraffinic) heat-transfer fluid, U-302:
+pump, a plate cooler on the site's cooling water with the three-way bypass of D-009 holding the
+supply at 303.15 K (return 313.15 K), and a heater on LP steam for the warm-up. The loop runs at a
+higher pressure than the steam and the cooling water in its heater and cooler (ASSUMED rule), so
+a leak there carries fluid into water and not water into the loop. No water or steam enters R-101's
+jacket or E-104. The tempered-water loop U-301 keeps C-101's condenser, DR-101's jacket, E-201,
+E-202 and the sieve's condensers: none holds metal (R101 leaves 1.2e-6 mole fraction of potassium,
+the conversion 0.99999 before the transfer), and water there makes KOH and tert-butanol, a quality
+loss.
+Reasons: it removes the water from the metal's vessel rather than detecting its leak; potassium is
+unreactive toward saturated hydrocarbons such as mineral oil or kerosene (SRC-13), so a jacket or
+tube leak puts a fluid the metal tolerates into the batch; the plant already runs a closed
+thermal-oil circuit on V-102 (D-004); the cooling still has margin: on a scratch copy with an
+ASSUMED U of 250 W/(m2 K) the jacket removes 155.8 kW against the model's peak duty of 92.68 kW
+(`cheme process recipe`; 249.2 kW at the water's U 400); the loop's supply stays at 303.15 K, so
+the freezing limit of D-006 is unchanged. Core 1.12.0 now checks it (`melting_point: 298.3` on
+tert-butanol, `cheme.process-condenser-freezing`, core ADR 0071): E-104's 308.15 K outlet and the
+303.15 K supply to R101's vent condenser and ST101's condenser pass, 4.85 K above the melting point
+at the supply (the rule fires on a scratch copy with the melting point at 305 K).
+Rejected: tempered water with a double wall and leak detection tripping the dosing: a reactor jacket
+and a condenser's tubes are one wall towards the batch, the detection acts only after the leak, and
+E-104's condensate runs straight back into R-101, so a tube leak carries water into the metal with
+no hold-up; the reliability such a trip would need is not established here. Rejected too: the
+hydrocarbon fluid in the whole tempered loop: no other cooling duty sees the metal, and water
+transfers heat better in the condensers.
+Not yet carried into the model (recorded deviation): the recipe's jacket keeps U 400 W/(m2 K) and
+the warm-up on LP steam at 412.0 K until the fluid and the jacket's thermal design give its U and
+the fluid's heating temperature. On scratch copies: U 250 and the fluid at 398 K: the warm-up 0.67 h
+(was 0.343 h), cycle 6.913 h, 1146 batches/a; U 300 and 398 K: 6.802 h, 1164; U 250 and 412 K:
+6.792 h, 1166. At the same 831.6 kg batch that is 953 to 971 t/a against the 1000 t/a basis; R-101
+is the bottleneck and its 10 m3 is 65 % full, so the batch can grow (about 872.6 kg at 6.913 h) once
+the U is known. The LCI is unchanged by the fluid itself: both loops end in the site's cooling water
+and the warm-up's heat is still LP steam (Q1), with the steam heater's loss not counted.
+Open: the fluid's choice and data (vendor: viscosity and heat capacity at 303-313 K, a flash point
+above the loop's 412 K, its compatibility with the seals); the jacket's and E-104's thermal design
+with it (U, E-104's wall temperature at the gas outlet); then the recipe's jacket and the batch
+re-based to 1000 t/a; U-302's sizing and its pump's power.
+
+## D-017 Hydrogen: oxygen exclusion, inerting and the blocked vent (2026-11-19)
+Issue #427: hydrogen flammability.
+Facts: the vent gas past E-104 is 89.8 mol% hydrogen and 10.2 mol% tert-butanol (S11, core), above
+hydrogen's upper flammable limit in air (75 vol%, SRC-8): it cannot burn as it is, and becomes
+flammable only where air reaches it. tert-Butanol is flammable at 2.4-8.0 % with a flash point of
+284 K (SRC-13), below every temperature it is handled at here (303-433 K), so every vessel holding it
+must be inert whatever the hydrogen. Hydrogen's limiting oxygen concentration with nitrogen is
+5 vol% (SRC-14); it is in gas group IIC (SRC-15).
+Decision:
+- **Oxygen exclusion is the basis of protection**: R-101, C-101, DR-101, the vent header and the
+  flare line are kept below 1 vol% oxygen (ASSUMED margin below the 5 vol% LOC; a standard's margin
+  rule, such as NFPA 69's, not read here), checked by an oxygen measurement in R-101 before the
+  alcohol is charged and before the dosing starts. R-101's purge of 30 Nm3 a batch (D-012) is 3.27
+  volume changes of its 10 m3 at 298 K and leaves 0.79 vol% oxygen by dilution with perfect mixing
+  (0.21 x exp(-3.27)): the per-batch nitrogen of D-012 is enough for this target; a pressure-swing
+  purge would need less.
+- Electrical equipment and the vent and flare line's flame arrester are rated for gas group IIC
+  (hydrogen); the temperature class follows from the hottest surface, DR-101's MP steam at 453 K
+  (180 C): T3 (200 C) or better, against tert-butanol's autoignition temperature of 480 C (SRC-13;
+  hydrogen's not read here).
+- **A blocked vent**, with numbers (hand arithmetic on core's results; core does not screen it, L-13):
+  the normal dosing's 0.3428 mol/s of hydrogen (D-006) raises R-101's head space, about 3.45 m3
+  (10 m3 less the 6.55 m3 batch), by 17.3 kPa/min at 348 K; after a trip, the hydrogen the
+  accumulated metal can still form is 0.1142 kmol at the design rate (96.4 kPa in that head space
+  at 350.1 K) and 0.420 kmol at the 11.3 % limit of D-015 (360 kPa at 355.45 K), before the
+  alcohol's vapour. The high-pressure trip of D-011 must act within minutes, and R-101's design
+  pressure or its relief must take the accumulated metal's hydrogen.
+Open (human or site data): the area classification (zones and extents around R-101, the vent
+header and the flare knock-out), the flare's capacity for 400 m3/h of hydrogen-laden vent gas on a
+cooling failure, R-101's design pressure, the relief for the blocked vent and the oxygen analyser
+and trips' reliability (LOPA).
+
 ## Core features used (cheme-as-code 1.10.0)
 
 | feature | where | ADR |
@@ -428,6 +595,8 @@ kg of powder, not per kg of KOtBu contained (0.53 % apart).
 | recipe `units:` (one vessel over several steps) | R-101 (E101, R101), DR-101 (D101, E103) | 0057 |
 | vessel sizing and jacket check, `heat` times from the jacket | R-101, C-101, DR-101 | 0052 |
 | per-batch LCA consumables | nitrogen | 0053 |
+| core 1.12.0: the largest gas release over the batch, the boil-up at the bubble point of a content boiling at the MTSR, `dissolved_release` (scratch copies for the rate sensitivity) | R101, D-015 | 0069 |
+| core 1.12.0: a component's `melting_point` and `cheme.process-condenser-freezing` | tert-butanol, E-104 and C-101's condenser against CW's supply, D-016 | 0071 |
 
 Not used: `still.column` (ADR 0061): the alcohol strip needs no rectification, the residue's
 solutes are non-volatile; `dosing.heat_of_solution` (ADR 0063): the metal reacts, it does not
@@ -471,13 +640,20 @@ count; crystallizers: the solvate's precipitation is not modelled (L-2).
   temperature nor at its coolant's supply temperature, the lower bound of its tube wall: tert-butanol
   freezes at 298.3 K, so the vent condenser's 308 K and the tempered water's 303 K supply were
   chosen by hand (D-006, D-009). Core could compare a utility's supply temperature with the
-  freezing point of what condenses on it (a vent condenser, a still's condenser).
+  freezing point of what condenses on it (a vent condenser, a still's condenser). Closed by core
+  1.12.0 (ADR 0071): `melting_point` on tert-butanol, checked by `cheme.process-condenser-freezing`
+  (D-016); the cooler blocks E-201, E-202 and the sieve's condensers are still not checked by it.
 - L-10: when the content boils at the MTSR, core gives the non-condensables only and flags it; it
   has no tempered (boiling) reaction model or relief load for a two-phase relief study (D-011).
+  Core 1.12.0 (ADR 0069) gives the boil-up at the content's bubble point (the tempered reaction's
+  vapour, D-015); the two-phase relief load is still not modelled.
 - L-11: an isothermal batch has one model duty on one energy stream: with `batch.heat_up` the
   steam of the warm-up and the tempered water of the reaction would be netted on one stream, so the
   warm-up stays a pass-through E101 with its heat from the recipe (Q1).
 - L-12: the agitators' power is not part of any model's energy balance (D-009).
+- L-13: the pressure of a blocked vent is not screened (core 1.12.0 REFERENCE, reactor hazards):
+  the head space's pressure rise and the accumulated metal's hydrogen in a closed R-101 are hand
+  arithmetic (D-017).
 
 ## Method and dependency table
 
@@ -504,7 +680,10 @@ and residual alcohol from trials; the sieve unit's design (vendor data: residual
 regeneration energy, alcohol loss); a colder second vent stage or a vent scrubber for the alcohol
 (D-006); the tempered-water loop's supply limit against the condensers' wall temperatures (E-104's
 gas-side coefficient, a thermal design), its control and its pump (D-009, D-011); R-101's relief
-for a blocked vent (D-011); a non-aqueous coolant or leak detection on R-101's jacket and E-104
-(D-011); the product
+for a blocked vent (D-011, D-017: R-101's design pressure, the hydrogen of up to 0.420 kmol of
+accumulated metal); the non-aqueous coolant chosen for R-101's jacket and E-104 (D-016): the
+fluid's vendor data, the jacket's U with it, then the recipe's jacket and the batch re-based to
+1000 t/a; the dosing's accumulation trip below 11.3 % (D-015: setpoint, measurement, reliability);
+the area classification and the flare's capacity for the 400 m3/h vent (D-017); the product
 specification (assay, KOH, sodium, residual alcohol); the purge's real need (D-007); a TEA
 (`operation.batch: {recipe: true}`).

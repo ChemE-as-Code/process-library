@@ -1500,7 +1500,7 @@ Decision:
   - C-302: 2 x 410 m3 shell, 16.41 M
   The fan and K-502 sizes follow the D-040 streams.
 - **TEA**: `estimate/tea.yaml` takes the gross calorific value of the D-040 gas, 54.40 MJ/kg
-  (NIST heats of combustion; 38.78 MJ/m3 at 15 C, against the 38.9 of the Enbridge table). Before
+  (WebBook heats of combustion, the methane value corrected in D-050; 38.78 MJ/m3 at 15 C, against the 38.9 of the Enbridge table). Before
   it was 51.08 MJ/kg. `cheme assess tea --write`: fixed capital 736.5 MEUR (unchanged, IEAGHG
   basis); natural gas cost -176.8 MEUR/a (before -175.7); emissions 7.788e5 t CO2-eq/a (before
   7.815e5); NPV -1,049.4 MEUR (before -1,049.5).
@@ -1953,6 +1953,26 @@ one walkway-riser finding fewer at C-302, but AM-1050 then goes onto the rack an
 neighbours: free-span 41 -> 43 (AM-1059, PC-1083) and support-missing 87 -> 88 (AM-1050, PG-1035
 new, AM-1059 now a free span): a trade to make in the next layout review, not in a rebuild).
 
+## D-050 Heats of combustion of the feed-gas GCV from the NIST Chemistry WebBook (2026-11-19, process-library#321)
+Decision: the gross calorific value of the D-040 gas in `estimate/tea.yaml` (`feed:NG`
+conversion) uses the standard enthalpies of combustion of the gas at 298.15 K that the NIST
+Chemistry WebBook (SRD 69) lists, all from Pittam and Pilcher (1972): CH4 -890.7 +/- 0.4,
+C2H6 -1560.7 +/- 0.3, C3H8 -2219.2 +/- 0.46 kJ/mol (Gas phase thermochemistry data, IDs C74828,
+C74840, C74986, Mask=1, read 2026-11-19). D-044 cited the WebBook, but its methane value,
+890.63 kJ/mol, is not on the WebBook methane page, which lists -890.7, -890.35, -891.8 and
+-890.16 kJ/mol; the ethane and propane values were the WebBook's. The same Pittam and Pilcher
+methane value is the one hda-1 cites (hda-1 D-019).
+
+Own calculation, with the D-040 composition and the 16.856 g/mol of the gas: 917.00 kJ/mol,
+54.40 MJ/kg (conversion 0.054402 GJ/kg, before 0.054397), 38.78 MJ/m3 at 15 C. The methane
+value adds 0.007 %; the old values recompute to 0.054398 on this basis, so the old figure was
+also 1 in its last digit low. `cheme assess tea --write`: natural gas cost -176.81 MEUR/a (before -176.79), NPV
+-845.4 MEUR (before -845.3), LCOP 688.1 EUR/t and the decision unchanged.
+
+Rejected: keeping 890.63 kJ/mol and naming its real source. process-library#321 reports that
+it matches the superior calorific value of methane at 25 C in ISO 6976 tables, but that standard
+was not read for this design, and the WebBook value is open and was read.
+
 ## 3. Results of this stage (design case)
 
 Basic stage, S5c (the D-040 feed, re-simulated; lca/inventory.csv regenerated): per kg of NH3
@@ -2022,7 +2042,7 @@ convection coils therefore use `ExchangingThermalEnergy` and the steam system `P
 | Eurostat nrg_pc_203, nrg_pc_205, ert_bil_eur_a, sts_inppd_a (CC BY 4.0) | NL, bands I6 / IG, excl. VAT, 2024-S1 to 2025-S2; USD per EUR 2025; PPI NACE C28 2014 and 2025 | yes (API, 2026-10-29) | D-023: gas and electricity prices, exchange rate, escalation |
 | USGS, Mineral Commodity Summaries 2026, Nitrogen (fixed)-ammonia (public domain) | salient statistics, price f.o.b. Gulf Coast, 2025e | via the search index of the document (the PDF text could not be extracted here) | D-023: NH3 price proxy, ASSUMED |
 | ESMA annual report on EU carbon markets 2026, as reported by Lovguiden (2026-07-09) | EUA annual average 2025 | secondary only | D-023: carbon price, ASSUMED |
-| NIST Chemistry WebBook | standard enthalpies of combustion of CH4, C2H6, C3H8 | values used | D-023: gross calorific value of the D-004 gas |
+| NIST Chemistry WebBook (SRD 69), Gas phase thermochemistry data of methane, ethane and propane (values of Pittam and Pilcher 1972) | IDs C74828, C74840, C74986, Mask=1: Delta_c H gas -890.7, -1560.7, -2219.2 kJ/mol | yes (2026-11-19) | D-023, D-044, D-050: gross calorific value of the feed gas |
 | Northwestern University Process Design wiki, "Pressure Vessels" (summarising Turton et al. 2012, Towler and Sinnott 2013, Peters and Timmerhaus 2003) | sections Design Temperature, Design Pressure | yes (2026-10-30) | D-032: design pressure and temperature margins, MDMT margin |
 | Walas, Chemical Process Equipment (1988), Rules of Thumb: Summary, Pressure vessels | as quoted in a public summary deck (slideshare, search 2026-10-30) | no (secondary only) | D-032: "10 % or 10-25 psi", "+50 degF" |
 | Sinnott, Coulson & Richardson's Chemical Engineering Vol. 6, 4th ed. (2005), Table 12.1 | rows as in `cheme datasheets fill --list` (core's table) | no (core's data file) | D-032: typical overall coefficients |

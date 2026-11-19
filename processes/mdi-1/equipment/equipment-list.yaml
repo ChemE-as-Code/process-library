@@ -1,0 +1,45 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps
+# with the duty basis of process/flowsheet.yaml. Design pressures, temperatures, materials and
+# sizes are not set yet (basic engineering); the materials named are the usual service choices
+# to be confirmed (open input). All values ASSUMED. The phosgene-containing equipment (M-202,
+# R-201, C-201, T-201, C-202) sits in a containment enclosure vented to the phosgene destruction
+# (D-011).
+schema: cheme/equipment/v1
+equipment:
+  # ---- MDA synthesis (block MDA)
+  - {tag: M-101, type: StaticMixer, service: "Aniline, formalin and hydrochloric acid mixer (aminal stage)",
+     notes: "30.4 t/h at 363 K, 140 kPa(a) (US 10 640 455 B1); the aminal reactor and its water separation are lumped into R-101 (D-004)."}
+  - {tag: R-101, type: StirredTankReactor, service: "Condensation and rearrangement cascade (seven stirred reactors, 323 to 429 K)",
+     notes: "Seven reactors in series, 50 to 156 C (US 10 640 455 B1), the first under vacuum with evaporative cooling (reflux condenser 0.95 MW to cooling water); 2.51 MW MP steam to the later reactors (ASSUMED sensible heats without the heat of condensation, D-009); hydrochloric acid service: enamelled or lined steel to be confirmed."}
+  - {tag: R-102, type: StirredTankReactor, service: Neutralisation with caustic soda,
+     notes: "388 K, 140 kPa(a); 1.10 mol NaOH per mol HCl (US 10 640 455 B1); cooler 1.19 MW to cooling water: the 429 K cascade effluent and the heat of neutralisation (ASSUMED, D-003, D-009)."}
+  - {tag: V-101, type: Vessel, service: Neutralisation separator (organic MDA / brine),
+     notes: "22.7 t/h organic, 9.8 t/h brine at 368 K; feed cooler 0.50 MW to cooling water (ASSUMED, D-006, D-009)."}
+  - {tag: W-101, type: Vessel, service: MDA washer and wash-water separator,
+     notes: "3.0 t/h process water (ASSUMED, D-006)."}
+  - {tag: C-101, type: Column, service: "MDA column (water and aniline off under vacuum)",
+     notes: "17.6 t/h MDA bottoms at 473 K; reboiler 2.37 MW HP steam, condenser 1.19 MW (ASSUMED, D-009)."}
+  - {tag: T-102, type: Column, service: Brine stripper with methanol side draw,
+     notes: "12.7 t/h brine to wastewater; reboiler 0.48 MW LP steam; brine cooler 0.83 MW to cooling water (ASSUMED, D-006, D-009)."}
+  - {tag: V-102, type: Vessel, service: Aniline-water decanter,
+     notes: "5.1 t/h aniline recycle to M-101 (D-006)."}
+  # ---- phosgenation (block PHOSG)
+  - {tag: M-201, type: StaticMixer, service: MDA solution make-up (27.1 % MDA in MCB),
+     notes: "65.0 t/h (US 10 364 214 B1 ratio, D-005); MDA solution cooler 1.41 MW to cooling water, to 318 K (ASSUMED, D-009)."}
+  - {tag: M-202, type: StaticMixer, service: Phosgene solution make-up (35 % phosgene in MCB),
+     notes: "103.6 t/h at 273 K (D-005)."}
+  - {tag: R-201, type: Column, service: "Mixing nozzle and phosgenation tower",
+     notes: "Liquid-phase phosgenation, tower top 384 K and 160 kPa(a) (US 10 364 214 B1); 2.65 MW LP steam (ASSUMED, the heat of phosgenation taken from US 10 364 214 B1's temperature rise, D-009); the largest phosgene inventory of the plant (D-011)."}
+  - {tag: C-201, type: Column, service: Dephosgenation column,
+     notes: "Top 389 K, 160 kPa(a) (US 10 364 214 B1); bottoms 428 K; reboiler 1.54 MW MP steam (ASSUMED, D-009)."}
+  - {tag: T-201, type: Column, service: "Phosgene absorber (phosgene into chilled MCB, HCl gas overhead)",
+     notes: "58.3 t/h MCB absorbent chilled from 303 to 258 K (the chiller lumped with T-201); 3.79 MW refrigeration (ASSUMED, D-009); the HCl gas leaves saturated with MCB, about 740 ppmv (D-007)."}
+  - {tag: C-202, type: Column, service: Solvent column (MCB recovery) with countercurrent evaporator,
+     notes: "600 mbar top, the evaporator at 20 mbar (US 10 364 214 B1); evaporator bottoms 443 K; 9.26 MW MP steam, 12.55 MW cooling (ASSUMED, single effect, D-009)."}
+  # ---- MDI distillation (block PURIF)
+  - {tag: C-203, type: Column, service: "Monomeric MDI column (vacuum), polymeric MDI bottoms",
+     notes: "4.44 t/h monomeric MDI overhead, 17.75 t/h PMDI bottoms; reboiler 1.14 MW HP steam (ASSUMED, D-008, D-009)."}
+  # ---- HCl recycle (block HCLREC)
+  - {tag: A-301, type: Column, service: "HCl absorber (30 % hydrochloric acid for R-101)",
+     notes: "0.84 t/h HCl in 1.96 t/h water, 0.45 MW to cooling water (ASSUMED); the other 12.0 t/h of HCl gas exported (D-007). Graphite or lined construction to be confirmed."}
