@@ -99,6 +99,42 @@ kpis:
       No open source with a heat or steam figure for phthalimide found (2026-11-05); same search as the
       electricity KPI. The patents only state that the reaction is exothermic and that the feeds and the
       tube are heated. The dataset's value is core's Tier 0 default, ASSUMED.
+  acn-specific-propylene:
+    title: Propylene consumption per t of acrylonitrile (SOHIO ammoxidation)
+    unit: t/t
+    references:
+      - id: ipcc-2006-acn-propylene
+        range: [1.09, 1.09]
+        basis: unallocated
+        note: >-
+          The IPCC default feedstock consumption, a single value (zero-width range, not widened),
+          from process-specific yield and consumption data of the EU LVOC BREF of 2003, about 70 %
+          primary product yield on propylene (IPCC gives no plant age for it).
+        conditions: {technology: "SOHIO direct ammoxidation of propylene, fluid bed", year: 2003}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, chapter 3 Chemical Industry Emissions, section 3.9, text under Table 3.22"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf
+          locator: p. 3.79, text under Table 3.22
+          kind: other
+          accessed: "2026-11-19"
+  acn-direct-co2:
+    title: Process CO2 per t of acrylonitrile, secondary products recovered
+    unit: t/t
+    references:
+      - id: ipcc-2006-acn-co2-recovered
+        range: [0.79, 0.79]
+        basis: unallocated
+        note: >-
+          IPCC Table 3.22 factor for the configuration in which acetonitrile and HCN are recovered as
+          products, from the 2003 LVOC BREF; excludes the CO2 of auxiliary fuel.
+          A single value (zero-width range).
+        conditions: {technology: "SOHIO direct ammoxidation of propylene, acetonitrile and HCN recovered", year: 2003}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, chapter 3, Table 3.22"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf
+          locator: p. 3.79, Table 3.22
+          kind: other
+          accessed: "2026-11-19"
 
   caprolactam-specific-ammonium-sulfate:
     title: Ammonium sulfate co-product per kg of caprolactam
@@ -152,3 +188,17 @@ datasets:
       phthalimide-specific-ammonia: {expression: feed:ammonia / product:phthalimide, per: product:phthalimide}
       phthalimide-specific-electricity: {expression: feed:electricity / product:phthalimide, per: product:phthalimide}
       phthalimide-specific-heat: {expression: feed:heat / product:phthalimide, per: product:phthalimide}
+  - process: acrylonitrile-1
+    dataset: acrylonitrile-sohio-propylene-ammoxidation-15-t-h
+    conditions: {technology: "fluid-bed propylene ammoxidation over a Bi-Mo catalyst (US 6 596 897 B1 product slate), acid quench, absorption, recovery and purification, HCN and acetonitrile recovered, off-gas thermal oxidiser", basis: "concept balance, sourced selectivities and ASSUMED separator splits (DESIGN.md D-004 to D-008)"}
+    kpis:
+      acn-specific-propylene:
+        expression: feed:C3 / product:ACNP
+        per: product:ACNP
+        reference: ipcc-2006-acn-propylene
+        out_of_range_reason: "Another catalyst generation: the reference is the 2003 BREF's plant average at about 70 % yield, the dataset uses a 1997 patent catalyst at 79.7 % single-pass acrylonitrile yield (US 6 596 897 B1), so it needs about 8 % less propylene (DESIGN.md D-004)."
+      acn-direct-co2:
+        expression: emission:CO2 / product:ACNP
+        per: product:ACNP
+        reference: ipcc-2006-acn-co2-recovered
+        out_of_range_reason: "Fewer carbon oxides: the dataset's catalyst sends 11.2 % of the propylene carbon to CO and CO2 (US 6 596 897 B1), the reference rests on the 2003 BREF plants at about 70 % acrylonitrile yield; the dataset's figure also includes the support fuel's CO2 (0.014 t/t), which the reference excludes (DESIGN.md D-004, D-008)."

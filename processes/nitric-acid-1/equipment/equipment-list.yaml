@@ -11,13 +11,13 @@ equipment:
   # ---- ammonia evaporation and air compression (block PREP)
   - {tag: E-101, type: TubularHeatExchanger, service: Ammonia evaporator, sheet: P-01,
      design_pressure_barg: 17, design_temperature_degc: 50, material: "CS (low-temperature carbon steel, ammonia service)",
-     notes: "Kettle type (D-017): liquid NH3 on the shell side, chilled water from the C-101 coils in the tubes. Evaporates 11.85 t/h NH3 at 600 kPa(a) (saturation ~282 K), ~4.0 MW from the absorber chilled-water loop (D-011, ASSUMED)."}
+     notes: "Kettle type (D-017): liquid NH3 on the shell side, chilled water from the C-101 coils in the tubes. Evaporates 11.85 t/h NH3 at 600 kPa(a) (saturation ~282 K), ~4.0 MW from the absorber chilled-water loop (D-011, ASSUMED; the CoolProp figure, which D-016 keeps over the DWSIM Peng-Robinson 4.1 MW in Q11)."}
   - {tag: E-108, type: TubularHeatExchanger, service: SCR ammonia vaporiser, sheet: P-06,
      design_pressure_barg: 17, design_temperature_degc: 175, material: CS,
      notes: "46 kg/h NH3 to 1300 kPa(a), 323 K on LP steam, ~16 kW (D-009, ASSUMED). Drawn on P-06 with the SCR dosing it feeds (D-017). Design temperature raised from 75 to 175 degC: the LP steam (450 kPa(a), saturated at about 148 degC) can heat both sides to its temperature when the ammonia stops, + 25 K, ASSUMED (D-021); relief PSV-616. The 17 barg design pressure applies to both sides (ASSUMED, D-022): the LP steam shell is then at the NH3 side's pressure, so a tube rupture does not overpressure the exchanger itself (10/13 rule met); NH3 entering the LP steam header and the condensate return on a rupture is open (O-8, O-9)."}
   - {tag: K-101, type: CentrifugalCompressor, service: Air compressor (process and secondary air), sheet: P-01,
      design_pressure_barg: 6.5, design_temperature_degc: 240, material: CS,
-     notes: "101 -> 520 kPa(a), 213.3 t/h humid air; ~12.1 MW shaft at isentropic efficiency 0.85, no intercooling (D-011, ASSUMED). One train with K-102, X-101 and an electric motor (D-011); inlet guide vanes FV-107 and anti-surge blow-off UV-110 (D-018). The air intake filter is upstream of the P-01 battery limit (open input O-6)."}
+     notes: "101 -> 520 kPa(a), 213.3 t/h humid air; ~12.1 MW shaft at isentropic efficiency 0.85, no intercooling (D-011, ASSUMED). One train with K-102, X-101 and an electric motor (D-011); inlet guide vanes FV-107 and anti-surge blow-off UV-110 (D-018). The air intake filter is upstream of the P-01 battery limit (open input O-10)."}
   - {tag: M-101, type: StaticMixer, service: Ammonia-air mixer, sheet: P-02,
      design_pressure_barg: 6.5, design_temperature_degc: 240, material: "SS 304L",
      notes: "10.0 mol% NH3 in air, 463 K (D-005). The mixture's flammability limits make this a controlled ratio (FFIC-201) with an independent ratio trip (FFZ-205, C&E I-201), D-019."}
@@ -54,7 +54,7 @@ equipment:
      notes: "NOx gas 428 -> 345 K, tail gas 303 -> 398 K, ~4.6 MW (D-010)."}
   - {tag: E-107, type: TubularHeatExchanger, service: NOx gas cooler, sheet: P-04,
      design_pressure_barg: 13, design_temperature_degc: 100, material: "SS 304L",
-     notes: "345 -> 313 K, ~1.8 MW to cooling water (D-010)."}
+     notes: "345 -> 313 K, ~2.0 MW to cooling water (Q08, simulated, D-016), of which ~0.2 MW condenses water from the nitrous gas (estimate, D-016 note c; the balance script's 1.8 MW of D-010 leaves it out). The condensate takes up NO2 as weak acid and drains with the gas to C-101 (NX-403)."}
   - {tag: C-101, type: ProcessColumn, service: Absorption column (sieve trays with cooling coils), sheet: P-05,
      design_pressure_barg: 12.5, design_temperature_degc: 65, material: "SS 304L",
      notes: "Specification model (D-008): 60 wt% raw acid, tail gas 500 ppmv NOx; ~14.6 MW absorption heat to cooling water and the chilled-water loop. Trays, height and residence time not sized: no reactive-absorption model. Coil connections as drawn on P-05 (CW lower, chilled water upper trays) are ASSUMED (D-020)."}
