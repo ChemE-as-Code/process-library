@@ -188,7 +188,10 @@ the mass-based `steam` slug (as hda-1 and nitric-acid-1 do), and since the mappi
 2026-11-01 (ADR 0026) feed:NATGAS links to the shared `natural-gas` proxy. The exported SHP steam
 (product:HPS) has no override: a positive technosphere exchange is a consumption, so
 `steam-heat` would book the 337 MWh/h export as steam bought in (2.47 kWh/kg ethylene after mass allocation, about 3.7
-times the MPS and LPS the plant buys; corrected 2026-11-19, as acrylonitrile-1 did). It stays a
+times the MPS and LPS the plant buys; corrected 2026-11-19, as acrylonitrile-1 did). Its steam
+row under `chemistry.outputs` in process.yaml has no `inventory_key` either, on purpose: with one,
+the Atlas build gives product:HPS the registry slug `steam`, which is counted by mass (kg), and
+refuses the kWh exchange (as formaldehyde-1 found). It stays a
 reported gap in the Atlas build until the netting or crediting of D-015 is decided. Mass allocation departs from the library's WBCSD price-ratio
 hierarchy because no co-product prices are set at concept stage. The departure is stated as
 `allocation.deviation` in `lca/lca.yaml`, to be re-tested once prices exist. The zero flue-gas
