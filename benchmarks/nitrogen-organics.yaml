@@ -14,10 +14,35 @@
 # reference. The anhydride KPI is bound to the only other open figure found (Chemcess, a secondary
 # summary of Ullmann's): a single yield for another variant, the co-current tube with excess
 # ammonia, so the dataset sits outside it with a reason.
+#
+# MDI (mdi-1, #465): the LVOC BREF (2017) Table 10.11 gives one MDI plant's phosgene (0.78 kg/kg)
+# and chlorine (0.56 kg/kg) use, an example plant, not a range of plants; it is recorded as a
+# zero-width range and bound, independent of the dataset (whose phosgene ratio comes from
+# US 10 364 214 B1). No open source gives a plant's aniline use per kg of MDI; the stoichiometric
+# floor depends on the oligomer content of the MDA and is not a range.
 schema: cheme-as-code/benchmarks/v1
 family: nitrogen-organics
 
 kpis:
+  mdi-specific-phosgene:
+    title: Phosgene consumption per kg of MDI (crude, monomeric and polymeric together)
+    unit: kg/kg
+    references:
+      - id: lvoc-bref-mdi-phosgene
+        range: [0.78, 0.78]
+        basis: unallocated
+        note: "One MDI plant's raw-material use as the BREF gives it: 0.78 kg phosgene per kg of MDI (with 0.56 kg chlorine); a single example, a zero-width range, not widened. Which MDI products the kg counts is not stated; the dataset's KPI counts the crude (monomeric plus polymeric MDI)."
+        conditions: {technology: "MDA by HCl-catalysed condensation, liquid-phase phosgenation, European plant", region: EU, year: 2014}
+        source:
+          citation: "European Commission JRC (2017) Best Available Techniques Reference Document for the Production of Large Volume Organic Chemicals, EUR 28882 EN"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf
+          locator: "Section 10.3.3, Table 10.11"
+          kind: other
+          accessed: "2026-11-19"
+  mdi-specific-aniline:
+    title: Aniline consumption per kg of MDI (crude, monomeric and polymeric together)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's aniline use per kg of MDI found (searched 2026-11-19: the LVOC BREF Chapter 10 gives phosgene and chlorine only; US 10 640 455 B1 and US 7 186 857 B2 give feed rates with recycled aniline, not a net use; the ISOPA 2021 and ACC 2022 eco-profiles give no foreground inventory). The stoichiometric use depends on the MDA's oligomer content (0.744 kg/kg for the two-ring MDA alone)."
   nbs-specific-bromine:
     title: Bromine consumption per kg of N-bromosuccinimide
     unit: kg/kg
@@ -110,3 +135,13 @@ datasets:
       phthalimide-specific-ammonia: {expression: feed:ammonia / product:phthalimide, per: product:phthalimide}
       phthalimide-specific-electricity: {expression: feed:electricity / product:phthalimide, per: product:phthalimide}
       phthalimide-specific-heat: {expression: feed:heat / product:phthalimide, per: product:phthalimide}
+  - process: mdi-1
+    dataset: mdi-and-polymeric-mdi-by-aniline-formaldehyde-condensation-and-liquid-phase-phosgenation-178-kt-a-crude-mdi
+    conditions: {technology: "aniline and formalin condensed over HCl in a cascade, neutralised with caustic soda; the MDA phosgenated as a 27.1 % solution in MCB with a 35 % phosgene solution through a mixing nozzle and tower at 384 K and 160 kPa(a); monomeric MDI distilled off the polymeric MDI", basis: "concept balance on the nameplate ratios of US 10 640 455 B1 and US 10 364 214 B1, ASSUMED separator splits and duties (DESIGN.md D-003 to D-009)"}
+    kpis:
+      mdi-specific-phosgene:
+        expression: feed:PHOSF / (product:MDIP + product:PMDIP)
+        per: product:MDIP
+        reference: lvoc-bref-mdi-phosgene
+        out_of_range_reason: "Rounding: the reference is given to two digits (0.78) and the dataset's 0.7844 kg/kg rounds to it; a zero-width range from one example plant cannot hold a value to four digits. The dataset's ratio is the independent one of US 10 364 214 B1 (2.0588 kg phosgene per kg MDA), not fitted to the BREF."
+      mdi-specific-aniline: {expression: feed:ANLF / (product:MDIP + product:PMDIP), per: product:MDIP}
