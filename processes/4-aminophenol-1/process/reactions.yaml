@@ -9,15 +9,20 @@
 # No open kinetics of either were found: both rate laws are ASSUMED (D-005), first order in
 # nitrobenzene and in dissolved hydrogen, with one activation energy, so that the selectivity is
 # the ratio of the two rate constants, 0.84 to 4-aminophenol and 0.16 to aniline, set from SRC-1
-# Example 1(A) (28 g of aniline on the 1.936 mol of nitrobenzene reduced, 15.6 %; the rest taken
-# as 4-aminophenol, no other by-product; D-005). The rate constants are fast enough that the
-# hydrogen is used as it is dosed (dosing-controlled; D-005, D-011).
+# Example 1(A) (28 g of aniline on the 1.936 mol of nitrobenzene reduced, 15.5 %; the rest taken
+# as 4-aminophenol, no other by-product, an upper bound: SRC-1 accounts for about 94.5 %; D-005).
+# The rate constants are fast enough that the hydrogen is used as it is dosed
+# (dosing-controlled; D-005, D-011). The positive activation energy departs on purpose from
+# SRC-1's statement that at constant pressure the rate falls as the temperature rises (D-005:
+# the water's vapour pressure lowers the hydrogen's partial pressure; a rising rate is the
+# conservative choice for an excursion).
 # Heats of reaction from the standard formation enthalpies in chemicals 1.5.2 (D-005), hydrogen
 # as a gas (the dosed gas, core ADR 0054), 4-aminophenol as the solid: the heats of solution
 # and of the protonation by the acid are not counted (ASSUMED).
 # NEU: the sulfuric acid neutralised with ammonia (N101, a conversion step) to ammonium
 # sulfate, SRC-1's pH adjustment with ammonia; the acid's salts with 4-aminophenol and aniline
-# are not resolved (D-007).
+# are not resolved (D-007). The acid enters N101 already diluted in the charge, so NEU's heat is
+# the dilute acid's: the pure acid's less the heat of dilution that Q1 already credits (D-009).
 schema: cheme/reactions/v1
 kind: reactions
 reactions:
@@ -53,7 +58,7 @@ reactions:
       orders: {NB: 1, H2: 1}
       temperature_range: [333.15, 393.15]
       provenance: assumed
-      source: "ASSUMED effective rate (D-005): the share 0.16 of the nitrobenzene reduced that SRC-1 Example 1(A) found as aniline (28 g on 1.936 mol reduced); the same activation energy as HYDP, so the share does not change with the temperature (SRC-1 states the yield rises with the temperature; not modelled, L-2)"
+      source: "ASSUMED effective rate (D-005): the share 0.16 of the nitrobenzene reduced that SRC-1 Example 1(A) found as aniline (28 g on 1.936 mol reduced); the same activation energy as HYDP, so the share does not change with the temperature (SRC-1 states that at constant pressure the yield rises and the rate falls with the temperature; neither is modelled: the positive activation energy departs from the rate statement on purpose, D-005, and the yield's dependence needs the hydroxylamine, L-2)"
     sources: ["US 3 383 416 A, Example 1(A): 28 g of aniline in the distillate", "US 4 307 249 A, Example 1: 4-aminophenol to aniline 4.1 to 4.5 in the aqueous phase"]
   - id: NEU
     title: Neutralisation of the sulfuric acid with ammonia
@@ -61,5 +66,5 @@ reactions:
     stoichiometry: {H2SO4: -1, NH3: -2, AS: 1}
     phase: liquid
     conversion: {key: NH3, value: 0.999, provenance: assumed, source: "ammonia dosed at 2 mol per mol of the acid and taken up to 0.999 (D-004, D-007)"}
-    heat_of_reaction: {value: -275784, provenance: given, source: "chemicals 1.5.2 formation enthalpies: ammonium sulfate(s) -1180900 J/mol (Hfs, CRC), sulfuric acid(l) -814000 (Hfl, CRC), ammonia(g) -45558 (Hfg, ATCT_G); -1180900 + 814000 + 2 x 45558 = -275784 kJ/kmol; the heats of solution of the acid and of the salt in the liquor not counted (ASSUMED, D-009)"}
+    heat_of_reaction: {value: -216584, provenance: assumed, source: "the dilute acid neutralised (D-007): chemicals 1.5.2 formation enthalpies, ammonium sulfate(s) -1180900 J/mol (Hfs, CRC), sulfuric acid(l) -814000 (Hfl, CRC), ammonia(g) -45558 (Hfg, ATCT_G), give -1180900 + 814000 + 2 x 45558 = -275784 kJ/kmol from the pure liquid acid; the acid reaches N101 already diluted in the charge, and its heat of dilution, 59200 kJ/kmol (ASSUMED, derived from SRC-2 Example 1, D-009), is credited to the charge's heating Q1, so it is taken off here: -275784 + 59200 = -216584 kJ/kmol. The heat of solution of the salt in the liquor (it absorbs heat) is not counted (ASSUMED)"}
     sources: ["US 3 383 416 A, Example 1(A): the liquor brought to pH 6.0 before the aniline is distilled and to pH 7.2 with ammonia before crystallisation", "US 4 307 249 A, Example 1: neutralised to pH 7 to 8 with ammonium hydroxide"]

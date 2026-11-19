@@ -15,20 +15,21 @@ boundary: gate-to-gate foreground of the plant
 technology: 'Batch plant: nitrobenzene hydrogenated on a recycled nitrobenzene heel holding 5 % Pt/C in
   dilute sulfuric acid with a surfactant at 358 K and about 104 kPa(a), hydrogen dosed over 5.5 h to 0.88
   conversion; the aqueous layer stripped, neutralised with ammonia, the aniline distilled off with water
-  and separated as crude aniline; carbon-treated, 4-aminophenol crystallised at 283 K in two crops, centrifuged,
-  washed and vacuum-dried; 1073.2 kg per batch, 931.8 batches a year on a dedicated train'
+  fed at constant level and separated as crude aniline; carbon-treated at pH 6, 4-aminophenol crystallised
+  at 283 K, centrifuged, washed and vacuum-dried; 1209.4 kg per batch, 826.9 batches a year on a dedicated
+  train'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:reactor-vent
-  title: storage-tank emissions of R-101, R-102, R-103, K-102
+  title: storage-tank emissions of R-101, R-102, R-103
   direction: output
-  reason: 'No P&ID yet: the nitrogen purges of R-101, the vents of R-102 and R-103 and the vacuum pump
-    exhaust of K-102 carry nitrobenzene, aniline and water vapour at 333 to 373 K through their condensers
-    to the vent stack; not estimated (open for basic engineering, D-011).'
+  reason: 'No P&ID yet: the nitrogen purges of R-101 and the vents of R-102 and R-103 carry nitrobenzene,
+    aniline and water vapour at 333 to 373 K to the vent stack (R-102''s and R-103''s past their condensers
+    E-102 and E-104); not estimated (open for basic engineering, D-011).'
 - key: emission-excluded:storage-breathing
   title: storage-tank emissions of T-101, T-102, V-102
   direction: output
-  reason: The breathing of the recycle water, wastewater and aniline separator tanks (aqueous nitrobenzene
+  reason: The breathing of the recycle water, liquor and aniline separator tanks (aqueous nitrobenzene
     and aniline at about 298 K, nitrogen-blanketed) is not estimated (D-011).
 - key: emission-excluded:dryer-vent
   title: equipment-leaks emissions of the plant
@@ -38,15 +39,15 @@ cutoff:
 uuid: aab788dc-0e18-5a13-93f3-ed78ea01b6be
 version: 0.1.0
 geography:
-  description: Generic fine-chemicals site with hydrogen, sulfuric acid and ammonia supply and a biological
-    wastewater treatment, not chosen (GLO); one design case
+  description: Generic fine-chemicals site with hydrogen, sulfuric acid and ammonia supply and an ammonium
+    sulfate recovery, not chosen (GLO); one design case
 time:
   start: 2026
 valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 1000002.9600000001
+  amount: 999995.04
   unit: kg/a
   source: product:PAPP per hour x operation.hours_per_year (7920 h/a)
 classification:
@@ -55,28 +56,31 @@ modelling:
   principle: attributional
   multifunctionality: 'unallocated multi-output dataset; default allocation mass: D-012 (agent proposal,
     for the LCA practitioner to confirm): the plant makes, per kg of 4-aminophenol, about 0.16 kg of crude
-    aniline (94 wt%), a co-product of the same hydrogenation that an aniline plant purifies. The library
+    aniline (93 wt%), a co-product of the same hydrogenation that an aniline plant purifies. The library
     hierarchy (docs/system-model.md) finds no physical relationship that splits the hydrogenation between
     the two (both come from the same charge in a fixed ratio set by the selectivity); neither is a fuel.
     No prices are sourced at the concept stage; aniline and technical 4-aminophenol are both intermediate
-    aromatic amines, ASSUMED within a price ratio of 5, so mass allocation: 126.26 and 20.56 kg/h give
-    0.860 and 0.140.'
+    aromatic amines, ASSUMED within a price ratio of 5, so mass allocation: 126.26 and 20.03 kg/h give
+    0.863 and 0.137.'
 review:
 - type: none
 data_generator: 'ChemE-as-Code agent session (Claude Opus 5.5) for issue #506, unreviewed'
 exchanges:
 - key: feed:PW
-  title: Process water (charge make-up)
+  title: Process water (charge make-up and the water fed to R-103)
   type: input
-  amount: 504.661
+  amount: 1042.132
   unit: kg
   provenance: calculated
   link:
-    source: flowsheet stream S1 (D-004)
+    source: flowsheet streams S1 (the charge's make-up, D-004) and S29 (the water fed to R-103 during
+      the aniline distillation, D-007)
     missing: 'not mapped yet (D-012); connect to: process water from the site water treatment'
   streams:
   - S1
-  source: flowsheet stream S1 (D-004)
+  - S29
+  source: flowsheet streams S1 (the charge's make-up, D-004) and S29 (the water fed to R-103 during the
+    aniline distillation, D-007)
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -86,11 +90,11 @@ exchanges:
       H2O: 1.0
     formulas:
       H2O: H2O
-    source: stream table (S1)
+    source: stream table (S1, S29)
 - key: feed:NBF
   title: Nitrobenzene (merchant; no library process)
   type: input
-  amount: 172.541
+  amount: 178.704
   unit: kg
   link:
     source: flowsheet stream S2 (D-004)
@@ -113,7 +117,7 @@ exchanges:
 - key: feed:ACIDF
   title: Sulfuric acid 98 % (sulfuric-acid-1)
   type: input
-  amount: 148.114
+  amount: 153.405
   unit: kg
   link:
     source: flowsheet stream S3 (D-004)
@@ -136,7 +140,7 @@ exchanges:
 - key: feed:H2F
   title: Hydrogen (hydrogen-1)
   type: input
-  amount: 6.12236
+  amount: 6.341
   unit: kg
   link:
     source: flowsheet stream S5 (D-004)
@@ -158,7 +162,7 @@ exchanges:
 - key: feed:NH3F
   title: Ammonia (ammonia-1)
   type: input
-  amount: 50.3958
+  amount: 52.1959
   unit: kg
   link:
     source: flowsheet stream S10 (D-004)
@@ -179,7 +183,7 @@ exchanges:
 - key: feed:WASHW
   title: Cold process water (cake wash)
   type: input
-  amount: 125.955
+  amount: 130.454
   unit: kg
   provenance: calculated
   link:
@@ -201,11 +205,11 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 33.0
+  amount: 60.338
   unit: kWh
   link:
-    source: flowsheet energy streams P1 (R-101's agitator), P2 (R-102's agitator and vacuum pump), P3
-      (centrifuge) and P4 (dryer), D-009
+    source: flowsheet energy streams P1 (R-101's agitator, scripts/balance.py), P2 (R-102's agitator),
+      P3 (centrifuge), P4 (dryer), P5 (R-103's agitator) and P6 (K-101's agitator), D-009
     missing: 'not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided)
       site country'
   streams:
@@ -213,8 +217,10 @@ exchanges:
   - P2
   - P3
   - P4
-  source: flowsheet energy streams P1 (R-101's agitator), P2 (R-102's agitator and vacuum pump), P3 (centrifuge)
-    and P4 (dryer), D-009
+  - P5
+  - P6
+  source: flowsheet energy streams P1 (R-101's agitator, scripts/balance.py), P2 (R-102's agitator), P3
+    (centrifuge), P4 (dryer), P5 (R-103's agitator) and P6 (K-101's agitator), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -225,12 +231,13 @@ exchanges:
 - key: feed:LPS
   title: LP steam 350 kPa(a) (jackets, still heating, dryer)
   type: input
-  amount: 691.8749999999999
+  amount: 740.5134999999999
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 (the charge heated, hand calculation), Q3 and Q5 (R-102's boil-up,
-      core's batch stills), Q8 (K-102's evaporation, core's crystallizer) and Q9 (the dryer, core's dryer
-      model), D-009
+    source: flowsheet energy streams Q1 (R-101's charge heating), Q3 and Q11 (R-102's boil-up, core's
+      batch still ST101, and its heat-up), Q5 and Q13 (R-103's boil-up, core's batch still ST102, its
+      heat-up and the water preheater E-105) and Q9 (the dryer, core's dryer model); Q1, Q11 and Q13 from
+      scripts/balance.py, D-009
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
@@ -238,11 +245,13 @@ exchanges:
   - Q1
   - Q3
   - Q5
-  - Q8
   - Q9
-  source: flowsheet energy streams Q1 (the charge heated, hand calculation), Q3 and Q5 (R-102's boil-up,
-    core's batch stills), Q8 (K-102's evaporation, core's crystallizer) and Q9 (the dryer, core's dryer
-    model), D-009
+  - Q11
+  - Q13
+  source: flowsheet energy streams Q1 (R-101's charge heating), Q3 and Q11 (R-102's boil-up, core's batch
+    still ST101, and its heat-up), Q5 and Q13 (R-103's boil-up, core's batch still ST102, its heat-up
+    and the water preheater E-105) and Q9 (the dryer, core's dryer model); Q1, Q11 and Q13 from scripts/balance.py,
+    D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -256,7 +265,7 @@ exchanges:
 - key: product:PAPP
   title: 4-Aminophenol crystals to packing
   type: product
-  amount: 126.263
+  amount: 126.262
   unit: kg
   provenance: calculated
   streams:
@@ -267,19 +276,19 @@ exchanges:
   basic_uncertainty: 1.05
   state:
     pressure: 1.01325
-    purity: 0.984631
+    purity: 0.985821
     basis: mole
     component: PAP_S
   composition:
     fractions:
-      H2O: 0.001999532
-      H2SO4: 3.427e-06
+      H2O: 0.001999519
+      H2SO4: 1.966e-06
       NB: 0.0
-      PAP: 0.000577433
-      PAP_S: 0.99400291
-      AN: 4.58e-07
-      NH3: 1.5e-08
-      AS: 0.003416224
+      PAP: 0.000585573
+      PAP_S: 0.995454845
+      AN: 4.81e-07
+      NH3: 9.0e-09
+      AS: 0.001957608
     formulas:
       H2O: H2O
       H2SO4: H2SO4
@@ -293,7 +302,7 @@ exchanges:
 - key: product:ANP
   title: Crude wet aniline (co-product, to aniline purification)
   type: product
-  amount: 20.5386
+  amount: 20.0331
   unit: kg
   provenance: calculated
   streams:
@@ -305,14 +314,14 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 25.0
-    purity: 0.772825
+    purity: 0.7442
     basis: mole
     component: AN
   composition:
     fractions:
-      H2O: 0.05299234
-      NB: 0.004218742
-      AN: 0.942788918
+      H2O: 0.061447692
+      NB: 0.00449689
+      AN: 0.934055418
     formulas:
       H2O: H2O
       NB: C6H5NO2
@@ -321,12 +330,12 @@ exchanges:
 - key: product:VENT
   title: Excess hydrogen purged with nitrogen to the vent stack
   type: output
-  amount: 0.022468
+  amount: 0.0232532
   unit: kg
   provenance: calculated
   link:
     source: flowsheet stream S8 (D-006)
-    missing: 'not mapped yet (D-012): the excess hydrogen (0.17 g per kg) purged with nitrogen to the
+    missing: 'not mapped yet (D-012): the excess hydrogen (0.18 g per kg) purged with nitrogen to the
       vent stack, an emission of hydrogen to air'
   streams:
   - S8
@@ -342,16 +351,17 @@ exchanges:
       H2: H2
     source: stream table (S8)
 - key: product:WW
-  title: Mother liquor, wash filtrate and condensates to wastewater treatment
+  title: Ammonium sulfate liquor (mother liquor, wash filtrate, condensate) to ammonium sulfate recovery
   type: output
-  amount: 860.967
+  amount: 1416.91
   unit: kg
   provenance: calculated
   link:
     source: flowsheet stream S28 (D-008)
-    missing: 'not mapped yet (D-012); connect to: treatment of an ammonium sulfate process effluent with
-      aromatic amines in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg;
-      or recovery of the ammonium sulfate by evaporative crystallisation, not modelled'
+    missing: 'not mapped yet (D-012); connect to: recovery of ammonium sulfate from a process liquor by
+      evaporative crystallisation (no library process; processes/ammonium-sulfate-1 makes the product
+      another way), per kg of liquor, about 0.85 kg of water evaporated and 0.14 kg of ammonium sulfate
+      recovered per kg; or a dedicated treatment with nitrification and denitrification'
   streams:
   - S28
   source: flowsheet stream S28 (D-008)
@@ -361,18 +371,21 @@ exchanges:
   basic_uncertainty: 1.05
   treatment:
     kind: waste
-    route: site biological wastewater treatment of an ammonium sulfate liquor (about 23 wt%) with dissolved
-      4-aminophenol and aniline traces (no recovery, D-008)
+    route: 'ammonium sulfate liquor (about 14 wt% ammonium sulfate, 0.5 wt% 4-aminophenol, 0.2 wt% aniline;
+      about 43 kg/h of ammonium nitrogen): ASSUMED to an ammonium sulfate recovery by evaporative crystallisation
+      outside the boundary, its condensate to biological treatment and its organic purge to incineration,
+      as acrylonitrile-1''s quench liquor; not to a biological plant directly, which would have to remove
+      the nitrogen (D-008)'
   composition:
     fractions:
-      H2O: 0.768336156
-      H2SO4: 0.000227046
+      H2O: 0.850080708
+      H2SO4: 0.000143168
       NB: 0.0
-      PAP: 0.002544443
-      PAP_S: 0.000742288
-      AN: 0.001753244
-      NH3: 5.8532e-05
-      AS: 0.226338291
+      PAP: 0.004207617
+      PAP_S: 0.00089607
+      AN: 0.00205127
+      NH3: 3.6837e-05
+      AS: 0.142584331
     formulas:
       H2O: H2O
       H2SO4: H2SO4
@@ -386,12 +399,14 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 775.9570000000001
+  amount: 931.568
   unit: kWh
-  provenance: calculated
   link:
-    source: flowsheet energy streams Q2 (the heat of hydrogenation, core's semi-batch model), Q3C and
-      Q6 (E-102, core's batch stills) and Q4 (the neutralisation, core's conversion step), D-009
+    source: flowsheet energy streams Q2 (R-101's heat of hydrogenation, core's semi-batch model), Q10
+      (R-101's cool-down to 333 K), Q3C and Q12 (R-102's condenser E-102 and the distillate's subcooling),
+      Q4 and Q17 (R-102's neutralisation, core's conversion step, and its metal), Q6 and Q14 (R-103's
+      condenser E-104 and the distillate cooled for V-102) and Q15 (the dryer's condenser E-103); Q10,
+      Q12, Q14, Q15 and Q17 from scripts/balance.py, D-009
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
@@ -399,11 +414,19 @@ exchanges:
   - Q3C
   - Q4
   - Q6
-  source: flowsheet energy streams Q2 (the heat of hydrogenation, core's semi-batch model), Q3C and Q6
-    (E-102, core's batch stills) and Q4 (the neutralisation, core's conversion step), D-009
+  - Q10
+  - Q12
+  - Q14
+  - Q15
+  - Q17
+  source: flowsheet energy streams Q2 (R-101's heat of hydrogenation, core's semi-batch model), Q10 (R-101's
+    cool-down to 333 K), Q3C and Q12 (R-102's condenser E-102 and the distillate's subcooling), Q4 and
+    Q17 (R-102's neutralisation, core's conversion step, and its metal), Q6 and Q14 (R-103's condenser
+    E-104 and the distillate cooled for V-102) and Q15 (the dryer's condenser E-103); Q10, Q12, Q14, Q15
+    and Q17 from scripts/balance.py, D-009
   pedigree:
-    scores: [3, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (calculated, design maturity concept)
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
     kind: cold
@@ -412,46 +435,48 @@ exchanges:
 - key: product:CHW
   title: Chilled water return
   type: output
-  amount: 75.7923
+  amount: 135.50400000000002
   unit: kWh
-  provenance: calculated
   link:
-    source: flowsheet energy stream Q7 (the first crop cooled to 283 K, core's crystallizer model), D-009
+    source: flowsheet energy streams Q7 (the crop cooled to 283 K, core's crystallizer model) and Q16
+      (K-101's metal, scripts/balance.py), D-009
     missing: 'not mapped yet (D-012); connect to: refrigeration at 278 K (chilled water) from an electric
       vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed'
   streams:
   - Q7
-  source: flowsheet energy stream Q7 (the first crop cooled to 283 K, core's crystallizer model), D-009
+  - Q16
+  source: flowsheet energy streams Q7 (the crop cooled to 283 K, core's crystallizer model) and Q16 (K-101's
+    metal, scripts/balance.py), D-009
   pedigree:
-    scores: [3, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (calculated, design maturity concept)
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
     kind: cold
     temperature: 5.0
     source: utility of CHW in process/flowsheet.yaml
 - key: consumable:activated-carbon
-  title: Activated carbon for the decolourisation of the hot liquor in R-102
+  title: Activated carbon for the decolourisation of the hot liquor in R-103
   type: input
-  amount: 6.541176470588235
+  amount: 6.559568405046647
   unit: kg
   link:
-    source: 'SRC-1 Example 1(A): 8 g of carbon on 154 g of first-crop product, 0.0519 kg per kg x 1073.2
-      kg per batch = 55.7, taken as 55.6 kg, used once (D-008, D-012)'
+    source: 'SRC-1 Example 1(A): 8 g of carbon on 154 g of isolated product, 8 / 154 x 1209.4 kg per batch
+      = 62.83 kg, used once (D-008, D-012)'
     missing: 'not mapped yet (D-012); connect to: activated carbon, powdered, from coal or wood by steam
       activation'
-  source: 'SRC-1 Example 1(A): 8 g of carbon on 154 g of first-crop product, 0.0519 kg per kg x 1073.2
-    kg per batch = 55.7, taken as 55.6 kg, used once (D-008, D-012); 55.6 kg per batch x 931.765 batches
-    in 7920 h (process/recipe.yaml, case design, bottleneck HYDROGENATE)'
+  source: 'SRC-1 Example 1(A): 8 g of carbon on 154 g of isolated product, 8 / 154 x 1209.4 kg per batch
+    = 62.83 kg, used once (D-008, D-012); 62.83 kg per batch x 826.863 batches in 7920 h (process/recipe.yaml,
+    case design, bottleneck HYDROGENATE)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
 - key: disposal:consumable.activated-carbon
-  title: 'Disposal: Activated carbon for the decolourisation of the hot liquor in R-102 (spent carbon
+  title: 'Disposal: Activated carbon for the decolourisation of the hot liquor in R-103 (spent carbon
     with its liquor to hazardous-waste incineration (D-008))'
   type: output
-  amount: 6.541176470588235
+  amount: 6.559568405046647
   unit: kg
   link:
     source: the spent carbon off F-101, its mass as charged (D-008)
@@ -470,20 +495,20 @@ exchanges:
 - key: consumable:catalyst-pt-c
   title: 5 % Pt/C catalyst make-up
   type: input
-  amount: 0.05647058823529412
+  amount: 0.05815183195306356
   unit: kg
   link:
     source: 'SRC-1 Examples 1 to 4: 1.4 g of fresh 5 % Pt/C on 271 g of nitrobenzene, reused for five
       batches and then 0.4 g added; ASSUMED a make-up of 0.4 g per 5 batches of about 246 g of fresh nitrobenzene,
-      0.325 g per kg of fresh nitrobenzene x 1466 kg per batch (172.5 kg/h x 8.5 h) = 0.48 kg (D-004,
+      0.325 g per kg of fresh nitrobenzene x 1711.6 kg per batch (178.70 kg/h x 9.578 h) = 0.557 kg (D-004,
       D-012); the spent catalyst to a precious-metal refiner, not modelled'
     missing: 'not mapped yet (D-012); connect to: platinum on activated carbon catalyst, 5 wt% Pt (platinum
       from primary production), with the platinum''s recovery by a refiner'
   source: 'SRC-1 Examples 1 to 4: 1.4 g of fresh 5 % Pt/C on 271 g of nitrobenzene, reused for five batches
     and then 0.4 g added; ASSUMED a make-up of 0.4 g per 5 batches of about 246 g of fresh nitrobenzene,
-    0.325 g per kg of fresh nitrobenzene x 1466 kg per batch (172.5 kg/h x 8.5 h) = 0.48 kg (D-004, D-012);
-    the spent catalyst to a precious-metal refiner, not modelled; 0.48 kg per batch x 931.765 batches
-    in 7920 h (process/recipe.yaml, case design, bottleneck HYDROGENATE)'
+    0.325 g per kg of fresh nitrobenzene x 1711.6 kg per batch (178.70 kg/h x 9.578 h) = 0.557 kg (D-004,
+    D-012); the spent catalyst to a precious-metal refiner, not modelled; 0.557 kg per batch x 826.863
+    batches in 7920 h (process/recipe.yaml, case design, bottleneck HYDROGENATE)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -491,19 +516,20 @@ exchanges:
 - key: consumable:surfactant
   title: Amine oxide surfactant (dimethyldodecylamine oxide)
   type: input
-  amount: 0.3529411764705882
+  amount: 0.3862868549844437
   unit: kg
   link:
     source: 'SRC-2 Example 1: 2 mL of a 30 to 35 % amine oxide solution in 650 mL of water, about 1.0
-      g of active per kg of water, ASSUMED; x 10.4 t of water in the charge a batch (1222 kg/h x 8.5 h)
-      = 10.4 kg, of which ASSUMED 70 % comes back with the recycled water: 3.0 kg make-up a batch (D-004,
+      g of active per kg of water, ASSUMED; x 12.2 t of water in the charge a batch (1272.6 kg/h x 9.578
+      h) = 12.2 kg, of which ASSUMED 70 % comes back with the recycled water: 3.7 kg make-up a batch (D-004,
       D-012)'
     missing: 'not mapped yet (D-012); connect to: N,N-dimethyldodecylamine N-oxide (a fatty amine oxide
       surfactant)'
   source: 'SRC-2 Example 1: 2 mL of a 30 to 35 % amine oxide solution in 650 mL of water, about 1.0 g
-    of active per kg of water, ASSUMED; x 10.4 t of water in the charge a batch (1222 kg/h x 8.5 h) =
-    10.4 kg, of which ASSUMED 70 % comes back with the recycled water: 3.0 kg make-up a batch (D-004,
-    D-012); 3 kg per batch x 931.765 batches in 7920 h (process/recipe.yaml, case design, bottleneck HYDROGENATE)'
+    of active per kg of water, ASSUMED; x 12.2 t of water in the charge a batch (1272.6 kg/h x 9.578 h)
+    = 12.2 kg, of which ASSUMED 70 % comes back with the recycled water: 3.7 kg make-up a batch (D-004,
+    D-012); 3.7 kg per batch x 826.863 batches in 7920 h (process/recipe.yaml, case design, bottleneck
+    HYDROGENATE)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -512,17 +538,17 @@ exchanges:
   title: Nitrogen for R-101's purges before and after the hydrogen, the blankets and the dryer's vacuum
     break
   type: input
-  amount: 7.0588235294117645
+  amount: 8.352148215879863
   unit: kg
   link:
-    source: 'ASSUMED: R-101''s gas space purged three times before and after the hydrogen (about 7 m3
-      of head space, 6 volume changes at about 1.2 kg/m3, 50 kg) and the dryer''s vacuum break and blankets
-      (10 kg) (D-011, D-012)'
+    source: 'ASSUMED: R-101''s gas space purged three times before and after the hydrogen (about 10 m3
+      of head space over the 15.2 m3 batch in 25 m3, 6 volume changes at about 1.2 kg/m3, 70 kg) and the
+      dryer''s vacuum break and blankets (10 kg) (D-011, D-012)'
     missing: 'linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen'
-  source: 'ASSUMED: R-101''s gas space purged three times before and after the hydrogen (about 7 m3 of
-    head space, 6 volume changes at about 1.2 kg/m3, 50 kg) and the dryer''s vacuum break and blankets
-    (10 kg) (D-011, D-012); 60 kg per batch x 931.765 batches in 7920 h (process/recipe.yaml, case design,
-    bottleneck HYDROGENATE)'
+  source: 'ASSUMED: R-101''s gas space purged three times before and after the hydrogen (about 10 m3 of
+    head space over the 15.2 m3 batch in 25 m3, 6 volume changes at about 1.2 kg/m3, 70 kg) and the dryer''s
+    vacuum break and blankets (10 kg) (D-011, D-012); 80 kg per batch x 826.863 batches in 7920 h (process/recipe.yaml,
+    case design, bottleneck HYDROGENATE)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -532,12 +558,12 @@ allocation:
   - PAPP
   - ANP
   source: 'D-012 (agent proposal, for the LCA practitioner to confirm): the plant makes, per kg of 4-aminophenol,
-    about 0.16 kg of crude aniline (94 wt%), a co-product of the same hydrogenation that an aniline plant
+    about 0.16 kg of crude aniline (93 wt%), a co-product of the same hydrogenation that an aniline plant
     purifies. The library hierarchy (docs/system-model.md) finds no physical relationship that splits
     the hydrogenation between the two (both come from the same charge in a fixed ratio set by the selectivity);
     neither is a fuel. No prices are sourced at the concept stage; aniline and technical 4-aminophenol
     are both intermediate aromatic amines, ASSUMED within a price ratio of 5, so mass allocation: 126.26
-    and 20.56 kg/h give 0.860 and 0.140.'
+    and 20.03 kg/h give 0.863 and 0.137.'
   deviation: Mass allocation rests on the ASSUMED price ratio. The conservative bound is all burdens to
     the 4-aminophenol (the crude aniline free, about 16 % more per kg); economic allocation at sourced
     prices replaces it.
@@ -546,8 +572,8 @@ provenance:
   plant: 4-Aminophenol by batch hydrogenation of nitrobenzene in dilute sulfuric acid (Bamberger route)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:0f76d905ade85df721c3928d0437dd98f669bf919ddd3f4958cad813eb55b04b
-    lca/lca.yaml: sha256:80b237461f8f5155ead54fabd84186c6283620348a45373ed84d859f230e847a
-    process.yaml: sha256:dc4eb0ec2a5d20d62f374ea62eca17a29b7bd973bd0c419127ea3e1e6815e5ec
-    process/flowsheet.yaml: sha256:3b0b0d6c0a739477250058f5e18a3100ddfab06424f89eae9dfbda7be489e797
-    process/materials.yaml: sha256:6e194f4acbcb1444b4d7b5ee73e2ff48d775094938869f029646e0dad29bf867
+    equipment/equipment-list.yaml: sha256:ef0cc787aa3abe4e91c35bff391f22bb14cbf7468ada5a9e5d60b6cd1ed299a2
+    lca/lca.yaml: sha256:f8a1c0a8f3474c3c56c3afcd860c772f5486428604c2844336f657aed25b81f1
+    process.yaml: sha256:f1c156b6dca92d6cfc7c266f5730f24be0d0d351ba6c2c94ab35627c3f6823e5
+    process/flowsheet.yaml: sha256:63e8b6b0af0ee5ef0bf0575ac9273493884c2566a171c21d8c07af29e3ce2f27
+    process/materials.yaml: sha256:980d08a3811ac5f419f45de8a68d9f7cc062a641b11c5e0298f810577b1078ee

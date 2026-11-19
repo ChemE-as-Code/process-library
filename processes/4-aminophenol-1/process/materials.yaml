@@ -11,26 +11,34 @@
 # separate solid component, PAP_S (phase: solid). The data the semi-batch, the stills and the
 # duties need (D-005, D-007, D-009):
 # - liquid_molar_volume, m3/kmol: water 968.6, nitrobenzene 1138.5, aniline 966.5 and sulfuric
-#   acid 1830.3 kg/m3 at 358.15 K (thermo 0.6.1, Chemical(...).rho, its default liquid-density
-#   methods: HEOS_FIT, VDI_PPDS, VDI_PPDS, CRC_INORG_L_CONST); 4-aminophenol 1.290 g/cm3, the
+#   acid 1830.3 kg/m3 at 358.15 K (thermo 0.6.1, Chemical(...).rho, the liquid-density methods
+#   HEOS_FIT, VDI_PPDS (VDI Heat Atlas), VDI_PPDS and CRC_INORG_L_CONST (CRC Handbook)); 4-aminophenol 1.290 g/cm3, the
 #   crystal's density (PubChem CID 403, as paracetamol-1 uses it), taken as its volume in the
 #   solution (ideal mixing; ASSUMED); dissolved hydrogen 0.025 m3/kmol, ASSUMED (a dissolved
 #   gas's partial molar volume, order of magnitude; the model's dissolved hydrogen stays below
 #   0.1 mol% of the liquid, D-005); ammonium sulfate 1770 kg/m3, the solid's (thermo 0.6.1,
-#   CRC_INORG_S), ammonia 0.025 m3/kmol ASSUMED: neither enters a rate law (N101 is a
+#   CRC_INORG_S, CRC Handbook), ammonia 0.025 m3/kmol ASSUMED: neither enters a rate law (N101 is a
 #   conversion step);
-# - liquid_heat_capacity, kJ/(kmol K): water 75.7, nitrobenzene 192.9, aniline 201.8 and
-#   sulfuric acid 105.2 at 358.15 K (thermo 0.6.1, Chemical(...).Cplm, its default methods);
-#   4-aminophenol 131.5, the solid's at 298.15 K (thermo 0.6.1, Cpsm), standing for the dissolved
-#   solute (ASSUMED, as paracetamol-1); ammonium sulfate 215.9, the solid's at 298.15 K (thermo
-#   0.6.1, Cpsm); hydrogen 29.1 and ammonia 35.6, their ideal-gas heat capacities near 358 K
-#   (thermo 0.6.1, Cpgm) standing for the dissolved gases (ASSUMED);
-# - normal boiling points (chemicals 1.5.2, Tb, its default methods): water 373.12 K,
-#   nitrobenzene 483.85 K, aniline 457.25 K; hydrogen 20.37 K and ammonia 239.83 K. Sulfuric
-#   acid, ammonium sulfate and 4-aminophenol are taken as non-volatile;
+# - liquid_heat_capacity, kJ/(kmol K), thermo 0.6.1 Chemical(...).Cplm at 358.15 K: water 75.7
+#   (HEOS_FIT, fits to the reference Helmholtz equation of state), nitrobenzene 192.9 and
+#   sulfuric acid 105.2 (DADGOSTAR_SHAW, Dadgostar and Shaw's estimation method from the
+#   molecular structure), aniline 201.8 (ZABRANSKY_SPLINE_C, the coefficients of Zabransky,
+#   Ruzicka, Majer and Domalski's critical review of liquid heat capacities); 4-aminophenol
+#   131.5, the solid's at 298.15 K (Cpsm, LASTOVKA_S, Lastovka's estimation method), standing for
+#   the dissolved solute (ASSUMED, as paracetamol-1); ammonium sulfate 215.9, the solid's at
+#   298.15 K (Cpsm, PERRY151, the coefficients of a table of Perry's Chemical Engineers'
+#   Handbook, 8th ed.); hydrogen 29.1 and ammonia 35.6, their ideal-gas heat capacities near
+#   300 K (Cpgm, HEOS_FIT) standing for the dissolved gases (ASSUMED);
+# - normal boiling points (chemicals 1.5.2, Tb): water 373.12 K, hydrogen 20.37 K and ammonia
+#   239.83 K (HEOS, the Helmholtz equations of state); nitrobenzene 483.85 K and aniline
+#   457.25 K (CRC_ORG, the organic-compounds table of the CRC Handbook of Chemistry and
+#   Physics). Sulfuric acid, ammonium sulfate and 4-aminophenol are taken as non-volatile;
 # - heat_of_vaporization, kJ/kmol near 373 K (the stills' boil-up in kW): water 40650
-#   (HEOS_FIT), nitrobenzene 50906 and aniline 49586 (VDI_PPDS), thermo 0.6.1, Chemical(...).Hvapm
-#   at 373.15 K; single values from an open-source package, not open data (library ADR 0037).
+#   (HEOS_FIT), nitrobenzene 50906 and aniline 49586 (VDI_PPDS, the PPDS coefficients of the VDI
+#   Heat Atlas, 2nd ed.), thermo 0.6.1, Chemical(...).Hvapm at 373.15 K.
+# Single values from open-source packages, each with its method; not open data (library ADR
+# 0037). The underlying works (the CRC Handbook, Perry's Handbook, the VDI Heat Atlas,
+# Zabransky et al.'s review) were not read here (DESIGN.md SRC-7).
 schema: cheme/process/v1
 kind: materials
 components:
