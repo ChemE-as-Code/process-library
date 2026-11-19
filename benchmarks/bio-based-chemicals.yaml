@@ -147,7 +147,11 @@ datasets:
     dataset: biodiesel-fame-from-soybean-oil-by-base-catalysed-transesterification-32-420-t-a
     conditions: {technology: "two CSTRs at 333 K with glycerol decanters, 6:1 methanol, sodium methoxide 0.25 wt% of the oil, ester methanol flash, one acid water wash, vacuum dryer, glycerol neutraliser and methanol column, no heat integration", basis: "concept balance on Van Gerpen et al. (2004) ratios and conditions, ASSUMED conversions and separator recoveries, hand duties for the separations (DESIGN.md D-005 to D-009)"}
     kpis:
-      biodiesel-specific-methanol: {expression: (feed:MEOHF + 0.75 * feed:CATF) / product:BD, per: product:BD, reference: nrel-2004-methanol-stoichiometric}
+      biodiesel-specific-methanol:
+        expression: (feed:MEOHF + 0.75 * feed:CATF) / product:BD
+        per: product:BD
+        reference: nrel-2004-methanol-stoichiometric
+        out_of_range_reason: "0.1081 against the stoichiometric 0.1080 kg/kg, 0.1 % above it: the dataset converts 99.7 % of the oil (0.1088 consumed per kg of product, whose 0.30 wt% unreacted glycerides count as product mass), gets 0.0015 back from the neutralised methoxide and loses 0.0008 to the wastewater and the crude glycerol (DESIGN.md D-005, D-006); the reference assumes full conversion and no losses."
       biodiesel-specific-electricity:
         expression: feed:POWER / product:BD
         per: product:BD
