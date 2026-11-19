@@ -1,0 +1,109 @@
+# Goal and scope of the salicylic-acid-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of dried salicylic acid, from the flowsheet's year averages of the
+# recipe (D-003). The phenol, the caustic soda, the CO2 and the sulfuric acid are linked to their
+# library producers (lca/mappings.yaml: acetone-1, chlor-alkali-1, carbon-capture-1,
+# sulfuric-acid-1) and the steam is counted as heat delivered; the other backgrounds are left
+# unmapped (`missing:` with the activity each should connect to): a gap, never zero, and no
+# values from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of salicylic acid made by the one-stage
+  Kolbe-Schmitt carboxylation of dry sodium phenoxide (phenol neutralised with caustic soda,
+  dried, carboxylated with CO2 at 463 K, the salicylate acidified with sulfuric acid and
+  crystallised in two crops, the phenol recovered) at the concept stage: which raw materials,
+  utilities and wastes the batch plant exchanges per kg of salicylic acid, as the foreground for
+  a cradle-to-gate study and the salicylic acid feed of an aspirin process. Most utility
+  backgrounds are not mapped yet (D-012).
+functional_unit: {product: SA, amount: 1, unit: kg, source: "1 kg of dried salicylic acid (modelled 99.7 wt%) at the plant gate to packing, stream S22 (D-002, D-008, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as oxalyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: molten phenol neutralised with 50 wt% caustic soda dosed over 1 h at 343 K; the phenoxide solution dried to a powder in a kneader-reactor at ambient pressure, then at 4 kPa(a) to 463 K; CO2 dosed into the dry phenoxide at 463 K over 5 h and held 1 h (one-stage Kolbe-Schmitt carboxylation), the CO2 not taken up vented; the crude sodium salicylate taken up in about 9 kg of water per kg and acidified with sulfuric acid at 328 K, the first crop centrifuged, washed and vacuum-dried at 333 K, a second crop at 298 K returned to the next acidification, the phenol recovered from the liquors (95 %, specified); 2796.53 kg per batch, 357.6 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # raw materials
+  - key: feed:PHF
+    missing: "linked to processes/acetone-1 (lca/mappings.yaml): phenol from the cumene hydroperoxide process, a co-product allocated there"
+    source: "flowsheet stream S1, the fresh phenol (D-004)"
+  - key: feed:NAOHF
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt% from membrane chlor-alkali electrolysis, per kg of solution"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:CO2F
+    missing: "linked to processes/carbon-capture-1 (lca/mappings.yaml): captured CO2 delivered dense-phase, let down to 700 kPa(a) at the plant (its compression burden carried, conservative)"
+    source: "flowsheet stream S7 (D-004, D-005)"
+  - key: feed:ACIDF
+    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt%, per kg of the acid as delivered"
+    source: "flowsheet stream S11 (D-004, D-007)"
+  - key: feed:DW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment (e.g. processes/demineralised-water-1 once merged), per kg"
+    source: "flowsheet stream S10 (D-007)"
+  - key: feed:WASHW
+    missing: "not mapped yet (D-012); connect to: process (demineralised) water from the site water treatment, per kg"
+    source: "flowsheet stream S16 (D-008)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 to P6 (agitators, the kneader's drive and vacuum pump, the centrifuge, the product dryer, the phenol recovery's pumps), D-009"
+  - key: feed:HPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 4100 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q2 (the kneader's hot-oil circuit, D101's dryer model), D-006, D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q4 (the acidifier, core's conversion duty), Q6 (the product dryer, D201's dryer model) and Q7 (the phenol recovery, ASSUMED), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q1 (the neutraliser) and Q3 (the carboxylation through the hot-oil loop), from core's semi-batch models, D-009"
+  - key: product:CHW
+    missing: "not mapped yet (D-012); connect to: refrigeration at 278 K (chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
+    source: "flowsheet energy stream Q5 (the second-crop crystalliser, core's crystallizer duty), D-009"
+  # waste and emissions
+  - key: product:WW
+    treatment: {kind: waste, route: "site wastewater treatment of an acidic sodium sulfate liquor: neutralisation, biological treatment of the dissolved salicylic acid, 4-hydroxybenzoic acid and the phenol not recovered, discharge of the sulfate as dissolved salt (D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent with sodium sulfate and dissolved aromatic acids and phenol in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    source: "flowsheet stream S27 (D-008, D-010)"
+  - {key: product:VENT, emission: true, source: "S8: the CO2 dosed but not taken up, vented from the kneader's head space after the hold (D-005)"}
+  - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "S8, D-005: carbon dioxide to air; the CO2 of carbon-capture-1 is captured from a fossil point source, so its release is counted as fossil"}
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the water rinses of R-201, C-201 and V-202 between batches, converted with the
+# recipe's batches per year (process/recipe.yaml), to the wastewater treatment. The kneader and
+# the neutraliser are not rinsed with water (the next charge takes up their residue; the
+# phenoxide is kept dry, D-006).
+consumables:
+  - id: rinse-water
+    title: Rinse water of R-201, C-201 and V-202 between batches
+    unit: kg
+    per_batch: 1500
+    source: "3 rinses per batch x 0.5 m3, ASSUMED (D-003, D-012)"
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    disposal:
+      kind: waste
+      route: "site wastewater treatment with the sodium sulfate liquor (D-010)"
+      source: "rinses to the wastewater treatment with the liquor (D-012)"
+      missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: phenol-vents, method: storage-tank, equipment: [T-101, R-101, R-102, E-102], reason: "No P&ID yet: the air displaced from the heated phenol tank and the neutraliser and the non-condensables of the kneader's vacuum system carry phenol vapour, to a carbon filter or the site's thermal oxidiser; not estimated (D-010, D-011)."}
+  - {id: dryer-dust, method: equipment-leaks, reason: "Salicylic acid dust and sublimate in the product dryer's vacuum vent (salicylic acid sublimes from 76 C) and in packing are not estimated (D-008, D-010)."}
+  - {id: liquor-tanks, method: storage-tank, equipment: [R-201, T-301], reason: "No P&ID yet: the breathing of the acidifier and the liquor tank carries water vapour, traces of phenol (0.7 wt% in the liquor) and the CO2 left dissolved in the crude; vented through the site's scrubber or carbon filter, not estimated (D-010)."}
+  - {id: phenol-recovery, method: equipment-leaks, equipment: [X-301], reason: "The extraction solvent's losses and the recovery unit's vent are not estimated: X-301 is a specified split, its solvent not chosen (D-008)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with phenol, caustic soda, sulfuric acid and CO2 supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #507, unreviewed"

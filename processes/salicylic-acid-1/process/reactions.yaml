@@ -1,0 +1,109 @@
+# Reactions of salicylic-acid-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The route is the one-stage Kolbe-Schmitt carboxylation of dry sodium phenoxide above 175 C of
+# US 4 376 867 A (Jansen and Wolff, 1983), Example I (DESIGN.md D-001):
+# - NEUT (R101): phenol neutralised with caustic soda to sodium phenoxide; the caustic is dosed
+#   into the molten phenol (D-005);
+# - CARB (R102): sodium phenoxide carboxylated by CO2 directly to sodium salicylate at 463 K in
+#   a single stage (the patent's invention: no separate phenyl carbonate stage below 140 C);
+# - PARA (R102): the non-salicylic acids the patent measures (4-hydroxybenzoic acid 0.27 and
+#   4-hydroxyisophthalic acid 0.13 mol% on the salicylic acid in Example I), lumped as sodium
+#   4-hydroxybenzoate, 0.392 % of the carboxylated phenoxide (D-005);
+# - ACS, ACP, ACH, ACN (R201): the stock solution acidified with sulfuric acid: the salicylate,
+#   the unreacted phenoxide, the by-product salt and the excess caustic to their acids and
+#   sodium sulfate (D-007).
+# No open kinetics or calorimetry of any of these reactions was found (searched 2026-11-19): the
+# rate laws are ASSUMED fast effective laws, the selectivity of PARA set by its rate constant to
+# the patent's by-product share. No formation enthalpy of sodium phenoxide or sodium salicylate
+# was found in the open data read (chemicals 1.5.2 has none), so every heat of reaction is
+# ASSUMED. The one open figure, from the CRC formation enthalpies packaged in chemicals 1.5.2,
+# is that of the acids: phenol (s) -165.1, CO2 (g) -393.5, salicylic acid (s) -589.9 kJ/mol,
+# so phenol + CO2 -> salicylic acid is -31.3 kJ/mol (DESIGN.md D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: NEUT
+    title: Neutralisation of phenol with caustic soda to sodium phenoxide
+    equation: C6H6O + NaOH -> C6H5NaO + H2O
+    stoichiometry: {PHOH: -1, NAOH: -1, NAOPH: 1, H2O: 1}
+    phase: liquid
+    heat_of_reaction: {value: -30000, provenance: assumed, source: "ASSUMED (D-005): no open calorimetric value or formation enthalpy of sodium phenoxide found; a weak acid's neutralisation in water, taken at about half that of a strong acid, and the caustic's dilution not counted separately"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 1.0 m3/(kmol s) at 343.15 K, Ea 20 kJ/mol: A = exp(20000 / (8.314 x 343.15))
+      k: {A: 1108.0, Ea: 20000}
+      orders: {PHOH: 1, NAOH: 1}
+      temperature_range: [323.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate of a proton transfer (D-005): no open kinetics found (2026-11-19); the dosing controls the heat"
+    sources: ["US 4 376 867 A, description and Example I: phenol with aqueous NaOH (25 to 55 %, 40 % in Example I) to sodium phenolate, about 1:1 with 1 to 10 % excess phenol"]
+  - id: CARB
+    title: Carboxylation of sodium phenoxide to sodium salicylate (Kolbe-Schmitt, one stage)
+    equation: C6H5NaO + CO2 -> C7H5NaO3
+    stoichiometry: {NAOPH: -1, CO2: -1, NASAL: 1}
+    phase: liquid
+    heat_of_reaction: {value: -50000, provenance: assumed, source: "ASSUMED (D-005), with CO2 as the dosed gas (core's gas-dosing convention): the patent says the absorption is exothermic and gives no value; the acids' reaction phenol (s) + CO2 (g) -> salicylic acid (s) is -31.3 kJ/mol from the CRC formation enthalpies packaged in chemicals 1.5.2 (-589.9 + 165.1 + 393.5); the salts' heat taken larger, -50 kJ/mol, because the carboxylate is the salt of the stronger acid, so that the thermal screening is not optimistic; to be measured"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order in the phenoxide and the CO2 taken up: k = 0.01 m3/(kmol s) at 463.15 K,
+      # Ea 60 kJ/mol: A = 0.01 x exp(60000 / (8.314 x 463.15))
+      k: {A: 58495.0, Ea: 60000}
+      orders: {NAOPH: 1, CO2: 1}
+      temperature_range: [433.15, 503.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate (D-005): the patent reports that the CO2 is absorbed immediately, even under vacuum in the first half of the carboxylation (Example I), and gives no kinetics; the gas-solid reaction carried pseudo-homogeneously (L-1)"
+    sources: ["US 4 376 867 A, claims 1 and 2 and Example I: sodium phenolate dried above 175 C and carboxylated in one stage at 180 to 220 C, CO2 at 5 mol/h absorbed at once, 5 bar after 5 h held for 1 h; 20.4 mol salicylic acid from 23.2 mol phenol (88 %)"]
+  - id: PARA
+    title: Carboxylation to the non-salicylic acids (lumped as sodium 4-hydroxybenzoate)
+    equation: C6H5NaO + CO2 -> C7H5NaO3
+    stoichiometry: {NAOPH: -1, CO2: -1, NA4HB: 1}
+    phase: liquid
+    heat_of_reaction: {value: -50000, provenance: assumed, source: "ASSUMED as CARB (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # the selectivity of US 4 376 867 A Example I: (0.054 + 0.026) / 20.4 = 0.003922 of CARB's
+      # rate constant: A = 58495 x 0.003922, the same Ea
+      k: {A: 229.4, Ea: 60000}
+      orders: {NAOPH: 1, CO2: 1}
+      temperature_range: [433.15, 503.15]
+      provenance: assumed
+      source: "ASSUMED: CARB's law scaled to Example I's by-products, 0.054 mol 4-hydroxybenzoic and 0.026 mol 4-hydroxyisophthalic acid per 20.4 mol salicylic acid, lumped as one mol of 4-hydroxybenzoate each (the isophthalic acid's second CO2 and sodium neglected, 0.13 mol% on the product; D-005)"
+    sources: ["US 4 376 867 A, Example I (by-products) and Example 3 (by-products fall with the temperature, a minimum about 180 to 210 C)"]
+  - id: ACS
+    title: Acidification of sodium salicylate with sulfuric acid
+    equation: 2 C7H5NaO3 + H2SO4 -> 2 C7H6O3 + Na2SO4
+    stoichiometry: {NASAL: -2, H2SO4: -1, SA: 2, NA2SO4: 1}
+    phase: liquid
+    conversion: {key: NASAL, value: 1.0, provenance: assumed, source: "ASSUMED (D-007): the strong acid in 2 % excess protonates the salicylate (pKa 2.97, Wikipedia) completely"}
+    heat_of_reaction: {value: -60000, provenance: assumed, source: "ASSUMED (D-007): per mol of sulfuric acid, the 98.5 wt% acid's dilution and the proton transfer to the weak acid together; no open value found"}
+    sources: ["US 4 376 867 A, background: sodium salicylate dissolved in water and precipitated with sulfuric (or hydrochloric) acid at 50 to 60 C; Wikipedia, Salicylic acid: acidification of the salicylate with sulfuric acid"]
+  - id: ACP
+    title: Acidification of the unreacted sodium phenoxide to phenol
+    equation: 2 C6H5NaO + H2SO4 -> 2 C6H6O + Na2SO4
+    stoichiometry: {NAOPH: -2, H2SO4: -1, PHOH: 2, NA2SO4: 1}
+    phase: liquid
+    conversion: {key: NAOPH, value: 1.0, provenance: assumed, source: "ASSUMED (D-007): the phenoxide is the salt of a far weaker acid than salicylic acid"}
+    heat_of_reaction: {value: -60000, provenance: assumed, source: "ASSUMED as ACS (D-007)"}
+    sources: ["US 4 376 867 A, Example I: the unreacted phenol (1.42 mol) is in the stock solution and recyclable"]
+  - id: ACH
+    title: Acidification of the by-product salts
+    equation: 2 C7H5NaO3 + H2SO4 -> 2 C7H6O3 + Na2SO4
+    stoichiometry: {NA4HB: -2, H2SO4: -1, HBA: 2, NA2SO4: 1}
+    phase: liquid
+    conversion: {key: NA4HB, value: 1.0, provenance: assumed, source: "ASSUMED as ACS (D-007)"}
+    heat_of_reaction: {value: -60000, provenance: assumed, source: "ASSUMED as ACS (D-007)"}
+    sources: ["US 4 376 867 A, background: the crude acids hold 4-hydroxybenzoic and hydroxyisophthalic acids"]
+  - id: ACN
+    title: Neutralisation of the caustic left over
+    equation: 2 NaOH + H2SO4 -> Na2SO4 + 2 H2O
+    stoichiometry: {NAOH: -2, H2SO4: -1, NA2SO4: 1, H2O: 2}
+    phase: liquid
+    conversion: {key: NAOH, value: 1.0, provenance: assumed, source: "ASSUMED (D-007)"}
+    heat_of_reaction: {value: -110000, provenance: assumed, source: "ASSUMED (D-007): two strong-acid neutralisations per mol of sulfuric acid; a trace (0.1 % of the caustic)"}
+    sources: ["stoichiometry"]

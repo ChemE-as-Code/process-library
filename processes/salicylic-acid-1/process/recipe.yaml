@@ -1,0 +1,65 @@
+# The batch recipe of salicylic-acid-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes the dried salicylic acid of stream S22; the flowsheet's rates
+# are the year averages: batch x batches per year / 7920 h. The dosings and the hold take their
+# times from R101's and R102's semi-batch models (from:), the phenoxide's drying from D101's
+# drying rate on the heated area of R-102 and the product's drying from D201's on D-201's (core
+# ADR 0057); every other duration is ASSUMED (D-003). R-102, the kneader-reactor, is the
+# bottleneck: it dries the phenoxide, carboxylates it and takes the crude up in water. R-101,
+# R-102, R-201 and D-201 are sized from one batch's content (core ADRs 0052, 0057).
+# `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Salicylic acid by batch Kolbe-Schmitt carboxylation
+batch_size: {value: 2796.53, unit: kg, stream: S22, provenance: assumed, source: "one batch of dried salicylic acid: 1000 t/a over the batches the cycle allows (D-002, D-003; the fixed point of batch size = rate x cycle that cheme.recipe-basis names, since the phenoxide's drying time grows with the batch)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: NEUTRALISE
+    unit: R101
+    title: Phenoxide solution (R-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.2, provenance: assumed, source: "usual fill and proportions of a stirred vessel (D-003)"}
+    operations:
+      - {id: charge, kind: charge, title: Charge the molten phenol (fresh and recovered), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dose, kind: dose, title: Dose the caustic soda at 343 K, from: R101}
+      - {id: react, kind: react, title: Post-reaction to 0.999 of the NaOH, from: R101}
+      - {id: transfer, kind: transfer, title: Transfer the solution to the kneader, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: KNEAD
+    units: [D101, R102]
+    title: Drying and carboxylation in the kneader-reactor (R-102)
+    vessel: {fill_fraction: 0.6, aspect_ratio: 2.0, provenance: assumed, source: "a horizontal kneader-reactor with counter-rotating blades (SRC-1: a Heinz List mixer-kneader), filled to 60 % with the solution it dries, its length twice its diameter (D-003, D-006)"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the phenoxide solution, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dry, kind: dry, title: "Dry at ambient pressure, then at 4 kPa(a) to 463 K (D101)", from: D101}
+      - {id: dose, kind: dose, title: Dose the CO2 at 463 K (R102), from: R102}
+      - {id: react, kind: react, title: Hold 1 h at about 5 bar (R102), from: R102}
+      - {id: vent, kind: other, title: Vent the head space, duration: {value: 0.25, provenance: assumed, source: D-003}}
+      - {id: cool, kind: cool, title: Cool the crude to about 373 K, duration: {value: 1.0, provenance: assumed, source: "D-003: SRC-1 Example I cools to 100 C before the water fill"}}
+      - {id: dissolve, kind: transfer, title: Fill with water and pump the stock solution to R-201, duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: ACIDIFY
+    units: [R201, CR201]
+    title: Acidification and first crop (R-201)
+    operations:
+      - {id: receive, kind: charge, title: Receive the stock solution and the last batch's second crop, duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: dose, kind: other, title: Dose the sulfuric acid at 328 K (R201), duration: {value: 1.5, provenance: assumed, source: "D-003, D-007: the acid's heat removed by the jacket"}}
+      - {id: hold, kind: hold, title: Crystallise at 328 K (CR201), duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: transfer, kind: transfer, title: Feed the slurry to the centrifuge, duration: {value: 2.5, provenance: assumed, source: "D-003: as fast as C-201 takes it"}}
+  - id: CENTRIFUGE
+    units: [F201, W201, F203]
+    title: Centrifuging and washing the first crop (C-201)
+    operations:
+      - {id: spin, kind: filter, title: Centrifuge the slurry in loads (F201), duration: {value: 2.5, provenance: assumed, source: "D-003, D-008: several loads of a peeler centrifuge"}}
+      - {id: wash, kind: other, title: Wash the cakes with water (W201), duration: {value: 0.5, provenance: assumed, source: D-008}}
+      - {id: dry_spin, kind: filter, title: Spin the washed cakes (F203), duration: {value: 0.5, provenance: assumed, source: D-008}}
+  - id: SECOND
+    units: [CR202, F202]
+    title: Second crop (V-202 and its nutsche F-202)
+    operations:
+      - {id: cool, kind: cool, title: Cool the mother liquor to 298 K on chilled water (CR202), duration: {value: 3.0, provenance: assumed, source: D-003}}
+      - {id: filter, kind: filter, title: Filter the second crop (F202), duration: {value: 2.0, provenance: assumed, source: D-003}}
+  - id: DRY
+    unit: D201
+    title: Vacuum drying of the product (D-201)
+    vessel: {fill_fraction: 0.6, aspect_ratio: 1.0, provenance: assumed, source: "a conical vacuum dryer (D-008)"}
+    operations:
+      - {id: charge, kind: charge, title: Charge the washed cake, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dry, kind: dry, title: Dry at 333 K under vacuum (D201), from: D201}
+      - {id: discharge, kind: transfer, title: Cool and discharge to packing, duration: {value: 1.0, provenance: assumed, source: D-003}}
