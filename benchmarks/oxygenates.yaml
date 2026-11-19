@@ -397,6 +397,27 @@ kpis:
     title: tert-Butanol consumption per kg of potassium tert-butoxide
     unit: kg/kg
     no_open_reference: "No open source with a plant's tert-butanol use per kg of potassium tert-butoxide found (searched 2026-11-06, the sources named under kotbu-specific-potassium; US 4 577 045 A says the alcohol is recycled almost completely, without a figure). The stoichiometric floor is 0.6606 kg/kg; the losses to the vent, the purge and the sieve's regeneration are this design's ASSUMED values (potassium-tert-butoxide-1, DESIGN.md D-006, D-007)."
+  mma-acetone-yield:
+    title: Methyl methacrylate per acetone fed (ACH-sulfo route), as a share of the stoichiometric maximum
+    unit: "%"
+    description: >-
+      Moles of MMA per mole of acetone, computed from the masses (100.1158 and 58.0791 g/mol). With
+      HCN equimolar it is the yield on ACH times the ACH unit's yield.
+    no_open_reference: >-
+      No open source independent of the dataset's was read (2026-11-19). The only open figures
+      found are the dataset's own source, US 2023/0416184 A1 (Table 4: 90.1 to 91.6 % MMA on ACH
+      in Examples A1 to A3, Table 7: 91.1 % in B1), which a check would pass by construction.
+      Read: US 9,890,105 B2 (routes, no ACH-route yield); the abstract of Darabi Mahboub et al.,
+      Chem. Soc. Rev. 47 (2018) 7703 (no figure); the full text and Ullmann's chapter were not
+      read.
+  mma-specific-natural-gas:
+    title: Natural gas (as methane) per kg of methyl methacrylate, spent acid regenerated on site
+    unit: kg/kg
+    no_open_reference: >-
+      No open source with the fuel of a spent-acid regeneration plant per kg of MMA or per kg of
+      spent acid was found (2026-11-19). Read: US 2023/0416184 A1 (thermal regeneration above
+      900 C, no fuel figure). The dataset's value comes from an adiabatic energy balance on
+      package formation enthalpies (methyl-methacrylate-1 DESIGN.md D-008), a lower bound.
 
 datasets:
   - process: terephthalic-acid-1
@@ -516,3 +537,9 @@ datasets:
     kpis:
       kotbu-specific-potassium: {expression: feed:K / product:KOTBU, per: product:KOTBU}
       kotbu-specific-tert-butanol: {expression: feed:TBAF / product:KOTBU, per: product:KOTBU}
+  - process: methyl-methacrylate-1
+    dataset: methyl-methacrylate-by-the-ach-sulfo-route-with-sulfuric-acid-regeneration-12.5-t-h-mma
+    conditions: {technology: "ACH-sulfo route: acetone + HCN to ACH, amidation in 98.5 wt% sulfuric acid, esterification with methanol, distillation, spent acid regenerated on site (natural-gas-fired decomposition, double-contact plant)", basis: "concept balance, the acid ratio, conditions and yield of US 2023/0416184 A1 Example A2, ASSUMED loss split, recoveries, SAR furnace and duties (DESIGN.md D-004 to D-009)"}
+    kpis:
+      mma-acetone-yield: {expression: product:MMAP * 58.0791 / 100.1158 / feed:ACEF}
+      mma-specific-natural-gas: {expression: feed:NG / product:MMAP, per: product:MMAP}

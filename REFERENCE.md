@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 103 public process folders: 63 engineering projects (a `plant.yaml` with a process
+The table lists 104 public process folders: 64 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -97,6 +97,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`lng-terminal-1`](processes/lng-terminal-1/) | LNG export marine terminal (2 x 225,000 m3 tanks, 2 berths, 28 MTPA; LNG Canada reference) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, 8 P&IDs, 3D layout, HAZOP draft; agent reviews only, no stage signed off, #362) |
 | [`methanesulfonyl-chloride-1`](processes/methanesulfonyl-chloride-1/) | Methanesulfonyl chloride by semi-batch reaction of methanesulfonic acid with thionyl chloride, an SO2/HCl vent and batch vacuum distillation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`methanol-1`](processes/methanol-1/) | Methanol synthesis loop and purification (2500 t/d Grade AA, natural-gas syngas) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, no LCI dataset yet) |
+| [`methyl-methacrylate-1`](processes/methyl-methacrylate-1/) | Methyl methacrylate by the acetone cyanohydrin (ACH-sulfo) route: amidation in sulfuric acid, esterification with methanol, distillation, spent acid regenerated on site by decomposition and a contact plant (12.5 t/h, 100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methylamines-1`](processes/methylamines-1/) | Methylamines (MMA, DMA, TMA) from methanol and ammonia | concept (calculation maturity: balanced, report from core 0.8.0, re-checked with core v1.2.1; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methylmagnesium-bromide-1`](processes/methylmagnesium-bromide-1/) | Methylmagnesium bromide, 35 wt% in 2-MeTHF, by semi-batch Grignard reaction with methyl bromide gas dosing and a vent (4400 t/a of solution, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`methyltriphenylphosphonium-bromide-1`](processes/methyltriphenylphosphonium-bromide-1/) | Methyltriphenylphosphonium bromide by semi-batch quaternisation of triphenylphosphine with liquid methyl bromide in toluene, precipitation, a filter-dryer and toluene recovery in a batch still (820 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
