@@ -49,7 +49,8 @@ def _asu_library(tmp: Path, user: bool = True) -> Path:
     for name in ("dataset.yaml", "lca.yaml", "factors.yaml"):
         shutil.copy(ASU / name, library / "processes" / "asu-1" / "lca")
     shutil.copytree(KIT / "chemicals", library / "chemicals")
-    shutil.copytree(KIT / "markets", library / "markets")
+    # the markets of ASU-1's products only: the fixture library has no other supplier
+    shutil.copytree(KIT / "markets", library / "markets", ignore=shutil.ignore_patterns("water.yaml"))
     if user:
         shutil.copytree(FIXTURES / "lin-user", library / "processes" / "fixture-lin-user")
     return library
@@ -77,7 +78,7 @@ def test_library_markets_load_without_problems() -> None:
     assert problems == []
     assert sorted(m.code for m in markets) == [
         "market:argon/gar:RER", "market:argon/lar:RER", "market:nitrogen/gan-8barg-10ppm:RER", LIN_MARKET,
-        "market:oxygen/gox-30barg-99.5:RER", "market:oxygen/lox:RER",
+        "market:oxygen/gox-30barg-99.5:RER", "market:oxygen/lox:RER", "market:water/demineralised:GLO",
     ]
     # every number has a status and a source; nothing in the liquid markets is presented as cited
     for market in markets:
