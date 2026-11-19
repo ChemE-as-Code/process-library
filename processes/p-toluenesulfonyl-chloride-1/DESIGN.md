@@ -37,6 +37,7 @@ the locator is the part of the document).
 | SRC-9 | Ullmann's Encyclopedia of Industrial Chemistry: Benzenesulfonic Acids and Their Derivatives (doi:10.1002/14356007.a03_507) and Chlorosulfuric Acid (doi:10.1002/14356007.a07_017.pub2) | - | not read (licensed); named by the route scouting and by Wikipedia | leads only, nothing taken |
 | SRC-10 | Harding, V. J. (1921) J. Chem. Soc., Trans. 119, 1261: the sulphonation of toluene with chlorosulphonic acid | - | not read (title and metadata only; named by SRC-1 as giving a favourable p:o ratio at higher temperature) | lead only |
 | SRC-11 | Property data of core's environment and the NIST WebBook: the `chemicals` 1.5.2 package (open-source, MIT; the version core pins; its packaged CRC Handbook tables: `chemicals.miscdata.CRC_inorganic_data` and `CRC_organic_data` for densities and boiling points, `chemicals.heat_capacity.CRC_standard_data` for heat capacities; `chemicals.phase_change.Tb`), CoolProp's IAPWS water (saturation, latent heat, viscosity, heat capacity), and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov: toluene and NH4Cl condensed-phase data, toluene and HCl phase-change data) | per component in `process/materials.yaml`; the dryer's latent heats (D-008); LP steam saturation; the wash filtrates' viscosity (D-007) | open-source packages queried and WebBook pages read (2026-11-05); single values, facts only; not open data (library ADR 0037). The CRC values come from the tables packaged in `chemicals`, not from the printed handbook (the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here) | materials, D-007, D-008, D-009 |
+| SRC-12 | Wikipedia, Hydrochloric acid, https://en.wikipedia.org/wiki/Hydrochloric_acid | physical properties table by concentration: total vapour pressure of the solution at 20 C, 1.95 kPa at 10 wt% and 1.40 kPa at 20 wt% HCl (values the article takes from the International Critical Tables), boiling point 103 C at 10 wt%; the azeotrope at 20.2 wt% HCl and 108.6 C | read 2026-11-19; CC BY-SA, facts only (the International Critical Tables not read) | D-017 (Q101's dissolved HCl) |
 
 Searched and not found openly (2026-11-05): kinetics or reaction calorimetry of the
 chlorosulfonation of toluene, a sourced formation enthalpy of liquid chlorosulfonic acid or a
@@ -387,6 +388,9 @@ slower one makes the design unsafe and the cycle impractical, and its 1302 m3/h 
 times the vent (design finding, D-014). Calorimetry (heat of reaction, heat-flow profile,
 accumulation, gas release rate, TD24 of the mass and the product) decides this before basic
 engineering. Screening values only, not a reaction-hazard assessment.
+Core 1.12.0 (2026-11-19) reproduces this table and gives the largest release over the batch
+itself; the scan's finer steps (k/3 to k/50), the accumulation limits for the interlocks and the
+decisions on the bubble-point MTT and Q101's dissolved HCl are in D-017.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-05)
 Decision: `cheme assess lca --write` per kg of dried p-TsCl from the flowsheet's year averages;
@@ -574,7 +578,158 @@ direction of the plant's chemistry); keeping the gap (ADR 0039 makes the estimat
 was the reason for it). Ammonium chloride stays a gap: the same mechanism could link it as NH3
 (ammonia-1) and HCl (hydrogen-chloride-1), left for its own change.
 
+## D-017 Issue #427: the vent margin, the interlocks' limits and the relief on core 1.12.0 (2026-11-19)
+Context: library issue #427 lists this entry's finding from D-011 and D-014: the vent has about
+3 % margin at the design rates, is at its capacity at k/10 and is 8.7 times over at k/100; dosing
+interlocks and an emergency relief sized from calorimetry are needed. Re-run on the library's
+core pin 0e85885 (cheme-as-code 1.12.0 with QSDsan): `cheme process reactor-hazards --json` and
+`cheme process recipe` on the entry, and the rate sensitivity on scratch copies with every rate
+constant of R101 and Q101 divided by a factor (nothing else changed, not committed). The model
+files are unchanged by this decision; the entry still needs only cheme-as-code 1.10.
+- **Core 1.12.0 reproduces the screening.** R101: dT_ad 238.1 K, MTSR 343.6 K at 7 h, MTT 383.75
+  K (toluene), gas release at the MTSR 60.28 m3/h (0.40); the largest release over the batch
+  (`gas_release.largest_over_batch`, ADR 0069) 145.5 m3/h at 3600 s, the end of the salt
+  addition, at its MTSR 338.3 K, 0.97 of the 150 m3/h vent. Core now gives this itself; until
+  1.11.0 it came from `stirred_tank.vent_gas_rate` over the cooling profile by hand (L-8).
+  k/10: 150.2 m3/h at 3600 s (1.001); k/100: 1302 m3/h at 25200 s (8.68). Q101: 11.79 m3/h at
+  the MTSR, 14.07 m3/h over the batch at 14400 s (0.094). The tables of D-011 stand. New outputs:
+  each dosed reactant's accumulation (`accumulations`: R101 toluene 1.69 % at 7 h and NH4Cl
+  0.272 % at 1 h, the share that can still react the same) and Q101's dissolved HCl (below).
+  `cheme process recipe`: R-101's normal vent peak 144.9 m3/h at 0.026 h, 609.8 kg HCl a batch.
+- **The 3 % margin at the design rates is the margin of normal operation, not of a runaway.**
+  At the end of the salt addition R-101 holds 0.272 % of the NH4Cl dosed: SALT keeps pace with
+  the feed, and the content at its MTSR (338.3 K, 0.1 K above T_p) releases what the salt
+  addition releases anyway (145.5 against the recipe's 144.9 m3/h). A cooling failure there adds
+  almost nothing; what decides the vent's load is the salt's feed rate. Decision: the salt
+  feeder's largest delivery, not its set point, is the design rate of the 1 h addition, 279.6 kg/h
+  of NH4Cl (S3 20.1835 kg/h of flows x 13.8516 h a batch, in 1 h), by the feeder's size or a
+  speed limit, so an operator's or a controller's error cannot raise the HCl rate above the
+  vent's; the vent line and the scrubber T-201 are then specified for the feeder's maximum
+  delivery. The screened capacity stays the ASSUMED 150 m3/h of D-014 (no vent is sized yet).
+  Rejected: lengthening the salt addition to widen the margin (it halves the normal peak, but
+  R-101 is the bottleneck: one more hour on its 13.85 h cycle, the batch size, R-101's fill
+  above 0.8 and the whole balance change, for a margin the feeder's limit gives without that);
+  raising the vent capacity by an unsized number (D-014).
+- **A temperature trip alone cannot protect the salt addition.** A cooling failure at the end
+  of it raises the content to 338.3 K at k and 339.2 K at k/10 (0.1 and 1.0 K above T_p) while
+  the release reaches 0.97 and 1.00 of the vent. The salt interlock (D-014, item 5) therefore
+  needs a measure of the accumulation itself, not only the temperature: decision, the
+  accumulation is the amount dosed less the HCl vented (one mol of HCl per mol of NH4Cl, toluene
+  reacting, the stoichiometry of SALT, SULP and SULO), from the feeder's and the toluene pump's
+  totals and the vent's HCl flow; the toluene's high-temperature trip remains useful (MTSR 343.6
+  K at k, 362.4 K at k/10). This rests on D-005's ASSUMED: no HCl dissolves in the hot acid; the
+  HCl held up in the mass is an open input that offsets the measurement.
+- **The interlocks' limits, from the model.** The scan of the rate constants (all of R101's and
+  Q101's divided by the same factor) gives the accumulation at which the largest release over
+  the batch reaches the 150 m3/h vent:
+
+  | case | toluene accumulation (7 h) | NH4Cl accumulation (1 h) | R101 MTSR | release at the MTSR | largest release over the batch |
+  |---|---|---|---|---|---|
+  | k | 1.69 % | 0.272 % | 343.6 K | 60.3 m3/h | 145.5 m3/h at 3600 s, 0.970 |
+  | k/3 | 3.63 % | 0.81 % | 349.8 K | 76.7 m3/h | 146.6 m3/h at 3600 s, 0.977 |
+  | k/10 | 7.64 % | 2.67 % | 362.4 K | 132.7 m3/h | 150.2 m3/h at 3600 s, 1.001 |
+  | k/11 | 8.08 % | 2.94 % | 363.7 K | 140.9 m3/h | 150.7 m3/h at 3600 s, 1.005 |
+  | k/12 | 8.50 % | 3.20 % | 365.0 K | 149.1 m3/h | 151.2 m3/h at 3600 s, 1.008 |
+  | k/13 | 8.90 % | 3.46 % | 366.3 K | 157.5 m3/h | 157.5 m3/h at 25200 s, 1.050 |
+  | k/20 | 11.37 % | 5.25 % | 373.9 K | 218.5 m3/h | 218.5 m3/h at 25200 s, 1.457 |
+  | k/30 | 14.24 % | 7.74 % | 382.6 K | 314.7 m3/h | 314.7 m3/h at 25200 s, 2.098 |
+  | k/50 | 18.78 % | 12.50 % | 396.1 K | 540.6 m3/h | 540.6 m3/h at 25200 s, 3.604 |
+  | k/100 | 27.06 % | 23.28 % | 420.1 K | 1302 m3/h | 1302 m3/h at 25200 s, 8.680 |
+
+  Decision, the limits the interlocks are designed to: the salt feed stops before the NH4Cl
+  accumulated reaches about 2.7 % of the salt dosed (the vent's capacity at k/10), and the
+  toluene dosing stops before the toluene accumulated reaches about 8.5 % of the toluene dosed
+  (the vent's capacity at k/12; at k/13, 8.9 %, it is 1.05 times over). The MTT (383.75 K) is
+  reached only between 14.2 % (k/30, 382.6 K) and 18.8 % (k/50, 396.1 K): the vent, not the
+  boiling of toluene, sets the toluene's limit. The limits hold for a reaction slowed as in the
+  scan (a lower temperature, a poisoned or wet charge: Ea 50 kJ/mol puts k/12 at about 297 K);
+  an accumulation built by overdosing at the design rate releases more at the same
+  accumulation, which the feeders' rate limits (above and for the toluene pump, 178.4 kg/h,
+  S4 77.2601 kg/h of flows x 13.8516 h in 6 h) cover instead. These are model limits on ASSUMED
+  rate laws, not trip set points: the set points, the instruments, their accuracy, the voting,
+  the response time and the reliability (SIL) of each interlock are left to the HAZOP and the
+  LOPA of basic engineering; nothing here states them.
+- **The bubble-point MTT (`hazard.mtt_from: bubble-point`) is not adopted.** Run on a scratch
+  copy with the latent heats at the normal boiling point by Riedel from chemicals 1.5.2's
+  packaged critical data (toluene 33.5, ClSO3H 41.1 (its Tc 700 K and Pc 8.5 MPa from the Yaws
+  tables chemicals packages), water 42.1, H2SO4 64.7 kJ/mol; ASSUMED, not committed), it puts
+  R101's MTT at 558.1 K (k), 499.2 K (k/10) and 447.2 K (k/100), and 601.1 K after SULP: the
+  worst moment's content is mostly sulfonic acids and ammonium salts without a vapour pressure,
+  so Raoult's law leaves almost nothing to boil. That is no credible MTT for a mass of
+  chlorosulfonic acid, which decomposes near its boiling point (materials.yaml), and whose
+  latent heat and vapour pressure are not sourced (L-5). Q101's bubble point, 375.0 K, is above
+  water's 373.12 K. Core's default, the lowest normal boiling point in the liquid (toluene for
+  R101, water for Q101), is lower in both and stays.
+- **Q101's dissolved HCl (`dissolved_release`, `cheme.reactor-hazard-dissolved`, info) is not
+  a cooling-failure release.** Core reports up to 11.76 kmol (428.7 kg) of HCl held in the
+  quench liquor at 4.02 h, a batch, boiling at 188.2 K below the MTSR (298.2 K): the 90 % of
+  the HCl formed that D-006 keeps dissolved (ASSUMED). It would far exceed the scrubber's normal
+  excess of caustic, about 1.0 kmol a batch (S28's 1.3741 kmol/h of NaOH against S27's 1.3018
+  kmol/h of HCl, x 13.8516 h). Core leaves the gas's solubility out (ADR 0069), so it names the
+  inventory, not a release. The liquor holds about 2.6 wt% HCl (D-006), far below hydrochloric
+  acid's azeotrope at 20.2 wt% and 108.6 C; at 20 C the total vapour pressure over 10 wt%
+  hydrochloric acid is 1.95 kPa and over 20 wt% 1.40 kPa, below pure water's 2.34 kPa, and 10
+  wt% acid boils at 103 C (Wikipedia, Hydrochloric acid, physical properties table, its vapour
+  pressures from the International Critical Tables, read 2026-11-19, SRC-12; water's 2.339 kPa
+  at 293.15 K from CoolProp's IAPWS water, SRC-11). A warming of 10 K to the MTSR, about 75 K
+  below the liquor's boiling, therefore releases a small share of the dissolved HCl, and a
+  boiling liquor below the azeotrope gives off mostly water. Decision: no caustic reserve in
+  T-201 for the quench's dissolved inventory as a cooling-failure measure; the screened Q101
+  release keeps the ASSUMED 10 % vented share, which is the conservative side of this. Left
+  open: the HCl partial pressure over the real liquor (about 10.6 wt% H2SO4, 2.6 wt% HCl, 3.6
+  wt% NH4HSO4, 288 to 298 K), since the sulfuric acid raises the HCl's volatility by an amount
+  not read here; the dosing point, where the 100 % acid mass meets the heel, and the same
+  inventory's fate in the waste acid (D-010).
+- **The other new features have nothing to act on here.** No consecutive pair among the counted
+  reactions (R101's SALT, SULP and SULO consume the feeds; R102's chlorination is a conversion
+  step; Q101's TSHP and TSHO hydrolyse the dosed sulfonyl chlorides, not a product of HYD), so
+  core reports no `network` and `hazard.potential: network` would change nothing. No vent
+  condenser on R-101 or Q-101 (D-015), so `cheme.process-condenser-freezing` has nothing to check
+  (it reports nothing); the dryer's vacuum condenser Q8 is hand arithmetic, not a vent
+  condenser. `batch.vent.inerts` and `head_space` are not used: R-101 is purged with nitrogen
+  before the charge (D-003) and the HCl formed then sweeps the head space; no nitrogen pad during
+  the reaction is in the design (ASSUMED). A pad fitted in basic engineering adds its flow to the
+  vent's load and is screened with `inerts` and `head_space` then. `vapour.henry` and
+  `heat_of_absorption`: no Henry's-law gas (D-015).
+- **What stays open, and what it gates.**
+  - Blocked vent and emergency relief: core 1.12.0 screens neither the pressure of a blocked
+    vent nor a two-phase relief (ADR 0069, known limitations). R-101's relief (a bursting disc to
+    a catch tank and the scrubber, D-014 item 3) is sized by a DIERS method for a gassy system
+    from an adiabatic test of the reaction mass at the worst moment, the end of the toluene
+    dosing, with toluene accumulated at the interlock's limit (about 8.5 %) and at the design
+    rate (1.69 %): the self-heat rate dT/dt and the gas generation dP/dt (closed-cell, a
+    VSP2- or ARC-type test). It gates the relief area, the catch tank's volume and whether the
+    150 m3/h vent and its scrubber stand.
+  - Reaction calorimetry (heat-flow, RC1-type, with the off-gas measured) of the salt addition
+    and of the toluene dosing at 338 K: the heats of SALT and SULP, the thermal conversion, the
+    accumulation of NH4Cl and of toluene over the dosing and the HCl evolution rate. It gates
+    the rate laws behind the limits of 2.7 % and 8.5 % above (they move with the measured
+    accumulation-to-release relation), the 1 h and 6 h dosing times and the margin at the design
+    rates.
+  - TD24 of the reaction mass at the end of the toluene dosing, of the mass after R102 and of
+    the dried product (DSC, then ARC): it gates the criticality class (none is stated) and
+    whether the MTSR range of the scan (up to 420 K at k/100) reaches a decomposition.
+  - The HCl held up in the hot acid in R-101 (D-005) and the HCl partial pressure over the
+    quench liquor (above): laboratory solubility or VLE data; the first gates the accumulation
+    measure of the interlocks, the second the dissolved-release decision.
+  - Vendor data: the salt feeder's and the toluene pump's maximum delivery (their rate limits).
+  - Human sign-off: the interlocks' set points, their SIL and their reliability (HAZOP, LOPA);
+    the relief design; this decision's review (AGENTS.md: reviewed and merged by a human).
+Reason: issue #427 asks each entry's finding to be settled where a model or a sourced
+engineering decision can; the margin at the design rates is a feed-rate question the feeder's
+limit settles, the interlocks' limits follow from the model's scan, and the relief and the
+class need measurements that no model here replaces.
+
 ## Core features used (cheme-as-code 1.10.0)
+
+Screened on core 1.12.0 as well (the library's pin 0e85885, D-017), with no change to the model
+files: the largest gas release over the batch and each dosed reactant's accumulation (ADR 0069)
+are read for R101 and Q101, and Q101's dissolved HCl (`cheme.reactor-hazard-dissolved`) is
+decided in D-017. Tried on scratch copies and not adopted: `hazard.mtt_from: bubble-point`
+(D-017). Nothing to act on: `hazard.potential: network` (no consecutive pair),
+`cheme.process-condenser-freezing` (no vent condenser), `vent.inerts`, `head_space`,
+`vapour.henry`, `heat_of_absorption` (ADR 0071); design specifications (ADR 0070) and the
+batch still's phases and cut conditions (ADR 0068): no recycle, no still.
 
 Core 1.10.0 part:
 
@@ -660,7 +815,9 @@ nothing is dosed as a gas; `hazard.reactions` (D-014); recycle `tears:` (ADR 006
   a blocked vent is still not screened (no head space or relief model). Core takes that release
   only at the moment of the highest MTSR, not the largest over the batch: R101's largest, at the
   end of the salt addition, and Q101's, at the end of the dosing, come from `vent_gas_rate` over
-  the cooling profile (D-011), and the test checks them.
+  the cooling profile (D-011), and the test checks them. Resolved for the largest release in
+  core 1.12.0: `gas_release.largest_over_batch` (ADR 0069) gives the same 145.5 and 14.07 m3/h
+  (D-017). The blocked vent's pressure and a two-phase relief are still not screened.
 
 ## Method and dependency table
 
@@ -681,7 +838,11 @@ nothing is dosed as a gas; `hazard.reactions` (D-014); recycle `tears:` (ADR 006
 
 ## Open inputs
 Kinetics, heats of reaction and the gas release rate (calorimetry), TD24 of the reaction mass and
-the product; the gas release rate of a runaway and R-101's emergency relief (D-014); the second stage's conversion against time and temperature; the solubility of
+the product; the gas release rate of a runaway and R-101's emergency relief (D-014; the
+measurements and what each gates are listed in D-017); the HCl held up in R-101's hot acid (the
+interlocks' accumulation measure) and the HCl partial pressure over the quench liquor (D-017);
+the salt feeder's and the toluene pump's maximum delivery (vendor data, D-017); the interlocks'
+set points, SIL and reliability (HAZOP, LOPA; D-017); the second stage's conversion against time and temperature; the solubility of
 p-TsCl in the acid liquor; how much of the ortho oil the cake keeps (the product's o-TsCl
 content and its assay, D-002); the heat of dilution of the 50 wt% caustic (D-009); the heats of dilution of the acids dosed into the quench (D-015); the vessels' metal for the jacket times (D-015); chlorosulfonic acid's vapour pressure near 338 K, for the vent's vapour (L-5); filtration and wash data and the drying rate from trials; the HCl's split between
 vent and liquor in the quench, in operation and at a cooling failure (the screened Q101 release
