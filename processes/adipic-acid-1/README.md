@@ -54,7 +54,7 @@ The feeds come out at 0.79 t cyclohexane and 1.45 t of 60 wt% nitric acid (0.87 
   residue and the dibasic acids (glutaric and succinic) close the carbon balance of each stage.
   They are modelled as C6H10O4 and glutaric acid, both ASSUMED.
 - **KA-section off-gas and residue.** Both are ASSUMED to be burned on site in process heaters,
-  as AP-42 (6.2.2) says they may be. Their carbon is emitted as CO2: the residue's 255 kg/t
+  as AP-42 (6.2.3) says they may be. Their carbon is emitted as CO2: the residue's 255 kg/t
   (126 kg C/t) gives about 0.46 t CO2/t, so the direct CO2 is 0.62 t/t. The residue's heat is
   not credited against the fuel or steam, which are taken as the energy bought in (ASSUMED).
 
@@ -77,6 +77,8 @@ The feeds come out at 0.79 t cyclohexane and 1.45 t of 60 wt% nitric acid (0.87 
   The residue, 255 kg/t, is a carbon residual of the KA yield. No open source states a cyclohexane
   or nitric acid consumption to check it against.
 - **The air emission factors** have ratings of D and E and come from two to three US plants.
+  They set only about a tenth of the direct CO2 (63 of 621 kg/t); the rest is the carbon
+  residual of the KA yield, burned on site under an ASSUMED fate.
 - **Freshness.** `valid_until` is the reference year + 5, 2014, so it has already lapsed.
 - **Uncertainty.** `gsd2 = sqrt(high / low)` where a source gives a range (our convention), and
   ASSUMED values elsewhere.

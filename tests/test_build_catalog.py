@@ -152,6 +152,49 @@ def test_functional_unit_without_a_chemistry_flow_keeps_the_id(library: Path, tm
     assert fu["label"] == "1 kg H2" and fu["chemical"] is None and fu["product_name"] is None
 
 
+def test_functional_unit_of_a_main_product_without_inventory_key_is_named_from_its_note(library: Path, tmp_path: Path) -> None:
+    """Issue #249, ADR 0040: a main product left without an inventory key on purpose (its note
+    starts with the key, the feed convention of ADR 0028) still names the functional unit; the id
+    stays for tools."""
+    manifest = library / "processes" / "fixture-electrolysis" / "process.yaml"
+    text = manifest.read_text()
+    old = '{chemical: hydrogen, role: main-product, inventory_key: "product:H2"}'
+    assert old in text
+    manifest.write_text(text.replace(old, '{chemical: hydrogen, role: main-product, note: "product:H2: hydrogen to storage"}'))
+    assert _build(library, tmp_path / "out").errors == []
+    fu = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]["functional_unit"]
+    assert fu["label"] == "1 kg hydrogen" and fu["product"] == "H2" and fu["chemical"] == "hydrogen"
+
+
+@pytest.mark.parametrize(
+    "flow",
+    [
+        '{chemical: hydrogen, role: co-product, note: "product:H2: hydrogen to storage"}',  # not the main product
+        '{chemical: hydrogen, role: main-product, note: "product:H2X: another stream"}',  # another key
+        '{chemical: hydrogen, role: main-product, note: "hydrogen to storage, see product:H2"}',  # not at the start
+    ],
+    ids=["co-product", "longer-key", "key-not-first"],
+)
+def test_functional_unit_note_match_is_strict(library: Path, tmp_path: Path, flow: str) -> None:
+    manifest = library / "processes" / "fixture-electrolysis" / "process.yaml"
+    manifest.write_text(manifest.read_text().replace('{chemical: hydrogen, role: main-product, inventory_key: "product:H2"}', flow))
+    _build(library, tmp_path / "out")
+    fu = _json(tmp_path / "out" / "processes" / "fixture-electrolysis.json")["lca"]["functional_unit"]
+    assert fu["label"] == "1 kg H2" and fu["chemical"] is None
+
+
+def test_every_library_functional_unit_names_a_chemistry_output() -> None:
+    """Issue #249: no LCA study of the library leaves its catalog label as a component id."""
+    missing = []
+    for study in sorted((KIT / "processes").glob("*/lca/lca.yaml")):
+        product = ((yaml.safe_load(study.read_text()) or {}).get("functional_unit") or {}).get("product")
+        manifest = yaml.safe_load((study.parents[1] / "process.yaml").read_text())
+        outputs = (manifest.get("chemistry") or {}).get("outputs", [])
+        if build_catalog._functional_unit_flow(f"product:{product}", outputs) is None:
+            missing.append(f"{study.parents[1].name}: product:{product}")
+    assert missing == []
+
+
 def test_lca_without_a_total_row_sums_the_contributions(library: Path, tmp_path: Path) -> None:
     results = library / "processes" / "fixture-electrolysis" / "lca" / "results.csv"
     results.write_text("".join(line for line in results.read_text().splitlines(True) if ",total," not in line))
