@@ -1,0 +1,802 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Caprolactam by the conventional route (DESIGN.md D-001): cyclohexanone oximated with
+# hydroxylamine-1's hydroxylammonium sulfate solution, the acid neutralised with ammonia; the
+# oxime melt rearranged in oleum (Beckmann); the rearrangement mixture neutralised with ammonia
+# in an ammonium sulfate solution; the crude lactam extracted with benzene, back-extracted into
+# water, evaporated and distilled under vacuum; the ammonium sulfate crystallised from the
+# combined solutions. 100.1 kt/a caprolactam on hydroxylamine-1's whole output (D-002).
+# Where the values come from:
+# - feeds, temperatures, pressures and the separators' fractions: design choices (design basis,
+#   DESIGN.md D-003 to D-010, ASSUMED) set on the sourced conditions where a source gives one
+#   (US 4,031,139; US 4,804,754; US 7,339,056 B2; US 6,448,395 B1); the feed flows and fractions
+#   follow from the targets each decision names (the arithmetic is in its `source`);
+# - the reactors R101, R201 and R301 are conversion steps calculated by `cheme process propagate
+#   --fill` from process/reactions.yaml, which also writes their duties Q1 to Q3 (core ADR 0059);
+# - mixers, the splitter X601 and the component separators (recovery:) by `cheme process
+#   propagate --fill`, the three recycles (benzene S14, back-extraction water S19, condensate
+#   S32) converged at tear streams (core ADR 0060);
+# - the evaporators' and the column's duties and all electric power: ASSUMED estimates with their
+#   arithmetic (D-009): no property package of core covers these salt solutions, the lactam in
+#   oleum or the lactam/benzene/water system (L-2).
+schema: cheme/process/v1
+kind: flowsheet
+title: Caprolactam from cyclohexanone oxime by Beckmann rearrangement in oleum (100 kt/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 12.52 t/h caprolactam (100.1 kt/a at 8000 h/a) on 36.68 t/h of hydroxylamine-1's hydroxylammonium sulfate solution, 31.0 t/h ammonium sulfate co-product (D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+tears:
+  - stream: S14
+    initial: {flow: 44653.8, unit: kg/h, basis: mass_fraction, composition: {BZ: 0.999717, CPL: 0.000283}}
+  - stream: S19
+    initial: {flow: 32223.0, unit: kg/h, basis: mass_fraction, composition: {H2O: 1.0}}
+  - stream: S32
+    initial: {flow: 25461.0, unit: kg/h, basis: mass_fraction, composition: {H2O: 1.0}}
+convergence: {method: wegstein, max_iterations: 3000, tolerance: {abs: 1.0e-4, rel: 1.0e-7}}
+
+feeds:
+  - {id: CHNF, title: "Cyclohexanone (boundary feed; no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HASF, title: "Hydroxylammonium sulfate solution 25.4 wt% (hydroxylamine-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: NH3F
+    title: "Liquid ammonia (ammonia-1)"
+    category: raw_material
+    ports: [{id: oxi, direction: out}, {id: neu, direction: out}]
+  - {id: OLEF, title: "Oleum 32 wt% SO3 (boundary feed; no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: BZF, title: "Benzene make-up (boundary feed)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: "Demineralised water make-up (back-extraction)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: r301, direction: out, kind: energy}
+      - {id: c401, direction: out, kind: energy}
+      - {id: c501, direction: out, kind: energy}
+      - {id: ev601, direction: out, kind: energy}
+  - id: LPS
+    title: "LP steam 500 kPa(a) (evaporators)"
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 500, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 425.0, provenance: assumed, source: "saturation at 500 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports: [{id: e501, direction: out, kind: energy}, {id: ev601, direction: out, kind: energy}]
+  - id: MPS
+    title: "MP steam 1500 kPa(a) (lactam column reboiler)"
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports: [{id: c501, direction: out, kind: energy}]
+products:
+  - {id: PROD, title: "Caprolactam to storage", category: product, ports: [{id: in, direction: in}]}
+  - {id: ASP, title: "Ammonium sulfate crystals to storage (co-product)", category: by_product, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: "Mother-liquor purge to treatment", category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: ORGW, title: "Organic residues to incineration (cyclohexanone, benzene, lactam)", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: COND, title: "Surplus process condensate to the site's water system", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r201, direction: in, kind: energy}
+      - {id: r301, direction: in, kind: energy}
+      - {id: e501, direction: in, kind: energy}
+      - {id: c501, direction: in, kind: energy}
+      - {id: ev601, direction: in, kind: energy}
+
+blocks:
+  - id: OXI
+    title: Oximation
+    class: ReactingChemicals
+    ports:
+      - {id: chn, direction: in}
+      - {id: has, direction: in}
+      - {id: nh3, direction: in}
+      - {id: oxime, direction: out}
+      - {id: liquor, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: BKR
+    title: Beckmann rearrangement in oleum
+    class: ReactingChemicals
+    ports:
+      - {id: oxime, direction: in}
+      - {id: oleum, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: NEU
+    title: Neutralisation and phase separation
+    class: ReactingChemicals
+    ports:
+      - {id: acid, direction: in}
+      - {id: nh3, direction: in}
+      - {id: liquor, direction: in}
+      - {id: cond, direction: in}
+      - {id: crude, direction: out}
+      - {id: assol, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: EXT
+    title: Benzene extraction and back-extraction
+    class: Separating
+    ports:
+      - {id: crude, direction: in}
+      - {id: bz, direction: in}
+      - {id: water, direction: in}
+      - {id: wrec, direction: in}
+      - {id: raff, direction: out}
+      - {id: aq, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: PUR
+    title: Lactam evaporation and vacuum distillation
+    class: Separating
+    ports:
+      - {id: aq, direction: in}
+      - {id: wrec, direction: out}
+      - {id: prod, direction: out}
+      - {id: orgw, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ASC
+    title: Ammonium sulfate crystallisation
+    class: Separating
+    ports:
+      - {id: assol, direction: in}
+      - {id: raff, direction: in}
+      - {id: cryst, direction: out}
+      - {id: purge, direction: out}
+      - {id: cond, direction: out}
+      - {id: exp, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # ---- OXI
+  # D-004: counter-current oximation at 363 K (US 4,031,139), ammonia to pH 4.5 to 5.8
+  # (US 4,931,592); conversion model.
+  - id: R101
+    block: OXI
+    title: Oximation reactor cascade (counter-current, ammonia to pH 5)
+    class: ReactingChemicals
+    reactions: [OXIM, NEUTA, NEUTN]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: chn, direction: in, delegates: chn}
+      - {id: has, direction: in, delegates: has}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-004: the oxime melt separates from the ammonium sulfate liquor; 4.6 wt% water and 0.6 wt%
+  # cyclohexanone in the melt (US 4,031,139, Example).
+  - id: D101
+    block: OXI
+    title: Oxime separator
+    class: Separating
+    recovery:
+      outlets:
+        oxime: {OXM: 1.0, CHN: 1.0, H2O: 0.022141}
+      provenance: assumed
+      source: "D-004: the oxime melt carries all the oxime and the excess cyclohexanone and 4.6 wt% water (US 4,031,139 Example): 0.046 / 0.948 x 12847.3 kg/h oxime = 623.39 of 28155.6 kg/h water"
+    links: [{target: equipment, ref: D-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: oxime, direction: out, delegates: oxime}
+      - {id: liquor, direction: out, delegates: liquor}
+  # ---- BKR
+  # D-006: circulating rearrangement loop at 388 K with its cooler (US 4,804,754: 108 to 118 C,
+  # oleum 32 wt% SO3, 1.17 kg per kg oxime); yield 98.9 % (US 7,339,056 B2).
+  - id: R201
+    block: BKR
+    title: Rearrangement loop reactor with circulation cooler
+    class: ReactingChemicals
+    reactions: [BECK, HYDR, SO3W]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}, {target: equipment, ref: E-201}, {target: equipment, ref: P-201}]
+    ports:
+      - {id: oxime, direction: in, delegates: oxime}
+      - {id: oleum, direction: in, delegates: oleum}
+      - {id: out, direction: out, delegates: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # ---- NEU
+  # D-007: the acid mixture and gaseous ammonia into a circulating ammonium sulfate solution,
+  # pH 4 to 5 (US 4,804,754); conversion model; cooled by cooling water.
+  - id: R301
+    block: NEU
+    title: Neutraliser loop with circulation cooler
+    class: ReactingChemicals
+    reactions: [NEUT, NEUT3]
+    reactor: conversion
+    links: [{target: equipment, ref: R-301}, {target: equipment, ref: E-301}]
+    ports:
+      - {id: acid, direction: in, delegates: acid}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: liquor, direction: in, delegates: liquor}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-007: crude lactam with about 30 wt% water (US 4,804,754) separates from the about 40 wt%
+  # ammonium sulfate solution (US 4,804,754 Example: 40 to 43 %).
+  - id: D301
+    block: NEU
+    title: Crude lactam separator
+    class: Separating
+    recovery:
+      outlets:
+        crude: {CPL: 0.999, CHN: 1.0, H2O: 0.107686, AS: 0.008925}
+      provenance: assumed
+      source: "D-007: crude lactam with 30 wt% water (US 4,804,754) and 1.5 wt% ammonium sulfate (ASSUMED), 0.1 % of the lactam left in the solution (ASSUMED): 12693.4 kg/h lactam and 203.9 cyclohexanone / 0.685 = 18828.2 kg/h, of which 5648.4 water (of 52452.7) and 282.4 ammonium sulfate (of 31644.4)"
+    links: [{target: equipment, ref: D-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: crude, direction: out, delegates: crude}
+      - {id: assol, direction: out, delegates: assol}
+  # ---- EXT
+  - id: M401
+    block: EXT
+    title: Benzene solvent tank (make-up and recycle)
+    class: Mixing
+    symbol: TANK_CONE_ROOF_SHAPE
+    links: [{target: equipment, ref: T-401}]
+    ports:
+      - {id: makeup, direction: in, delegates: bz}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+  # D-008: counter-current benzene extraction; extract 22 wt% lactam, 99.6 % of the lactam
+  # extracted (US 6,448,395 B1, Comparative Experiment A and Example I: 99.5 and 99.8 %).
+  - id: C401
+    block: EXT
+    title: Benzene extraction column (crude lactam)
+    class: Separating
+    recovery:
+      outlets:
+        extract: {CPL: 0.996, CHN: 1.0, BZ: 1.0}
+      provenance: assumed
+      source: "D-008: 99.6 % of the lactam to the extract, between US 6,448,395 B1's 99.5 and 99.8 % yields; the cyclohexanone with the benzene and no water or salt in the extract (ASSUMED); the raffinate (water, salt, 0.4 % of the lactam) to the crystalliser"
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: feed, direction: in, delegates: crude}
+      - {id: solv, direction: in}
+      - {id: extract, direction: out}
+      - {id: raff, direction: out, delegates: raff}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M402
+    block: EXT
+    title: Back-extraction water (make-up and evaporator condensate)
+    class: Mixing
+    symbol: STATIC_MIXER_SHAPE
+    links: [{target: equipment, ref: M-402}]
+    ports:
+      - {id: makeup, direction: in, delegates: water}
+      - {id: rec, direction: in, delegates: wrec}
+      - {id: out, direction: out}
+  # D-008: back-extraction into water; 28 wt% lactam in the aqueous outlet, 99.9 % of the
+  # lactam (US 6,448,395 B1, Comparative Experiment D and Example IV: 99.0 and 99.9 %).
+  - id: C402
+    block: EXT
+    title: Back-extraction column (lactam into water)
+    class: Separating
+    recovery:
+      outlets:
+        aq: {CPL: 0.999, CHN: 1.0, BZ: 0.0005, H2O: 1.0}
+      provenance: assumed
+      source: "D-008: 99.9 % of the lactam to the water (US 6,448,395 B1 Example IV), the rest back to the solvent tank; the cyclohexanone to the water (ASSUMED, so that it leaves the solvent loop through the evaporator's organic phase); 0.05 % of the benzene dissolved in the aqueous lactam (ASSUMED)"
+    links: [{target: equipment, ref: C-402}]
+    ports:
+      - {id: ext, direction: in}
+      - {id: water, direction: in}
+      - {id: aq, direction: out, delegates: aq}
+      - {id: bz, direction: out}
+  # ---- PUR
+  # D-009: three-effect evaporation of the aqueous lactam to 99 wt% (ASSUMED); the benzene and
+  # cyclohexanone stripped with the first vapours to the organic waste; the condensate reused
+  # as back-extraction water.
+  - id: E501
+    block: PUR
+    title: Lactam evaporator (three effects, benzene stripper)
+    class: Separating
+    recovery:
+      outlets:
+        cond: {H2O: 0.996044}
+        org: {BZ: 1.0, CHN: 1.0}
+      provenance: assumed
+      source: "D-009: concentrate 1 wt% water (ASSUMED): 0.01 / 0.99 x 12642.6 kg/h lactam = 127.7 of 32283.1 kg/h water left; all the benzene and cyclohexanone to the organic waste (the BREF's benzene stripper, ASSUMED not recovered)"
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in, delegates: aq}
+      - {id: cond, direction: out, delegates: wrec}
+      - {id: org, direction: out}
+      - {id: conc, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  # D-009: vacuum distillation; lights (water, some lactam) and a residue to incineration.
+  - id: C501
+    block: PUR
+    title: Lactam vacuum distillation
+    class: Separating
+    recovery:
+      outlets:
+        prod: {CPL: 0.99}
+        lights: {H2O: 1.0, CPL: 0.003}
+      provenance: assumed
+      source: "D-009: 99.0 % of the lactam as distilled product, 0.3 % with the water in the lights and 0.7 % in the residue (ASSUMED; no open source gives the column's recoveries)"
+    links: [{target: equipment, ref: C-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out, delegates: prod}
+      - {id: lights, direction: out}
+      - {id: res, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M502
+    block: PUR
+    title: Organic residue collection
+    class: Mixing
+    symbol: TANK_CONE_ROOF_SHAPE
+    links: [{target: equipment, ref: T-502}]
+    ports:
+      - {id: org, direction: in}
+      - {id: lights, direction: in}
+      - {id: res, direction: in}
+      - {id: out, direction: out, delegates: orgw}
+  # ---- ASC
+  - id: M601
+    block: ASC
+    title: Ammonium sulfate solution tank
+    class: Mixing
+    symbol: TANK_CONE_ROOF_SHAPE
+    links: [{target: equipment, ref: T-601}]
+    ports:
+      - {id: assol, direction: in, delegates: assol}
+      - {id: raff, direction: in, delegates: raff}
+      - {id: out, direction: out}
+  # D-010: evaporative crystallisation (three effects), centrifuge and dryer; 98 % of the salt
+  # as crystals, the impurities in a mother-liquor purge of 35 wt% ammonium sulfate (ASSUMED).
+  - id: EV601
+    block: ASC
+    title: Ammonium sulfate crystalliser, centrifuge and dryer
+    class: Separating
+    recovery:
+      outlets:
+        cryst: {AS: 0.98}
+        purge: {AS: 0.02, HAS: 1.0, AN: 1.0, CPL: 1.0, CHN: 1.0, NH3: 1.0, H2SO4: 1.0, H2O: 0.01689}
+      provenance: assumed
+      source: "D-010: 98 % of the ammonium sulfate as dry crystals, the purge 35 wt% ammonium sulfate with every impurity (ASSUMED): 632.9 / 0.35 = 1808.2 kg/h, of which 885.9 of 52452.7 kg/h water; the rest of the water evaporated as condensate"
+    links: [{target: equipment, ref: EV-601}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cryst, direction: out, delegates: cryst}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: cond, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-007: the condensate dilutes the neutraliser loop to 40 wt% ammonium sulfate; the surplus
+  # leaves.
+  - id: X601
+    block: ASC
+    title: Condensate distribution
+    class: SplittingMaterial
+    split: {rec: 0.493756}
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out, delegates: cond}
+      - {id: exp, direction: out, delegates: exp}
+
+streams:
+  # ---- OXI
+  - id: S01
+    title: Cyclohexanone
+    from: CHNF.out
+    to: R101.chn
+    template: ketone
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "battery limit, D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        flow: {value: 11223.82, basis: mass, provenance: assumed, source: "D-004: 113.533 kmol/h for the hydroxylamine of S02 (x 98.143) plus the excess left in the melt at 0.6 wt% (US 4,031,139): 11142.51 + 81.31 kg/h"}
+        composition: {basis: mass_fraction, values: {CHN: 1.0}, provenance: assumed, source: "D-003: impurities not modelled"}
+  - id: S02
+    title: Hydroxylammonium sulfate solution (hydroxylamine-1)
+    from: HASF.out
+    to: R101.has
+    template: has_solution
+    state:
+      design:
+        pressure: {value: 180, provenance: assumed, source: "hydroxylamine-1's product stream S24, D-003"}
+        temperature: {value: 313.15, provenance: assumed, source: "hydroxylamine-1's product stream S24, D-003"}
+        flow: {value: 36683.34, basis: mass, provenance: assumed, source: "D-002: the whole output of hydroxylamine-1 (its S24, 30 kt/a NH2OH)"}
+        composition: {basis: mass_fraction, values: {HAS: 0.254, AS: 0.0186, H2SO4: 0.013, HNO3: 0.00262675, H2O: 0.71177325}, provenance: assumed, source: "D-003: hydroxylamine-1's product S24 as that entry gives it"}
+  - id: S03
+    title: Ammonia to the oximation
+    from: NH3F.oxi
+    to: R101.nh3
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 1200, provenance: assumed, source: "pressurised liquid at the battery limit, D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        flow: {value: 2125.75, basis: mass, provenance: assumed, source: "D-004: 2 x 56.767 (HAS) + 2 x 4.862 (free H2SO4) + 1.529 (HNO3) = 124.787 kmol/h x 17.031 + 0.5 kg/h to keep a trace in excess"}
+        composition: {basis: mass_fraction, values: {NH3: 1.0}, provenance: assumed, source: D-003}
+  - id: S04
+    title: Oximation mixture
+    from: R101.out
+    to: D101.in
+    template: oximation
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-004}
+        temperature: {value: 363.15, provenance: given, source: "US 4,031,139 Example: 90 C (D-004)"}
+        flow: {value: 50032.9, provenance: calculated, source: 'cheme process propagate: reactor R101 from S01 S02 S03', fingerprint: 47ed39c614c7e98e}
+        composition: {basis: mole_fraction, values: {CHN: 0.00047465, HAS: 0.0, AS: 0.0382632, H2SO4: 0.0, HNO3: 0.0, H2O: 0.89533, NH3: 1.68492e-05, OXM: 0.0650395, AN: 0.000876014}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S01 S02 S03', fingerprint: 87f898ce73f861ec}
+  - id: S05
+    title: Oxime melt
+    from: D101.oxime
+    to: R201.oxime
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 358.15, provenance: given, source: "US 4,804,754: oxime fed as a melt at 80 to 95 C, the Example 85 C (D-006)"}
+        flow: {value: 13552.1, provenance: calculated, source: 'cheme process propagate: separator D101 from S04', fingerprint: 6a374f32e3352862}
+        composition: {basis: mole_fraction, values: {OXM: 0.762143, CHN: 0.00556202, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.232295}, provenance: calculated, source: 'cheme process propagate: separator D101 from S04', fingerprint: 6a374f32e3352862}
+  - id: S06
+    title: Oximation liquor (ammonium sulfate solution)
+    from: D101.liquor
+    to: R301.liquor
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 363.15, provenance: assumed, source: "as the oximation, D-004"}
+        flow: {value: 36480.8, provenance: calculated, source: 'cheme process propagate: separator D101 from S04', fingerprint: 6a374f32e3352862}
+        composition: {basis: mole_fraction, values: {OXM: 0.0, CHN: 0.0, HAS: 0.0, AS: 0.0418331, AN: 0.000957746, H2SO4: 0.0, HNO3: 0.0, NH3: 1.84212e-05, H2O: 0.957191}, provenance: calculated, source: 'cheme process propagate: separator D101 from S04', fingerprint: 6a374f32e3352862}
+  # ---- BKR
+  - id: S07
+    title: Oleum 32 wt% SO3
+    from: OLEF.out
+    to: R201.oleum
+    template: oleum
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 303.15, provenance: assumed, source: "storage, above the oleum's freezing range (ASSUMED), D-003"}
+        flow: {value: 15856.01, basis: mass, provenance: assumed, source: "D-006: 1.17 kg oleum per kg oxime melt (US 4,804,754 Example) x 13552.0 kg/h (S05)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.68, SO3: 0.32}, provenance: given, source: "US 4,804,754 Example: oleum with 32 wt% SO3 (D-006)"}
+  - id: S08
+    title: Rearrangement mixture
+    from: R201.out
+    to: R301.acid
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 388.15, provenance: given, source: "US 4,804,754: 108 to 118 C in the circulation, the Example 115 C (D-006)"}
+        flow: {value: 29408.1, provenance: calculated, source: 'cheme process propagate: reactor R201 from S05 S07', fingerprint: b4c292047f667b62}
+        composition: {basis: mole_fraction, values: {CPL: 0.390323, OXM: 0.0, CHN: 0.00722152, HAS: 0.00217066, AS: 0.0, AN: 0.0, H2SO4: 0.495932, SO3: 0.104353, HNO3: 0.0, NH3: 0.0, H2O: 9.62371e-08, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S05 S07', fingerprint: 88c9ccd5dc3dc78e}
+  # ---- NEU
+  - id: S09
+    title: Ammonia to the neutraliser
+    from: NH3F.neu
+    to: R301.nh3
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 1200, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        flow: {value: 5882.45, basis: mass, provenance: assumed, source: "D-007: 2 x (142.66 kmol/h H2SO4 + 30.02 kmol/h SO3 of S08) x 17.031 + 0.5 kg/h trace excess"}
+        composition: {basis: mass_fraction, values: {NH3: 1.0}, provenance: assumed, source: D-003}
+  - id: S10
+    title: Neutralised mixture
+    from: R301.out
+    to: D301.in
+    template: process
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-007}
+        temperature: {value: 353.15, provenance: assumed, source: "D-007: ASSUMED, above the lactam's melting point (342.3 K), below the solution's boiling point"}
+        flow: {value: 97232.6, provenance: calculated, source: 'cheme process propagate: reactor R301 from S06 S08 S09 S32', fingerprint: 5a33058a7ed4a61d}
+        composition: {basis: mole_fraction, values: {CPL: 0.0343623, OXM: 0.0, CHN: 0.00063575, HAS: 0.000191095, AS: 0.0732868, AN: 0.000467972, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 1.7998e-05, H2O: 0.891038, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S06 S08 S09 S32', fingerprint: b5a782c158d5ad60}
+  - id: S11
+    title: Crude lactam
+    from: D301.crude
+    to: C401.feed
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 323.15, provenance: assumed, source: "D-008: cooled to the extraction temperature, within US 6,448,395 B1's 20 to 80 C"}
+        flow: {value: 18828.1, provenance: calculated, source: 'cheme process propagate: separator D301 from S10', fingerprint: e4ee6dab4fce4a1c}
+        composition: {basis: mole_fraction, values: {CPL: 0.26091, OXM: 0.0, CHN: 0.00483203, HAS: 0.0, AS: 0.00497138, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.729287, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D301 from S10', fingerprint: e4ee6dab4fce4a1c}
+  - id: S12
+    title: Ammonium sulfate solution from the neutraliser
+    from: D301.assol
+    to: M601.assol
+    template: process
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-010}
+        temperature: {value: 353.15, provenance: assumed, source: D-007}
+        flow: {value: 78404.5, provenance: calculated, source: 'cheme process propagate: separator D301 from S10', fingerprint: e4ee6dab4fce4a1c}
+        composition: {basis: mole_fraction, values: {CPL: 3.95683e-05, OXM: 0.0, CHN: 0.0, HAS: 0.000220047, AS: 0.0836368, AN: 0.000538871, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 2.07248e-05, H2O: 0.915544, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D301 from S10', fingerprint: e4ee6dab4fce4a1c}
+  # ---- EXT
+  - id: S13
+    title: Benzene make-up
+    from: BZF.out
+    to: M401.makeup
+    template: benzene
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        flow: {value: 22.33, basis: mass, provenance: assumed, source: "D-008: the benzene that leaves dissolved in the aqueous lactam, 0.05 % of the 44663 kg/h circulating (C402; the circulation that gives an extract of 22 wt% lactam, US 6,448,395 B1), sent with the evaporator's organic phase to incineration"}
+        composition: {basis: mass_fraction, values: {BZ: 1.0}, provenance: assumed, source: D-003}
+  - id: S14
+    title: Recycled benzene
+    from: C402.bz
+    to: M401.rec
+    template: extract
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 44653.3, provenance: calculated, source: 'cheme process propagate: recycle C402 from S16 S20 (tear, wegstein)', fingerprint: 8a944d32084ea254}
+        composition: {basis: mole_fraction, values: {CPL: 0.000195649, CHN: 0.0, BZ: 0.999804}, provenance: calculated, source: 'cheme process propagate: recycle C402 from S16 S20 (tear, wegstein)', fingerprint: 8a944d32084ea254}
+  - id: S15
+    title: Benzene solvent
+    from: M401.out
+    to: C401.solv
+    template: extract
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 44675.6, provenance: calculated, source: 'cheme process propagate: mixer M401 from S13 S14', fingerprint: a5a74c1b9ad33a50}
+        composition: {basis: mole_fraction, values: {BZ: 0.999804, CPL: 0.000195551, CHN: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S13 S14', fingerprint: bf61cbe89b663d56}
+  - id: S16
+    title: Lactam extract in benzene
+    from: C401.extract
+    to: C402.ext
+    template: process
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: D-008}
+        temperature: {value: 323.15, provenance: assumed, source: D-008}
+        flow: {value: 57522.0, provenance: calculated, source: 'cheme process propagate: separator C401 from S11 S15', fingerprint: 7993806f0d585e8b}
+        composition: {basis: mole_fraction, values: {CPL: 0.163097, OXM: 0.0, CHN: 0.00302966, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.0, BZ: 0.833873}, provenance: calculated, source: 'cheme process propagate: separator C401 from S11 S15', fingerprint: 7993806f0d585e8b}
+  - id: S17
+    title: Raffinate (water, salt)
+    from: C401.raff
+    to: M601.raff
+    template: process
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: D-008}
+        temperature: {value: 323.15, provenance: assumed, source: D-008}
+        flow: {value: 5981.66, provenance: calculated, source: 'cheme process propagate: separator C401 from S11 S15', fingerprint: 7993806f0d585e8b}
+        composition: {basis: mole_fraction, values: {CPL: 0.00142075, OXM: 0.0, CHN: 0.0, HAS: 0.0, AS: 0.00676099, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.991818, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S11 S15', fingerprint: 7993806f0d585e8b}
+  - id: S18
+    title: Demineralised water make-up
+    from: PW.out
+    to: M402.makeup
+    template: water
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        flow: {value: 127.97, basis: mass, provenance: assumed, source: "D-009: the water that leaves the back-extraction loop in the evaporator's concentrate (1 wt%, 0.01 / 0.99 x 12642.6 kg/h lactam)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-003}
+  - id: S19
+    title: Evaporator condensate to the back-extraction
+    from: E501.cond
+    to: M402.rec
+    template: water
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 32221.2, provenance: calculated, source: 'cheme process propagate: recycle E501 from S21 (tear, wegstein)', fingerprint: 8a944d32084ea254}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: recycle E501 from S21 (tear, wegstein)', fingerprint: 8a944d32084ea254}
+  - id: S20
+    title: Back-extraction water
+    from: M402.out
+    to: C402.water
+    template: water
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: within US 6,448,395 B1's 10 to 60 C"}
+        flow: {value: 32349.2, provenance: calculated, source: 'cheme process propagate: mixer M402 from S18 S19', fingerprint: 31e8b4d034bddab4}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: mixer M402 from S18 S19', fingerprint: 521d5463c98f564d}
+  - id: S21
+    title: Aqueous lactam (28 wt%)
+    from: C402.aq
+    to: E501.in
+    template: process
+    state:
+      design:
+        pressure: {value: 250, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 45217.9, provenance: calculated, source: 'cheme process propagate: separator C402 from S16 S20', fingerprint: b5e60016d93729a5}
+        composition: {basis: mole_fraction, values: {CPL: 0.0585006, OXM: 0.0, CHN: 0.00108778, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.940262, BZ: 0.000149699}, provenance: calculated, source: 'cheme process propagate: separator C402 from S16 S20', fingerprint: b5e60016d93729a5}
+  # ---- PUR
+  - id: S22
+    title: Evaporator organic phase (benzene, cyclohexanone)
+    from: E501.org
+    to: M502.org
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 226.214, provenance: calculated, source: 'cheme process propagate: separator E501 from S21', fingerprint: 410f9bfc8875af5d}
+        composition: {basis: mole_fraction, values: {CPL: 0.0, OXM: 0.0, CHN: 0.879029, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.0, BZ: 0.120971}, provenance: calculated, source: 'cheme process propagate: separator E501 from S21', fingerprint: 410f9bfc8875af5d}
+  - id: S23
+    title: Concentrated lactam (99 wt%)
+    from: E501.conc
+    to: C501.in
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-009}
+        temperature: {value: 383.15, provenance: assumed, source: D-009}
+        flow: {value: 12770.5, provenance: calculated, source: 'cheme process propagate: separator E501 from S21', fingerprint: 410f9bfc8875af5d}
+        composition: {basis: mole_fraction, values: {CPL: 0.940218, OXM: 0.0, CHN: 0.0, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.0597824, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E501 from S21', fingerprint: 410f9bfc8875af5d}
+  - id: S24
+    title: Caprolactam product
+    from: C501.prod
+    to: PROD.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-009}
+        temperature: {value: 353.15, provenance: assumed, source: "D-009: liquid (molten) to storage, above the 342.3 K melting point"}
+        flow: {value: 12516.1, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 86fe003ae89637b3}
+        composition: {basis: mole_fraction, values: {CPL: 1.0, OXM: 0.0, CHN: 0.0, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.0, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 86fe003ae89637b3}
+  - id: S25
+    title: Column lights (water, lactam)
+    from: C501.lights
+    to: M502.lights
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 165.901, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 86fe003ae89637b3}
+        composition: {basis: mole_fraction, values: {CPL: 0.0450562, OXM: 0.0, CHN: 0.0, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.954944, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 86fe003ae89637b3}
+  - id: S26
+    title: Column residue
+    from: C501.res
+    to: M502.res
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-009}
+        temperature: {value: 413.15, provenance: assumed, source: D-009}
+        flow: {value: 88.4977, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 86fe003ae89637b3}
+        composition: {basis: mole_fraction, values: {CPL: 1.0, OXM: 0.0, CHN: 0.0, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.0, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 86fe003ae89637b3}
+  - id: S27
+    title: Organic residues to incineration
+    from: M502.out
+    to: ORGW.in
+    template: process
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 480.613, provenance: calculated, source: 'cheme process propagate: mixer M502 from S22 S25 S26', fingerprint: fa5168c5ba2b62dd}
+        composition: {basis: mole_fraction, values: {CPL: 0.105556, OXM: 0.0, CHN: 0.196273, HAS: 0.0, AS: 0.0, AN: 0.0, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 0.0, H2O: 0.67116, BZ: 0.0270109}, provenance: calculated, source: 'cheme process propagate: mixer M502 from S22 S25 S26', fingerprint: c893cb18ac06e35b}
+  # ---- ASC
+  - id: S28
+    title: Crystalliser feed
+    from: M601.out
+    to: EV601.in
+    template: process
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-010}
+        temperature: {value: 343.15, provenance: assumed, source: D-010}
+        flow: {value: 84386.2, provenance: calculated, source: 'cheme process propagate: mixer M601 from S12 S17', fingerprint: 4fb4f7b3cc845a2e}
+        composition: {basis: mole_fraction, values: {CPL: 0.000178011, OXM: 0.0, CHN: 0.0, HAS: 0.000197991, AS: 0.0759312, AN: 0.000484857, H2SO4: 0.0, SO3: 0.0, HNO3: 0.0, NH3: 1.86475e-05, H2O: 0.923189, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M601 from S12 S17', fingerprint: a19b9b53e59c0703}
+  - id: S29
+    title: Ammonium sulfate crystals
+    from: EV601.cryst
+    to: ASP.in
+    template: process
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-010}
+        temperature: {value: 313.15, provenance: assumed, source: "D-010: dried and cooled"}
+        flow: {value: 31011.4, provenance: calculated, source: 'cheme process propagate: separator EV601 from S28', fingerprint: 8443793baf60b2e2}
+        composition: {basis: mole_fraction, values: {AS: 1.0, HAS: 0.0, AN: 0.0, CPL: 0.0, CHN: 0.0, NH3: 0.0, H2SO4: 0.0, H2O: 0.0, SO3: 0.0, OXM: 0.0, HNO3: 0.0, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator EV601 from S28', fingerprint: 8443793baf60b2e2}
+  - id: S30
+    title: Mother-liquor purge
+    from: EV601.purge
+    to: PURGE.in
+    template: process
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-010}
+        temperature: {value: 323.15, provenance: assumed, source: D-010}
+        flow: {value: 1808.23, provenance: calculated, source: 'cheme process propagate: separator EV601 from S28', fingerprint: 8443793baf60b2e2}
+        composition: {basis: mole_fraction, values: {AS: 0.0844112, HAS: 0.0110051, AN: 0.0269503, CPL: 0.00989456, CHN: 0.0, NH3: 0.0010365, H2SO4: 0.0, H2O: 0.866702, SO3: 0.0, OXM: 0.0, HNO3: 0.0, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator EV601 from S28', fingerprint: 8443793baf60b2e2}
+  - id: S31
+    title: Crystalliser condensate
+    from: EV601.cond
+    to: X601.in
+    template: process
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-010}
+        temperature: {value: 313.15, provenance: assumed, source: D-010}
+        flow: {value: 51566.5, provenance: calculated, source: 'cheme process propagate: separator EV601 from S28', fingerprint: 8443793baf60b2e2}
+        composition: {basis: mole_fraction, values: {AS: 0.0, HAS: 0.0, AN: 0.0, CPL: 0.0, CHN: 0.0, NH3: 0.0, H2SO4: 0.0, H2O: 1.0, SO3: 0.0, OXM: 0.0, HNO3: 0.0, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator EV601 from S28', fingerprint: 8443793baf60b2e2}
+  - id: S32
+    title: Condensate to the neutraliser loop
+    from: X601.rec
+    to: R301.cond
+    template: water
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 25461.3, provenance: calculated, source: 'cheme process propagate: recycle X601 from S31 (tear, wegstein)', fingerprint: 8a944d32084ea254}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: recycle X601 from S31 (tear, wegstein)', fingerprint: 8a944d32084ea254}
+  - id: S33
+    title: Surplus condensate
+    from: X601.exp
+    to: COND.in
+    template: process
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-010}
+        temperature: {value: 313.15, provenance: assumed, source: D-010}
+        flow: {value: 26105.2, provenance: calculated, source: 'cheme process propagate: splitter X601 from S31 S32', fingerprint: f874599fe43b938b}
+        composition: {basis: mole_fraction, values: {AS: 0.0, HAS: 0.0, AN: 0.0, CPL: 0.0, CHN: 0.0, NH3: 0.0, H2SO4: 0.0, H2O: 1.0, SO3: 0.0, OXM: 0.0, HNO3: 0.0, BZ: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X601 from S31', fingerprint: bce3617ceeeacadc}
+  # Energy streams. Q1 to Q3: the conversion steps' duties, written by cheme process propagate
+  # (core ADR 0059). The others ASSUMED estimates with their arithmetic (D-009, D-010).
+  - {id: Q1, title: R-101 oximation heat to cooling water, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 3537.35, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S01 S02 S03 S04', fingerprint: 560273bd926e12bb}}}}
+  - {id: Q2, title: R-201/E-201 rearrangement heat to cooling water, kind: energy, from: R201.cw, to: CW.r201, state: {design: {duty: {value: 5752.0, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S05 S07 S08', fingerprint: 545e80a7a8a60276}}}}
+  - {id: Q3, title: R-301/E-301 neutralisation heat to cooling water, kind: energy, from: R301.cw, to: CW.r301, state: {design: {duty: {value: 11956.1, provenance: calculated, source: 'cheme process propagate: conversion duty R301 from S06 S08 S09 S32 S10', fingerprint: ba8817219a6b580a}}}}
+  - {id: Q4, title: E-501 lactam evaporator LP steam, kind: energy, from: LPS.e501, to: E501.steam, state: {design: {duty: {value: 6734.0, provenance: assumed, source: "D-009: 32221 kg/h water evaporated x 2257 kJ/kg (latent heat at 373 K) / 3 effects (ASSUMED) / 3600"}}}}
+  - {id: Q5, title: E-501 last-effect condenser to cooling water, kind: energy, from: E501.cw, to: CW.e501, state: {design: {duty: {value: 6734.0, provenance: assumed, source: "D-009: the last effect's vapour condensed, taken equal to the steam (ASSUMED)"}}}}
+  - {id: Q6, title: C-501 reboiler MP steam, kind: energy, from: MPS.c501, to: C501.steam, state: {design: {duty: {value: 3910.0, provenance: assumed, source: "D-009: (reflux 1, ASSUMED, + 1) x 110.61 kmol/h lactam distilled x 62.3 kJ/mol (NIST WebBook, Steele et al. 2002, at 440 K) / 3600 = 3829 kW, plus 127.7 kg/h water x 2257 kJ/kg = 80 kW"}}}}
+  - {id: Q7, title: C-501 condenser to cooling water, kind: energy, from: C501.cw, to: CW.c501, state: {design: {duty: {value: 3910.0, provenance: assumed, source: "D-009: equal to the reboiler (ASSUMED)"}}}}
+  - {id: Q8, title: EV-601 crystalliser LP steam, kind: energy, from: LPS.ev601, to: EV601.steam, state: {design: {duty: {value: 10776.0, provenance: assumed, source: "D-010: 51567 kg/h water evaporated x 2257 kJ/kg / 3 effects (ASSUMED) / 3600; the dryer's heat not counted"}}}}
+  - {id: Q9, title: EV-601 last-effect condenser to cooling water, kind: energy, from: EV601.cw, to: CW.ev601, state: {design: {duty: {value: 10776.0, provenance: assumed, source: "D-010: equal to the steam (ASSUMED)"}}}}
+  - {id: P1, title: R-101 agitators and pumps, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 150.0, provenance: assumed, source: "D-009: ASSUMED estimate, no open source"}}}}
+  - {id: P2, title: P-201 rearrangement circulation pump, kind: energy, from: POWER.r201, to: R201.power, state: {design: {duty: {value: 250.0, provenance: assumed, source: "D-009: ASSUMED estimate; the loop circulates 40 to 150 system volumes an hour (US 4,804,754)"}}}}
+  - {id: P3, title: R-301 neutraliser circulation pump, kind: energy, from: POWER.r301, to: R301.power, state: {design: {duty: {value: 250.0, provenance: assumed, source: "D-009: ASSUMED estimate, no open source"}}}}
+  - {id: P4, title: Extraction columns and pumps, kind: energy, from: POWER.c401, to: C401.power, state: {design: {duty: {value: 150.0, provenance: assumed, source: "D-009: ASSUMED estimate, no open source"}}}}
+  - {id: P5, title: C-501 vacuum system and pumps, kind: energy, from: POWER.c501, to: C501.power, state: {design: {duty: {value: 200.0, provenance: assumed, source: "D-009: ASSUMED estimate, no open source"}}}}
+  - {id: P6, title: "EV-601 circulation pumps, centrifuges and dryer fans", kind: energy, from: POWER.ev601, to: EV601.power, state: {design: {duty: {value: 900.0, provenance: assumed, source: "D-010: ASSUMED estimate, no open source"}}}}
+layout: {bfd: {}, pfd: {}}

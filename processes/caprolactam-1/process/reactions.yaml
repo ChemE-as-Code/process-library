@@ -1,0 +1,83 @@
+# Reactions of caprolactam-1. Schema: `cheme schema process-reactions`.
+# Conversion model throughout (DESIGN.md D-004, D-006, D-007): every conversion is a sourced value
+# or a design choice with its reason, not kinetics and not equilibrium. A conversion is the
+# fraction of the key component's inlet flow converted by that reaction; parallel reactions of
+# one key add up.
+#
+# Heats of reaction at 298.15 K, kJ/kmol, from formation enthalpies queried 2026-11-19 from the
+# open-source package chemicals 1.5.2 (single values with their source, not open data; library
+# ADR 0037; DESIGN.md SRC-10): cyclohexanone (l) -271.2 (CRC), cyclohexanone oxime (s) -153.2
+# (NIST WebBook as packaged), caprolactam (s) -329.4 (CRC), H2SO4 (l) -814.0 (CRC), SO3 (l)
+# -441.0 (CRC), water (l) -285.825 (ATcT), NH3 (g) -45.558 (ATcT) less its heat of vaporisation
+# at 298.15 K 19.8545 (thermo 0.6.1, HEOS_FIT) = NH3 (l) -65.4125, (NH4)2SO4 (s) -1180.9 (CRC),
+# NH4NO3 (s) -365.6 (CRC), HNO3 (l) -174.1 (CRC), NH2OH (s) -114.2 (CRC), all kJ/mol.
+# ASSUMED bases (DESIGN.md D-008, L-3): the salts as solids (no heats of solution or dilution),
+# the oxime and the lactam as their solids (no heats of fusion), hydroxylammonium sulfate as
+# 2 NH2OH (s) + H2SO4 (l) without a heat of salt formation (neither package has its formation
+# enthalpy), no heat of protonation of the lactam in the oleum.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # ---- Oximation R101 (hydroxylammonium sulfate with cyclohexanone, ammonia to pH 4.5 to 5.8)
+  - id: OXIM
+    equation: HAS + 2 CHN + 2 NH3 -> 2 OXM + AS + 2 H2O
+    stoichiometry: {HAS: -1, CHN: -2, NH3: -2, OXM: 2, AS: 1, H2O: 2}
+    phase: liquid
+    reversible: false
+    conversion: {key: HAS, value: 1.0, provenance: assumed, source: "D-004: the counter-current oximation with the fresh cyclohexanone in a small excess takes the hydroxylamine to completion (US 4,031,139: over 90 % of the cyclohexanone per pass, the aqueous phase's residual hydroxylamine extracted with fresh cyclohexanone and returned); complete, ASSUMED"}
+    heat_of_reaction: {value: -343325.0, provenance: assumed, source: "header bases: 2 x -153.2 + -1180.9 + 2 x -285.825 - (2 x -114.2 + -814.0 + 2 x -271.2 + 2 x -65.4125) kJ/mol; no heat of salt formation of HAS (ASSUMED, overstates the heat)"}
+    sources: ["US 4,031,139", "US 4,931,592"]
+  - id: NEUTA
+    equation: H2SO4 + 2 NH3 -> AS
+    stoichiometry: {H2SO4: -1, NH3: -2, AS: 1}
+    phase: liquid
+    reversible: false
+    conversion: {key: H2SO4, value: 1.0, provenance: assumed, source: "D-004: the free acid of the hydroxylammonium sulfate solution neutralised with ammonia (pH 4.5 to 5.8, US 4,931,592); complete, ASSUMED"}
+    heat_of_reaction: {value: -236075.0, provenance: assumed, source: "header bases: -1180.9 - (-814.0 + 2 x -65.4125) kJ/mol; AS as solid, no heat of dilution of the acid (ASSUMED)"}
+  - id: NEUTN
+    equation: HNO3 + NH3 -> AN
+    stoichiometry: {HNO3: -1, NH3: -1, AN: 1}
+    phase: liquid
+    reversible: false
+    conversion: {key: HNO3, value: 1.0, provenance: assumed, source: "D-004: the nitric acid traces of hydroxylamine-1's solution neutralised with the ammonia; complete, ASSUMED"}
+    heat_of_reaction: {value: -126087.5, provenance: assumed, source: "header bases: -365.6 - (-174.1 + -65.4125) kJ/mol; AN as solid (ASSUMED)"}
+  # ---- Beckmann rearrangement R201 (oxime melt into oleum, 32 wt% SO3, 1.17 kg per kg melt)
+  - id: BECK
+    equation: OXM -> CPL
+    stoichiometry: {OXM: -1, CPL: 1}
+    phase: liquid
+    reversible: false
+    conversion: {key: OXM, value: 0.989, provenance: given, source: "D-006: US 7,339,056 B2 (DSM), Comparative Experiment A: 98.9 % caprolactam yield with an oxime of 4.7 wt% water in oleum (three stages); this design's oxime carries 4.6 wt% (US 4,031,139)"}
+    heat_of_reaction: {value: -176200.0, provenance: assumed, source: "header bases: -329.4 - (-153.2) kJ/mol, both solids; no heat of solution or protonation in the oleum (ASSUMED, L-3)"}
+    catalyst: oleum (H2SO4 with free SO3)
+    sources: ["US 4,804,754", "US 7,339,056 B2"]
+  - id: HYDR
+    equation: 2 OXM + 2 H2O + H2SO4 -> 2 CHN + HAS
+    stoichiometry: {OXM: -2, H2O: -2, H2SO4: -1, CHN: 2, HAS: 1}
+    phase: liquid
+    reversible: false
+    conversion: {key: OXM, value: 0.011, provenance: assumed, source: "D-006: the yield loss of US 7,339,056 B2 Comparative Experiment A (1 - 0.989), represented as the oxime's hydrolysis back to cyclohexanone and hydroxylamine; the source does not name the by-products (it says the impurities stay in the water phase), so the representation is ASSUMED"}
+    heat_of_reaction: {value: 107250.0, provenance: assumed, source: "header bases: 2 x -271.2 + (2 x -114.2 + -814.0) - (2 x -153.2 + 2 x -285.825 + -814.0) kJ/mol (ASSUMED)"}
+  - id: SO3W
+    equation: SO3 + H2O -> H2SO4
+    stoichiometry: {SO3: -1, H2O: -1, H2SO4: 1}
+    phase: liquid
+    reversible: false
+    conversion: {key: H2O, value: 0.963909, provenance: assumed, source: "D-006: the water of the oxime melt (34.60 kmol/h) less the 1.249 kmol/h HYDR consumes, all taken up by the free SO3 (the oleum keeps free SO3 throughout, US 4,804,754: 1 to 14 wt% free SO3 in the circulating mixture); 1 - 1.2489 / 34.602"}
+    heat_of_reaction: {value: -87175.0, provenance: assumed, source: "header bases: -814.0 - (-441.0 + -285.825) kJ/mol"}
+  # ---- Neutralisation R301 (gaseous ammonia into the circulating ammonium sulfate solution)
+  - id: NEUT
+    equation: H2SO4 + 2 NH3 -> AS
+    stoichiometry: {H2SO4: -1, NH3: -2, AS: 1}
+    phase: liquid
+    reversible: false
+    conversion: {key: H2SO4, value: 1.0, provenance: assumed, source: "D-007: neutralised with ammonia to pH 4 to 5 (US 4,804,754: pH 4.6 in its Example); complete, ASSUMED"}
+    heat_of_reaction: {value: -236075.0, provenance: assumed, source: "as NEUTA"}
+    sources: ["US 4,804,754"]
+  - id: NEUT3
+    equation: SO3 + H2O + 2 NH3 -> AS
+    stoichiometry: {SO3: -1, H2O: -1, NH3: -2, AS: 1}
+    phase: liquid
+    reversible: false
+    conversion: {key: SO3, value: 1.0, provenance: assumed, source: "D-007: the free SO3 of the rearrangement mixture hydrated and neutralised in the aqueous loop; complete, ASSUMED"}
+    heat_of_reaction: {value: -323250.0, provenance: assumed, source: "header bases: -1180.9 - (-441.0 + -285.825 + 2 x -65.4125) kJ/mol"}

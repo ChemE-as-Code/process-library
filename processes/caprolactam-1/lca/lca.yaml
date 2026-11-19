@@ -1,0 +1,113 @@
+# Goal and scope of the caprolactam-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit those
+# by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant
+# with its amount per kg of caprolactam, from the flowsheet. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer or a shared entry: a gap, never zero, and no values from licensed databases.
+# Cyclohexanone and oleum have no library producer: their gaps name the proxy each should
+# connect to (D-012).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of caprolactam made by the conventional route
+  (cyclohexanone oximated with hydroxylammonium sulfate and ammonia, Beckmann rearrangement in
+  oleum, neutralisation with ammonia to an ammonium sulfate co-product, benzene extraction and
+  vacuum distillation) at the concept stage: which raw materials, utilities and wastes the plant
+  exchanges per kg of caprolactam, as the foreground for a later cradle-to-gate study. No impact
+  results: most backgrounds are not mapped yet (D-012).
+functional_unit: {product: PROD, amount: 1, unit: kg, source: "1 kg of distilled caprolactam at the plant gate to storage, stream S24 (D-002, D-009, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as oxalyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Continuous plant: cyclohexanone oximated counter-currently at 363 K with hydroxylammonium sulfate solution (hydroxylamine-1) and ammonia to pH 5; the oxime melt (4.6 wt% water) rearranged in oleum (32 wt% SO3, 1.17 kg/kg) in a circulating loop at 388 K, yield 98.9 %; the mixture neutralised with gaseous ammonia in a 40 wt% ammonium sulfate solution; the crude lactam extracted with benzene, back-extracted into water, evaporated (three effects) and distilled under vacuum; ammonium sulfate crystallised from the combined solutions (three effects), centrifuged and dried; 100.1 kt/a caprolactam and 248 kt/a ammonium sulfate at 8000 h/a"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  # Economic allocation written as its shares (D-012): the products' values per hour at ASSUMED
+  # relative prices per kg (caprolactam 1, ammonium sulfate crystals 0.07).
+  method: shares
+  coproducts: [PROD, ASP]
+  # S24 12516.1 x 1 and S29 31011.4 x 0.07 kg/h give 12516.1 and 2170.8
+  shares: {PROD: 0.8522, ASP: 0.1478}
+  source: >-
+    D-012 (agent proposal, for the LCA practitioner to confirm): the plant makes 2.48 kg of
+    crystalline ammonium sulfate, a traded fertiliser (the product of
+    processes/ammonium-sulfate-1), per kg of caprolactam. The library hierarchy
+    (docs/system-model.md) has no physical relationship between them (neither is a fuel; no
+    exergy, since no property package covers these salts and the lactam), so the WBCSD rule
+    applies: the price per kg of caprolactam, a polymer intermediate, is well above five times
+    that of a nitrogen fertiliser salt, so the rule gives economic allocation. No prices are
+    sourced at the concept stage: the relative price 1 : 0.07 is ASSUMED.
+  deviation: >-
+    The shares rest on an ASSUMED relative price, not sourced ones. The conservative bound is all
+    burdens to the caprolactam (share 1); mass allocation, which the rule would give only below
+    a price ratio of 5, would leave the caprolactam 28.8 % of the burdens (12516.1 of 43527.5
+    kg/h). Sourced prices replace the ratio.
+flows:
+  # raw materials
+  - key: feed:CHNF
+    missing: "not mapped yet (D-012); no library process makes cyclohexanone. Connect to: cyclohexanone from phenol hydrogenation (the LVOC BREF's cyclohexanone plant: phenol and hydrogen, cyclohexanol dehydrogenated) or from cyclohexane oxidation to KA oil (processes/adipic-acid-1 makes KA oil inside its boundary and does not export it); recorded proxy, not linked"
+    source: "flowsheet stream S01 (D-003, D-004)"
+  - key: feed:HASF
+    missing: "linked to processes/hydroxylamine-1 (lca/mappings.yaml): its hydroxylammonium sulfate solution 25.4 wt%, kg for kg"
+    source: "flowsheet stream S02 (D-002, D-003)"
+  - key: feed:NH3F
+    missing: "linked to processes/ammonia-1 (lca/mappings.yaml): liquid ammonia"
+    source: "flowsheet streams S03 and S09 (D-004, D-007)"
+  - key: feed:OLEF
+    missing: "not mapped yet (D-012); no library process makes oleum: processes/sulfuric-acid-1 absorbs its SO3 to 98.5 wt% acid inside the plant. Connect to: oleum 32 wt% SO3 from a contact plant, recorded proxy 0.68 kg sulfuric acid (sulfuric-acid-1) and 0.32 kg sulfur trioxide (lci/mappings.yaml sulfur-trioxide) per kg, not linked (a shared estimate proxy is a separate change, ADR 0039)"
+    source: "flowsheet stream S07 (D-006)"
+  - key: feed:BZF
+    missing: "not linked (lca/mappings.yaml atlas: false): the benzene supplier is not decided (btx-1, hda-1 or styrene-1's by-product benzene), as cumene-1 and ethylbenzene-1 leave it"
+    source: "flowsheet stream S13 (D-008)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: demineralised water from the site water treatment"
+    source: "flowsheet stream S18 (D-009)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 to P6 (ASSUMED estimates, D-009, D-010)"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 500 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q4 (lactam evaporator) and Q8 (ammonium sulfate crystalliser), D-009, D-010"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1500 kPa(a), per kWh of condensing heat"
+    source: "flowsheet energy stream Q6 (lactam column reboiler), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q1 to Q3 (core's conversion-step duties of R101, R201 and R301) and Q5, Q7, Q9 (condensers, ASSUMED), D-008 to D-010"
+  # wastes
+  - key: product:PURGE
+    treatment: {kind: waste, route: "the mother-liquor purge (ammonium, hydroxylammonium and nitrate salts, lactam) to biological treatment with nitrification and denitrification, as the LVOC BREF describes for this production (D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of an ammonium-salt-bearing industrial wastewater (processes/utility-wwtp), per kg"
+    source: "flowsheet stream S30 (D-010)"
+  - key: product:ORGW
+    treatment: {kind: waste, route: "incineration of the organic residues (cyclohexanone, benzene, lactam with water) in the site incinerator (D-009)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a non-halogenated organic liquid waste (processes/waste-incineration-1), per kg"
+    source: "flowsheet stream S27 (D-009)"
+  - key: product:COND
+    treatment: {kind: waste, route: "surplus process condensate of the crystalliser to the site's water system (cooling-tower or boiler make-up after polishing, ASSUMED); its traces are not modelled (D-010)"}
+    missing: "not mapped yet (D-012); connect to: treatment of a lightly loaded process condensate, per kg"
+    source: "flowsheet stream S33 (D-010)"
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: tank-vents, method: storage-tank, equipment: [T-401, T-502, T-601], reason: "No P&ID yet: the benzene, organic residue and salt solution tanks' breathing (benzene tanks to a vapour destruction unit, oleum and ammonia vents to water scrubbers, LVOC BREF 2.1.4.7.1) is not estimated (D-012)."}
+  - {id: vacuum-vents, method: storage-tank, equipment: [E-501, C-501], reason: "No P&ID yet: the vacuum systems' vents (cyclohexanone, benzene, LVOC BREF 2.1.4.7.1) are not estimated (D-012)."}
+  - {id: so2-nox, method: storage-tank, equipment: [R-201, R-301], reason: "The SO2 and NOx emissions the LVOC BREF names for the sulfate oxime plant are not estimated; no open source gives their amount (D-012)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic chemicals site beside a hydroxylamine plant and an oleum supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #464, unreviewed"
