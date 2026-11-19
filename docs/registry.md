@@ -208,9 +208,9 @@ from separate ranges.
 
 ## Polymers
 
-A polymer (`polyethylene`, `polypropylene`, `polyethylene-terephthalate`, `polyvinyl-chloride`,
-`polyvinyl-alcohol`) is a **substance** described by its repeat unit: `formula` is the repeat
-unit (C2H4, C3H6, C10H8O4, C2H3Cl, C2H4O; end groups,
+A polymer (`polyethylene`, `polypropylene`, `polyethylene-terephthalate`, `polystyrene`,
+`polyvinyl-chloride`, `polyvinyl-alcohol`) is a **substance** described by its repeat unit:
+`formula` is the repeat unit (C2H4, C3H6, C10H8O4, C8H8, C2H3Cl, C2H4O; end groups,
 catalyst residues and additives neglected), and `molar_mass`, `elemental_composition` and
 `carbon_content` are per repeat unit, so the element balance of a polymerisation dataset can read
 the product. The polymer's own CAS number is recorded, with the `chebi` id of the ChEBI polymer
