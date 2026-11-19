@@ -122,7 +122,7 @@ def test_every_identified_substance_has_a_formula_and_cas() -> None:
 #: the package cannot confirm: it resolves polyethylene's CAS 9002-88-4 to the monomer ethene and
 #: does not hold those of polypropylene (9003-07-0) or PET (25038-59-9); each CAS is checked
 #: against the ChEBI polymer entry instead (EBI OLS, 2026-11-05).
-CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate", "polyethylene", "polyethylene-terephthalate", "polypropylene"}
+CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate", "polyethylene", "polyethylene-terephthalate", "polypropylene", "polystyrene"}
 
 
 def test_registry_identities_agree_with_the_chemicals_package() -> None:
