@@ -3,7 +3,7 @@
 #
 # General-purpose polystyrene (GPPS) by continuous bulk polymerisation of styrene, 100 kt/a
 # (DESIGN.md D-001, D-002): fresh styrene from styrene-1 and the recycled monomer polymerised by
-# heat in a stirred prepolymeriser (R-101, 403 K, boiling under 50 kPa(a) with a reflux
+# heat in a stirred prepolymeriser (R-101, 403 K, boiling under 65 kPa(a) with a reflux
 # condenser) and three stirred tower reactors in series (R-102, up to 443 K, liquid-full), the
 # polymer solution heated to 513 K and devolatilised in two vacuum stages (4 and 1 kPa(a)), the
 # vapours condensed and recycled with a purge, the melt pelletised under water. Where the values
@@ -140,7 +140,7 @@ steps:
       - {id: out, direction: out}
   - id: R101
     block: RXN
-    title: "Prepolymeriser: stirred tank, 403 K, boiling at 50 kPa(a) with a reflux condenser"
+    title: "Prepolymeriser: stirred tank, 403 K, boiling at 65 kPa(a) with a reflux condenser"
     class: ReactingChemicals
     links: [{target: equipment, ref: R-101}]
     reactions: [POLY]
@@ -286,7 +286,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "D-003: from storage at ambient temperature"}
         pressure: {value: 300.0, provenance: assumed, source: "D-003: the feed pump's discharge"}
         composition: {basis: mass_fraction, values: {STY: 0.9985, EB: 0.0015, PS: 0.0}, provenance: assumed, source: "D-003: styrene-1's product, 99.85 % styrene with ethylbenzene (its stream S34, mole fractions 0.99849 and 0.00151)"}
-        flow: {value: 12581.6, provenance: calculated, source: 'cheme process propagate: spec rate (S14 PS t/a 100000)', fingerprint: f542363154474b9c}
+        flow: {value: 12581.6, provenance: calculated, source: 'cheme process propagate: spec rate (S14 PS t/a 100000)', fingerprint: e836507c4b6e2f93}
   - id: S2
     title: Recycled styrene and ethylbenzene
     from: X201.recycle
@@ -296,8 +296,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "D-008: E-103's condensate outlet"}
         pressure: {value: 300.0, provenance: assumed, source: "D-007: the recycle pump's discharge"}
-        flow: {value: 5345.5, provenance: calculated, source: 'cheme process propagate: recycle X201 from S19 (tear, broyden)', fingerprint: 2e4b085189def441}
-        composition: {basis: mole_fraction, values: {STY: 0.772163, EB: 0.227837, PS: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X201 from S19 (tear, broyden)', fingerprint: 2e4b085189def441}
+        flow: {value: 5345.5, provenance: calculated, source: 'cheme process propagate: recycle X201 from S19 (tear, broyden)', fingerprint: f9e28f550eb1f6c3}
+        composition: {basis: mole_fraction, values: {STY: 0.772163, EB: 0.227837, PS: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X201 from S19 (tear, broyden)', fingerprint: f9e28f550eb1f6c3}
   - id: S3
     title: Reactor feed
     from: M101.out
@@ -317,7 +317,7 @@ streams:
     state:
       design:
         temperature: {value: 403.15, provenance: assumed, source: "D-005: R-101 at 130 C (POL BREF Table 4.4: 110 to 180 C)"}
-        pressure: {value: 50.0, provenance: assumed, source: "D-005: R-101 boils under 50 kPa(a), its vapour condensed in the reflux condenser E-102 and returned (POL BREF section 4.2.2.1: CSTRs at atmospheric or sub-atmospheric pressure)"}
+        pressure: {value: 65.0, provenance: assumed, source: "D-005: R-101 boils under 65 kPa(a), about the solution's bubble pressure at 403.15 K (Raoult with thermo 0.6.1 vapour pressures: 68.3 kPa ideal, 64.7 to 67.6 kPa with a Flory-Huggins activity, chi 0 to 0.5 ASSUMED; printed by the balance script), its vapour condensed in the reflux condenser E-102 and returned (POL BREF section 4.2.2.1: CSTRs at atmospheric or sub-atmospheric pressure)"}
         flow: {value: 17927.1, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3', fingerprint: b8eb854c7c91991b}
         composition: {basis: mole_fraction, values: {STY: 0.605305, EB: 0.0687623, PS: 0.325933}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3', fingerprint: 431706ceb1dd4f0e}
   - id: S5
@@ -404,7 +404,7 @@ streams:
     template: polymer
     state:
       design:
-        temperature: {value: 513.15, provenance: assumed, source: "D-009: the gear pump's heat neglected"}
+        temperature: {value: 513.15, provenance: assumed, source: "D-009: the gear pump's heat (90 % of P4, ASSUMED) is counted in the water-loop cooler Q5, not in the melt's temperature"}
         pressure: {value: 15000.0, provenance: assumed, source: "D-009: the gear pump's discharge to the die plate"}
         flow: {value: 12506.5, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S11', fingerprint: 7b2f0f6cf0523822}
         composition: {basis: mole_fraction, values: {STY: 0.000400326, EB: 0.000118122, PS: 0.999482}, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S11', fingerprint: 7b2f0f6cf0523822}
@@ -418,7 +418,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: D-009}
         pressure: {value: 400.0, provenance: assumed, source: D-009}
         composition: {basis: mass_fraction, values: {H2O: 1.0, STY: 0.0, EB: 0.0, PS: 0.0}, provenance: assumed, source: "D-009: process water"}
-        flow: {value: 7448.31, provenance: calculated, source: 'cheme process propagate: spec rate (0.592 x S1)', fingerprint: f542363154474b9c}
+        flow: {value: 7448.31, provenance: calculated, source: 'cheme process propagate: spec rate (0.592 x S1)', fingerprint: e836507c4b6e2f93}
   - id: S14
     title: Polystyrene pellets
     from: X301.pellets
@@ -501,7 +501,7 @@ streams:
   - {id: Q2, title: "R-102's heat-transfer-oil coils to cooling water: the heat of polymerisation less the solution's warming", kind: energy, from: R102.q, to: CW.r102, state: {design: {duty: {value: 1056.66, provenance: calculated, source: 'cheme process propagate: conversion duty R102 from S4 S5', fingerprint: c772f461881f8769}}}}
   - {id: Q3, title: "Hot oil to E-101 and the devolatilisers' jackets", kind: energy, from: HOTOIL.e101, to: E101.q, state: {design: {duty: {value: 1043.8, provenance: assumed, source: "scripts/ps_balance.py: the polymer solution S5 heated from 443.15 to 513.15 K and the volatiles of S7 and S9 evaporated at 513.15 K (Watson), V-102's jacket lumped in (D-008)"}}}}
   - {id: Q4, title: Vapour condenser E-103 to cooling water, kind: energy, from: E103.q, to: CW.e103, state: {design: {duty: {value: 1108.7, provenance: assumed, source: "scripts/ps_balance.py: S16 cooled as ideal gas from 513.15 to 313.15 K and condensed at 313.15 K (Watson), D-008"}}}}
-  - {id: Q5, title: Pelletiser water-loop cooler to cooling water, kind: energy, from: X301.q, to: CW.x301, state: {design: {duty: {value: 937.2, provenance: assumed, source: "scripts/ps_balance.py: the melt S12 cooled from 513.15 to 323.15 K less the make-up water S13 warmed from 298.15 to 323.15 K (D-009)"}}}}
+  - {id: Q5, title: Pelletiser water-loop cooler to cooling water, kind: energy, from: X301.q, to: CW.x301, state: {design: {duty: {value: 1117.2, provenance: assumed, source: "scripts/ps_balance.py: the melt S12 cooled from 513.15 to 323.15 K less the make-up water S13 warmed from 298.15 to 323.15 K, plus 90 % of the gear pump's, the cutter's and the water pump's power, 180 kW (D-009)"}}}}
   - {id: P1, title: R-101 agitator and reflux pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 90.0, provenance: assumed, source: "ASSUMED (D-009): the prepolymeriser's agitator, about 1.5 kW/m3 of a 50 m3 viscous charge (75 kW), and the reflux and feed pumps (15 kW)"}}}}
   - {id: P2, title: R-102 tower agitators and transfer pumps, kind: energy, from: POWER.r102, to: R102.power, state: {design: {duty: {value: 90.0, provenance: assumed, source: "ASSUMED (D-009): three tower agitators of about 25 kW and the transfer gear pump (15 kW)"}}}}
   - {id: P3, title: Vacuum booster and vacuum pumps, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 120.0, provenance: assumed, source: "ASSUMED (D-009): the booster and liquid-ring or dry vacuum pumps of both devolatilisers"}}}}

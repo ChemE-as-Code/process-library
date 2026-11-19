@@ -24,7 +24,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: RER   # EU technology of the POL BREF; generic site, country not chosen
-technology: "Continuous bulk (mass) polymerisation of styrene initiated by heat: a stirred prepolymeriser at 403 K boiling under 50 kPa(a) with a reflux condenser (35 % conversion), three stirred tower reactors to 443 K (75 % overall), 7 wt% ethylbenzene in the feed, the solution heated to 513 K on hot oil and devolatilised at 4 and 1 kPa(a), the vapours condensed and recycled with a 1.4 % purge, the melt pelletised under water; 100 kt/a, concept design"
+technology: "Continuous bulk (mass) polymerisation of styrene initiated by heat: a stirred prepolymeriser at 403 K boiling under 65 kPa(a) with a reflux condenser (35 % conversion), three stirred tower reactors to 443 K (75 % overall), 7 wt% ethylbenzene in the feed, the solution heated to 513 K on hot oil and devolatilised at 4 and 1 kPa(a), the vapours condensed and recycled with a 1.4 % purge, the melt pelletised under water; 100 kt/a, concept design"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 # system_model unset (cut-off, the Atlas default). One product: no allocation. The purge is
 # burned at the site (a waste treatment under cut-off, below).
@@ -34,7 +34,7 @@ flows:
     missing: "background: styrene monomer, per kg; in the library's Atlas build lca/mappings.yaml links it to styrene-1 (ethylbenzene dehydrogenation), whose product is this feed (D-003)"
     source: "flowsheet stream S1, 1.006 kg per kg (D-003, D-004)"
   - key: feed:PW
-    missing: "not mapped yet (D-011); connect to: process water (softened or demineralised) from the site's water treatment, per kg, for the pelletiser's water loop"
+    missing: "background: process water (softened or demineralised) from the site's water treatment, per kg, for the pelletiser's water loop; the shared entry `water` links it in the library's Atlas build (market for water, deionised: a conservative proxy, ASSUMED, D-011)"
     source: "flowsheet stream S13, 0.596 kg per kg (D-009)"
   # utilities
   - key: feed:POWER
@@ -77,7 +77,7 @@ operation:
   source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
 emission_exclusions:
   - {id: fugitive, method: equipment-leaks, equipment: [R-101, R-102, T-201, P-201], reason: "No P&ID yet: fugitive styrene from flanges, seals and valves is not estimated; the POL BREF's total VOC for GPPS, 85 to 120 g/t (Table 4.10), covers the vents, fugitives and the pelletiser's fumes together (D-007)."}
-  - {id: reactor-vents, method: storage-tank, equipment: [R-101, E-102, R-102], reason: "R-101's reflux condenser returns its condensate; its non-condensables (dissolved nitrogen and leak air at 50 kPa(a)) go with the vacuum system to the thermal oxidiser (POL BREF BAT 2); their styrene is not estimated separately from the vent S18 (D-007)."}
+  - {id: reactor-vents, method: storage-tank, equipment: [R-101, E-102, R-102], reason: "R-101's reflux condenser returns its condensate; its non-condensables (dissolved nitrogen and leak air at 65 kPa(a)) go with the vacuum system to the thermal oxidiser (POL BREF BAT 2); their styrene is not estimated separately from the vent S18 (D-007)."}
   - {id: storage-breathing, method: storage-tank, equipment: [T-101, T-201], reason: "The breathing of the nitrogen-blanketed styrene and recycle tanks, vented to the thermal oxidiser (POL BREF BAT 1), is not estimated (D-007)."}
   - {id: pellet-dust, method: effluent, equipment: [X-301], reason: "Polystyrene dust from conveying and packing, 2 to 7 g/t in the POL BREF (Table 4.10), and the pelletiser's water traces (hydrocarbons 1.5 to 7 g/t after treatment) are not in the balance (D-009)."}
 dataset:

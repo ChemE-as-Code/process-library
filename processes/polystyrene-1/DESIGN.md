@@ -27,7 +27,7 @@ Wikipedia, EBI OLS, the tables packaged in the `chemicals` Python package).
 | SRC-1 | European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007, https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf | section 4.2.1 (pp. 72-74): one reactor or a train; heat removed by the incoming feed, by evaporating solvent or by a heat-transfer medium; the crude at 60 to 90 % solids heated to about 220 to 260 C and devolatilised under high vacuum in one or two stages, the monomer and solvent recycled; about 710 kJ/kg released (the double bond's heat of hydrogenation); density 0.905 (monomer) to 1.045 g/cm3 (polymer); 200 000 to 300 000 g/mol; initiation by heat or peroxides (below 1000 ppm); mercaptans as chain transfer agents; TBC 10 to 15 ppm in storage, at least 4 to 5 ppm; self-polymerisation in storage a runaway reaction; mineral oil 0 to 8 % in PS; no stabiliser needed in GPPS by continuous bulk polymerisation. Section 4.2.2 (pp. 75-77, Tables 4.4, 4.5): CSTRs and/or PFRs; styrene the solvent, up to 10 % ethylbenzene for better reaction control; 110 to 180 C; up to 1 MPa in a PFR, atmospheric or sub-atmospheric in a CSTR; 60 to 90 % conversion; one or two devolatilisers at 220 to 260 C and below 40 mbar, water stripping between them possible; condensed styrene and ethylbenzene recycled with a purge; strands cut dry or under water, dried, conveyed to silos; reactors 5 to 120 m3. Section 4.2.4 (p. 81): EPS by batch suspension polymerisation. Section 4.3.1 (p. 84, Table 4.10, APME 2002): per t of GPPS, among others VOC 85 / 120 / 300 g, wastewater 0.8 / 1.1 / 6 t, total energy 1.08 and 1.80 GJ, styrene 0.985 and 1.020 t, mineral oil 0.02 and 0.06 t, process water 0.596 and 0.600 t, nitrogen 0.022 and 0.050 t, cooling water 50 and 100 t; Table 4.11 (p. 85) the sources of the emissions. Section 13.3 (pp. 262-263, Table 13.6): BAT for polystyrene (storage emissions, purge streams and reactor vents recovered or oxidised, pelletising air treated) and the BAT-associated levels for GPPS | read; EU publication, reuse with acknowledgement, facts only | D-001 to D-012 |
 | SRC-2 | US 8 912 296 B1, G. Bouquet, U. Reifert, N. M. A. Hermans (Styron Europe), priority GB 1122017.5, 2011-12-20, granted 2014-12-16: Process for preparing polystyrene having a high melt flow rate, https://patents.google.com/patent/US8912296B1/en | example: feed of 95.8 wt% styrene and 4.2 wt% ethylbenzene; an initial plug-flow reactor (three zones, about 66 min, 122 to 133 C, 30 ppm peroxide) and two downstream plug-flow reactors (about 54 min each, 140 to 170 C, n-dodecyl mercaptan added); 72 wt% conversion; a devolatiliser separates a recycle of styrene and ethylbenzene, used to make up the feed; Mw 147 000 g/mol; general description 200 to 300 C under vacuum | read (Google Patents); patent, facts only | D-004, D-005 |
 | SRC-3 | US 4 017 498 A, B. Hopkins (Monsanto), filed 1975-04-18, granted 1977-04-12: Recycle control system for continuous polymerization, https://patents.google.com/patent/US4017498A/en | a horizontal stirred reactor of styrene at about 327 F (437 K) and 21 psia (145 kPa), about 65 % full; its vapour condensed in a reflux condenser and returned, the vapour rate setting temperature and pressure; effluent about 65 wt% polymer; a wiped-film devolatiliser at about 100 mm Hg (13 kPa) leaving about 1 wt% monomer; the condensed monomer recycled | read (Google Patents); patent, facts only | D-005, D-007, D-010 |
-| SRC-4 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment): the CRC Handbook tables packaged in `chemicals` (`heat_capacity.CRC_standard_data`, `miscdata.CRC_organic_data`, `phase_change.Hvap_data_CRC`), its critical constants, `thermo`'s ideal-gas heat capacities | styrene: Tb 418.45 K, 901.6 kg/m3, Cp(l) 182.0 J/(mol K), dHvap 38.70 kJ/mol at 418.15 K, Tc 635.0 K; ethylbenzene: Tb 409.35 K, 862.6 kg/m3, Cp(l) 183.2 J/(mol K), dHvap 35.57 kJ/mol at 409.31 K, Tc 617.12 K; water: Cp(l) 75.3 J/(mol K), dHvap 40.65 kJ/mol; ideal-gas heat capacities of styrene (Joback's estimate) and ethylbenzene (a fit) | open-source packages queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037). The printed (licensed) handbook was not read | materials, D-006, D-008 |
+| SRC-4 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment), each value with the method that gives it: the CRC Handbook tables packaged in `chemicals` (`heat_capacity.CRC_standard_data`, `miscdata.CRC_organic_data`, `phase_change.Hvap_data_CRC`); critical temperatures from `chemicals.critical.Tc` (styrene: method CRC, the critical constants of the CRC Handbook, 95th edition, 2014; ethylbenzene: method HEOS, the values of NIST REFPROP's high-accuracy Helmholtz equations of state); ideal-gas heat capacities from `thermo.HeatCapacityGas` (styrene: method JOBACK, the group contributions of Joback and Reid, Chem. Eng. Commun. 57 (1987) 233; ethylbenzene: method HEOS_FIT, thermo's polynomial fit to REFPROP's Helmholtz equation of state); vapour pressures from `thermo.VaporPressure` (styrene: method WAGNER_MCGARRY, the Wagner coefficients of McGarry, Ind. Eng. Chem. Process Des. Dev. 22 (1983) 313; ethylbenzene: method HEOS_FIT); autoignition and flash points from `chemicals.safety` (method IEC 60079-20-1 (2010)) | styrene: Tb 418.45 K, 901.6 kg/m3, Cp(l) 182.0 J/(mol K), dHvap 38.70 kJ/mol at 418.15 K, Tc 635.0 K, vapour pressure 66.3 kPa at 403.15 K, autoignition 763.15 K, flash point 303.15 K; ethylbenzene: Tb 409.35 K, 862.6 kg/m3, Cp(l) 183.2 J/(mol K), dHvap 35.57 kJ/mol at 409.31 K, Tc 617.12 K (HEOS; the CRC table's 617.1 K), vapour pressure 85.6 kPa at 403.15 K, autoignition 704.15 K, flash point 288.15 K; water: Cp(l) 75.3 J/(mol K), dHvap 40.65 kJ/mol | open-source packages queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037). The printed (licensed) handbook and REFPROP were not read | materials, D-005, D-006, D-008, D-010 |
 | SRC-5 | Wikipedia, Polystyrene, https://en.wikipedia.org/wiki/Polystyrene | CAS 9003-53-6; density 0.96 to 1.05 g/cm3; glass transition about 100 C; heat capacity 1.3 kJ/(kg K) (the solid); made by addition polymerisation started by heat or peroxide; expandable beads by suspension polymerisation in water with pentane; food-contact polystyrene at most 1 % (0.5 % for fatty foods) styrene by weight | read; CC BY-SA, facts only | D-001, D-006, D-007 |
 | SRC-6 | ChEBI via EBI OLS, CHEBI:53276 poly(styrene) | (C8H8)n, cross-reference CAS 9003-53-6 | read (OLS API, 2026-11-19) | registry |
 | SRC-7 | processes/styrene-1, asu-1, hda-1 (this library) | the styrene feed (its product stream, 0.99849 mole fraction styrene with ethylbenzene); gaseous nitrogen; fired heat counted as heat absorbed | library, internal | D-003, D-011 |
@@ -91,8 +91,9 @@ product's mole fractions 0.99849 and 0.00151, taken as mass fractions: both have
 molar mass), at 298 K and 300 kPa(a) from T-101. The TBC inhibitor (10 to 15 ppm, SRC-1) is not
 in the balance; an adsorber to take it out before R-101 is optional (SRC-1, Table 4.5) and is not
 modelled. No initiator, chain transfer agent, mineral oil or additive is fed (D-001).
-Result: 12 581.6 kg/h, 1.006 kg per kg of polymer (spec `rate`), inside SRC-1's 0.985 to 1.020
-t/t (D-012).
+Result: 12 581.6 kg/h (spec `rate`), 1.006 kg of this feed per kg of pellets (S1 / S14), the
+basis of the LCI and of the benchmark: the styrene in it is 1.0045 kg per kg of pellets, 1.0050 per
+kg of polymer (scripts/ps_balance.py). Inside SRC-1's 0.985 to 1.020 t/t (D-012).
 
 ## D-004 Ethylbenzene diluent and purge (2026-11-19)
 Decision: the reactor feed S3 holds 7 wt% ethylbenzene (spec `purge`, ASSUMED; SRC-1: up to
@@ -110,9 +111,14 @@ the fresh styrene 1.6 kg per t of polymer less (scripts/ps_balance.py with the t
 
 ## D-005 Reactors: conversion, temperature, pressure and heat (2026-11-19)
 Decision: two conversion steps (core's `reactor: conversion`, ADR 0059 writes their duties):
-- R101, the prepolymeriser R-101: 35 % of its inlet styrene at 403.15 K, boiling under 50
-  kPa(a); the heat of polymerisation goes to warming the cold feed (302.6 K) and, the rest,
-  to the boiling: the vapour is condensed on cooling water in the reflux condenser E-102 and
+- R101, the prepolymeriser R-101: 35 % of its inlet styrene at 403.15 K, boiling under 65
+  kPa(a), about the solution's bubble pressure at that temperature: Raoult's law over its
+  polymer-free volatiles (89.8 mol% styrene) with SRC-4's vapour pressures gives 68.3 kPa, and
+  64.7 to 67.6 kPa with a Flory-Huggins solvent activity for an interaction parameter chi of 0
+  to 0.5 (ASSUMED; polymer volume fraction 0.293), scripts/ps_balance.py; under 50 kPa(a) the
+  solution would boil near 393 K. The heat of polymerisation goes to warming the cold feed
+  (302.6 K) and, the rest, to the boiling: the vapour (87 mol% styrene) is condensed on cooling
+  water in the reflux condenser E-102 from about 401 K, its dew point under 65 kPa(a), and
   returned. Q1 366.7 kW = 276.8 kW net heat of the step plus the agitator's 90 kW (P1).
 - R102, the tower reactors R-102: 61.5 % of the remaining styrene, the temperature rising to
   443.15 K at the last tower's outlet (SRC-2: 160 to 170 C in its last reactor), liquid-full at
@@ -129,8 +135,10 @@ Rejected: R-101 at SRC-3's 437 K and 145 kPa: a 65 wt% polymer solution in one s
 the viscous end of what a CSTR handles; the concept keeps the CSTR at low conversion and leaves
 the viscous range to the towers. Tower heat used in E-101 (the oil loop at about 430 K cannot
 heat the solution to 513 K; a part of it could preheat): heat integration not studied.
-Assumptions: the conversions and residence times (no open rate law read, L-1); the boiling
-pressure of R-101 is not checked (no polymer-solvent phase equilibrium, L-3).
+Assumptions: the conversions and residence times (no open rate law read, L-1); R-101's boiling
+pressure rests on Raoult's law with an assumed Flory-Huggins chi, not on a measured
+polymer-solvent equilibrium (L-3); in operation the pressure controller sets it, and with it the
+temperature.
 
 ## D-006 Heat capacities (2026-11-19)
 Decision: constant liquid heat capacities at 298.15 K (SRC-4): styrene 182.0, ethylbenzene
@@ -159,7 +167,7 @@ bound we do not know); the condensate goes to the recycle tank T-201 and back to
 Reason: SRC-1's two-stage devolatilisation; the recoveries are what high vacuum at 513 K gives
 in SRC-3's order of magnitude.
 Assumptions: the recoveries (no polymer-solvent phase equilibrium in core, L-3); the booster's
-heat of compression neglected (S10 at 513.15 K); styrene dissolved in the pelletiser's water
+heat of compression neglected (S10 at 513.15 K; its power is in P3, D-008's energy balance); styrene dissolved in the pelletiser's water
 not modelled.
 
 ## D-008 Heat supply and the condenser (2026-11-19)
@@ -171,6 +179,18 @@ Watson's correlation from the CRC heats of vaporization and critical temperature
 cools the vapours as ideal gas from 513.15 to 313.15 K and condenses them at 313.15 K: Q4 1108.7
 kW (the enthalpy is a state function, so the path through the condensation at 313 K stands for
 the real one at the dew point near 330 K under 4 kPa(a)).
+Energy balance of the plant (scripts/ps_balance.py, the liquids at 298.15 K the reference): in
+4169.0 kW (electricity 660.0, hot oil Q3 1043.8, heat of polymerisation 2465.3), out 4017.8 kW
+(cooling water Q1, Q2, Q4 and Q5 3649.3, the products' sensible heat above 298.15 K 368.5); it
+does not close by 151.2 kW (3.6 % of the input), all of it explained: (1) 300.0 kW of
+electricity no modelled sink takes: the vacuum system P3 (120 kW), P5's dryer, conveying and
+packing (160 kW) and 10 % of the gear pump's, cutter's and water pump's power, which leave to
+the air and the vacuum pumps' own cooling (D-009); less (2) 148.8 kW by which E-103's path
+exceeds E-101's for the same vapour S16: from liquid at 313.15 K to vapour at 513.15 K it takes
+959.9 kW with the constant liquid heat capacity and Watson's heat of vaporization at 513 K
+(Q3's path), 1108.7 kW with the ideal-gas heat capacities and the heat of vaporization at 313 K
+(Q4's path). The second is the liquid heat capacities' understatement of D-006 in one loop: Q3,
+and the hot oil, are likely low by up to that order.
 Reason: core's separators and coolers do not write duties (L-4); the script gives them with its
 own mass balance, which agrees with propagate's (12 581.6 kg/h, purge 0.01366).
 Assumptions: ideal-gas heat capacities of `thermo` 0.6.1 (Joback's estimate for styrene); heat
@@ -180,15 +200,17 @@ losses neglected.
 Decision: the melt gear pump P-201 (110 kW: 12.5 t/h raised by about 15 MPa, 52 kW hydraulic, at
 50 % with the drive) feeds an underwater pelletiser; the pellets are dried in a centrifugal
 dryer and conveyed to the silos (X-301, 250 kW with the water pump, conveying and packing). The
-water loop is held at 323 K by a cooler on cooling water: Q5 937.2 kW, the melt cooled from 513.15
-to 323.15 K less the make-up warmed from 298.15 to 323.15 K. Its make-up, 0.592 kg per kg of fresh
+water loop is held at 323 K by a cooler on cooling water: Q5 1117.2 kW, the melt cooled from 513.15
+to 323.15 K less the make-up warmed from 298.15 to 323.15 K (937.2 kW), plus the shaft work
+that ends in the melt and the water, 180 kW: 90 % of the gear pump's 110 kW and of the cutter's
+60 and the water pump's 30 kW (ASSUMED; the rest is the drives' losses to the air). Its make-up, 0.592 kg per kg of fresh
 styrene (spec `rate`), gives 0.5956 kg per kg of polymer, SRC-1's 0.596 (Table 13.6), and
 leaves as the loop's purge to wastewater treatment (S15). Electricity in all 660 kW (P1 to P5:
 agitators 180 kW, vacuum 120 kW, melt pump 110 kW, pelletising, drying and conveying 250 kW),
 all ASSUMED (the reactors' 180 kW are agitators with the reflux, feed and transfer pumps).
 Cooling water 298/308 K.
-Assumptions: the powers are concept estimates; the cutter's and pump's work into the water is
-not counted in Q5.
+Assumptions: the powers are concept estimates, and so is the share of them that ends in the
+water; the rest of the electricity, 300 kW, is in no modelled sink (D-008's energy balance).
 
 ## D-010 Hazards of the continuous reactors (2026-11-19)
 Decision: a hand screening, since core's `cheme process reactor-hazards` screens batch and
@@ -209,8 +231,12 @@ stop and short-stop (an inhibitor injection) on high temperature or pressure of 
 tower, and on loss of agitation or of cooling water; (3) the recycle tank T-201 holds styrene
 without polymer but hot from E-103's 313 K: it needs its inhibitor dosed and its temperature
 held low (SRC-1: self-polymerisation in storage is a runaway; TBC needs oxygen present);
-(4) air ingress into the vacuum system at 513 K (styrene vapour) and the hot-oil system at 563 K
-above styrene's autoignition range are fire cases for the HAZOP. The polymer dust from pellet
+(4) air ingress into the vacuum system at 513 K (styrene vapour), and a leak of the process
+liquid at 403 to 513 K, far above the flash points of styrene (303 K) and ethylbenzene (288 K),
+are fire cases for the HAZOP, and so is a leak of the hot oil at 563 K by the oil's own flash
+and autoignition points (the oil is not chosen). The process's and the oil's temperatures stay
+below the autoignition temperatures of styrene (763 K) and ethylbenzene (704 K) (SRC-4): an
+ignition needs a source, which the hazardous-area classification has to exclude. The polymer dust from pellet
 conveying (SRC-1: 2 to 7 g/t) is a dust-explosion case for the silos.
 Assumptions: the heat capacities of D-006 (a higher melt heat capacity lowers the rises by up to
 about a fifth).
@@ -219,17 +245,20 @@ about a fifth).
 Decision: a preliminary gate-to-gate inventory per kg of pellets (lca/lca.yaml), one product (no
 allocation). Linked by the library's LCI build (lca/mappings.yaml): the styrene to styrene-1's
 dataset, the hot oil's heat as heat from natural gas (kWh absorbed, as hda-1), the nitrogen to
-asu-1; electricity, cooling water and wastewater through the shared entries. Gaps (never 0): the
-process water, the purge's and the vent's thermal oxidation, the nitrogen's release. Nitrogen:
+asu-1; electricity, cooling water, wastewater and the process water through the shared entries
+(the process water as `water`, deionised water: a conservative proxy for the pelletiser's
+make-up, ASSUMED). Gaps (never 0): the purge's and the vent's thermal oxidation, the nitrogen's
+release. Nitrogen:
 SRC-1's 0.022 kg/kg (2200 t/a), ASSUMED for this plant, as a consumable leaving with the vents.
 The purge and the vent are waste treatments under cut-off. Emission exclusions recorded for
 fugitives, the reactors' vents, storage breathing and pellet dust.
 Reason: the foreground for a cradle-to-gate polystyrene once the backgrounds are linked; the
-styrene carries almost all of the burden (1.006 kg/kg).
+styrene carries almost all of the burden (1.006 kg of styrene-1's product per kg of pellets).
 
 ## D-012 Cross-check against the POL BREF (2026-11-19)
 Per t of GPPS, the dataset against SRC-1's Table 4.10 / Table 13.6 (benchmarks/polymers.yaml):
-- styrene 1.006 t, inside 0.985 to 1.020 t; the BREF's product carries about 0.02 t of mineral
+- styrene: 1.006 t of styrene-1's product (feed:SM, 0.15 wt% ethylbenzene in it; 1.0045 t of
+  styrene itself), inside 0.985 to 1.020 t, which is the monomer as bought; the BREF's product carries about 0.02 t of mineral
   oil and 0.005 t of additives that ours does not, so 0.985 t of styrene in 1 t of the BREF's
   product compares with about 1.01 t in ours;
 - total energy 0.49 GJ (53 kWh electricity, 83 kWh heat from the hot oil), below the BREF's 1.08
@@ -237,7 +266,7 @@ Per t of GPPS, the dataset against SRC-1's Table 4.10 / Table 13.6 (benchmarks/p
   the heat delivered to E-101; the hot-oil heater's losses, cooling-water and other utility
   energy, tracing, HVAC, start-ups and buildings are not in it, and the BREF does not say how it
   adds fuel and power;
-- cooling water: 0.277 kWh/kg, 24 t/t circulated at a 10 K rise, below the BREF's 50 to 100 t;
+- cooling water: 0.292 kWh/kg, 25 t/t circulated at a 10 K rise, below the BREF's 50 to 100 t;
 - process water 0.596 t and nitrogen 0.022 t, VOC 86 g: the BREF's figures by construction (not
   bound as benchmarks); wastewater 0.596 t, below the BREF's 0.8 t (its other sources, such as
   the styrene adsorber's regeneration and cleaning, are not in this concept).
@@ -252,7 +281,7 @@ design specifications on a feed and a purge split solved with a recycle tear (AD
 |---|---|---|---|
 | L-1 | No polymerisation kinetics: the `cstr` and `pfr` models need rate laws (`pfr` is a gas-phase catalyst bed), and no model carries a chain-length (molar-mass) distribution, the gel effect or the viscosity | reactors are conversion steps with ASSUMED per-pass conversions; volumes from ASSUMED residence times; no molar mass, melt flow rate or productivity per volume | D-005; a rate law with its source would allow `reactor: cstr` for R-101 |
 | L-2 | The conversion-step duty uses one constant liquid heat capacity per component | sensible heats between 300 and 513 K low by about 15 to 25 % | D-006 |
-| L-3 | No property package covers styrene, ethylbenzene or a polymer; no polymer-solvent phase equilibrium (Flory-Huggins) | `props --fill` calculates nothing; R-101's boiling pressure and the devolatilisers' recoveries are not predicted | D-005, D-007: specified splits |
+| L-3 | No property package covers styrene, ethylbenzene or a polymer; no polymer-solvent phase equilibrium (Flory-Huggins) | `props --fill` calculates nothing; the devolatilisers' recoveries are not predicted, R-101's boiling pressure only bounded (Raoult's law with an assumed Flory-Huggins chi) | D-005 (scripts/ps_balance.py), D-007: specified splits |
 | L-4 | Separators, flashes and coolers write no duty | E-101, E-103 and the pelletiser's heats from the balance script | D-008, D-009, scripts/ps_balance.py |
 | L-5 | `cheme process reactor-hazards` screens batch and semi-batch reactors only | the continuous reactors' runaway screened by hand | D-010 |
 | L-6 | No solid or glassy polymer phase: the pellets are carried as a liquid template | the pelletiser is a component separator; the melt's heat capacity is used down to 323 K | D-006, D-009 |

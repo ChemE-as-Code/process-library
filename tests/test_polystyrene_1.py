@@ -11,8 +11,10 @@ DESIGN.md, README.md and process.yaml are checked against them:
 - the conversions per pass (0.35, 0.615) and over the train (0.75), the solution's 69.7 wt%
   polymer, the residual volatiles (about 520 ppm) and the vent's 86 g/t;
 - the reactors' duties are their heat of reaction and sensible heats plus the agitators' power;
-- the adiabatic rises of D-010 follow from the styrene left in S4 and S5;
-- the balance script re-solves the same plant (with thermo, as in core's environment);
+- the adiabatic rises of D-010 follow from the styrene left in S4 and S5, the heat of reaction
+  and the polymer's heat capacity, and every document states the same rises;
+- the balance script re-solves the same plant and gives the same Q5 (without thermo, so that the
+  library job runs it); with thermo, R-101's pressure is its bubble pressure at 403.15 K;
 - every heat and power stream reaches the LCI, which links the styrene to styrene-1;
 - the benchmark binding names both KPIs; the process is public with CC-BY-4.0.
 """
@@ -117,24 +119,56 @@ def test_reactor_duties_are_reaction_and_sensible_heat_plus_power(streams):
 
 
 def test_adiabatic_rises_of_design_d010(streams):
+    mat = {c["id"]: c for c in _load("process/materials.yaml")["components"]}
+    rxn = _load("process/reactions.yaml")["reactions"][0]
+    heat = -rxn["heat_of_reaction"]["value"] / mat["STY"]["molar_mass"]  # kJ/kg converted
+    cp = mat["PS"]["liquid_heat_capacity"] / mat["PS"]["molar_mass"]  # kJ/(kg K), D-006
     for sid, stated in (("S4", 246), ("S5", 95)):
         s = _kg(streams, sid)
-        rise = s["STY"] / sum(s.values()) * 710 / (182.0 / 104.152)
+        rise = s["STY"] / sum(s.values()) * heat / cp
         assert round(rise) == stated
-        assert f"{stated} K" in _text("DESIGN.md")
+        for doc in ("DESIGN.md", "README.md", "process.yaml"):
+            assert f"{stated} K" in _text(doc), doc
 
 
-def test_balance_script_resolves_the_same_plant(streams):
-    pytest.importorskip("scipy")
-    pytest.importorskip("thermo")
+def _ps_balance():
     spec = importlib.util.spec_from_file_location("ps_balance", PROCESS / "scripts" / "ps_balance.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    return module
+
+
+def test_balance_script_resolves_the_same_plant(streams):
+    pytest.importorskip("scipy")  # thermo is imported only where the vapour data are needed
+    module = _ps_balance()
     from scipy.optimize import fsolve
 
     fresh, purge = fsolve(module.residuals, [12600.0, 0.015], xtol=1e-12)
     assert fresh == pytest.approx(streams["S1"]["flow"]["value"], abs=0.1)
     assert purge == pytest.approx(0.01366, abs=5e-6)
+    s = module.plant(fresh, purge)
+    for sid in ("S2", "S13", "S20"):
+        assert sum(s[sid].values()) == pytest.approx(streams[sid]["flow"]["value"], abs=0.1)
+    duty = module.flowsheet_duties()
+    shaft = module.SHAFT_TO_WATER * (duty["P4"] + module.CUTTER_AND_WATER_PUMP)
+    q5 = (module.sensible(s["S11"], module.T_PELLET, module.T_DEVOL)
+          - module.sensible(s["S13"], module.T_WATER, module.T_PELLET) + shaft)
+    assert shaft == pytest.approx(180.0)
+    assert round(q5, 1) == _duty(streams, "Q5")
+
+
+def test_r101_pressure_is_its_bubble_pressure(streams):
+    pytest.importorskip("scipy")
+    pytest.importorskip("thermo")
+    module = _ps_balance()
+    s4 = _kg(streams, "S4")
+    vol = {k: s4[k] / MW[k] for k in ("STY", "EB")}
+    ideal = sum(v / sum(vol.values()) * module.psat(k, 403.15) for k, v in vol.items())
+    assert ideal == pytest.approx(68.3, abs=0.1)
+    pressure = streams["S4"]["pressure"]["value"]
+    assert pressure == module.P_R101 == 65.0
+    assert 0.94 * ideal <= pressure <= ideal  # a Flory-Huggins activity of 0.95 to 0.99, D-005
+    assert streams["S4"]["temperature"]["value"] == 403.15
 
 
 def test_every_energy_stream_reaches_the_lci(streams):

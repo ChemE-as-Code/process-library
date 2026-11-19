@@ -13,7 +13,7 @@ Markdown, the BFD and PFD generated from the flowsheet. Edited by people and by 
 A concept-stage plant for 100 kt/a of general-purpose (crystal) polystyrene by continuous bulk
 polymerisation of styrene, the process the EU Polymers BREF (2007) describes for GPPS: styrene
 from `processes/styrene-1`, mixed with the recovered monomer to a feed with 7 wt% ethylbenzene,
-is polymerised by heat in a stirred prepolymeriser R-101 at 403 K that boils under 50 kPa(a)
+is polymerised by heat in a stirred prepolymeriser R-101 at 403 K that boils under 65 kPa(a)
 (its vapour condensed in a reflux condenser and returned) and in three liquid-full stirred tower
 reactors R-102 up to 443 K, to 75 % conversion. The solution is heated to 513 K on hot oil and
 devolatilised at 4 and 1 kPa(a); the vapours are condensed and recycled, 1.37 % purged to the
@@ -27,22 +27,22 @@ heats come from `scripts/ps_balance.py`, which also re-solves the mass balance i
 Needs cheme-as-code 1.12.0. DESIGN.md lists the core features used and the core limits hit.
 
 Headline numbers and their caveats:
-- 1.006 kg of styrene per kg of polystyrene, inside the BREF's 0.985 to 1.020 t/t; the purge
+- 1.006 kg of styrene feed (styrene-1's product) per kg of pellets, inside the BREF's 0.985 to 1.020 t/t; the purge
   (5.9 g/kg) and the residual monomer (about 520 ppm) are the losses (D-004, D-007).
 - The conversions (0.35 and 0.615 per pass) and the devolatilisers' recoveries are ASSUMED
   inside the BREF's ranges: core has no polymerisation kinetics and no polymer-solvent phase
   equilibrium, so the reactors are sized on assumed residence times (D-005, D-007, L-1, L-3).
 - Heat: 1.42 MW of polymerisation heat and agitation to cooling water from the reactors, 1.04 MW
-  from hot oil to the devolatilisers, 1.11 MW from the vapour condenser, 0.94 MW from the
-  pelletiser's water; electricity 660 kW (ASSUMED). Energy 0.49 GJ/t, below the BREF's
+  from hot oil to the devolatilisers, 1.11 MW from the vapour condenser, 1.12 MW from the
+  pelletiser's water (with the pumps' and cutter's work); electricity 660 kW (ASSUMED). Energy 0.49 GJ/t, below the BREF's
   1.08 to 1.80 GJ/t, which counts more than the line's motors and heater (D-012).
 - Runaway (hand screening, D-010): if the cooling failed and the remaining styrene polymerised,
   the prepolymeriser's content would rise about 246 K and the towers' outlet about 95 K. The
   prepolymeriser is tempered by its boiling, the liquid-full towers are not: their relief and
   interlocks are design findings for basic engineering.
 - The LCI is gate to gate and preliminary: the styrene is linked to styrene-1, the hot oil's heat
-  to heat from natural gas, the nitrogen to asu-1; the purge's and vent's oxidation and the
-  process water are gaps (D-011).
+  to heat from natural gas, the nitrogen to asu-1, the process water to the shared `water`
+  entry; the purge's and vent's oxidation and the nitrogen's release are gaps (D-011).
 
 | path | what |
 |---|---|
