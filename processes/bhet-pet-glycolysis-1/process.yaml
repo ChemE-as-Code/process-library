@@ -12,26 +12,27 @@ summary: >-
   gate-to-gate LCI.
 description: |
   Washed post-consumer PET flake, fresh and recovered ethylene glycol (2 kg per kg PET), zinc
-  acetate (1.5 g per kg PET) and the recycled oligomer cake are held 2 h at the glycol's reflux
-  at 470 K and atmospheric pressure: method B of EP 0 723 951 A1 (Pilati et al., Example 2).
-  The hot glycolysate is filtered of the non-PET solids and run into the last batch's second
-  mother liquor at 343 K, where the oligomers precipitate and are filtered off, 90 % of them back
+  acetate (1.5 g per kg PET) and the recycled oligomer cake are heated, their water distilled
+  off on the way, and held 2 h at the glycol's reflux at 470 K and atmospheric pressure: method
+  B of EP 0 723 951 A1 (Pilati et al., Example 2). The hot glycolysate is filtered of the
+  non-PET solids and run into the second mother liquor of the batch before last at 343 K, where the oligomers precipitate and are filtered off, 90 % of them back
   to the next charge. The liquor is cooled to 288 K for the crude BHET (90 % of the dissolved
   BHET, from Example 2), which is centrifuged, redissolved in 6 kg of hot water per kg at 353 K,
   recrystallised at 288 K to its water solubility, centrifuged and vacuum-dried at 343 K. The
-  first mother liquor and the dryer's condensate are distilled: 95 % of the water returns to the
+  first mother liquor, the dryer's condensate and the reactor's heat-up distillate are distilled: 95 % of the water returns to the
   redissolution, 95 % of the glycol bottoms with their BHET and catalyst to the charge, the rest
-  of each is purged. Model yield 97.8 % of the PET repeat units to dried BHET of 99.8 wt%.
+  of each is purged. Model yield 97.7 % of the PET repeat units to dried BHET of 99.8 wt%.
 
   The batch is modelled with cheme-as-code: a conversion step for the glycolysis with the split
   of Example 2 (87 % of the repeat units to BHET, 13 % to oligomers lumped as the dimer, the
   recycled oligomers glycolysed alike, a little DEG), core's crystallizer for the oligomers and
   both crops (imposed yields and BHET's water solubility, ADR 0056), specified filters and
-  centrifuges, core's dryer (ADR 0057), a component separator for the dewatering column, four
+  centrifuges, core's dryer with its cooling (ADRs 0057, 0076), component separators for the
+  reactor's heat-up distillation of the charge's water and for the dewatering column, four
   design specifications that size the flake, the fresh glycol, the catalyst and the make-up
   water (ADR 0070), four recycles converged at tears (ADR 0060) and the batch recipe (ADRs 0051,
-  0052, 0057): the dryer and the reactor set a cycle of 6.248 h, 1268 batches a year. The
-  water route's distillation takes 6.7 of the 7.6 kWh of heat per kg BHET (SRC-1 finds the same
+  0052, 0057): the dryer sets a cycle of 6.248 h, the reactor close behind, 1268 batches a year.
+  The water route's distillation takes 6.7 of the 7.9 kWh of heat per kg BHET (SRC-1 finds the same
   for its water-antisolvent case). Every heat of reaction is ASSUMED 0 (an ester interchange);
   the thermal screening finds no exotherm, the reactor runs at its MTT. See DESIGN.md for every
   assumption.
@@ -50,24 +51,31 @@ validation:
   status: unreviewed
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
-    process streams: 5 blocks and 18 steps within tolerance; the second mother liquor, the
+    process streams: 5 blocks and 19 steps within tolerance; the second mother liquor, the
     recovered glycol, the oligomer cake and the distilled water converged at the tears S19, S20,
     S21 and S29). Four design specifications size the flake for 5000 t/a of dried BHET, the fresh
     glycol for 2 kg of glycol per kg PET in the charge, the zinc acetate for 1.5 g per kg PET and
     the make-up water for 6 kg of water per kg of crude BHET in the redissolution (EP 0 723 951
-    A1). The glycolysis R101 is a conversion step with Example 2's split; the crystallizers
-    CR201 to CR204, the filters and the dryer D201 are core's models, the dewatering column X301
-    a specified split; cheme process propagate writes the reactor's and the crystallizers'
-    duties (Q1 to Q5); the dryer's duty Q6 is core's dryer model as reported by cheme process
-    crystallizers; the condensers' and the column's duties (Q7 to Q9) are by hand with their
-    arithmetic in each source. The recipe's rate agrees with the flowsheet (no
-    cheme.recipe-basis finding); it sizes D-201 (12.5 m3); R-101 (16 m3) and the crystallisers
-    are sized by hand. Thermal screening (cheme process reactor-hazards): R101 dT_ad 0 K (every
-    heat of reaction ASSUMED 0), MTSR 470.1 K against an MTT of 470.31 K (the glycol's boiling
-    point); no TD24, no criticality class. Preliminary gate-to-gate LCI: the glycol linked to
-    ethylene-glycol-1, the make-up water to demineralised-water-1, the steam as heat; the
-    washed flake (its sorting and washing; burden-free as waste under cut-off), the catalyst,
-    power, cooling, chilled water and the waste treatments are gaps. cheme maturity reaches no
+    A1). The charge's water (4.3 wt%, mostly from the wet oligomer cake) is distilled off in the
+    heat-up (X101, a specified split), since it cannot stay liquid at 470 K and 1 atm; the
+    glycolysis R101 is a conversion step with Example 2's split; the crystallizers CR201 to
+    CR204, the filters and the dryer D201 are core's models, the dewatering column X301 a
+    specified split; cheme process propagate writes the reactor's and the crystallizers' duties
+    (Q1 to Q5; the quench CR201 with its two inlets' own heat capacities); the dryer's heat Q6
+    and cooling Q12 are core's dryer model as reported by cheme process crystallizers; the
+    heat-up distillation and reflux of R-101 (Q10, Q11), the condensers' and the column's duties
+    (Q7 to Q9) are by hand with their arithmetic in each source. The recipe's rate agrees with
+    the flowsheet (no cheme.recipe-basis finding); it sizes D-201 (12.5 m3); R-101 (16 m3), the
+    crystallisers and the second mother liquor's tank T-304 are sized by hand. Thermal screening
+    (cheme process reactor-hazards): R101 dT_ad 0 K (every heat of reaction ASSUMED 0), MTSR
+    470.1 K against an MTT of 470.31 K (the glycol's boiling point, the lower bound of the dry
+    glycolysate's bubble point); no TD24, no criticality class. Preliminary gate-to-gate LCI: in
+    the Atlas build the glycol is linked to ethylene-glycol-1, the make-up water to
+    demineralised-water-1, the steam as heat, and power, cooling water and the wastewater
+    through the shared mappings; six exchanges are gaps: the washed flake (its sorting and
+    washing; burden-free as waste under cut-off), the catalyst, chilled water and the
+    incineration of the three purges. Core's own assessment, without a background, lists all 13
+    exchanges as unmapped (lca/gaps.csv). cheme maturity reaches no
     level (assumed conversion split and separations); the claim `maturity: concept` is the
     lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.13.0.
 chemistry:
@@ -84,10 +92,10 @@ chemistry:
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Distillate purge to wastewater treatment, 0.306 kg/kg, water with about 0.04 wt% glycol"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.059 kWh/kg: agitators, filters, centrifuges, the dryer's drive and vacuum pump, column pumps (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "6.96 kWh/kg of HP steam 4100 kPa(a): R-101 (0.24, core's conversion duty) and the column's reboiler (6.72, by hand)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.62 kWh/kg of LP steam 350 kPa(a): the quench, the redissolution (core's crystallizer duties) and the dryer (core's dryer model)"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "6.28 kWh/kg removed: the column's and the dryer's condensers (by hand)"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "1.06 kWh/kg removed at 278 K: both crystallisations to 288 K (core's crystallizer duties)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "7.08 kWh/kg of HP steam 4100 kPa(a): R-101's heat-up (0.22, core's conversion duty), its heat-up distillation and reflux (0.14, by hand) and the column's reboiler (6.72, by hand)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.80 kWh/kg of LP steam 350 kPa(a): the quench and the redissolution (core's crystallizer duties) and the dryer (core's dryer model)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "6.44 kWh/kg removed: the column's, R-101's and the dryer's condensers (by hand) and the product's cooling in the dryer (core's dryer model)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "1.05 kWh/kg removed at 278 K: both crystallisations to 288 K (core's crystallizer duties)"}
 basis:
   capacity: "5000 t/a dried BHET: 1268 batches/a of 3944.66 kg in 7920 h on a dedicated train (631.31 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920

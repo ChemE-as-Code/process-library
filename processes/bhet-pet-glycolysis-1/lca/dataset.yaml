@@ -31,10 +31,11 @@ cutoff:
   direction: output
   reason: BHET dust in the dryer's vacuum vent and in packing is not estimated (D-008, D-010).
 - key: emission-excluded:column-vent
-  title: storage-tank emissions of T-301, T-302
+  title: storage-tank emissions of T-301, T-302, T-304
   direction: output
-  reason: The column's and the liquor tanks' vents carry water vapour with traces of glycol and of the
-    acetic acid the catalyst may release; not estimated (D-010).
+  reason: 'The column''s and the liquor tanks'' vents (T-304: the second mother liquor at 288 K, 98 %
+    water) carry water vapour with traces of glycol and of the acetic acid the catalyst may release; not
+    estimated (D-010).'
 uuid: 76906286-caab-5e7b-87e3-14c4620d6c3c
 version: 0.1.0
 geography:
@@ -46,7 +47,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 5000006.88
+  amount: 4999998.96
   unit: kg/a
   source: product:BHET per hour x operation.hours_per_year (7920 h/a)
 classification:
@@ -60,7 +61,7 @@ exchanges:
 - key: feed:PETF
   title: Washed PET flake (post-consumer bottles)
   type: input
-  amount: 489.626
+  amount: 489.653
   unit: kg
   link:
     source: flowsheet stream S1, the washed flake with 0.5 wt% non-PET solids (D-004)
@@ -86,7 +87,7 @@ exchanges:
 - key: feed:EGF
   title: Ethylene glycol (ethylene-glycol-1)
   type: input
-  amount: 198.932
+  amount: 198.973
   unit: kg
   link:
     source: flowsheet stream S2, the fresh glycol (D-004)
@@ -108,7 +109,7 @@ exchanges:
 - key: feed:CATF
   title: Zinc acetate (catalyst make-up)
   type: input
-  amount: 0.0388546
+  amount: 0.0389073
   unit: kg
   link:
     source: flowsheet stream S3, the catalyst make-up (D-004)
@@ -130,7 +131,7 @@ exchanges:
 - key: feed:WATF
   title: Process water (make-up)
   type: input
-  amount: 201.256
+  amount: 201.153
   unit: kg
   link:
     source: flowsheet stream S31, the make-up water (D-004, D-007)
@@ -157,8 +158,9 @@ exchanges:
   link:
     source: flowsheet energy streams P1 to P6 (agitators, filters, centrifuges, the dryer's drive and
       vacuum pump, the column's pumps), D-009
-    missing: 'not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided)
-      site country'
+    missing: not mapped in core's assessment (no Brightway background here); the Atlas LCI links it through
+      the shared lci/mappings.yaml entry `electricity` (market for electricity, medium voltage), so it
+      is no Atlas gap (D-012)
   streams:
   - P1
   - P2
@@ -178,19 +180,20 @@ exchanges:
 - key: feed:HPS
   title: HP steam 4100 kPa(a)
   type: input
-  amount: 4392.298
+  amount: 4468.016999999999
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 (R-101, core's conversion duty) and Q8 (the column's reboiler,
-      by hand), D-009
+    source: flowsheet energy streams Q1 (R-101's heat-up, core's conversion duty), Q10 (R-101's heat-up
+      distillation and reflux boil-up, by hand) and Q8 (the column's reboiler, by hand), D-009
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       4100 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per
       kWh of condensing heat'
   streams:
   - Q1
   - Q8
-  source: flowsheet energy streams Q1 (R-101, core's conversion duty) and Q8 (the column's reboiler, by
-    hand), D-009
+  - Q10
+  source: flowsheet energy streams Q1 (R-101's heat-up, core's conversion duty), Q10 (R-101's heat-up
+    distillation and reflux boil-up, by hand) and Q8 (the column's reboiler, by hand), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -204,7 +207,7 @@ exchanges:
 - key: feed:LPS
   title: LP steam 350 kPa(a)
   type: input
-  amount: 393.62719999999996
+  amount: 503.0
   unit: kWh
   link:
     source: flowsheet energy streams Q2 and Q4 (core's crystallizer duties) and Q6 (core's dryer model),
@@ -230,7 +233,7 @@ exchanges:
 - key: product:BHET
   title: BHET crystals to packing
   type: product
-  amount: 631.314
+  amount: 631.313
   unit: kg
   provenance: calculated
   streams:
@@ -241,19 +244,19 @@ exchanges:
   basic_uncertainty: 1.05
   state:
     pressure: 1.01325
-    temperature: 30.0
-    purity: 0.97202
+    temperature: 40.0
+    purity: 0.972023
     basis: mole
     component: BHET_S
   composition:
     fractions:
-      H2O: 0.001967941
-      EG: 3.2058e-05
-      DEG: 2.6759e-05
-      BHET: 0.000732172
-      BHET_S: 0.997234512
-      OLIG: 4.478e-06
-      ZNAC: 2.08e-06
+      H2O: 0.00196752
+      EG: 3.248e-05
+      DEG: 2.7094e-05
+      BHET: 0.000732011
+      BHET_S: 0.997234238
+      OLIG: 4.543e-06
+      ZNAC: 2.113e-06
     formulas:
       H2O: H2O
       EG: C2H6O2
@@ -266,7 +269,7 @@ exchanges:
 - key: product:RES
   title: Hot-filter residue (non-PET solids with glycolysate), to incineration
   type: output
-  amount: 3.67221
+  amount: 3.67241
   unit: kg
   provenance: calculated
   link:
@@ -286,30 +289,26 @@ exchanges:
       (D-010)'
   composition:
     fractions:
-      H2O: 0.014255067
-      EG: 0.161067759
-      DEG: 0.001851735
-      PET: 0.0
-      BHET: 0.139313405
-      OLIG: 0.016701329
-      OLIG_S: 0.0
-      ZNAC: 0.000143962
-      IMP: 0.666666743
+      H2O: 0.000165746
+      EG: 0.167981614
+      DEG: 0.00192945
+      BHET: 0.145646788
+      OLIG: 0.017459314
+      ZNAC: 0.0001505
+      IMP: 0.66666659
     formulas:
       H2O: H2O
       EG: C2H6O2
       DEG: C4H10O3
-      PET: C10H8O4
       BHET: C12H14O6
       OLIG: C22H22O10
-      OLIG_S: C22H22O10
       ZNAC: C4H6O4Zn
       IMP: C2H4
     source: stream table (S6)
 - key: product:OPURGE
   title: Oligomer purge, to incineration
   type: output
-  amount: 16.629
+  amount: 16.6292
   unit: kg
   provenance: calculated
   link:
@@ -328,13 +327,13 @@ exchanges:
     route: incineration of the oligomer purge, a wet cake of PET oligomers with glycol and water (D-010)
   composition:
     fractions:
-      H2O: 0.35974262
-      EG: 0.076345596
-      DEG: 0.00087611
-      BHET: 0.062820793
-      OLIG: 0.000146602
-      OLIG_S: 0.500000166
-      ZNAC: 6.8113e-05
+      H2O: 0.358015531
+      EG: 0.077242572
+      DEG: 0.000885587
+      BHET: 0.063638738
+      OLIG: 0.000148505
+      OLIG_S: 0.499999989
+      ZNAC: 6.9077e-05
     formulas:
       H2O: H2O
       EG: C2H6O2
@@ -347,7 +346,7 @@ exchanges:
 - key: product:GPURGE
   title: Glycol residue purge (DEG, catalyst, heavies; a liquid), to incineration
   type: output
-  amount: 45.0649
+  amount: 45.052
   unit: kg
   provenance: calculated
   link:
@@ -367,12 +366,12 @@ exchanges:
       (D-010)'
   composition:
     fractions:
-      H2O: 0.021531599
-      EG: 0.892284534
-      DEG: 0.010241069
-      BHET: 0.07343295
-      OLIG: 0.001713661
-      ZNAC: 0.000796187
+      H2O: 0.021535258
+      EG: 0.892394553
+      DEG: 0.010207877
+      BHET: 0.073354313
+      OLIG: 0.001711767
+      ZNAC: 0.000796231
     formulas:
       H2O: H2O
       EG: C2H6O2
@@ -384,13 +383,13 @@ exchanges:
 - key: product:WW
   title: Distillate purge, to wastewater treatment
   type: output
-  amount: 193.174
+  amount: 193.152
   unit: kg
   provenance: calculated
   link:
     source: flowsheet stream S30 (D-008, D-010)
-    missing: 'not mapped yet (D-012); connect to: treatment of a lightly loaded process effluent in an
-      industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg'
+    missing: not mapped in core's assessment; the Atlas LCI links it through the shared lci/mappings.yaml
+      entry `wastewater` (the proxy per kg of wastewater to treatment), so it is no Atlas gap (D-012)
   streams:
   - S30
   source: flowsheet stream S30 (D-008, D-010)
@@ -403,8 +402,8 @@ exchanges:
     route: 'site wastewater treatment of the distillate purge: water with about 0.04 wt% glycol (D-010)'
   composition:
     fractions:
-      H2O: 0.99958285
-      EG: 0.00041715
+      H2O: 0.999582871
+      EG: 0.000417129
     formulas:
       H2O: H2O
       EG: C2H6O2
@@ -412,18 +411,21 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 3964.25
+  amount: 4067.193
   unit: kWh
   link:
-    source: flowsheet energy streams Q7 (the dryer's condenser) and Q9 (the column's condenser), by hand,
+    source: flowsheet energy streams Q11 (R-101's overhead condenser), Q7 (the dryer's condenser) and
+      Q9 (the column's condenser), by hand, and Q12 (the dryer's product cooling, core's dryer model),
       D-009
-    missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
-      with cooling tower (processes/utility-cooling-tower), per kWh removed'
+    missing: not mapped in core's assessment; the Atlas LCI links it through the shared lci/mappings.yaml
+      entry `cooling-water` (the screening proxy per kWh of heat rejected), so it is no Atlas gap (D-012)
   streams:
   - Q7
   - Q9
-  source: flowsheet energy streams Q7 (the dryer's condenser) and Q9 (the column's condenser), by hand,
-    D-009
+  - Q11
+  - Q12
+  source: flowsheet energy streams Q11 (R-101's overhead condenser), Q7 (the dryer's condenser) and Q9
+    (the column's condenser), by hand, and Q12 (the dryer's product cooling, core's dryer model), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -435,7 +437,7 @@ exchanges:
 - key: product:CHW
   title: Chilled water return (278 K)
   type: output
-  amount: 667.873
+  amount: 663.749
   unit: kWh
   provenance: calculated
   link:
@@ -460,8 +462,8 @@ provenance:
   plant: BHET by batch glycolysis of PET flake with crystallisation from water (5000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:9cf6ed89ad0507f226b61c6adbe9fe9ea592e867cb4f464573f0b7c6154c91aa
-    lca/lca.yaml: sha256:d9b24cc379492135c30696dedb47d5ed5a276251a273c139f37618a9ff29ac72
-    process.yaml: sha256:21e9f112d88355045c41dc80036ecc47bb45512889ffb3525560e96e7903ac78
-    process/flowsheet.yaml: sha256:3f12ef889efe3c2f0cc563313a03b9c614bb3767b47b07cf4c9b696d612e8857
-    process/materials.yaml: sha256:11a8cd294b3c87870cbc72b804964ba02f97c58a42c4062e0ea8b2509db05f56
+    equipment/equipment-list.yaml: sha256:1efadd6408016dba8983b76767d6efe4a843f0d16670a527101b241d5dd03d8e
+    lca/lca.yaml: sha256:c8d8e1a04aa693178c1d20181f1df69b6a4cd64e8b3f45a25fa73877d8fb4a45
+    process.yaml: sha256:487798b15adc80bff0e869fba3ab71dbefc815cab46628e1c96af60e98469bd1
+    process/flowsheet.yaml: sha256:cae77f30778c94e5818393c2f77b400f8f48c07a64912a1366467ce880d9d3c0
+    process/materials.yaml: sha256:df22134641148bbe214c777b052b0712bd5308dafe416d828cc3c432b943852b

@@ -6,8 +6,10 @@
 # plant with its amount per kg of dried BHET, from the flowsheet's year averages of the recipe
 # (D-003). The fresh glycol and the make-up water are linked to their library producers
 # (lca/mappings.yaml: ethylene-glycol-1, demineralised-water-1) and the steam is counted as heat
-# delivered; the other backgrounds are left unmapped (`missing:` with the activity each should
-# connect to): a gap, never zero, and no values from licensed databases.
+# delivered; core's assessment leaves the other backgrounds unmapped (`missing:` says what each
+# should connect to): a gap, never zero, and no values from licensed databases. The Atlas LCI
+# (scripts/build_lci.py) also links power, cooling water and the wastewater through the shared
+# lci/mappings.yaml, so six of these stay Atlas gaps (D-012).
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -44,17 +46,17 @@ flows:
     source: "flowsheet stream S31, the make-up water (D-004, D-007)"
   # utilities
   - key: feed:POWER
-    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    missing: "not mapped in core's assessment (no Brightway background here); the Atlas LCI links it through the shared lci/mappings.yaml entry `electricity` (market for electricity, medium voltage), so it is no Atlas gap (D-012)"
     source: "flowsheet energy streams P1 to P6 (agitators, filters, centrifuges, the dryer's drive and vacuum pump, the column's pumps), D-009"
   - key: feed:HPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 4100 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q1 (R-101, core's conversion duty) and Q8 (the column's reboiler, by hand), D-009"
+    source: "flowsheet energy streams Q1 (R-101's heat-up, core's conversion duty), Q10 (R-101's heat-up distillation and reflux boil-up, by hand) and Q8 (the column's reboiler, by hand), D-009"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler, per kWh of condensing heat"
     source: "flowsheet energy streams Q2 and Q4 (core's crystallizer duties) and Q6 (core's dryer model), D-009"
   - key: product:CW
-    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q7 (the dryer's condenser) and Q9 (the column's condenser), by hand, D-009"
+    missing: "not mapped in core's assessment; the Atlas LCI links it through the shared lci/mappings.yaml entry `cooling-water` (the screening proxy per kWh of heat rejected), so it is no Atlas gap (D-012)"
+    source: "flowsheet energy streams Q11 (R-101's overhead condenser), Q7 (the dryer's condenser) and Q9 (the column's condenser), by hand, and Q12 (the dryer's product cooling, core's dryer model), D-009"
   - key: product:CHW
     missing: "not mapped yet (D-012); connect to: refrigeration at 278 K (chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
     source: "flowsheet energy streams Q3 and Q5 (both crystallisations, core's crystallizer duties), D-009"
@@ -73,7 +75,7 @@ flows:
     source: "flowsheet stream S28 (D-008, D-010)"
   - key: product:WW
     treatment: {kind: waste, route: "site wastewater treatment of the distillate purge: water with about 0.04 wt% glycol (D-010)"}
-    missing: "not mapped yet (D-012); connect to: treatment of a lightly loaded process effluent in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    missing: "not mapped in core's assessment; the Atlas LCI links it through the shared lci/mappings.yaml entry `wastewater` (the proxy per kg of wastewater to treatment), so it is no Atlas gap (D-012)"
     source: "flowsheet stream S30 (D-008, D-010)"
 operation:
   hours_per_year: 7920
@@ -82,7 +84,7 @@ operation:
 emission_exclusions:
   - {id: glycol-vents, method: storage-tank, equipment: [R-101, T-303], reason: "No P&ID yet: the nitrogen purge of R-101's reflux condenser and the breathing of the glycol tank carry glycol vapour (low at ambient temperature); vented through the site's scrubber, not estimated (D-010, D-011)."}
   - {id: dryer-dust, method: equipment-leaks, reason: "BHET dust in the dryer's vacuum vent and in packing is not estimated (D-008, D-010)."}
-  - {id: column-vent, method: storage-tank, equipment: [T-301, T-302], reason: "The column's and the liquor tanks' vents carry water vapour with traces of glycol and of the acetic acid the catalyst may release; not estimated (D-010)."}
+  - {id: column-vent, method: storage-tank, equipment: [T-301, T-302, T-304], reason: "The column's and the liquor tanks' vents (T-304: the second mother liquor at 288 K, 98 % water) carry water vapour with traces of glycol and of the acetic acid the catalyst may release; not estimated (D-010)."}
 dataset:
   version: 0.1.0
   classification: {isic: "2013"}   # ISIC Rev.4 2013 Manufacture of plastics and synthetic rubber in primary forms

@@ -4,14 +4,14 @@
 # BHET by glycolysis of washed post-consumer PET flake with ethylene glycol and zinc acetate at
 # atmospheric reflux, with BHET recovered by crystallisation from water (EP 0 723 951 A1,
 # method B, Example 2; DESIGN.md D-001), a batch plant: the flake, fresh and recovered glycol,
-# the catalyst and the recycled oligomers are charged to R-101 and held 2 h at the glycol's
-# boiling point (R101); the hot glycolysate is filtered of the non-PET solids (F101) and
+# the catalyst and the recycled oligomers are charged to R-101, their water distilled off in the
+# heat-up to the liquor tank (X101), and held 2 h at the glycol's reflux (R101); the hot glycolysate is filtered of the non-PET solids (F101) and
 # quenched with the second mother liquor to 343 K, where the oligomers precipitate (CR201) and
 # are filtered off (F201), 90 % of them back to the next charge (SP201); the filtrate is cooled
 # to 288 K for the crude BHET (CR202, F202), which is redissolved in hot water at 353 K (CR203),
 # recrystallised at 288 K (CR204), centrifuged (F204) and vacuum-dried at 343 K (D201). The
-# second mother liquor quenches the next batch; the first, with the dryer's condensate, is
-# distilled (X301): the water back to the redissolution (SP302, M302), the glycol with the BHET
+# second mother liquor, held in T-304, quenches the batch after next; the first, with the
+# dryer's condensate and the heat-up distillate, is distilled (X301): the water back to the redissolution (SP302, M302), the glycol with the BHET
 # and catalyst it holds back to the charge (SP301). The flows are the year averages of the batch
 # recipe (process/recipe.yaml, `cheme process recipe`, D-003).
 # Where the values come from:
@@ -24,11 +24,14 @@
 # - R101: a conversion step (GLY, OLF, DEP, DSO, DEG; D-005); CR201 to CR204: core's
 #   crystallizer (an imposed yield for the oligomers and the first crop, the water solubility of
 #   BHET for the redissolution and the second crop); F101 to F204: specified filters; X301: a
-#   component separator; D201: core's dryer; the four recycles converged at the tears S19, S20,
+#   component separator, and X101 too (the heat-up distillation in R-101); D201: core's dryer
+#   with its cooling; the four recycles converged at the tears S19, S20,
 #   S21 and S29 (core ADR 0060): all calculated by `cheme process propagate --fill`, with the
 #   duties the models give (core ADRs 0059, 0063);
-# - the distillation's and the condensers' duties, the dryer's heat and the drives' power:
-#   ASSUMED year averages with their arithmetic in each source (D-009).
+# - the distillations' and the condensers' duties (the heat-up distillation and reflux of
+#   R-101 too), the dryer's heat and cooling and the drives' power: ASSUMED year averages with
+#   their arithmetic in each source (D-009); the quench CR201's heat capacity and feed
+#   temperature are its two inlets' own, so that core's duty is their exact sum (L-7).
 schema: cheme/process/v1
 kind: flowsheet
 title: BHET by batch glycolysis of PET flake with crystallisation from water (5000 t/a)
@@ -102,6 +105,7 @@ feeds:
       min_approach: {value: 20, provenance: assumed, source: "D-009"}
     ports:
       - {id: r101, direction: out, kind: energy}
+      - {id: x101, direction: out, kind: energy}
       - {id: x301, direction: out, kind: energy}
   - id: LPS
     title: LP steam 350 kPa(a)
@@ -131,6 +135,8 @@ products:
       return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
       min_approach: {value: 10, provenance: assumed, source: "D-009"}
     ports:
+      - {id: x101, direction: in, kind: energy}
+      - {id: d201, direction: in, kind: energy}
       - {id: e201, direction: in, kind: energy}
       - {id: x301, direction: in, kind: energy}
   - id: CHW
@@ -157,7 +163,10 @@ blocks:
       - {id: olig, direction: in}
       - {id: glyc, direction: out}
       - {id: residue, direction: out}
+      - {id: dist, direction: out}
       - {id: heat, direction: in, kind: energy}
+      - {id: heat2, direction: in, kind: energy}
+      - {id: cond, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: OLIGO
     title: Quench with water and oligomer removal
@@ -194,6 +203,7 @@ blocks:
       - {id: cond, direction: out}
       - {id: steam, direction: in, kind: energy}
       - {id: q, direction: out, kind: energy}
+      - {id: cool, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: RECOV
     title: Water and glycol recovery
@@ -201,6 +211,7 @@ blocks:
     ports:
       - {id: ml1, direction: in}
       - {id: cond, direction: in}
+      - {id: dist, direction: in}
       - {id: glycol, direction: out}
       - {id: gpurge, direction: out}
       - {id: water, direction: out}
@@ -222,6 +233,21 @@ steps:
       - {id: glycol, direction: in, delegates: glycol}
       - {id: olig, direction: in, delegates: olig}
       - {id: out, direction: out}
+  - id: X101
+    block: GLYC
+    title: "Heat-up: the charge's water distilled off through R-101's overhead condenser E-101 (to T-301)"
+    class: Distilling
+    recovery:
+      outlets: {water: {H2O: 0.99, EG: 0.002}}
+      provenance: assumed
+      source: "R-101 heated from the charge's 320 K towards the reflux: the water of the wet oligomer cake S21 and of the recovered glycol S20 (4.3 wt% of the charge) cannot stay in the liquid at 470 K and 101.325 kPa (water's vapour pressure 1460 kPa there, IAPWS-95 in chemicals 1.5.2; the charge S4's bubble point 424.6 K by Raoult's law with the glycol's vapour pressure from thermo 0.6.1 HEOS_FIT, 100.8 kPa at 470.15 K, the BHET and the solids non-volatile). It boils off first in the heat-up and is taken off through the overhead condenser E-101 to the liquor tank T-301 before the 2 h at reflux: 99 % of the water with 0.2 % of the glycol (a short packed section under E-101 returns the glycol), ASSUMED (D-005). The glycolysate S5 keeps 0.27 mol % of water, below the 1.39 mol % a liquid with its glycol can hold at 470.15 K and 101.325 kPa; its bubble point is 476.1 K by the same law"
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: out, delegates: dist}
+      - {id: bottoms, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: heat2}
+      - {id: q, direction: out, kind: energy, delegates: cond}
   - id: R101
     block: GLYC
     title: Glycolysis at the glycol's reflux (470 K, 2 h)
@@ -232,7 +258,7 @@ steps:
     hazard:
       mtt: 470.31
       provenance: assumed
-      source: "MTT: the normal boiling point of ethylene glycol (chemicals 1.5.2), the reflux temperature R-101 runs at (SRC-3); the 4 wt% of water the recovered glycol brings boils off through the reflux condenser during the heat-up, so the default (water's boiling point) does not bound the batch at 470 K (D-011)"
+      source: "MTT: the normal boiling point of ethylene glycol (chemicals 1.5.2), the reflux temperature R-101 runs at (SRC-3). The charge's water (4.3 wt%, mostly from the wet oligomer cake S21, a little from the recovered glycol S20) is distilled off in the heat-up (X101) before the reflux, so the glycolysate R101 holds is glycol with dissolved BHET (non-volatile) and 0.27 mol % water: its bubble point at 101.325 kPa, 476.1 K by Raoult's law (X101's source), is above the glycol's 470.31 K, the glycol's boiling point the lower bound of the boiling barrier, and the default (water's boiling point) does not apply (D-011)"
     links: [{target: equipment, ref: R-101}]
     ports:
       - {id: charge, direction: in}
@@ -265,7 +291,7 @@ steps:
       basis: yield
       temperature: 343.15
       yield: {value: 0.98, provenance: assumed, source: "SRC-3 Example 4: the higher oligomers stay insoluble in water near its boiling point, dimers and trimers dissolve above 80 to 90 C and precipitate below, BHET stays dissolved above 60 C; 98 % of the lumped oligomers taken to precipitate at 70 C, ASSUMED (D-006)"}
-      energy: {heat_capacity: 3.6, heat_of_crystallization: 0.0, provenance: assumed, source: "the mixed liquor about 3.6 kJ/(kg K): about one part of glycolysate at 2.6 to two parts of water at 4.2 kJ/(kg K), ASSUMED; heat of precipitation not counted (no open value, D-009)"}
+      energy: {heat_capacity: 3.6395, feed_temperature: 320.81, heat_of_crystallization: 0.0, provenance: assumed, source: "the two inlets' own heat capacities, so that core's one-heat-capacity balance gives the exact sum of each inlet heated or cooled to 343.15 K (L-7): the glycolysate S7 (1617.4 kg/h) from 470.15 K at 3785.2 kJ/(h K), its components' mean heat capacities over 343 to 470 K (EG 2.905 and water 4.291 kJ/(kg K), thermo 0.6.1 HEOS_FIT; DEG 2.714, ZABRANSKY_SPLINE; BHET 1.820, DADGOSTAR_SHAW; oligomers 1.2 and zinc acetate 0.927 from materials.yaml), and the second mother liquor S19 (4178.9 kg/h) from 288.15 K at 17310.5 kJ/(h K) (over 288 to 343 K: water 4.183, EG 2.496, BHET 1.543, DEG 2.380): heat_capacity (3785.2 + 17310.5) / 5796.3 = 3.6395 kJ/(kg K) at the heat-capacity-weighted feed temperature (3785.2 x 470.15 + 17310.5 x 288.15) / 21095.7 = 320.81 K, ASSUMED values of the stream table; the heat of precipitation not counted (no open value, D-006, D-009)"}
       spectators: [EG, DEG, ZNAC, BHET]
       outlets: {slurry: out}
     energy_port: q
@@ -312,7 +338,7 @@ steps:
       basis: yield
       temperature: 288.15
       yield: {value: 0.90, provenance: assumed, source: "SRC-3 Example 2: about 305 g of BHET recovered at 15 C (the 295 g of the second crystallisation and its losses) of about 338 g dissolved (the PET less its oligomers), so 0.90; the glycol-rich liquor keeps more BHET dissolved than water does (D-007)"}
-      energy: {heat_capacity: 3.6, heat_of_crystallization: 0.0, provenance: assumed, source: "as CR201; the heat of crystallisation of BHET not counted (no open value, D-009)"}
+      energy: {heat_capacity: 3.6, heat_of_crystallization: 0.0, provenance: assumed, source: "the oligomer-free liquor about 3.6 kJ/(kg K): mostly water at 4.2 with about 25 wt% of glycol and BHET at 1.5 to 2.5 kJ/(kg K), ASSUMED; the heat of crystallisation of BHET not counted (no open value, D-009)"}
       spectators: [EG, DEG, ZNAC, OLIG]
       outlets: {slurry: out}
     energy_port: q
@@ -435,9 +461,16 @@ steps:
         efficiency: 0.7
         port: steam
         provenance: assumed
-        source: "the wet cake about 1.9 kJ/(kg K), ASSUMED; latent heats at 343.15 K: water 2333.0 and ethylene glycol 1015.0 kJ/kg (thermo 0.6.1, method HEOS_FIT; SRC-7); the dryer's metal, about 8 t of steel at 0.5 kJ/(kg K) heated from 298 K each batch, ASSUMED; 70 % efficiency (D-008, D-009). Dried at 343 K, well below BHET's melting point of 109.5 C (CRC via chemicals 1.5.2; SRC-2: 106 to 110 C)"
+        source: "the wet cake about 1.9 kJ/(kg K), ASSUMED; latent heats at 343.15 K: water 2333.0 and ethylene glycol 1015.0 kJ/kg (thermo 0.6.1, method HEOS_FIT; SRC-7); the dryer's metal, about 8 t of steel at 0.5 kJ/(kg K) heated each batch from the 313 K its cooling leaves it at (cooling.vessel_temperature), ASSUMED; 70 % efficiency (D-008, D-009). Dried at 343 K, well below BHET's melting point of 109.5 C (CRC via chemicals 1.5.2; SRC-2: 106 to 110 C)"
       drying_rate: {value: 8.0, provenance: assumed, source: "ASSUMED mean rate of a horizontal paddle vacuum dryer with a heated agitator: a wall flux of about 5.2 kW/m2 over 2333 kJ/kg (D-008)"}
       cake_density: {value: 700, provenance: assumed, source: "ASSUMED bulk density of the wet needle crystals (SRC-3: aciculiform) with 0.15 kg of water per kg (D-008)"}
+      cooling:
+        product_temperature: 313.15
+        heat_capacity: 1.64
+        vessel_temperature: 313.15
+        port: cool
+        provenance: assumed
+        source: "after drying, D-201's jacket on cooling water cools the product to 313 K for packing (the cooling water at 298 K, a 15 K approach) and the dryer's metal with it; the product at BHET's 417.0 kJ/(kmol K) over 254.238 kg/kmol, 1.64 kJ/(kg K) (thermo 0.6.1 DADGOSTAR_SHAW, materials.yaml), ASSUMED (D-008)"
       outlets: {product: product, vapour: vapour}
     links: [{target: equipment, ref: D-201}]
     ports:
@@ -445,6 +478,7 @@ steps:
       - {id: product, direction: out, delegates: product}
       - {id: vapour, direction: out}
       - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cool, direction: out, kind: energy, delegates: cool}
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: E201
     block: DRY
@@ -463,6 +497,7 @@ steps:
     ports:
       - {id: ml, direction: in, delegates: ml1}
       - {id: cond, direction: in, delegates: cond}
+      - {id: dist, direction: in, delegates: dist}
       - {id: out, direction: out}
   - id: X301
     block: RECOV
@@ -512,7 +547,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {PET: 0.995, IMP: 0.005}, provenance: assumed, source: "washed and dried bottle flake with 0.5 wt% non-PET solids (cap and label fragments), ASSUMED (D-004)"}
-        flow: {value: 489.626, provenance: calculated, source: 'cheme process propagate: spec rate (S22 t/a 5000)', fingerprint: ef611e7b13856d78}
+        flow: {value: 489.653, provenance: calculated, source: 'cheme process propagate: spec rate (S22 t/a 5000)', fingerprint: c47b80a00f3d9458}
   - id: S2
     title: Fresh ethylene glycol
     from: EGF.out
@@ -523,7 +558,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {EG: 1.0}, provenance: assumed, source: "fibre-grade MEG of ethylene-glycol-1 (D-004)"}
-        flow: {value: 198.932, provenance: calculated, source: 'cheme process propagate: spec glycol (S4 EG per S4 PET (mass) 2)', fingerprint: ef611e7b13856d78}
+        flow: {value: 198.973, provenance: calculated, source: 'cheme process propagate: spec glycol (S4 EG per S4 PET (mass) 2)', fingerprint: c47b80a00f3d9458}
   - id: S3
     title: Zinc acetate (make-up)
     from: CATF.out
@@ -534,7 +569,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {ZNAC: 1.0}, provenance: assumed, source: "zinc acetate, dissolved in a little hot glycol before it is charged (SRC-3); counted anhydrous (D-004)"}
-        flow: {value: 0.0388546, provenance: calculated, source: 'cheme process propagate: spec catalyst (S4 ZNAC per S4 PET (mass) 0.0015)', fingerprint: ef611e7b13856d78}
+        flow: {value: 0.0389073, provenance: calculated, source: 'cheme process propagate: spec catalyst (S4 ZNAC per S4 PET (mass) 0.0015)', fingerprint: c47b80a00f3d9458}
   - id: S20
     title: Recovered glycol (with dissolved BHET and catalyst)
     from: SP301.rec
@@ -544,8 +579,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "the column's bottoms cooled to the glycol tank (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 856.228, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, broyden)', fingerprint: e15b70557f9ffa8d}
-        composition: {basis: mole_fraction, values: {H2O: 0.0748661, EG: 0.900484, DEG: 0.00604485, PET: 0.0, BHET: 0.0180923, BHET_S: 0.0, OLIG: 0.000240457, OLIG_S: 0.0, ZNAC: 0.00027183, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, broyden)', fingerprint: e15b70557f9ffa8d}
+        flow: {value: 855.985, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, broyden)', fingerprint: 72d317634ecf97eb}
+        composition: {basis: mole_fraction, values: {H2O: 0.0748723, EG: 0.90052, DEG: 0.00602474, PET: 0.0, BHET: 0.0180714, BHET_S: 0.0, OLIG: 0.000240171, OLIG_S: 0.0, ZNAC: 0.000271821, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S27 (tear, broyden)', fingerprint: 72d317634ecf97eb}
   - id: S21
     title: Recycled oligomer cake
     from: SP201.rec
@@ -555,19 +590,41 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "the filter's temperature (D-006)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 149.661, provenance: calculated, source: 'cheme process propagate: recycle SP201 from S9 (tear, broyden)', fingerprint: e15b70557f9ffa8d}
-        composition: {basis: mole_fraction, values: {H2O: 0.884558, EG: 0.0544857, DEG: 0.000365699, PET: 0.0, BHET: 0.0109454, BHET_S: 0.0, OLIG: 1.45471e-05, OLIG_S: 0.0496142, ZNAC: 1.6445e-05, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP201 from S9 (tear, broyden)', fingerprint: e15b70557f9ffa8d}
+        flow: {value: 149.664, provenance: calculated, source: 'cheme process propagate: recycle SP201 from S9 (tear, broyden)', fingerprint: 72d317634ecf97eb}
+        composition: {basis: mole_fraction, values: {H2O: 0.883367, EG: 0.0553173, DEG: 0.000370939, PET: 0.0, BHET: 0.0111264, BHET_S: 0.0, OLIG: 1.47872e-05, OLIG_S: 0.0497865, ZNAC: 1.67358e-05, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP201 from S9 (tear, broyden)', fingerprint: 72d317634ecf97eb}
   - id: S4
     title: Glycolysis charge
     from: M101.out
-    to: R101.charge
+    to: X101.in
     template: all
     state:
       design:
         temperature: {value: 320.0, provenance: assumed, source: "the charge as mixed, before heating: the flake at 298 K, the glycol and the oligomers at 343 K, ASSUMED (D-005)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 1694.49, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S20 S21', fingerprint: 48b5eb4145901042}
-        composition: {basis: mole_fraction, values: {H2O: 0.175381, EG: 0.68624, DEG: 0.00366612, PET: 0.110822, BHET: 0.0124276, BHET_S: 0.0, OLIG: 0.000145834, OLIG_S: 0.00732778, ZNAC: 0.000174119, IMP: 0.00381475}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S20 S21', fingerprint: daaf2839b9951978}
+        flow: {value: 1694.31, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S20 S21', fingerprint: 80d2ea4fa4286821}
+        composition: {basis: mole_fraction, values: {H2O: 0.174855, EG: 0.686684, DEG: 0.00365613, PET: 0.110894, BHET: 0.0124414, BHET_S: 0.0, OLIG: 0.000145748, OLIG_S: 0.00733227, ZNAC: 0.000174231, IMP: 0.00381722}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S20 S21', fingerprint: 6aa8c9af80d6430d}
+  - id: S32
+    title: Dewatered charge (the water distilled off in the heat-up)
+    from: X101.bottoms
+    to: R101.charge
+    template: all
+    state:
+      design:
+        temperature: {value: 320.0, provenance: assumed, source: "kept at the charge's temperature (S4), so that R101's conversion duty Q1 counts the dewatered charge's heat-up to 470 K and Q10 the water's evaporation (D-005, D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1621.07, provenance: calculated, source: 'cheme process propagate: separator X101 from S4', fingerprint: b9ad6ba8942ef3fd}
+        composition: {basis: mole_fraction, values: {H2O: 0.00211812, EG: 0.830156, DEG: 0.00442888, PET: 0.134332, BHET: 0.015071, BHET_S: 0.0, OLIG: 0.000176553, OLIG_S: 0.008882, ZNAC: 0.000211056, IMP: 0.00462402}, provenance: calculated, source: 'cheme process propagate: separator X101 from S4', fingerprint: b9ad6ba8942ef3fd}
+  - id: S33
+    title: Heat-up distillate (water with a little glycol, to T-301)
+    from: X101.water
+    to: M301.dist
+    template: all
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "condensed and cooled in E-101 on cooling water (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 73.2446, provenance: calculated, source: 'cheme process propagate: separator X101 from S4', fingerprint: b9ad6ba8942ef3fd}
+        composition: {basis: mole_fraction, values: {H2O: 0.992129, EG: 0.00787121, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X101 from S4', fingerprint: b9ad6ba8942ef3fd}
   - id: S5
     title: Glycolysate (470 K)
     from: R101.out
@@ -577,8 +634,8 @@ streams:
       design:
         temperature: {value: 470.15, provenance: given, source: "SRC-3 Example 1: refluxed at atmospheric pressure; the glycol boils at 470.31 K (chemicals 1.5.2); claim 1: 190 to 210 C (D-005)"}
         pressure: {value: 101.325, provenance: given, source: "SRC-3: atmospheric pressure"}
-        flow: {value: 1694.49, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4', fingerprint: c630094a86c953a7}
-        composition: {basis: mole_fraction, values: {H2O: 0.197471, EG: 0.647604, DEG: 0.00435458, PET: 5.45816e-18, BHET: 0.136748, BHET_S: 0.0, OLIG: 0.00933658, OLIG_S: 5.11702e-19, ZNAC: 0.00019582, IMP: 0.0042902}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4', fingerprint: 338f03f9ec2488e4}
+        flow: {value: 1621.07, provenance: calculated, source: 'cheme process propagate: reactor R101 from S32', fingerprint: 1895f735f6abcbc4}
+        composition: {basis: mole_fraction, values: {H2O: 0.0027345, EG: 0.804385, DEG: 0.00540384, PET: 0.0, BHET: 0.170267, BHET_S: 0.0, OLIG: 0.0116243, OLIG_S: 0.0, ZNAC: 0.000243807, IMP: 0.00534157}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S32', fingerprint: 39b1dcdbd25d96d8}
   - id: S6
     title: Hot-filter residue
     from: F101.cake
@@ -588,8 +645,8 @@ streams:
       design:
         temperature: {value: 470.15, provenance: assumed, source: "hot filtration (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 3.67221, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S5', fingerprint: 374764b55ce3bd70}
-        composition: {basis: mole_fraction, values: {PET: 1.08934e-15, BHET_S: 0.0, OLIG_S: 1.02125e-16, IMP: 0.856238, H2O: 0.0285112, EG: 0.0935021, DEG: 0.000628721, BHET: 0.0197439, OLIG: 0.00134803, ZNAC: 2.82728e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S5', fingerprint: 374764b55ce3bd70}
+        flow: {value: 3.67241, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S5', fingerprint: 5e5c13e0c88a109e}
+        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.0, OLIG_S: 0.0, IMP: 0.876556, H2O: 0.00033937, EG: 0.0998297, DEG: 0.000670653, BHET: 0.0211313, OLIG: 0.00144265, ZNAC: 3.02581e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S5', fingerprint: 5e5c13e0c88a109e}
   - id: S7
     title: Filtered glycolysate
     from: F101.filtrate
@@ -599,19 +656,20 @@ streams:
       design:
         temperature: {value: 470.15, provenance: assumed, source: "hot filtration (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 1690.82, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S5', fingerprint: 374764b55ce3bd70}
-        composition: {basis: mole_fraction, values: {H2O: 0.198322, EG: 0.650394, DEG: 0.00437334, PET: 0.0, BHET: 0.137337, BHET_S: 0.0, OLIG: 0.00937681, OLIG_S: 0.0, ZNAC: 0.000196664, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S5', fingerprint: 374764b55ce3bd70}
+        flow: {value: 1617.4, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S5', fingerprint: 5e5c13e0c88a109e}
+        composition: {basis: mole_fraction, values: {H2O: 0.00274918, EG: 0.808705, DEG: 0.00543286, PET: 0.0, BHET: 0.171181, BHET_S: 0.0, OLIG: 0.0116867, OLIG_S: 0.0, ZNAC: 0.000245116, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S5', fingerprint: 5e5c13e0c88a109e}
   - id: S19
-    title: Second mother liquor (quench water)
+    title: Second mother liquor (quench water, held in T-304 for the batch after next)
     from: F204.filtrate
     to: CR201.water
     template: all
+    links: [{target: equipment, ref: T-304, role: "buffer tank: C-204 runs at 14.5 to 16.5 h of a batch, after the next batch has quenched at 11.25 h, so the liquor waits for the batch after next (17.5 h; D-006)"}]
     state:
       design:
         temperature: {value: 288.15, provenance: assumed, source: "the second crop's temperature (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 4179.57, provenance: calculated, source: 'cheme process propagate: recycle F204 from S17 (tear, broyden)', fingerprint: e15b70557f9ffa8d}
-        composition: {basis: mole_fraction, values: {H2O: 0.99491, EG: 0.00470402, DEG: 3.08634e-05, PET: 0.0, BHET: 0.000352491, BHET_S: 0.0, OLIG: 1.22771e-06, OLIG_S: 0.0, ZNAC: 1.38789e-06, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle F204 from S17 (tear, broyden)', fingerprint: e15b70557f9ffa8d}
+        flow: {value: 4178.9, provenance: calculated, source: 'cheme process propagate: recycle F204 from S17 (tear, broyden)', fingerprint: 72d317634ecf97eb}
+        composition: {basis: mole_fraction, values: {H2O: 0.994847, EG: 0.00476661, DEG: 3.12546e-05, PET: 0.0, BHET: 0.000352468, BHET_S: 0.0, OLIG: 1.24594e-06, OLIG_S: 0.0, ZNAC: 1.41013e-06, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle F204 from S17 (tear, broyden)', fingerprint: 72d317634ecf97eb}
   - id: S8
     title: Quenched slurry (oligomers, 343 K)
     from: CR201.out
@@ -621,8 +679,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: given, source: "SRC-3: the quenched mix at 60 to 90 C, preferably 65 to 75 C; Example 2 filters at 70 C (D-006)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 5870.39, provenance: calculated, source: 'cheme process propagate: crystallizer CR201 from S7 S19', fingerprint: b2630eb5ac2c5088}
-        composition: {basis: mole_fraction, values: {OLIG: 1.5295e-05, H2O: 0.930038, OLIG_S: 0.000749456, EG: 0.0572874, DEG: 0.000384504, ZNAC: 1.72907e-05, BHET: 0.0115082}, provenance: calculated, source: 'cheme process propagate: crystallizer CR201 from S7 S19', fingerprint: b2630eb5ac2c5088}
+        flow: {value: 5796.3, provenance: calculated, source: 'cheme process propagate: crystallizer CR201 from S7 S19', fingerprint: a520ad549fd7ba66}
+        composition: {basis: mole_fraction, values: {OLIG: 1.555e-05, H2O: 0.928943, OLIG_S: 0.00076195, EG: 0.0581715, DEG: 0.000390078, ZNAC: 1.75993e-05, BHET: 0.0117005}, provenance: calculated, source: 'cheme process propagate: crystallizer CR201 from S7 S19', fingerprint: a520ad549fd7ba66}
   - id: S9
     title: Oligomer cake
     from: F201.cake
@@ -632,8 +690,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "D-006"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 166.29, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S8', fingerprint: 890d30b9bd6ff96d}
-        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.0, OLIG_S: 0.0496143, IMP: 0.0, H2O: 0.884558, EG: 0.054486, DEG: 0.000365701, BHET: 0.0109454, OLIG: 1.45471e-05, ZNAC: 1.64452e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S8', fingerprint: 890d30b9bd6ff96d}
+        flow: {value: 166.292, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S8', fingerprint: 9f1a3452097777e1}
+        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.0, OLIG_S: 0.0497865, IMP: 0.0, H2O: 0.883367, EG: 0.0553175, DEG: 0.00037094, BHET: 0.0111264, OLIG: 1.47871e-05, ZNAC: 1.67358e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S8', fingerprint: 9f1a3452097777e1}
   - id: S10
     title: Oligomer purge
     from: SP201.purge
@@ -643,8 +701,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "D-006"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 16.629, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S9', fingerprint: 4541f455b56e8b4f}
-        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.0, OLIG_S: 0.0496143, IMP: 0.0, H2O: 0.884558, EG: 0.054486, DEG: 0.000365701, BHET: 0.0109454, OLIG: 1.45471e-05, ZNAC: 1.64452e-05}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S9', fingerprint: b11c6a2dd0449b2b}
+        flow: {value: 16.6292, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S9', fingerprint: f4db8982f7170271}
+        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.0, OLIG_S: 0.0497865, IMP: 0.0, H2O: 0.883367, EG: 0.0553175, DEG: 0.00037094, BHET: 0.0111264, OLIG: 1.47871e-05, ZNAC: 1.67358e-05}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S9', fingerprint: a5fdd04d15cd082b}
   - id: S11
     title: Oligomer-free liquor (343 K)
     from: F201.filtrate
@@ -654,8 +712,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "D-006"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 5704.1, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S8', fingerprint: 890d30b9bd6ff96d}
-        composition: {basis: mole_fraction, values: {H2O: 0.930735, EG: 0.0573304, DEG: 0.000384792, PET: 0.0, BHET: 0.0115168, BHET_S: 0.0, OLIG: 1.53065e-05, OLIG_S: 0.0, ZNAC: 1.73037e-05, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S8', fingerprint: 890d30b9bd6ff96d}
+        flow: {value: 5630.01, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S8', fingerprint: 9f1a3452097777e1}
+        composition: {basis: mole_fraction, values: {H2O: 0.929651, EG: 0.0582158, DEG: 0.000390375, PET: 0.0, BHET: 0.0117094, BHET_S: 0.0, OLIG: 1.55619e-05, OLIG_S: 0.0, ZNAC: 1.76127e-05, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S8', fingerprint: 9f1a3452097777e1}
   - id: S12
     title: First-crop slurry (288 K)
     from: CR202.out
@@ -665,8 +723,8 @@ streams:
       design:
         temperature: {value: 288.15, provenance: given, source: "SRC-3: cooled to -10 to +30 C, preferably 5 to 15 C; Example 2 filters at 15 C (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 5704.1, provenance: calculated, source: 'cheme process propagate: crystallizer CR202 from S11', fingerprint: 663f13f9cea21220}
-        composition: {basis: mole_fraction, values: {BHET: 0.00115168, H2O: 0.930735, BHET_S: 0.0103651, EG: 0.0573304, DEG: 0.000384792, ZNAC: 1.73037e-05, OLIG: 1.53065e-05}, provenance: calculated, source: 'cheme process propagate: crystallizer CR202 from S11', fingerprint: 663f13f9cea21220}
+        flow: {value: 5630.01, provenance: calculated, source: 'cheme process propagate: crystallizer CR202 from S11', fingerprint: ce1cd1a1399cf4ce}
+        composition: {basis: mole_fraction, values: {BHET: 0.00117094, H2O: 0.929651, BHET_S: 0.0105385, EG: 0.0582158, DEG: 0.000390375, ZNAC: 1.76127e-05, OLIG: 1.55619e-05}, provenance: calculated, source: 'cheme process propagate: crystallizer CR202 from S11', fingerprint: ce1cd1a1399cf4ce}
   - id: S13
     title: Crude BHET cake
     from: F202.cake
@@ -676,8 +734,8 @@ streams:
       design:
         temperature: {value: 288.15, provenance: assumed, source: "D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 1032.01, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S12', fingerprint: 59f82e780c6bb711}
-        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.120428, OLIG_S: 0.0, IMP: 0.0, H2O: 0.827223, EG: 0.0509544, DEG: 0.000341997, BHET: 0.0010236, OLIG: 1.36042e-05, ZNAC: 1.53793e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S12', fingerprint: 59f82e780c6bb711}
+        flow: {value: 1031.87, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S12', fingerprint: 9bc1e4cff934654a}
+        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.120657, OLIG_S: 0.0, IMP: 0.0, H2O: 0.826189, EG: 0.0517369, DEG: 0.00034693, BHET: 0.00104062, OLIG: 1.383e-05, ZNAC: 1.56526e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S12', fingerprint: 9bc1e4cff934654a}
   - id: S14
     title: First mother liquor (water, glycol, dissolved BHET, catalyst)
     from: F202.filtrate
@@ -687,8 +745,8 @@ streams:
       design:
         temperature: {value: 288.15, provenance: assumed, source: "D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 4672.09, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S12', fingerprint: 59f82e780c6bb711}
-        composition: {basis: mole_fraction, values: {H2O: 0.940484, EG: 0.0579309, DEG: 0.000388822, PET: 0.0, BHET: 0.00116374, BHET_S: 0.0, OLIG: 1.54668e-05, OLIG_S: 0.0, ZNAC: 1.74849e-05, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S12', fingerprint: 59f82e780c6bb711}
+        flow: {value: 4598.14, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S12', fingerprint: 9bc1e4cff934654a}
+        composition: {basis: mole_fraction, values: {H2O: 0.939553, EG: 0.0588359, DEG: 0.000394533, PET: 0.0, BHET: 0.00118341, BHET_S: 0.0, OLIG: 1.57276e-05, OLIG_S: 0.0, ZNAC: 1.78003e-05, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S12', fingerprint: 9bc1e4cff934654a}
   - id: S31
     title: Make-up process water
     from: WATF.out
@@ -699,7 +757,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "demineralised water (D-004)"}
-        flow: {value: 201.256, provenance: calculated, source: 'cheme process propagate: spec water (S15 H2O per S13 BHET_S (mass) 6)', fingerprint: ef611e7b13856d78}
+        flow: {value: 201.153, provenance: calculated, source: 'cheme process propagate: spec water (S15 H2O per S13 BHET_S (mass) 6)', fingerprint: c47b80a00f3d9458}
   - id: S29
     title: Distilled water to the hot-water tank
     from: SP302.rec
@@ -709,8 +767,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "the column's condensate (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 3670.3, provenance: calculated, source: 'cheme process propagate: recycle SP302 from S26 (tear, broyden)', fingerprint: e15b70557f9ffa8d}
-        composition: {basis: mole_fraction, values: {H2O: 0.999879, EG: 0.000121111, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP302 from S26 (tear, broyden)', fingerprint: e15b70557f9ffa8d}
+        flow: {value: 3669.88, provenance: calculated, source: 'cheme process propagate: recycle SP302 from S26 (tear, broyden)', fingerprint: 72d317634ecf97eb}
+        composition: {basis: mole_fraction, values: {H2O: 0.999879, EG: 0.000121106, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP302 from S26 (tear, broyden)', fingerprint: 72d317634ecf97eb}
   - id: S15
     title: Water to the redissolution
     from: M302.out
@@ -720,8 +778,8 @@ streams:
       design:
         temperature: {value: 311.0, provenance: assumed, source: "the distilled water at 313 K with a little make-up at 298 K (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 3871.56, provenance: calculated, source: 'cheme process propagate: mixer M302 from S31 S29', fingerprint: a5a098636608570f}
-        composition: {basis: mole_fraction, values: {H2O: 0.999885, EG: 0.000114813, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M302 from S31 S29', fingerprint: f3888375b6c75ac1}
+        flow: {value: 3871.03, provenance: calculated, source: 'cheme process propagate: mixer M302 from S31 S29', fingerprint: 7a86c7da2b41e86c}
+        composition: {basis: mole_fraction, values: {H2O: 0.999885, EG: 0.000114811, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M302 from S31 S29', fingerprint: f520bab43b6ad0ea}
   - id: S16
     title: BHET solution (353 K)
     from: CR203.out
@@ -731,8 +789,8 @@ streams:
       design:
         temperature: {value: 353.15, provenance: given, source: "SRC-3: redissolved in hot water at 70 to 100 C; Example 2 at 80 C (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 4903.57, provenance: calculated, source: 'cheme process propagate: crystallizer CR203 from S13 S15', fingerprint: 7b2604ce46242b79}
-        composition: {basis: mole_fraction, values: {BHET: 0.0108454, H2O: 0.984467, BHET_S: 0.0, EG: 0.00465469, DEG: 3.05397e-05, ZNAC: 1.37334e-06, OLIG: 1.21483e-06}, provenance: calculated, source: 'cheme process propagate: crystallizer CR203 from S13 S15', fingerprint: 7b2604ce46242b79}
+        flow: {value: 4902.9, provenance: calculated, source: 'cheme process propagate: crystallizer CR203 from S13 S15', fingerprint: c427f77656fe5e01}
+        composition: {basis: mole_fraction, values: {BHET: 0.0108486, H2O: 0.984401, BHET_S: 0.0, EG: 0.0047166, DEG: 3.09266e-05, ZNAC: 1.39533e-06, OLIG: 1.23286e-06}, provenance: calculated, source: 'cheme process propagate: crystallizer CR203 from S13 S15', fingerprint: c427f77656fe5e01}
   - id: S17
     title: Second-crop slurry (288 K)
     from: CR204.out
@@ -742,8 +800,8 @@ streams:
       design:
         temperature: {value: 288.15, provenance: given, source: "SRC-3: cooled to 0 to 30 C, preferably 5 to 15 C; Example 2 filters at 15 C (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 4903.57, provenance: calculated, source: 'cheme process propagate: crystallizer CR204 from S16', fingerprint: 0de5d44dfe127728}
-        composition: {basis: mole_fraction, values: {BHET: 0.000348791, H2O: 0.984467, BHET_S: 0.0104966, EG: 0.00465469, DEG: 3.05397e-05, ZNAC: 1.37334e-06, OLIG: 1.21483e-06}, provenance: calculated, source: 'cheme process propagate: crystallizer CR204 from S16', fingerprint: 0de5d44dfe127728}
+        flow: {value: 4902.9, provenance: calculated, source: 'cheme process propagate: crystallizer CR204 from S16', fingerprint: 2e31b7f5a2a0a99d}
+        composition: {basis: mole_fraction, values: {BHET: 0.000348767, H2O: 0.984401, BHET_S: 0.0104998, EG: 0.0047166, DEG: 3.09266e-05, ZNAC: 1.39533e-06, OLIG: 1.23286e-06}, provenance: calculated, source: 'cheme process propagate: crystallizer CR204 from S16', fingerprint: 2e31b7f5a2a0a99d}
   - id: S18
     title: Pure BHET cake
     from: F204.cake
@@ -753,8 +811,8 @@ streams:
       design:
         temperature: {value: 288.15, provenance: assumed, source: "D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 724.003, provenance: calculated, source: 'cheme process propagate: solid-separation F204 from S17', fingerprint: 0d594c5a78249a4c}
-        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.32437, OLIG_S: 0.0, IMP: 0.0, H2O: 0.672191, EG: 0.00317821, DEG: 2.08524e-05, BHET: 0.000238153, OLIG: 8.29482e-07, ZNAC: 9.37712e-07}, provenance: calculated, source: 'cheme process propagate: solid-separation F204 from S17', fingerprint: 0d594c5a78249a4c}
+        flow: {value: 724.002, provenance: calculated, source: 'cheme process propagate: solid-separation F204 from S17', fingerprint: 32aa44641148b82c}
+        composition: {basis: mole_fraction, values: {PET: 0.0, BHET_S: 0.324404, OLIG_S: 0.0, IMP: 0.0, H2O: 0.672115, EG: 0.00322033, DEG: 2.11156e-05, BHET: 0.000238126, OLIG: 8.41754e-07, ZNAC: 9.52683e-07}, provenance: calculated, source: 'cheme process propagate: solid-separation F204 from S17', fingerprint: 32aa44641148b82c}
   - id: S22
     title: Dried BHET
     from: D201.product
@@ -762,10 +820,10 @@ streams:
     template: all
     state:
       design:
-        temperature: {value: 303.15, provenance: assumed, source: "cooled in D-201 before discharge (D-008)"}
+        temperature: {value: 313.15, provenance: assumed, source: "cooled in D-201 on cooling water before discharge (D201 cooling, Q12; D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 631.314, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: 413da7f81e95e1e2}
-        composition: {basis: mole_fraction, values: {H2O: 0.0270705, EG: 0.000127993, DEG: 6.24871e-05, PET: 0.0, BHET: 0.000713659, BHET_S: 0.97202, OLIG: 2.48566e-06, OLIG_S: 0.0, ZNAC: 2.80999e-06, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: 413da7f81e95e1e2}
+        flow: {value: 631.313, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: edc06859fedb4376}
+        composition: {basis: mole_fraction, values: {H2O: 0.0270648, EG: 0.000129677, DEG: 6.32694e-05, PET: 0.0, BHET: 0.000713505, BHET_S: 0.972023, OLIG: 2.52218e-06, OLIG_S: 0.0, ZNAC: 2.85456e-06, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: edc06859fedb4376}
   - id: S23
     title: Dryer vapour (water and glycol)
     from: D201.vapour
@@ -775,8 +833,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "the drying temperature (D-008)"}
         pressure: {value: 10.0, provenance: assumed, source: "the dryer's vacuum, below water's 31.2 kPa vapour pressure at 343.15 K (chemicals 1.5.2 iapws95_Psat), ASSUMED (D-008)"}
-        flow: {value: 92.6894, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: 413da7f81e95e1e2}
-        composition: {basis: mole_fraction, values: {H2O: 0.995294, EG: 0.00470589}, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: 413da7f81e95e1e2}
+        flow: {value: 92.6889, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: edc06859fedb4376}
+        composition: {basis: mole_fraction, values: {H2O: 0.995232, EG: 0.00476849}, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: edc06859fedb4376}
   - id: S24
     title: Dryer condensate
     from: E201.out
@@ -786,8 +844,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "condensed in E-201 on cooling water (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "the condensate, design basis"}
-        flow: {value: 92.6894, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S23', fingerprint: d0669dfd3b7f665f}
-        composition: {basis: mole_fraction, values: {H2O: 0.995294, EG: 0.00470589}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S23', fingerprint: d0669dfd3b7f665f}
+        flow: {value: 92.6889, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S23', fingerprint: 7256230d3b96a4bf}
+        composition: {basis: mole_fraction, values: {H2O: 0.995232, EG: 0.00476849}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S23', fingerprint: 7256230d3b96a4bf}
   - id: S25
     title: Collected liquor to the column
     from: M301.out
@@ -797,8 +855,8 @@ streams:
       design:
         temperature: {value: 290.0, provenance: assumed, source: "the first mother liquor at 288 K with the condensate (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 4764.78, provenance: calculated, source: 'cheme process propagate: mixer M301 from S14 S24', fingerprint: 8cf65664105e8426}
-        composition: {basis: mole_fraction, values: {H2O: 0.941702, EG: 0.0567475, DEG: 0.000380177, PET: 0.0, BHET: 0.00113787, BHET_S: 0.0, OLIG: 1.51229e-05, OLIG_S: 0.0, ZNAC: 1.70961e-05, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S14 S24', fingerprint: 3eb6cf489f7c01ef}
+        flow: {value: 4764.07, provenance: calculated, source: 'cheme process propagate: mixer M301 from S33 S14 S24', fingerprint: 24e7977f2cc7558a}
+        composition: {basis: mole_fraction, values: {H2O: 0.941707, EG: 0.0567451, DEG: 0.000378882, PET: 0.0, BHET: 0.00113646, BHET_S: 0.0, OLIG: 1.51037e-05, OLIG_S: 0.0, ZNAC: 1.70942e-05, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S33 S14 S24', fingerprint: 8af25ce401b0a1ce}
   - id: S26
     title: Distilled water
     from: X301.water
@@ -808,8 +866,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "the column's condensate, subcooled (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 3863.48, provenance: calculated, source: 'cheme process propagate: separator X301 from S25', fingerprint: ae83e935a92bced2}
-        composition: {basis: mole_fraction, values: {H2O: 0.999879, EG: 0.000121112, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X301 from S25', fingerprint: ae83e935a92bced2}
+        flow: {value: 3863.03, provenance: calculated, source: 'cheme process propagate: separator X301 from S25', fingerprint: dc11a850d549792d}
+        composition: {basis: mole_fraction, values: {H2O: 0.999879, EG: 0.000121106, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X301 from S25', fingerprint: dc11a850d549792d}
   - id: S27
     title: Column bottoms (glycol, BHET, DEG, catalyst)
     from: X301.bottoms
@@ -819,8 +877,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "the bottoms cooled to the glycol tank (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 901.298, provenance: calculated, source: 'cheme process propagate: separator X301 from S25', fingerprint: ae83e935a92bced2}
-        composition: {basis: mole_fraction, values: {H2O: 0.0748657, EG: 0.900485, DEG: 0.00604484, PET: 0.0, BHET: 0.0180922, BHET_S: 0.0, OLIG: 0.000240455, OLIG_S: 0.0, ZNAC: 0.000271829, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X301 from S25', fingerprint: ae83e935a92bced2}
+        flow: {value: 901.039, provenance: calculated, source: 'cheme process propagate: separator X301 from S25', fingerprint: dc11a850d549792d}
+        composition: {basis: mole_fraction, values: {H2O: 0.0748721, EG: 0.90052, DEG: 0.00602474, PET: 0.0, BHET: 0.0180713, BHET_S: 0.0, OLIG: 0.000240169, OLIG_S: 0.0, ZNAC: 0.000271821, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X301 from S25', fingerprint: dc11a850d549792d}
   - id: S28
     title: Glycol residue purge
     from: SP301.purge
@@ -830,8 +888,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 45.0649, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S27', fingerprint: 60c8df12caf0831b}
-        composition: {basis: mole_fraction, values: {H2O: 0.0748657, EG: 0.900485, DEG: 0.00604484, PET: 0.0, BHET: 0.0180922, BHET_S: 0.0, OLIG: 0.000240455, OLIG_S: 0.0, ZNAC: 0.000271829, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S27', fingerprint: f8014d65d9439752}
+        flow: {value: 45.052, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S27', fingerprint: ebe10fa5f6b15d3c}
+        composition: {basis: mole_fraction, values: {H2O: 0.0748721, EG: 0.90052, DEG: 0.00602474, PET: 0.0, BHET: 0.0180713, BHET_S: 0.0, OLIG: 0.000240169, OLIG_S: 0.0, ZNAC: 0.000271821, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S27', fingerprint: 2a6727aaf92c62a6}
   - id: S30
     title: Distillate purge
     from: SP302.purge
@@ -841,18 +899,21 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 193.174, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S26', fingerprint: eb75eac2f642852f}
-        composition: {basis: mole_fraction, values: {H2O: 0.999879, EG: 0.000121112, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S26', fingerprint: a9a688e23c490f15}
+        flow: {value: 193.152, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S26', fingerprint: 3113ec686b94a0aa}
+        composition: {basis: mole_fraction, values: {H2O: 0.999879, EG: 0.000121106, DEG: 0.0, PET: 0.0, BHET: 0.0, BHET_S: 0.0, OLIG: 0.0, OLIG_S: 0.0, ZNAC: 0.0, IMP: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP302 from S26', fingerprint: decee7b481e03865}
   # energy
-  - {id: Q1, title: Glycolysis heating (the charge to 470 K), kind: energy, from: HPS.r101, to: R101.q, state: {design: {duty: {value: 150.398, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S4 S5', fingerprint: 4dd7ce0d0aa23dc9}}}}
-  - {id: Q2, title: "Quench heating to 343 K (the cold second mother liquor outweighs the hot glycolysate)", kind: energy, from: LPS.cr201, to: CR201.q, state: {design: {duty: {value: 15.1422, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR201 from S7 S19', fingerprint: f702d502ca9d161a}}}}
-  - {id: Q3, title: First-crop cooling to chilled water, kind: energy, from: CR202.q, to: CHW.cr202, state: {design: {duty: {value: 313.726, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR202 from S11', fingerprint: 82ec36353405363c}}}}
-  - {id: Q4, title: Redissolution heating to 353 K, kind: energy, from: LPS.cr203, to: CR203.q, state: {design: {duty: {value: 249.456, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR203 from S13 S15', fingerprint: 7977188d618c085c}}}}
-  - {id: Q5, title: Second-crop cooling to chilled water, kind: energy, from: CR204.q, to: CHW.cr204, state: {design: {duty: {value: 354.147, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR204 from S16', fingerprint: d90c812f7371d0b5}}}}
-  - {id: Q6, title: Dryer heat, kind: energy, from: LPS.d201, to: D201.steam, state: {design: {duty: {value: 129.029, provenance: assumed, source: "cheme process crystallizers: D201's dryer model, the cake to 343 K, the water and glycol evaporated, D-201's metal heated each batch, 70 % efficiency (core reports the dryer's duty and does not write it, L-4; D-008, D-009)"}}}}
-  - {id: Q7, title: Dryer vacuum condenser to cooling water, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 62.75, provenance: assumed, source: "S23 condensed at D201's latent heats and cooled to 313 K: (91.20 kg/h x 2333.0 + 1.49 kg/h x 1015.0 + 92.69 kg/h x 4.18 x 30) kJ/h / 3600 (D-008, D-009)"}}}}
-  - {id: Q8, title: Dewatering column reboiler, kind: energy, from: HPS.x301, to: X301.steam, state: {design: {duty: {value: 4241.9, provenance: assumed, source: "the column's balance with Q9: (Q9 + the distillate S26 from 290 to 313 K, 3863.5 kg/h x 4.18 x 23.15 + the bottoms S27 from 290 to 343 K after the feed-bottoms interchanger, 901.3 kg/h x 2.6 x 53.15, kJ/h / 3600) x 1.05 for heat losses, ASSUMED (D-009)"}}}}
-  - {id: Q9, title: Dewatering column condenser to cooling water, kind: energy, from: X301.q, to: CW.x301, state: {design: {duty: {value: 3901.5, provenance: assumed, source: "the distillate S26 condensed at a reflux ratio of 0.5 (ASSUMED) and subcooled to 313 K: 3863.5 kg/h x (2256.4 x 1.5 + 4.18 x 60) kJ/h / 3600; water's latent heat at 373.15 K from thermo 0.6.1, method HEOS_FIT (D-009)"}}}}
+  - {id: Q1, title: Glycolysis heating (the dewatered charge to 470 K), kind: energy, from: HPS.r101, to: R101.q, state: {design: {duty: {value: 137.717, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S32 S5', fingerprint: cee81972239b9767}}}}
+  - {id: Q2, title: "Quench heating to 343 K (the cold second mother liquor outweighs the hot glycolysate)", kind: energy, from: LPS.cr201, to: CR201.q, state: {design: {duty: {value: 130.91, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR201 from S7 S19', fingerprint: fd8e8bb69d98dcca}}}}
+  - {id: Q3, title: First-crop cooling to chilled water, kind: energy, from: CR202.q, to: CHW.cr202, state: {design: {duty: {value: 309.651, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR202 from S11', fingerprint: d761caf00fb2ce69}}}}
+  - {id: Q4, title: Redissolution heating to 353 K, kind: energy, from: LPS.cr203, to: CR203.q, state: {design: {duty: {value: 249.422, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR203 from S13 S15', fingerprint: 94c4a5b97ed01f00}}}}
+  - {id: Q5, title: Second-crop cooling to chilled water, kind: energy, from: CR204.q, to: CHW.cr204, state: {design: {duty: {value: 354.098, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR204 from S16', fingerprint: d6c9f327e5583490}}}}
+  - {id: Q6, title: Dryer heat, kind: energy, from: LPS.d201, to: D201.steam, state: {design: {duty: {value: 122.668, provenance: assumed, source: "cheme process crystallizers: D201's dryer model, the cake to 343 K, the water and glycol evaporated, D-201's metal heated each batch from the 313 K its cooling leaves it at, 70 % efficiency (core reports the dryer's duty and does not write it, L-4; D-008, D-009)"}}}}
+  - {id: Q7, title: Dryer vacuum condenser to cooling water, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 62.75, provenance: assumed, source: "S23 condensed at D201's latent heats and cooled to 313 K: (91.18 kg/h x 2333.0 + 1.51 kg/h x 1015.0 + 92.69 kg/h x 4.18 x 30) kJ/h / 3600 (D-008, D-009)"}}}}
+  - {id: Q8, title: Dewatering column reboiler, kind: energy, from: HPS.x301, to: X301.steam, state: {design: {duty: {value: 4241.4, provenance: assumed, source: "the column's balance with Q9: (Q9 + the distillate S26 from 290 to 313 K, 3863.0 kg/h x 4.18 x 23.15 + the bottoms S27 from 290 to 343 K after the feed-bottoms interchanger, 901.0 kg/h x 2.6 x 53.15, kJ/h / 3600) x 1.05 for heat losses, ASSUMED (D-009)"}}}}
+  - {id: Q9, title: Dewatering column condenser to cooling water, kind: energy, from: X301.q, to: CW.x301, state: {design: {duty: {value: 3901.0, provenance: assumed, source: "the distillate S26 condensed at a reflux ratio of 0.5 (ASSUMED) and subcooled to 313 K: 3863.0 kg/h x (2256.4 x 1.5 + 4.18 x 60) kJ/h / 3600; water's latent heat at 373.15 K from thermo 0.6.1, method HEOS_FIT (D-009)"}}}}
+  - {id: Q10, title: "R-101 heat-up distillation and reflux boil-up (HP steam)", kind: energy, from: HPS.x101, to: X101.steam, state: {design: {duty: {value: 88.90, provenance: assumed, source: "the heat-up distillate S33 evaporated from the charge: its 71.30 kg/h of water from liquid at 320 K (196.25 kJ/kg) to saturated vapour at 101.325 kPa (2675.53 kJ/kg; IAPWS-95, chemicals 1.5.2), its 1.95 kg/h of glycol heated to 470 K at 2.86 kJ/(kg K) and evaporated at 879.3 kJ/kg (thermo 0.6.1 HEOS_FIT); and the reflux boil-up over the 2 h hold, ASSUMED 500 kg/h of glycol (about 5 % of the 10.6 t charge an hour) at 879.3 kJ/kg: (71.30 x 2479.28 + 1.95 x (2.86 x 150.15 + 879.3)) / 3600 + 500 x 2 x 879.3 / 6.248 / 3600 = 49.81 + 39.09 kW year average, the jacket on HP steam (D-005, D-009)"}}}}
+  - {id: Q11, title: "R-101 overhead condenser E-101 to cooling water", kind: energy, from: X101.q, to: CW.x101, state: {design: {duty: {value: 89.48, provenance: assumed, source: "the heat-up distillate condensed and cooled to 313.15 K (water 2675.53 - 167.62 = 2507.91 kJ/kg, IAPWS-95; the glycol 879.3 + 2.86 x 157.0 kJ/kg) and the reflux boil-up of Q10 condensed and returned at its boiling point: (71.30 x 2507.91 + 1.95 x 1328.3) / 3600 + 39.09 = 50.39 + 39.09 kW year average (D-005, D-009)"}}}}
+  - {id: Q12, title: "Product and dryer cooling to 313 K before discharge (cooling water)", kind: energy, from: D201.cool, to: CW.d201, state: {design: {duty: {value: 13.963, provenance: assumed, source: "cheme process crystallizers: D201's cooling, the dried product from 343.15 to 313.15 K, 631.31 kg/h x 1.64 kJ/(kg K) x 30 K = 31060.6 kJ/h, and D-201's metal back to 313.15 K, 4000 kJ/K x 30 K a batch per 6.248 h = 19205.1 kJ/h: 50265.7 kJ/h / 3600 (core compares the dryer's cooling and does not write it; D-008, D-009)"}}}}
   - {id: P1, title: Reactor agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 6.0, provenance: assumed, source: "year average (D-009)"}}}}
   - {id: P2, title: Oligomer filter and quench agitator, kind: energy, from: POWER.f201, to: F201.power, state: {design: {duty: {value: 4.0, provenance: assumed, source: "year average (D-009)"}}}}
   - {id: P3, title: Crude BHET centrifuge and crystalliser agitator, kind: energy, from: POWER.f202, to: F202.power, state: {design: {duty: {value: 8.0, provenance: assumed, source: "year average (D-009)"}}}}

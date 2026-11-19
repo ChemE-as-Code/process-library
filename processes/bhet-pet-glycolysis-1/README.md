@@ -12,26 +12,27 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 
 A batch plant that recycles post-consumer PET to its monomer, bis(2-hydroxyethyl) terephthalate
 (BHET), by method B of EP 0 723 951 A1 (Example 2): washed bottle flake, fresh and recovered
-ethylene glycol (2 kg per kg PET) and zinc acetate are held 2 h at the glycol's reflux at 470 K
-(R-101, a conversion step: 87 % of the repeat units to BHET, 13 % left as oligomers, a little
-DEG). The hot glycolysate is filtered of the non-PET solids and run into the last batch's second
-mother liquor at 343 K, where the oligomers precipitate and are filtered off, 90 % of them back
+ethylene glycol (2 kg per kg PET), zinc acetate and the wet recycled oligomers are heated in
+R-101, their water (4.3 wt% of the charge) distilled off on the way, and held 2 h at the glycol's
+reflux at 470 K (a conversion step: 87 % of the repeat units to BHET, 13 % left as oligomers, a
+little DEG). The hot glycolysate is filtered of the non-PET solids and run into the second mother
+liquor of the batch before last (held in T-304) at 343 K, where the oligomers precipitate and are filtered off, 90 % of them back
 to the next charge. The liquor is cooled to 288 K for the crude BHET, which is redissolved in
 6 kg of hot water per kg at 353 K, recrystallised at 288 K, centrifuged and vacuum-dried at
-343 K (core's crystallizer and dryer, ADRs 0056, 0057, 0076). The first mother liquor is
-distilled and both the water and the glycol (with the BHET and catalyst it holds) are recycled.
+343 K (core's crystallizer and dryer, ADRs 0056, 0057, 0076). The first mother liquor, with the
+dryer's condensate and the reactor's heat-up distillate, is distilled and both the water and the glycol (with the BHET and catalyst it holds) are recycled.
 Four design specifications size the flake for 5000 t/a, the fresh glycol, the catalyst and the
 make-up water, and four recycles converge at tears (core ADRs 0060, 0070).
-`process/recipe.yaml` gives the cycle (6.248 h, the dryer and the reactor together), 1268
+`process/recipe.yaml` gives the cycle (6.248 h, set by the dryer, the reactor's 6 h close behind), 1268
 batches a year of 3944.66 kg, and sizes the dryer; `cheme process reactor-hazards` screens the
 reactor. Needs cheme-as-code 1.13.0. DESIGN.md lists the core features used and the core limits
 hit.
 
 Headline numbers and their caveats:
-- Per kg of BHET: 0.776 kg of washed flake (0.756 stoichiometric; 97.8 % of the repeat units to
+- Per kg of BHET: 0.776 kg of washed flake (0.756 stoichiometric; 97.7 % of the repeat units to
   dried BHET), 0.315 kg of fresh glycol (0.244 stoichiometric), 0.06 g of zinc acetate, 0.32 kg of
-  make-up water; 7.6 kWh of steam heat, of which 6.7 kWh is the dewatering column's reboiler;
-  1.06 kWh of chilled-water cooling; 0.10 kg of purges to incineration and 0.31 kg of water to
+  make-up water; 7.9 kWh of steam heat, of which 6.7 kWh is the dewatering column's reboiler;
+  1.05 kWh of chilled-water cooling; 0.10 kg of purges to incineration and 0.31 kg of water to
   wastewater treatment. The dried BHET is 99.8 wt%.
 - The water route distils about 6 kg of water per kg of BHET: the column dominates the energy, as
   Luo et al. (2023) find for their water-antisolvent case; vapour recompression or crystallising
@@ -40,8 +41,11 @@ Headline numbers and their caveats:
   the patent's worked example and two open solubility points (no open kinetics, calorimetry or
   solubility curve, D-005, D-007). The reactor runs at reflux with no exotherm (dT_ad 0 K, MTSR at
   the MTT); its hazards are the hot glycol, steam and the quench (D-011).
-- The LCI is preliminary: the glycol, the make-up water and the steam are linked; the flake's
-  sorting and washing, the catalyst, power, cooling and the waste treatments are gaps (D-012).
+- The LCI is preliminary. In the Atlas LCI the glycol, the make-up water, the steam, power,
+  cooling water and the wastewater are linked; six exchanges are gaps: the flake's sorting and
+  washing, the catalyst, chilled water and the incineration of the three purges. Core's own
+  `cheme assess lca` has no background here and lists all 13 exchanges as unmapped
+  (lca/gaps.csv; D-012).
 
 | path | what |
 |---|---|
@@ -82,7 +86,7 @@ cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
 cheme process propagate --fill  # the feeds (design specifications), the models, the recycles and their duties
 cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year, vessels, vent (--svg)
-cheme process reactor-hazards   # thermal screening of the two semi-batches
-cheme process crystallizers     # the crops, the filters and the dryers (the dryers' duties Q2, Q6)
+cheme process reactor-hazards   # thermal screening of the glycolysis R101 (a conversion step at reflux)
+cheme process crystallizers     # the quench, the crops, the filters and the dryer (its duties Q6, Q12)
 cheme assess lca --write        # the preliminary LCI
 ```
