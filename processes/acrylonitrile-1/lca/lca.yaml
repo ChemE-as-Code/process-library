@@ -1,0 +1,126 @@
+# Goal and scope of the acrylonitrile-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit
+# those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-011): every exchange of the
+# continuous plant per kg of acrylonitrile from the balanced flowsheet. In the Atlas build
+# (build_lci.py) propylene, ammonia and sulfuric acid link to their library producers and the LP
+# steam to the shared steam-heat entry (lca/mappings.yaml), and electricity, cooling water and
+# wastewater through process.yaml's chemistry slugs; natural gas, the quench liquor, the exported
+# HP steam and the catalyst make-up are gaps there. In this folder's own LCI (`cheme assess lca`)
+# every background is a gap with the activity it should connect to, never zero, and no values
+# from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of acrylonitrile made by SOHIO propylene
+  ammoxidation in a fluidised bed (acid quench, water absorption, recovery and purification
+  columns, thermal oxidation of the off-gas), with HCN and acetonitrile recovered as co-products,
+  at the concept stage: which raw materials, utilities, wastes and emissions the plant exchanges
+  per kg of acrylonitrile, as the foreground for a later cradle-to-gate study.
+functional_unit: {product: ACNP, amount: 1, unit: kg, source: "1 kg of the acrylonitrile product (modelled 99.75 wt%, water 0.21 wt%, acetonitrile 0.04 wt%) at the plant gate to storage, stream S27 (D-002, D-007, D-011)"}
+# cradle-to-gate keeps the purchased inputs open gaps instead of free (as oxalyl-chloride-1 does).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Fluid-bed ammoxidation of propylene over a multicomponent bismuth molybdate catalyst at 713 K and 200 kPa(a) (propylene/ammonia/air 1/1.2/9.8 mol, 97.5 % propylene conversion), reaction heat and effluent heat to HP steam, sulfuric-acid quench to ammonium sulfate liquor, water absorption, extractive recovery column, acetonitrile stripper and pressure-swing purification, HCN column, drying and product column, thermal oxidiser with waste-heat boiler; 15 t/h acrylonitrile"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  # Mass allocation between the three nitrile products (D-011).
+  method: mass
+  coproducts: [ACNP, HCNP, MECNP]
+  source: >-
+    D-011 (agent proposal, for the LCA practitioner to confirm): the three nitriles come from one
+    reactor whose split the catalyst fixes; no physical relationship separates their burdens
+    (docs/system-model.md), and no prices are sourced at the concept stage, so mass allocation
+    of the library's hierarchy is used. HCN and acetonitrile together are 7.0 % of the nitrile
+    mass. The exported HP steam is not allocated: it stays a gap with its avoided-steam
+    background open (D-011).
+  deviation: >-
+    Mass allocation, not the economic allocation the WBCSD rule would ask for if the price ratio
+    exceeds 5; HCN and acetonitrile prices are not sourced. All burdens to acrylonitrile is the
+    conservative bound (7.5 % more per kg).
+flows:
+  # raw materials
+  - key: feed:C3
+    missing: "linked to processes/propylene-pdh-1 (lca/mappings.yaml): polymer-grade propylene, which meets the chemical-grade feed this design assumes"
+    source: "flowsheet stream S1 (D-003)"
+  - key: feed:AMM
+    missing: "linked to processes/ammonia-1 (lca/mappings.yaml): liquid ammonia, vaporised at the battery limit"
+    source: "flowsheet stream S2 (D-003)"
+  - {key: feed:AIR, free: true, source: "ambient air, the oxidant of the reactor (stream S3): a resource taken from nature without burden"}
+  - {key: feed:CAIR, free: true, source: "ambient combustion air of the thermal oxidiser (stream S31)"}
+  - key: feed:ACID
+    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt%"
+    source: "flowsheet stream S8 (D-005)"
+  - key: feed:NG
+    missing: "not mapped yet (D-011); connect to: natural gas at the site, high pressure, burnt as support fuel in the thermal oxidiser (its combustion CO2 is in the stack emissions)"
+    source: "flowsheet stream S32 (D-008)"
+  # utilities
+  - key: feed:POWER
+    missing: "not linked in this folder's LCI; the Atlas build links it through process.yaml's chemistry slug electricity (lci/mappings.yaml, D-011); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams Q1 (air compressor) and Q2 (absorber water chiller), both scripts/utilities.py, and Q3 (pumps), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: LP steam 700 kPa(a) of the site, per kWh of condensing heat"
+    source: "flowsheet energy stream Q7, the reboilers of all columns as one lump: the hot utility of Li et al. (2025) less its fired feed preheat, scaled (scripts/utilities.py, D-009)"
+  - key: product:HPS
+    missing: "not linked, on purpose, here and in the Atlas build (D-011): exported HP steam (4100 kPa(a)) is a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. processes/utility-steam-ng-boiler, per kWh) and a decision of the LCA practitioner. It is gross: the plant's own LP steam (Q7) is a separate input"
+    source: "flowsheet energy streams Q4 (reactor coils, calculated by cheme), Q5 (effluent boiler, scripts/utilities.py) and Q6 (thermal oxidiser boiler, calculated by cheme), D-009"
+  - key: product:CW
+    missing: "not linked in this folder's LCI; the Atlas build links it through process.yaml's chemistry slug cooling-water (lci/mappings.yaml, D-011); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy stream Q8, the coolers and condensers of the plant as one lump scaled from Li et al. (2025) plus the chiller's condenser (scripts/utilities.py, D-009)"
+  # wastes
+  - key: product:LIQ
+    treatment: {kind: waste, route: "quench liquor (about 28 wt% ammonium sulfate with acrylic acid and organics): ammonium sulfate recovery by crystallisation with the organics incinerated, or treatment; EPA-450/4-84-007a (p. 18) reports deep-well disposal in older US plants (D-005)"}
+    missing: "not mapped yet (D-011); connect to: treatment of an ammonium sulfate liquor with organics (crystallisation to fertiliser-grade ammonium sulfate, processes/ammonium-sulfate-1 makes the product another way), or hazardous wastewater incineration, per kg"
+    source: "flowsheet stream S10 (D-005)"
+  - key: product:WW
+    treatment: {kind: waste, route: "biological treatment of the net process water (traces of acrylonitrile and acetonitrile) at the site's treatment plant (D-007)"}
+    missing: "not linked in this folder's LCI; the Atlas build links it through process.yaml's chemistry slug wastewater (lci/mappings.yaml, D-011); connect to: treatment of industrial wastewater in a biological plant (processes/utility-wwtp), per kg"
+    source: "flowsheet stream S24 (D-007)"
+  # stack emissions
+  - {key: product:STACK, emission: true, source: "thermal oxidiser flue gas to the stack, stream S34 (D-008)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 returned, with the N2 of the burnt ammonia and nitriles"}
+  - {key: emission:O2, free: true, source: "atmospheric O2 not consumed"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned"}
+  - {key: emission:H2O, free: true, source: "water vapour formed by combustion"}
+  - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "CO2 formed in the reactor (carbon of the fossil propylene) and by the thermal oxidiser (D-004, D-008)"}
+  - {key: emission:CO, elementary: {compartment: air, origin: fossil}, source: "CO slip of the thermal oxidiser, 1 % ASSUMED (D-008)"}
+  - {key: emission:C3H6, elementary: {compartment: air, origin: fossil}, source: "propylene slip of the thermal oxidiser (D-008)"}
+  - {key: emission:ACN, elementary: {compartment: air}, source: "acrylonitrile slip of the thermal oxidiser (D-008)"}
+  - {key: emission:MECN, elementary: {compartment: air}, source: "acetonitrile slip of the thermal oxidiser (D-008)"}
+  - {key: emission:ACRO, elementary: {compartment: air}, source: "acrolein slip of the thermal oxidiser (D-008)"}
+  - {key: emission:CH4, elementary: {compartment: air, origin: fossil}, source: "methane slip of the support fuel (D-008)"}
+  - {key: emission:HCN, elementary: {compartment: air}, source: "HCN slip of the thermal oxidiser (D-008)"}
+  - {key: emission:NH3, elementary: {compartment: air}, source: "zero in the flue gas: the quench takes up all ammonia (D-005); listed because propagate carries every component in the stream (DESIGN.md L-3)"}
+  - {key: emission:AA, elementary: {compartment: air}, source: "zero in the flue gas: acrylic acid leaves with the quench liquor (D-005); listed because propagate carries every component in the stream (DESIGN.md L-3)"}
+  - {key: emission:AS, elementary: {compartment: air}, source: "zero in the flue gas: ammonium sulfate leaves with the quench liquor (D-005); listed because propagate carries every component in the stream (DESIGN.md L-3)"}
+  - {key: emission:H2SO4, elementary: {compartment: air}, source: "zero in the flue gas: the excess acid leaves with the quench liquor (D-005); listed because propagate carries every component in the stream (DESIGN.md L-3)"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+consumables:
+  - id: ammox-catalyst
+    title: Bismuth molybdate fluid-bed catalyst make-up (attrition losses)
+    unit: t
+    per_year: 60
+    catalyst: true
+    missing: "no background chosen and no open consumption figure found (D-011): production of a silica-supported multicomponent bismuth molybdate catalyst"
+    source: "ASSUMED order of magnitude (D-011): 0.5 kg per t of acrylonitrile x 120 000 t/a; fluid beds lose fines through the cyclones to the quench (EPA-450/4-84-007a p. 18: spent catalyst fines in the quench wastewater); to be sourced"
+emission_exclusions:
+  - {id: startup-vent, method: non-routine, equipment: [C-102], reason: "Start-up venting: until the reactor effluent leaves the explosive range it is vented at the absorber vent (EPA-450/4-84-007a p. 19 and Table 6 p. 22: Vent B at start-up), up to 4500 kg/h of acrylonitrile from one reactor for about four one-hour start-ups a year (p. 20); not in the steady-state balance (D-011)."}
+  - {id: column-vents, method: flare, equipment: [C-201, C-202, C-301, C-302], reason: "Column purge vents to a flare (EPA-450/4-84-007a p. 20) are not estimated; the lumped columns carry no non-condensables (D-007, D-011)."}
+  - {id: oxidiser-nox, method: combustion, equipment: [H-401], reason: "The thermal oxidiser's NOx (fuel nitrogen of the HCN, nitriles and ammonia traces it burns, and thermal NOx) is not estimated: the model sends that nitrogen to N2 (D-008, L-5); EPA-450/4-84-007a (p. 20) names the NOx of burning nitrile-rich streams as the reason start-up gas is not incinerated."}
+  - {id: storage-breathing, method: storage-tank, reason: "Breathing of the crude, run-down and product tanks (water scrubbers or floating roofs, EPA-450/4-84-007a p. 21) is not estimated; the tanks are not in the equipment list (product storage is outside the boundary, D-001; D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic petrochemical site with propylene, ammonia and sulfuric acid supply, a steam system and a wastewater plant, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #460, unreviewed"

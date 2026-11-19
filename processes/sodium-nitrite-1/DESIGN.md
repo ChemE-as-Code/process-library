@@ -49,8 +49,8 @@ opened from this run (not visible to `gh`); their state is taken from the issue 
   CW (utility out).
 - **Normalisation**: per kg of dried NaNO2 product (S18).
 - **Link to other library processes** (boundary feeds, not integrated): ammonia from
-  ammonia-1, soda ash from soda-ash-1, 60 wt-% nitric acid from nitric-acid-1 (its product
-  state). The WHB steam stays inside (D-010). The utility processes utility-steam-ng-boiler,
+  ammonia-1, dense soda ash (soda-ash-1 makes light ash; densification lies outside both
+  boundaries), 60 wt-% nitric acid from nitric-acid-1 (its product state). The WHB steam stays inside (D-010). The utility processes utility-steam-ng-boiler,
   utility-cooling-tower and utility-wwtp are the natural backgrounds of LPS, CW and COND.
 
 ## 2. Source register
@@ -66,11 +66,13 @@ Read status: "read" = the cited locator was read (full text via the web page) in
 | SRC-3 | US 12 565 427 B2, "Apparatus and process for conversion of ammonia into oxides of nitrogen", https://patents.google.com/patent/US12565427B2/en | Detailed Description and claims: air 8 600-9 460 Nm3/h with NH3 988-1 090 Nm3/h (about 10.3 mol-% NH3); gauze 850-950 degC, 1-4 bar; Pt/Rh 95/5 gauzes; WHB cooling to 200-250 degC raising about 1.94 t/h steam; absorption in NaOH towers; liquor 38-40 % w/w; calculated 92 % conversion for six gauzes | read (Google Patents text; no paragraph numbers on the page) | patent: facts only | D-005 |
 | SRC-4 | US 2 013 984 A, "Process for the oxidation of nitrites to nitrates", https://patents.google.com/patent/US2013984A/en | Description: nitrite of absorption liquors converted to nitrate with nitric acid, the nitrogen oxides set free returned to the absorption | summary | patent: facts only | D-009 |
 | SRC-5 | IPCC 2006 Guidelines, Vol. 3 Ch. 3, Table 3.3, https://www.ipcc-nggip.iges.or.jp/public/2006gl/vol3.html | N2O default for atmospheric-pressure (low-pressure) nitric acid plants: 5 kg N2O per t HNO3 (100 %) | summary: the value and its +/-10 % confirmed as quoted from IPCC 2006 (p. 3.23) in US EPA (2013) Global Mitigation of Non-CO2 GHGs, ch. IV industrial, Table 1-1 (https://www.epa.gov/sites/default/files/2016-06/documents/mac_report_2013-iv_industrial.pdf) and CDM Meth Panel MP49 annex 12 (https://cdm.unfccc.int/Panels/meth/meeting/11/049/mp49_an12.pdf); the 2019 Refinement keeps 5 kg for single low-pressure plants | IPCC: facts with citation | D-005 N2O analogy |
-| SRC-6 | Wikipedia, "Sodium nitrite", https://en.wikipedia.org/wiki/Sodium_nitrite | section Production: NOx absorbed in NaOH or Na2CO3 solution, nitrate as by-product | not opened in this run; route identity only, the same facts are read in SRC-2/3 | CC BY-SA: facts only | route identity |
-| SRC-7 | ATcT / CRC / Poling 5th ed. via `cheme chemistry thermo` | printed records in process/materials.yaml | read (tool output) | data facts | burner duty, gas enthalpies |
+| SRC-6 | Wikipedia, "Sodium nitrite", https://en.wikipedia.org/wiki/Sodium_nitrite | section Production: NOx absorbed in NaOH or Na2CO3 solution, nitrate as by-product; infobox: solubility in water about 160 at 100 degC (units given per 100 ml) | not opened in this run: both facts from a web search summary; the route facts are read in SRC-2/3, the solubility is **unverified** | CC BY-SA: facts only | route identity; D-008 solubility plausibility (not a model input) |
+| SRC-7 | `chemicals` 1.5.2 and `thermo` 0.6.1 (Caleb Bell, MIT licence; the versions core pins), queried through `cheme chemistry thermo`: ideal-gas formation enthalpies from chemicals' Active Thermochemical Tables data (`ATCT_G`), standard entropies from its packaged CRC Handbook table (`heat_capacity.CRC_standard_data`), ideal-gas cp from its `heat_capacity.Cp_data_Poling` polynomials (Poling, Prausnitz and O'Connell, The Properties of Gases and Liquids, 5th ed.) for NH3, O2, N2, Ar, H2O, NO, N2O and CO2, and for NO2 a polynomial fitted to thermo's `TRCIG` correlation over 298.15-1000 K; the CRC Handbook and Poling are licensed books, not read here | printed per component in process/materials.yaml | package queried; the underlying works not read | open-source packages queried; single values, facts only; not open data (library ADR 0037) | burner duty, gas enthalpies |
 | SRC-8 | Wagman, D. D. et al. (1982) NBS tables of chemical thermodynamic properties, J. Phys. Chem. Ref. Data 11 Suppl. 2 | dHf (298.15 K) of NaNO2(aq) -344.8, NaNO3(aq) -447.48, Na2CO3(aq) -1157.38, Na2CO3(cr) -1130.68, HNO3(aq) -207.36 kJ/mol; dHsol NaNO2 about +13.9 kJ/mol | values as recalled by the agent, **not re-read in this run: to be verified against the tables**; only NaNO2(cr) about -359 kJ/mol was cross-checked (secondary database webqc.org) | US government data | D-010 absorption and crystallisation heats |
 | SRC-9 | nitric-acid-1 (this library), process/design-basis.yaml | air composition, ammonia and acid delivery states | read | CC BY 4.0 (own) | D-004 |
-| SRC-10 | IAPWS-IF97 | psat 313.15 K 7.385 kPa; saturation 450 kPa(a) 420.8 K | standard values | open standard | D-006, D-010 |
+| SRC-10 | IAPWS-IF97 | psat 313.15 K 7.385 kPa; saturation 450 kPa(a) 421.06 K (147.9 degC) | standard values; the 450 kPa(a) saturation checked with CoolProp 8.0.0 (`IF97::Water`) in core's environment on 2026-11-19 | open standard | D-006, D-010 |
+| SRC-11 | CRC Handbook of Chemistry and Physics (edition not identified), solubility of NaNO2 in water | about 85 g per 100 g water at 25 degC | summary: quoted in a web search summary, the handbook not opened; **unverified** | licensed: facts only | D-008 solubility plausibility (not a model input) |
+| SRC-12 | a J. Chem. Eng. Data review of 2021 on NaNO2 solutions (authors, DOI and locator not found) | a saturated NaNO2 solution boils at about 128 degC | summary: attributed in a web search summary; source not identified; **unverified** | not known: facts only | D-008 solubility plausibility (not a model input) |
 
 Searched without an open result (open inputs, section 7): an open nitrite-plant material
 balance or consumption figures per tonne (Indian environmental-clearance documents found were
@@ -132,7 +134,7 @@ analysis) is a P&ID-stage item.
 | need | method used | core support (0.8.0) | gate |
 |---|---|---|---|
 | element/mass balance | cheme validate, process streams | supported | closed |
-| burner outlet and duty | conversion reactor, ideal-gas data | supported | calculated; agrees with the script (1 964.2 kW) |
+| burner outlet and duty | conversion reactor, ideal-gas data | supported | calculated; agrees with the script (2 005.2 kW) |
 | NOx absorption with chemistry | specified outlets | no reactive-absorption model | specified (balanced target) |
 | electrolyte enthalpies (liquors) | NBS formation enthalpies, constant cp 2.8 kJ/kg K | unsupported (NaCl only) | duties C201, E301, CR301 are estimates; energy closure not evaluable in core |
 | NaNO2 crystallisation | specified splits | `crystallizer:` predictive only for one salt; multi-solute -> imposed yield | not used: would add no predictive content |
@@ -159,7 +161,9 @@ crystallisation and separation.
 ## D-003 Soda ash as absorbent (2026-10-28)
 Decision: 20 wt-% Na2CO3 solution made from dense soda ash and evaporator condensate.
 Reason: the case notes allow soda ash or caustic; soda ash is the classic absorbent (SRC-2),
-cheaper per mol Na and made in this library (soda-ash-1). Its CO2 (0.36 kg/kg NaNO2) leaves
+cheaper per mol Na and made in this library as light ash (soda-ash-1; dense ash is light ash
+densified, a step outside both boundaries and not modelled). The grade does not change the
+balance: the ash is dissolved, and dense ash is chosen only for less dust at the feeder. Its CO2 (0.36 kg/kg NaNO2) leaves
 with the tail gas and is reported (D-013). Dissolving it in the evaporator condensate closes
 the water loop (only 0.31 kg/kg condensate surplus).
 Rejected: caustic soda (SRC-3) - no CO2 release, higher liquor strength (38-40 %) and less
@@ -193,7 +197,7 @@ sizing and burner conditions only; the register row also quotes the claim
 ranges (988-1 090 Nm3/h NH3). The example's 1.9 kg NaNO2 per kg NH3 (2 700-2 750 kg/h of
 38-40 % liquor) is far below the 3.68 kg/kg of this balance, which follows from the assumed
 97 % NO selectivity and 99.5 % absorption; the patent's figures imply a lower nitrogen yield
-or other products and are not used for the yield. The WHB here raises about 2.9 t/h against
+or other products and are not used for the yield. The WHB here raises about 3.0 t/h against
 about 2.4 t/h scaled from SRC-3's 1.93-1.95 t/h, although SRC-3 preheats its burner feed to
 140-170 degC and this design does not: the assumed 97 % NO selectivity (SRC-3 calculates
 92 %) releases more heat, and SRC-3 does not state its losses. Not resolved at this stage.
@@ -230,10 +234,11 @@ to remove the nitrate formed; the dryer leaves 0.1 wt-% moisture.
 Result: crystals 2 435 kg/h, purge 671 kg/h, evaporation 8 996 kg/h; condensate 8 657 kg/h to
 the dissolver, 338 kg/h surplus.
 Plausibility (not a model): the concentrate holds 179 g NaNO2 per 100 g water at 125 degC.
-Pure NaNO2 solubility is about 85 g/100 g water at 25 degC (CRC value as quoted in a web search
-summary) and about 160 at 100 degC (Wikipedia "Sodium nitrite", infobox, units given per
-100 ml); a saturated solution boils at about 128 degC (attributed in a web search summary to a
-J. Chem. Eng. Data review of 2021; no authors, DOI or locator found, **unverified**). All
+Pure NaNO2 solubility is about 85 g/100 g water at 25 degC (SRC-11, CRC value as quoted in a
+web search summary) and about 160 at 100 degC (SRC-6, Wikipedia "Sodium nitrite", infobox,
+units given per 100 ml); a saturated solution boils at about 128 degC (SRC-12, attributed in a
+web search summary to a J. Chem. Eng. Data review of 2021; no authors, DOI or locator found,
+**unverified**). All
 three values come from summaries and are unverified (review 2026-10-28-pfd-lci-review#10);
 the near-saturation claim below rests on them and on SRC-2. The concentrate is therefore close to saturation at 125 degC, as in SRC-2's
 evaporator (about 1000 g/l); the mother liquor (67 g NaNO2 per 100 g water with 17 % NaNO3 at
@@ -259,8 +264,8 @@ E-301 is a backward-feed double effect (review 2026-10-28-pfd-lci-review#1, #2):
 (S11, 318 K) is preheated by the combined condensate (cooled to 333 K, S13) and enters effect 2
 under vacuum, boiling at 368 K (effect-2 vapour saturated at 360 K, about 63 kPa(a)); effect 2
 is heated by the effect-1 vapour (saturated at 378 K). Effect 1 concentrates to S12 (398 K,
-120 kPa(a), BPE 20 K) and is heated by the WHB steam (453 K) and the LP steam (420.8 K),
-22.6 K above the boiling liquor: LP steam can reach it. A forward feed ending at 120 kPa(a)
+120 kPa(a), BPE 20 K) and is heated by the WHB steam (453 K) and the LP steam (421.06 K),
+22.9 K above the boiling liquor: LP steam can reach it. A forward feed ending at 120 kPa(a)
 would need steam above about 428 K in effect 1, which 450 kPa(a) steam cannot supply.
 Estimates (all ASSUMED): E-301 duty from the effect balances (feed cp 3.3, effect-2 liquor
 cp 3.0 kJ/kg K, BPE 20 K in effect 1 and 8 K in effect 2, 10 K across the effect-2 calandria,
@@ -342,8 +347,6 @@ kg = outputs 1 + 3.2351 + 0.0228 + 0.2667 kg (allocated), i.e. 13 118.55 kg/h at
 - Ullmann chapter (SRC-1) not read: production section, consumption figures.
 
 ## 8. Chemicals registry items missing (for the consolidated library PR)
-`sodium-nitrite` (main product, CAS 7632-00-0), `sodium-nitrate` (co-product, 7631-99-4),
-`ammonia` (7664-41-7), `sodium-carbonate` (soda ash, 497-19-8), `nitric-acid` (7697-37-2, with
-a 60 wt-% solution grade), `nitrous-oxide` and `nitric-oxide` (emissions); in
-lci/mappings.yaml a nitric-acid entry per kg of 60 wt-% solution; the elementary-flow crosswalk
-lacks NO (10102-43-9) to air.
+`nitric-oxide` (emission, CAS 10102-43-9) is not in chemicals/chemicals.yaml; the main
+products, feeds and the N2O emission have their entries since issue #251 (process.yaml
+`chemistry`). The elementary-flow crosswalk lacks NO (10102-43-9) to air (section 6).

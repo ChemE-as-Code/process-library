@@ -14,6 +14,15 @@
 # reference. The anhydride KPI is bound to the only other open figure found (Chemcess, a secondary
 # summary of Ullmann's): a single yield for another variant, the co-current tube with excess
 # ammonia, so the dataset sits outside it with a reason.
+#
+# Caprolactam (caprolactam-1, #464): the one open plant-scale figure is the ammonium sulfate per t
+# of caprolactam of US 3,852,273 (background): 1.7 to 1.9 t from the rearrangement in oleum and
+# 4.2 to 4.6 t in all with Raschig hydroxylamine. The total is bound; the dataset uses the
+# NO-reduction hydroxylamine of hydroxylamine-1, which forms far less salt in the oximation, so it
+# sits below the range with a reason. Its rearrangement share (1.82 t/t formed) is inside 1.7 to
+# 1.9 (tests/test_caprolactam_1.py), which no exchange expression can isolate. No open source
+# gives a plant's cyclohexanone use; the stoichiometric floor (98.145 / 113.160 = 0.867 kg/kg) is
+# a limit, not a range.
 schema: cheme-as-code/benchmarks/v1
 family: nitrogen-organics
 
@@ -90,8 +99,77 @@ kpis:
       No open source with a heat or steam figure for phthalimide found (2026-11-05); same search as the
       electricity KPI. The patents only state that the reaction is exothermic and that the feeds and the
       tube are heated. The dataset's value is core's Tier 0 default, ASSUMED.
+  acn-specific-propylene:
+    title: Propylene consumption per t of acrylonitrile (SOHIO ammoxidation)
+    unit: t/t
+    references:
+      - id: ipcc-2006-acn-propylene
+        range: [1.09, 1.09]
+        basis: unallocated
+        note: >-
+          The IPCC default feedstock consumption, a single value (zero-width range, not widened),
+          from process-specific yield and consumption data of the EU LVOC BREF of 2003, about 70 %
+          primary product yield on propylene (IPCC gives no plant age for it).
+        conditions: {technology: "SOHIO direct ammoxidation of propylene, fluid bed", year: 2003}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3 Industrial Processes and Product Use, chapter 3 Chemical Industry Emissions, section 3.9, text under Table 3.22"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf
+          locator: p. 3.79, text under Table 3.22
+          kind: other
+          accessed: "2026-11-19"
+  acn-direct-co2:
+    title: Process CO2 per t of acrylonitrile, secondary products recovered
+    unit: t/t
+    references:
+      - id: ipcc-2006-acn-co2-recovered
+        range: [0.79, 0.79]
+        basis: unallocated
+        note: >-
+          IPCC Table 3.22 factor for the configuration in which acetonitrile and HCN are recovered as
+          products, from the 2003 LVOC BREF; excludes the CO2 of auxiliary fuel.
+          A single value (zero-width range).
+        conditions: {technology: "SOHIO direct ammoxidation of propylene, acetonitrile and HCN recovered", year: 2003}
+        source:
+          citation: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, chapter 3, Table 3.22"
+          url: https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf
+          locator: p. 3.79, Table 3.22
+          kind: other
+          accessed: "2026-11-19"
+
+  caprolactam-specific-ammonium-sulfate:
+    title: Ammonium sulfate co-product per kg of caprolactam
+    unit: kg/kg
+    references:
+      - id: us3852273-raschig-total
+        range: [4.2, 4.6]
+        basis: unallocated
+        note: >-
+          The total ammonium sulfate of the conventional process with Raschig hydroxylamine (reduction of
+          ammonium nitrite with SO2): 2.5 to 2.7 t from the oximation and 1.7 to 1.9 t from the rearrangement
+          in oleum, per t of caprolactam, as the patent's background states them.
+        conditions: {technology: "hydroxylammonium sulfate by the Raschig synthesis, oximation neutralised with ammonia, Beckmann rearrangement in oleum neutralised with ammonia", year: 1971}
+        source:
+          citation: "De Rooij, A. H. (Stamicarbon) (1974) Process for preparing and recovering lactams. US Patent 3,852,273"
+          url: https://patents.google.com/patent/US3852273A/en
+          locator: Background of the invention
+          kind: other
+          accessed: "2026-11-19"
+  caprolactam-specific-cyclohexanone:
+    title: Cyclohexanone consumption per kg of caprolactam
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's cyclohexanone use per kg of caprolactam found (searched 2026-11-19: Google Patents for oximation and Beckmann rearrangement, US 4,031,139, US 4,804,754, US 7,339,056 B2 read; the LVOC BREF 2017 section 2.1.4.7.1; Wikipedia). Only the stoichiometric floor, 0.867 kg/kg, is known."
 
 datasets:
+  - process: caprolactam-1
+    dataset: caprolactam-from-cyclohexanone-oxime-by-beckmann-rearrangement-in-oleum-100-kt-a
+    conditions: {technology: "oximation with hydroxylammonium sulfate from NO reduction and ammonia, Beckmann rearrangement in oleum, neutralisation with ammonia, benzene extraction, vacuum distillation", basis: "concept balance, DESIGN.md D-004 to D-010"}
+    kpis:
+      caprolactam-specific-ammonium-sulfate:
+        expression: product:ASP / product:PROD
+        per: product:PROD
+        reference: us3852273-raschig-total
+        out_of_range_reason: "Another hydroxylamine: the reference's total is for Raschig hydroxylamine, whose oximation forms 2.5 to 2.7 t/t; the dataset takes hydroxylamine-1's NO-reduction solution, whose oximation forms 0.71 kg/kg with its free acid, so the total is 2.48 kg/kg. Its rearrangement share, 1.82 kg/kg formed, lies in the reference's 1.7 to 1.9."
+      caprolactam-specific-cyclohexanone: {expression: feed:CHNF / product:PROD, per: product:PROD}
   - process: n-bromosuccinimide-1
     dataset: n-bromosuccinimide-by-semi-batch-bromination-of-succinimide-in-aqueous-naoh-500-t-a
     conditions: {technology: "caustic bromination of succinimide, semi-batch at 278 K, reslurry wash, vacuum drying", basis: "concept balance, ASSUMED ratios (DESIGN.md D-004, D-007)"}
@@ -110,3 +188,17 @@ datasets:
       phthalimide-specific-ammonia: {expression: feed:ammonia / product:phthalimide, per: product:phthalimide}
       phthalimide-specific-electricity: {expression: feed:electricity / product:phthalimide, per: product:phthalimide}
       phthalimide-specific-heat: {expression: feed:heat / product:phthalimide, per: product:phthalimide}
+  - process: acrylonitrile-1
+    dataset: acrylonitrile-sohio-propylene-ammoxidation-15-t-h
+    conditions: {technology: "fluid-bed propylene ammoxidation over a Bi-Mo catalyst (US 6 596 897 B1 product slate), acid quench, absorption, recovery and purification, HCN and acetonitrile recovered, off-gas thermal oxidiser", basis: "concept balance, sourced selectivities and ASSUMED separator splits (DESIGN.md D-004 to D-008)"}
+    kpis:
+      acn-specific-propylene:
+        expression: feed:C3 / product:ACNP
+        per: product:ACNP
+        reference: ipcc-2006-acn-propylene
+        out_of_range_reason: "Another catalyst generation: the reference is the 2003 BREF's plant average at about 70 % yield, the dataset uses a 1997 patent catalyst at 79.7 % single-pass acrylonitrile yield (US 6 596 897 B1), so it needs about 8 % less propylene (DESIGN.md D-004)."
+      acn-direct-co2:
+        expression: emission:CO2 / product:ACNP
+        per: product:ACNP
+        reference: ipcc-2006-acn-co2-recovered
+        out_of_range_reason: "Fewer carbon oxides: the dataset's catalyst sends 11.2 % of the propylene carbon to CO and CO2 (US 6 596 897 B1), the reference rests on the 2003 BREF plants at about 70 % acrylonitrile yield; the dataset's figure also includes the support fuel's CO2 (0.014 t/t), which the reference excludes (DESIGN.md D-004, D-008)."

@@ -18,8 +18,11 @@ vent as it forms (`batch.vent`); the crude is degassed in the same vessel (a bat
 year-average flows come (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process
 stills`). The models write the duties of R101 and the degassing (core ADR 0059), and the
 R101's duty holds the heat of solution of the dosed phosgene (ADR 0063); the screening compares
-the gas a cooling failure releases with the vent's capacity (ADR 0058). It needs cheme-as-code
-1.10 (core ADRs 0054, 0055, 0057, 0058, 0059, 0063).
+the gas a cooling failure releases with the vent's capacity (ADR 0058); since core 1.12 it
+counts the reactions as a network and reports the largest gas release over the batch and the
+phosgene held in the liquid (ADR 0069, DESIGN.md D-016; the MTT, the bubble point with the
+dissolved phosgene, is set by hand). Needs cheme-as-code 1.12.0 (core ADRs 0054, 0055, 0057,
+0058, 0059, 0063, 0069).
 
 | path | what |
 |---|---|
