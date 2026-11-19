@@ -21,6 +21,12 @@ procedures (ADR 0063); the batch column (ADR 0061) and the vessel metal were che
 adopted. D-015 records what changed, the numbers before and after and why; the decisions below
 carry the new numbers.
 
+Core 1.12.0 (2026-11-19, issue #427): library `main` pins cheme-as-code 0e85885 (1.12.0 and the
+QSDsan integration). Its screening of the dissolved phosgene, the release over the batch and the
+reaction network (core ADR 0069) replace D-011's scratch script; R101 counts the network; Boc2O's
+decomposition in the work-up and the vacuum still is bounded from an open rate at 50 C, not
+modelled. D-016 records it; the streams, the recipe and the LCI are unchanged.
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -41,12 +47,17 @@ no paragraph numbers, so the locator is the part of the document).
 | SRC-10 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and the criticality classes of a semi-batch (the method of core ADRs 0050, 0058) | method reference, no data taken | D-011 |
 | SRC-11 | processes/phosgene-1, chlor-alkali-1, asu-1, benzyl-chloroformate-1, potassium-tert-butoxide-1 (this library) | liquid phosgene at 253 K and 340 kPa(a); caustic soda 50 wt%; gaseous nitrogen; the phosgene evaporator's heat, the degassing still and the scrubber pattern; potassium tert-butoxide powder from potassium and dry tert-butanol (99.47 wt% KOtBu modelled) | library, internal | D-004, D-006, D-007, D-012 |
 | SRC-12 | Ullmann's Encyclopedia of Industrial Chemistry (carbonic acid esters) | - | not read (licensed) | nothing taken |
+| SRC-13 | US6555713B1, Tokuyama, priority 1999-10-08, granted 2003-04-29: protection of di-t-butyl dicarbonate against decomposition, https://patents.google.com/patent/US6555713B1/en | description: Boc2O is thermally unstable and decomposes slowly when stored as a liquid; Example 1: 50 g Boc2O (99.3 %, 85 ppm water) with 50 g hexane held at 50 C, stirred, for 200 h, the Boc2O left measured by GC (naphthalene internal standard): 0.5 % decomposed; Table 1 (Examples 2-14, the same test): hexane at 80, 20, 10, 5 and 3 wt% 0.4, 0.5, 0.6, 1.4 and 2.0 %, heptane 50 wt% 0.5 %, toluene 50 wt% 2.3 %; Table 2, Comparative Example 1 (no additive): 4.5 %; ethers, esters, ketones and chloroform 4.6-9.7 %; acids and bases to be kept at or below 1000 ppm (preferably 100 ppm); storage at or below 30 C (preferably 10 C); mp 22-23 C; the decomposition products are not named | read 2026-11-19 (Google Patents text through a fetch-and-summarise tool, the examples and the two tables' rows quoted back); patent, facts only | D-016 |
 
 Searched and not found openly (2026-11-06): kinetics or reaction calorimetry of the carbonation
 of an alkali tert-butoxide or of the phosgenation of the carbonate; a formation enthalpy of the
 carbonate or of Boc2O; a vapour-pressure equation, heat of vaporization, heat of fusion, DSC
 onset or TD24 of Boc2O; a plant's specific consumptions; a market volume. The route scouting's
 reading of EP0468404A2 (Sumitomo, the family of SRC-2) is not used beyond SRC-2.
+Searched again 2026-11-19 (D-016): a DSC onset, TD24, activation energy or decomposition rate of
+Boc2O above 50 C, and its decomposition products by an open measurement; found only SRC-13's
+rates at 50 C. A chemical supplier's database page names isobutene, tert-butanol and CO2 as the
+products at higher temperatures (no measurement cited; not used as a source).
 
 ## D-001 Route and boundary (2026-11-06)
 Decision: the one-pot phosgene route of SRC-1 on a dedicated train (D-013):
@@ -350,7 +361,9 @@ Decision:
   stored at 303 K.
 - No reaction runs in a still or the wash: Boc2O's thermal and hydrolytic decomposition has no
   open rate; its loss in the still and the wash is not modelled (L-10). The heel's 0.76 % and the
-  forerun's 0.86 % are what the stills distil off or leave.
+  forerun's 0.86 % are what the stills distil off or leave. Since 2026-11-19 (D-016) a bound in
+  place of a rate: at or below 313 K at most 0.12 % (SRC-13's 50 C rates); in ST301 the
+  decomposition gas stays within K-301 below about 7.5 %/h at 357.9 K, to be measured.
 Reason: SRC-1 distils from a paraffin to limit decomposition; the heel (a usual practice for a
 heavy chaser) keeps the Boc2O it holds in the process.
 
@@ -421,6 +434,10 @@ Reason: SRC-1 and SRC-2 end in a salt solution; KCl recovery or a DABCO recovery
 concept.
 
 ## D-011 Thermal screening and the rate sensitivity (2026-11-06)
+(Rerun on core 1.12.0 with `hazard.potential: network`, D-016: dT_ad 82.0 K, MTSR 279.5, 282.5 and
+295.9 K at k, k/10 and k/100, the largest release over the batch 24.69, 28.41 and 67.41 m3/h, the
+phosgene stripped at most 0.096, 0.46 and 7.72 kg/h, all from core. The text and table below are
+the core 1.10.0 record.)
 Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058, 0062, 0063) for R101:
 - T_p 278.15 K, dT_ad 40.5 K (core's: CARB's on the dissolved basis, the charge's alkoxide, 26.6 K,
   and the doses' heats of solution, 13.9 K, which core 1.10.0 counts in dT_ad and not in the MTSR,
@@ -587,8 +604,9 @@ Decision:
   interlocked with the phosgene dosing, and its caustic inventory sized for the phosgene that can
   accumulate (D-011); (5) R-101's relief (a bursting disc to a catch tank and the scrubber) sized for
   the CO2 and phosgene of a runaway by a DIERS method from that calorimetry, not from the normal
-  vent; (6) the phosgene enclosure, its gas detection and the emergency neutralisation as the site's
-  phosgene unit.
+  vent (on core 1.12.0 with the network, D-016: 67.41 m3/h at k/100, 1.35 times the vent); (6) the
+  phosgene enclosure, its gas detection and the emergency neutralisation as the site's phosgene
+  unit. Findings (7) to (9), C-301's decomposition gas and its DABCO, are in D-016.
 - **Duties from the models (ADR 0059)**: R101, DG101, ST101, ST102 and ST301 name their energy
   stream (`energy_port`), so propagate writes Q2, Q5, Q6, Q7 and Q11 as `calculated`, and R101's
   vent condenser Q17 (core 1.10.0, D-015); what they leave out is on its own stream (Q8, Q9, Q12
@@ -686,6 +704,127 @@ Reason: the library's rule for adopting a core feature: a model replaces a hand 
 it models the step at least as credibly; where it does not (the vessel metal), the difference is
 recorded with its numbers.
 
+## D-016 Core 1.12.0: the dissolved phosgene on a cooling failure, the reaction network, Boc2O's decomposition in the vacuum still (2026-11-19)
+Issue ChemE-as-Code/process-library#427 (this entry's row: Boc2O's decomposition to isobutene
+and CO2 during the distillation not modelled; the dissolved phosgene's release on a cooling
+failure not screened; D-011, L-2, L-10). Library `main` pins cheme-as-code 0e85885 (1.12.0 and
+the QSDsan integration). `cheme process reactor-hazards`, `stills` and `recipe` rerun on it; the
+k/10 and k/100 cases and the bubble point on scratch copies (every rate constant of R101
+divided by 10 and 100, or `hazard.mtt_from: bubble-point`, nothing else changed; not committed).
+Streams, recipe and stills are unchanged by 1.12.0 (cycle 10.39 h, 762.5 batches, ST301 as D-008).
+
+**1. The dissolved phosgene on a cooling failure: screened by core, settled for the concept.**
+Core's `dissolved_release` (ADR 0069) now reports the inventory, the boiling point against the
+MTSR and the share the gas release strips; `gas_release.largest_over_batch` the release over the
+batch by component; `bubble_point` the content's. R101 with `hazard.potential: network` (part 2):
+
+| case | accumulation, CO2 (of it reactive) / phosgene | MTSR (network; largest reaction alone) | largest gas release over the batch, of 50 m3/h | phosgene held at most, a batch | phosgene stripped at most | MTSR then against phosgene's 280.65 K | content's bubble point at 101.3 kPa(a): worst moment; after the cooling failure |
+|---|---|---|---|---|---|---|---|
+| k (design) | 0.101 at 2 h (0.044) / 0.0266 at 6 h | 279.5 K (279.5) | 24.69 m3/h at 2.05 h, 0.494 | 0.0878 kmol, 8.68 kg, at 6 h | 0.096 kg/h | 279.3 K, below | 345.6 K; 345.4 K |
+| k/10 | 0.184 (0.141) / 0.0971 | 282.5 K (282.5) | 28.41 m3/h at 2.28 h, 0.568 | 0.320 kmol, 31.6 kg | 0.46 kg/h | 282.3 K, above | 345.9 K; 345.4 K |
+| k/100 | 0.481 (0.426) / 0.361 | 295.9 K (292.0) | 67.41 m3/h at 6 h, 1.35 | 1.188 kmol, 117.6 kg | 7.72 kg/h | 295.9 K, above | 343.5 K; 347.3 K |
+
+(The bubble point needs a heat of vaporization of DABCO, which materials.yaml does not give:
+the scratch copies used 39.3 kJ/mol, Trouton's rule at its 447.15 K, ASSUMED, scratch only; at
+x about 0.001 it moves the bubble point by less than 0.01 K.)
+Decision:
+- **The content does not boil at any screened MTSR**: its bubble point (343.5 K and above) lies
+  at least 47 K above the highest MTSR (295.9 K, k/100). Core counts the suspended salts in the
+  liquid's mole fractions (as L-3), which raises it; by hand without the salts (about 60 kmol
+  of hexane and 1.19 kmol of phosgene, x 0.019, materials.yaml's NIST lines) the k/100 content
+  boils at about 340 K, still 44 K above. That phosgene's pure boiling point lies below the MTSR
+  at k/10 and k/100 does not make the solution boil: its partial pressure is x p*(T), a few kPa.
+  So a cooling failure releases the dissolved phosgene only by stripping it into the gas the
+  reactions keep forming, which core now screens: 0.096 kg/h at the design rates, 7.72 kg/h at
+  k/100 (core's basis; the hand basis without the salts in the liquid gives about 10 % more,
+  D-011). D-011's scratch script over the cooling profile is retired; its table stays as the
+  record of core 1.10.0.
+- **The scrubber**: T-401's caustic stays sized for the whole inventory that can accumulate, not
+  for the stripped rate: 0.0878 kmol a batch at the design rates (14 kg of NaOH at 4 mol per
+  mol), 1.188 kmol at k/100 (190 kg), as D-011; core's inventories agree with the hand ones. The
+  peak stripped rate (7.72 kg/h at k/100, 0.096 kg/h at the design rates) is the scrubber's
+  cooling-failure load case, against its normal design load of about 0.1 kg/h (D-007).
+- **The MTT stays `hazard.mtt: 333.15` K**, the decomposition limit (D-014): it is below the
+  bubble point, so the decomposition, not boiling, is the technical limit. `mtt_from:
+  bubble-point` is not adopted: it would raise the MTT above the limit SRC-2 observed.
+- **Relief finding (D-014 (5))**: at k/100 the largest release with the network is 67.41 m3/h,
+  1.35 times the vent's 50 m3/h (52.9 m3/h, 1.06, with the largest reaction alone on core 1.10.0);
+  at the design rates 0.494 of it.
+Still open (not settled by a model): the real accumulation (reaction calorimetry with gas
+measurement of both steps, D-014 (1)); the phosgene's solubility in the slurry (`absorbed: 1.0`
+ASSUMED) and so x; the dispersion and toxic consequence of a release past the scrubber (core does
+not know which gas is toxic); the dosing interlocks, the scrubber's interlocks and R-101's relief
+of D-014, which need a HAZOP and a human decision, their reliability not stated here.
+
+**2. `hazard.potential: network` adopted on R101.** Core's largest single reaction gives PHOS a
+dT_ad of 0 K (its carbonate forms in the batch, L-1); the network counts the phosgenation on the
+carbonate that CARB forms, with CARB on what remains. dT_ad 82.0 K (the network's 68.1 K and the
+doses' heats of solution, 13.9 K; the hand estimate of D-011 was about 82 K); the MTSR is 279.5 K
+at the design rates and 282.5 K at k/10, as before, and 295.9 K at k/100 instead of 292.0 K. Reason:
+the network is the upper bound of what the accumulated reagents release together, which is what a
+cooling failure in this two-step batch can release; it costs nothing at the design rates. Still
+below the MTT in every case: the class stays 1 or 2 with a TD24 at or above the MTSR, 5 below it.
+
+**3. Boc2O's decomposition (isobutene, CO2, tert-butanol) in the work-up and the vacuum still.**
+Core 1.12.0 runs no reaction in a still or a separator (L-10 stays a core limit), and no open
+rate above 50 C was found. SRC-13 measured the decomposition of Boc2O at 323.15 K (50 C) over 200 h
+by its loss (GC): neat 4.5 %, with 50 wt% hexane 0.5 %, with 3 to 5 wt% hexane 2.0 to 1.4 %; as a
+first-order rate, neat 0.023 %/h (k = -ln(1 - 0.045) / 200 h), with 50 wt% hexane 0.0025 %/h. The
+gas: Boc2O -> isobutene + 2 CO2 + tert-butanol (element-balanced; the products the #427 row
+names, SRC-5's gaseous products; SRC-13 names none), ASSUMED, 3 mol of vapour per mol at 0.13
+kPa(a), where none of them condenses on E-301's 303 K loop or on any coolant above 240 K (D-008).
+Bounds (scratch arithmetic, a rate that rises with temperature, nothing in the model changed):
+- **R-101, the strips and the wash (at or below 313 K)**: bounded by SRC-13's 323 K rates: ST101
+  (4.67 h, hexane 41 mol% or more) at most 0.012 %, ST102 (2.57 h, nearly neat) at most 0.059 %,
+  the wash and settling (2 h at 307.5 K) at most 0.046 % of the Boc2O; at most 0.12 % together,
+  small against the losses the model carries (0.30 % to the brine, 0.86 % with the forerun, D-005).
+  Not modelled; the bound is recorded instead. (The crude holds the DABCO charged to R-101, so
+  this bound too is for base-free Boc2O; see the last point.)
+- **ST301 (C-301, 336.3 to 357.9 K over the main cut's 1.81 h, 3.24 to 0.23 kmol of Boc2O in the
+  pot)**: above SRC-13's temperature, so its rate is not known. K-301 takes 97.7 mol/h at 0.13
+  kPa(a) and 320 K (2000 m3/h, D-008), and in the main cut only about 3 mol/h of the cut's water
+  and tert-butanol besides; the vacuum then holds while Boc2O decomposes at less than 1.0 %/h at
+  the main cut's start and 14 %/h at its end. From SRC-13's neat 0.023 %/h at 323.15 K by
+  Arrhenius, the decomposition gas reaches K-301's capacity in the main cut only above an
+  activation energy of about 160 kJ/mol (7.5 %/h at 357.9 K). For illustration, at an ASSUMED 100
+  and 150 kJ/mol the peak gas is 16.0 and 70.9 mol/h (0.16 and 0.73 of K-301), the main cut loses
+  0.24 and 0.92 % of the charge's Boc2O and the forerun (3.47 h, the pot at most 336.3 K) at most
+  0.34 and 0.71 %; the forerun, already held to K-301's capacity, would take up to about 25 %
+  longer at 150 kJ/mol.
+- **A blocked C-301 outlet** (K-301 stopped or its suction closed while E-303 heats): the gas
+  fills C-301's head space (1.6 - 1.02 m3 = 0.58 m3 at 357.9 K) at 51 kPa/h for every 10 mol/h,
+  so at the illustrative 16 to 71 mol/h C-301 passes atmospheric pressure within about 0.3 to 1.2
+  h, with flammable isobutene in the gas. E-303's hot water at 368 K (D-008) bounds the pot's
+  temperature only while the decomposition does not heat itself.
+- **SRC-13 tested base-free Boc2O** and keeps acids and bases at or below 1000 ppm: the still's
+  charge holds DABCO at about 0.64 wt% of its Boc2O (0.040 kmol, 4.5 kg, a batch) and the residue
+  at the main cut's end about 8.9 wt%, so the still's rate may be higher than the extrapolation.
+Decision: ST301 stays as D-008 (0.13 kPa(a), the main cut to 357.9 K, hot water at 368 K, below
+SRC-1's preferred 60-100 C); the decomposition stays out of the model (L-10), with the bound above
+instead of a rate. Design findings for the review, proposed, not accepted (their safeguards and
+reliability are for a HAZOP): (7) C-301's design pressure and a relief path from C-301 to the vent
+header for the decomposition gas of a blocked outlet, sized from the measured rate; (8) a high
+pressure in C-301 (the vacuum lost) to stop E-303's hot water; (9) whether the wash must remove
+the DABCO before the still (the wash's partition is an open input, D-007).
+Measurement needed (lab), and what it gates: the isothermal decomposition rate of the still's
+charge (the washed melt with its DABCO and the paraffin heel) and of its end residue (Boc2O 30
+mol%, DABCO about 9 wt% of it), at two or more temperatures from 336 to 368 K, by the Boc2O lost
+(GC, as SRC-13) and the gas evolved, its volume and composition (isobutene, CO2, tert-butanol,
+di-tert-butyl carbonate); and a DSC screen and an adiabatic (ARC) test of the same samples for the
+onset, the heat of decomposition and a TD24. It gates: K-301's capacity and the forerun's time
+(the rate below 1.0 %/h at 336 K and 7.5 %/h at 358 K keeps the vacuum), the main cut's end
+temperature and the heel's Boc2O (a lower end if the rate is higher) and so the yield, C-301's
+relief sizing and design pressure (findings 7, 8), whether the hot water's 368 K is a safe upper
+bound (self-heating), and the DABCO removal (finding 9).
+
+**4. Condenser freezing (`cheme.process-condenser-freezing`, ADR 0071)**: not adopted. ST301's
+main-cut condenser E-301 is hand-kept (no `condenser_port`, D-015), so the rule cannot check it; by
+hand its 303 K tempered loop is 6 K above Boc2O's melting point (22-23 C, SRC-13; 22-24 C, SRC-5).
+No `melting_point` is declared in materials.yaml (R-101's vent condenser is outside the #427 row).
+Not used either: the head space, inert sweep and Henry degassing of ADR 0071 (L-14's sweep gas,
+not this row), the stills' `separate_phase` and cut boil-ups of ADR 0068 (L-3, L-6), and the design
+specifications of ADR 0070 (L-13): each would move the streams and the LCI and needs its own change.
+
 ## Core features used (cheme-as-code 1.9.0 and 1.10.0)
 
 | feature | where | ADR |
@@ -717,6 +856,18 @@ Core 1.10.0 part (D-015):
 | `still.heat_up` (the charge to its bubble point in the still's duty) | ST101, Q6 | 0063 |
 | a `vessel` on a unit procedure of stills, sized by the recipe without a jacket check | V-201 (WORKUP), C-301 (DISTIL) | 0063 |
 
+Core 1.12.0 part (D-016):
+
+| feature | where | ADR |
+|---|---|---|
+| `hazard.potential: network` (the phosgenation on the carbonate counted with the carbonation) | R101, D-011, D-016 | 0069 |
+| `accumulations` per dosed reactant, `gas_release.largest_over_batch` by component, `dissolved_release` and `cheme.reactor-hazard-dissolved` | R101, D-016 (replace D-011's scratch script) | 0069 |
+| `hazard.mtt_from: bubble-point` (scratch copies only, not adopted) | R101, D-016 | 0069 |
+
+Checked and not used (D-016): `cheme.process-condenser-freezing` (E-301 hand-kept), ADR 0068's
+`separate_phase` and cut boil-ups, ADR 0070's specs, ADR 0071's head space, sweep and Henry
+degassing.
+
 Checked and not used (D-015): `vessel.metal_heat_capacity` (V-201, C-301, R-101), `still.condenser_port`
 for the one-stage stills, `still.column` and the `purity` end (ST301, D-008), `batch.heat_up`
 (R101), `vent.henry`.
@@ -733,7 +884,9 @@ KCl is washed out); `still.feed` (no solvent swap: the hexane route needs none, 
   not in the charge or the doses; and the gas release is taken only at the highest MTSR (CARB's,
   which forms no gas). The phosgene's accumulation and the largest gas release came from the
   cooling profile by a scratch script (D-011). Core could report the accumulation of each dosed
-  reactant and the gas release at every point of the cooling profile.
+  reactant and the gas release at every point of the cooling profile. **Resolved by core 1.12.0**
+  (ADR 0069, D-016): `accumulations` per dosed reactant with the reactive share,
+  `largest_over_batch`, and `hazard.potential: network` for PHOS's heat on the carbonate.
 - L-2 (partly resolved by core 1.10.0, D-015): a dosed gas that dissolves sets no MTT in the
   screening, and its share of the gas release is not reported. Since core 1.10.0 the vent's
   vapour carries the dissolved phosgene by its partial pressure in normal operation (0.085 kg a
@@ -741,7 +894,11 @@ KCl is washed out); `still.feed` (no solvent swap: the hexane route needs none, 
   cooling failure strips into that gas (y = x p*(T) / P, up to 5.5 kg/h at k/100 over the cooling
   profile, D-011) is still the scratch script's, as is the release away from core's worst
   moment (L-1). Core could report each vapour component's rate in the gas release. `hazard.mtt`
-  was set by hand to the decomposition limit.
+  was set by hand to the decomposition limit. **Resolved by core 1.12.0** (ADR 0069, D-016):
+  `dissolved_release` (the phosgene's inventory, its boiling point against the MTSR, the rate
+  stripped), the release over the batch by component and the content's bubble point
+  (`mtt_from: bubble-point`, checked on a scratch copy, not adopted). Left: core counts the
+  suspended salts in the bubble point's liquid (as L-3) and does not know which gas is toxic.
 - L-3: the still counts suspended solids (KCl, the carbonate) and non-volatile components in the
   liquid's mole fractions for Raoult's law. At ST102's end they are 66 % of the pot: the hexane left
   (1.9 mol%) would boil at about 291 K without them (by the same Antoine lines), not at 313 K, so the
@@ -774,6 +931,8 @@ KCl is washed out); `still.feed` (no solvent swap: the hexane route needs none, 
   ADR 0063, D-015): the CO2 left dissolved was Q3 by hand; it is now in R101's duty Q2.
 - L-10: no reaction runs in a still or a separator: Boc2O's thermal and hydrolytic decomposition
   during the strips, the wash and the distillation cannot be modelled (and has no open rate).
+  Still open on core 1.12.0; bounded by hand from SRC-13's 50 C rates instead (D-016): at most
+  0.12 % at or below 313 K; in ST301 a gas allowance against K-301, the rate to be measured.
 - L-11: the semi-batch is one liquid phase: the alkoxide, the carbonate and the KCl are carried as
   dissolved at their crystal volumes, so the concentrations and the rate laws are of a pseudo-liquid
   (as n-bromosuccinimide-1's L-2).
@@ -820,5 +979,7 @@ sourced Henry constant of CO2 in the slurry (for `vent.henry`, D-015); the side 
 tricarbonate, the chloroformate) and so the product's assay; Boc2O's vapour pressure and heat of
 vaporization; the wash's partition (tert-butanol, DABCO, Boc2O) and the melt's water; the CO2
 uptake of the scrubber; the product specification; R-101's relief and the phosgene enclosure
-(D-014); a potassium metal producer for potassium-tert-butoxide-1's gap (D-012); a TEA
+(D-014); the isothermal decomposition rate and gas of the still's charge and residue with their
+DABCO at 336-368 K, with DSC and ARC (D-016: it gates K-301, the main cut's end, C-301's relief
+and the DABCO removal); a heat of vaporization of DABCO (for `mtt_from: bubble-point`); a potassium metal producer for potassium-tert-butoxide-1's gap (D-012); a TEA
 (`operation.batch: {recipe: true}`).

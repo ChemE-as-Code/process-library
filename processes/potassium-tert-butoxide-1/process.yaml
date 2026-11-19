@@ -32,8 +32,9 @@ description: |
 
   The batch is modelled with cheme-as-code 1.10.0: the reactor R101 is a semi-batch (reactor:
   semibatch) whose hydrogen leaves by a vent as it forms (batch.vent, core ADR 0054), saturated
-  with the alcohol's vapour through a vent condenser at 308 K, on tempered water at 303/313 K so
-  that no alcohol freezes on its tubes, whose condensate returns (vent
+  with the alcohol's vapour through a vent condenser at 308 K, on a closed hydrocarbon
+  heat-transfer loop at 303/313 K (no water near the metal; no alcohol freezes on its tubes),
+  whose condensate returns (vent
   vapour and condenser, core ADR 0062); the still is core's batch still with the charge's heat-up
   and the vessel's metal (core ADRs 0055, 0063), its reboiler and condenser duties written by the
   model (core ADRs 0059, 0061); the paddle dryer is core's dryer to a residual alcohol content
@@ -41,10 +42,12 @@ description: |
   cycle (6.586 h, R-101 the bottleneck, 1202 batches a year), sizes the vessels and checks
   R-101's jacket. Kinetics and heats of reaction are ASSUMED (no open data): the dispersed metal
   accumulates to 3.1 % and the cooling-failure temperature reaches 350.1 K against an MTT of
-  355.45 K (tert-butanol's boiling point), the gas released with the liquid's vapour 133.4 m3/h
-  against an ASSUMED vent capacity of 200 m3/h (core ADR 0058); a ten times slower rate takes the
-  MTSR to 366.9 K, above the MTT: the alcohol would boil in a cooling failure. The hydrogen and the
-  potassium's reaction with water are the plant's main hazards (DESIGN.md D-011).
+  355.45 K (tert-butanol's boiling point); core 1.12.0's largest gas release over the batch,
+  with the liquid's vapour, is 179.2 m3/h against the 400 m3/h the vent path is sized for
+  (ASSUMED, enough up to 11.3 % accumulated metal, where the MTSR reaches the MTT, and to about
+  13.5 %, not beyond, so it rests on the dosing's trip below 11.3 %); a ten times slower rate takes the MTSR to 366.9 K, above the MTT: the
+  alcohol would boil in a cooling failure. The hydrogen and the potassium's reaction with water
+  are the plant's main hazards (DESIGN.md D-011, D-015 to D-017).
 families: [oxygenates]
 keywords: [potassium tert-butoxide, potassium tert-butylate, KOtBu, potassium, tert-butanol, alkoxide, alcoholate, hydrogen, semi-batch, batch, molten metal, vent condenser, batch still, vacuum dryer, paddle dryer, molecular sieve, azeotrope, flare, fine chemicals, strong base]
 facets:
@@ -72,15 +75,15 @@ validation:
     (cheme process recipe, no cheme.recipe-basis or cheme.recipe-jacket finding). Thermal
     screening (cheme process reactor-hazards): R101 dT_ad 60.2 K, accumulation 3.1 %, MTSR 350.1
     K against an MTT of 355.45 K; a cooling failure's gas release 133.4 m3/h with the liquid's
-    vapour (38.4 m3/h of hydrogen) at the end of the dosing, the largest over the batch, against
-    an ASSUMED vent capacity of 200 m3/h; no criticality class without a TD24 from calorimetry
+    vapour (38.4 m3/h of hydrogen) at the end of the dosing, and, on core 1.12.0, the largest over
+    the batch 179.2 m3/h at 0.458 h, against an ASSUMED vent capacity of 400 m3/h (D-015); no criticality class without a TD24 from calorimetry
     (never estimated): classes 1, 2 or 5 remain possible. The kinetics are assumed: at k/10 the
     MTSR is 366.9 K and at k/100 399.9 K, above the MTT, the content boiling (a design finding:
     the dosing interlocked with the hydrogen flow, emergency relief from calorimetry, DESIGN.md
     D-011). Preliminary gate-to-gate LCI with nitrogen as a per-batch consumable; the make-up
     tert-butanol linked to tert-butanol-1 (kg of alcohol contained), nitrogen to asu-1;
     potassium metal a gap with its proxy recorded; the hydrogen flared, no credit. Not reviewed.
-    Needs cheme-as-code 1.10.0.
+    Needs cheme-as-code 1.12.0 (melting point, DESIGN.md D-016).
 chemistry:
   inputs:
     - {chemical: potassium, role: feedstock, inventory_key: "feed:K", note: "feed:K: technical potassium metal (merchant), 0.348 kg/kg KOtBu, melted and dosed; no library process makes it (proxy KCl + Na recorded, D-012)"}
@@ -94,7 +97,7 @@ chemistry:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.325 kWh/kg KOtBu: agitators of R-101 and C-101, the paddle dryer's drive and vacuum pump, and the sieve's regeneration heater and blower (0.154 kWh) (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "1.188 kWh (4.28 MJ)/kg KOtBu of LP steam: the still's reboiler (0.714 kWh, the charge's heat-up and the metal included), the sieve's evaporator (0.223 kWh), R-101's warm-up, the potassium melter and tank heating"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.357 kWh (1.29 MJ)/kg KOtBu of MP steam to the paddle dryer at 433 K (cheme's dryer model, the vessel's metal each batch included)"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.774 kWh/kg KOtBu removed by cooling water, through a closed tempered-water loop at 303/313 K that keeps every condenser wall above tert-butanol's freezing point (298.3 K, D-009): the heat of reaction and R-101's vent condenser (R101's model), the still's condenser, the dryer's vapour condenser and product cooling, the recycle cooler and the sieve's condensers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.774 kWh/kg KOtBu removed by cooling water, through closed loops at 303/313 K that keep every condenser wall above tert-butanol's freezing point (298.3 K, D-009): R-101's hydrocarbon heat-transfer loop for the heat of reaction and R-101's vent condenser (R101's model, D-016), the tempered water for the still's condenser, the dryer's vapour condenser and product cooling, the recycle cooler and the sieve's condensers"}
 basis:
   capacity: "1000 t/a dried potassium tert-butoxide: 1202 batches/a of 831.6 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920
