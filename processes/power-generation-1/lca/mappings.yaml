@@ -1,0 +1,10 @@
+# power-generation-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>). Natural gas as utility-steam-ng-boiler and hydrogen-1 link it (DESIGN.md D-011).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:NG": {use: natural-gas, atlas: false, source: "pipeline natural gas at 2.96 MPa (93.1 mol% methane), counted by mass and taken as methane by the shared natural-gas-kg proxy; not hda-1's fuel gas, which shares the slug methane (D-011)"}
+  "feed:DMW": {use: water, source: "demineralised condenser make-up, made on site by RO and electro-deionisation in SRC-1 (D-008); the library has no demineralised water dataset yet"}
+  "consumable:scr-ammonia": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid anhydrous ammonia, kg NH3 for kg; the SCR's 19 wt% solution is made from it and the next consumable's water (D-011)"}
+  "consumable:scr-dilution-water": {use: water, source: "the water of the 19 wt% aqueous ammonia, taken as deionised water (D-011)"}
+  "product:BLOWDOWN": {use: wastewater, source: "cooling tower blowdown to treatment, kg (1 m3 = 1000 kg in the shared proxy); with prefer_atlas the library's utility-wwtp (D-009)"}

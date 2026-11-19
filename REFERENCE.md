@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 115 public process folders: 75 engineering projects (a `plant.yaml` with a process
+The table lists 116 public process folders: 76 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -124,6 +124,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`polystyrene-1`](processes/polystyrene-1/) | General-purpose polystyrene by continuous bulk polymerisation of styrene: stirred prepolymeriser boiling under vacuum, tower reactors, two-stage vacuum devolatilisation with monomer recycle and purge, underwater pelletising (100 kt/a, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`potassium-permanganate-1`](processes/potassium-permanganate-1/) | Potassium permanganate from MnO2 ore by KOH roasting and electrolysis (1250 kg/h, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`potassium-tert-butoxide-1`](processes/potassium-tert-butoxide-1/) | Potassium tert-butoxide from molten potassium and dry tert-butanol in a semi-batch with a hydrogen vent, alcohol strip and recycle, vacuum drying, the azeotropic make-up dried on a molecular sieve (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
+| [`power-generation-1`](processes/power-generation-1/) | Electricity from a natural-gas combined cycle, 2x1 F-class gas turbines with three-pressure reheat HRSGs, SCR and a wet cooling tower (726 MW net, NETL Case B31A operating point) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`propylene-oxide-1`](processes/propylene-oxide-1/) | Propylene oxide by the chlorohydrin process with lime (patent, ANL 1980, LVOC BREF and IEA figures) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`propylene-pdh-1`](processes/propylene-pdh-1/) | Propylene by catalytic propane dehydrogenation (one published Oleflex-type design, net gas burnt on site) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`pvc-1`](processes/pvc-1/) | Polyvinyl chloride by batch suspension polymerisation of vinyl chloride in four autoclaves to the pressure drop, VCM recovery recycled, continuous steam stripping, centrifuge and fluid-bed drying (172 kt/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |

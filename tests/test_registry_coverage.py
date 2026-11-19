@@ -60,6 +60,7 @@ UNNAMED_REGISTRY_FLOWS = {
     "p-toluenesulfonyl-chloride-1/consumable:nitrogen": "nitrogen",
     "p-toluenesulfonyl-chloride-1/consumable:rinse-water": "water",
     "plastic-pyrolysis-1/feed:O2": "air",  # combustion oxygen from ambient air
+    "power-generation-1/consumable:scr-dilution-water": "water",  # the water of the 19 wt% aqueous ammonia
     "propylene-pdh-1/input:alumina": "aluminium-oxide",  # activated alumina adsorbent
     "propylene-pdh-1/input:dmds": "dimethyl-disulfide",
     "sodium-cyanide-1/consumable:bfw-export": "water",  # boiler feed water leaving as exported steam
