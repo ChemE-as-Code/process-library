@@ -8,11 +8,12 @@
 #   US 6,596,251 B2 and the converter-gas composition of US 4,847,062 A (D-004); its outlet S6
 #   is calculated by `cheme process propagate`;
 # - flows and compositions through the blower, vaporiser, waste heat boiler, mixer, lean water
-#   chiller and splitter, the neutraliser, the crystalliser (cheme's crystallizer model) and
-#   the tail gas boiler are calculated by `cheme process propagate --fill`;
-# - the absorber/stripper outlets (C-101, C-201, C-202), the dryer and all duties come from
-#   scripts/nacn_balance.py, given here as ASSUMED: core has no qualified model for aqueous
-#   HCN/NH3 absorption or the NaCN/NaOH electrolyte (D-011).
+#   chiller and splitter, the neutraliser and the tail gas boiler are calculated by
+#   `cheme process propagate --fill`;
+# - the absorber/stripper outlets (C-101, C-201, C-202), the crystalliser (CR-401), the dryer
+#   and all duties come from scripts/nacn_balance.py, given here as ASSUMED: core has no
+#   qualified model for aqueous HCN/NH3 absorption or the NaCN/NaOH electrolyte, and the
+#   crystalliser was not modelled with cheme's crystallizer (D-008, D-011).
 schema: cheme/process/v1
 kind: flowsheet
 title: Solid sodium cyanide from Andrussow HCN (6.25 t/h NaCN)
@@ -279,9 +280,11 @@ steps:
     title: Vacuum evaporative crystalliser with centrifuge (mother liquor recycled)
     class: SeparatingByThermalProcess
     links: [{target: equipment, ref: CR-401}]
-    # cheme's crystallizer model (one solute, one solvent) refuses the free NaOH of the liquor
-    # (cheme.process-propagate-crystallizer), so the outlets are the script's (D-008, D-011):
-    # mother liquor saturated at 0.80 kg NaCN/kg water at 343 K, all filtrate recycled (no
+    # The outlets are the script's (D-008, D-011): cheme 0.8.0, against which this entry was
+    # built, refused the free NaOH of the liquor in its crystallizer model (one solute, one
+    # solvent; cheme.process-propagate-crystallizer). Core 1.8.0 and later carry it as a
+    # spectator (`crystallizer.spectators`, `solubility.measured_in: mother_liquor`); the step
+    # has not been remodelled yet (DESIGN.md next stage, step 2). Script basis: mother liquor saturated at 0.80 kg NaCN/kg water at 343 K, all filtrate recycled (no
     # purge; the free NaOH leaves with the cake liquor), cake with 10 wt% liquor.
     reactions: [NACN_CRYST]
     ports:
