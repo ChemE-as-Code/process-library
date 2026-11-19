@@ -226,7 +226,7 @@ streams:
         temperature: {value: 288.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1 (15 degC; ISO ambient, Exhibit 2-2)"}
         pressure: {value: 101.4, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1 (14.7 psia)"}
         flow: {value: 3834126.0, basis: mass, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1, both trains"}
-        composition: {basis: mole_fraction, values: {N2: 0.7732, O2: 0.2074, Ar: 0.0092, CO2: 0.0003, H2O: 0.0099}, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1 (air at 60 % relative humidity)"}
+        composition: {basis: mole_fraction, values: {N2: 0.7732, O2: 0.2074, AR: 0.0092, CO2: 0.0003, H2O: 0.0099}, provenance: given, source: "SRC-1 Exhibit 5-8 stream 1 (air at 60 % relative humidity)"}
   - id: S2
     title: Natural gas to the combustors
     from: NG.out
@@ -247,8 +247,8 @@ streams:
       design:
         temperature: {value: 898.15, provenance: given, source: "SRC-1 section 5.2.3 and Exhibit 5-8 stream 3 (625 degC)"}
         pressure: {value: 106.9, provenance: given, source: "SRC-1 Exhibit 5-8 stream 3 (15.5 psia)"}
-        flow: {value: 3927400.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: 01adb5e3dda5209f}
-        composition: {basis: mole_fraction, values: {N2: 0.742879, O2: 0.119956, Ar: 0.00883182, CO2: 0.040813, H2O: 0.0875203, CH4: 0.0, C2H6: 0.0, C3H8: 0.0, C4H10: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: dcb2957a4ab9eb5b}
+        flow: {value: 3927400.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: b4c68e527c990a7d}
+        composition: {basis: mole_fraction, values: {N2: 0.742879, O2: 0.119956, AR: 0.00883182, CO2: 0.040813, H2O: 0.0875203, CH4: 0.0, C2H6: 0.0, C3H8: 0.0, C4H10: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: e8fe61a6d9dcad86}
   - id: S4
     title: Stack gas
     from: H101.gas_out
@@ -259,7 +259,7 @@ streams:
         temperature: {value: 356.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 4 (83 degC; Exhibit 5-5 stack 82 degC)"}
         pressure: {value: 102.0, provenance: given, source: "SRC-1 Exhibit 5-8 stream 4 (14.8 psia)"}
         flow: {value: 3927398.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: = S3, the HRSG does not change the gas (SCR ammonia and NOx not in the balance, D-006, D-011); SRC-1 stream 4 3,927,398 kg/h"}
-        composition: {basis: mole_fraction, values: {N2: 0.7428793, O2: 0.1199556, Ar: 0.0088318, CO2: 0.040813, H2O: 0.0875203}, provenance: assumed, source: "scripts/ngcc_balance.py: complete combustion of S2 in S1 (D-004), = S3; SRC-1 stream 4: N2 0.7428, O2 0.1200, Ar 0.0089, CO2 0.0408, H2O 0.0875"}
+        composition: {basis: mole_fraction, values: {N2: 0.7428793, O2: 0.1199556, AR: 0.0088318, CO2: 0.040813, H2O: 0.0875203}, provenance: assumed, source: "scripts/ngcc_balance.py: complete combustion of S2 in S1 (D-004), = S3; SRC-1 stream 4: N2 0.7428, O2 0.1200, Ar 0.0089, CO2 0.0408, H2O 0.0875"}
   # ---- water/steam loop (SRC-1 Exhibit 5-8 streams 5 to 11; the loop closed on stream 10, D-006)
   - id: S5
     title: HP steam to the HP turbine
@@ -395,7 +395,7 @@ streams:
         flow: {value: 147725.1, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-14 process water discharge 651 gpm, 999.1 kg/m3 (D-009)"}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "dissolved solids concentrated from the make-up not modelled (D-009)"}
   # ---- energy streams (D-005, D-007 to D-010)
-  - {id: Q1, title: Gas turbine generators' power, kind: energy, from: R101.power, to: T901.gt, state: {design: {duty: {value: 476622.0, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S1 S2 S3', fingerprint: 2fe45e8c08b563a4}}}}
+  - {id: Q1, title: Gas turbine generators' power, kind: energy, from: R101.power, to: T901.gt, state: {design: {duty: {value: 476622.0, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S1 S2 S3', fingerprint: 7e10e3a16fc0cbe0}}}}
   - {id: Q2, title: Gas turbine generator loss, kind: energy, from: R101.loss, to: AMBIENT.gt, state: {design: {duty: {value: 7264.0, provenance: assumed, source: "scripts/ngcc_balance.py: 477,000 kW x (1/0.985 - 1), SRC-1 Exhibit 5-9 CT power and section 5.2.4.2 generator efficiency 98.5 % (D-005)"}}}}
   - {id: Q3, title: Steam turbine generator's power, kind: energy, from: X201.power, to: T901.st, state: {design: {duty: {value: 262744.3, provenance: assumed, source: "scripts/ngcc_balance.py: HP, IP and LP expansion on SRC-1 Exhibit 5-8's enthalpies (266,205 kW) x 0.987 (section 5.2.4.2); SRC-1 Exhibit 5-9: 263 MWe (D-007)"}}}}
   - {id: Q4, title: Steam turbine generator loss, kind: energy, from: X201.loss, to: AMBIENT.st, state: {design: {duty: {value: 3460.7, provenance: assumed, source: "scripts/ngcc_balance.py: 266,205 kW x 0.013 (D-007)"}}}}

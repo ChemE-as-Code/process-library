@@ -52,6 +52,9 @@ point: SRC-1 gives the stream table, the auxiliary loads, the water balance, the
 and the consumables of one plant, which is what a Tier 2 entry needs to balance. The F-class
 (SRC-1's reference frame for comparisons with its coal and capture cases, section 5.1.2.1) is
 taken over the H-class because its steam conditions and HRSGs are the more widely built.
+The 2017 F-class machine of Case B31A gives 59.4 % net (LHV), one point below the 60.4 % SRC-1
+quotes for currently offered F-class 2x1 plants (Exhibit 5-2): the dataset sits that much above
+the benchmark's specific gas use (benchmarks/power-generation.yaml), by this choice.
 Rejected:
 - H-class 2x1 (SRC-1 Case B32A: 992 MW net at 55.1 % HHV, section 5.3.4): a variant of the same
   route with larger, newer machines; a second case later.

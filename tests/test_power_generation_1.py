@@ -100,7 +100,7 @@ def test_the_exhaust_is_the_stack_gas_and_netls_stream_3(streams):
     assert s3["flow"]["provenance"] == "calculated"
     # core writes the calculated flow to six significant figures
     assert s4["flow"]["value"] == pytest.approx(s3["flow"]["value"], rel=1e-6)
-    netl = {"Ar": 0.0089, "CO2": 0.0408, "H2O": 0.0875, "N2": 0.7428, "O2": 0.1200}
+    netl = {"AR": 0.0089, "CO2": 0.0408, "H2O": 0.0875, "N2": 0.7428, "O2": 0.1200}
     y3 = s3["composition"]["values"]
     y4 = s4["composition"]["values"]
     for comp, value in netl.items():

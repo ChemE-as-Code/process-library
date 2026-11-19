@@ -11,14 +11,14 @@ schema: cheme-as-code/benchmarks/v1
 family: power-generation
 
 kpis:
-  ngcc-heat-rate-lhv:
-    title: Natural gas (LHV) per kWh of net electricity, combined cycle
-    unit: MJ/kWh
+  ngcc-specific-gas:
+    title: Natural gas per kWh of net electricity, combined cycle
+    unit: kg/kWh
     references:
       - id: netl-rev4a-f-class-2x1-literature
-        range: [5.960, 5.960]
+        range: [0.1263, 0.1263]
         basis: unallocated
-        note: "NETL's literature value for an F-class 2x1 combined cycle, 60.4 % net efficiency on LHV: 3.6 / 0.604 = 5.960 MJ/kWh. One value, not a range; NETL's own Case B31A model gives 59.4 % (6.060 MJ/kWh)."
+        note: "NETL's literature value for an F-class 2x1 combined cycle, 60.4 % net efficiency on LHV: 3.6 / 0.604 = 5.960 MJ/kWh, converted to mass with the LHV of NETL's reference natural gas, 47.201 MJ/kg (Exhibit 2-6): 0.1263 kg/kWh. One value, not a range; NETL's own Case B31A model gives 59.4 % (0.1284 kg/kWh)."
         conditions: {technology: "2x1 combined cycle with currently offered F-class gas turbines, natural gas", region: "US (ISO conditions)", year: 2022}
         source: &netl
           citation: "Schmitt, T. et al. (2022) Cost and Performance Baseline for Fossil Energy Plants Volume 1: Bituminous Coal and Natural Gas to Electricity, Revision 4a. National Energy Technology Laboratory, DOE/NETL-2023/4320"
@@ -40,11 +40,11 @@ datasets:
     dataset: natural-gas-combined-cycle-2x1-f-class-726-mw-net
     conditions: {technology: "2x1 2017 F-class combined cycle, NETL Case B31A operating point", region: "generic, ISO conditions"}
     kpis:
-      ngcc-heat-rate-lhv:
-        expression: feed:NG * 47.201 / product:ELEC
+      ngcc-specific-gas:
+        expression: feed:NG / product:ELEC
         per: product:ELEC
         reference: netl-rev4a-f-class-2x1-literature
-        out_of_range_reason: "D-001 and D-005 in processes/power-generation-1/DESIGN.md: the dataset reproduces NETL's Case B31A with a 2017 F-class machine (59.35 % LHV, 6.066 MJ/kWh), one point below NETL's literature value for currently offered F-class plants (60.4 %)"
+        out_of_range_reason: "D-001 and D-005 in processes/power-generation-1/DESIGN.md: the dataset reproduces NETL's Case B31A with a 2017 F-class machine (59.35 % LHV, 0.1285 kg/kWh), one point below NETL's literature value for currently offered F-class plants (60.4 %)"
       ngcc-co2-direct:
         expression: emission:CO2 / product:ELEC
         per: product:ELEC
