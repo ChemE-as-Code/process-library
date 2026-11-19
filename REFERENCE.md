@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 114 public process folders: 74 engineering projects (a `plant.yaml` with a process
+The table lists 115 public process folders: 75 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
