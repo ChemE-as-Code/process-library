@@ -1,28 +1,28 @@
 # Equipment list. Schema: `cheme schema equipment`.
 # As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
 # Sizes per batch from the recipe (process/recipe.yaml, D-003) and the flowsheet's year
-# averages over the cycle of 9.965 h; design pressures, temperatures and materials are not set
+# averages over the cycle of 10.30 h; design pressures, temperatures and materials are not set
 # yet (basic engineering); the materials named are usual choices for aqueous acetic acid, to be
 # confirmed (open input). All values ASSUMED.
 schema: cheme/equipment/v1
 equipment:
-  - {tag: M-101, type: StirredTankReactor, service: "Dissolver: 4-aminophenol in water and recycled mother liquor at 358 K, activated carbon, cooled to 313 K",
-     notes: "About 15.7 t (15 m3) of charge per batch (1576 kg/h x 9.965 h); 20 m3, stainless steel (316L) with a jacket on the hot-water loop and on cooling water (Q1 94.9 kW, Q2 68.3 kW year average); agitator 3 kW; nitrogen blanket against the aminophenol's oxidation (D-003, D-009)."}
+  - {tag: M-101, type: StirredTankReactor, service: "Dissolver: 4-aminophenol in water and recycled mother liquor at 358 K, activated carbon, sodium hydrosulfite and sulfite, cooled to 313 K",
+     notes: "About 17.9 t of charge per batch (1732.5 kg/h x 10.30 h); taken as R-101's vessel, 25 m3 with 29.9 m2 of jacket at the charge and 7000 kJ/K of metal, in stainless steel (316L); jacket on LP steam at 412 K for the heat-up (1.65 h, about 700 kW) and on cooling water for the cool-down (3.8 h, about 225 kW), scripts/balance.py m101_times() (Q1 112.0 kW, Q2 83.0 kW year average, with the metal); agitator 3 kW; nitrogen blanket against the aminophenol's oxidation (D-003, D-009)."}
   - {tag: F-100, type: Filter, service: "Polish filter: the activated carbon off the hot charge, back to M-101",
      notes: "Bag or candle filter at 358 K; the spent carbon (about 0.039 kg per kg of aminophenol, SRC-1 Example 1) to incineration; not in the balance (lca/lca.yaml consumable, D-008)."}
   - {tag: V-101, type: Vessel, service: "Acetic anhydride dosing vessel on load cells",
-     notes: "2.39 t (2.2 m3) of anhydride a batch; 3.2 m3, stainless steel; dosing by a flow controller over 2.5 h, interlocked with R-101's temperature, agitator and chilled water (D-005, D-011)."}
+     notes: "2.68 t (2.5 m3) of anhydride a batch; 3.2 m3, stainless steel; dosing by a flow controller over 2.5 h, interlocked with R-101's temperature, agitator and chilled water, permissive below 330 K (D-005, D-011)."}
   - {tag: R-101, type: StirredTankReactor, service: "Acetylator and crystalliser: anhydride dosed at 313 K, digestion at 358 K, cooled to 293 K",
-     notes: "17.2 m3 of slurry per batch; 25 m3 (preferred size, 69 % full, D 2.98 m) as the recipe sizes it from R101's semi-batch model (core ADR 0052), glass-lined; jacket on chilled water 278/283 K for the dosing (peak 254 kW against 265 kW the jacket removes at the charge's 27.2 m2) and the cooling crystallisation (3.7 h), on the hot-water loop at 383 K for the heat-up (2.1 h); vented through a reflux condenser to the scrubber; agitator 6 kW year average (D-003, D-005, D-009, D-011)."}
+     notes: "19.5 m3 of slurry per batch; 25 m3 (preferred size, 78 % full, D 2.98 m) as the recipe sizes it from R101's semi-batch model (core ADR 0052), glass-lined; jacket on chilled water 278/283 K for the dosing (peak 286 kW against 291 kW the jacket removes at the charge's 29.9 m2) and the cooling crystallisation (3.7 h and 0.4 h for the heat of crystallisation), on the hot-water loop at 383 K for the heat-up (2.1 h); the bottleneck of the train (cycle 10.30 h); vented through a reflux condenser to the scrubber; agitator 6 kW year average (D-003, D-005, D-009, D-011)."}
   - {tag: T-103, type: Vessel, service: "Centrifuge feed tank (agitated)",
-     notes: "Takes one batch's slurry, 17.2 m3, from R-101; 25 m3, stainless steel, agitated, so that R-101 is free for the next batch while C-101 works the loads (D-003)."}
+     notes: "Takes one batch's slurry, 19.5 m3, from R-101; 25 m3, stainless steel, agitated, so that R-101 is free for the next batch while C-101 works the loads (D-003)."}
   - {tag: C-101, type: Centrifuge, service: "Vertical peeler centrifuge: mother liquor spun off, cold-water wash, spin dry",
-     notes: "About six loads per batch (2.5 t of crystals), 6 h per batch; 99.5 % of the crystals to the cake, 0.15 kg of liquor per kg of crystals; drive 8 kW year average; nitrogen-inerted (D-007, D-009)."}
+     notes: "About six loads per batch (2.6 t of crystals), 6 h per batch; 99.5 % of the crystals to the cake, 0.15 kg of liquor per kg of crystals; drive 8 kW year average; nitrogen-inerted (D-007, D-009)."}
   - {tag: T-101, type: Tank, service: "Recycled mother liquor tank (half of the mother liquor, to the next charge)",
-     notes: "7.6 m3 per batch (762 kg/h x 9.965 h); 10 m3, stainless steel (D-008)."}
+     notes: "8.8 t (about 8.6 m3) per batch (851 kg/h x 10.30 h); 10 m3, stainless steel (D-008)."}
   - {tag: T-102, type: Tank, service: "Wastewater collection: the mother liquor's other half, the wash filtrate and the dryer condensate",
-     notes: "10 m3 per batch to the site's wastewater treatment; stainless steel (D-008)."}
+     notes: "11.3 t (about 11 m3) per batch to the site's wastewater treatment; stainless steel (D-008)."}
   - {tag: D-101, type: Dryer, service: "Conical vacuum dryer at 343 K",
-     notes: "3.8 m3 of wet cake per batch in 8 m3 (preferred size, 48 % full, D 2.17 m), 10.8 m2 heated; drying 8.5 h at an ASSUMED 4 kg/(m2 h) (core's dryer model, the recipe); jacket on the hot-water loop from LP steam, 45.0 kW year average (Q6, the vessel's heat included); the bottleneck of the train (cycle 9.965 h, R-101 at 99 %) (D-003, D-009)."}
+     notes: "4.0 m3 of wet cake per batch in 8 m3 (preferred size, 50 % full, D 2.17 m), 11 m2 heated; drying 8.6 h at an ASSUMED 4 kg/(m2 h) (core's dryer model, the recipe); jacket on the hot-water loop from LP steam, 44.9 kW year average (Q6, the vessel's heat included); cooled to 303 K on cooling water before the discharge (in Q8); 98 % of R-101's cycle (D-003, D-009)."}
   - {tag: E-101, type: HeatExchanger, service: "Dryer vacuum condenser (water and acetic acid vapour)",
-     notes: "Condenses 365 kg a batch to T-102 at 303 K; on cooling water; its duty is not counted (small, D-009)."}
+     notes: "Condenses 377 kg a batch to T-102 at 303 K on cooling water: 24.8 kW year average, in Q8 (scripts/balance.py, D-009)."}

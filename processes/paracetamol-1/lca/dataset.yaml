@@ -15,7 +15,7 @@ boundary: gate-to-gate foreground of the plant
 technology: 'Batch plant: 4-aminophenol dissolved in water and recycled mother liquor at 358 K and carbon-treated,
   acetic anhydride dosed over 2.5 h at 313 K (semi-batch), digested at 358 K, crystallised by cooling
   to 293 K, centrifuged, washed with cold water and vacuum-dried at 343 K; half of the mother liquor recycled;
-  2516.47 kg per batch, 795 batches a year on a dedicated train'
+  2602.10 kg per batch, 769 batches a year on a dedicated train'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:reactor-vent
@@ -45,7 +45,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 2000013.8399999999
+  amount: 1999998.0
   unit: kg/a
   source: product:APAP per hour x operation.hours_per_year (7920 h/a)
 classification:
@@ -59,11 +59,12 @@ exchanges:
 - key: feed:PW
   title: Process water (charge make-up)
   type: input
-  amount: 591.5398
+  amount: 640.5914
   unit: kg
   link:
     source: flowsheet stream S1 (D-004)
-    missing: 'not mapped yet (D-012); connect to: process water from the site water treatment'
+    missing: 'no background in this study; the Atlas build links it as deionised water through the shared
+      lci/mappings.yaml (D-012); connect to: process water from the site water treatment'
   streams:
   - S1
   source: flowsheet stream S1 (D-004)
@@ -80,7 +81,7 @@ exchanges:
 - key: feed:PAPF
   title: 4-Aminophenol (merchant; no library process)
   type: input
-  amount: 221.7832
+  amount: 240.9435
   unit: kg
   link:
     source: flowsheet stream S2 (D-004)
@@ -103,7 +104,7 @@ exchanges:
 - key: feed:AC2OF
   title: Acetic anhydride (acetic-anhydride-1)
   type: input
-  amount: 239.7983
+  amount: 260.515
   unit: kg
   link:
     source: flowsheet stream S4 (D-004)
@@ -127,11 +128,12 @@ exchanges:
 - key: feed:WASHW
   title: Cold process water (cake wash)
   type: input
-  amount: 203.1429
+  amount: 202.4847
   unit: kg
   link:
     source: flowsheet stream S11 (D-007)
-    missing: 'not mapped yet (D-012); connect to: process water from the site water treatment'
+    missing: 'no background in this study; the Atlas build links it as deionised water through the shared
+      lci/mappings.yaml (D-012); connect to: process water from the site water treatment'
   streams:
   - S11
   source: flowsheet stream S11 (D-007)
@@ -153,8 +155,9 @@ exchanges:
   link:
     source: flowsheet energy streams P1 (dissolver agitator), P2 (acetylator agitator), P3 (centrifuge)
       and P4 (dryer agitator and vacuum pump), D-009
-    missing: 'not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided)
-      site country'
+    missing: 'no background in this study; the Atlas build links it as medium-voltage electricity of the
+      site''s location through the shared lci/mappings.yaml (D-012); connect to: electricity, medium voltage,
+      grid mix of the (undecided) site country'
   streams:
   - P1
   - P2
@@ -170,22 +173,25 @@ exchanges:
     kind: electricity
     source: utility of POWER in process/flowsheet.yaml
 - key: feed:LPS
-  title: LP steam 350 kPa(a) (to the hot-water loops and the dryer's jacket)
+  title: LP steam 350 kPa(a) (to M-101's jacket, R-101's hot-water loop and the dryer's jacket)
   type: input
-  amount: 212.6722
+  amount: 249.041
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 (the dissolver heated, scripts/balance.py), Q4 (the digestion's
-      heat-up, core's batch model) and Q6 (the dryer, core's dryer model), D-009
+    source: flowsheet energy streams Q1 (the dissolver heated with its metal, scripts/balance.py), Q4
+      (the digestion's heat-up, core's batch model), Q6 (the dryer, core's dryer model) and Q7 (R-101's
+      metal and the crystals' redissolution in the heat-up, scripts/balance.py), D-009
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
   streams:
   - Q1
   - Q4
+  - Q7
   - Q6
-  source: flowsheet energy streams Q1 (the dissolver heated, scripts/balance.py), Q4 (the digestion's
-    heat-up, core's batch model) and Q6 (the dryer, core's dryer model), D-009
+  source: flowsheet energy streams Q1 (the dissolver heated with its metal, scripts/balance.py), Q4 (the
+    digestion's heat-up, core's batch model), Q6 (the dryer, core's dryer model) and Q7 (R-101's metal
+    and the crystals' redissolution in the heat-up, scripts/balance.py), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -199,7 +205,7 @@ exchanges:
 - key: product:APAP
   title: Paracetamol crystals to packing
   type: product
-  amount: 252.527
+  amount: 252.525
   unit: kg
   provenance: calculated
   streams:
@@ -211,17 +217,17 @@ exchanges:
   state:
     pressure: 1.01325
     temperature: 30.0
-    purity: 0.981556
+    purity: 0.98147
     basis: mole
     component: APAP_S
   composition:
     fractions:
-      H2O: 0.001936124
+      H2O: 0.00193737
       PAP: 0.0
       AC2O: 0.0
-      HOAC: 6.3881e-05
-      APAP: 0.00230234
-      APAP_S: 0.995697655
+      HOAC: 6.2629e-05
+      APAP: 0.002383223
+      APAP_S: 0.995616778
     formulas:
       H2O: H2O
       PAP: C6H7NO
@@ -233,14 +239,16 @@ exchanges:
 - key: product:WW
   title: Mother liquor purge, wash filtrate and dryer condensate to wastewater treatment
   type: output
-  amount: 1003.74
+  amount: 1092.01
   unit: kg
   provenance: calculated
   link:
     source: flowsheet stream S18 (D-008)
-    missing: 'not mapped yet (D-012); connect to: treatment of an organic process effluent (acetic acid
-      16 wt%, paracetamol 5.5 wt%, COD-rich) in an industrial wastewater treatment plant (e.g. processes/utility-wwtp),
-      per kg; or recovery of the acetic acid and the paracetamol by extraction (SRC-2), not modelled'
+    missing: 'no background in this study; the Atlas build links it to the wastewater treatment proxy
+      per kg through the shared lci/mappings.yaml (D-012); connect to: treatment of an organic process
+      effluent (acetic acid 16 wt%, paracetamol 7.5 wt%, COD-rich) in an industrial wastewater treatment
+      plant (e.g. processes/utility-wwtp), per kg; or recovery of the acetic acid and the paracetamol
+      by extraction (SRC-2), not modelled'
   streams:
   - S18
   source: flowsheet stream S18 (D-008)
@@ -254,12 +262,12 @@ exchanges:
       (no recovery of either, D-008)
   composition:
     fractions:
-      H2O: 0.785764676
+      H2O: 0.7661297
       PAP: 1.0e-09
-      AC2O: 2.66e-07
-      HOAC: 0.15924547
-      APAP: 0.053095144
-      APAP_S: 0.001894443
+      AC2O: 2.65e-07
+      HOAC: 0.159020353
+      APAP: 0.073110356
+      APAP_S: 0.001739325
     formulas:
       H2O: H2O
       PAP: C6H7NO
@@ -271,15 +279,19 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 68.3311
+  amount: 113.2579
   unit: kWh
   link:
-    source: flowsheet energy stream Q2 (the dissolver cooled to 313 K, scripts/balance.py), D-009
-    missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
-      with cooling tower (processes/utility-cooling-tower), per kWh removed'
+    source: flowsheet energy streams Q2 (the dissolver and its metal cooled to 313 K, scripts/balance.py)
+      and Q8 (the dryer's condenser E-101 and D-101's cool-down, scripts/balance.py), D-009
+    missing: 'no background in this study; the Atlas build links it to the cooling-water proxy per kWh
+      removed through the shared lci/mappings.yaml (D-012); connect to: heat rejected to a recirculating
+      cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
   - Q2
-  source: flowsheet energy stream Q2 (the dissolver cooled to 313 K, scripts/balance.py), D-009
+  - Q8
+  source: flowsheet energy streams Q2 (the dissolver and its metal cooled to 313 K, scripts/balance.py)
+    and Q8 (the dryer's condenser E-101 and D-101's cool-down, scripts/balance.py), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -291,7 +303,7 @@ exchanges:
 - key: product:CHW
   title: Chilled water return
   type: output
-  amount: 178.4272
+  amount: 192.793
   unit: kWh
   provenance: calculated
   link:
@@ -316,18 +328,18 @@ exchanges:
 - key: consumable:activated-carbon
   title: Activated carbon for the decolourisation of the hot charge in M-101
   type: input
-  amount: 8.750490954171106
+  amount: 9.500853471562799
   unit: kg
   link:
-    source: '4.3 g per 109 g of 4-aminophenol (SRC-1 Example 1: 4.3 g of carbon on 109 g) x 2210 kg of
-      fresh aminophenol per batch (221.78 kg/h x 9.965 h) = 87.2 kg, used once, ASSUMED not regenerated
+    source: '4.3 g per 109 g of 4-aminophenol (SRC-1 Example 1: 4.3 g of carbon on 109 g) x 2483 kg of
+      fresh aminophenol per batch (240.94 kg/h x 10.304 h) = 97.9 kg, used once, ASSUMED not regenerated
       (D-008, D-012)'
     missing: 'not mapped yet (D-012); connect to: activated carbon, powdered, from coal or wood by steam
       activation'
-  source: '4.3 g per 109 g of 4-aminophenol (SRC-1 Example 1: 4.3 g of carbon on 109 g) x 2210 kg of fresh
-    aminophenol per batch (221.78 kg/h x 9.965 h) = 87.2 kg, used once, ASSUMED not regenerated (D-008,
-    D-012); 87.2 kg per batch x 794.769 batches in 7920 h (process/recipe.yaml, case design, bottleneck
-    DRY)'
+  source: '4.3 g per 109 g of 4-aminophenol (SRC-1 Example 1: 4.3 g of carbon on 109 g) x 2483 kg of fresh
+    aminophenol per batch (240.94 kg/h x 10.304 h) = 97.9 kg, used once, ASSUMED not regenerated (D-008,
+    D-012); 97.9 kg per batch x 768.608 batches in 7920 h (process/recipe.yaml, case design, bottleneck
+    REACT)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -336,7 +348,7 @@ exchanges:
   title: 'Disposal: Activated carbon for the decolourisation of the hot charge in M-101 (spent carbon
     with the adsorbed colour bodies and the filter''s liquor to hazardous-waste incineration (D-008))'
   type: output
-  amount: 8.750490954171106
+  amount: 9.500853471562799
   unit: kg
   link:
     source: the spent carbon off F-100, its mass as charged (the liquor held in it not counted), D-008
@@ -353,14 +365,91 @@ exchanges:
     kind: waste
     route: spent carbon with the adsorbed colour bodies and the filter's liquor to hazardous-waste incineration
       (D-008)
+- key: consumable:sodium-hydrosulfite
+  title: Sodium hydrosulfite (dithionite) decolourising the charge in M-101
+  type: input
+  amount: 0.6599162779022167
+  unit: kg
+  link:
+    source: 0.2 g and 0.1 g more per 109 g of 4-aminophenol (SRC-1 Example 1) x 2483 kg of fresh aminophenol
+      per batch = 6.8 kg (D-008)
+    missing: 'not mapped yet (D-012); connect to: sodium dithionite, technical, from sodium formate or
+      zinc with sulfur dioxide'
+  source: 0.2 g and 0.1 g more per 109 g of 4-aminophenol (SRC-1 Example 1) x 2483 kg of fresh aminophenol
+    per batch = 6.8 kg (D-008); 6.8 kg per batch x 768.608 batches in 7920 h (process/recipe.yaml, case
+    design, bottleneck REACT)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.sodium-hydrosulfite
+  title: 'Disposal: Sodium hydrosulfite (dithionite) decolourising the charge in M-101 (dissolved in the
+    liquors S18 to the site''s wastewater treatment, oxidised to sulfate there (D-008, D-010))'
+  type: output
+  amount: 0.6599162779022167
+  unit: kg
+  link:
+    source: as charged; not carried in the flowsheet's components (D-008)
+    missing: 'not mapped yet (D-012); connect to: treatment of dissolved sulfite and sulfate in an industrial
+      wastewater treatment plant, per kg'
+  streams:
+  - consumable:sodium-hydrosulfite
+  source: as charged; not carried in the flowsheet's components (D-008)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: dissolved in the liquors S18 to the site's wastewater treatment, oxidised to sulfate there
+      (D-008, D-010)
+- key: consumable:sodium-sulfite
+  title: Sodium sulfite protecting the charge in M-101 from oxidation
+  type: input
+  amount: 1.1063302306007752
+  unit: kg
+  link:
+    source: 0.5 g per 109 g of 4-aminophenol (SRC-1 Example 1) x 2483 kg of fresh aminophenol per batch
+      = 11.4 kg (D-008)
+    missing: 'no background in this study; the Atlas build links it to the market for sodium sulfite through
+      the shared lci/mappings.yaml (D-012); connect to: sodium sulfite, technical, from sodium carbonate
+      and sulfur dioxide'
+  source: 0.5 g per 109 g of 4-aminophenol (SRC-1 Example 1) x 2483 kg of fresh aminophenol per batch
+    = 11.4 kg (D-008); 11.4 kg per batch x 768.608 batches in 7920 h (process/recipe.yaml, case design,
+    bottleneck REACT)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+- key: disposal:consumable.sodium-sulfite
+  title: 'Disposal: Sodium sulfite protecting the charge in M-101 from oxidation (dissolved in the liquors
+    S18 to the site''s wastewater treatment, oxidised to sulfate there (D-008, D-010))'
+  type: output
+  amount: 1.1063302306007752
+  unit: kg
+  link:
+    source: as charged; not carried in the flowsheet's components (D-008)
+    missing: 'not mapped yet (D-012); connect to: treatment of dissolved sulfite and sulfate in an industrial
+      wastewater treatment plant, per kg'
+  streams:
+  - consumable:sodium-sulfite
+  source: as charged; not carried in the flowsheet's components (D-008)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  treatment:
+    kind: waste
+    route: dissolved in the liquors S18 to the site's wastewater treatment, oxidised to sulfate there
+      (D-008, D-010)
 allocation: {}
 provenance:
   generator: cheme assess lca
   plant: Paracetamol by semi-batch acetylation of 4-aminophenol in aqueous acetic acid (2000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:378f979471ea2dc834dd0977a7b7554652165b6671630dd176d2e096e0df6b6d
-    lca/lca.yaml: sha256:f66aa14780fd48a8de9c4d3262f8e37eeced001e65e6e089df4cad4cca25aac1
-    process.yaml: sha256:c7c6ddec35937abf55a1513eccc56dee219f0ef628a99cc8b86885509d8975bf
-    process/flowsheet.yaml: sha256:2608492d2c2eb671b4981d4b8e62d2867062a83f6bbd8fc7db107cdb7e2f8993
-    process/materials.yaml: sha256:3146535a9d3917bf243e51845aad3de2d298900d269a80e51545a7f07478211c
+    equipment/equipment-list.yaml: sha256:339ff386e4cee0da03f19651751e279b3f1fecbdc6cff026d988560716fefddb
+    lca/lca.yaml: sha256:8127bc74967fafb05bf967e759a8adda8ac78c02299920a4d31535af2c74a1d0
+    process.yaml: sha256:4335ef850dd54c764217081a13798c0bfae92c0f49ec43c7373d5ba740a26c4f
+    process/flowsheet.yaml: sha256:4a7137e6b5334fb38dde87e3d6e9e57794b3491a55db09e2166990ae7c4a10dd
+    process/materials.yaml: sha256:b117fabff8fbf9ddd99f944ba72c9c8a5469954ea9df4db28c2a30da774537b1

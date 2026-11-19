@@ -4,14 +4,16 @@
 # post-reaction take their times from R101's semi-batch model and the digestion from R102's
 # batch model (from: R101, R102); the heat-up to 358 K and the cooling crystallisation to 293 K
 # take theirs from R-101's jacket (temperatures:), the drying from D101's drying rate on the
-# area the cake wets; every other duration is ASSUMED (D-003). R-101 is the bottleneck; the
-# dissolver, the centrifuge and the dryer take each batch within its cycle. R-101's, M-101's
-# and D-101's vessels are sized from one batch's content (core ADRs 0052, 0057).
+# area the cake wets; M-101's heat-up and cool-down from scripts/balance.py's jacket estimate
+# (m101_times()); every other duration is ASSUMED (D-003). R-101 is the bottleneck, with the
+# dryer D-101 at 98 %; the dissolver and the centrifuge take each batch within its cycle. R-101's and D-101's
+# vessels are sized from one batch's content (core ADRs 0052, 0057); M-101 has no batch content
+# the recipe can size from (L-2).
 # `cheme process recipe --svg build/gantt.svg` draws one batch.
 schema: cheme/recipe/v1
 kind: recipe
 title: Paracetamol by semi-batch acetylation of 4-aminophenol in water
-batch_size: {value: 2516.47, unit: kg, stream: S15, provenance: assumed, source: "one batch of dried paracetamol: 2000 t/a over the batches R-101's cycle allows (D-002, D-003)"}
+batch_size: {value: 2602.1, unit: kg, stream: S15, provenance: assumed, source: "one batch of dried paracetamol: 2000 t/a over the batches R-101's cycle allows, the fixed point of batch = rate x cycle (D-002, D-003)"}
 hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
 unit_procedures:
   - id: DISSOLVE
@@ -19,10 +21,10 @@ unit_procedures:
     title: Dissolve the aminophenol at 358 K, carbon treatment, polish filtration, cool to 313 K (M-101, F-100)
     operations:
       - {id: charge, kind: charge, title: "Water, recycled mother liquor and 4-aminophenol", duration: {value: 1.0, provenance: assumed, source: D-003}}
-      - {id: heat, kind: heat, title: Heat to 358 K on the hot-water loop, duration: {value: 1.5, provenance: assumed, source: "D-003: Q1, about 0.71 GJ a batch, about 130 kW over 1.5 h"}}
+      - {id: heat, kind: heat, title: Heat to 358 K with LP steam in the jacket, duration: {value: 1.65, provenance: assumed, source: "D-003: scripts/balance.py m101_times(), 1.63 h: the charge (about 61.4 MJ/K a batch) and M-101's metal (7000 kJ/K) from 295.6 to 358.15 K on LP steam at 412 K through R-101's U 300 W/(m2 K) and the 29.9 m2 the recipe gives R-101 at the same charge, all ASSUMED; Q1 about 4.16 GJ a batch, about 700 kW on average"}}
       - {id: carbon, kind: hold, title: "Activated carbon, stir at 358 K (SRC-1)", duration: {value: 0.5, provenance: assumed, source: D-003}}
-      - {id: polish, kind: transfer, title: "Through the polish filter F-100 back to M-101", duration: {value: 1.0, provenance: assumed, source: D-003}}
-      - {id: cool, kind: cool, title: Cool to 313 K on cooling water, duration: {value: 2.0, provenance: assumed, source: "D-003: Q2, about 0.51 GJ a batch, about 70 kW over 2 h"}}
+      - {id: polish, kind: filter, title: "Through the polish filter F-100 back to M-101", duration: {value: 1.0, provenance: assumed, source: D-003}}
+      - {id: cool, kind: cool, title: Cool to 313 K on cooling water, duration: {value: 3.8, provenance: assumed, source: "D-003: scripts/balance.py m101_times(), 3.78 h:the charge and M-101's metal from 358.15 to 313.15 K on cooling water 298.15/308.15 K entered as its log-mean equivalent at the end, 304.05 K, through the same jacket, all ASSUMED; Q2 about 3.08 GJ a batch, about 225 kW on average"}}
       - {id: transfer, kind: transfer, title: Charge R-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
   - id: REACT
     units: [R101, CR101]
@@ -41,6 +43,7 @@ unit_procedures:
       - {id: heat, kind: heat, title: Heat to 358 K (R102), temperatures: [313.15, 358.15]}
       - {id: digest, kind: react, title: Digest at 358 K (R102), from: R102}
       - {id: cool, kind: cool, title: Cool to 293 K to crystallise (CR101), temperatures: [358.15, 293.15]}
+      - {id: release, kind: cool, title: The heat of crystallisation removed at 293 K (CR101), duration: {value: 0.4, provenance: assumed, source: "D-003, L-7: the 12.7 kW of crystallisation heat the crystals release in CR101 (counted in Q3, D-005), about 0.47 GJ a batch, which the cool-down's time does not count, at the cool-down's mean rate of about 350 kW"}}
       - {id: hold, kind: hold, title: Crystallisation hold at 293 K (CR101), duration: {value: 0.5, provenance: assumed, source: D-003}}
       - {id: transfer, kind: transfer, title: Slurry to the centrifuge feed tank T-103, duration: {value: 0.5, provenance: assumed, source: D-003}}
   - id: ISOLATE

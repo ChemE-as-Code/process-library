@@ -21,11 +21,11 @@ of US 3 917 695 A (Mallinckrodt):
 
 | | |
 |---|---|
-| batch | 2516 kg of dried paracetamol every 9.97 h, 795 batches a year on a dedicated train |
+| batch | 2602 kg of dried paracetamol every 10.3 h, 769 batches a year on a dedicated train |
 | product | 99.8 wt% paracetamol (crude; the pharmacopoeial recrystallisation is outside the boundary) |
-| yield | 82.0 % of theory on 4-aminophenol (model; the patent's comparable example: 84.8 %) |
-| per kg product | 0.878 kg 4-aminophenol, 0.950 kg acetic anhydride, 3.15 kg water, 0.035 kg activated carbon |
-| wastewater | 3.97 kg/kg, 16 wt% acetic acid and 5.5 wt% paracetamol |
+| yield | 75.5 % of theory on 4-aminophenol crystallising at 293 K (model; at the patent's 10 to 15 C 81.6 %, the patent's comparable example 84.8 %) |
+| per kg product | 0.954 kg 4-aminophenol, 1.032 kg acetic anhydride, 3.34 kg water, 0.038 kg activated carbon, 7 g of sodium sulfite and hydrosulfite |
+| wastewater | 4.32 kg/kg, 16 wt% acetic acid and 7.5 wt% paracetamol |
 | vessels | R-101 25 m3 glass-lined, D-101 8 m3 (sized by the recipe) |
 | thermal screening | MTSR 313.6 K against an MTT of 373.15 K; 317.1 K with 100 times slower reactions |
 
@@ -53,5 +53,6 @@ cheme assess lca --check
 ## Limits
 
 Kinetics, the heat of acetylation and the centrifuge and dryer data are assumed; the
-4-aminophenol, water, utilities and wastewater treatment are LCI gaps. No P&IDs, layout, HAZOP or
+4-aminophenol, the chilled water's refrigeration, the activated carbon and the sodium
+hydrosulfite are LCI gaps. No P&IDs, layout, HAZOP or
 cost estimate yet.

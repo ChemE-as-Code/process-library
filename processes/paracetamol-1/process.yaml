@@ -8,7 +8,7 @@ summary: >-
   A batch plant on Mallinckrodt's aqueous route: 4-aminophenol dissolved and carbon-treated,
   acetic anhydride (acetic-anhydride-1) dosed at 313 K, digested at 358 K, crystallised by
   cooling, centrifuged, washed and vacuum-dried, half the mother liquor recycled. Concept stage,
-  2516 kg per batch every 9.97 h, thermal screening, preliminary gate-to-gate LCI.
+  2602 kg per batch every 10.3 h, thermal screening, preliminary gate-to-gate LCI.
 description: |
   4-Aminophenol is dissolved at 358 K in water and half of the last batch's mother liquor (5.87
   kg of liquid per kg), treated with activated carbon, polish-filtered and cooled to 313 K; acetic
@@ -16,23 +16,24 @@ description: |
   excess hydrolysed to acetic acid. The mass is digested at 358 K, cooled to 293 K, and the
   crystals are centrifuged, washed with cold water and dried at 343 K under vacuum (the route of
   US 3 917 695 A, Mallinckrodt, Examples 1, 4 and 6). Half of the mother liquor goes back into the
-  next charge; the other half, the wash filtrate and the dryer's condensate (3.97 kg per kg, 16 wt%
-  acetic acid, 5.5 wt% paracetamol) go to wastewater treatment. The product is 99.8 wt%
+  next charge; the other half, the wash filtrate and the dryer's condensate (4.32 kg per kg, 16 wt%
+  acetic acid, 7.5 wt% paracetamol) go to wastewater treatment. The product is 99.8 wt%
   paracetamol, the dried crude before a pharmacopoeial recrystallisation (outside the boundary);
-  the yield is 82.0 % of theory on the aminophenol (the patent's Example 4, half the filtrate
-  recycled once: 84.8 %).
+  the yield is 75.5 % of theory on the aminophenol, crystallising at 293 K (the same plant at the
+  patent's 10 to 15 C: 81.6 %; the patent's Example 4, half the filtrate recycled once: 84.8 %).
 
   The batch is modelled with cheme-as-code's semi-batch and batch reactors, crystallizers with
   spectators and a Setschenow correction, a specified centrifuge, the dryer, a tear on the
-  mother-liquor recycle and the batch recipe (core ADRs 0050 to 0063, 0070): the dryer is the
-  bottleneck (cycle 9.965 h, 795 batches a year on a dedicated train), the recipe sizes R-101 (25
-  m3) and checks its chilled-water jacket against the dosing (254 of 265 kW), and every model
-  writes its own duty. The solubility of paracetamol in water is open data (Jimenez and Martinez
-  2006); the acetic acid's salting in is calibrated to the patent's Example 1. The kinetics are
-  ASSUMED; the screening gives an MTSR of 313.6 K (2.2 % accumulation) against an MTT of 373.15 K,
-  and with 100 times slower reactions 317.1 K: even all the anhydride at once only takes the mass
-  35 K up, but not from the digestion's 358 K, so the dosing needs a temperature permissive. See
-  DESIGN.md for every assumption.
+  mother-liquor recycle and the batch recipe (core ADRs 0050 to 0063, 0070): R-101 is the
+  bottleneck (cycle 10.3 h, 769 batches a year on a dedicated train), the recipe sizes R-101 (25
+  m3) and checks its chilled-water jacket against the dosing (286 of 291 kW), and every model
+  writes its own duty. The solubility of paracetamol in water is taken from an open-access paper
+  (Jimenez and Martinez 2006, five values); the acetic acid's salting in is calibrated to the
+  patent's Example 1 at its 10 to 15 C. The kinetics are ASSUMED; the screening gives an MTSR of
+  313.6 K (2.2 % accumulation) against an MTT of 373.15 K, and with 100 times slower reactions
+  317.1 K: even all the anhydride at once only takes the mass about 38 K up, but not from the
+  digestion's 358 K, so the dosing needs a temperature permissive. See DESIGN.md for every
+  assumption.
 families: [nitrogen-organics]
 keywords: [paracetamol, acetaminophen, APAP, N-acetyl-4-aminophenol, 4-aminophenol, acetic anhydride, acetic acid, acetylation, semi-batch, batch, dosing, cooling crystallisation, centrifuge, vacuum drying, mother liquor recycle, activated carbon, thermal screening, pharmaceuticals, active pharmaceutical ingredient]
 facets:
@@ -49,43 +50,48 @@ validation:
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
     process streams: 3 blocks and 10 steps within tolerance; the mother-liquor recycle converged
-    at the tear S16 in 10 Wegstein iterations). The semi-batch R101 and the digestion R102 (from
+    at the tear S16 in 9 Wegstein iterations). The semi-batch R101 and the digestion R102 (from
     their ASSUMED rate laws), the cooling crystallisation CR101 and the wash W101 (crystallizers
     with the solubility of paracetamol in water at 293 to 313 K from Jimenez and Martinez 2006 and
-    a Setschenow coefficient of the acetic acid, -0.1865 kg/mol, calibrated to US 3 917 695 A
-    Example 1), the centrifuge's specified splits, the dryer D101 and the recycle split are
-    calculated by cheme process propagate, which writes the duties of R101, R102, CR101 (with
-    R-101's ASSUMED metal); the dryer's steam from cheme's dryer model. scripts/balance.py gives
-    the feeds for 2000 t/a and the dissolver's duties (no property package of core covers this
-    liquor, and core does not solve feeds for a product rate). The recipe's year-average rate of
-    the product agrees with the flowsheet (no cheme.recipe-basis finding); it sizes R-101 (25 m3)
-    and D-101 (8 m3) and checks R-101's chilled-water jacket (254 of 265 kW at the dosing's peak).
-    Thermal screening (cheme process reactor-hazards): R101 dT_ad 35.2 K, accumulation 2.18 %,
-    MTSR 313.6 K against an MTT of 373.15 K (water's boiling point, a lower bound of the mass's);
-    k/10 8.2 % and 315.0 K, k/100 15.1 % and 317.1 K; no criticality class without a TD24. The
-    heat of acetylation is ASSUMED from the acetanilide analogue (-100.9 kJ/mol). Preliminary
-    gate-to-gate LCI with the activated carbon per batch; the acetic anhydride linked to
-    acetic-anhydride-1, the 4-aminophenol a gap with a recorded proxy (nitrobenzene
-    hydrogenation), the other backgrounds gaps. cheme maturity reaches no level (assumed feeds,
+    a Setschenow coefficient of the acetic acid, -0.2182 kg/mol, calibrated to US 3 917 695 A
+    Example 1 at its 10 to 15 C), the centrifuge's specified splits, the dryer D101 and the
+    recycle split are calculated by cheme process propagate, which writes the duties of R101,
+    R102, CR101 (with R-101's ASSUMED metal); the dryer's steam from cheme's dryer model.
+    scripts/balance.py gives the feeds for 2000 t/a, the dissolver's duties and times, R-101's
+    metal and the crystals' redissolution in the heat-up, and the dryer's condenser and cool-down
+    (no property package of core covers this liquor, and core does not solve feeds for a product
+    rate). The recipe's year-average rate of the product agrees with the flowsheet (no
+    cheme.recipe-basis finding); it sizes R-101 (25 m3) and D-101 (8 m3) and checks R-101's
+    chilled-water jacket (286 of 291 kW at the dosing's peak). Thermal screening (cheme process
+    reactor-hazards): R101 dT_ad 35.1 K, accumulation 2.18 %, MTSR 313.6 K against an MTT of
+    373.15 K (water's boiling point, a lower bound of the mass's); k/10 8.2 % and 315.0 K, k/100
+    15.1 % and 317.1 K; no criticality class without a TD24. The heat of acetylation is ASSUMED
+    from the acetanilide analogue (-100.9 kJ/mol). Preliminary gate-to-gate LCI with the
+    decolourising agents per batch; in the Atlas build the acetic anhydride is linked to
+    acetic-anhydride-1, the steam, water, electricity, cooling water, wastewater and sodium
+    sulfite to their shared backgrounds; the 4-aminophenol (with a recorded proxy, nitrobenzene
+    hydrogenation), the chilled water, the carbon, the hydrosulfite and the salts' disposal are
+    gaps. cheme maturity reaches no level (assumed feeds,
     kinetics and separations); the claim `maturity: concept` is the lowest value of the schema,
     not an evidenced level. Not reviewed. Needs cheme-as-code 1.12.0.
 chemistry:
   inputs:
-    - {chemical: 4-aminophenol, role: feedstock, inventory_key: "feed:PAPF", note: "4-Aminophenol, technical (no library process; proxy: nitrobenzene hydrogenation in sulfuric acid, D-012), 0.878 kg/kg paracetamol (stoichiometric 0.722)"}
-    - {chemical: acetic-anhydride, role: feedstock, inventory_key: "feed:AC2OF", note: "Acetic anhydride 99.5 wt% (acetic-anhydride-1), 0.950 kg/kg, 1.15 mol per mol of aminophenol"}
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water for the charge, 2.34 kg/kg"}
+    - {chemical: 4-aminophenol, role: feedstock, inventory_key: "feed:PAPF", note: "4-Aminophenol, technical (no library process; proxy: nitrobenzene hydrogenation in sulfuric acid, D-012), 0.954 kg/kg paracetamol (stoichiometric 0.722)"}
+    - {chemical: acetic-anhydride, role: feedstock, inventory_key: "feed:AC2OF", note: "Acetic anhydride 99.5 wt% (acetic-anhydride-1), 1.032 kg/kg, 1.15 mol per mol of aminophenol"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water for the charge, 2.54 kg/kg"}
     - {chemical: water, role: feedstock, inventory_key: "feed:WASHW", note: "Cold wash water, 0.80 kg/kg"}
-    - {chemical: activated-carbon, role: feedstock, inventory_key: "consumable:activated-carbon", note: "Decolourising carbon, 87.2 kg per batch, 0.035 kg/kg, incinerated after use (D-008)"}
+    - {chemical: activated-carbon, role: feedstock, inventory_key: "consumable:activated-carbon", note: "Decolourising carbon, 97.9 kg per batch, 0.038 kg/kg, incinerated after use (D-008)"}
+    - {chemical: sodium-sulfite, role: feedstock, inventory_key: "consumable:sodium-sulfite", note: "Sodium sulfite against the aminophenol's oxidation, 11.4 kg per batch, with 6.8 kg of sodium hydrosulfite (consumable:sodium-hydrosulfite; SRC-1 Example 1), both to the wastewater (D-008)"}
   outputs:
     - {chemical: paracetamol, role: main-product, inventory_key: "product:APAP", note: "Dried crude paracetamol, 99.8 wt% (model), to packing; the pharmacopoeial recrystallisation is outside the boundary"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Mother-liquor purge, wash filtrate and dryer condensate, 3.97 kg/kg: 16 wt% acetic acid, 5.5 wt% dissolved paracetamol, to biological treatment"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Mother-liquor purge, wash filtrate and dryer condensate, 4.32 kg/kg: 16 wt% acetic acid, 7.5 wt% paracetamol (7.3 wt% dissolved), to biological treatment"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.087 kWh/kg: agitators of M-101 and R-101, the centrifuge, the dryer's agitator and vacuum pump (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.842 kWh/kg of LP steam 350 kPa(a): the dissolver heated to 358 K, the digestion's heat-up (core's batch model), the dryer (core's dryer model)"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.271 kWh/kg removed by cooling water: the dissolver cooled to 313 K"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.707 kWh/kg removed by chilled water at 278 K: the heat of acetylation (core's semi-batch model) and the cooling crystallisation with R-101's metal (core's crystallizer model)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.986 kWh/kg of LP steam 350 kPa(a): the dissolver heated to 358 K with its metal, the digestion's heat-up (core's batch model) with R-101's metal and the crystals' redissolution, the dryer (core's dryer model)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.449 kWh/kg removed by cooling water: the dissolver cooled to 313 K, the dryer's condenser E-101 and D-101's cool-down"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.763 kWh/kg removed by chilled water at 278 K: the heat of acetylation (core's semi-batch model) and the cooling crystallisation with R-101's metal (core's crystallizer model)"}
 basis:
-  capacity: "2000 t/a dried paracetamol: 795 batches/a of 2516.47 kg in 7920 h on a dedicated train (252.53 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  capacity: "2000 t/a dried paracetamol: 769 batches/a of 2602.10 kg in 7920 h on a dedicated train (252.53 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920
   location: generic fine-chemicals site with an acetic anhydride supply and a biological wastewater treatment (not chosen)
 references:

@@ -8,8 +8,8 @@ capacity:
   basis: dried paracetamol crystals (crude, before a pharmacopoeial recrystallisation) to packing at the battery limit
   paracetamol_t_per_year: 2000           # ASSUMED (D-002): a dedicated batch train, no open market figure used
   operating_hours_per_year: 7920         # ASSUMED (D-002): 330 days of 24 h, batch operation
-  batch_kg: 2516.47                      # ASSUMED (D-003): one batch of dried product every 9.965 h
-  batches_per_year: 795                  # from the recipe (process/recipe.yaml, D-003)
+  batch_kg: 2602.10                      # ASSUMED (D-003): one batch of dried product every 10.30 h
+  batches_per_year: 769                  # from the recipe (process/recipe.yaml, D-003)
 feeds:
   - name: 4-Aminophenol (merchant, technical grade; no library process)
     source_of_values: ASSUMED (D-004)
@@ -23,16 +23,18 @@ feeds:
     source_of_values: ASSUMED (D-004, D-007)
   - name: Activated carbon (decolourising; per batch, not in the balance)
     source_of_values: "SRC-1 Example 1: 4.3 g per 109 g of 4-aminophenol (D-008)"
+  - name: Sodium hydrosulfite and sodium sulfite (decolourising and against oxidation; per batch, not in the balance)
+    source_of_values: "SRC-1 Example 1: 0.3 g of hydrosulfite and 0.5 g of sulfite per 109 g of 4-aminophenol (D-008)"
 products:
   - name: Paracetamol
-    purity: "99.8 wt% paracetamol (99.57 wt% crystals and the paracetamol of the dried cake liquor), 0.19 wt% water, 64 ppm acetic acid, 4-aminophenol below 1 ppm (model, D-008); colour, related substances and the pharmacopoeial assay not modelled: SRC-1's crude needed one recrystallisation from water to pass the N.F."
+    purity: "99.8 wt% paracetamol (99.56 wt% crystals and the paracetamol of the dried cake liquor), 0.19 wt% water, 63 ppm acetic acid, 4-aminophenol below 1 ppm (model, D-008); colour, related substances and the pharmacopoeial assay not modelled: SRC-1's crude needed one recrystallisation from water to pass the N.F."
     delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: packing (bags or drums; not in the boundary)}
   - name: Liquors to wastewater treatment
-    note: "half of the mother liquor (16 wt% acetic acid, 5.3 wt% dissolved paracetamol), the wash filtrate and the dryer condensate; neither the acetic acid nor the paracetamol is recovered (D-008)"
+    note: "half of the mother liquor (19.5 wt% acetic acid, 9.0 wt% dissolved paracetamol), the wash filtrate and the dryer condensate, mixed 16 wt% acetic acid and 7.3 wt% dissolved paracetamol, with the decolourisation's sulfite and hydrosulfite; neither the acetic acid nor the paracetamol is recovered (D-008)"
 utilities:
   - {name: Electric power, use: "agitators of M-101 and R-101, the centrifuge C-101, the dryer's agitator and vacuum pump (D-009)"}
-  - {name: LP steam, pressure_kPa_a: 350, use: "the hot-water loops of M-101 and R-101 and the dryer's jacket (D-009)", note: ASSUMED}
-  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "M-101's cool-down to 313 K; the dryer's vacuum condenser (not counted)", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 350, use: "M-101's jacket, R-101's hot-water loop and the dryer's jacket (D-003, D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "M-101's cool-down to 313 K; the dryer's vacuum condenser E-101 and D-101's cool-down before the discharge (D-009)", note: ASSUMED}
   - {name: Chilled water, supply_K: 278.15, return_K: 283.15, use: "R-101's jacket: the heat of acetylation at 313 K and the cooling crystallisation to 293 K", note: "ASSUMED; from a refrigeration unit outside the boundary (D-009)"}
 site:
   location: ASSUMED generic fine-chemicals site with an acetic anhydride supply (acetic-anhydride-1) and a biological wastewater treatment, not chosen
@@ -42,7 +44,7 @@ assumptions:
   - "Route of US 3 917 695 A (SRC-1): 4-aminophenol dissolved in aqueous acetic acid at 358 K and carbon-treated, acetic anhydride added at 313 K, digested at 358 K, crystallised by cooling (D-001)."
   - "ASSUMED acetic anhydride 1.15 mol per mol of aminophenol (SRC-1 Example 6), 5.87 kg of liquid per kg of fresh aminophenol in the charge (SRC-1 Example 1), half of the mother liquor recycled (SRC-1 Example 4) (D-004, D-008)."
   - "ASSUMED fast effective rate laws of the acetylation and the anhydride's hydrolysis, and the acetylation's heat of reaction from the acetanilide analogue (-100.9 kJ/mol; D-005): no open kinetics or calorimetry; the low accumulation follows from them."
-  - "Solubility of paracetamol in water from Jimenez and Martinez (2006) at 293 to 313 K (SRC-3), with a salting-in coefficient of the acetic acid calibrated to SRC-1 Example 1 (D-007); crystallisation at 293 K, the lowest point of the data."
+  - "Solubility of paracetamol in water from Jimenez and Martinez (2006) at 293 to 313 K (SRC-3), with a salting-in coefficient of the acetic acid calibrated to SRC-1 Example 1 at its 10 to 15 C (the pure water's value extrapolated by van 't Hoff, ASSUMED; D-007); crystallisation at 293 K, the lowest point of the data."
   - "ASSUMED centrifuge: 99.5 % solid recovery, 0.15 kg liquor per kg cake solid; wash with 0.8 kg cold water per kg solid (D-007)."
   - "ASSUMED vacuum drying at 343 K (SRC-2's example dries at 70 C under vacuum) to 0.2 wt% volatiles, 70 % thermal efficiency, a mean drying rate of 4 kg/(m2 h) on the wetted wall (D-008, D-009)."
   - "All flows are year averages of the recipe (D-003); the models' duties from cheme, the dissolver's from scripts/balance.py (D-006, D-009); accuracy +/-30 % not demonstrated."
