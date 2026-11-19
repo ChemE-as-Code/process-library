@@ -86,6 +86,12 @@
         "process": {"$ref": "#/$defs/slug"},
         "dataset": {"description": "The id of the LCI dataset (lci_dataset id).", "type": "string", "pattern": "^[A-Za-z0-9_.\\-]+$"},
         "conditions": {"description": "The dataset's own conditions, in the reference's terms, for the reader's comparison.", "type": "object", "additionalProperties": {"type": ["string", "number"]}},
+        "constants": {
+          "description": "Named quantities with a unit and a source that the expressions use as const:<name>: a heating value or an enthalpy the dataset does not carry (ADR 0041). They belong to this dataset and are reported with each KPI that uses them.",
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/slug"},
+          "additionalProperties": {"$ref": "#/$defs/constant"}
+        },
         "kpis": {
           "type": "object",
           "minProperties": 1,
@@ -94,13 +100,26 @@
         }
       }
     },
+    "constant": {
+      "description": "One named quantity of a binding: its value in its unit, and where it comes from.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "provenance", "source"],
+      "properties": {
+        "value": {"type": "number"},
+        "unit": {"description": "Units joined by * and /, each one of kg, kWh, m, m2, m3, g, t, kJ, MJ, GJ, MWh, mol, kmol (e.g. MJ/kg).", "type": "string", "pattern": "^[A-Za-z0-9]+([*/][A-Za-z0-9]+)*$"},
+        "provenance": {"description": "calculated: computed from the process's own files (source names the file, script and the inputs); sourced: a fact from a cited publication (source gives the citation and locator); assumed: an estimate, marked as such.", "enum": ["calculated", "sourced", "assumed"]},
+        "source": {"description": "Where the value comes from, with a locator (file and section, or citation and page).", "type": "string", "minLength": 20},
+        "note": {"type": "string"}
+      }
+    },
     "evaluation": {
       "description": "How one indicator is computed from the dataset, and which reference it is compared with.",
       "type": "object",
       "additionalProperties": false,
       "required": ["expression"],
       "properties": {
-        "expression": {"description": "Exchange keys and numbers with + - * / and brackets, operators between spaces (a key may contain '-'); e.g. 'feed:POWER / product:GOXP'. Units follow the exchanges' units and are converted to the KPI's unit by core.", "type": "string", "minLength": 3},
+        "expression": {"description": "Exchange keys, the binding's constants (const:<name>) and numbers with + - * / and brackets, operators between spaces (a key may contain '-'); e.g. 'feed:POWER / product:GOXP', 'feed:NG * const:ng-lhv / product:NH3'. Units follow the exchanges' and constants' units; added terms are converted to the first term's unit, and the result to the KPI's unit, by core.", "type": "string", "minLength": 3},
         "per": {"description": "The product exchange the indicator is per unit of: the allocated value is the value times this product's allocation share (recorded by build_lci). Omitted for an indicator that is not per unit of a product (a recovery).", "$ref": "#/$defs/key"},
         "reference": {"description": "The id of the KPI's reference to compare with; required when the KPI has references.", "$ref": "#/$defs/slug"},
         "out_of_range_reason": {"description": "Why the dataset's value is outside the reference range, or the DESIGN.md decision or dataset note that explains it (e.g. 'D-066 in processes/asu-1/DESIGN.md'). Required for an out-of-range value: without it --strict fails; given for a value inside, it is reported as stale; not allowed on a KPI with no_open_reference.", "type": "string", "minLength": 20}
