@@ -1,0 +1,119 @@
+# Process Atlas manifest of 4-aminophenol-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: 4-aminophenol-1
+title: 4-Aminophenol by batch hydrogenation of nitrobenzene in dilute sulfuric acid with the Bamberger rearrangement (1000 t/a)
+summary: >-
+  A batch plant on Mallinckrodt's route: nitrobenzene hydrogenated over Pt/C in dilute sulfuric
+  acid with the Bamberger rearrangement in situ, stopped at 88 % so that the nitrobenzene heel
+  keeps the catalyst; strip, ammonia neutralisation, aniline still, two crops. Concept stage,
+  1073.2 kg every 8.5 h, thermal screening, preliminary LCI; the feed of paracetamol-1.
+description: |
+  Water, 98 % sulfuric acid, the recycled distillates and fresh nitrobenzene are charged hot to
+  R-101 on the nitrobenzene layer kept from the last batch, which holds the 5 % Pt/C catalyst
+  and a surfactant; hydrogen is dosed at 358 K and about 104 kPa(a) over 5.5 h until 0.88 of the
+  nitrobenzene is reduced (US 3 383 416 A, Benner, and US 4 307 249 A, Mallinckrodt). The
+  nitrobenzene is reduced to N-phenylhydroxylamine, which rearranges in the acid to
+  4-aminophenol (the Bamberger rearrangement, 0.84 of the nitrobenzene) or is reduced on to
+  aniline (0.16): C6H5NO2 + 2 H2 -> C6H7NO + H2O. The mass settles under nitrogen; the
+  nitrobenzene layer with the catalyst stays for the next batch. The acid aqueous layer is
+  stripped of 15 % of its water with the dissolved nitrobenzene (back to the next charge),
+  neutralised with ammonia, and the aniline is distilled off with water at pH about 6; it
+  separates as crude aniline (0.163 kg per kg, a co-product), its saturated water going back to
+  the next charge. After a carbon treatment the liquor is cooled to 283 K for the first crop, the
+  mother liquor concentrated under vacuum for a second, both crops washed with cold water on a
+  centrifuge and vacuum-dried: 99.5 wt% 4-aminophenol, 82.1 % of the nitrobenzene (the source's
+  79 % isolated); the ammonium sulfate liquor (6.8 kg per kg) goes to wastewater treatment.
+
+  The batch is modelled with cheme-as-code's semi-batch with a dosed gas (reactor: semibatch,
+  core ADRs 0050, 0054, 0063), the phase split and the aniline separator as component
+  separators, two batch stills on constant relative volatilities (ADR 0055), a conversion step
+  for the neutralisation, cooling and evaporative crystallizers with the liquor's solutes as
+  spectators and a reslurry wash (ADR 0056), the dryer (ADR 0057), the three recycles converged at
+  tears (ADR 0060), design specifications for the capacity, the charge's water and the
+  hydrogen that gives 0.88 conversion (ADR 0070), the batch recipe (ADRs 0051, 0052) and every
+  model's own duty (ADR 0059). R-101 is the bottleneck (cycle 8.5 h, 931.8 batches a year, 20
+  m3); the rate laws are ASSUMED and calibrated to the source's aniline. The screening gives an
+  MTSR of 358.6 K against the MTT of 373.1 K for the dosed hydrogen, but the charge holds the
+  heat of 130 K of adiabatic rise: hydrogen fed on demand after a cooling failure is the design
+  case for the interlocks (DESIGN.md D-011).
+families: [nitrogen-organics]
+keywords: [4-aminophenol, p-aminophenol, PAP, nitrobenzene, hydrogenation, Bamberger rearrangement, N-phenylhydroxylamine, platinum on carbon, sulfuric acid, aniline, ammonium sulfate, semi-batch, batch, gas dosing, catalyst heel, batch distillation, cooling crystallisation, second crop, centrifuge, vacuum drying, thermal screening, paracetamol intermediate, fine chemicals]
+facets:
+  feedstock_basis: [fossil, electricity, water]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation, crystallization, filtration, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, the stills'
+# volatilities, the crystallisation's salting-out and the centrifuge are assumed; ratios,
+# conditions and the selectivity from the patents' examples (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 3 blocks and 12 steps within tolerance; the heel, the strip distillate and
+    the aniline-saturated water converged at the tears S20, S21 and S22; the capacity, the
+    charge's water and the hydrogen solved by the design specifications CAP, WAT and CONV). The
+    semi-batch R101 (from its ASSUMED rate laws, hydrogen dosed over 5.5 h), the stills ST101 and
+    ST102 (constant relative volatilities from the solubilities and vapour pressures of
+    nitrobenzene and aniline in water, ASSUMED), the neutralisation N101, the crystallizers
+    CR101 and CR102 and the wash W101 (the solubility of 4-aminophenol in water from The Merck
+    Index via PubChem, no salting-out ASSUMED) and the dryer are calculated by cheme process
+    propagate, which writes every model's duty but the dryer's (from cheme process
+    crystallizers with the recipe) and the charge's heating (by hand, DESIGN.md D-009). The
+    recipe's year-average rate of the product agrees with the flowsheet (no cheme.recipe-basis
+    finding); it sizes R-101 (20 m3), R-102 (20 m3), R-103 (16 m3) and D-101 (3.15 m3) and checks
+    R-101's jacket (300 of 410 kW); the stills' boil-up is checked by hand (390 kW). Thermal
+    screening (cheme process reactor-hazards): R101 dT_ad 129.7 K over the charge's
+    nitrobenzene, accumulation of the dosed hydrogen 0.37 %, MTSR 358.6 K against an MTT of
+    373.1 K (water's boiling point); k/10 2.8 % and 361.8 K, k/100 14 % and 376.5 K (above the
+    MTT, a design finding); no criticality class without a TD24; the hydrogen fed on demand is
+    the governing case (D-011). Preliminary gate-to-gate LCI with mass allocation to the crude
+    aniline, the catalyst, surfactant, carbon and nitrogen per batch; the sulfuric acid linked
+    to sulfuric-acid-1, the hydrogen to hydrogen-1, the ammonia to ammonia-1 and the nitrogen
+    to asu-1; the nitrobenzene and the other backgrounds gaps. cheme maturity reaches no level
+    (assumed feeds, kinetics and separations); the claim `maturity: concept` is the lowest value
+    of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: nitrobenzene, role: feedstock, inventory_key: "feed:NBF", note: "Nitrobenzene, thiophene-free (no library process; a gap, D-012), 1.366 kg/kg 4-aminophenol"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2F", note: "Hydrogen (hydrogen-1), 0.0485 kg/kg, dosed at 104 kPa(a)"}
+    - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:ACIDF", note: "Sulfuric acid 98 wt% (sulfuric-acid-1), 1.173 kg/kg, 0.741 kg H2SO4 per kg of nitrobenzene charged; leaves as ammonium sulfate"}
+    - {chemical: ammonia, role: feedstock, inventory_key: "feed:NH3F", note: "Anhydrous ammonia (ammonia-1), 0.399 kg/kg, 2 mol per mol of the acid"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the charge, 4.00 kg/kg (with 6.27 kg per kg of nitrobenzene in the charge, the recycled distillates included)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WASHW", note: "Cold process water for the cake wash, 1.00 kg/kg"}
+    - {chemical: activated-carbon, role: feedstock, inventory_key: "consumable:activated-carbon", note: "Decolourising carbon, 55.6 kg per batch, 0.052 kg/kg (SRC-1), to incineration"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for the purges and blankets, 60 kg per batch (ASSUMED)"}
+  outputs:
+    - {chemical: 4-aminophenol, role: main-product, inventory_key: "product:PAPP", note: "Dried 4-aminophenol, modelled 99.5 wt% with 0.34 wt% ammonium sulfate and 0.2 wt% water; the source isolated 99.1 % material"}
+    - {chemical: aniline, role: co-product, inventory_key: "product:ANP", note: "Crude aniline, 94 wt% with water, 0.163 kg/kg; mass allocation, 14.0 % of the burdens (D-012)"}
+    - {chemical: ammonium-sulfate, role: waste, inventory_key: "product:WW", note: "Ammonium sulfate liquor (about 23 wt%) with 4-aminophenol and aniline traces, the wash filtrate and the condensates, 6.82 kg/kg, to wastewater treatment"}
+    - {chemical: hydrogen, role: emission, inventory_key: "product:VENT", note: "Excess hydrogen purged with nitrogen to the vent stack, 0.18 g/kg"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.261 kWh/kg: agitators of R-101 and R-102, the centrifuge, the dryer (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "5.48 kWh/kg of LP steam 350 kPa(a): the charge's heating, the stills' boil-up (core's still models), the second crop's evaporation and the dryer"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "6.15 kWh/kg removed by cooling water: the heat of hydrogenation (core's semi-batch), the stills' condensers, the neutralisation"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.600 kWh/kg removed by chilled water at 278 K: the first crop cooled to 283 K"}
+basis:
+  capacity: "1000 t/a dried 4-aminophenol: 931.8 batches/a of 1073.2 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with hydrogen, sulfuric acid and ammonia supply, a vent stack and a biological wastewater treatment (not chosen)
+references:
+  - {title: "Benner, R. G. (1968) US 3 383 416 A: Process for preparing aminophenol (nitrobenzene hydrogenated over Pt or Pd on carbon in 5 to 20 wt% sulfuric acid with a quaternary ammonium wetting agent at 60 to 120 C, atmospheric to 20 psig, stopped before completion so that the nitrobenzene layer keeps the catalyst; Examples 1 to 6)", url: "https://patents.google.com/patent/US3383416A/en"}
+  - {title: "Derrenbacker, E. L. (Mallinckrodt, 1981) US 4 307 249 A: Process for the selective preparation of p-aminophenol from nitrobenzene (dimethylalkylamine oxide surfactant; Example 1 at 85 C and about 10 in. water gauge of hydrogen, 57 to 75 % conversion in 7 h, 4-aminophenol to aniline 4.1 to 4.5)", url: "https://patents.google.com/patent/US4307249A/en"}
+  - {title: "Greco, N. P. (Koppers, 1976) US 3 953 509 A: Hydrogenation of nitrobenzene to p-aminophenol (sulfided MoS3 or PtS on carbon at 132 to 155 C and 200 to 500 psi; the rejected high-pressure alternative)", url: "https://patents.google.com/patent/US3953509A/en"}
+  - {title: "PubChem CIDs 403 (4-aminophenol), 7416 (nitrobenzene), 6115 (aniline), 6097028 (ammonium sulfate) (identity; solubilities in water, HSDB citing The Merck Index and Kirk-Othmer)", url: "https://pubchem.ncbi.nlm.nih.gov/"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/4-aminophenol-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

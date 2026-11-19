@@ -1,0 +1,65 @@
+# Reactions of 4-aminophenol-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# HYDP: nitrobenzene hydrogenated over Pt/C in dilute sulfuric acid to N-phenylhydroxylamine,
+# which rearranges in the acid in situ to 4-aminophenol (the Bamberger rearrangement), lumped
+# into one overall reaction. HYDA: the hydroxylamine hydrogenated on to aniline, the by-product,
+# lumped the same way. The route of US 3 383 416 A (Benner) and US 4 307 249 A (Derrenbacker,
+# Mallinckrodt) (DESIGN.md SRC-1, SRC-2, D-001). The hydroxylamine intermediate is not carried
+# as a component (core limit L-2, D-005): the screening counts its heat in HYDP's.
+# No open kinetics of either were found: both rate laws are ASSUMED (D-005), first order in
+# nitrobenzene and in dissolved hydrogen, with one activation energy, so that the selectivity is
+# the ratio of the two rate constants, 0.84 to 4-aminophenol and 0.16 to aniline, set from SRC-1
+# Example 1(A) (28 g of aniline on the 1.936 mol of nitrobenzene reduced, 15.6 %; the rest taken
+# as 4-aminophenol, no other by-product; D-005). The rate constants are fast enough that the
+# hydrogen is used as it is dosed (dosing-controlled; D-005, D-011).
+# Heats of reaction from the standard formation enthalpies in chemicals 1.5.2 (D-005), hydrogen
+# as a gas (the dosed gas, core ADR 0054), 4-aminophenol as the solid: the heats of solution
+# and of the protonation by the acid are not counted (ASSUMED).
+# NEU: the sulfuric acid neutralised with ammonia (N101, a conversion step) to ammonium
+# sulfate, SRC-1's pH adjustment with ammonia; the acid's salts with 4-aminophenol and aniline
+# are not resolved (D-007).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HYDP
+    title: Hydrogenation of nitrobenzene to 4-aminophenol (via N-phenylhydroxylamine and its Bamberger rearrangement)
+    equation: C6H5NO2 + 2 H2 -> C6H7NO + H2O
+    stoichiometry: {NB: -1, H2: -2, PAP: 1, H2O: 1}
+    phase: liquid
+    heat_of_reaction: {value: -491140, provenance: given, source: "chemicals 1.5.2 formation enthalpies: 4-aminophenol(s) -192814.5 J/mol (Hfs, WEBBOOK), water(l) -285825 (Hfl, ATCT_L), nitrobenzene(l) 12500 (Hfl, CRC), hydrogen(g) 0; -192814.5 - 285825 - 12500 = -491140 kJ/kmol"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 0.042 m3/(kmol s) at 358.15 K (D-005)
+      k: {A: 28639, Ea: 40000}
+      orders: {NB: 1, H2: 1}
+      temperature_range: [333.15, 393.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): no open kinetics of the three-phase hydrogenation found (2026-11-19); fast against the dosing, the share of HYDP 0.84 from SRC-1 Example 1(A); to be replaced by reaction calorimetry with the hydrogen uptake"
+    sources: ["US 3 383 416 A (Benner, 1968), description and Example 1(A): nitrobenzene in 5 to 20 wt% sulfuric acid over Pt/C with a quaternary ammonium wetting agent, 60 to 120 C, atmospheric to 20 psig", "US 4 307 249 A (Derrenbacker, Mallinckrodt, 1981), Example 1: 85 C, about 10 in. water gauge of hydrogen"]
+  - id: HYDA
+    title: Hydrogenation of nitrobenzene to aniline (the by-product)
+    equation: C6H5NO2 + 3 H2 -> C6H7N + 2 H2O
+    stoichiometry: {NB: -1, H2: -3, AN: 1, H2O: 2}
+    phase: liquid
+    heat_of_reaction: {value: -552550, provenance: given, source: "chemicals 1.5.2 formation enthalpies: aniline(l) 31600 J/mol (Hfl, CRC), water(l) -285825 (ATCT_L), nitrobenzene(l) 12500 (CRC), hydrogen(g) 0; 31600 - 2 x 285825 - 12500 = -552550 kJ/kmol"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # k = 0.008 m3/(kmol s) at 358.15 K: 0.16 of the nitrobenzene to aniline (D-005)
+      k: {A: 5455.1, Ea: 40000}
+      orders: {NB: 1, H2: 1}
+      temperature_range: [333.15, 393.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): the share 0.16 of the nitrobenzene reduced that SRC-1 Example 1(A) found as aniline (28 g on 1.936 mol reduced); the same activation energy as HYDP, so the share does not change with the temperature (SRC-1 states the yield rises with the temperature; not modelled, L-2)"
+    sources: ["US 3 383 416 A, Example 1(A): 28 g of aniline in the distillate", "US 4 307 249 A, Example 1: 4-aminophenol to aniline 4.1 to 4.5 in the aqueous phase"]
+  - id: NEU
+    title: Neutralisation of the sulfuric acid with ammonia
+    equation: H2SO4 + 2 H3N -> H8N2O4S
+    stoichiometry: {H2SO4: -1, NH3: -2, AS: 1}
+    phase: liquid
+    conversion: {key: NH3, value: 0.999, provenance: assumed, source: "ammonia dosed at 2 mol per mol of the acid and taken up to 0.999 (D-004, D-007)"}
+    heat_of_reaction: {value: -275784, provenance: given, source: "chemicals 1.5.2 formation enthalpies: ammonium sulfate(s) -1180900 J/mol (Hfs, CRC), sulfuric acid(l) -814000 (Hfl, CRC), ammonia(g) -45558 (Hfg, ATCT_G); -1180900 + 814000 + 2 x 45558 = -275784 kJ/kmol; the heats of solution of the acid and of the salt in the liquor not counted (ASSUMED, D-009)"}
+    sources: ["US 3 383 416 A, Example 1(A): the liquor brought to pH 6.0 before the aniline is distilled and to pH 7.2 with ammonia before crystallisation", "US 4 307 249 A, Example 1: neutralised to pH 7 to 8 with ammonium hydroxide"]

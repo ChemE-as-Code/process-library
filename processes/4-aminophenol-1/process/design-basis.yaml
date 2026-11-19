@@ -1,0 +1,54 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# 4-Aminophenol by the hydrogenation of nitrobenzene in dilute sulfuric acid with the Bamberger
+# rearrangement in situ, a batch plant on a dedicated train, issue
+# ChemE-as-Code/process-library#506. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried 4-aminophenol crystals (technical grade, for paracetamol) to packing at the battery limit
+  aminophenol_t_per_year: 1000           # ASSUMED (D-002): a dedicated batch train, no open market figure used
+  operating_hours_per_year: 7920         # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 1073.2                       # ASSUMED (D-003): one batch of dried product every 8.5 h
+  batches_per_year: 931.8                # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Nitrobenzene (merchant, thiophene-free; no library process)
+    source_of_values: ASSUMED (D-004)
+    composition: "nitrobenzene 100 % (catalyst poisons such as thiophene absent, SRC-1)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Hydrogen (hydrogen-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "hydrogen 99.9 mol%, taken as pure"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 103.8}
+  - name: Sulfuric acid 98 wt% (sulfuric-acid-1)
+    source_of_values: "SRC-1 Example 1(A) (D-004)"
+  - name: Ammonia, anhydrous (ammonia-1)
+    source_of_values: "SRC-1, SRC-2: pH adjusted with ammonia (D-004)"
+  - name: Process water (charge make-up and a cold cake wash)
+    source_of_values: ASSUMED (D-004, D-008)
+  - name: Catalyst 5 % Pt/C, surfactant, activated carbon, nitrogen (per batch, not in the balance)
+    source_of_values: "SRC-1, SRC-2 (D-004, D-008, D-012)"
+products:
+  - name: 4-Aminophenol
+    purity: "99.5 wt% 4-aminophenol, 0.34 wt% ammonium sulfate, 0.2 wt% water (model, D-008); colour and the 4,4'-diaminodiphenyl ether and other by-products not modelled; SRC-1 isolated 99.1 % material"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: packing under nitrogen (not in the boundary)}
+  - name: Crude aniline (co-product)
+    note: "the aniline layer of V-102, about 94 wt% aniline with water, to an aniline purification outside the boundary (D-008)"
+  - name: Liquors to wastewater treatment
+    note: "the final mother liquor (about 23 wt% ammonium sulfate with dissolved 4-aminophenol and aniline), the wash filtrate and the condensates; the ammonium sulfate is not recovered (D-008)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and R-102, the centrifuge C-101, the dryer's agitator and vacuum pump (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 350, use: "R-101's charge heating, R-102's boil-up, K-102's evaporation and the dryer (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's jacket (heat of hydrogenation), R-102's condenser E-102 and its jacket during the neutralisation", note: ASSUMED}
+  - {name: Chilled water, supply_K: 278.15, return_K: 283.15, use: "K-101's cooling crystallisation to 283 K", note: "ASSUMED; from a refrigeration unit outside the boundary (D-009)"}
+  - {name: Nitrogen, use: "R-101's purges before and after the hydrogen, blankets, the dryer's vacuum break (per batch, D-012)", note: ASSUMED}
+site:
+  location: ASSUMED generic fine-chemicals site with hydrogen, sulfuric acid and ammonia supply, a vent stack and a biological wastewater treatment, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route of US 3 383 416 A (SRC-1) and US 4 307 249 A (SRC-2): nitrobenzene hydrogenated over Pt/C in dilute sulfuric acid with a surfactant at 358 K and near atmospheric pressure, stopped at 0.88 conversion so that the nitrobenzene layer keeps the catalyst for the next batch (D-001, D-005)."
+  - "ASSUMED: 6.27 kg of water and 0.741 kg of H2SO4 per kg of nitrobenzene charged (SRC-1 Example 1(A)); ammonia 2 mol per mol of acid (D-004)."
+  - "ASSUMED fast effective rate laws, the share 0.84 of the nitrobenzene to 4-aminophenol and 0.16 to aniline from SRC-1 Example 1(A), no other by-products (D-005)."
+  - "ASSUMED constant relative volatilities of nitrobenzene and aniline dilute in water from their solubilities and vapour pressures (D-007); the aniline distilled to 0.0005 mole fraction left."
+  - "Solubility of 4-aminophenol in water from The Merck Index via PubChem (SRC-4), no salting-out by the ammonium sulfate (ASSUMED, D-008); crystallisation at 283 K; a second crop after 0.4 of the water is evaporated."
+  - "All flows are year averages of the recipe (D-003); the models' duties from cheme, the charge's heating by hand (D-009); accuracy +/-30 % not demonstrated."

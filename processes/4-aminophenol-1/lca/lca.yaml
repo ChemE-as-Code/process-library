@@ -1,0 +1,135 @@
+# Goal and scope of the 4-aminophenol-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of dried 4-aminophenol, from the flowsheet's year averages of the
+# recipe (D-003). Per batch: multiply by 1073.2 kg. The sulfuric acid, hydrogen, ammonia and
+# nitrogen are linked to the library's producers (lca/mappings.yaml); the other backgrounds are
+# left unmapped (`missing:` with the activity each should connect to): a gap, never zero, and no
+# values from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of 4-aminophenol made by the batch
+  hydrogenation of nitrobenzene in dilute sulfuric acid over Pt/C with the Bamberger
+  rearrangement in situ, at the concept stage: which raw materials, utilities and wastes the
+  batch plant exchanges per kg of dried 4-aminophenol, as the foreground for a later
+  cradle-to-gate study and the feed of paracetamol-1. No impact results: the nitrobenzene and
+  most utilities are not mapped yet (D-012).
+functional_unit: {product: PAPP, amount: 1, unit: kg, source: "1 kg of dried 4-aminophenol (modelled 99.5 wt%, technical grade for paracetamol) at the plant gate to packing, stream S26 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as paracetamol-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: nitrobenzene hydrogenated on a recycled nitrobenzene heel holding 5 % Pt/C in dilute sulfuric acid with a surfactant at 358 K and about 104 kPa(a), hydrogen dosed over 5.5 h to 0.88 conversion; the aqueous layer stripped, neutralised with ammonia, the aniline distilled off with water and separated as crude aniline; carbon-treated, 4-aminophenol crystallised at 283 K in two crops, centrifuged, washed and vacuum-dried; 1073.2 kg per batch, 931.8 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  method: mass
+  coproducts: [PAPP, ANP]
+  source: >-
+    D-012 (agent proposal, for the LCA practitioner to confirm): the plant makes, per kg of
+    4-aminophenol, about 0.16 kg of crude aniline (94 wt%), a co-product of the same
+    hydrogenation that an aniline plant purifies. The library hierarchy (docs/system-model.md)
+    finds no physical relationship that splits the hydrogenation between the two (both come
+    from the same charge in a fixed ratio set by the selectivity); neither is a fuel. No prices
+    are sourced at the concept stage; aniline and technical 4-aminophenol are both
+    intermediate aromatic amines, ASSUMED within a price ratio of 5, so mass allocation:
+    126.26 and 20.56 kg/h give 0.860 and 0.140.
+  deviation: >-
+    Mass allocation rests on the ASSUMED price ratio. The conservative bound is all burdens to
+    the 4-aminophenol (the crude aniline free, about 16 % more per kg); economic allocation at
+    sourced prices replaces it.
+flows:
+  # raw materials
+  - key: feed:NBF
+    missing: "not mapped yet (D-012); no library process exports nitrobenzene (aniline-1 buys it too). Connect to: nitrobenzene by the mixed-acid nitration of benzene (benzene, nitric acid from nitric-acid-1, sulfuric acid reconcentrated), at plant; a library nitrobenzene process would close it"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:ACIDF
+    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt%"
+    source: "flowsheet stream S3 (D-004)"
+  - key: feed:H2F
+    missing: "linked to processes/hydrogen-1 (lca/mappings.yaml): hydrogen 99.9 mol% by steam methane reforming with PSA"
+    source: "flowsheet stream S5 (D-004)"
+  - key: feed:NH3F
+    missing: "linked to processes/ammonia-1 (lca/mappings.yaml): anhydrous ammonia"
+    source: "flowsheet stream S10 (D-004)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:WASHW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment, chilled"
+    source: "flowsheet stream S23 (D-008)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (R-101's agitator), P2 (R-102's agitator and vacuum pump), P3 (centrifuge) and P4 (dryer), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (the charge heated, hand calculation), Q3 and Q5 (R-102's boil-up, core's batch stills), Q8 (K-102's evaporation, core's crystallizer) and Q9 (the dryer, core's dryer model), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q2 (the heat of hydrogenation, core's semi-batch model), Q3C and Q6 (E-102, core's batch stills) and Q4 (the neutralisation, core's conversion step), D-009"
+  - key: product:CHW
+    missing: "not mapped yet (D-012); connect to: refrigeration at 278 K (chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
+    source: "flowsheet energy stream Q7 (the first crop cooled to 283 K, core's crystallizer model), D-009"
+  # wastes and emission (the crude aniline S14 is the co-product of allocation:)
+  - key: product:WW
+    treatment: {kind: waste, route: "site biological wastewater treatment of an ammonium sulfate liquor (about 23 wt%) with dissolved 4-aminophenol and aniline traces (no recovery, D-008)"}
+    missing: "not mapped yet (D-012); connect to: treatment of an ammonium sulfate process effluent with aromatic amines in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg; or recovery of the ammonium sulfate by evaporative crystallisation, not modelled"
+    source: "flowsheet stream S28 (D-008)"
+  - key: product:VENT
+    missing: "not mapped yet (D-012): the excess hydrogen (0.17 g per kg) purged with nitrogen to the vent stack, an emission of hydrogen to air"
+    source: "flowsheet stream S8 (D-006)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053), converted with the recipe's batches per year (process/recipe.yaml).
+consumables:
+  - id: activated-carbon
+    title: Activated carbon for the decolourisation of the hot liquor in R-102
+    unit: kg
+    per_batch: 55.6
+    source: "SRC-1 Example 1(A): 8 g of carbon on 154 g of first-crop product, 0.0519 kg per kg x 1073.2 kg per batch = 55.7, taken as 55.6 kg, used once (D-008, D-012)"
+    missing: "not mapped yet (D-012); connect to: activated carbon, powdered, from coal or wood by steam activation"
+    disposal:
+      kind: waste
+      route: "spent carbon with its liquor to hazardous-waste incineration (D-008)"
+      source: "the spent carbon off F-101, its mass as charged (D-008)"
+      missing: "not mapped yet (D-012); connect to: incineration of spent activated carbon in a hazardous-waste incinerator (e.g. processes/waste-incineration-1), per kg"
+  - id: catalyst-pt-c
+    title: 5 % Pt/C catalyst make-up
+    unit: kg
+    per_batch: 0.48
+    source: "SRC-1 Examples 1 to 4: 1.4 g of fresh 5 % Pt/C on 271 g of nitrobenzene, reused for five batches and then 0.4 g added; ASSUMED a make-up of 0.4 g per 5 batches of about 246 g of fresh nitrobenzene, 0.325 g per kg of fresh nitrobenzene x 1466 kg per batch (172.5 kg/h x 8.5 h) = 0.48 kg (D-004, D-012); the spent catalyst to a precious-metal refiner, not modelled"
+    missing: "not mapped yet (D-012); connect to: platinum on activated carbon catalyst, 5 wt% Pt (platinum from primary production), with the platinum's recovery by a refiner"
+  - id: surfactant
+    title: Amine oxide surfactant (dimethyldodecylamine oxide)
+    unit: kg
+    per_batch: 3.0
+    source: "SRC-2 Example 1: 2 mL of a 30 to 35 % amine oxide solution in 650 mL of water, about 1.0 g of active per kg of water, ASSUMED; x 10.4 t of water in the charge a batch (1222 kg/h x 8.5 h) = 10.4 kg, of which ASSUMED 70 % comes back with the recycled water: 3.0 kg make-up a batch (D-004, D-012)"
+    missing: "not mapped yet (D-012); connect to: N,N-dimethyldodecylamine N-oxide (a fatty amine oxide surfactant)"
+  - id: nitrogen
+    title: Nitrogen for R-101's purges before and after the hydrogen, the blankets and the dryer's vacuum break
+    unit: kg
+    per_batch: 60.0
+    source: "ASSUMED: R-101's gas space purged three times before and after the hydrogen (about 7 m3 of head space, 6 volume changes at about 1.2 kg/m3, 50 kg) and the dryer's vacuum break and blankets (10 kg) (D-011, D-012)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: reactor-vent, method: storage-tank, equipment: [R-101, R-102, R-103, K-102], reason: "No P&ID yet: the nitrogen purges of R-101, the vents of R-102 and R-103 and the vacuum pump exhaust of K-102 carry nitrobenzene, aniline and water vapour at 333 to 373 K through their condensers to the vent stack; not estimated (open for basic engineering, D-011)."}
+  - {id: storage-breathing, method: storage-tank, equipment: [T-101, T-102, V-102], reason: "The breathing of the recycle water, wastewater and aniline separator tanks (aqueous nitrobenzene and aniline at about 298 K, nitrogen-blanketed) is not estimated (D-011)."}
+  - {id: dryer-vent, method: equipment-leaks, reason: "4-Aminophenol dust and water vapour in the dryer's vacuum pump exhaust after E-103 are not estimated (D-008, D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with hydrogen, sulfuric acid and ammonia supply and a biological wastewater treatment, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #506, unreviewed"
