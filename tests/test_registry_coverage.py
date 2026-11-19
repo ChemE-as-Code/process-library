@@ -33,7 +33,12 @@ FEED_PREFIXES = ("feed", "input", "consumable")
 #: it is the process's own change (CONTRIBUTING.md: another process's files change through its
 #: own review), after which the entry goes from here.
 UNNAMED_REGISTRY_FLOWS = {
+    "acrylonitrile-1/feed:CAIR": "air",  # combustion air to the thermal oxidiser
     "bio-ethylene-1/feed:O2": "air",  # combustion oxygen from ambient air
+    "bioethanol-1/consumable:caustic": "sodium-hydroxide",
+    "bioethanol-1/consumable:lime": "calcium-oxide",  # quicklime, as its LCA mapping counts it
+    "bioethanol-1/consumable:sulfuric-acid": "sulfuric-acid",
+    "bioethanol-1/consumable:urea": "urea",
     "carbon-tetrabromide-1/consumable:rinse-water": "water",
     "co2-electrolysis-bpm-1/feed:AIR": "air",
     "copper-i-chloride-1/consumable:nitrogen": "nitrogen",
@@ -74,9 +79,13 @@ CONSUMER_STREAM = "a component of the consumer's stream the utility treats (wast
 
 #: Feeds and products without a registry identity, each with the reason.
 NO_REGISTRY_IDENTITY = {
+    "acrylonitrile-1/consumable:ammox-catalyst": CATALYST,
     "aniline-1/consumable:hydrogenation-catalyst": CATALYST,
     "asu-1/consumable:lube-oil": ARTICLE,
     "asu-1/consumable:molecular-sieve": SORBENT,
+    "bioethanol-1/consumable:alpha-amylase": "an enzyme preparation, not one substance",
+    "bioethanol-1/consumable:gluco-amylase": "an enzyme preparation, not one substance",
+    "bioethanol-1/consumable:yeast": "purchased yeast (Saccharomyces cerevisiae), an organism, not a chemical",
     "bromine-1/feed:BRINE": "natural bromide brine from the brine field, of no fixed composition (chemistry has water as its stand-in)",
     "btx-1/input:clay": "treating clay of the clay treaters, a sorbent; the registry's clay is the cement raw-meal material",
     "catalytic-reforming-1/input:catalyst": CATALYST,
@@ -116,6 +125,7 @@ NO_REGISTRY_IDENTITY = {
     "pet-1/input:stabiliser": "a phosphorus stabiliser, compound not named in the dataset (polyphosphoric acid only as an example)",
     "propylene-pdh-1/input:catalyst": CATALYST,
     "propylene-pdh-1/input:phosphate": "a phosphate, compound not named in the dataset",
+    "pvc-1/feed:STOPF": "the short-stop, a hindered-phenol antioxidant as a 30 wt% aqueous dispersion, compound not named in the dataset",
     "sodium-cyanide-1/consumable:hcn-stabiliser": "an acid stabiliser, compound not named in the dataset",
     "sodium-cyanide-1/consumable:pt-rh-gauze": CATALYST,
     "styrene-1/consumable:catalyst": CATALYST,
