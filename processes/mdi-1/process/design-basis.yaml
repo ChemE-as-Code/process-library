@@ -1,0 +1,65 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# MDI and polymeric MDI from aniline, formaldehyde and phosgene, issue
+# ChemE-as-Code/process-library#465. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md. Ratios and conditions taken
+# from open patents are named with their source; using them for this plant is still an
+# assumption.
+schema: cheme/design_basis/v1
+capacity:
+  basis: "crude MDI (the isocyanate mixture after the solvent column), split into monomeric MDI and polymeric MDI"
+  formalin_50wt_kg_per_h: 6144          # ASSUMED (D-002): the formaldehyde of US 10 640 455 B1's nameplate
+  crude_mdi_kg_per_h: 22197             # cheme process propagate (stream S34); about 178 kt/a at 8000 h
+  monomeric_mdi_kg_per_h: 4439          # stream S36, a fifth of the crude (D-008)
+  polymeric_mdi_kg_per_h: 17753         # stream S37
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: 50                  # ASSUMED, not checked
+feeds:
+  - name: Aniline (aniline-1)
+    source_of_values: ASSUMED (D-002)
+    composition: "99.95 wt% aniline, 0.05 wt% water; aniline-1's diphenylamine traces lumped with the aniline"
+    conditions: {temperature_K: 313.15, pressure_kPa_a: 400}
+  - name: Formalin 50 wt% (formaldehyde-1)
+    source_of_values: formaldehyde-1's product stream S14
+    composition: "50.0 wt% formaldehyde, 0.28 wt% methanol, water"
+    conditions: {temperature_K: 333.15, pressure_kPa_a: 300}
+  - name: Caustic soda 50 wt% (chlor-alkali-1), for the neutralisation
+    source_of_values: ASSUMED (D-003)
+  - name: Liquid phosgene (phosgene-1), captive, no storage in the boundary
+    source_of_values: phosgene-1's product stream S7 (D-005)
+    conditions: {temperature_K: 253.15, pressure_kPa_a: 340}
+  - name: Monochlorobenzene make-up (merchant; no library process)
+    source_of_values: ASSUMED (D-005)
+  - name: Process water (MDA wash, HCl absorber)
+    source_of_values: ASSUMED (D-006, D-007)
+products:
+  - name: Monomeric MDI (two-ring isomers 4,4'-, 2,4'-, 2,2'-MDI, not separated)
+    purity: "99.9 mol% two-ring MDI in the model; the isomer split (4,4'-MDI and the 2,4'-rich mother liquor by crystallisation or a further column) is outside this concept (D-008, L-3)"
+    delivery: {temperature_K: 318.15, pressure_kPa_a: 300, battery_limit: "molten to storage"}
+  - name: Polymeric MDI (PMDI)
+    purity: "two-ring MDI about 40 wt%, the rest three-ring and higher polyisocyanates (lumped); NCO content and viscosity not modelled (D-004)"
+    delivery: {temperature_K: 323.15, pressure_kPa_a: 300, battery_limit: "to storage"}
+  - name: Hydrogen chloride gas (co-product)
+    purity: "99.93 mol% HCl in the model; phosgene about 5 ppmv, MCB about 740 ppmv (saturation over the 258 K absorber top, D-007); a consumer that needs ppm-level MCB needs a further step (deeper chilling or adsorption), open (D-007)"
+    delivery: {temperature_K: 258.15, pressure_kPa_a: 150, battery_limit: "to an adjacent consumer (oxychlorination, HCl oxidation or acid production, outside the boundary)"}
+  - name: MDA brine
+    note: "NaCl about 11 wt% with the caustic excess and traces of aniline and MDA, to the site wastewater treatment (D-006)"
+  - name: Methanol-rich condensate
+    note: "methanol and water from the formalin, to the site's thermal oxidiser as fuel (LVOC BREF 10.4.4.2; D-006)"
+utilities:
+  - {name: Electric power, use: "agitators, pumps and vacuum systems (D-009)", note: ASSUMED allowances}
+  - {name: LP steam 600 kPa(a), use: "brine stripper, phosgenation tower", note: "ASSUMED; saturation 432 K"}
+  - {name: MP steam 1600 kPa(a), use: "condensation cascade (last reactors at 429 K), dephosgenation column (bottoms 428 K), solvent column and countercurrent evaporator (bottoms 443 K)", note: "ASSUMED; saturation 474.5 K, at least 31 K above each (D-009)"}
+  - {name: HP steam 4000 kPa(a), use: "MDA column and MDI column reboilers", note: "ASSUMED; hot oil is the usual alternative"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "condensers, the cascade's reflux condenser, the neutraliser, separator, brine and MDA solution coolers, product coolers, HCl absorber", note: ASSUMED}
+  - {name: Refrigerated brine, supply_K: 248.15, return_K: 253.15, use: "phosgene absorber T-201 and its absorbent chiller", note: "ASSUMED; from a refrigeration unit outside the boundary"}
+site:
+  location: ASSUMED generic site, integrated with aniline-1, formaldehyde-1, phosgene-1 and chlor-alkali-1, an HCl consumer and a wastewater treatment for saline effluent, not chosen
+  design_ambient_K: 298.15              # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED: 2.25 mol aniline per mol formaldehyde, protonation 0.10 mol HCl per mol amino groups from 30 % hydrochloric acid, aminal at 363 K, cascade 323 to 429 K, caustic 1.10 mol per mol HCl at 388 K: the nameplate conditions of US 10 640 455 B1 (D-003)."
+  - "ASSUMED: the MDA mixture lumped as 51.0 wt% two-ring diamines (US 10 640 455 B1, nameplate) and 49.0 wt% three-ring triamine (D-004)."
+  - "ASSUMED: 27.1 % MDA in MCB, 35 % phosgene in MCB at 273 K, 2.0588 kg phosgene per kg MDA, tower top 384 K and 160 kPa(a): US 10 364 214 B1 (D-005)."
+  - "ASSUMED: complete conversion of formaldehyde and of the amines, no by-products (ureas, carbodiimides, N-methyl and N-formyl MDA, acridines) (D-004, D-005)."
+  - "ASSUMED: every separator split (recovery fractions in flowsheet.yaml) and every duty (D-006 to D-009); accuracy +/-30 % not demonstrated."
+  - "ASSUMED: monomeric MDI a fifth of the crude, after the 4:1 polymeric to pure MDI ratio of the LVOC BREF (2013) (D-008)."

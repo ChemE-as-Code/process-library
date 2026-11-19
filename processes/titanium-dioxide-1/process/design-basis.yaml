@@ -1,0 +1,56 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Titanium dioxide by the chloride process, issue ChemE-as-Code/process-library#463. Values
+# marked ASSUMED are engineering choices of this concept study, not client or licensor data;
+# every decision is in DESIGN.md, every source in its source register (SRC-n).
+schema: cheme/design_basis/v1
+capacity:
+  basis: raw (unfinished) rutile TiO2 from the bag filter, before the finishing plant (wet treatment, coating, drying, micronising), which is outside the boundary (D-002)
+  tio2_kg_per_h: 12500                # ASSUMED (D-002)
+  tio2_t_per_year: 100000             # ASSUMED: inside the 55-150 kt/a of the five EU chloride sites (SRC-1, Table 3.5)
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Chloride-grade titanium feedstock (slag and synthetic rutile blend)
+    source_of_values: ASSUMED (D-003), inside the ranges of SRC-1 Table 3.7
+    composition: "TiO2 88 wt% (slag 86-87, synthetic rutile 90-93 wt% in SRC-1); 8 wt% chlorinatable oxides lumped as FeO; 4 wt% non-chlorinating inerts lumped as SiO2 (ASSUMED)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 250}
+  - name: Calcined petroleum coke (granular, for fluidisation)
+    source_of_values: ASSUMED (D-005)
+    composition: "fixed carbon only; sulfur (0.8-1.8 wt% per SRC-1 3.2.3.4.2), ash and volatiles not modelled (L-3)"
+  - name: Make-up chlorine (chlor-alkali-1 dry chlorine gas)
+    composition: "Cl2 99.19 wt%, O2 0.81 wt% (chlor-alkali-1, its stream S42)"
+    conditions: {temperature_K: 313.15, pressure_kPa_a: 400}
+  - name: Gaseous oxygen (asu-1 GOX)
+    composition: "O2 99.71 mol%, Ar 0.29 mol% (asu-1)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 400}
+  - name: Caustic soda 50 wt% (chlor-alkali-1), quicklime (lime-1), process water, combustion air
+    source_of_values: ASSUMED (D-008, D-010)
+products:
+  - name: Raw TiO2 (rutile)
+    purity: "TiO2 only in the model; the pigment quality (crystal size, rutile content, Al co-oxidation) is not modelled (L-3)"
+    delivery: {temperature_K: 423.15, pressure_kPa_a: 101.325, battery_limit: finishing plant}
+  - name: Neutralised filter cake
+    note: "Unreacted ore and coke, silica, metal hydroxides, excess lime and 15 % of the liquor, to landfill (D-010)"
+  - name: Neutralised filtrate
+    note: "CaCl2, NaCl and traces of NaOCl and NaOH in water, to the outfall (D-010)"
+  - name: Thermal oxidiser flue gas
+    note: "CO2 of the coke, residual CO, traces of Cl2; no HCl in the model (D-008, D-009)"
+utilities:
+  - {name: Electric power, use: "BREF lumps for ore preparation to oxidation and for effluent treatment (SRC-1 Table 3.16, D-011)"}
+  - {name: HP steam, supply_K: 523.5, pressure_kPa_a: 4000, use: "TiCl4 still reboiler and TiCl4 vaporiser", note: ASSUMED}
+  - {name: Fired heat (natural gas), use: "TiCl4 superheater to 723 K and oxygen preheater to 1273 K", note: "ASSUMED: natural gas in place of the toluene or plasma heat of SRC-1 3.2.2.9 (D-007)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "condenser (with the quench heat), still condenser, oxidiser product cooler, neutraliser coil", note: ASSUMED}
+  - {name: Refrigerated brine, supply_K: 243.15, return_K: 248.15, use: "TiCl4 after-condenser", note: ASSUMED}
+site:
+  location: ASSUMED generic site with chlorine (chlor-alkali-1), oxygen (asu-1) and lime supply, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED 95 % of the TiO2 entering the bed chlorinated, the rest blown over (D-004); the chlorinatable impurities chlorinated completely."
+  - "ASSUMED 15 % of the coke carbon unreacted and blown over (D-005); the O2 entering with the chlorine burns coke to CO2."
+  - "ASSUMED 0.2 % of the chlorine fed to the bed unreacted (D-006); the make-up chlorine closes the chlorine balance."
+  - "ASSUMED 15 % O2 excess in the oxidiser and 99.8 % TiCl4 conversion per pass (D-007)."
+  - "ASSUMED separator recoveries: cyclone 99.5 % of the solids, condensation 99.7 % of the TiCl4 (Raoult at 263 K), still 99 %, bag filter 99.99 % (D-006, D-007)."
+  - "ASSUMED caustic at 1.5 x and lime at 1.1 x stoichiometric; filter cake retains 15 % of the liquor; neutraliser cooled to 323 K (D-008, D-010)."
+  - "ASSUMED thermal oxidiser outlet 1123 K, adiabatic, 99.9 % CO destruction, no support fuel counted (the BREF names natural gas; open), no heat recovery (D-009)."
+  - "All flows, temperatures and duties are concept estimates; accuracy +/-30 % not demonstrated."

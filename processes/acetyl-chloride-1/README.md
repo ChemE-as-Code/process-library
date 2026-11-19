@@ -27,7 +27,10 @@ year-average flows (`cheme process recipe`, `cheme process reactor-hazards`, `ch
 stills`). The semi-batch's model writes its duty Q2 (`energy_port`, core ADR 0059), and the
 screening compares the gas released at a cooling failure with R-101's vent
 capacity of 50 m3/h (`hazard.vent_capacity`, core ADR 0058); the boiling and water cases beyond
-it are a design finding (DESIGN.md D-014). The vent's vapour and condenser of core 1.10.0
+it are a design finding (DESIGN.md D-014), decided in D-016 on core 1.12.0: the warming loop's
+steam isolated outside the heat step with two trips, R-101's rupture disc sized for the failed
+loop, a low-phosphorus grade by chlorination rather than reflux, and E-103's acetic acid
+freezing. The vent's vapour and condenser of core 1.10.0
 (ADR 0062) were tried and not adopted: they carry only the HCl's vapour, not that of the head
 space and nitrogen that carry most of it here, so the vent condenser E-103 and the vent's
 acetyl chloride stay script estimates (D-015). Needs cheme-as-code 1.10.0. DESIGN.md lists the

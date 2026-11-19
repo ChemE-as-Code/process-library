@@ -1,0 +1,42 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Maleic anhydride by selective oxidation of n-butane over a VPO catalyst in a fixed-bed reactor
+# with molten-salt cooling, solvent absorption and vacuum distillation, issue
+# ChemE-as-Code/process-library#478. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: molten maleic anhydride (at least 99.5 wt%) to storage at the battery limit
+  maleic_anhydride_t_per_year: 25000     # ASSUMED (D-002): one fixed-bed reactor train, of the scale of US 5 688 970 A's example (3.1 t/h)
+  operating_hours_per_year: 8000         # ASSUMED (D-002)
+feeds:
+  - name: n-Butane (no library producer)
+    source_of_values: "ASSUMED (D-003): liquefied n-butane from pressure storage, 450 kPa(a), 298 K; its isobutane and propane not modelled"
+    composition: "n-butane 100 %"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 450}
+  - name: Ambient air
+    source_of_values: "D-003: humid air with the water that gives 1.7 mol% in the reactor feed (US 7 589 217 B2's pilot inlet), ASSUMED humidity"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Dibutyl phthalate (solvent make-up; no library producer)
+    source_of_values: "ASSUMED (D-007): makes up a 0.1 % purge of the circulating solvent"
+products:
+  - name: Maleic anhydride
+    purity: "specification at least 99.5 wt% (ASSUMED, D-008); modelled 99.99 wt% with acrylic acid traces from ASSUMED column splits"
+    delivery: {temperature_K: 343.15, pressure_kPa_a: 200, battery_limit: molten to storage}
+  - name: HP steam export
+    note: "4500 kPa(a) saturated, from the salt cooler, the reactor gas cooler and the oxidiser's waste-heat boiler, less the reboilers' steam (D-010)"
+  - name: Flue gas to the stack
+    note: "after the thermal oxidiser and its waste-heat boiler at 453 K (D-009)"
+utilities:
+  - {name: Electric power, use: "air compressor K-102, pumps, vacuum pumps, oxidiser fan (D-010)"}
+  - {name: LP steam, pressure_kPa_a: 450, use: "butane vaporiser E-101 (D-010)", note: ASSUMED}
+  - {name: HP steam, pressure_kPa_a: 4500, use: "raised in the salt cooler, E-202 and F-501; drawn back for the reboilers of T-302 and C-401 (D-010)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "stripper condenser, lean solvent cooler, column condenser (tempered above MA's 326 K melting point)", note: ASSUMED}
+site:
+  location: ASSUMED generic petrochemical site with an n-butane supply and an HP steam header, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: n-butane oxidation in air over VPO in a molten-salt cooled multitubular fixed bed, once through, at 1.8 mol% butane, 239 kPa(a) and a salt at 675 K; conversion 0.81 and MA selectivity 0.695 (US 7 589 217 B2, Example 3 and the pilot's target), by-product selectivities ASSUMED (D-001, D-004)."
+  - "Recovery by absorption in dibutyl phthalate and vacuum stripping with the conditions and splits of US 4 118 403 A's example, other splits ASSUMED; component separators, not stage models (D-007, D-008)."
+  - "Off-gas, lights, residue and the solvent purge burnt in a thermal oxidiser with an ASSUMED destruction efficiency; flue gas cooled to 453 K (D-009)."
+  - "Duties of the reactor and the oxidiser from core's conversion steps; the others from scripts/balance.py with thermo 0.6.1 liquid data; accuracy +/-30 % not demonstrated (D-010)."

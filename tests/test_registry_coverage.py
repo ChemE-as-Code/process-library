@@ -35,6 +35,10 @@ FEED_PREFIXES = ("feed", "input", "consumable")
 UNNAMED_REGISTRY_FLOWS = {
     "acrylonitrile-1/feed:CAIR": "air",  # combustion air to the thermal oxidiser
     "bio-ethylene-1/feed:O2": "air",  # combustion oxygen from ambient air
+    "bioethanol-1/consumable:caustic": "sodium-hydroxide",
+    "bioethanol-1/consumable:lime": "calcium-oxide",  # quicklime, as its LCA mapping counts it
+    "bioethanol-1/consumable:sulfuric-acid": "sulfuric-acid",
+    "bioethanol-1/consumable:urea": "urea",
     "carbon-tetrabromide-1/consumable:rinse-water": "water",
     "co2-electrolysis-bpm-1/feed:AIR": "air",
     "copper-i-chloride-1/consumable:nitrogen": "nitrogen",
@@ -56,11 +60,14 @@ UNNAMED_REGISTRY_FLOWS = {
     "p-toluenesulfonyl-chloride-1/consumable:nitrogen": "nitrogen",
     "p-toluenesulfonyl-chloride-1/consumable:rinse-water": "water",
     "plastic-pyrolysis-1/feed:O2": "air",  # combustion oxygen from ambient air
+    "power-generation-1/consumable:scr-dilution-water": "water",  # the water of the 19 wt% aqueous ammonia
     "propylene-pdh-1/input:alumina": "aluminium-oxide",  # activated alumina adsorbent
     "propylene-pdh-1/input:dmds": "dimethyl-disulfide",
     "sodium-cyanide-1/consumable:bfw-export": "water",  # boiler feed water leaving as exported steam
     "sodium-cyanide-1/consumable:bfw-makeup": "water",
     "sodium-cyanide-1/consumable:phosphate-makeup": "phosphoric-acid",
+    "titanium-dioxide-1/consumable:scouring-salt": "sodium-chloride",  # rock salt
+    "titanium-dioxide-1/consumable:scouring-sand": "silicon-dioxide",  # silica sand
     "utility-flare/feed:O2": "air",  # combustion oxygen from ambient air
     "utility-wwtp/feed:O2": "air",  # oxygen of the aeration air
     "waste-incineration-1/feed:activated-carbon": "activated-carbon",
@@ -81,6 +88,9 @@ NO_REGISTRY_IDENTITY = {
     "aniline-1/consumable:hydrogenation-catalyst": CATALYST,
     "asu-1/consumable:lube-oil": ARTICLE,
     "asu-1/consumable:molecular-sieve": SORBENT,
+    "bioethanol-1/consumable:alpha-amylase": "an enzyme preparation, not one substance",
+    "bioethanol-1/consumable:gluco-amylase": "an enzyme preparation, not one substance",
+    "bioethanol-1/consumable:yeast": "purchased yeast (Saccharomyces cerevisiae), an organism, not a chemical",
     "bromine-1/feed:BRINE": "natural bromide brine from the brine field, of no fixed composition (chemistry has water as its stand-in)",
     "btx-1/input:clay": "treating clay of the clay treaters, a sorbent; the registry's clay is the cement raw-meal material",
     "catalytic-reforming-1/input:catalyst": CATALYST,
@@ -114,6 +124,7 @@ NO_REGISTRY_IDENTITY = {
     "isobutene-1/product:HEAVIES": FUEL_RESIDUE,
     "lng-terminal-1/feed:INVDRAW": "LNG drawn from the terminal's own tank inventory, not a supply",
     "lng-terminal-1/feed:SHIPVAP": "vapour returned from the carrier the terminal loads, not a supply",
+    "maleic-anhydride-1/consumable:vpo-catalyst": CATALYST,
     "natural-gas-processing-1/consumable:MOLSIEVE": SORBENT,
     "nitric-acid-1/consumable:pt-rh-gauze-loss": PRECIOUS_METAL_LOSS,
     "pet-1/input:catalyst": "antimony compounds, not named in the dataset",
@@ -127,6 +138,7 @@ NO_REGISTRY_IDENTITY = {
     "styrene-1/consumable:inhibitor": "a phenolic polymerisation inhibitor, compound not named in the dataset",
     "terephthalic-acid-1/input:cobalt-catalyst": "cobalt catalyst, compound not named in the dataset",
     "terephthalic-acid-1/input:manganese-catalyst": "manganese catalyst, compound not named in the dataset",
+    "titanium-dioxide-1/consumable:still-oil": "a mineral oil of no fixed composition",
     "utility-instrument-air/feed:moisture": "the water vapour of the intake air, part of air",
     "utility-wwtp/feed:nitrogen": CONSUMER_STREAM,
     "utility-wwtp/feed:organics": CONSUMER_STREAM,

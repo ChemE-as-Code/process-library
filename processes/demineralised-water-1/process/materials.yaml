@@ -1,0 +1,22 @@
+# Components and templates of demineralised-water-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). molar_mass in kg/kmol from the IUPAC 2021 standard atomic weights (as
+# chlor-alkali-1); normal_boiling_point in K at 101.325 kPa (water and HCl only, as chlor-alkali-1;
+# the salts are dissolved). NaCl stands for all dissolved solids of the raw water (DESIGN.md
+# D-002): hardness, alkalinity, silica and dissolved CO2 are not carried (L-2).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: NaCl, name: Sodium chloride (all dissolved solids), formula: NaCl, cas: 7647-14-5, molar_mass: 58.443}
+  - {id: HCl, name: Hydrogen chloride, formula: HCl, cas: 7647-01-0, molar_mass: 36.461, normal_boiling_point: 188.1}
+  - {id: NaOH, name: Sodium hydroxide, formula: NaOH, cas: 1310-73-2, molar_mass: 39.997}
+templates:
+  - id: water
+    title: "Raw, filtered, RO and demineralised water, concentrate, regenerants and wastewater"
+    components: [H2O, NaCl, HCl, NaOH]
+# property_method is a placeholder: no benchmarked package covers aqueous electrolytes
+# (`cheme process methods`); the streams are dilute water at ambient temperature and no
+# enthalpy is needed (no heat duty, D-007).
+property_method:
+  adapter: thermo
+  status: placeholder

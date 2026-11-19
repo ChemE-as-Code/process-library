@@ -140,7 +140,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 29 | `catalytic-reforming` | Catalytic reforming | refining | n/a, to be sourced | medium | - | btx, hydrotreating | 1 | catalytic-reforming-1 (T1) |
 | 30 | `hydrotreating` | Hydrotreating and hydrodesulfurisation | refining | n/a, to be sourced | medium | - | sulfur-recovery | 1 | hydrotreating-1 (T1) |
 | 31 | `fcc` | Fluid catalytic cracking | refining | n/a, to be sourced | high | - | propylene-pdh | 1 | fcc-1 (T1) |
-| 32 | `bioethanol` | Bioethanol | bioethanol | n/a, to be sourced | medium | corn-dry-mill, sugarcane, lignocellulosic | bio-ethylene, carbon-capture | 1 | - |
+| 32 | `bioethanol` | Bioethanol | bioethanol | n/a, to be sourced | medium | corn-dry-mill, sugarcane, lignocellulosic | bio-ethylene, carbon-capture | 1 | bioethanol-1 (T2) |
 | 33 | `adipic-acid` | Adipic acid | oxygenates | n/a, to be sourced | high | - | - | 1 | adipic-acid-1 (T1) |
 | 34 | `acetic-acid` | Acetic acid (methanol carbonylation) | oxygenates | n/a, to be sourced | low | - | - | 1 | acetic-acid-1 (T2) |
 | 35 | `formaldehyde` | Formaldehyde | oxygenates | n/a, to be sourced | low | silver, metal-oxide | mdi-tdi | 1 | formaldehyde-1 (T2) |
@@ -161,15 +161,15 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 50 | `waste-incineration` | Waste incineration with energy recovery | waste-treatment | n/a, to be sourced | medium | - | steam-generation | 1 | waste-incineration-1 (T1) |
 | 51 | `caprolactam` | Caprolactam | nitrogen-organics | n/a, to be sourced | medium | - | - | 2 | caprolactam-1 (T2) |
 | 52 | `acrylonitrile` | Acrylonitrile (propylene ammoxidation) | nitrogen-organics | n/a, to be sourced | low | - | - | 2 | acrylonitrile-1 (T2) |
-| 53 | `mdi-tdi` | Isocyanates (MDI, TDI) | nitrogen-organics | n/a, to be sourced | medium | - | - | 0 | - |
-| 54 | `polystyrene` | Polystyrene | polymers | n/a, to be sourced | low | - | - | 0 | - |
-| 55 | `biogas` | Biogas and biomethane | biogas | n/a, to be sourced | medium | anaerobic-digestion, upgrading | steam-generation, hydrogen | 0 | - |
+| 53 | `mdi-tdi` | Isocyanates (MDI, TDI) | nitrogen-organics | n/a, to be sourced | medium | - | - | 0 | mdi-1 (T2) |
+| 54 | `polystyrene` | Polystyrene | polymers | n/a, to be sourced | low | - | - | 0 | polystyrene-1 (T2) |
+| 55 | `biogas` | Biogas and biomethane | biogas | n/a, to be sourced | medium | anaerobic-digestion, upgrading | steam-generation, hydrogen | 2 | biogas-1 (T2) |
 | 56 | `hydrogen-peroxide` | Hydrogen peroxide (anthraquinone process) | inorganic-chemicals | n/a, to be sourced | low | - | propylene-oxide | 0 | hydrogen-peroxide-1 (T2) |
-| 57 | `titanium-dioxide` | Titanium dioxide | inorganic-chemicals | n/a, to be sourced | medium | sulfate, chloride | - | 0 | - |
-| 58 | `power-generation` | Electricity generation (on-site and grid technologies) | power-generation | n/a, to be sourced | high | - | air-separation, chlor-alkali, hydrogen, aluminium | 0 | - |
-| 59 | `demineralised-water` | Demineralised water | utilities | n/a, to be sourced | low | - | steam-generation, hydrogen | 1 | - |
+| 57 | `titanium-dioxide` | Titanium dioxide | inorganic-chemicals | n/a, to be sourced | medium | sulfate, chloride | - | 0 | titanium-dioxide-1 (T2) |
+| 58 | `power-generation` | Electricity generation (on-site and grid technologies) | power-generation | n/a, to be sourced | high | - | air-separation, chlor-alkali, hydrogen, aluminium | 2 | power-generation-1 (T2) |
+| 59 | `demineralised-water` | Demineralised water | utilities | n/a, to be sourced | low | - | steam-generation, hydrogen | 1 | demineralised-water-1 (T2) |
 | 60 | `refrigeration` | Refrigeration and compressed air | utilities | n/a, to be sourced | low | - | - | 0 | utility-chiller (T1), utility-instrument-air (T1) |
-| 61 | `mto-olefins` | Methanol to olefins | olefins | n/a, to be sourced | high | - | polyethylene, polypropylene | 0 | - |
+| 61 | `mto-olefins` | Methanol to olefins | olefins | n/a, to be sourced | high | - | polyethylene, polypropylene | 0 | mto-olefins-1 (T2) |
 | 62 | `acetaldehyde` | Acetaldehyde (Wacker oxidation of ethylene) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | acetaldehyde-1 (T2) |
 | 63 | `acetic-anhydride` | Acetic anhydride | oxygenates | n/a, to be sourced | n/a | - | - | 2 | acetic-anhydride-1 (T2) |
 | 64 | `acetylene` | Acetylene | olefins | n/a, to be sourced | n/a | - | - | 2 | acetylene-1 (T2) |
@@ -224,6 +224,13 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 113 | `oxalyl-chloride` | Oxalyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | oxalyl-chloride-1 (T2) |
 | 114 | `methanesulfonyl-chloride` | Methanesulfonyl chloride | chlorinated-organics | n/a, to be sourced | n/a | - | - | 2 | methanesulfonyl-chloride-1 (T2) |
 | 115 | `tert-butyldimethylsilyl-chloride` | tert-Butyldimethylsilyl chloride (TBSCl) | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | tert-butyldimethylsilyl-chloride-1 (T2) |
+| 116 | `vinyl-acetate` | Vinyl acetate monomer (gas-phase acetoxylation of ethylene) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | vinyl-acetate-1 (T2) |
+| 117 | `maleic-anhydride` | Maleic anhydride | oxygenates | n/a, to be sourced | n/a | - | - | 2 | maleic-anhydride-1 (T2) |
+| 118 | `phthalic-anhydride` | Phthalic anhydride | oxygenates | n/a, to be sourced | n/a | o-xylene-fixed-bed, naphthalene-fluid-bed | phthalimide | 2 | phthalic-anhydride-1 (T2) |
+| 119 | `methyl-methacrylate` | Methyl methacrylate | oxygenates | n/a, to be sourced | n/a | - | - | 2 | methyl-methacrylate-1 (T2) |
+| 120 | `acrylic-acid` | Acrylic acid (two-stage propylene oxidation) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | acrylic-acid-1 (T2) |
+| 121 | `acetylsalicylic-acid` | Acetylsalicylic acid (aspirin) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | acetylsalicylic-acid-1 (T2) |
+| 122 | `paracetamol` | Paracetamol (acetaminophen) | nitrogen-organics | n/a, to be sourced | n/a | - | - | 2 | paracetamol-1 (T2) |
 | 123 | `4-aminophenol` | 4-Aminophenol (p-aminophenol, the paracetamol intermediate) | nitrogen-organics | n/a, to be sourced | n/a | - | - | 2 | 4-aminophenol-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
