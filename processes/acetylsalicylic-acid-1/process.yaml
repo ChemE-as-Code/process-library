@@ -1,0 +1,112 @@
+# Process Atlas manifest of acetylsalicylic-acid-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: acetylsalicylic-acid-1
+title: Aspirin by semi-batch acetylation of salicylic acid with acetic anhydride and a filter-dryer (1170 t/a, batch)
+summary: >-
+  A batch plant on the acetic-acid route of US 2 731 492 A and US 2 987 539 A: acetic anhydride
+  dosed at 358 K into salicylic acid in the recycled mother liquor with sulfuric acid, aspirin
+  crystallised at 293 K, washed and dried in a filter-dryer, acetic acid recovered in a vacuum
+  still. Concept stage, 1710.65 kg per batch every 11.57 h, thermal screening, preliminary LCI.
+description: |
+  Salicylic acid (10.0 kmol a batch) and a sulfuric acid make-up are charged into 60 % of the
+  last batch's mother liquor and wash filtrate in the glass-lined R-101 and heated to 358 K;
+  acetic anhydride (1.05 mol per mol, with the liquor's recycled excess 1.14 in R-101) is dosed over
+  1.5 h: C7H6O3 + (CH3CO)2O -> C9H8O4 + CH3COOH, -29.0 kJ/mol by Hess's law on NIST WebBook
+  data, then the post-reaction to 0.995 conversion. The batch is cooled to 293 K and aspirin
+  crystallises at the solubility derived from US 2 731 492 A, Example I (0.0998 kg per kg of
+  liquor); it is filtered, reslurry-washed with 0.4 kg recovered acetic acid per kg and dried at
+  333 K and 10 kPa(a) in the agitated filter-dryer F-101, the vapour condensed on cooling water.
+  The combined liquor is divided as in US 2 987 539 A: 60 % to the next charge, 40 % with the
+  dryer's condensate to the vacuum batch still C-301 at 15 kPa(a), whose distillate (96.5 mol%
+  acetic acid with the anhydride) is the next wash and a recovered acetic acid co-product to the
+  acetic anhydride plant (0.351 kg per kg); the residue (62 wt% aspirin, 84 g per kg) goes to
+  incineration. Product 99.85 wt% aspirin, yield 94.8 % on the salicylic acid.
+
+  The batch is modelled with cheme-as-code's semi-batch (reactor: semibatch, core ADR 0050), its
+  cooling crystallisation and the reslurry wash as crystallizers with spectators (ADR 0056), the
+  filter-dryer's Ruth filtrations and dryer (ADR 0057), the vacuum batch still with its heat-up
+  (ADRs 0055, 0063), the two recycles converged at tear streams (ADR 0060) and the batch recipe
+  (ADRs 0051, 0052, 0057): the filter-dryer F-101 is the bottleneck (cycle 11.57 h, 684.8
+  batches a year), the recipe sizes R-101 (5 m3) and checks its jacket, and the flowsheet's
+  flows are the recipe's year averages. The kinetics are ASSUMED. The screening gives dT_ad
+  46.6 K, at most 19.5 % of the anhydride accumulated, an MTSR of 365.5 K against the MTT of
+  391.2 K (acetic acid's boiling point); at k/10 380.4 K, at k/100 (as without the catalyst)
+  400.6 K, above the MTT: a design finding, and the reason the anhydride is dosed rather than
+  charged with the acid (an all-in batch would reach 404.8 K). See DESIGN.md for every
+  assumption.
+families: [oxygenates]
+keywords: [acetylsalicylic acid, aspirin, salicylic acid, acetic anhydride, acetic acid, acetylation, esterification, sulfuric acid catalyst, semi-batch, batch, dosing, cooling crystallisation, filter-dryer, reslurry wash, vacuum drying, mother liquor recycle, batch distillation, vacuum still, thermal screening, pharmaceuticals, fine chemicals]
+facets:
+  feedstock_basis: [fossil, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, crystallization, filtration, drying, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, kinetics, the filter and
+# dryer data, the recycle fraction's choice in the source's range and the still's ideal liquid
+# are assumed; the conditions and the solubility from the patents' examples (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 3 blocks and 14 steps within tolerance; the mother liquor and wash recycles
+    converged at the tears S3 and S11). The semi-batch R101 (its ASSUMED rate law), the
+    crystallizers CR101 and W101 (aspirin at 0.0998 kg per kg of solute-free liquor, derived from
+    US 2 731 492 A, Example I, with the acetic anhydride, salicylic acid and sulfuric acid as
+    spectators), the filters F101 and F102 (specified splits, Ruth times on ASSUMED cake data),
+    the dryer D101 (to 0.1 wt% acetic acid) and the vacuum still ST101 (Raoult's law with the
+    NIST Antoine sets, the ideal liquid ASSUMED) are calculated by cheme process propagate,
+    which writes the duties Q2, Q3 and Q6 with the vessels' ASSUMED metal; Q4 is core's dryer
+    model, Q1, Q5, Q7 and Q8 hand arithmetic from the stream table (the test file recomputes
+    them). The heat of reaction is Hess's law on NIST WebBook formation enthalpies and aspirin's
+    heat of hydrolysis. The recipe's year-average rate of the product agrees with the flowsheet
+    (no cheme.recipe-basis finding); it sizes R-101 (5 m3) from R101 and checks its jacket on
+    tempered chilled water (168.5 kW against the 159.5 kW peak at the start of the dosing).
+    Thermal screening (cheme process reactor-hazards): dT_ad 46.6 K, accumulation 19.5 %, MTSR
+    365.5 K against an MTT of 391.2 K; k/10 380.4 K, k/100 400.6 K (above the MTT, a design
+    finding: the dosing is interlocked with the catalyst charge and the heat flow, D-011); no
+    criticality class without a TD24. Preliminary gate-to-gate LCI with the per-batch nitrogen,
+    economic allocation at ASSUMED relative prices between the aspirin and the recovered acetic
+    acid; the acetic anhydride linked to acetic-anhydride-1, the catalyst to sulfuric-acid-1 and
+    the nitrogen to asu-1, salicylic acid a gap with a recorded Kolbe-Schmitt proxy, the other
+    backgrounds gaps. cheme maturity reaches no level (assumed kinetics and separations); the
+    claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
+    reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: salicylic-acid, role: feedstock, inventory_key: "feed:SAF", note: "Salicylic acid (Kolbe-Schmitt, no library process; proxy recorded, D-012), 0.807 kg/kg aspirin, 10.0 kmol a batch"}
+    - {chemical: acetic-anhydride, role: feedstock, inventory_key: "feed:AC2OF", note: "Acetic anhydride (acetic-anhydride-1), 0.627 kg/kg, 1.05 mol per mol of salicylic acid fresh"}
+    - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:CATF", note: "Sulfuric acid catalyst make-up (sulfuric-acid-1), 0.88 g/kg"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for inerting, pressing the filter-dryer, vacuum breaks and blankets, 68.8 kg per batch, 40.2 g/kg (ASSUMED)"}
+  outputs:
+    - {chemical: acetylsalicylic-acid, role: main-product, inventory_key: "product:PROD", note: "Dried aspirin, modelled 99.85 wt% with 0.037 wt% salicylic acid, 0.018 wt% sulfuric acid and 0.10 wt% acetic acid and anhydride, to packing; a model result, not a pharmacopoeia release"}
+    - {chemical: acetic-acid, role: co-product, inventory_key: "product:ACID", note: "Recovered acetic acid, 94.1 wt% with 5.9 wt% acetic anhydride, 0.351 kg/kg, to the acetic anhydride plant; economic allocation at ASSUMED relative prices, 3.4 % of the burdens (DESIGN.md D-012)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.071 kWh/kg: agitators of R-101, F-101 and C-301, the dosing pump, the vacuum pumps, transfer pumps (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.322 kWh/kg of LP steam 350 kPa(a): R-101's heat-up with its metal, the dryer (core's dryer model) and the vacuum still (core's still model with the heat-up)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.172 kWh/kg removed by cooling water: the dryer's vacuum condenser, the still's condenser and distillate cooler, the product and filter-dryer cool-down"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.138 kWh/kg removed by tempered chilled water at 283/288 K: R-101's jacket, the heat of acetylation and the crystallisation cool-down (core's semi-batch and crystallizer models)"}
+basis:
+  capacity: "1171 t/a dried aspirin: 684.8 batches/a of 1710.65 kg in 7920 h on a dedicated train (147.91 kg/h year average), ASSUMED (DESIGN.md D-002, D-003)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with acetic anhydride supply, a scrubber and a hazardous-waste incinerator (not chosen)
+references:
+  - {title: "Kamlet, J. (1956) US 2 731 492 A: Process for the manufacture of acetylsalicylic acid (acetylation in glacial acetic acid or aromatic diluents at 50-120 C, preferably 85-95 C, sulfuric or sulfonic acid catalysts optional; cooling to 0-50 C; the mother liquor's acetic acid re-converted with ketene; Example I: 1382 kg salicylic acid in a 6000 L enamelled reactor, 90-92 C, the filtrate after cooling to 15-25 C holding 180-451 kg aspirin with 1800 kg acetic acid and 4.0 kg sulfuric acid; cake washed with water, dried at 60-70 C)", url: "https://patents.google.com/patent/US2731492A/en"}
+  - {title: "Stoesser, W. C.; Surine, W. R. (Dow Chemical, 1961) US 2 987 539 A: Process for the production of aspirin (salicylic acid with excess acetic anhydride in acetic acid at 70-100 C, 85 C for 1.5 h; crystallised by cooling to 15 C; washed with acetic acid, then water; 30-70 % of the combined mother liquor and acid washes recycled; Step 5: the rest distilled to 154 C pot at 35 mm Hg, distillate 96.5 % acetic acid and 3.5 % anhydride; salicylic acid recovered from the residue)", url: "https://patents.google.com/patent/US2987539A/en"}
+  - {title: "Handal-Vega, E.; Loupy, A.; Collazo Garcia, J. M. (2001) US 6 278 014 B1: Synthetic procedure for the manufacture of aspirin (background: the industrial method, salicylic acid with excess acetic anhydride at 98 C for 2-3 h, cooled to crystallise, centrifuged and washed, about 90 % yield; a solvent-free CaO/ZnO route, rejected here)", url: "https://patents.google.com/patent/US6278014B1/en"}
+  - {title: "NIST Chemistry WebBook, SRD 69: acetic acid, acetic anhydride, salicylic acid, aspirin, water (formation enthalpies, aspirin's heat of hydrolysis (Nelander 1964), heat capacities, Antoine parameters, boiling and melting points, heats of vaporization)", url: "https://webbook.nist.gov/chemistry/"}
+  - {title: "PubChem CIDs 2244 (aspirin) and 338 (salicylic acid) (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/acetylsalicylic-acid-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

@@ -1,0 +1,659 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Acetylsalicylic acid (aspirin) by the acetylation of salicylic acid with acetic anhydride in
+# acetic acid with a sulfuric acid catalyst (DESIGN.md D-001), a batch plant on a dedicated
+# train (D-002): salicylic acid and the catalyst make-up are charged into the recycled mother
+# liquor in the glass-lined R-101 and heated to 358 K; acetic anhydride is dosed (a semi-batch,
+# reactor: semibatch, D-005); the batch is cooled to 293 K and aspirin crystallises (CR101,
+# core's crystallizer with the dissolved acetic anhydride, salicylic acid and sulfuric acid as
+# spectators, core ADR 0056); the slurry is filtered, reslurry-washed with recovered acetic acid
+# and vacuum-dried in the agitated filter-dryer F-101 (one recipe vessel over four steps, core
+# ADR 0057), the dryer's vapour condensed on cooling water (E-201). The mother liquor and the
+# wash filtrate are collected in T-201 and divided (US 2 987 539 A): 60 % back to the next
+# charge, 40 % with the dryer's condensate to the vacuum batch still C-301 (core ADR 0055), which
+# distils the acetic acid with the excess anhydride; part of it is the next wash, the rest the
+# recovered acetic acid co-product to the acetic anhydride plant; the residue (aspirin, unreacted
+# salicylic acid, the catalyst) goes to incineration (D-009).
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-010, ASSUMED unless a
+#   source is named;
+# - calculated by `cheme process propagate --fill`: R101 (cheme's semi-batch model, the ASSUMED
+#   rate law, D-005), CR101 and W101 (crystallizers with spectators at the solubility derived from
+#   US 2 731 492 A, D-007), F101 and F102 (specified filters with a Ruth filtration time), D101
+#   (dryer to a residual moisture, D-008), ST101 (Rayleigh still on Raoult's law, D-009), the
+#   mixers M101, M201, M202 and the splitters X201 (the recycle fraction) and X301; E101 and E201
+#   (pass-through);
+# - the recycles: S3, the mother liquor back to the charge, and S11, the recovered acid to the
+#   cake wash, are the tear streams of `tears:` (core ADR 0060), S11's flow the ASSUMED wash ratio
+#   held fixed and its composition iterated, S3 X201's 60 % share (D-006);
+# - the duties (D-010): R101's Q2, CR101's Q3 and ST101's Q6 are written by `cheme process
+#   propagate --fill` from the models at each step's `energy_port` (core ADR 0059, 0063); the
+#   dryer's heat Q4 is core's dryer model (`cheme.process-dryer-duty` compares it); Q1, Q5 and Q7
+#   are hand arithmetic from the stream table (tests/test_acetylsalicylic_acid_1.py recomputes
+#   them).
+schema: cheme/process/v1
+kind: flowsheet
+title: Acetylsalicylic acid by semi-batch acetylation of salicylic acid with acetic anhydride in acetic acid
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: dried acetylsalicylic acid, year averages of the batches in 7920 h on a dedicated train (D-002, D-003)", default: true}
+tolerance: {abs: 0.02, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The two recycles (D-006): the mother liquor S3 (X201 -> M101 -> R101 -> CR101 -> F101 -> M201
+# -> X201) and the recovered acid to the cake wash S11 (X301 -> W101 -> F102 -> M201 -> X201 ->
+# M202 -> ST101 -> X301). S11's flow is the ASSUMED wash ratio and stays fixed; S3's flow and both
+# compositions are iterated from the first guesses (rounded hand values).
+tears:
+  - stream: S3
+    initial: {flow: 125.0, unit: kg/h, basis: mass_fraction, composition: {ACOH: 0.84, AC2O: 0.06, SA: 0.003, ASA: 0.096, H2SO4: 0.001}}
+  - stream: S11
+    initial: {flow: 60.3135, unit: kg/h, basis: mass_fraction, composition: {ACOH: 0.95, AC2O: 0.05}}
+convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 1.0e-6, rel: 1.0e-9}}
+
+feeds:
+  - {id: SAF, title: "Salicylic acid (merchant, Kolbe-Schmitt)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AC2OF, title: Acetic anhydride (acetic-anhydride-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CATF, title: Sulfuric acid make-up (catalyst), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: f101, direction: out, kind: energy}
+      - {id: c301, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (R-101 heat-up, the dryer's hot-water circuit, the still)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-010)"}
+      supply_temperature: {value: 412.0, provenance: assumed, source: "saturation at 350 kPa(a), about 412 K (D-010)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-010"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+      - {id: st101, direction: out, kind: energy}
+products:
+  - {id: PROD, title: Acetylsalicylic acid crystals to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: ACID, title: Recovered acetic acid to the acetic anhydride plant, category: product, ports: [{id: in, direction: in}]}
+  - {id: RESID, title: "Still residue (aspirin, salicylic acid, catalyst in acetic acid) to incineration", category: solid_waste, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-010)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-010)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-010"}
+    ports:
+      - {id: e201, direction: in, kind: energy}
+      - {id: d101, direction: in, kind: energy}
+      - {id: st101, direction: in, kind: energy}
+  - id: CHW
+    title: Tempered chilled water return (R-101 jacket)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 283.15, provenance: assumed, source: "design basis (D-010): a tempered loop, above the freezing point of the liquor"}
+      return_temperature: {value: 288.15, provenance: assumed, source: "design basis (D-010)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-010"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: cr101, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Acetylation and crystallisation (R-101)
+    class: ReactingChemicals
+    ports:
+      - {id: sa, direction: in}
+      - {id: cat, direction: in}
+      - {id: rec, direction: in}
+      - {id: ac2o, direction: in}
+      - {id: slurry, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: chw, direction: out, kind: energy}
+      - {id: chw2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ISOL
+    title: Filtration, acetic acid wash and vacuum drying (F-101, filter-dryer)
+    class: SeparatingMechanically
+    ports:
+      - {id: slurry, direction: in}
+      - {id: wash, direction: in}
+      - {id: product, direction: out}
+      - {id: ml, direction: out}
+      - {id: wf, direction: out}
+      - {id: cond, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: RECOV
+    title: Mother liquor recycle and acetic acid recovery (T-201, C-301)
+    class: Distilling
+    ports:
+      - {id: ml, direction: in}
+      - {id: wf, direction: in}
+      - {id: cond, direction: in}
+      - {id: rec, direction: out}
+      - {id: wash, direction: out}
+      - {id: acid, direction: out}
+      - {id: residue, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: REACT
+    title: Salicylic acid and catalyst charged into the recycled mother liquor (R-101)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: sa, direction: in, delegates: sa}
+      - {id: cat, direction: in, delegates: cat}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: E101
+    block: REACT
+    title: Charge heated to 358 K (R-101 jacket)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: REACT
+    title: Acetylation (acetic anhydride dosed into the salicylic acid in the liquor at 358 K)
+    class: ReactingChemicals
+    reactions: [ACET]
+    reactor: semibatch
+    # the semi-batch's duty (ACET's heat less the dose warmed, ADR 0059) goes on Q2 (D-010)
+    energy_port: q
+    batch:
+      dosing: [{stream: S6, time: 5400}]
+      target: {key: SA, conversion: 0.995}
+      heat: isothermal
+      provenance: assumed
+      source: "acetic anhydride dosed over 1.5 h at 358 K into the salicylic acid in the recycled liquor (US 2 987 539 A: 85 C, held 1.5 h; dosing instead of the patent's all-in heat-up, D-005, D-011), then the post-reaction to 0.995 conversion of the salicylic acid (ASSUMED); R-101 open to its reflux condenser, no gas forms"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: ac2o, direction: in, delegates: ac2o}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: chw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: CR101
+    block: REACT
+    title: Cooling to 293 K and crystallisation hold (aspirin crystallises from the liquor)
+    class: Crystallizing
+    crystallizer:
+      solute: ASA
+      solvent: ACOH
+      crystal: ASA_S
+      basis: solubility
+      temperature: 293.15
+      solubility:
+        unit: kg/kg_liquor
+        value: 0.0998
+        measured_in: mother_liquor
+        provenance: assumed
+        source: "derived from US 2 731 492 A, Example I (D-007): after cooling to 15-25 C the filtrate holds 180 to 451 kg aspirin with 1800 kg acetic acid and 4.0 kg sulfuric acid; the lower end, 180 kg in 1804 kg of liquor = 0.0998 kg per kg of solute-free liquor, taken at 293 K for this liquor, which also holds acetic anhydride and salicylic acid (ASSUMED the same)"
+      spectators: [AC2O, SA, H2SO4]
+      energy: {heat_capacity: 1.587, heat_of_crystallization: 0.0, provenance: assumed, source: "the slurry S7's heat capacity from the components' heat capacities of process/materials.yaml: 539.85 kJ/(K h) over 340.101 kg/h = 1.587 kJ/(kg K) (D-010); the heat of crystallisation is counted in ACET's heat of reaction, so 0 here (D-005)"}
+      outlets: {slurry: out}
+    # the crystallizer's lumped duty (the slurry's cool-down) and R-101's metal cooled with it (the
+    # REACT vessel's metal_heat_capacity, core ADR 0063) go on Q3 (D-010)
+    energy_port: q
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: slurry}
+      - {id: q, direction: out, kind: energy, delegates: chw2}
+  - id: F101
+    block: ISOL
+    title: Filtration of the mother liquor (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 1.0
+      cake_liquid: {value: 0.3, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "agitated filter-dryer, cake 0.3 kg of liquor per kg of crystals; the fines through the cloth not modelled, they dissolve in the next charge (D-008)"
+      filtration:
+        specific_cake_resistance: 5.0e+9
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 1.4
+        filtrate_density: 1080
+        provenance: assumed
+        source: "ASSUMED (D-008): needle-like aspirin crystals, a cloth medium, 200 kPa of nitrogen on the cake; the liquor acetic acid at 293 K with about 10 % aspirin dissolved, 1.4 mPa s and 1080 kg/m3 ASSUMED (no open data read)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in, delegates: slurry}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out, delegates: ml}
+  - id: W101
+    block: ISOL
+    title: Reslurry wash with recovered acetic acid
+    class: Crystallizing
+    crystallizer:
+      solute: ASA
+      solvent: ACOH
+      crystal: ASA_S
+      basis: solubility
+      temperature: 296.35
+      solubility:
+        unit: kg/kg_liquor
+        value: 0.0998
+        measured_in: mother_liquor
+        provenance: assumed
+        source: "as CR101 (D-007), taken as the same at the wash's temperature inside US 2 731 492 A's 15-25 C"
+      spectators: [AC2O, SA, H2SO4]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: out, direction: out}
+  - id: F102
+    block: ISOL
+    title: Filtration of the wash (filter-dryer)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 1.0
+      cake_liquid: {value: 0.3, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F101 (D-008)"
+      filtration:
+        specific_cake_resistance: 5.0e+9
+        medium_resistance: 1.0e+10
+        pressure_difference: 200
+        viscosity: 1.2
+        filtrate_density: 1060
+        provenance: assumed
+        source: "as F101; the wash liquor at 298 K, ASSUMED (D-008)"
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out, delegates: wf}
+  - id: D101
+    block: ISOL
+    title: Vacuum drying at 333 K (filter-dryer)
+    class: Drying
+    dryer:
+      volatiles: [ACOH, AC2O]
+      residual_moisture: {value: 0.001, basis: mass_fraction, provenance: assumed, source: "0.1 wt% acetic acid in the dried product (D-008)"}
+      temperature: 333.15
+      energy:
+        heat_capacity: 1.328
+        latent_heat: {ACOH: 394.7, AC2O: 433.0}
+        vessel_heat_capacity: 5000
+        efficiency: 0.7
+        port: steam
+        provenance: assumed
+        source: "the wet cake S13, aspirin (1.143 kJ/(kg K)) with 0.3 kg of liquor (mostly acetic acid, 2.05 kJ/(kg K)) per kg: 248.16 kJ/(K h) over 186.898 kg/h = 1.328 kJ/(kg K) from the components' heat capacities of process/materials.yaml (D-008); latent heats from process/materials.yaml: acetic acid 23.7 kJ/mol (NIST WebBook, calorimetric, associated vapour) = 394.7 kJ/kg, acetic anhydride 44.2 kJ/mol = 433.0 kJ/kg (SRC-5); the filter-dryer's steel, about 10 t at 0.5 kJ/(kg K), heated each batch from the cake's temperature; 70 % of the heat to the cake (D-008)"
+      drying_rate: {value: 4.0, provenance: assumed, source: "ASSUMED mean rate of an agitated vacuum filter-dryer drying acetic acid at 333 K and 10 kPa(a) with hot water at 353 K (D-008)"}
+      cake_density: {value: 900, provenance: assumed, source: "ASSUMED bulk density of the acid-wet needle cake (D-008)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: F-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cool, direction: out, kind: energy, delegates: cw2}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E201
+    block: ISOL
+    title: F-101 vacuum condenser on cooling water (acetic acid and anhydride condensed)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: cond}
+      - {id: q, direction: out, kind: energy, delegates: cw}
+  - id: M201
+    block: RECOV
+    title: Mother liquor and wash filtrate collected in T-201
+    class: Mixing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: ml, direction: in, delegates: ml}
+      - {id: wf, direction: in, delegates: wf}
+      - {id: out, direction: out}
+  - id: X201
+    block: RECOV
+    title: Liquor divided between the next charge and the still (US 2 987 539 A)
+    class: SplittingMaterial
+    split: {rec: 0.6}
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out, delegates: rec}
+      - {id: purge, direction: out}
+  - id: M202
+    block: RECOV
+    title: Liquor purge and dryer condensate to the still
+    class: Mixing
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: purge, direction: in}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: out, direction: out}
+  - id: ST101
+    block: RECOV
+    title: Vacuum batch still at 15 kPa(a) (acetic acid and anhydride distilled together)
+    class: Distilling
+    still:
+      pressure: 15.0
+      volatility: {model: raoult, provenance: assumed, source: "an ideal liquid of acetic acid and acetic anhydride, ASSUMED without activity coefficients or the acid's vapour association (D-009, L-4); their NIST vapour pressures in process/materials.yaml"}
+      nonvolatile: [SA, ASA, ASA_S, H2SO4]
+      boilup: {value: 300.0, unit: kW, provenance: assumed, source: "LP steam to C-301's jacket and coil (D-009, D-010)"}
+      end: {distilled: 0.90, basis: mass}
+      heat_up: true
+      outlets: {distillate: main, residue: residue}
+      provenance: assumed
+      source: "the acetic acid distilled with the anhydride under vacuum (US 2 987 539 A, Step 5: the second mother liquor distilled to 154 C at 35 mm Hg, 85.7 % of it over, 96.5 % acetic acid and 3.5 % anhydride); here until 90 % of the charge's mass is over, the residue kept a pumpable melt with about a third acetic acid at a lower pot temperature (D-009)"
+    # the still's duty goes on Q6: its boil-up's latent heat, the charge heated to its bubble point
+    # (`heat_up`) and C-301's metal (the RECOVER vessel's metal_heat_capacity), core ADRs 0059,
+    # 0063; the condenser Q7 stays hand arithmetic (D-010)
+    energy_port: steam
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: main, direction: out}
+      - {id: residue, direction: out, delegates: residue}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: X301
+    block: RECOV
+    title: Recovered acetic acid to the cake wash and to the anhydride plant
+    class: SplittingMaterial
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: out, delegates: wash}
+      - {id: acid, direction: out, delegates: acid}
+
+streams:
+  - id: S1
+    title: Salicylic acid (solid, charged)
+    from: SAF.out
+    to: M101.sa
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 119.426, provenance: assumed, source: "10.0 kmol salicylic acid per batch x 138.122 kg/kmol over the 11.5655 h cycle (D-003, D-004)"}
+        composition: {basis: mass_fraction, values: {SA: 1.0}, provenance: assumed, source: "technical salicylic acid, its phenol and 4-hydroxybenzoic acid not modelled (D-004)"}
+  - id: S2
+    title: Sulfuric acid make-up
+    from: CATF.out
+    to: M101.cat
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 0.129696, provenance: assumed, source: "1.5 kg H2SO4 per batch over the 11.5655 h cycle, the catalyst purged with the liquor to the still made up (D-004)"}
+        composition: {basis: mass_fraction, values: {H2SO4: 1.0}, provenance: assumed, source: "concentrated sulfuric acid taken as 100 % (D-004)"}
+  - id: S3
+    title: Recycled mother liquor to the charge
+    from: X201.rec
+    to: M101.rec
+    template: mass
+    state:
+      design:
+        temperature: {value: 294.17, provenance: assumed, source: "as S18, from T-201 (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 127.864, provenance: calculated, source: 'cheme process propagate: recycle X201 from S18 (tear, wegstein)', fingerprint: de8cd8a52abfc434}
+        composition: {basis: mole_fraction, values: {ACOH: 0.922577, AC2O: 0.0421749, SA: 0.00121814, ASA: 0.0332132, ASA_S: 0.0, H2SO4: 0.000816514}, provenance: calculated, source: 'cheme process propagate: recycle X201 from S18 (tear, wegstein)', fingerprint: de8cd8a52abfc434}
+  - id: S4
+    title: Charge (salicylic acid and catalyst in the liquor)
+    from: M101.out
+    to: E101.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 295.60, provenance: assumed, source: "M101 mixed adiabatically (D-010): S1 (139.12 kJ/(K h) at 298.15 K), S2 (0.18 at 298.15 K) and S3 (247.84 at 294.17 K); the salicylic acid's heat of solution left out, lumped in ACET's heat of reaction (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 247.42, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 9867ddde51688ddb}
+        composition: {basis: mole_fraction, values: {ACOH: 0.637763, AC2O: 0.0291549, SA: 0.309086, ASA: 0.0229598, ASA_S: 0.0, H2SO4: 0.0010359}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: b867ac3bfd390de7}
+  - id: S5
+    title: Charge at 358 K
+    from: E101.out
+    to: R101.charge
+    template: mass
+    state:
+      design:
+        temperature: {value: 358.15, provenance: assumed, source: "heated in R-101 to the dosing temperature, 85 C as US 2 987 539 A (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "R-101 open to its reflux condenser and the vent (D-005)"}
+        flow: {value: 247.42, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 80fd5dfbdc1d5ab0}
+        composition: {basis: mole_fraction, values: {ACOH: 0.637763, AC2O: 0.0291549, SA: 0.309086, ASA: 0.0229598, ASA_S: 0.0, H2SO4: 0.0010359}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S4', fingerprint: 80fd5dfbdc1d5ab0}
+  - id: S6
+    title: Acetic anhydride (dosed)
+    from: AC2OF.out
+    to: R101.ac2o
+    template: mass
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the day tank at ambient temperature (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 92.6834, provenance: assumed, source: "1.05 mol fresh acetic anhydride per mol salicylic acid, 10.5 kmol per batch x 102.089 kg/kmol over the 11.5655 h cycle (D-004)"}
+        composition: {basis: mass_fraction, values: {AC2O: 1.0}, provenance: assumed, source: "acetic-anhydride-1's product, 99.5 wt%, taken as 100 % (D-004)"}
+  - id: S7
+    title: Reaction mass at 358 K
+    from: R101.out
+    to: CR101.in
+    template: mass
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {ACOH: 0.714162, AC2O: 0.0341996, SA: 0.00116755, ASA: 0.249688, ASA_S: 0.0, H2SO4: 0.000782607}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: b88280ca78ab2a9c}
+        flow: {value: 340.103, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: 1391d4d1815da188}
+        temperature: {value: 358.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: b88280ca78ab2a9c}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5 S6', fingerprint: b88280ca78ab2a9c}
+  - id: S8
+    title: Slurry at 293 K to the filter-dryer
+    from: CR101.out
+    to: F101.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "cooled in R-101 (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 340.103, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S7', fingerprint: 150eeaca4f63c879}
+        composition: {basis: mole_fraction, values: {ASA: 0.0258233, ACOH: 0.714162, ASA_S: 0.223865, AC2O: 0.0341996, SA: 0.00116755, H2SO4: 0.000782607}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S7', fingerprint: 150eeaca4f63c879}
+  - id: S9
+    title: Filter cake
+    from: F101.cake
+    to: W101.cake
+    template: mass
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 194.671, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S8', fingerprint: f75a3abde305d132}
+        composition: {basis: mole_fraction, values: {ASA_S: 0.549992, ACOH: 0.414075, AC2O: 0.0198291, SA: 0.000676952, ASA: 0.0149725, H2SO4: 0.00045376}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S8', fingerprint: f75a3abde305d132}
+  - id: S10
+    title: Mother liquor
+    from: F101.filtrate
+    to: M201.ml
+    template: mass
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 145.432, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S8', fingerprint: f75a3abde305d132}
+        composition: {basis: mole_fraction, values: {ACOH: 0.920152, AC2O: 0.044064, SA: 0.00150431, ASA: 0.0332717, ASA_S: 0.0, H2SO4: 0.00100834}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S8', fingerprint: f75a3abde305d132}
+  - id: S11
+    title: Recovered acetic acid to the cake wash
+    from: X301.wash
+    to: W101.wash
+    template: mass
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "the still's distillate cooled on cooling water (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 59.9023, provenance: assumed, source: "0.4 kg of recovered acid per kg of crystals in the cake S9, 692.8 kg per batch over the 11.5655 h cycle (D-008), a design input that stays fixed on the tear stream (D-006)"}
+        composition: {basis: mole_fraction, values: {ACOH: 0.964704, AC2O: 0.0352965, SA: 0.0, ASA: 0.0, ASA_S: 0.0, H2SO4: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X301 from S21 (tear, wegstein)', fingerprint: de8cd8a52abfc434}
+  - id: S12
+    title: Wash slurry
+    from: W101.out
+    to: F102.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 296.35, provenance: assumed, source: "W101 mixed adiabatically (D-008, D-010): the cake S9 (258.22 kJ/(K h) at 293.15 K) and the wash S11 (121.38 at 303.15 K), the components' heat capacities of process/materials.yaml"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 254.573, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S9 S11', fingerprint: ddb3ca498e647c99}
+        composition: {basis: mole_fraction, values: {ASA: 0.0224615, ACOH: 0.629797, ASA_S: 0.321165, AC2O: 0.0258888, SA: 0.00041174, H2SO4: 0.000275989}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S9 S11', fingerprint: ddb3ca498e647c99}
+  - id: S13
+    title: Washed cake
+    from: F102.cake
+    to: D101.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 296.35, provenance: assumed, source: "as S12 (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 186.899, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: 8cd694420caa3bb2}
+        composition: {basis: mole_fraction, values: {ASA_S: 0.548624, ACOH: 0.418769, AC2O: 0.0172142, SA: 0.000273777, ASA: 0.0149353, H2SO4: 0.000183513}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: 8cd694420caa3bb2}
+  - id: S14
+    title: Wash filtrate
+    from: F102.filtrate
+    to: M201.wf
+    template: mass
+    state:
+      design:
+        temperature: {value: 296.35, provenance: assumed, source: "as S12 (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 67.6739, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: 8cd694420caa3bb2}
+        composition: {basis: mole_fraction, values: {ACOH: 0.927761, AC2O: 0.0381371, SA: 0.000606539, ASA: 0.0330883, ASA_S: 0.0, H2SO4: 0.000406563}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: 8cd694420caa3bb2}
+  - id: S15
+    title: Dried acetylsalicylic acid
+    from: D101.product
+    to: PROD.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "cooled in F-101 before discharge (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 147.911, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 374bb30c2e542f7d}
+        composition: {basis: mole_fraction, values: {ACOH: 0.00279799, AC2O: 0.000115016, SA: 0.000483992, ASA: 0.0264031, ASA_S: 0.969875, H2SO4: 0.00032442}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 374bb30c2e542f7d}
+  - id: S16
+    title: Dryer vapour (acetic acid, anhydride) to the vacuum condenser
+    from: D101.vapour
+    to: E201.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "the vapour at the dryer's temperature (D-008)"}
+        pressure: {value: 10.0, provenance: assumed, source: "the filter-dryer's vacuum, 10 kPa(a) (D-008)"}
+        flow: {value: 38.9876, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 374bb30c2e542f7d}
+        composition: {basis: mole_fraction, values: {ACOH: 0.960516, AC2O: 0.0394836}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: 374bb30c2e542f7d}
+  - id: S17
+    title: Dryer condensate to the still
+    from: E201.out
+    to: M202.cond
+    template: mass
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "condensed on cooling water (D-008, D-010)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 38.9876, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S16', fingerprint: f8957a5f18f1a413}
+        composition: {basis: mole_fraction, values: {ACOH: 0.960516, AC2O: 0.0394836}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S16', fingerprint: f8957a5f18f1a413}
+  - id: S18
+    title: Combined liquor (T-201)
+    from: M201.out
+    to: X201.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 294.17, provenance: assumed, source: "M201 mixed adiabatically (D-010): S10 (281.63 kJ/(K h) at 293.15 K) and S14 (131.44 at 296.35 K), the components' heat capacities of process/materials.yaml"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 213.106, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S14', fingerprint: 4942beaf3707e6d1}
+        composition: {basis: mole_fraction, values: {ACOH: 0.922577, AC2O: 0.0421747, SA: 0.00121814, ASA: 0.0332132, ASA_S: 0.0, H2SO4: 0.000816518}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S14', fingerprint: 930de9e1afa2b5a2}
+  - id: S19
+    title: Liquor purge to the still
+    from: X201.purge
+    to: M202.purge
+    template: mass
+    state:
+      design:
+        temperature: {value: 294.17, provenance: assumed, source: "as S18"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 85.242, provenance: calculated, source: 'cheme process propagate: splitter X201 from S18 S3', fingerprint: 4661220dc052a229}
+        composition: {basis: mole_fraction, values: {ACOH: 0.922577, AC2O: 0.0421747, SA: 0.00121814, ASA: 0.0332132, ASA_S: 0.0, H2SO4: 0.000816518}, provenance: calculated, source: 'cheme process propagate: splitter X201 from S18', fingerprint: 8c2c28292688bf72}
+  - id: S20
+    title: Still feed
+    from: M202.out
+    to: ST101.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 297.07, provenance: assumed, source: "M202 mixed adiabatically (D-009): S19 (165.23 kJ/(K h) at 294.17 K) and S17 (78.90 at 303.15 K)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 124.23, provenance: calculated, source: 'cheme process propagate: mixer M202 from S17 S19', fingerprint: 465c15ea21ab1b94}
+        composition: {basis: mole_fraction, values: {ACOH: 0.935032, AC2O: 0.0412913, SA: 0.00081825, ASA: 0.02231, ASA_S: 0.0, H2SO4: 0.000548472}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S17 S19', fingerprint: abe37adca3795556}
+  - id: S21
+    title: Recovered acetic acid (distillate)
+    from: ST101.main
+    to: X301.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "condensed and cooled on cooling water to 303 K (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 111.807, provenance: calculated, source: 'cheme process propagate: still ST101 from S20', fingerprint: 63063856e43e7f20}
+        composition: {basis: mole_fraction, values: {ACOH: 0.964704, AC2O: 0.0352963, SA: 0.0, ASA: 0.0, H2SO4: 0.0}, provenance: calculated, source: 'cheme process propagate: still ST101 from S20', fingerprint: 63063856e43e7f20}
+  - id: S22
+    title: Still residue to incineration
+    from: ST101.residue
+    to: RESID.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 355.28, provenance: assumed, source: "drained at the still's end temperature to the waste tank (cheme process stills, D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 12.423, provenance: calculated, source: 'cheme process propagate: still ST101 from S20', fingerprint: 63063856e43e7f20}
+        composition: {basis: mole_fraction, values: {ACOH: 0.433755, AC2O: 0.142571, SA: 0.0146419, ASA: 0.399218, H2SO4: 0.00981443}, provenance: calculated, source: 'cheme process propagate: still ST101 from S20', fingerprint: 63063856e43e7f20}
+  - id: S23
+    title: Recovered acetic acid to the acetic anhydride plant
+    from: X301.acid
+    to: ACID.in
+    template: mass
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "as S21"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 51.9047, provenance: calculated, source: 'cheme process propagate: splitter X301 from S21 S11', fingerprint: 6967b0c61d47fb7e}
+        composition: {basis: mole_fraction, values: {ACOH: 0.964704, AC2O: 0.0352963, SA: 0.0, ASA: 0.0, H2SO4: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X301 from S21', fingerprint: 0e6da6d1f5f63931}
+  # energy
+  - {id: Q1, title: Charge heating, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 12.9713, provenance: assumed, source: "hand arithmetic (D-010): S4, 387.15 kJ/(K h), heated from 295.60 to 358.15 K = 24216 kJ/h, plus R-101's metal, 4000 kJ/K (process/recipe.yaml), heated from 293.15 K (left by the last crystallisation) to 358.15 K each batch over the 11.5655 h cycle = 22481 kJ/h; hot water at 368 K from LP steam"}}}}
+  - {id: Q2, title: Heat of acetylation to tempered chilled water, kind: energy, from: R101.q, to: CHW.r101, state: {design: {duty: {value: 4.40662, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S5 S6', fingerprint: 8732421d3fc88c0c}}}}
+  - {id: Q3, title: Slurry and R-101 metal cool-down (CR101's model) to tempered chilled water, kind: energy, from: CR101.q, to: CHW.cr101, state: {design: {duty: {value: 15.99, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR101 from S7', fingerprint: 1bb393d6ea678bfe}}}}
+  - {id: Q4, title: Dryer heat, kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 16.083, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the wet cake from 296.35 to 333.15 K, the acetic acid and anhydride evaporated, F-101's metal heated each batch, 70 % efficiency (D-008, D-010); hot water at 353 K from LP steam"}}}}
+  - {id: Q5, title: F-101 vacuum condenser to cooling water, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 4.9591, provenance: assumed, source: "hand arithmetic (D-010): the dryer vapour S16, 38.987 kg/h, condensed at the latent heats of D101 (acetic acid 394.7, anhydride 433.0 kJ/kg) = 15486 kJ/h, and cooled from 333.15 to 303.15 K (78.90 kJ/(K h) x 30 K = 2367 kJ/h); acetic acid's dew point at 10 kPa(a) is about 329 K (the NIST Antoine set), above the cooling water's 308 K return"}}}}
+  - {id: Q6, title: "Still heat-up of the charge and C-301, and boil-up (LP steam)", kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 18.68, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S20', fingerprint: 236a0a4cabf92a6e}}}}
+  - {id: Q7, title: Still condenser and distillate cooler to cooling water, kind: energy, from: ST101.cw, to: CW.st101, state: {design: {duty: {value: 15.1034, provenance: assumed, source: "hand arithmetic (D-009, D-010): the distillate S21, 111.806 kg/h, condensed at the components' heats of vaporisation (process/materials.yaml: 394.7 and 433.0 kJ/kg) = 44381 kJ/h, and cooled from the still's mean 347.25 K (339.22 to 355.28 K, cheme process stills) to 303.15 K (226.56 kJ/(K h) x 44.10 K = 9991 kJ/h)"}}}}
+  - {id: Q8, title: F-101 product and vessel cool-down to cooling water, kind: energy, from: D101.cool, to: CW.d101, state: {design: {duty: {value: 5.3597, provenance: assumed, source: "hand arithmetic (D-010): the product S15 cooled from 333.15 to 313.15 K (169.27 kJ/(K h) x 20 K = 3385 kJ/h) and F-101's metal (5000 kJ/K, D101's vessel heat capacity) cooled back to the cake's 296.35 K each batch, as core's dryer model assumes: 5000 x 36.80 K / 11.5655 h = 15910 kJ/h"}}}}
+  - {id: P1, title: R-101 agitator and anhydride dosing pump, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 3.31, provenance: assumed, source: "year average: a 4 kW agitator of the 5 m3 R-101 at its 81 % occupancy (9.378 h of the 11.5655 h cycle, cheme process recipe: 3.24 kW) and a 0.55 kW dosing pump over 1.5 h of the cycle (0.07 kW), ASSUMED (D-010)"}}}}
+  - {id: P2, title: F-101 agitator and vacuum pump, kind: energy, from: POWER.f101, to: D101.power, state: {design: {duty: {value: 5.19, provenance: assumed, source: "year average: F-101's 5.5 kW agitator running half the time (2.75 kW) and a 4 kW dry vacuum pump over the 7.04 h of drying a cycle (2.44 kW), ASSUMED (D-010)"}}}}
+  - {id: P3, title: "C-301 agitator, vacuum pump and transfer pumps", kind: energy, from: POWER.c301, to: ST101.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average: C-301's 2.2 kW agitator and 3 kW vacuum pump over about 1.0 h of the 11.5655 h cycle (0.45 kW) and the liquor, residue and acid transfer pumps, about 1.5 kW, ASSUMED (D-010)"}}}}
+layout: {bfd: {}, pfd: {}}

@@ -1,0 +1,61 @@
+# The batch recipe of acetylsalicylic-acid-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes BATCH kg of dried aspirin (stream S15); the flowsheet's rates
+# are the year averages.
+# - R-101, a glass-lined stirred vessel, is one vessel over M101 (salicylic acid and the catalyst
+#   charged into the recycled liquor), E101 (the charge heated), R101 (the semi-batch: acetic
+#   anhydride dosed at 358 K) and CR101 (cooling and crystallisation hold): `units`, core ADR
+#   0057. Dosing and post-reaction come from R101's model (from: R101), the heat-up and the
+#   cool-down from the jacket (temperatures); the vessel is sized from R101's model and its jacket
+#   checked against the model's peak duty (core ADR 0052).
+# - F-101, an agitated filter-dryer, is one vessel over F101, W101, F102 and D101: its filtrations
+#   take Ruth's time from the filters' filtration data, its drying the time D101's drying rate
+#   gives on its heated area (core ADR 0057).
+# - C-301, the vacuum batch still, is one vessel over ST101 and X301: the boil-up time from
+#   ST101's model (core ADR 0055).
+# Every other duration is ASSUMED (D-003). `cheme process recipe --svg build/gantt.svg` draws one
+# batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Acetylsalicylic acid by semi-batch acetylation in acetic acid
+batch_size: {value: 1710.65, unit: kg, stream: S15, provenance: assumed, source: "one batch of dried aspirin from 10.0 kmol salicylic acid (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: REACT
+    units: [M101, E101, R101, CR101]
+    title: Charge, heat, dose acetic anhydride, react, cool and crystallise (R-101)
+    vessel:
+      fill_fraction: 0.8
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 285.65, heating_temperature: 368.15, provenance: assumed, source: "glass-lined steel, U 300 W/(m2 K) ASSUMED; tempered chilled water at 283.15/288.15 K (design basis, D-010), its mean 285.65 K taken as the coolant temperature (core takes it constant); heating with hot water at 368.15 K from LP steam, 10 K above the reaction temperature, below the boiling point of the liquor (D-003, D-010)"}
+      metal_heat_capacity: 4000
+      provenance: assumed
+      source: "usual fill and proportions of a glass-lined stirred vessel (D-003); its metal, about 8 t of glass-lined steel at 0.5 kJ/(kg K) = 4000 kJ/K, ASSUMED (D-010), heated and cooled with the content: in the heat and cool times and in CR101's duty Q3 (core ADR 0063)"
+    operations:
+      - {id: charge, kind: charge, title: Receive the recycled mother liquor from T-201, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge2, kind: charge, title: "Charge the salicylic acid (solid, closed charging station) and the sulfuric acid", duration: {value: 0.75, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Heat to 358 K (E101), temperatures: [295.60, 358.15]}
+      - {id: dose, kind: dose, title: Dose the acetic anhydride, from: R101}
+      - {id: react, kind: react, title: Post-reaction, from: R101}
+      - {id: cool, kind: cool, title: Cool to 293 K (CR101), temperatures: [358.15, 293.15]}
+      - {id: hold, kind: hold, title: Crystallisation hold at 293 K (CR101), duration: {value: 1.0, provenance: assumed, source: "D-003, D-007"}}
+      - {id: transfer, kind: transfer, title: Transfer the slurry to F-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: ISOLATE
+    units: [F101, W101, F102, D101]
+    title: Filtration, reslurry wash and vacuum drying in the agitated filter-dryer (F-101)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.0, heated_area: 16, provenance: assumed, source: "a squat agitated filter-dryer, its filter plate the bottom; jacket, heated bottom and heated agitator about 16 m2 (D-008)"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the slurry, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: filter, kind: filter, title: Filter off the mother liquor (F101), from: F101}
+      - {id: wash, kind: other, title: Reslurry the cake in recovered acetic acid (W101), duration: {value: 0.5, provenance: assumed, source: D-008}}
+      - {id: refilter, kind: filter, title: Filter off the wash (F102), from: F102}
+      - {id: dry, kind: dry, title: Vacuum drying at 333 K (D101), from: D101}
+      - {id: discharge, kind: transfer, title: "Cool, break the vacuum with nitrogen, discharge to packing", duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: RECOVER
+    units: [ST101, X301]
+    title: Acetic acid recovery in the vacuum batch still (C-301)
+    vessel: {fill_fraction: 0.8, aspect_ratio: 1.2, metal_heat_capacity: 2500, provenance: assumed, source: "C-301, a jacketed stirred still pot, sized from the liquor a batch it takes in (core ADR 0063); fill and proportions as R-101's, ASSUMED; its metal about 5 t of steel at 0.5 kJ/(kg K) = 2500 kJ/K, ASSUMED (D-010), heated with the charge to the still's end temperature in ST101's duty Q6"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the liquor purge and the dryer condensate, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: "Heat the liquor and C-301 to the bubble point (ST101's heat-up)", duration: {value: 0.245, provenance: assumed, source: "hand arithmetic (D-009): the heat-up ST101's duty holds (cheme process stills: charge 2.85801 and metal 3.49521 kW year average x 11.5655 h = 73.48 kWh a batch) at the still's 300 kW = 0.245 h; the distil operation's time from ST101 is the boil-up alone"}}
+      - {id: distil, kind: distil, title: "Distil the acetic acid with the anhydride (ST101)", from: ST101}
+      - {id: drain, kind: transfer, title: Drain the residue to the waste tank, duration: {value: 0.5, provenance: assumed, source: D-003}}

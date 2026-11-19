@@ -1,0 +1,68 @@
+# Components and templates of acetylsalicylic-acid-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# standard atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
+#
+# The reaction mass is acetic acid with salicylic acid, acetic anhydride, the sulfuric acid
+# catalyst and the aspirin formed. Salicylic acid is carried as a dissolved component (core's
+# semi-batch is liquid only; at 358 K the charge's salicylic acid is largely dissolved in the
+# acetic-acid liquor, the rest a suspension that the model does not distinguish, DESIGN.md
+# D-005, L-1). Aspirin is carried dissolved (ASA) while it forms; the crystallizer CR101 puts it
+# into the solid component ASA_S (phase: solid) at its solubility in the mother liquor (D-007).
+# The liquid data the semi-batch, the crystallizer, the dryer and the still need (register:
+# DESIGN.md SRC-5, SRC-6), ASSUMED unless a source is named:
+# - liquid_molar_volume, m3/kmol, from densities taken as the volume in the mixture (ideal
+#   mixing): acetic acid 1044.6 kg/m3 and acetic anhydride 1082.2 kg/m3 (chemicals 1.5.2's
+#   packaged CRC organic table, liquids at 20-25 C), salicylic acid 1443.2 kg/m3 (the same table,
+#   the solid) standing for the dissolved acid, sulfuric acid 1830.2 kg/m3 (chemicals 1.5.2's CRC
+#   inorganic table), aspirin 1400 kg/m3 (ASSUMED: the table gives none);
+# - liquid_heat_capacity, kJ/(kmol K), taken as constant: acetic acid 123.1 (NIST WebBook, liquid
+#   at 298.15 K, Martin and Andon 1982; 139.7 is the WebBook's 22-96 C mean, so the 298 K value
+#   overstates the adiabatic rise, conservative), acetic anhydride 168.2 (NIST WebBook, liquid at
+#   303.2 K, Phillip 1939), salicylic acid 160.9 (NIST WebBook, the solid at 298.15 K, Rabinovich
+#   et al. 1986) standing for the dissolved acid, aspirin 206.0 (ASSUMED by group arithmetic on
+#   the NIST values: salicylic acid plus acetic anhydride less acetic acid, 160.9 + 168.2 - 123.1),
+#   sulfuric acid 139 (ASSUMED order of magnitude; 0.1 wt% of the mass);
+# - normal boiling points: acetic acid 391.2 K and acetic anhydride 412 K (NIST WebBook, averages
+#   of 80 and 10 values); salicylic acid 529.0 K and sulfuric acid 610.15 K (chemicals 1.5.2's
+#   `Tb`; salicylic acid sublimes, sulfuric acid decomposes); aspirin melts at 405 K (NIST WebBook,
+#   average) and decomposes before it boils: no boiling point given;
+# - vapour pressures (Antoine, log10(P/bar) = a - b/(T/K + c)): acetic acid and acetic anhydride,
+#   the NIST WebBook's sets (McDonald, Shrader et al. 1959) with their ranges, used by the batch
+#   still ST101 at 15 kPa(a), whose pot runs inside both ranges (D-009);
+# - heat_of_vaporization, kJ/kmol: acetic acid 23700 at 391.1 K (NIST WebBook, Majer and Svoboda
+#   1985: the calorimetric value, low because the vapour is largely dimerised), acetic anhydride
+#   44200 at 351 K (NIST WebBook, McDonald, Shrader et al. 1959).
+# Salicylic acid, aspirin and sulfuric acid are non-volatile in the still and the dryer (declared
+# there): their vapour pressures at the still's end temperature are far below the acids' (D-009).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: ACOH
+    name: Acetic acid
+    formula: C2H4O2
+    cas: 64-19-7
+    molar_mass: 60.052
+    normal_boiling_point: 391.2
+    liquid_molar_volume: 0.05749
+    liquid_heat_capacity: 123.1
+    vapour_pressure: {a: 4.68206, b: 1642.54, c: -39.764, temperature_range: [290.26, 391.01], provenance: given, source: "NIST WebBook (SRD 69), acetic acid, Antoine parameters of McDonald, Shrader et al. (1959), 290.26-391.01 K (DESIGN.md SRC-5)"}
+    heat_of_vaporization: 23700
+  - id: AC2O
+    name: Acetic anhydride
+    formula: C4H6O3
+    cas: 108-24-7
+    molar_mass: 102.089
+    normal_boiling_point: 412.0
+    liquid_molar_volume: 0.09433
+    liquid_heat_capacity: 168.2
+    vapour_pressure: {a: 4.24655, b: 1427.77, c: -75.113, temperature_range: [335.99, 412.57], provenance: given, source: "NIST WebBook (SRD 69), acetic anhydride, Antoine parameters of McDonald, Shrader et al. (1959), 335.99-412.57 K (DESIGN.md SRC-5)"}
+    heat_of_vaporization: 44200
+  - {id: SA, name: Salicylic acid (dissolved), formula: C7H6O3, cas: 69-72-7, molar_mass: 138.122, normal_boiling_point: 529.0, liquid_molar_volume: 0.09571, liquid_heat_capacity: 160.9}
+  - {id: ASA, name: Acetylsalicylic acid (dissolved), formula: C9H8O4, cas: 50-78-2, molar_mass: 180.159, liquid_molar_volume: 0.12868, liquid_heat_capacity: 206.0}
+  - {id: ASA_S, name: Acetylsalicylic acid (crystals), formula: C9H8O4, cas: 50-78-2, molar_mass: 180.159, phase: solid, liquid_molar_volume: 0.12868, liquid_heat_capacity: 206.0}
+  - {id: H2SO4, name: Sulfuric acid (catalyst), formula: H2SO4, cas: 7664-93-9, molar_mass: 98.072, normal_boiling_point: 610.15, liquid_molar_volume: 0.05359, liquid_heat_capacity: 139.0}
+templates:
+  - {id: mass, title: "Charge, reaction mass, slurry, liquors, recovered acetic acid and product", components: [ACOH, AC2O, SA, ASA, ASA_S, H2SO4]}
+property_method:
+  adapter: thermo
+  status: placeholder
