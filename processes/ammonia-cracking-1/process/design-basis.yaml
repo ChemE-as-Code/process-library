@@ -1,0 +1,44 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Hydrogen by catalytic ammonia cracking with PSA purification, issue
+# ChemE-as-Code/process-library#519. Values marked ASSUMED are engineering choices of this
+# concept study, not owner, licensor or vendor data; every decision is in DESIGN.md. The
+# capacity is the open designs' plant size (HS420, JRC EUR 31199), used as a normalisation
+# basis for the inventory, not a claim about a commercial plant.
+schema: cheme/design_basis/v1
+capacity:
+  basis: hydrogen product of the PSA at the plant gate
+  product_t_per_d: 200                  # the HS420 design's and JRC's unpacking plant size (D-002)
+  product_kg_per_h: 8333.33             # 200 t/d
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Liquid ammonia (pressurised)
+    terminal: NH3
+    source_of_values: "library process ammonia-1 (product NH3, anhydrous liquid ammonia), taken pressurised at 1500 kPa(a) and 293.15 K as the HS420 design's feed (D-003)"
+    composition_mol_percent: {NH3: 100}
+    conditions: {pressure_kPa_a: 1500, temperature_K: 293.15}
+  - name: Combustion air
+    terminal: AIR
+    source_of_values: "ambient dry air, its argon and other minor gases counted as argon (ASSUMED, D-006)"
+    composition_mol_percent: {N2: 78.084, O2: 20.946, Ar: 0.97}
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 298.15}
+products:
+  - name: Hydrogen
+    terminal: H2P
+    purity: "99.99 mol% H2 with 84 ppm(mol) N2 and no ammonia (calculated from the ASSUMED PSA split); ISO 14687 as EP 4 337 600 A1 states it: < 300 ppm(mol) N2, < 0.1 ppm(mol) NH3 (D-005); 1030 kPa(a), 318 K; compression to a pipeline or trailer pressure is outside the boundary (D-001)"
+  - name: Flue gas
+    terminal: FLUE
+    use: "to atmosphere through the stack at 492 K (calculated, D-006); NOx abatement not designed (L-3)"
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-008): the cracked gas trim cooler E-103"}
+  - {name: Electric power, use: "combustion air fan K-101 (electric drive ASSUMED, D-008)"}
+site:
+  location: ASSUMED generic ammonia import terminal or consumer site with liquid ammonia supply, not chosen
+  atmospheric_pressure_kPa: 101.325
+  design_ambient_K: 298.15
+assumptions:
+  - "Cracking at equilibrium at the tube outlet, 773.15 K and 1100 kPa(a), the basis of EP 4 337 600 A1's examples (SRC-1); ammonia superheated to 723.15 K (ASSUMED) before the tubes, D-004."
+  - "PSA hydrogen recovery 79.4 % (EP 4 337 600 A1 reference example 2, in which the tail gas alone fires the cracker), nitrogen 0.02 % of its inlet to the product (ASSUMED), all ammonia to the tail gas, D-005."
+  - "Tail gas burnt completely to N2 and water with air for 2.0 mol% oxygen in the wet flue gas (ASSUMED; the HS420 flue gas holds < 2 % O2 and Ar); burner NOx and ammonia slip not modelled, D-006, L-3."
+  - "Duties on the ideal-gas data of process/materials.yaml; the liquid ammonia's heat capacity, vapour pressure and heat of vaporization from thermo 0.6.1 (ASSUMED basis, D-008, L-2)."
+  - "Pressures: feed 1500 kPa(a), vaporiser 1350, tube inlet 1250, tube outlet 1100, PSA feed 1060, product 1030, tail gas 130 kPa(a) (ASSUMED pressure drops), D-004, D-005."

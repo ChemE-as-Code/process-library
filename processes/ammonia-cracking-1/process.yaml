@@ -1,0 +1,94 @@
+# Process Atlas manifest of ammonia-cracking-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: ammonia-cracking-1
+title: Hydrogen by catalytic ammonia cracking in a fired tubular cracker with PSA purification (200 t/d)
+summary: >-
+  A continuous plant that turns liquid ammonia back into hydrogen: the ammonia is vaporised,
+  cracked over a catalyst in fired tubes to equilibrium at 500 C and 11 bar, and the hydrogen is
+  purified by PSA, whose tail gas is the furnace's only fuel. Concept stage, 200 t/d of
+  hydrogen, balance solved by core, preliminary LCI.
+description: |
+  The unpacking end of an ammonia hydrogen-carrier chain. Pressurised liquid ammonia (1500
+  kPa(a), 293 K, as in the HS420 design for BEIS) is vaporised in a feed-effluent exchanger
+  E-101 against the cracked gas, superheated to 723 K in the convection section of the fired
+  furnace H-101 and cracked over a nickel catalyst in tubes in its radiant section:
+  2 NH3 <=> N2 + 3 H2, strongly endothermic. The tube outlet is at chemical equilibrium at
+  773.15 K and 1100 kPa(a), the basis of every example of Air Products' EP 4 337 600 A1:
+  97.42 % of the ammonia is cracked and 1.30 mol% stays in the gas (core's equilibrium model
+  on ideal-gas data). The cracked gas is cooled to 313 K and its hydrogen purified by pressure
+  swing adsorption U-201, which recovers 79.4 % of it to 99.99 mol% (the patent's reference
+  example 2) and retains the ammonia. The tail gas (37 mol% hydrogen, 60 % nitrogen, 3.2 %
+  ammonia) is the only fuel of the furnace, as in that example: it is burnt with air to 2 mol%
+  excess oxygen, and covers the tubes' 53.6 MW and the superheater's 17.3 MW with the flue gas
+  leaving at 492 K.
+
+  The material balance is solved by cheme-as-code: design specifications set the ammonia feed
+  for 200 t/d of hydrogen and the air for the flue gas's oxygen, the equilibrium reactor and
+  the PSA's component split give the rest, and propagate writes the convection duty. Per kg of
+  hydrogen product: 7.27 kg of ammonia (7.28 per kg of H2; 77.4 % of its hydrogen recovered; JRC EUR 31199 gives 0.137 t
+  of hydrogen per t of ammonia for the open large-scale design, 7.30 kg/kg), 0.018 kWh of
+  electricity, 0.758 kWh to cooling water; no CO2 is emitted on site. The hydrogen leaves at
+  1030 kPa(a); compression to a pipeline or trailer pressure is outside the boundary. Burner
+  NOx from the ammonia in the tail gas is not estimated (an open point). See DESIGN.md for
+  every assumption.
+families: [hydrogen]
+keywords: [hydrogen, ammonia cracking, ammonia decomposition, hydrogen carrier, ammonia to hydrogen, unpacking, reconversion, fired tubular reactor, nickel catalyst, chemical equilibrium, pressure swing adsorption, PSA, tail gas firing, feed-effluent exchanger, ammonia vaporiser, design specification, ISO 14687]
+facets:
+  feedstock_basis: [fossil, atmospheric, electricity]
+  product_classes: [industrial-gases, fuels]
+  unit_operations: [reaction, adsorption, combustion, heat-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, the temperatures,
+# pressures and the PSA's nitrogen split are assumed; the equilibrium basis and the PSA's
+# hydrogen recovery from the patent's examples (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept continuous PFD with closed mass, component and element balances (cheme validate,
+    cheme process streams: 2 blocks and 8 steps within tolerance). cheme process propagate
+    solves the ammonia feed and the combustion air with two design specifications (200 t/d of
+    hydrogen; 2.0 mol% oxygen in the wet flue gas, ASSUMED), the equilibrium reactor R101 at
+    773.15 K and 1100 kPa(a) (EP 4 337 600 A1's basis; 97.42 % cracked on the ideal-gas data of
+    chemicals 1.5.2 and thermo 0.6.1, against the 97.04 % the patent's reference example 2
+    implies), the PSA as a component separator (79.4 % hydrogen recovery, the same example) and
+    the complete combustion of the tail gas, and writes H101's convection duty. scripts/balance.py
+    gives the tubes' duty (core's equilibrium model writes none), the ammonia vaporiser on
+    thermo's liquid ammonia data, the trim cooler, the fan and the stack temperature that
+    closes the furnace. Preliminary gate-to-gate LCI; in the Atlas build the ammonia is linked
+    to ammonia-1, and electricity and cooling water through the shared proxies; the burner NOx
+    and the catalyst and adsorbent replacement are open (no open factor or rate). cheme maturity
+    reaches no level (assumed splits and temperatures); the claim `maturity: concept` is the
+    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: ammonia, role: feedstock, inventory_key: "feed:NH3", note: "Anhydrous liquid ammonia (ammonia-1), 7.27 kg/kg, pressurised at 1500 kPa(a); 77.4 % of its hydrogen ends in the product, the rest is burnt as tail gas"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air, 11.96 kg/kg"}
+  outputs:
+    - {chemical: hydrogen, role: main-product, inventory_key: "product:H2P", note: "Hydrogen 99.99 mol% (84 ppm(mol) N2, no ammonia) at 1030 kPa(a), 318 K"}
+    - {chemical: nitrogen, role: emission, inventory_key: "product:FLUE", note: "Flue gas to stack at 492 K, 18.2 kg/kg: nitrogen, water vapour, 2.0 mol% oxygen; NOx not estimated"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.018 kWh/kg: the combustion air fan"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.758 kWh/kg removed by cooling water: the cracked gas trim cooler"}
+basis:
+  capacity: "200 t/d hydrogen (8333 kg/h in 8000 h, 66.7 kt/a), the open designs' plant size (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic ammonia import terminal or consumer site (not chosen)
+references:
+  - {title: "Shaw, A.; Saloway, S. C.; White, V. (Air Products and Chemicals, priority 2021-06-18) EP 4 337 600 A1: Ammonia cracking process (fired catalyst tubes heated by a furnace; PSA with the tail gas as fuel; product to ISO 14687; examples at equilibrium at 11 bar and 500 C, reference example 2 with the tail gas the only fuel: 77.05 % hydrogen recovery from the ammonia, 79.4 % PSA recovery)", url: "https://patents.google.com/patent/EP4337600A1/en"}
+  - {title: "Fothergill, K.; Greenwood, S.; Makepeace, J.; Wilkinson, I. (Ecuity, Engie, STFC, Siemens; 2020) Ammonia to Green Hydrogen Project, Feasibility Study, report HS420 for BEIS (200 t/d large-scale cracker design: feed, fuel, steam, flue gas and product conditions, heater duty and efficiency, ammonia recovery, cryogenic purification)", url: "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/880826/HS420_-_Ecuity_-_Ammonia_to_Green_Hydrogen.pdf"}
+  - {title: "European Commission, JRC (2022) Assessment of Hydrogen Delivery Options, EUR 31199 EN, JRC130442 (section 2.3.4 and 5.5.3.4: ammonia unpacking, 0.137 t H2 per t NH3 for feed and fuel)", url: "https://publications.jrc.ec.europa.eu/repository/bitstream/JRC130442/kjna31199enn.pdf"}
+  - {title: "Bell, C. et al.: chemicals 1.5.2 and thermo 0.6.1 (MIT): ideal-gas formation enthalpies (ATcT), entropies (CRC), ideal-gas heat capacities (TRC, HEOS fits), liquid ammonia heat capacity, vapour pressure and heat of vaporization (HEOS fits); single values with the package named (library ADR 0037)", url: "https://github.com/CalebBell/chemicals"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/ammonia-cracking-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

@@ -1,0 +1,325 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Hydrogen by catalytic ammonia cracking with PSA purification, 200 t/d H2 (D-001, D-002).
+# Where the values come from:
+# - the ammonia feed is ammonia-1's product, taken pressurised (1500 kPa(a), 293.15 K as in the
+#   HS420 design, SRC-2); its flow and the combustion air's are solved by core's design
+#   specifications (`specs:`, core ADR 0070) for 200 t/d of hydrogen and 2.0 mol% oxygen in the
+#   flue gas (D-002, D-006);
+# - R101 holds 2 NH3 <=> N2 + 3 H2 at ideal-gas equilibrium at its outlet, 773.15 K and 1100
+#   kPa(a), the basis of EP 4 337 600 A1's examples (SRC-1, D-004);
+# - the PSA U201 is a component separator (`recovery:`): 79.4 % of the hydrogen to the product,
+#   SRC-1's reference example 2 in which the tail gas alone fires the cracker (D-005);
+# - H101 burns the tail gas completely with air (conversion reactor, D-006);
+# - `cheme process propagate --fill` writes every flow and composition but the feeds' and R101's
+#   and H101's duties (core ADR 0059); the ammonia vaporiser E-101's duty, the stack and the
+#   cracked-gas temperatures that close the furnace and E-101 balances, the cooler's duty and
+#   the fan's power come from scripts/balance.py (D-008);
+# - temperatures and pressures are ASSUMED design values inside the sources' ranges (D-004 to
+#   D-008).
+schema: cheme/process/v1
+kind: flowsheet
+title: Hydrogen by catalytic ammonia cracking with PSA purification (200 t/d)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - id: design
+    description: "Design case: 200 t/d hydrogen (8333.33 kg/h) from ammonia, cracking at equilibrium at 773.15 K and 1100 kPa(a), PSA recovery 79.4 %, the tail gas the only fuel (D-002, D-004, D-005)"
+    default: true
+    capacity: 8333.33 kg/h hydrogen
+    provenance: assumed
+    source: "D-002: 200 t/d of hydrogen, the plant size of the HS420 design and of JRC EUR 31199's unpacking plant (SRC-2, SRC-3)"
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+specs:
+  - id: rate
+    vary: {stream: S1, initial: 60000}
+    target: {stream: S7, component: H2, quantity: flow, value: 8333.33}
+    provenance: assumed
+    source: "D-002: 200 t/d of hydrogen (8333.33 kg/h)"
+  - id: air
+    vary: {stream: S9, initial: 220000}
+    target: {stream: S11, component: O2, quantity: fraction, basis: mole, value: 0.02}
+    provenance: assumed
+    source: "D-006: 2.0 mol% oxygen in the wet flue gas (the HS420 flue gas holds less than 2 % O2 and Ar, SRC-2)"
+
+feeds:
+  - {id: NH3, title: "Liquid ammonia (ammonia-1), pressurised", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+products:
+  - {id: H2P, title: "Hydrogen 99.99 mol% (ISO 14687 grade) at 1030 kPa(a) to the battery limit", category: product, ports: [{id: in, direction: in}]}
+  - {id: FLUE, title: Flue gas to stack, category: emission, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+    ports:
+      - {id: e103, direction: in, kind: energy}
+
+blocks:
+  - id: CRK
+    title: Ammonia vaporisation, superheating and cracking in the fired reactor
+    class: ReactingChemicals
+    ports:
+      - {id: nh3, direction: in}
+      - {id: tail, direction: in}
+      - {id: air, direction: in}
+      - {id: gas, direction: out}
+      - {id: flue, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: PUR
+    title: Cracked gas cooling and hydrogen PSA
+    class: Adsorbing
+    ports:
+      - {id: in, direction: in}
+      - {id: h2, direction: out}
+      - {id: tail, direction: out}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  # --- feed vaporisation and cracking (D-004, D-008)
+  - id: E101A
+    block: CRK
+    title: Ammonia vaporiser (cold side of the feed-effluent exchanger E-101)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in, delegates: nh3}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: E102
+    block: CRK
+    title: Ammonia superheater (convection section coil of H-101)
+    class: HeatingInFurnace
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  # D-004: outlet at ideal-gas equilibrium at 773.15 K and 1100 kPa(a) (SRC-1's basis)
+  - id: R101
+    block: CRK
+    title: Cracker tubes (catalyst-filled, in the radiant section of H-101)
+    class: ReactingChemicals
+    reactions: [NH3_CRACK]
+    reactor: equilibrium
+    # Q1: the radiant heat H-101 delivers, from scripts/balance.py (core's equilibrium model
+    # writes no duty, L-1; D-008)
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: E101B
+    block: CRK
+    title: Cracked gas cooler (hot side of the feed-effluent exchanger E-101)
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: gas}
+      - {id: heat, direction: out, kind: energy}
+  - id: K101
+    block: CRK
+    title: Combustion air fan
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-006: the tail gas burnt completely; its heat goes to R101 (Q1) and the rest to the
+  # convection coil E102 (Q2, energy_port), the flue gas leaving at the stack temperature
+  - id: H101
+    block: CRK
+    title: Furnace burners, radiant and convection sections (tail gas fired)
+    class: ReactingChemicals
+    reactions: [COMB_NH3, COMB_H2]
+    reactor: conversion
+    energy_port: conv
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: fuel, direction: in, delegates: tail}
+      - {id: air, direction: in}
+      - {id: flue, direction: out, delegates: flue}
+      - {id: rad, direction: out, kind: energy}
+      - {id: conv, direction: out, kind: energy}
+  # --- cooling and purification (D-005)
+  - id: E103
+    block: PUR
+    title: Cracked gas trim cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: U201
+    block: PUR
+    title: Hydrogen PSA unit
+    class: Adsorbing
+    links: [{target: equipment, ref: U-201}]
+    recovery:
+      outlets:
+        prod: {H2: 0.794, N2: 0.0002, NH3: 0.0}
+      provenance: assumed
+      source: "D-005: hydrogen recovery 79.4 % (EP 4 337 600 A1, SRC-1, reference example 2, the tail gas the only fuel); nitrogen 0.02 % of the inlet to the product (about 85 ppm(mol), inside the 300 ppm(mol) of ISO 14687 as SRC-1 states it), ASSUMED; the ammonia all retained, to the tail gas"
+    ports:
+      - {id: feed, direction: in}
+      - {id: prod, direction: out, delegates: h2}
+      - {id: tail, direction: out, delegates: tail}
+
+streams:
+  - id: S1
+    title: Liquid ammonia feed
+    from: NH3.out
+    to: E101A.in
+    template: ammonia
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-003: pressurised liquid ammonia at 20 C, as the HS420 design's feed (SRC-2)"}
+        pressure: {value: 1500, provenance: assumed, source: "D-003: 15 bar, as the HS420 design's feed (SRC-2)"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: assumed, source: "D-003: ammonia-1's anhydrous liquid ammonia, its dissolved gases and water not modelled"}
+        flow: {value: 60672.1, provenance: calculated, source: 'cheme process propagate: spec rate (S7 H2 flow kg/h 8333.33)', fingerprint: 752500b8af271d18}
+  - id: S2
+    title: Ammonia vapour
+    from: E101A.out
+    to: E102.in
+    template: ammonia
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: vaporised at 1350 kPa(a) (saturation 308.15 K, thermo 0.6.1) and superheated 5 K, ASSUMED"}
+        pressure: {value: 1350, provenance: assumed, source: "D-004: control valve and exchanger pressure drops, ASSUMED"}
+        phase: {value: vapor, provenance: assumed, source: "D-008"}
+        flow: {value: 60672.1, provenance: calculated, source: 'cheme process propagate: pass-through E101A from S1', fingerprint: d3096f941be84368}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101A from S1', fingerprint: d3096f941be84368}
+  - id: S3
+    title: Superheated ammonia to the cracker tubes
+    from: E102.out
+    to: R101.in
+    template: ammonia
+    state:
+      design:
+        temperature: {value: 723.15, provenance: assumed, source: "D-004: 450 C, inside 400-600 C of EP 4 337 600 A1 (SRC-1), ASSUMED"}
+        pressure: {value: 1250, provenance: assumed, source: "D-004: convection coil pressure drop, ASSUMED"}
+        phase: {value: vapor, provenance: assumed, source: "D-004"}
+        flow: {value: 60672.1, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S2', fingerprint: 158d9b2cc786b6a9}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S2', fingerprint: 158d9b2cc786b6a9}
+  - id: S4
+    title: Cracked gas from the tubes
+    from: R101.out
+    to: E101B.in
+    template: cracked
+    state:
+      design:
+        temperature: {value: 773.15, provenance: given, source: "EP 4 337 600 A1 (SRC-1), examples: equilibrium at 500 C (D-004)"}
+        pressure: {value: 1100, provenance: given, source: "EP 4 337 600 A1 (SRC-1), examples: equilibrium at 11 bar (D-004)"}
+        phase: {value: vapor, provenance: assumed, source: "D-004"}
+        flow: {value: 60672.1, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3', fingerprint: 047b50014c779d60}
+        composition: {basis: mole_fraction, values: {NH3: 0.0130466, N2: 0.246738, H2: 0.740215}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3', fingerprint: dec99db2efce9765}
+  - id: S5
+    title: Cracked gas after the ammonia vaporiser
+    from: E101B.out
+    to: E103.in
+    template: cracked
+    state:
+      design:
+        temperature: {value: 423.82, provenance: assumed, source: "scripts/balance.py: the cracked gas S4 after giving E-101's duty Q4 to the vaporising ammonia (D-008)"}
+        pressure: {value: 1080, provenance: assumed, source: "D-005: exchanger pressure drop, ASSUMED"}
+        phase: {value: vapor, provenance: assumed, source: "D-008"}
+        flow: {value: 60672.1, provenance: calculated, source: 'cheme process propagate: pass-through E101B from S4', fingerprint: d60ecfc179e068dd}
+        composition: {basis: mole_fraction, values: {NH3: 0.0130466, N2: 0.246738, H2: 0.740215}, provenance: calculated, source: 'cheme process propagate: pass-through E101B from S4', fingerprint: d60ecfc179e068dd}
+  - id: S6
+    title: Cooled cracked gas to the PSA
+    from: E103.out
+    to: U201.feed
+    template: cracked
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-005: 40 C, inside the 20-60 C PSA inlet of EP 4 337 600 A1 (SRC-1)"}
+        pressure: {value: 1060, provenance: assumed, source: "D-005, ASSUMED"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 60672.1, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S5', fingerprint: c96a09a898a17f2a}
+        composition: {basis: mole_fraction, values: {NH3: 0.0130466, N2: 0.246738, H2: 0.740215}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S5', fingerprint: c96a09a898a17f2a}
+  - id: S7
+    title: Hydrogen product
+    from: U201.prod
+    to: H2P.in
+    template: cracked
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "D-005, ASSUMED"}
+        pressure: {value: 1030, provenance: assumed, source: "D-005: at about the reaction pressure (SRC-1), less the PSA's pressure drop, ASSUMED"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 8343.06, provenance: calculated, source: 'cheme process propagate: separator U201 from S6', fingerprint: f63e9099b4b77467}
+        composition: {basis: mole_fraction, values: {H2: 0.999916, N2: 8.39559e-05, NH3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator U201 from S6', fingerprint: f63e9099b4b77467}
+  - id: S8
+    title: PSA tail gas to the burners
+    from: U201.tail
+    to: H101.fuel
+    template: cracked
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "D-005, ASSUMED"}
+        pressure: {value: 130, provenance: assumed, source: "D-005: PSA blow-down and purge pressure, ASSUMED"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 52329.0, provenance: calculated, source: 'cheme process propagate: separator U201 from S6', fingerprint: f63e9099b4b77467}
+        composition: {basis: mole_fraction, values: {H2: 0.36991, N2: 0.59844, NH3: 0.0316496}, provenance: calculated, source: 'cheme process propagate: separator U201 from S6', fingerprint: f63e9099b4b77467}
+  - id: S9
+    title: Combustion air
+    from: AIR.out
+    to: K101.in
+    template: air
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-006"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        composition: {basis: mole_fraction, values: {N2: 0.78084, O2: 0.20946, AR: 0.0097}, provenance: assumed, source: "D-006: dry air, its argon, CO2 and other minor gases counted as argon, ASSUMED"}
+        flow: {value: 99792.6, provenance: calculated, source: 'cheme process propagate: spec air (S11 O2 mole fraction 0.02)', fingerprint: 752500b8af271d18}
+  - id: S10
+    title: Combustion air to the burners
+    from: K101.out
+    to: H101.air
+    template: air
+    state:
+      design:
+        temperature: {value: 303.31, provenance: assumed, source: "scripts/balance.py: K-101's discharge, isentropic efficiency 0.75, ASSUMED (D-008)"}
+        pressure: {value: 106, provenance: assumed, source: "D-006: fan discharge for the burners and the convection section, ASSUMED"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 99792.6, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S9', fingerprint: 4fbc2038c65a1dc2}
+        composition: {basis: mole_fraction, values: {N2: 0.78084, O2: 0.20946, AR: 0.0097}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S9', fingerprint: 4fbc2038c65a1dc2}
+  - id: S11
+    title: Flue gas to stack
+    from: H101.flue
+    to: FLUE.in
+    template: flue
+    state:
+      design:
+        temperature: {value: 492.04, provenance: assumed, source: "scripts/balance.py: the stack temperature at which the tail gas's heat covers Q1 and the superheater coil E-102 (D-006, D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 152122.0, provenance: calculated, source: 'cheme process propagate: reactor H101 from S8 S10', fingerprint: e63d5256dc1356b5}
+        composition: {basis: mole_fraction, values: {H2: 0.0, N2: 0.766753, NH3: 0.0, O2: 0.0200002, AR: 0.00573117, H2O: 0.207515}, provenance: calculated, source: 'cheme process propagate: reactor H101 from S8 S10', fingerprint: fa572afdf5088e19}
+  - {id: Q1, title: "Radiant heat to the cracker tubes R-101", kind: energy, from: H101.rad, to: R101.heat, state: {design: {duty: {value: 53596.4, provenance: assumed, source: "scripts/balance.py: the enthalpy of the cracked gas S4 less that of the ammonia S3 on the elements basis of process/materials.yaml (D-008)"}}}}
+  - {id: Q2, title: "Convection heat to the ammonia superheater E-102", kind: energy, from: H101.conv, to: E102.heat, state: {design: {duty: {value: 17280.0, provenance: calculated, source: 'cheme process propagate: conversion duty H101 from S8 S10 S11', fingerprint: 68b26a7350a62afa}}}}
+  - {id: Q4, title: "Feed-effluent exchanger E-101: cracked gas heat to the ammonia vaporiser", kind: energy, from: E101B.heat, to: E101A.heat, state: {design: {duty: {value: 20310.3, provenance: assumed, source: "scripts/balance.py: liquid ammonia S1 to vapour S2, thermo 0.6.1 HEOS_FIT liquid heat capacity, vapour pressure and heat of vaporization (D-008)"}}}}
+  - {id: Q3, title: "Cracked gas trim cooler E-103", kind: energy, from: E103.cw, to: CW.e103, state: {design: {duty: {value: 6321.3, provenance: assumed, source: "scripts/balance.py: the cracked gas S5 cooled to S6 (D-008)"}}}}
+  - {id: W1, title: "Combustion air fan K-101", kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 151.2, provenance: assumed, source: "scripts/balance.py: adiabatic compression of S9 to 106 kPa(a), isentropic efficiency 0.75, drive 0.95, ASSUMED (D-008)"}}}}
+layout: {bfd: {}, pfd: {}}

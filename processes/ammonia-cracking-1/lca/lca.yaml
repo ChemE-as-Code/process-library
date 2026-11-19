@@ -1,0 +1,80 @@
+# Goal and scope of the ammonia-cracking-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-010): every exchange of the plant
+# with its amount per kg of hydrogen from the design case of process/flowsheet.yaml. This study
+# links no background, so every feed and utility carries `missing:` with the activity it should
+# connect to, never zero, and no values from licensed databases. In the Atlas LCI
+# (scripts/build_lci.py) lca/mappings.yaml links the ammonia to its library producer ammonia-1,
+# and the shared lci/mappings.yaml links electricity and cooling water through its proxies; the
+# burner NOx is an open exclusion.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of hydrogen made by catalytic cracking of
+  ammonia in a fired tubular cracker with PSA purification, the PSA tail gas the furnace's only
+  fuel, at the concept stage: which raw materials, utilities and emissions the plant exchanges
+  per kg of hydrogen, as the foreground for a cradle-to-gate study of hydrogen carried as
+  ammonia, with the library's ammonia (ammonia-1).
+functional_unit: {product: H2P, amount: 1, unit: kg, source: "1 kg of hydrogen (99.99 mol%, 84 ppm(mol) N2, no ammonia) at 1030 kPa(a) at the plant gate, stream S7 (D-002, D-005)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain gaps or links
+# instead of being mapped free (the schema's gate-to-gate maps every feed free).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Catalytic ammonia cracking: pressurised liquid ammonia vaporised against the cracked gas, superheated to 723 K in the convection section and cracked over a nickel catalyst in fired tubes to equilibrium at 773 K and 1100 kPa(a) (97.4 % of the ammonia cracked); cracked gas cooled to 313 K, hydrogen purified by PSA (79.4 % hydrogen recovery) to 99.99 mol%; the PSA tail gas (hydrogen, nitrogen, ammonia) is the furnace's only fuel, burnt with 2 mol% excess oxygen; 200 t/d of hydrogen in 8000 h (EP 4 337 600 A1 reference example 2)"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # --- raw materials
+  - key: feed:NH3
+    missing: "linked to processes/ammonia-1 (lca/mappings.yaml): anhydrous liquid ammonia from natural-gas steam reforming and Haber-Bosch synthesis"
+    source: "flowsheet stream S1, 7.27 kg per kg of product (7.28 per kg of its H2): 97.4 % cracked in R-101, the hydrogen of 79.4 % of it recovered by the PSA, the rest burnt in H-101 (D-004, D-005)"
+  - {key: feed:AIR, free: true, source: "combustion air S9 (99.8 t/h): a resource taken from nature without burden"}
+  # --- utilities
+  - key: feed:POWER
+    missing: "linked in the Atlas LCI by the shared mapping (market for electricity, medium voltage), D-010; connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy stream W1, the combustion air fan K-101, 0.0181 kWh/kg (D-008); the PSA's valves and the plant's instruments not counted"
+  - key: product:CW
+    missing: "linked in the Atlas LCI by the shared mapping (cooling water service per kWh rejected, a screening proxy), D-010; connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy stream Q3, the cracked gas trim cooler E-103, 0.758 kWh/kg (D-008)"
+  # --- emissions
+  - {key: product:FLUE, emission: true, source: "flowsheet stream S11: the flue gas of H-101 to stack at 492 K (D-006)"}
+  - {key: emission:N2, free: true, source: "nitrogen of the air and of the cracked ammonia returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess combustion oxygen returned to the atmosphere (2.0 mol% of the flue gas, D-006)"}
+  - {key: emission:AR, free: true, source: "argon and the other minor gases of the combustion air returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour of the burnt hydrogen and ammonia: not an inventoried elementary emission in this study"}
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "NOT ESTIMATED, not a measured zero: 0 only because complete combustion is ASSUMED (D-006); see the emission exclusion burner-nox-and-slip"}
+  - {key: emission:NH3, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "NOT ESTIMATED, not a measured zero: 0 only because the tail gas's ammonia is ASSUMED burnt completely to N2 (D-006); ammonia slip of the burners is open (emission exclusion burner-nox-and-slip)"}
+emission_exclusions:
+  - id: burner-nox-and-slip
+    method: combustion
+    equipment: [H-101]
+    reason: >-
+      NOT ESTIMATED, open point of D-006 and L-3: the burners fire a tail gas with 3.2 mol%
+      ammonia, part of which forms NO (fuel NOx) and some of which may slip unburnt; N2O may
+      form too. The flowsheet burns it completely to N2 and water. No open source read here
+      gives a NOx, N2O or slip factor for ammonia-bearing tail gas at this scale, nor the
+      low-NOx burners or the SCR that would keep them within a permit; the zeros in the
+      inventory are not data.
+    source: "DESIGN.md D-006, D-010, L-3"
+  - {id: fugitive-losses, method: equipment-leaks, reason: "No P&ID yet: fugitive ammonia and hydrogen from flanges, seals and valves, and the PSA's depressurisation losses beyond the tail gas, are not estimated at the concept stage (D-010)."}
+# Not inventoried, and not cut off: the replacement of the cracking catalyst in R-101 and of the
+# PSA adsorbents. No open source read here gives the catalyst volume (no kinetics, L-4), its life
+# or the adsorbents' life (DESIGN.md D-010, open inputs); an amount would be a guess. They are
+# added as consumables once a rate is sourced.
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 20 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic import terminal site with liquid ammonia supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #519, unreviewed"
