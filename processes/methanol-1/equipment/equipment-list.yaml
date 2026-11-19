@@ -19,13 +19,13 @@ equipment:
   # ---- synthesis loop (block SYN), sheets P-02 and P-03
   - {tag: K-102, type: CentrifugalCompressor, service: Recycle circulator, sheet: P-02,
      design_pressure_barg: 89, design_temperature_degc: 75, material: CS,
-     notes: "7500 -> 8150 kPa(a), 608 t/h; ~4.7 MW shaft at isentropic efficiency 0.75 (D-010, ASSUMED). Often on the make-up compressor's shaft; separate here (D-010). Electric drive ASSUMED."}
+     notes: "7500 -> 8150 kPa(a), 597 t/h (S4); ~4.8 MW shaft (Q3, DWSIM, D-014) at isentropic efficiency 0.75 (D-010, ASSUMED). Often on the make-up compressor's shaft; separate here (D-010). Electric drive ASSUMED."}
   - {tag: E-102, type: TubularHeatExchanger, service: Converter feed/effluent exchanger, sheet: P-02,
      design_pressure_barg: 89, design_temperature_degc: 280, material: "CS (hydrogen service: materials per the HP hydrogen rules, open input)",
-     notes: "Feed 322 -> 498 K, effluent 528 -> 373 K, ~96 MW (D-006); effluent starts to condense in it (vapour fraction 0.97 at the outlet). Feed in the tubes, effluent in the shell; a cold bypass TV-205 sets the converter inlet temperature (D-018). ASSUMED."}
+     notes: "Feed 323 -> 498 K, effluent 528 -> 372 K, ~98 MW (DWSIM, D-014; the script's 96 MW in D-006); effluent starts to condense in it (vapour fraction 0.97 at the outlet in the script, D-006). Feed in the tubes, effluent in the shell; a cold bypass TV-205 sets the converter inlet temperature (D-018). ASSUMED."}
   - {tag: R-101, type: TubularHeatExchanger, service: "Methanol converter (boiling-water, catalyst in the tubes)", sheet: P-02,
      design_pressure_barg: 89, design_temperature_degc: 280, material: "tubes CS / low-alloy (hydrogen service, open input); shell CS",
-     notes: "Isothermal steam-raising converter on Cu/ZnO/Al2O3 (CU_ZNO), outlet 528 K / 7900 kPa(a), ~64-66 MW to MP steam at 2800 kPa(a) (shell design 30 barg, 260 C; D-003). Shell side on natural circulation with the steam drum V-104 (D-018). Catalyst volume and tube count not sized: no kinetics chosen (D-005). Listed as a tubular exchanger because DEXPI has no tubular-reactor class in this list; ASSUMED."}
+     notes: "Isothermal steam-raising converter on Cu/ZnO/Al2O3 (CU_ZNO), outlet 528 K / 7900 kPa(a), ~65.4 MW to MP steam at 2800 kPa(a) (Q4, DWSIM, D-014) (shell design 30 barg, 260 C; D-003). Shell side on natural circulation with the steam drum V-104 (D-018). Catalyst volume and tube count not sized: no kinetics chosen (D-005). Listed as a tubular exchanger because DEXPI has no tubular-reactor class in this list; ASSUMED."}
   - {tag: V-104, type: Vessel, service: Converter steam drum, sheet: P-02,
      design_pressure_barg: 30, design_temperature_degc: 260, material: CS,
      notes: "Added with the P&IDs (D-016, D-018): separates the steam raised in the R-101 shell (natural circulation, riser SW-232, downcomer BW-233), takes the boiler feed water and the continuous blowdown. Design as the R-101 shell (D-003), ASSUMED. Size and circulation ratio not calculated."}
@@ -34,14 +34,14 @@ equipment:
      notes: "373 -> 313 K, ~57 MW to cooling water; air cooler plus trim cooler is the usual alternative (D-009). ASSUMED."}
   - {tag: V-101, type: Vessel, service: HP separator (crude methanol), sheet: P-03,
      design_pressure_barg: 89, design_temperature_degc: 65, material: CS,
-     notes: "313 K, 7500 kPa(a); gas 487 t/h, liquid 121 t/h (D-008). Carries the loop relief valve PSV-302 (D-019). ASSUMED."}
+     notes: "313 K, 7500 kPa(a); gas 476 t/h (S10), liquid 121 t/h (S13) (DWSIM, D-014; D-008). Carries the loop relief valve PSV-302 (D-019). ASSUMED."}
   # ---- purification (block PUR), sheets P-03 to P-05
   - {tag: V-102, type: Vessel, service: LP flash drum (let-down), sheet: P-03,
      design_pressure_barg: 10, design_temperature_degc: 70, material: CS,
      notes: "600 kPa(a); gas blow-by from V-101 is a relief case (PSV-311, LZ-306 / XV-306, D-008, D-019). ASSUMED."}
   - {tag: C-201, type: ProcessColumn, service: Topping column (light ends), sheet: P-04,
      design_pressure_barg: 5, design_temperature_degc: 180, material: CS,
-     notes: "Top 150 kPa(a), bottom 200 kPa(a); stages not calculated (D-008). Design 5 barg and full vacuum (loss of reboiler heat with the condenser running, D-022). ASSUMED."}
+     notes: "Top 150 kPa(a), bottom 200 kPa(a); stages not calculated: the shortcut gives no usable number (negative minimum reflux), a rigorous column is needed (D-008, D-014). Design 5 barg and full vacuum (loss of reboiler heat with the condenser running, D-022). ASSUMED."}
   - {tag: E-201, type: TubularHeatExchanger, service: Topping column condenser, sheet: P-04,
      design_pressure_barg: 5, design_temperature_degc: 120, material: CS,
      notes: "~13 MW to cooling water at an ASSUMED reflux of 0.3 kmol per kmol feed (D-008). Partial condenser: the off-gas leaves V-201 (D-020). Process side 5 barg and full vacuum (D-022), ASSUMED."}
@@ -56,7 +56,7 @@ equipment:
      notes: "Installed spare of P-201A (D-016, D-020). ASSUMED."}
   - {tag: E-202, type: TubularHeatExchanger, service: Topping column reboiler, sheet: P-04,
      design_pressure_barg: 5, design_temperature_degc: 180, material: CS,
-     notes: "~19 MW from LP steam 450 kPa(a) (D-008, D-009); thermosyphon ASSUMED (D-020). Process side 5 barg and full vacuum (open to the C-201 sump, D-022); steam side 6 barg ASSUMED and full vacuum: with TV-402 closed the steam left in the steam side condenses to vacuum (at about 2.4 kg/m3 that is only about 0.3 % of the steam-side volume as condensate, so it goes to vacuum without flooding), and the check valve CV-439 stops condensate being drawn back from the header into it. The steam side floods in normal operation instead: at low load, with TV-402 throttled (or a closed TV-402 passing), the steam-side pressure falls below the condensate header pressure, ST-439 stalls and condensate backs up over the tubes, which takes heating surface and makes TIC-402 sluggish (D-022; condensate draining and the stall point, I-14)."}
+     notes: "~18.0 MW from LP steam 450 kPa(a) (Q6, DWSIM, D-014; D-008, D-009); thermosyphon ASSUMED (D-020). Process side 5 barg and full vacuum (open to the C-201 sump, D-022); steam side 6 barg ASSUMED and full vacuum: with TV-402 closed the steam left in the steam side condenses to vacuum (at about 2.4 kg/m3 that is only about 0.3 % of the steam-side volume as condensate, so it goes to vacuum without flooding), and the check valve CV-439 stops condensate being drawn back from the header into it. The steam side floods in normal operation instead: at low load, with TV-402 throttled (or a closed TV-402 passing), the steam-side pressure falls below the condensate header pressure, ST-439 stalls and condensate backs up over the tubes, which takes heating surface and makes TIC-402 sluggish (D-022; condensate draining and the stall point, I-14)."}
   - {tag: P-202A, type: CentrifugalPump, service: Topping column bottoms pump (feed to C-202), sheet: P-04,
      design_pressure_barg: 10, design_temperature_degc: 180, material: CS,
      notes: "Added with the P&IDs: the pump between the columns that D-008 left open (CM-117, 117.6 t/h); P-202B the installed spare (D-016, D-020). Design ASSUMED, head not calculated."}
@@ -65,10 +65,10 @@ equipment:
      notes: "Installed spare of P-202A (D-016, D-020). ASSUMED."}
   - {tag: C-202, type: ProcessColumn, service: Refining column, sheet: P-05,
      design_pressure_barg: 5, design_temperature_degc: 180, material: CS,
-     notes: "Top 110 kPa(a), bottom 200 kPa(a); Grade AA overhead, water bottoms; a fusel-oil side draw is usual but not modelled (no by-products, D-005, D-008); stages not calculated. Design 5 barg and full vacuum (D-022). ASSUMED."}
+     notes: "Top 110 kPa(a), bottom 200 kPa(a); Grade AA overhead, water bottoms; a fusel-oil side draw is usual but not modelled (no by-products, D-005, D-008); shortcut (DWSIM, D-014): minimum reflux 0.725, minimum stages 17.0, 27.3 theoretical stages at reflux ratio 1.5, a rigorous column still to come. Design 5 barg and full vacuum (D-022). ASSUMED."}
   - {tag: E-203, type: TubularHeatExchanger, service: Refining column condenser and product cooler, sheet: P-05,
      design_pressure_barg: 5, design_temperature_degc: 120, material: CS,
-     notes: "~92 MW to cooling water at reflux ratio 1.5 (ASSUMED, D-008); heat integration with the converter steam or a pressure-staged column pair is a basic-engineering option (D-008). Total condenser (D-020); process side 5 barg and full vacuum (D-022), ASSUMED."}
+     notes: "~84.5 MW to cooling water at reflux ratio 1.5 (ASSUMED, D-008): the condenser duty Q9 (DWSIM, D-014), plus about 2 MW of product subcooling from 340 to 313 K, a hand estimate that is no flowsheet value (D-014); heat integration with the converter steam or a pressure-staged column pair is a basic-engineering option (D-008). Total condenser (D-020); process side 5 barg and full vacuum (D-022), ASSUMED."}
   - {tag: V-202, type: Vessel, service: Refining column reflux drum, sheet: P-05,
      design_pressure_barg: 5, design_temperature_degc: 120, material: CS,
      notes: "Added with the P&IDs (D-016, D-020): reflux and product surge, vented to the LP flare header on the column pressure (PIC-504). Design as C-202 (5 barg and full vacuum), ASSUMED. Size not calculated."}
@@ -80,7 +80,7 @@ equipment:
      notes: "Installed spare of P-203A (D-016, D-020). ASSUMED."}
   - {tag: E-204, type: TubularHeatExchanger, service: Refining column reboiler, sheet: P-05,
      design_pressure_barg: 5, design_temperature_degc: 180, material: CS,
-     notes: "~87 MW from LP steam 450 kPa(a) (D-008, D-009); thermosyphon ASSUMED (D-020). Process side 5 barg and full vacuum (open to the C-202 sump, D-022); steam side 6 barg ASSUMED and full vacuum: with TV-502 closed the steam left in the steam side condenses to vacuum (about 0.3 % of the steam-side volume as condensate, no flooding), and the check valve CV-542 stops condensate being drawn back from the header into it. The steam side floods in normal operation instead: at low load, with TV-502 throttled (or a closed TV-502 passing), the steam-side pressure falls below the condensate header pressure, ST-542 stalls and condensate backs up over the tubes, which takes heating surface and makes TIC-502 sluggish (D-022; condensate draining and the stall point, I-14). ASSUMED."}
+     notes: "~83.2 MW from LP steam 450 kPa(a) (Q8, DWSIM, D-014; D-008, D-009); thermosyphon ASSUMED (D-020). Process side 5 barg and full vacuum (open to the C-202 sump, D-022); steam side 6 barg ASSUMED and full vacuum: with TV-502 closed the steam left in the steam side condenses to vacuum (about 0.3 % of the steam-side volume as condensate, no flooding), and the check valve CV-542 stops condensate being drawn back from the header into it. The steam side floods in normal operation instead: at low load, with TV-502 throttled (or a closed TV-502 passing), the steam-side pressure falls below the condensate header pressure, ST-542 stalls and condensate backs up over the tubes, which takes heating surface and makes TIC-502 sluggish (D-022; condensate draining and the stall point, I-14). ASSUMED."}
   - {tag: P-204A, type: CentrifugalPump, service: Refining column bottoms water pump, sheet: P-05,
      design_pressure_barg: 10, design_temperature_degc: 180, material: CS,
      notes: "Added with the P&IDs (D-016, D-020); P-204B the installed spare. Bottoms water 13.8 t/h to the battery limit. Design ASSUMED, head not calculated."}

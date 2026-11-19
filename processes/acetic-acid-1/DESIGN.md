@@ -32,7 +32,7 @@ point: library commit 11d50ef, cheme 0.8.0 (pyDEXPI 2.1.0). Numbers live in the 
 | # | source | locator | read status | reuse terms | used for |
 |---|---|---|---|---|---|
 | S1 | US 6,140,535 A (BP Chemicals, 2000), Iridium-catalyzed carbonylation process for the production of acetic acid, https://patents.google.com/patent/US6140535A/en | Description (operating ranges, FIG. 1/2 discussion); Examples 1-5 table | read (Google Patents full text) | patent document: facts used, no text or table copied | reactor T, P, water, CH3I, MeOAc; CO2 and CH4 make relative to carbonylation; H2 in CO feed; flash 1-4 bar(a); product limits <1500 ppm water, <400 ppm propionic; carbonylation rate 17.3-20.3 mol/(l h) |
-| S2 | Jones, J.H. (2000) Platinum Metals Review 44(3) 94-105, doi:10.1595/003214000X44394105 | page not verified | **not read** (publisher returned 403); one statement seen only in a search-engine excerpt: propionic acid before the heavies column about one third of the rhodium process's 1200-2000 ppm | journal article: cite only | propionic-acid order of magnitude (D-004), route description |
+| S2 | Jones, J.H. (2000) Platinum Metals Review 44(3) 94-105, doi:10.1595/003214000X44394105 | page not verified | **not read** (publisher returned 403); one statement seen only in a search-engine excerpt: propionic acid before the heavies column about one third of the rhodium process's 1200-2000 ppm | journal article: cite only | route description (Cativa process) only; not a basis for any value (review 2026-10-28 #3) |
 | S3 | Sunley, G.J., Watson, D.J. (2000) Catal. Today 58, 293-307, doi:10.1016/S0920-5861(00)00263-7 | - | not read (paywalled) | cite only | route reference |
 | S4 | Le Berre, C. et al. (2014) Acetic acid, Ullmann's Encyclopedia, doi:10.1002/14356007.a01_045.pub3 | - | not read (licensed) | cite only | route reference for the next source audit |
 | S5 | Budsberg, E. et al. (2020) Biotechnol. Biofuels 13, 154, doi:10.1186/s13068-020-01784-y (PMC7469289) | Introduction | read (Europe PMC full text) | CC BY 4.0 | carbonylation is the main route (context only); no fossil inventory given |
@@ -153,8 +153,10 @@ with 2 kg acetic acid per kg, to incineration; the product keeps 50 ppm(wt). ASS
 
 ### D-010 Machines (2026-10-28)
 Decision: electric pumps, efficiency 0.65; liquids returned to the reactor are pumped to
-2900-3000 kPa(a). No compressor inside the boundary (CO delivered at pressure). ASSUMED; the
-power is a known underestimate (no agitator, vacuum, cooling-water or tank-farm power).
+2900-3000 kPa(a): P-101 (S01 300 -> S02 3000 kPa(a)) and P-102 (S11 250 -> S12 3000 kPa(a))
+on the rises of their streams, the column recycles to 2900 kPa(a). No compressor inside the
+boundary (CO delivered at pressure). ASSUMED; the power is a known underestimate (no agitator,
+vacuum, cooling-water or tank-farm power).
 
 ### D-011 Materials of construction (2026-10-28)
 Decision: none fixed. Wet iodide and acid at reaction temperature needs zirconium (S7) or
@@ -210,7 +212,7 @@ Per kg glacial acetic acid (lca/inventory.csv; flows from process/flowsheet.yaml
 | methanol (feed:MEOH) | 0.5390 kg | S01 | stoichiometric 0.5336: 99.1 % yield |
 | CO gas (feed:COGAS) | 0.4880 kg | S03 | 0.4824 kg CO; stoichiometric 0.4664: 96.7 % yield |
 | methyl iodide (feed:MEI) | 2.7e-6 kg | S04 | off-gas slip only |
-| electricity (feed:POWER) | 0.0079 kWh | Q01, Q02, Q06, Q09, Q12 | pumps only, underestimate |
+| electricity (feed:POWER) | 0.0080 kWh | Q01, Q02, Q06, Q09, Q12 | pumps only, underestimate |
 | MP steam (feed:MPS) | 0.452 kWh (1.63 MJ) | Q04, Q07, Q10 | shortcut |
 | heat to cooling water (product:CW) | 1.092 kWh (3.93 MJ) | Q03, Q05, Q08, Q11 | shortcut |
 | off-gas to flare/oxidiser (product:OFFGAS) | 0.0257 kg | S23 | 45 % CO, 20 % CH4, 14 % CO2 (mol) |
@@ -218,7 +220,8 @@ Per kg glacial acetic acid (lca/inventory.csv; flows from process/flowsheet.yaml
 
 Balances: cheme validate 0 errors; every block and step closes; the reactor's extents explain
 every component change (cheme process streams). LCI (cheme assess lca --balance): mass in
-61,621.9 kg/h, out 61,621.8; C, H, I, N, O close within 0.05 %. Classification: partial (8
+61,621.9 kg/h, out 61,621.8; C, H, N, O close within 0.001 %; I within
+0.054 % (8e-5 kg/h on the 0.14 kg/h iodine of the make-up). Classification: partial (8
 gaps, every exchange unmapped by design). Energy: not evaluable in core (no stream enthalpies);
 balance.py closes reactor, flash (with the 11.2 MW of E-102, D-014) and columns separately. The
 steam and cooling-water rows hold with the flash heated by the reactor circuit; without that
@@ -249,9 +252,9 @@ integration (adiabatic flash) steam would rise by about 0.19 kWh/kg (D-014).
 
 ## Library items to add later (shared files, not edited here)
 
-- chemicals/chemicals.yaml: methanol (the feed), carbon-monoxide (the feed gas), acetic-acid with
-  a glacial grade (the main product), methyl-iodide (make-up), propionic-acid (heavy ends);
-  methyl-acetate only as an internal component.
+- chemicals/chemicals.yaml: propionic-acid (heavy ends), methyl-acetate only as an internal
+  component, and a glacial grade for acetic-acid (the main product). Methanol, carbon-monoxide,
+  iodomethane and acetic-acid are in the registry since #251 and named in process.yaml.
 - lci/mappings.yaml: technosphere entries for methanol (or a link to methanol-1's dataset),
   carbon monoxide gas, methyl iodide, thermal oxidation of a CO-rich vent gas and hazardous
   incineration of organic acid waste.

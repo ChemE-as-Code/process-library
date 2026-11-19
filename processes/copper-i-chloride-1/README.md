@@ -23,13 +23,18 @@ and core's dryer. `process/recipe.yaml` holds the batch recipe the cycle time (9
 a year), the vessel sizes, the jacket check and the flowsheet's year-average flows come from
 (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process crystallizers`). R101
 writes its heat at its `energy_port`. At the assumed rates the thermal screening finds a small
-rise (MTSR 354.2 K from core, 354.4 K for the reaction network by hand, against an MTT of 373.1
-K). At a hundred times slower rates the network's MTSR reaches 372.1 K, within about 1 K of the
-MTT on water's boiling point (core, taking each reaction alone, gives 363.5 K). The dosing
-therefore stops on a sign of accumulation, a recorded safety requirement. That stop, the
-chlorine's breakthrough to the vent scrubber, the reduction's end point and the ethanol handled
-above its flash point in the filter-dryer are the design findings (DESIGN.md D-011).
-Needs cheme-as-code 1.9.0. DESIGN.md lists the core features used and the core limits hit.
+rise: core's MTSR of the reaction network (the comproportionation's heat counted, core 1.12.0)
+is 354.4 K against an MTT of 375.8 K, the charged brine's bubble point by Raoult's law, a lower
+bound of the real brine's boiling point (D-014). At a hundred times slower rates the network's
+MTSR reaches 372.1 K: 3.7 K below that MTT, and 1.0 K below water's boiling point, which was the
+MTT before. The dosing stops on a sign of accumulation, a recorded safety requirement. The
+chlorine the slow cases accumulate (7.0 kg at k/10, 46.2 kg at k/100) is more than the hot brine
+holds (about 0.4-0.9 g/L by water's Henry constant, 1.6-3.2 kg in R-101), so from about k/10 it
+breaks through to the vent scrubber T-201 during the dosing, which is sized for the whole feed
+and holds the caustic for a whole batch's chlorine (D-014). That stop, the breakthrough, the
+reduction's end point and the ethanol handled above its flash point in the filter-dryer are
+the design findings (DESIGN.md D-011, D-014). Modelled on cheme-as-code 1.9.0 and screened on
+1.12.0, which it needs. DESIGN.md lists the core features used and the core limits hit.
 
 Two headline numbers carry caveats. The modelled product is 99.8 wt% CuCl, an ASSUMED upper
 bound: the model has no oxidation by air, and the only open specification is at least 98 wt%.

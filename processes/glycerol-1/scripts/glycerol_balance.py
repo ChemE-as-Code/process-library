@@ -39,7 +39,7 @@ FEED["GLY"] = round(1.0 - sum(FEED.values()), 5)
 
 PARAMETERS = {
     "product_kg_h": 1250.0,        # D-002: refined glycerol, 10 000 t/a at 8000 h/a (ASSUMED)
-    "hcl_excess": 0.10,            # D-005: 10 % over the alkali (NaOH + soap) to reach pH ~3-4
+    "hcl_excess": 0.10,            # D-005: 10 % over the catalyst sodium (NaOCH3) to reach pH ~3-4
     "hcl_wt": 0.32,                # D-005: commercial 32 wt% hydrochloric acid
     "naoh_wt": 0.50,               # D-005: 50 wt% caustic soda for the neutraliser
     "fa_to_layer": 0.97,           # D-006: fatty acids and FAME reporting to the fatty-acid layer
