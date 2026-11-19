@@ -24,7 +24,7 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 - amount:emission:HCHO: +0.11
 - amount:consumable:oil-filters: +0.05
 - amount:feed:PW: -0.05
-- amount:product:STEAM: -0.02
+- amount:product:MPS: -0.02
 - amount:emission:DME: +0.02
 - amount:product:CW: +0.01
 - amount:feed:POWER: +0.01
@@ -45,7 +45,7 @@ Sensitivity, Climate change (kg CO2-eq) (Spearman rank correlation with the tota
 | feed:POWER (input) | operation | 0.084495 kWh | assumed | missing: grid electricity at medium voltage of the site's country (site not chosen), e.g. 'market for electricity, medium voltage' of that country |
 | product:FORMALIN (output) | operation | 1 kg | assumed | coproduct |
 | product:STACK (output) | operation | 1.50884 kg | calculated | emission |
-| product:STEAM (output) | operation | 0.561275 kWh | assumed | missing: exported MP steam (1500 kPa(a), saturated) is a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. 'heat production, natural gas, at industrial furnace' or an MP steam dataset per MJ) and an allocation decision by the LCA practitioner (D-010). Not linked; boiler feed water and its preparation are inside that steam system. |
+| product:MPS (output) | operation | 0.561275 kWh | assumed | missing: exported MP steam (1500 kPa(a), saturated) is a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. 'heat production, natural gas, at industrial furnace' or an MP steam dataset per MJ) and an allocation decision by the LCA practitioner (D-010). Not linked, on purpose, here and in the Atlas build: linked as steam it would be booked as steam bought in. Boiler feed water and its preparation are inside that steam system. |
 | product:CW (output) | operation | 0.65496 kWh | assumed | missing: heat rejected to the site cooling-water system (circulation pumping, cooling-tower fans, make-up water and blowdown), e.g. a cooling-tower utility dataset per MJ rejected |
 | emission:AR (output) | operation | 0.0224076 kg | calculated | free |
 | emission:CH3OH (output) | operation | 6.03991e-06 kg | calculated | elementary:air, fossil |
@@ -76,7 +76,7 @@ These exchanges have no burden in the category: the totals exclude them (they ar
 | climate-change | feed:MEOH | 0.57373 kg | declared missing: no background available (methanol at the plant gate; link the LCI dataset of processes/methanol-1 (Grade AA from natural-gas syngas) once it exists, otherwise a market activity for methanol of the site's region (e.g. 'market for methanol', RER/GLO). Not linked: methanol-1 has no dataset yet.) |
 | climate-change | feed:PW | 0.18555 kg | declared missing: no background available (demineralised (deionised) water production from the site water supply, e.g. 'market for water, deionised' (RER/Europe without Switzerland)) |
 | climate-change | feed:POWER | 0.084495 kWh | declared missing: no background available (grid electricity at medium voltage of the site's country (site not chosen), e.g. 'market for electricity, medium voltage' of that country) |
-| climate-change | product:STEAM | 0.561275 kWh | declared missing: no background available (exported MP steam (1500 kPa(a), saturated) is a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. 'heat production, natural gas, at industrial furnace' or an MP steam dataset per MJ) and an allocation decision by the LCA practitioner (D-010). Not linked; boiler feed water and its preparation are inside that steam system.) |
+| climate-change | product:MPS | 0.561275 kWh | declared missing: no background available (exported MP steam (1500 kPa(a), saturated) is a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. 'heat production, natural gas, at industrial furnace' or an MP steam dataset per MJ) and an allocation decision by the LCA practitioner (D-010). Not linked, on purpose, here and in the Atlas build: linked as steam it would be booked as steam bought in. Boiler feed water and its preparation are inside that steam system.) |
 | climate-change | product:CW | 0.65496 kWh | declared missing: no background available (heat rejected to the site cooling-water system (circulation pumping, cooling-tower fans, make-up water and blowdown), e.g. a cooling-tower utility dataset per MJ rejected) |
 | climate-change | consumable:femo-catalyst | 3e-05 kg | declared missing: no background available (no background chosen: production of iron molybdate catalyst (molybdenum trioxide and iron salts, calcination); no open dataset known) |
 | climate-change | consumable:ecs-catalyst | 7.5e-06 kg | declared missing: no background available (no background chosen: production of a platinum-on-ceramic oxidation catalyst) |

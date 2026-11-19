@@ -1,0 +1,86 @@
+# Reactions of acrylonitrile-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+# AMMOX from `cheme chemistry library acrylonitrile`; the side reactions are the ones the IPCC
+# 2006 Guidelines (Vol. 3, ch. 3, Box 3.12, p. 3.61) write for the SOHIO process, plus the
+# acrolein, acrylic acid and ammonia-burning reactions that the measured product slate of
+# US 6 596 897 B1 needs (DESIGN.md D-004). No heat_of_reaction is typed: cheme takes it from the
+# components' ideal-gas formation data. The reactor R101 is a sourced selectivity model on the
+# step, not kinetics; the quench R102 and the thermal oxidiser R401 use assumed conversions.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # Fluid-bed ammoxidation reactor R101 (D-004): extents from the step's selectivity:
+  - id: AMMOX
+    equation: C3H6 + NH3 + 3/2 O2 -> C3H3N + 3 H2O
+    stoichiometry: {C3H6: -1.0, NH3: -1.0, O2: -1.5, ACN: 1.0, H2O: 3.0}
+    catalyst: BIMO
+    sources: ["IPCC 2006 Guidelines Vol. 3 ch. 3, Box 3.12, p. 3.61 (acrylonitrile reaction)"]
+  - id: HCN_F
+    equation: C3H6 + 3 NH3 + 3 O2 -> 3 HCN + 6 H2O
+    stoichiometry: {C3H6: -1.0, NH3: -3.0, O2: -3.0, HCN: 3.0, H2O: 6.0}
+    catalyst: BIMO
+    sources: ["IPCC 2006 Guidelines Vol. 3 ch. 3, Box 3.12, p. 3.61 (hydrogen cyanide reaction)"]
+  - id: MECN_F
+    equation: C3H6 + 3/2 NH3 + 3/2 O2 -> 3/2 C2H3N + 3 H2O
+    stoichiometry: {C3H6: -1.0, NH3: -1.5, O2: -1.5, MECN: 1.5, H2O: 3.0}
+    catalyst: BIMO
+    sources: ["IPCC 2006 Guidelines Vol. 3 ch. 3, Box 3.12, p. 3.61 (acetonitrile reaction)"]
+  - id: ACRO_F
+    equation: C3H6 + O2 -> C3H4O + H2O
+    stoichiometry: {C3H6: -1.0, O2: -1.0, ACRO: 1.0, H2O: 1.0}
+    catalyst: BIMO
+    sources: ["US 6 596 897 B1, evaluation results: acrolein among the products (D-004)"]
+  - id: AA_F
+    equation: C3H6 + 3/2 O2 -> C3H4O2 + H2O
+    stoichiometry: {C3H6: -1.0, O2: -1.5, AA: 1.0, H2O: 1.0}
+    catalyst: BIMO
+    sources: ["US 6 596 897 B1, evaluation results: acrylic acid among the products (D-004)"]
+  - id: CO_F
+    equation: C3H6 + 3 O2 -> 3 CO + 3 H2O
+    stoichiometry: {C3H6: -1.0, O2: -3.0, CO: 3.0, H2O: 3.0}
+    catalyst: BIMO
+    sources: ["IPCC 2006 Guidelines Vol. 3 ch. 3, Box 3.12, p. 3.61 (feedstock oxidation)"]
+  - id: CO2_F
+    equation: C3H6 + 9/2 O2 -> 3 CO2 + 3 H2O
+    stoichiometry: {C3H6: -1.0, O2: -4.5, CO2: 3.0, H2O: 3.0}
+    catalyst: BIMO
+    sources: ["IPCC 2006 Guidelines Vol. 3 ch. 3, Box 3.12, p. 3.61 (feedstock oxidation)"]
+  - id: NH3_OX
+    equation: 2 NH3 + 3/2 O2 -> N2 + 3 H2O
+    stoichiometry: {NH3: -2.0, O2: -1.5, N2: 1.0, H2O: 3.0}
+    catalyst: BIMO
+    sources: ["D-004: the ammonia converted (US 6 596 897 B1) beyond the nitrogen of the nitriles, burnt to N2 (ASSUMED product, N2 not measured by the source)"]
+  # Acid quench R102 (D-005): the unconverted ammonia neutralised by sulfuric acid
+  - id: NEUT
+    equation: 2 NH3 + H2SO4 -> (NH4)2SO4
+    stoichiometry: {NH3: -2.0, H2SO4: -1.0, AS: 1.0}
+    conversion: {key: NH3, value: 1.0, provenance: assumed, source: "D-005: acid in excess, all ammonia taken up (EPA-450/4-84-007a, p. 18: sulfuric acid added in the quench to neutralise unreacted ammonia)"}
+    sources: ["EPA-450/4-84-007a (1984), p. 18"]
+  # Thermal oxidiser R401 of the off-gas and the heads cut (D-008): conversions ASSUMED
+  - id: OX_C3H6
+    equation: C3H6 + 9/2 O2 -> 3 CO2 + 3 H2O
+    stoichiometry: {C3H6: -1.0, O2: -4.5, CO2: 3.0, H2O: 3.0}
+    conversion: {key: C3H6, value: 0.99, provenance: assumed, source: "D-008: EPA-450/4-84-007a p. 20: absorber gases incinerated at removal efficiencies of 98 % or higher"}
+  - id: OX_CO
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    conversion: {key: CO, value: 0.99, provenance: assumed, source: "D-008, as OX_C3H6"}
+  - id: OX_ACN
+    equation: 4 C3H3N + 15 O2 -> 12 CO2 + 6 H2O + 2 N2
+    stoichiometry: {ACN: -4.0, O2: -15.0, CO2: 12.0, H2O: 6.0, N2: 2.0}
+    conversion: {key: ACN, value: 0.99, provenance: assumed, source: "D-008, as OX_C3H6; fuel nitrogen to N2 (NOx not modelled, L-5)"}
+  - id: OX_HCN
+    equation: 4 HCN + 5 O2 -> 4 CO2 + 2 H2O + 2 N2
+    stoichiometry: {HCN: -4.0, O2: -5.0, CO2: 4.0, H2O: 2.0, N2: 2.0}
+    conversion: {key: HCN, value: 0.99, provenance: assumed, source: "D-008, as OX_ACN"}
+  - id: OX_MECN
+    equation: 4 C2H3N + 11 O2 -> 8 CO2 + 6 H2O + 2 N2
+    stoichiometry: {MECN: -4.0, O2: -11.0, CO2: 8.0, H2O: 6.0, N2: 2.0}
+    conversion: {key: MECN, value: 0.99, provenance: assumed, source: "D-008, as OX_ACN"}
+  - id: OX_ACRO
+    equation: C3H4O + 7/2 O2 -> 3 CO2 + 2 H2O
+    stoichiometry: {ACRO: -1.0, O2: -3.5, CO2: 3.0, H2O: 2.0}
+    conversion: {key: ACRO, value: 0.99, provenance: assumed, source: "D-008, as OX_C3H6"}
+  - id: OX_CH4
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    conversion: {key: CH4, value: 0.999, provenance: assumed, source: "D-008: support fuel burnt out"}
