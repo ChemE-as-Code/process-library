@@ -8,7 +8,9 @@ YAML and the numbers DESIGN.md, process.yaml and the sources state are recompute
 - the reactor inlet holds phenol to acetone 10 mol/mol (design spec ratio), its effluent's
   bisphenol A lies in US 5 723 688 A's 15-26 wt%, and R101's duty is core's model;
 - the crystallizer's feed water and acetone lie in US 5 723 688 A's ranges, its yield is 0.75, its
-  duty is core's and the latent heat of what evaporates matches it within 5 %;
+  duty is core's and the latent heat of what evaporates matches it plus the vapour's own cooling;
+  it runs below 1 kPa(a) and the booster and condensers' heat (Q15) closes the balance;
+- the condensate column's duties close on its streams, and the phenol stripper has its steam;
 - the wash is 0.6 kg of phenol per kg of adduct (US 5 723 688 A, example 1), the mother liquor's
   bisphenol A lies in US 4 391 997 A's 5-15 wt%;
 - the product is 70 kt/a at 8000 h and inside the EU risk assessment's commercial purity;
@@ -113,7 +115,36 @@ def test_the_crystallizer_feed_duty_and_evaporation(model):
     vap = _kg_h(streams["S12"], materials)
     latent = (vap["H2O"] * 43128 / 18.015 + vap["ACETONE"] * 29820 / 58.079
               + vap["PHENOL"] * 56318 / 94.111) / 3600
-    assert latent == pytest.approx(q4["value"], rel=0.05)  # the water dose's basis (D-007)
+    # the water dose's basis (D-007): the latent heat at 318 K takes Q4 plus the evaporated
+    # material's own cooling from the feed temperature
+    t_feed = _state(streams["S11"])["temperature"]["value"]
+    vap_kmol = _kmol_h(streams["S12"], materials)
+    own = sum(n * materials[c]["liquid_heat_capacity"] for c, n in vap_kmol.items()) * (t_feed - 318.15) / 3600
+    assert latent == pytest.approx(q4["value"] + own, rel=0.005)
+    # the crystallizer runs at its mother liquor's bubble pressure (below 1 kPa), the vapour is
+    # boosted to 12 kPa(a) and condensed; Q15 books the rest of the condensers' heat (D-007)
+    assert _state(streams["S13"])["pressure"]["value"] < 1.0
+    assert _state(streams["S12"])["pressure"]["value"] == 12.0
+    q14 = _state(streams["Q14"])["duty"]["value"]
+    q15 = _state(streams["Q15"])["duty"]["value"]
+    subcool = sum(n * materials[c]["liquid_heat_capacity"] for c, n in vap_kmol.items()) * (318.15 - 313.15) / 3600
+    assert q15 == pytest.approx(latent - q4["value"] + subcool + q14, abs=0.5)
+
+
+def test_the_condensate_column_closes_and_the_stripper_has_steam(model):
+    materials, streams, _ = model
+    # C401: no feed-bottoms exchange, so Q12 - Q13 is the products' sensible heat above the feed
+    t_feed = _state(streams["S12"])["temperature"]["value"]
+    sensible = sum(
+        sum(n * materials[c]["liquid_heat_capacity"] for c, n in _kmol_h(streams[s], materials).items())
+        * (_state(streams[s])["temperature"]["value"] - t_feed) for s in ("S27", "S28")) / 3600
+    q12 = _state(streams["Q12"])["duty"]["value"]
+    q13 = _state(streams["Q13"])["duty"]["value"]
+    assert q12 - q13 == pytest.approx(sensible, abs=1.0)
+    # C301: a steam-stripping section below the flash zone (D-009)
+    steam = streams["S29"]
+    assert steam["to"] == "C301.steam" and _state(steam)["phase"]["value"] == "vapor"
+    assert 13.6 < _state(steam)["flow"]["value"] < 100.0  # above the Kremser minimum
 
 
 def test_the_wash_and_the_mother_liquor(model):
@@ -141,11 +172,11 @@ def test_the_lci_feeds_per_kg_their_links_and_the_texts():
     bpa = exchanges["product:BPAP"]["amount"]
     phenol = exchanges["feed:PH"]["amount"] / bpa
     acetone = exchanges["feed:AC"]["amount"] / bpa
-    assert phenol == pytest.approx(0.8631, abs=5e-5)
-    assert acetone == pytest.approx(0.2642, abs=5e-5)
+    assert phenol == pytest.approx(0.8619, abs=5e-5)
+    assert acetone == pytest.approx(0.2641, abs=5e-5)
     assert phenol > 2 * 94.111 / 228.286 and acetone > 58.079 / 228.286  # above stoichiometry
-    assert "0.8631 kg/kg" in _text("process.yaml")
-    assert "phenol 0.8631 kg, acetone 0.2642 kg" in _text("DESIGN.md")
+    assert "0.8619 kg/kg" in _text("process.yaml")
+    assert "phenol 0.8619 kg, acetone 0.2641 kg" in _text("DESIGN.md")
     links = _yaml("lca/mappings.yaml")["exchanges"]
     assert links["feed:PH"]["dataset"] == {"path": "processes/acetone-1/lca/dataset.yaml", "product": "product:PHENOL"}
     assert links["feed:AC"]["dataset"] == {"path": "processes/acetone-1/lca/dataset.yaml", "product": "product:ACETONE"}

@@ -16,34 +16,38 @@ phenol and acetone at 10 mol/mol (with the recycled mother liquor) pass three fi
 sulfonated polystyrene-divinylbenzene resin promoted with 2-mercaptoethylamine, 333 K in and
 353 K out; 69 % of the acetone reacts per pass, 94.9 % of it to p,p-BPA
 (2 C6H6O + C3H6O -> C15H16O2 + H2O), the rest to the o,p-isomer and heavier by-products. The
-effluent goes without a distillation to a vacuum crystallizer at 318 K and 5 kPa(a), where dosed
-water, the unreacted acetone and some phenol evaporate and carry off the heat; the 1:1 adduct of
-BPA with phenol crystallises, is filtered, washed with polished phenol, melted and stripped of
-phenol under vacuum. The mother liquor is isomerised over resin and recycled, 5 % of it purged
+effluent goes without a distillation to a vacuum crystallizer at 318 K and 0.85 kPa(a), where
+dosed water, unreacted acetone and phenol evaporate and carry off the heat; a booster lifts the
+vapour to 12 kPa(a) so that it condenses on cooling water. The 1:1 adduct of BPA with phenol
+crystallises, is filtered, washed with polished phenol, melted, flashed under vacuum and
+steam-stripped of its phenol. The mother liquor is isomerised over resin and recycled, 5 % of it purged
 to a still that recovers its phenol. Phenol and acetone come from the library's cumene-phenol
 plant `acetone-1`. Needs cheme-as-code 1.13.0. DESIGN.md lists the core features used and the
 core limits hit.
 
 Headline numbers and their caveats:
-- 8750 kg/h of 99.96 wt% BPA melt (70 kt/a in 8000 h): 0.863 kg phenol and 0.264 kg acetone
-  per kg (95.5 % and 96.3 % of the stoichiometric amounts). The losses are the still's residue,
+- 8750 kg/h of 99.96 wt% BPA melt (70 kt/a in 8000 h): 0.862 kg phenol and 0.264 kg acetone
+  per kg (95.7 % and 96.3 % of the stoichiometric amounts). The losses are the still's residue,
   in which the cracking back to phenol is not modelled (conservative), and the wastewater.
 - The selectivities and the 69 % acetone conversion are a laboratory example (US 4 391 997 A)
   transferred to the plant's recycled feed, the crystallizer's yield of 75 % is ASSUMED (no open
   solubility of the adduct read), and the product's purity counts only the liquor left in the
   washed cake, not impurities taken into the crystals: an upper bound (D-005, D-007, D-009).
 - The beds run almost adiabatic: core's conversion-step model shows the reaction heat itself
-  gives the 20 K ascending profile, the interstage coolers take 32 kW (D-005). The crystallizer's
-  1.53 MW (core's crystallizer energy balance) are matched by hand to the latent heat of what
-  evaporates, which sets the 1300 kg/h water dose (D-007).
+  gives the 20 K ascending profile, the interstage coolers take 35 kW (D-005). The crystallizer's
+  1.50 MW (core's crystallizer energy balance) are matched by hand to the latent heat of what
+  evaporates, which sets the 525 kg/h water dose; the vapour is in equilibrium with the mother
+  liquor (UNIFAC), which fixes the crystallizer's pressure at 0.85 kPa(a), about 400 000 m3/h of
+  vapour that a 393 kW booster lifts to 12 kPa(a) (D-007). A wetter liquor at a higher pressure is
+  the open alternative.
 - The recycle is solved by core at two tears with three design specifications (the capacity, the
   reactor's phenol ratio and the adduct's 0.6 kg/kg phenol wash) (D-010).
-- Per kg of BPA: 0.129 kWh LP and 0.385 kWh HP steam, 0.038 kWh electricity (ASSUMED
-  allowances), 0.464 kWh to cooling water, 0.149 kg demineralised water, 0.232 kg phenolic
-  wastewater and 0.044 kg of residue to incineration. The column and still duties are hand
+- Per kg of BPA: 0.111 kWh LP and 0.381 kWh HP steam, 0.083 kWh electricity (the booster, a
+  hand calculation, and ASSUMED allowances), 0.524 kWh to cooling water, 0.063 kg demineralised
+  water, 0.147 kg phenolic wastewater and 0.043 kg of residue to incineration. The column and still duties are hand
   calculations: no property package of core covers BPA or the adduct (D-011, L-3).
 - Phenol is toxic and corrosive and is handled molten; BPA dust is explosible (EU risk
-  assessment: 0.012 g/l); the condensation is mildly exothermic (screening: dT_ad 31.6 K):
+  assessment: 0.012 g/l); the condensation is mildly exothermic (screening: dT_ad 31.7 K):
   noted for basic engineering and the HAZOP (D-013).
 
 | path | what |

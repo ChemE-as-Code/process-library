@@ -23,7 +23,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "phenol and acetone (10 mol/mol at the inlet) over a 2-mercaptoethylamine-promoted sulfonated polystyrene-divinylbenzene resin in three adiabatic fixed beds (333 to 353 K, 69 % acetone conversion per pass); the effluent crystallised without distillation as the 1:1 adduct with phenol by vacuum-evaporative cooling with added water (318 K, 5 kPa(a)); rotary vacuum filter with a polished-phenol wash; adduct melted and stripped of phenol under vacuum; mother liquor isomerised and recycled, 5 % purged to a phenol-recovery still; 8.75 t/h, 70 kt/a"
+technology: "phenol and acetone (10 mol/mol at the inlet) over a 2-mercaptoethylamine-promoted sulfonated polystyrene-divinylbenzene resin in three adiabatic fixed beds (333 to 353 K, 69 % acetone conversion per pass); the effluent crystallised without distillation as the 1:1 adduct with phenol by vacuum-evaporative cooling with added water (318 K, 0.85 kPa(a), the vapour boosted to 12 kPa(a) and condensed on cooling water); rotary vacuum filter with a polished-phenol wash; adduct melted and stripped of phenol under vacuum with a steam-stripping section; mother liquor isomerised and recycled, 5 % purged to a phenol-recovery still; 8.75 t/h, 70 kt/a"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 flows:
@@ -36,11 +36,11 @@ flows:
     source: "flowsheet stream S2 (the design spec rate, D-002)"
   - key: feed:DW
     missing: "not mapped in the screening (D-014); the Atlas build links demineralised water through the shared lci/mappings.yaml (water, the Atlas market of processes/demineralised-water-1)"
-    source: "flowsheet stream S10 (D-007)"
+    source: "flowsheet streams S10 (the crystallizer's water dose, D-007) and S29 (the phenol stripper's stripping steam, D-009)"
   # utilities
   - key: feed:POWER
     missing: "not mapped in the screening (D-014; the Atlas build links it through the shared lci/mappings.yaml); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
-    source: "flowsheet energy streams Q3, Q5 and Q9 (ASSUMED allowances, D-011)"
+    source: "flowsheet energy streams Q3, Q5 and Q9 (ASSUMED allowances, D-011) and Q14 (the crystallizer's vapour booster, D-007)"
   - key: feed:LPS
     missing: "not mapped in the screening (D-014); the Atlas build counts it as heat delivered (lca/mappings.yaml, steam-heat)"
     source: "flowsheet energy streams Q1 (feed heater) and Q12 (condensate column reboiler), D-011"
@@ -49,14 +49,14 @@ flows:
     source: "flowsheet energy streams Q6 (adduct melter), Q7 (phenol stripper) and Q10 (cracking still), D-009, D-011"
   - key: product:CW
     missing: "not mapped in the screening (D-014; the Atlas build links it through the shared lci/mappings.yaml); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q2, Q4, Q8, Q11 and Q13, D-007, D-011"
+    source: "flowsheet energy streams Q2, Q4, Q8, Q11, Q13 and Q15 (the phenol condensers' tempered-water loop rejects to cooling water), D-007, D-011"
   # wastes
   - key: product:TAR
     treatment: {kind: waste, route: "incineration of the cracking-still residue (bisphenols, by-products, phenol) as a liquid organic waste or tar fuel (D-008)"}
     missing: "not mapped yet (D-014); connect to: incineration of hazardous liquid organic waste, per kg (fossil carbon by the stream's composition)"
     source: "flowsheet stream S23 (D-008)"
   - key: product:WW
-    treatment: {kind: waste, route: "biological treatment of the phenolic condensate (about 0.5 wt% phenol and 0.2 wt% acetone) on site (D-008)"}
+    treatment: {kind: waste, route: "biological treatment of the phenolic condensate (about 0.6 wt% phenol and 0.3 wt% acetone) on site (D-008)"}
     missing: "not mapped in the screening (D-014); the Atlas build links wastewater through the shared lci/mappings.yaml (processes/utility-wwtp)"
     source: "flowsheet stream S28 (D-008)"
 operation:

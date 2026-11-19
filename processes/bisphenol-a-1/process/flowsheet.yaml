@@ -54,13 +54,14 @@ specs:
 feeds:
   - {id: PH, title: "Phenol (fresh, from a cumene-phenol plant)", category: raw_material, ports: [{id: out, direction: out}]}
   - {id: AC, title: "Acetone (fresh, from a cumene-phenol plant)", category: raw_material, ports: [{id: out, direction: out}]}
-  - {id: DW, title: Demineralised water to the crystallizer, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DW, title: Demineralised water to the crystallizer and the stripping steam, category: raw_material, ports: [{id: out, direction: out}, {id: c301, direction: out}]}
   - id: POWER
     title: Electric power
     category: utility
     utility: {kind: electricity}
     ports:
       - {id: x201, direction: out, kind: energy}
+      - {id: k201, direction: out, kind: energy}
       - {id: f201, direction: out, kind: energy}
       - {id: c301, direction: out, kind: energy}
   - id: LPS
@@ -98,6 +99,7 @@ products:
     ports:
       - {id: r101, direction: in, kind: energy}
       - {id: x201, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
       - {id: c301, direction: in, kind: energy}
       - {id: c302, direction: in, kind: energy}
       - {id: c401, direction: in, kind: energy}
@@ -134,7 +136,9 @@ blocks:
       - {id: cake, direction: out}
       - {id: ml, direction: out}
       - {id: cw, direction: out, kind: energy}
+      - {id: cw_v, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
+      - {id: power_v, direction: in, kind: energy}
       - {id: power_f, direction: in, kind: energy}
   - id: RECOV
     title: Mother-liquor isomerisation, purge cracking still and condensate recovery
@@ -156,6 +160,7 @@ blocks:
     class: Distilling
     ports:
       - {id: cake, direction: in}
+      - {id: steam, direction: in}
       - {id: product, direction: out}
       - {id: phenol, direction: out}
       - {id: hps, direction: in, kind: energy}
@@ -234,21 +239,27 @@ steps:
       - {id: out, direction: out}
   - id: FL201
     block: CRYST
-    title: Crystallizer vapour space and vacuum condenser (water, acetone and some phenol evaporated)
+    title: Crystallizer vapour space, vapour booster and vacuum condenser (water, acetone and phenol evaporated)
     class: SeparatingByFlash
-    links: [{target: equipment, ref: X-201}, {target: equipment, ref: E-201}]
+    links: [{target: equipment, ref: X-201}, {target: equipment, ref: K-201}, {target: equipment, ref: E-201}]
     recovery:
-      outlets: {vap: {H2O: 0.85, ACETONE: 0.95, PHENOL: 0.01}}
+      outlets: {vap: {H2O: 0.85, ACETONE: 0.821, PHENOL: 0.0848}}
       provenance: assumed
       source: >-
-        D-007: at about 5 kPa(a) and 318 K (US 5 723 688 A, example 1: about 50 mbar and 40 C;
-        US 4 950 806 A: 50 mmHg, 50 C) 85 % of the water and 95 % of the acetone evaporate and 1 % of
-        the phenol goes with them, ASSUMED; the vapour is condensed on cooling water (the
-        crystallizer's duty, Q4)
+        D-007: one equilibrium stage at 318.15 K: 85 % of the water evaporates (ASSUMED, it sets the
+        water carried in the mother liquor back to the reactor), and the acetone and phenol fractions
+        are solved by hand so that the vapour is in equilibrium with the mother liquor (S16) by
+        UNIFAC (thermo 0.6.1, original groups) with the vapour pressures of thermo (water and acetone
+        default, phenol WAGNER_MCGARRY); the mother liquor's bubble pressure, 0.85 kPa(a), is the
+        crystallizer's pressure (inside US 5 723 688 A's 5-950 mbar, below its preferred 30-280).
+        The vapour is compressed by K-201 to 12 kPa(a) and condensed on cooling water in E-201 (Q4,
+        Q14, Q15)
     ports:
       - {id: in, direction: in}
       - {id: vap, direction: out, delegates: cond}
       - {id: liq, direction: out}
+      - {id: pw, direction: in, kind: energy, delegates: power_v}
+      - {id: cw, direction: out, kind: energy, delegates: cw_v}
   - id: X201
     block: CRYST
     title: Adduct crystallizer (vacuum-evaporative cooling, 318 K)
@@ -261,19 +272,19 @@ steps:
       crystal: ADDUCT
       basis: yield
       temperature: 318.15
-      yield: {value: 0.75, provenance: assumed, source: "D-007: 75 % of the bisphenol A fed crystallises as the adduct, so that the mother liquor carries about 8 to 10 wt% bisphenol A, inside US 4 391 997 A's 5-15 wt%; US 6 960 697 B2 reaches about 95 % in a larger crystallizer with acetone in the liquor; no open solubility of the adduct in phenol read (L-1)"}
+      yield: {value: 0.75, provenance: assumed, source: "D-007: 75 % of the bisphenol A fed crystallises as the adduct, so that the mother liquor (S16) carries 6.5 wt% bisphenol A, inside US 4 391 997 A's 5-15 wt%; US 6 960 697 B2 reaches about 95 % in a larger crystallizer with acetone in the liquor; no open solubility of the adduct in phenol read (L-1)"}
       spectators: [ACETONE, H2O, OPBPA, DIANIN]
       energy:
         heat_capacity: 2.07
         heat_of_crystallization: -110.46
-        feed_temperature: 350.99
+        feed_temperature: 352.25
         provenance: assumed
         source: >-
           D-007: liquor heat capacity 2.07 kJ/(kg K), the mass-weighted Rowlinson-Bondi values of
           phenol (2.05) and bisphenol A (2.16) of materials.yaml, ASSUMED; heat of crystallization
           -110.46 kJ per kg of adduct from US 6 960 697 B2, example 1 (0.4 million kcal/h heat of
-          fusion for 15 161 kg/h); the feed at 350.99 K, the mixed temperature of the reactor
-          effluent and the dosed water (hand calculation, D-007). The water and acetone
+          fusion for 15 161 kg/h); the feed at 352.25 K, the mixed temperature of the reactor
+          effluent and the dosed water (hand calculation, D-007). The water, acetone and phenol
           evaporated in FL201 take the duty as their latent heat (Q4)
       outlets: {slurry: out}
     ports:
@@ -350,9 +361,9 @@ steps:
     class: Distilling
     links: [{target: equipment, ref: C-401}]
     recovery:
-      outlets: {top: {ACETONE: 0.995, PHENOL: 0.98, H2O: 0.03}}
+      outlets: {top: {ACETONE: 0.995, PHENOL: 0.998, H2O: 0.03}}
       provenance: assumed
-      source: "D-008: 99.5 % of the acetone and 98 % of the phenol back to the reactor with 3 % of the water (a column and a phenol-water decanter, lumped), the rest of the water with 2 % of the phenol to treatment, ASSUMED"
+      source: "D-008: 99.5 % of the acetone and 99.8 % of the phenol back to the reactor with 3 % of the water (a column and a phenol-water decanter, lumped), the rest of the water with 0.2 % of the phenol (about 0.6 wt% in the wastewater) to treatment, ASSUMED"
     ports:
       - {id: feed, direction: in, delegates: cond}
       - {id: top, direction: out, delegates: acr}
@@ -380,9 +391,10 @@ steps:
     recovery:
       outlets: {top: {PHENOL: 0.99995, ACETONE: 1.0, H2O: 1.0}}
       provenance: assumed
-      source: "D-009: phenol stripped from the melt at 473-493 K and 2-5 kPa(a) (US 5 723 688 A: 150-230 C, 5-180 mbar) to about 35 wt-ppm in the product, ASSUMED"
+      source: "D-009: the melt flashed at about 3 kPa(a) and 493 K (US 5 723 688 A: 150-230 C, 5-180 mbar) to 1.2 mol% phenol, then stripped with 30 kg/h of steam (S29) over six theoretical stages to about 38 wt-ppm in the product (Kremser hand calculation, D-009), ASSUMED; the water and acetone go overhead"
     ports:
       - {id: feed, direction: in}
+      - {id: steam, direction: in, delegates: steam}
       - {id: top, direction: out, delegates: phenol}
       - {id: bot, direction: out, delegates: product}
       - {id: reb, direction: in, kind: energy, delegates: hps}
@@ -402,7 +414,7 @@ streams:
         temperature: {value: 333.15, provenance: assumed, source: "D-003: molten phenol from heated storage (melting point 314 K)"}
         phase: {value: liquid, provenance: assumed, source: "melt"}
         composition: {basis: mass_fraction, values: {PHENOL: 1.0, ACETONE: 0.0, H2O: 0.0, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: assumed, source: "D-003: taken as pure; the specification of the phenol bought is an open input"}
-        flow: {value: 7552.29, provenance: calculated, source: 'cheme process propagate: spec ratio (S8 PHENOL per S8 ACETONE (mole) 10)', fingerprint: 84c923820bccdac0}
+        flow: {value: 7541.95, provenance: calculated, source: 'cheme process propagate: spec ratio (S8 PHENOL per S8 ACETONE (mole) 10)', fingerprint: 46de5ec89ea7a764}
   - id: S2
     title: Fresh acetone
     from: AC.out
@@ -414,7 +426,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "storage"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
         composition: {basis: mass_fraction, values: {ACETONE: 1.0, PHENOL: 0.0, H2O: 0.0, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: assumed, source: "D-003: taken as pure"}
-        flow: {value: 2311.68, provenance: calculated, source: 'cheme process propagate: spec rate (S26 t/a 70000)', fingerprint: 84c923820bccdac0}
+        flow: {value: 2310.96, provenance: calculated, source: 'cheme process propagate: spec rate (S26 t/a 70000)', fingerprint: 46de5ec89ea7a764}
   - id: S10
     title: Demineralised water dosed to the crystallizer feed
     from: DW.out
@@ -425,7 +437,19 @@ streams:
         pressure: {value: 400.0, provenance: assumed, source: "header"}
         temperature: {value: 298.15, provenance: assumed, source: "ambient"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 1300.0, provenance: assumed, source: "D-007: water enough that the latent heat of the water, acetone and phenol evaporated in FL201 matches the crystallizer's duty Q4 (hand check in D-007); the crystallizer feed then holds about 3.6 wt% water, inside US 5 723 688 A's 2-12 wt%; ASSUMED"}
+        flow: {value: 525.0, provenance: assumed, source: "D-007: water enough that the latent heat at 318 K of the water, acetone and phenol evaporated in FL201 equals the crystallizer's duty Q4 plus the evaporated material's own cooling from 352.25 to 318.15 K (hand check in D-007, within 0.2 %); the crystallizer feed then holds 2.4 wt% water, inside US 5 723 688 A's 2-12 wt%; ASSUMED"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0, PHENOL: 0.0, ACETONE: 0.0, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: assumed, source: "demineralised water"}
+  - id: S29
+    title: Stripping steam to the phenol stripper (raised from demineralised water)
+    from: DW.c301
+    to: C301.steam
+    template: liquor
+    state:
+      design:
+        pressure: {value: 4.0, provenance: assumed, source: "D-009: the stripper's bottom, about 1 kPa below its 3 kPa(a) top, ASSUMED"}
+        temperature: {value: 493.15, provenance: assumed, source: "D-009: superheated to the bottoms' temperature"}
+        phase: {value: vapor, provenance: assumed, source: "superheated steam"}
+        flow: {value: 30.0, provenance: assumed, source: "D-009: Kremser hand calculation for the stripping section below the feed's flash zone: 38.3 kmol/h of melt from 1.22 mol% phenol (the flash zone's equilibrium at 3 kPa(a), 493 K) to 9.3e-5, K = 50.4 (phenol 264.1 kPa at 493.15 K, thermo WAGNER_MCGARRY, activity coefficient 0.76 in the melt by UNIFAC, 4 kPa(a)), six theoretical stages (ASSUMED): stripping factor 2.0, 1.53 kmol/h (27.6 kg/h) of steam, rounded up to 30 kg/h; ASSUMED"}
         composition: {basis: mass_fraction, values: {H2O: 1.0, PHENOL: 0.0, ACETONE: 0.0, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: assumed, source: "demineralised water"}
   # --- feed preparation -------------------------------------------------------------------------
   - id: S3
@@ -438,8 +462,8 @@ streams:
         pressure: {value: 400.0, provenance: assumed, source: "phenol pump"}
         temperature: {value: 338.15, provenance: assumed, source: "D-004: the stripped and recovered phenol subcooled in their condensers so that the beds run at 338 K, inside US 5 723 688 A's 45-70 C for the polishing resins"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 16489.2, provenance: calculated, source: 'cheme process propagate: mixer M102 from S1 S22 S25', fingerprint: b1f576a145b09005}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.992309, ACETONE: 0.000322986, H2O: 0.00736838, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S1 S22 S25', fingerprint: c9dab9702c07ae8a}
+        flow: {value: 16341.7, provenance: calculated, source: 'cheme process propagate: mixer M102 from S1 S22 S25', fingerprint: 6a8b185b68319936}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.98237, ACETONE: 0.00116248, H2O: 0.0164678, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S1 S22 S25', fingerprint: 545cc789e1d48e39}
   - id: S4
     title: Polished phenol
     from: IX101.out
@@ -450,8 +474,8 @@ streams:
         pressure: {value: 350.0, provenance: assumed, source: "pressure profile"}
         temperature: {value: 338.15, provenance: assumed, source: "D-004"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 16489.2, provenance: calculated, source: 'cheme process propagate: pass-through IX101 from S3', fingerprint: c624c1ec408228e2}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.992309, ACETONE: 0.000322986, H2O: 0.00736838, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through IX101 from S3', fingerprint: c624c1ec408228e2}
+        flow: {value: 16341.7, provenance: calculated, source: 'cheme process propagate: pass-through IX101 from S3', fingerprint: 8a2bab4cea62dd2b}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.98237, ACETONE: 0.00116248, H2O: 0.0164678, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through IX101 from S3', fingerprint: 8a2bab4cea62dd2b}
   - id: S5
     title: Polished phenol to the adduct wash
     from: SP101.wash
@@ -462,8 +486,8 @@ streams:
         pressure: {value: 350.0, provenance: assumed, source: "pressure profile"}
         temperature: {value: 338.15, provenance: assumed, source: "D-004, D-007: inside US 5 723 688 A's 35-75 C for the wash"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 7407.97, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S4 (tear, broyden)', fingerprint: 47edea4f158ff491}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.992309, ACETONE: 0.000322986, H2O: 0.00736837, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S4 (tear, broyden)', fingerprint: 47edea4f158ff491}
+        flow: {value: 7407.5, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S4 (tear, broyden)', fingerprint: e50a9b5081677f90}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.98237, ACETONE: 0.00116248, H2O: 0.0164678, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S4 (tear, broyden)', fingerprint: e50a9b5081677f90}
   - id: S6
     title: Polished phenol to the reactor feed
     from: SP101.rx
@@ -474,8 +498,8 @@ streams:
         pressure: {value: 350.0, provenance: assumed, source: "pressure profile"}
         temperature: {value: 338.15, provenance: assumed, source: "D-004"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 9081.21, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S4 S5', fingerprint: d17e81ceeac63213}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.992309, ACETONE: 0.000322986, H2O: 0.00736838, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S4', fingerprint: e1109dabd127bca0}
+        flow: {value: 8934.19, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S4 S5', fingerprint: a81558dce9fdfc45}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.98237, ACETONE: 0.00116248, H2O: 0.0164678, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S4', fingerprint: 6c2a2ee55533bf15}
   - id: S7
     title: Mixed reactor feed
     from: M101.out
@@ -484,10 +508,10 @@ streams:
     state:
       design:
         pressure: {value: 500.0, provenance: assumed, source: "reactor feed pump"}
-        temperature: {value: 321.79, provenance: assumed, source: "D-011: mixed temperature of S6, S2, S27 and S20 (hand calculation with the liquid heat capacities of materials.yaml)"}
+        temperature: {value: 321.92, provenance: assumed, source: "D-011: mixed temperature of S6, S2, S27 and S20 (hand calculation with the liquid heat capacities of materials.yaml)"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 63011.1, provenance: calculated, source: 'cheme process propagate: recycle M101 from S2 S20 S27 S6 (tear, broyden)', fingerprint: 47edea4f158ff491}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.848596, ACETONE: 0.0848596, H2O: 0.035108, BPA: 0.0197293, OPBPA: 0.00437473, DIANIN: 0.00733216}, provenance: calculated, source: 'cheme process propagate: recycle M101 from S2 S20 S27 S6 (tear, broyden)', fingerprint: 47edea4f158ff491}
+        flow: {value: 62877.8, provenance: calculated, source: 'cheme process propagate: recycle M101 from S2 S20 S27 S6 (tear, broyden)', fingerprint: e50a9b5081677f90}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.857637, ACETONE: 0.0857637, H2O: 0.0248481, BPA: 0.0199362, OPBPA: 0.00441996, DIANIN: 0.00739521}, provenance: calculated, source: 'cheme process propagate: recycle M101 from S2 S20 S27 S6 (tear, broyden)', fingerprint: e50a9b5081677f90}
   - id: S8
     title: Reactor feed at 333 K
     from: E101.out
@@ -498,8 +522,8 @@ streams:
         pressure: {value: 450.0, provenance: assumed, source: "D-005: US 6 960 697 B2's reactor at about 4.4 bar"}
         temperature: {value: 333.15, provenance: assumed, source: "D-005: first bed at 60 C (US 4 391 997 A, example 3)"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 63011.1, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: a3d76988f499153d}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.848596, ACETONE: 0.0848596, H2O: 0.035108, BPA: 0.0197293, OPBPA: 0.00437473, DIANIN: 0.00733216}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: a3d76988f499153d}
+        flow: {value: 62877.8, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: 0f7100bb8ba4dcfc}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.857637, ACETONE: 0.0857637, H2O: 0.0248481, BPA: 0.0199362, OPBPA: 0.00441996, DIANIN: 0.00739521}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S7', fingerprint: 0f7100bb8ba4dcfc}
   # --- reaction ---------------------------------------------------------------------------------
   - id: S9
     title: Reactor effluent
@@ -511,8 +535,8 @@ streams:
         pressure: {value: 350.0, provenance: assumed, source: "pressure profile"}
         temperature: {value: 353.15, provenance: assumed, source: "D-005: last bed at 80 C (US 4 391 997 A, example 3)"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 63011.1, provenance: calculated, source: 'cheme process propagate: reactor R101 from S8', fingerprint: 70d2ab8abd7c561f}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.777499, ACETONE: 0.0279309, H2O: 0.0994445, BPA: 0.0799255, OPBPA: 0.00699412, DIANIN: 0.00820563}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S8', fingerprint: 37a64f136ad1d16e}
+        flow: {value: 62877.8, provenance: calculated, source: 'cheme process propagate: reactor R101 from S8', fingerprint: 862c5f558c38e6be}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.7863, ACETONE: 0.028247, H2O: 0.0892721, BPA: 0.0808267, OPBPA: 0.00707182, DIANIN: 0.0082825}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S8', fingerprint: a48673a757eac94d}
   # --- crystallization --------------------------------------------------------------------------
   - id: S11
     title: Crystallizer feed (effluent with dosed water, not distilled)
@@ -522,10 +546,10 @@ streams:
     state:
       design:
         pressure: {value: 300.0, provenance: assumed, source: "pressure profile"}
-        temperature: {value: 350.99, provenance: assumed, source: "D-007: mixed temperature of S9 and S10 (hand calculation, liquid heat capacities of materials.yaml)"}
+        temperature: {value: 352.25, provenance: assumed, source: "D-007: mixed temperature of S9 and S10 (hand calculation, liquid heat capacities of materials.yaml)"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 64311.1, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S9', fingerprint: 75b0e0b7248a4866}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.698591, ACETONE: 0.0250962, H2O: 0.190842, BPA: 0.0718139, OPBPA: 0.00628429, DIANIN: 0.00737285}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S9', fingerprint: 1c675724911711e0}
+        flow: {value: 63402.8, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S9', fingerprint: c1945ad65ed2348b}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.751625, ACETONE: 0.0270013, H2O: 0.129434, BPA: 0.0772623, OPBPA: 0.00675996, DIANIN: 0.00791725}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S10 S9', fingerprint: a5ff91fc9f353a20}
   - id: S12
     title: Crystallizer vapour condensate
     from: FL201.vap
@@ -533,11 +557,11 @@ streams:
     template: liquor
     state:
       design:
-        pressure: {value: 5.0, provenance: assumed, source: "D-007: crystallizer at about 50 mbar (US 5 723 688 A, example 1)"}
-        temperature: {value: 303.15, provenance: assumed, source: "D-007: condensed on cooling water, ASSUMED"}
+        pressure: {value: 12.0, provenance: assumed, source: "D-007: the vapour booster K-201's discharge; the condensate's bubble pressure at 313.15 K is 11.8 kPa(a) (UNIFAC, thermo 0.6.1), so it condenses totally there, ASSUMED"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007: condensed on cooling water, 5 K above its 308.15 K return, ASSUMED"}
         phase: {value: liquid, provenance: assumed, source: "condensate"}
-        flow: {value: 3529.87, provenance: calculated, source: 'cheme process propagate: separator FL201 from S11', fingerprint: 03f5ff45e7342678}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.0361884, ACETONE: 0.123503, H2O: 0.840309, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator FL201 from S11', fingerprint: 03f5ff45e7342678}
+        flow: {value: 6124.67, provenance: calculated, source: 'cheme process propagate: separator FL201 from S11', fingerprint: 7360e8ce2c7db2a4}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.325318, ACETONE: 0.113146, H2O: 0.561536, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator FL201 from S11', fingerprint: 7360e8ce2c7db2a4}
   - id: S13
     title: Liquor in the crystallizer
     from: FL201.liq
@@ -545,11 +569,11 @@ streams:
     template: liquor
     state:
       design:
-        pressure: {value: 5.0, provenance: assumed, source: "D-007"}
+        pressure: {value: 0.85, provenance: assumed, source: "D-007: the mother liquor's bubble pressure at 318.15 K (UNIFAC, thermo 0.6.1)"}
         temperature: {value: 318.15, provenance: assumed, source: "D-007: 45 C, between US 5 723 688 A's 40 C and US 4 950 806 A's 50 C"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 60781.2, provenance: calculated, source: 'cheme process propagate: separator FL201 from S11', fingerprint: 03f5ff45e7342678}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.857053, ACETONE: 0.00155499, H2O: 0.0354744, BPA: 0.0889934, OPBPA: 0.00778764, DIANIN: 0.00913661}, provenance: calculated, source: 'cheme process propagate: separator FL201 from S11', fingerprint: 03f5ff45e7342678}
+        flow: {value: 57278.1, provenance: calculated, source: 'cheme process propagate: separator FL201 from S11', fingerprint: 7360e8ce2c7db2a4}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.855501, ACETONE: 0.00601092, H2O: 0.0241459, BPA: 0.0960884, OPBPA: 0.00840713, DIANIN: 0.00984641}, provenance: calculated, source: 'cheme process propagate: separator FL201 from S11', fingerprint: 7360e8ce2c7db2a4}
   - id: S14
     title: Adduct slurry
     from: X201.out
@@ -560,8 +584,8 @@ streams:
         pressure: {value: 150.0, provenance: assumed, source: "slurry pump"}
         temperature: {value: 318.15, provenance: assumed, source: "D-007"}
         phase: {value: two-phase, provenance: assumed, source: "crystals in liquor"}
-        flow: {value: 60781.2, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S13', fingerprint: 0b4069357e986ae0}
-        composition: {basis: mole_fraction, values: {BPA: 0.0238395, PHENOL: 0.84683, ADDUCT: 0.0715185, ACETONE: 0.0016662, H2O: 0.0380115, OPBPA: 0.0083446, DIANIN: 0.00979005}, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S13', fingerprint: 0b4069357e986ae0}
+        flow: {value: 57278.1, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S13', fingerprint: 07d561eca905fc20}
+        composition: {basis: mole_fraction, values: {BPA: 0.0258877, PHENOL: 0.844279, ADDUCT: 0.0776632, ACETONE: 0.00647775, H2O: 0.0260212, OPBPA: 0.00906006, DIANIN: 0.0106111}, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S13', fingerprint: 07d561eca905fc20}
   - id: S15
     title: Washed adduct cake
     from: F201.cake
@@ -572,8 +596,8 @@ streams:
         pressure: {value: 101.325, provenance: assumed, source: "filter discharge"}
         temperature: {value: 323.15, provenance: assumed, source: "D-007: warmed by the wash, ASSUMED"}
         phase: {value: two-phase, provenance: assumed, source: "wet cake"}
-        flow: {value: 15433.3, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: b416f553e2faedfe}
-        composition: {basis: mole_fraction, values: {ADDUCT: 0.537361, PHENOL: 0.458331, ACETONE: 0.000163173, H2O: 0.0037225, BPA: 0.000239854, OPBPA: 8.39566e-05, DIANIN: 9.84995e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: b416f553e2faedfe}
+        flow: {value: 15432.3, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: 29dd576caa094c33}
+        composition: {basis: mole_fraction, values: {ADDUCT: 0.535541, PHENOL: 0.455656, ACETONE: 0.000593725, H2O: 0.00775643, BPA: 0.000257657, OPBPA: 9.01738e-05, DIANIN: 0.000105611}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: 29dd576caa094c33}
   - id: S16
     title: Mother liquor (filtrate)
     from: F201.filtrate
@@ -584,8 +608,8 @@ streams:
         pressure: {value: 101.325, provenance: assumed, source: "filtrate receiver"}
         temperature: {value: 318.15, provenance: assumed, source: "D-007"}
         phase: {value: liquid, provenance: assumed, source: "liquor"}
-        flow: {value: 45347.9, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: b416f553e2faedfe}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.912059, ACETONE: 0.00179454, H2O: 0.0409394, BPA: 0.0256758, OPBPA: 0.00898736, DIANIN: 0.0105441, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: b416f553e2faedfe}
+        flow: {value: 41845.8, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: 29dd576caa094c33}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.91537, ACETONE: 0.00702319, H2O: 0.0282123, BPA: 0.0280675, OPBPA: 0.00982294, DIANIN: 0.0115046, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: 29dd576caa094c33}
   - id: S17
     title: Wash filtrate
     from: F201.washings
@@ -596,8 +620,8 @@ streams:
         pressure: {value: 101.325, provenance: assumed, source: "filtrate receiver"}
         temperature: {value: 323.15, provenance: assumed, source: "D-007"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 7407.97, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: b416f553e2faedfe}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.960359, ACETONE: 0.000908859, H2O: 0.0207341, BPA: 0.0102223, OPBPA: 0.00357815, DIANIN: 0.00419796}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: b416f553e2faedfe}
+        flow: {value: 7407.5, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: 29dd576caa094c33}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.956044, ACETONE: 0.00346523, H2O: 0.0210824, BPA: 0.0110281, OPBPA: 0.00385957, DIANIN: 0.00452031}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S5 S14', fingerprint: 29dd576caa094c33}
   - id: S18
     title: Mother liquor and washings
     from: M202.out
@@ -608,8 +632,8 @@ streams:
         pressure: {value: 400.0, provenance: assumed, source: "mother-liquor pump"}
         temperature: {value: 320.0, provenance: assumed, source: "D-008: mixed, ASSUMED"}
         phase: {value: liquid, provenance: assumed, source: "liquor"}
-        flow: {value: 52755.9, provenance: calculated, source: 'cheme process propagate: mixer M202 from S16 S17', fingerprint: 8795ba79c997ed57}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.918984, ACETONE: 0.00166756, H2O: 0.0380425, BPA: 0.0234602, OPBPA: 0.00821182, DIANIN: 0.00963422, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S16 S17', fingerprint: a254c6ac955e6045}
+        flow: {value: 49253.3, provenance: calculated, source: 'cheme process propagate: mixer M202 from S16 S17', fingerprint: d9ec5bd9cfd00139}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.921684, ACETONE: 0.00647083, H2O: 0.0271054, BPA: 0.0254222, OPBPA: 0.00889715, DIANIN: 0.0104203, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S16 S17', fingerprint: d2dd084ffd980309}
   # --- recovery ---------------------------------------------------------------------------------
   - id: S19
     title: Mother liquor to the isomerisation bed
@@ -621,8 +645,8 @@ streams:
         pressure: {value: 400.0, provenance: assumed, source: "pressure profile"}
         temperature: {value: 320.0, provenance: assumed, source: "D-008"}
         phase: {value: liquid, provenance: assumed, source: "liquor"}
-        flow: {value: 50118.1, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S18 S21', fingerprint: 02fb4b4f5e6fe987}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.918984, ACETONE: 0.00166756, H2O: 0.0380425, BPA: 0.0234602, OPBPA: 0.00821182, DIANIN: 0.00963422, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S18', fingerprint: 5a23211806ae945c}
+        flow: {value: 46790.6, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S18 S21', fingerprint: 28fee3e86573c93f}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.921684, ACETONE: 0.00647083, H2O: 0.0271054, BPA: 0.0254222, OPBPA: 0.00889715, DIANIN: 0.0104203, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S18', fingerprint: 846edf5964b52b35}
   - id: S20
     title: Isomerised mother liquor to the reactor feed
     from: R301.out
@@ -633,8 +657,8 @@ streams:
         pressure: {value: 500.0, provenance: assumed, source: "pressure profile"}
         temperature: {value: 320.0, provenance: assumed, source: "D-008: the bed run at the liquor's temperature, ASSUMED"}
         phase: {value: liquid, provenance: assumed, source: "liquor"}
-        flow: {value: 50118.1, provenance: calculated, source: 'cheme process propagate: reactor R301 from S19', fingerprint: 37211b1ead08b0c9}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.918984, ACETONE: 0.00166756, H2O: 0.0380425, BPA: 0.0259237, OPBPA: 0.00574827, DIANIN: 0.00963422, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S19', fingerprint: 9e58f113b7b064d5}
+        flow: {value: 46790.6, provenance: calculated, source: 'cheme process propagate: reactor R301 from S19', fingerprint: 2c4b8a187cae04d6}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.921684, ACETONE: 0.00647083, H2O: 0.0271054, BPA: 0.0280913, OPBPA: 0.00622801, DIANIN: 0.0104203, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S19', fingerprint: fd5f33d42edceca6}
   - id: S21
     title: Purge to the cracking still
     from: SP201.purge
@@ -645,8 +669,8 @@ streams:
         pressure: {value: 400.0, provenance: assumed, source: "pressure profile"}
         temperature: {value: 320.0, provenance: assumed, source: "D-008"}
         phase: {value: liquid, provenance: assumed, source: "liquor"}
-        flow: {value: 2637.8, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S18', fingerprint: f8f7bcb99b6b4778}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.918984, ACETONE: 0.00166756, H2O: 0.0380425, BPA: 0.0234602, OPBPA: 0.00821182, DIANIN: 0.00963422, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S18', fingerprint: 5a23211806ae945c}
+        flow: {value: 2462.67, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S18', fingerprint: 24191bfe843d614b}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.921684, ACETONE: 0.00647083, H2O: 0.0271054, BPA: 0.0254222, OPBPA: 0.00889715, DIANIN: 0.0104203, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S18', fingerprint: 846edf5964b52b35}
   - id: S22
     title: Phenol recovered from the purge
     from: C302.top
@@ -657,8 +681,8 @@ streams:
         pressure: {value: 400.0, provenance: assumed, source: "pump"}
         temperature: {value: 338.15, provenance: assumed, source: "D-008: condensed and subcooled"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 2253.61, provenance: calculated, source: 'cheme process propagate: separator C302 from S21', fingerprint: 2ada6b8866250752}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.956494, ACETONE: 0.00182697, H2O: 0.0416792, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S21', fingerprint: 2ada6b8866250752}
+        flow: {value: 2087.44, provenance: calculated, source: 'cheme process propagate: separator C302 from S21', fingerprint: 95af363a59bc2f57}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.96307, ACETONE: 0.00711725, H2O: 0.0298131, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S21', fingerprint: 95af363a59bc2f57}
   - id: S23
     title: Cracking-still residue (tar)
     from: C302.bot
@@ -669,8 +693,8 @@ streams:
         pressure: {value: 300.0, provenance: assumed, source: "pump"}
         temperature: {value: 473.15, provenance: assumed, source: "D-008: kept hot and fluid"}
         phase: {value: liquid, provenance: assumed, source: "melt"}
-        flow: {value: 384.185, provenance: calculated, source: 'cheme process propagate: separator C302 from S21', fingerprint: 2ada6b8866250752}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.526606, ACETONE: 0.0, H2O: 0.0, BPA: 0.268868, OPBPA: 0.0941124, DIANIN: 0.110414, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S21', fingerprint: 2ada6b8866250752}
+        flow: {value: 375.232, provenance: calculated, source: 'cheme process propagate: separator C302 from S21', fingerprint: 95af363a59bc2f57}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.507402, ACETONE: 0.0, H2O: 0.0, BPA: 0.279907, OPBPA: 0.0979605, DIANIN: 0.114731, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S21', fingerprint: 95af363a59bc2f57}
   - id: S27
     title: Acetone and phenol back to the reactor feed
     from: C401.top
@@ -681,8 +705,8 @@ streams:
         pressure: {value: 500.0, provenance: assumed, source: "pump"}
         temperature: {value: 323.15, provenance: assumed, source: "D-008"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 1500.08, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: f1c02509209112b8}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.193205, ACETONE: 0.669459, H2O: 0.137336, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: f1c02509209112b8}
+        flow: {value: 4841.99, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: b1ca0b65b5305a28}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.714979, ACETONE: 0.247923, H2O: 0.0370982, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: b1ca0b65b5305a28}
   - id: S28
     title: Phenolic wastewater
     from: C401.bot
@@ -691,10 +715,10 @@ streams:
     state:
       design:
         pressure: {value: 300.0, provenance: assumed, source: "pump"}
-        temperature: {value: 313.15, provenance: assumed, source: "D-008: cooled against the column feed, ASSUMED"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: cooled on cooling water (Q13), ASSUMED"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 2029.79, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: f1c02509209112b8}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.000886491, ACETONE: 0.00075635, H2O: 0.998357, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: f1c02509209112b8}
+        flow: {value: 1282.68, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: b1ca0b65b5305a28}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.00119185, ACETONE: 0.00103631, H2O: 0.997772, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: b1ca0b65b5305a28}
   # --- finishing --------------------------------------------------------------------------------
   - id: S24
     title: Adduct melt
@@ -706,8 +730,8 @@ streams:
         pressure: {value: 300.0, provenance: assumed, source: "melt pump"}
         temperature: {value: 453.15, provenance: assumed, source: "D-009: melted and heated to 180 C, ASSUMED"}
         phase: {value: liquid, provenance: assumed, source: "melt"}
-        flow: {value: 15433.3, provenance: calculated, source: 'cheme process propagate: reactor M301 from S15', fingerprint: e16583853a03593b}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.647663, ACETONE: 0.000106138, H2O: 0.00242136, BPA: 0.349691, OPBPA: 5.46109e-05, DIANIN: 6.40705e-05, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor M301 from S15', fingerprint: 507a84b6eb3e5d42}
+        flow: {value: 15432.3, provenance: calculated, source: 'cheme process propagate: reactor M301 from S15', fingerprint: 9b7092ab406aaecb}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.645503, ACETONE: 0.000386655, H2O: 0.00505127, BPA: 0.348931, OPBPA: 5.87244e-05, DIANIN: 6.87777e-05, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor M301 from S15', fingerprint: c0a369a20ab927f5}
   - id: S25
     title: Stripped phenol
     from: C301.top
@@ -718,8 +742,8 @@ streams:
         pressure: {value: 400.0, provenance: assumed, source: "pump"}
         temperature: {value: 338.15, provenance: assumed, source: "D-009: condensed and subcooled to the polishing beds' temperature"}
         phase: {value: liquid, provenance: assumed, source: "liquid"}
-        flow: {value: 6683.28, provenance: calculated, source: 'cheme process propagate: separator C301 from S24', fingerprint: 3a342f8ff6c14873}
-        composition: {basis: mole_fraction, values: {PHENOL: 0.996112, ACETONE: 0.00016325, H2O: 0.00372426, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S24', fingerprint: 3a342f8ff6c14873}
+        flow: {value: 6712.3, provenance: calculated, source: 'cheme process propagate: separator C301 from S29 S24', fingerprint: 258668230358b841}
+        composition: {basis: mole_fraction, values: {PHENOL: 0.969066, ACETONE: 0.000580497, H2O: 0.0303537, BPA: 0.0, OPBPA: 0.0, DIANIN: 0.0, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S29 S24', fingerprint: 258668230358b841}
   - id: S26
     title: Bisphenol A melt
     from: C301.bot
@@ -730,20 +754,22 @@ streams:
         pressure: {value: 300.0, provenance: assumed, source: "product pump"}
         temperature: {value: 493.15, provenance: assumed, source: "D-009: stripper bottoms at 220 C (US 5 723 688 A: 150-230 C)"}
         phase: {value: liquid, provenance: assumed, source: "melt"}
-        flow: {value: 8750.02, provenance: calculated, source: 'cheme process propagate: separator C301 from S24', fingerprint: 3a342f8ff6c14873}
-        composition: {basis: mole_fraction, values: {PHENOL: 9.25651e-05, ACETONE: 0.0, H2O: 0.0, BPA: 0.999568, OPBPA: 0.000156102, DIANIN: 0.000183141, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S24', fingerprint: 3a342f8ff6c14873}
+        flow: {value: 8750.0, provenance: calculated, source: 'cheme process propagate: separator C301 from S29 S24', fingerprint: 258668230358b841}
+        composition: {basis: mole_fraction, values: {PHENOL: 9.24549e-05, ACETONE: 0.0, H2O: 0.0, BPA: 0.999542, OPBPA: 0.000168221, DIANIN: 0.00019702, ADDUCT: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S29 S24', fingerprint: 258668230358b841}
   # --- energy -----------------------------------------------------------------------------------
-  - {id: Q1, title: Reactor feed heater duty, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 414.2, provenance: assumed, source: "D-011: S7 321.79 to 333.15 K, 131 225 kJ/(h K) from the liquid heat capacities of materials.yaml"}}}}
-  - {id: Q2, title: Interstage coolers (reaction heat above the 333 to 353 K profile), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 32.1121, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S8 S9', fingerprint: eb1f3cf68003ce2f}}}}
-  - {id: Q3, title: Crystallizer vacuum system and agitation power, kind: energy, from: POWER.x201, to: X201.power, state: {design: {duty: {value: 150.0, provenance: assumed, source: "D-011: ASSUMED allowance for the crystallizer's circulation pump and agitator, its vacuum pump and the reactor-feed and mother-liquor pumps (about 63 m3/h at 450 kPa: 13 kW hydraulic)"}}}}
-  - {id: Q4, title: "Crystallizer duty, taken by the evaporated water and acetone and rejected in the vacuum condenser", kind: energy, from: X201.cool, to: CW.x201, state: {design: {duty: {value: 1526.57, provenance: calculated, source: 'cheme process propagate: crystallizer duty X201 from S13', fingerprint: b59b4b577624771a}}}}
+  - {id: Q1, title: Reactor feed heater duty, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 407.6, provenance: assumed, source: "D-011: S7 321.92 to 333.15 K, 130 676 kJ/(h K) from the liquid heat capacities of materials.yaml"}}}}
+  - {id: Q2, title: Interstage coolers (reaction heat above the 333 to 353 K profile), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 35.1442, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S8 S9', fingerprint: 1f3745229b4cf4f2}}}}
+  - {id: Q3, title: Crystallizer vacuum system and agitation power, kind: energy, from: POWER.x201, to: X201.power, state: {design: {duty: {value: 150.0, provenance: assumed, source: "D-011: ASSUMED allowance for the crystallizer's circulation pump and agitator, the vacuum pump for the non-condensables behind E-201 and the reactor-feed and mother-liquor pumps (about 63 m3/h at 450 kPa: 13 kW hydraulic)"}}}}
+  - {id: Q4, title: "Crystallizer duty, taken by the evaporated water, acetone and phenol and rejected in the vacuum condenser", kind: energy, from: X201.cool, to: CW.x201, state: {design: {duty: {value: 1501.89, provenance: calculated, source: 'cheme process propagate: crystallizer duty X201 from S13', fingerprint: fb110cd8dbc9731e}}}}
   - {id: Q5, title: Filter drive and vacuum pump power, kind: energy, from: POWER.f201, to: F201.power, state: {design: {duty: {value: 100.0, provenance: assumed, source: "D-011: ASSUMED allowance for the rotary vacuum filter's drive and vacuum pump"}}}}
-  - {id: Q6, title: Adduct melter duty (heat of fusion and heating to 453 K), kind: energy, from: HPS.m301, to: M301.q, state: {design: {duty: {value: 1556.99, provenance: calculated, source: 'cheme process propagate: conversion duty M301 from S15 S24', fingerprint: 4ea1d45f88698bfb}}}}
-  - {id: Q7, title: Phenol stripper reboiler, kind: energy, from: HPS.c301, to: C301.reb, state: {design: {duty: {value: 1123.2, provenance: assumed, source: "D-011: reflux ratio 0.2 (ASSUMED) on 70.97 kmol/h phenol at 53.57 kJ/mol (360 K, 3 kPa(a): 1266.9 kW), plus the bottoms 453.15 to 493.15 K (210.4 kW), less the overhead phenol's sensible heat from the 453.15 K feed to 360 K (354.2 kW)"}}}}
-  - {id: Q8, title: Phenol stripper condenser, kind: energy, from: C301.cond, to: CW.c301, state: {design: {duty: {value: 1350.0, provenance: assumed, source: "D-011: the overhead and reflux condensed (1266.9 kW) and the phenol subcooled 359.99 to 338.15 K (83.1 kW)"}}}}
+  - {id: Q6, title: Adduct melter duty (heat of fusion and heating to 453 K), kind: energy, from: HPS.m301, to: M301.q, state: {design: {duty: {value: 1557.31, provenance: calculated, source: 'cheme process propagate: conversion duty M301 from S15 S24', fingerprint: 49ee144e1b7ec13a}}}}
+  - {id: Q7, title: Phenol stripper reboiler, kind: energy, from: HPS.c301, to: C301.reb, state: {design: {duty: {value: 1142.8, provenance: assumed, source: "D-009, D-011: the melt flashed at the feed (about 3 kPa(a)) and steam-stripped below it (S29); reflux ratio 0.2 (ASSUMED) on 70.87 kmol/h phenol at 53.57 kJ/mol (360 K, 3 kPa(a): 1265.5 kW), plus the bottoms 453.15 to 493.15 K (210.4 kW), plus the stripping steam raised from 298.15 K water to vapour at the 360 K top (21.3 kW, IAPWS-95 in thermo 0.6.1), less the overhead phenol's sensible heat from the 453.15 K feed to 360 K (354.4 kW)"}}}}
+  - {id: Q8, title: Phenol stripper condenser, kind: energy, from: C301.cond, to: CW.c301, state: {design: {duty: {value: 1368.5, provenance: assumed, source: "D-011: the overhead and reflux condensed (1265.5 kW), the stripping steam condensed into the phenol and cooled to 338.15 K (19.9 kW) and the phenol subcooled 359.99 to 338.15 K (83.1 kW), on a tempered-water loop held above phenol's 314 K melting point that rejects the heat to cooling water (D-013)"}}}}
   - {id: Q9, title: Stripper vacuum system and melt pumps power, kind: energy, from: POWER.c301, to: C301.power, state: {design: {duty: {value: 80.0, provenance: assumed, source: "D-011: ASSUMED allowance for the stripper's vacuum system and the melt and product pumps"}}}}
-  - {id: Q10, title: Cracking still reboiler, kind: energy, from: HPS.c302, to: C302.reb, state: {design: {duty: {value: 686.7, provenance: assumed, source: "D-011: reflux ratio 0.5 (ASSUMED) on the overhead phenol, water and acetone at atmospheric pressure (318.4 kW latent, phenol 46.49 kJ/mol at 454.8 K), the purge heated 320 to 454.8 K (204.9 kW) and the residue to 473.15 K"}}}}
-  - {id: Q11, title: Cracking still condenser, kind: energy, from: C302.cond, to: CW.c302, state: {design: {duty: {value: 628.3, provenance: assumed, source: "D-011: the overhead and reflux condensed (477.6 kW) and the recovered phenol subcooled to 338.15 K"}}}}
-  - {id: Q12, title: Condensate column reboiler, kind: energy, from: LPS.c401, to: C401.reb, state: {design: {duty: {value: 716.0, provenance: assumed, source: "D-011: reflux ratio 2 (ASSUMED) on the acetone and water overhead (175.5 kW latent, acetone 29.12 kJ/mol at 329 K), the water bottoms 303.15 to 373.15 K and the overhead to 329 K"}}}}
-  - {id: Q13, title: Condensate column condenser, kind: energy, from: C401.cond, to: CW.c401, state: {design: {duty: {value: 526.6, provenance: assumed, source: "D-011: the overhead and reflux condensed, 3 x 175.5 kW; the bottoms cooled against the feed (not counted)"}}}}
+  - {id: Q10, title: Cracking still reboiler, kind: energy, from: HPS.c302, to: C302.reb, state: {design: {duty: {value: 633.8, provenance: assumed, source: "D-011: reflux ratio 0.5 (ASSUMED) on the overhead phenol, water and acetone at atmospheric pressure (292.5 kW latent, phenol 46.49 kJ/mol at 454.8 K; 1.5 x 292.5 = 438.7 kW), the purge heated 320 to 454.8 K (191.0 kW) and the residue to 473.15 K (4.1 kW)"}}}}
+  - {id: Q11, title: Cracking still condenser, kind: energy, from: C302.cond, to: CW.c302, state: {design: {duty: {value: 578.0, provenance: assumed, source: "D-011: the overhead and reflux condensed (438.7 kW) and the recovered phenol subcooled to 338.15 K (139.3 kW), on the tempered-water loop of the phenol condensers (D-013)"}}}}
+  - {id: Q12, title: Condensate column reboiler, kind: energy, from: LPS.c401, to: C401.reb, state: {design: {duty: {value: 561.7, provenance: assumed, source: "D-011: reflux ratio 2 (ASSUMED) on the acetone and water overhead (142.6 kW latent, acetone 29.12 kJ/mol at 329 K; 3 x 142.6 = 427.8 kW), the water bottoms heated from the 313.15 K feed to 373.15 K (89.1 kW) and the overhead to 329 K (44.8 kW); no feed-bottoms exchange"}}}}
+  - {id: Q13, title: Condensate column condenser, kind: energy, from: C401.cond, to: CW.c401, state: {design: {duty: {value: 533.4, provenance: assumed, source: "D-011: the overhead and reflux condensed (427.8 kW), the overhead cooled 329 to 323.15 K (16.5 kW) and the wastewater cooled 373.15 to 313.15 K (89.1 kW), all on cooling water; Q12 - Q13 = 28.3 kW, the products' sensible heat above the feed"}}}}
+  - {id: Q14, title: Crystallizer vapour booster power, kind: energy, from: POWER.k201, to: FL201.pw, state: {design: {duty: {value: 392.8, provenance: assumed, source: "D-007: two-stage booster K-201 with an intercooler back to 318 K, 0.85 to 12 kPa(a) (3.76 per stage), 129.5 kmol/h of vapour (about 403 000 m3/h at the suction), ideal gas with cp 63.5 J/(mol K) at 318 K (thermo 0.6.1 ideal-gas heat capacities, k 1.15): isentropic 275.0 kW, at an efficiency of 0.7 (ASSUMED) 392.8 kW; the phenol that condenses in the intercooler is carried through the second stage (an upper bound); a steam-jet ejector set is the alternative (its motive steam not estimated)"}}}}
+  - {id: Q15, title: Vacuum condenser and booster intercooler duty above Q4, kind: energy, from: FL201.cw, to: CW.e201, state: {design: {duty: {value: 563.8, provenance: assumed, source: "D-007: the vapour carries 1651.3 kW of latent heat at 318 K (water 43.13, acetone 29.82, phenol 56.32 kJ/mol, SRC-7), of which X201's duty Q4 (1501.9 kW) is booked already: the rest (149.4 kW, the evaporated material's own cooling from 352.25 K), the condensate subcooled 318.15 to 313.15 K (21.6 kW) and the booster's power Q14 (392.8 kW) go to cooling water in the intercooler and E-201"}}}}
 layout: {bfd: {}, pfd: {}}

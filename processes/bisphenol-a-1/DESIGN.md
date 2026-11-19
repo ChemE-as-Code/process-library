@@ -19,12 +19,12 @@ in this work.
 | id | source | locator | access / terms | used for |
 |---|---|---|---|---|
 | SRC-1 | US 4 391 997 A, General Electric, published 1983-07-05: Ion exchange catalyzed bisphenol process, https://patents.google.com/patent/US4391997A/en | description: phenol to acetone about 2:1 to 10:1, up to 30:1; 50-120 C (preferably 60-80 C); WHSV 0.05-15; acetone conversion 20-82 %; resin with 5-35 % of its acid sites modified by a mercapto group; the flow scheme: evaporation of acetone, water and phenol, adduct crystallization, centrifuge with a phenol wash, mother liquor (70-85 % phenol, 5-15 % p,p-bisphenol A, the rest by-products) partly cracked at 150-300 C over an aluminium alkoxide and partly isomerised over resin and recycled. Examples: three 25 mm jacketed tubes in series, Amberlite-118 with about 10 % of the sites neutralised by 2-mercaptoethylamine, phenol to acetone 10.7 (printed "10:7:1"), WHSV 7.3, acetone conversion about 69 %; Table I: at 60/70/80 C 95.40 wt% p,p-, 3.80 wt% o,p-bisphenol A and 0.80 wt% others in the products (the other profiles 94.09-95.17, 3.73-4.56 and 0.92-1.35) | read (Google Patents); patent, facts only | D-001, D-005, D-008, reactions |
-| SRC-2 | US 5 723 688 A, Dow Chemical, published 1998-03-03 (family of EP 0 720 976): Process for preparing an adduct of a bisphenol with a phenolic compound, https://patents.google.com/patent/US5723688A/en | description: phenol to carbonyl 2:1-45:1 (preferably 4:1-14:1), 35-100 C (preferably 45-85 C), promoted sulfonated polystyrene resin in a fixed bed; the product mixture (10-27 wt% bisphenol, preferably 15-26; water 1-18 wt%, preferably 2-12; acetone 0.1-8 wt%) crystallised without a distillation at 25-75 C and 5-950 mbar (preferably 30-280 mbar), 0.1-24 h, cooled by evaporating water, acetone and some phenol; the adduct 1:1; wash 0.1-2.2 parts per part of adduct at 30-95 C with phenol polished on a strong-acid cation and a strong-base anion resin (40-120 C); phenol distilled from the melted adduct at 70-260 C (preferably 150-230 C) and 2-650 mbar (preferably 5-180 mbar). Example 1: reactor at 56 C; crystallizer feed 25.2 % bisphenol A, 6.9 % water, 1.2 % acetone at 65 C, crystallizer at about 40 C and 50 mbar; wash 1:0.6; product 0.12 % impurities, 5 APHA, against 0.32 % and 15 APHA with a distillation first (Example 2) | read (Google Patents); patent, facts only | D-001, D-004, D-005, D-007, D-009 |
+| SRC-2 | US 5 723 688 A, Dow Chemical, published 1998-03-03 (family of EP 0 720 976): Process for preparing an adduct of a bisphenol with a phenolic compound, https://patents.google.com/patent/US5723688A/en | description: phenol to carbonyl 2:1-45:1 (preferably 4:1-14:1), 35-100 C (preferably 45-85 C), promoted sulfonated polystyrene resin in a fixed bed; the product mixture (10-27 wt% bisphenol, preferably 15-26; water 1-18 wt%, preferably 2-12; acetone 0.1-8 wt%) crystallised without a distillation at 25-75 C and 5-950 mbar (preferably 30-280 mbar), 0.1-24 h, cooled by evaporating water, acetone and some phenol; the adduct 1:1; wash 0.1-2.2 parts per part of adduct at 30-95 C with phenol polished on a strong-acid cation and a strong-base anion resin (40-120 C); phenol distilled from the melted adduct at 70-260 C (preferably 150-230 C) and 2-650 mbar (preferably 5-180 mbar). Example 1: reactor at 56 C; crystallizer feed 25.2 % bisphenol A, 6.9 % water, 1.2 % acetone at 65 C, crystallizer at about 40 C and 50 mbar; wash 1:0.6; product 0.12 % impurities, 5 APHA. Comparative Example A: the product mixture distilled first (0.05 % water, 0.03 % acetone), crystallizer at about 42 C: 0.32 % impurities, 15 APHA. Example 2: not distilled (1.7 % water, 0.4 % acetone at 69 C), crystallizer held at about 42 C by a heat exchanger at about 920 mbar: 0.14 %, 8 APHA. Example 3: water, acetone and recycled and crude bisphenol A added (36.5 % bisphenol A, 8.5 % water, 1.9 % acetone at 65 C), about 42 C and 50 mbar: 0.18 %, 5 APHA | read (Google Patents); patent, facts only | D-001, D-004, D-005, D-007, D-009 |
 | SRC-3 | US 6 960 697 B2, Mitsubishi Chemical, published 2005-11-01: System and method of producing bisphenol-A (BPA), https://patents.google.com/patent/US6960697B2/en | background: purification and recovery about half or more of the capital. Example 1 (simulated): 70 000 t/a (9112 kg/h), acetone conversion about 80 %, phenol to acetone 15 at the reactor; fixed-bed reactor about 200 m3 at about 77 m3/h, 75 C, 4.4 bar; DTB adduct crystallizer about 150 m3 at 84 m3/h, 51 C, about 95 % recovery; cooling duty 1.2 million kcal/h latent heat and 0.4 million kcal/h heat of fusion; filter liquid 76 325 kg/h, solid 15 161 kg/h | read (Google Patents); patent, facts only | D-002, D-005, D-007, equipment |
 | SRC-4 | US 4 950 806 A, Mitsui Toatsu Chemicals, published 1990-08-21: Process for crystallizing adduct of bisphenol A with phenol, https://patents.google.com/patent/US4950806A/en | description: water added at 2-20 wt% of the phenol solution evaporates and takes the heat of cooling and crystallization; crystallizer at 20-100 mmHg; jacket on hot water at most 5 C above the contents against scale. Example 1: 40 % bisphenol A solution, 400 kg/h at 90 C, crystallizer at 50 mmHg and 50 C, water 40 kg/h, jacket 52 C; crystals 0.4 mm, 0.05 % by-products, 5 APHA | read (Google Patents); patent, facts only | D-007, equipment |
 | SRC-5 | US 4 950 804 A, Mitsui Toatsu Chemicals, published 1990-08-21: Process for producing high-purity bisphenol A, https://patents.google.com/patent/US4950804A/en | description: hydrochloric acid catalyst, phenol to acetone 4:1-12:1 at 40-70 C, the product mixture distilled under vacuum to remove water, acetone and HCl. Example 1: product 54 % phenol, 35 % bisphenol A, 2 % by-products, 4 % water, 5 % HCl; dehydrochlorination at 70 mmHg and 120 C to 10 ppm HCl; crystallizer at 50 mmHg and 45 C, the water-phenol recycle through a weak-base resin (adduct 2 ppm HCl against 10 without) | read (Google Patents); patent, facts only | D-001 (rejected route) |
-| SRC-6 | European Union (2010) Risk Assessment Report, 4,4'-isopropylidenediphenol (bisphenol-A), environment addendum of April 2008, EUR 24588 EN, https://publications.jrc.ec.europa.eu/repository/bitstream/JRC59980/lbna24588enn.pdf | section 1.2.1 (p. 5): commercial purity 99-99.8 %, phenol below 0.06 %, the isomers below 0.2 %, water below 0.2 %; Table 1.1 (p. 5): flash point about 207 C, autoflammability about 532 C, minimum explosive concentration 0.012 g/l (oxygen above 5 %); Table 2.1 (p. 6): EU use 1996-1999, 71.1 % polycarbonate, 25.0 % epoxy resins; Table 2.2 (p. 7): Western Europe 2005/2006 production 1 150 000 t/a, polycarbonate 865 000 t/a, epoxy resins 191 520 t/a; Table 3.2 (p. 10): releases of six production sites in 2006, to air 0.06 to 575 kg/a (dust or vapour) and to water after treatment 6.8 to 113 kg/a per site. Table 3.3 (p. 11) is on PVC additive sites, not bisphenol A production (the issue's reading of it was corrected) | read (PDF text extracted); EU publication, facts only | D-002, D-010 (hazards), D-014, benchmarks |
-| SRC-7 | chemicals 1.5.2 and thermo 0.6.1 (the versions core pins; open source, MIT), used directly: formulas, CAS, molar masses and normal boiling points (`search_chemical`, `MW`, `Tb`: phenol CRC_ORG, acetone and water HEOS, bisphenol A YAWS, the o,p-isomer and the chroman JOBACK); formation enthalpies (`Hfs`: phenol and bisphenol A CRC; `Hfl`: acetone CRC, water ATCT_L; `Hfg`: bisphenol A YAWS, the o,p-isomer and the chroman JOBACK) and fusion enthalpies (`Hfus`: phenol CRC, bisphenol A JOBACK); liquid heat capacities (acetone and water HEOS_FIT; phenol and bisphenol A by chemicals' Rowlinson-Bondi method on the TRCIG and Joback ideal-gas heat capacities, Tc and omega IUPAC/PSRK and YAWS); vapour pressures (phenol WAGNER_MCGARRY) and heats of vaporization (phenol DIPPR_PERRY_8E, acetone and water HEOS_FIT) | values printed in materials.yaml, reactions.yaml and the hand calculations below | single values with their source, facts only, not open data (library ADR 0037); none of the works behind the packages' methods (the CRC Handbook, Yaws' handbook, Perry's / DIPPR 801, ATcT, CoolProp, Joback and Reid, Wagner and McGarry, Rowlinson-Bondi) was read: the values are taken as the packages hold them | materials, heats of reaction, latent heats |
+| SRC-6 | European Union (2010) Risk Assessment Report, 4,4'-isopropylidenediphenol (bisphenol-A), environment addendum of April 2008, EUR 24588 EN, https://publications.jrc.ec.europa.eu/repository/bitstream/JRC59980/lbna24588enn.pdf | section 1.2.1 (p. 5): commercial purity 99-99.8 %, phenol below 0.06 %, the isomers below 0.2 %, water below 0.2 %; Table 1.1 (p. 5): flash point about 207 C, autoflammability about 532 C, minimum explosive concentration 0.012 g/l (oxygen above 5 %); Table 2.1 (p. 6): EU use 1996-1999, 71.1 % polycarbonate, 25.0 % epoxy resins; Table 2.2 (p. 7): Western Europe 2005/2006 production 1 150 000 t/a, polycarbonate 865 000 t/a, epoxy resins 191 520 t/a; Table 3.2 (p. 10): releases of six production sites in 2006, to air 0.06 to 575 kg/a (dust or vapour) and to water after treatment 6.8 to 113 kg/a per site. Table 3.3 (p. 11) is on PVC additive sites, not bisphenol A production (the issue's reading of it was corrected) | read (PDF text extracted); EU publication, facts only | D-001, D-002, D-009, D-013 (hazards), D-014, benchmarks |
+| SRC-7 | chemicals 1.5.2 and thermo 0.6.1 (the versions core pins; open source, MIT), used directly: formulas, CAS, molar masses and normal boiling points (`search_chemical`, `MW`, `Tb`: phenol CRC_ORG, acetone and water HEOS, bisphenol A YAWS, the o,p-isomer and the chroman JOBACK); formation enthalpies (`Hfs`: phenol and bisphenol A CRC; `Hfl`: acetone CRC, water ATCT_L; `Hfg`: bisphenol A YAWS, the o,p-isomer and the chroman JOBACK) and fusion enthalpies (`Hfus`: phenol CRC, bisphenol A JOBACK); liquid heat capacities (acetone and water HEOS_FIT; phenol and bisphenol A by chemicals' Rowlinson-Bondi method on the TRCIG and Joback ideal-gas heat capacities, Tc and omega IUPAC/PSRK and YAWS); vapour pressures (phenol WAGNER_MCGARRY, bisphenol A ANTOINE_WEBBOOK, water and acetone thermo's defaults) and heats of vaporization (phenol DIPPR_PERRY_8E, acetone and water HEOS_FIT); liquid activity coefficients by thermo's UNIFAC (original groups and parameters: water H2O; acetone CH3 and CH3CO; phenol 5 ACH and ACOH; the bisphenols and the by-product lump 8 ACH, 2 AC, 2 ACOH, C and 2 CH3); ideal-gas heat capacities (thermo's defaults); water and steam enthalpies by IAPWS-95 (thermo) | values printed in materials.yaml, reactions.yaml and the hand calculations below | single values with their source, facts only, not open data (library ADR 0037); none of the works behind the packages' methods (the CRC Handbook, Yaws' handbook, Perry's / DIPPR 801, ATcT, CoolProp, Joback and Reid, Wagner and McGarry, Rowlinson-Bondi) was read: the values are taken as the packages hold them | materials, heats of reaction, latent heats, the crystallizer's and the condensate's vapour-liquid equilibrium, the booster and the stripping steam (D-007, D-009) |
 | SRC-8 | processes/acetone-1 (this library) | process.yaml chemistry, lca/dataset.yaml: phenol (product:PHENOL) and acetone (product:ACETONE) from cumene, 1.59 kg phenol per kg acetone | library | D-003, D-014 |
 | SRC-9 | PubChem compound 6623 (bisphenol A), https://pubchem.ncbi.nlm.nih.gov/compound/6623 (PUG REST synonyms and properties) | InChIKey IISBACLAFKSPIT-UHFFFAOYSA-N, formula C15H16O2, cross-reference CHEBI:33216 | read (2026-11-19); public data, facts only | registry entry |
 
@@ -49,7 +49,7 @@ Rejected:
   (dehydrochlorination under vacuum) and corrodes the plant; the HCl recovery and the corrosion
   make it the older route.
 - A distillation of water, acetone and some phenol ahead of the crystallizer (SRC-1's flow
-  scheme, SRC-2's Example 2, SRC-4): one more column and a less pure adduct (SRC-2).
+  scheme, SRC-2's Comparative Example A, SRC-4): one more column and a less pure adduct (SRC-2).
 - A second, aqueous or solvent crystallization of the product (SRC-1's crystallizer 50, SRC-3's
   acetone-water crystallizer) or melt crystallization: a higher grade for optical polycarbonate;
   kept as an option, the adduct route alone meets the commercial purity of SRC-6.
@@ -86,9 +86,9 @@ converted), the o,p-isomer (3.779 %) and the "others" (1.354 %, carried as the c
 impurity list, two acetone each). The laboratory selectivities and conversion are transferred
 to the plant's feed, which also holds the recycled bisphenols and by-products: ASSUMED (the
 recycled by-products' equilibrium with the isomer is not modelled). Size: about 157 m3 of bed
-for 60.6 m3/h, SRC-3's 2.6 h space time; about 4.5 bar(g) (SRC-3: 4.4 bar).
+for 60.5 m3/h, SRC-3's 2.6 h space time; about 4.5 bar(g) (SRC-3: 4.4 bar).
 Result (core's conversion-step duty, D-006): the reaction heat raises the feed by about 20 K,
-so the beds run almost adiabatic and the interstage coolers take only 32 kW (Q2): the ascending
+so the beds run almost adiabatic and the interstage coolers take only 35 kW (Q2): the ascending
 profile of SRC-1 comes from the reaction heat itself. The effluent holds 18.5 wt% bisphenol A,
 inside SRC-2's 15-26 wt%.
 
@@ -105,58 +105,109 @@ still) is a hand calculation (D-011): no property package of core covers bisphen
 isomer or the adduct (`cheme process props --coverage`, L-3).
 
 ## D-007 Crystallizer and filter (2026-11-19)
-Decision: the reactor effluent, with 1300 kg/h of demineralised water dosed, goes without a
-distillation to one vacuum crystallizer at 318 K and about 5 kPa(a) (SRC-2: about 40 C and 50
-mbar; SRC-4: 50 C and 50 mmHg), draft-tube type with its jacket at most 5 K above the contents
-(SRC-4). Modelled in two steps because core's crystallizer evaporates only its solvent (L-2):
-- FL201, the vapour space and the vacuum condenser: 85 % of the water, 95 % of the acetone and
-  1 % of the phenol evaporate (ASSUMED) and are condensed (S12);
+Decision: the reactor effluent, with 525 kg/h of demineralised water dosed, goes without a
+distillation to one vacuum crystallizer at 318 K (SRC-2: about 40 C; SRC-4: 50 C), draft-tube
+type with its jacket at most 5 K above the contents (SRC-4). Its pressure is not taken from the
+patents but from the vapour-liquid equilibrium of its own mother liquor: 0.85 kPa(a), inside
+SRC-2's 5-950 mbar but below its preferred 30-280 mbar. Modelled in two steps because core's
+crystallizer evaporates only its solvent (L-2):
+- FL201, the vapour space, the vapour booster and the vacuum condenser, as one equilibrium
+  stage at 318.15 K: 85 % of the water evaporates (ASSUMED: it sets the water the mother liquor
+  carries back to the reactor, 0.5 wt%, and the reactor feed's 0.48 wt%), and the acetone (82.1 %)
+  and phenol (8.48 %) fractions are solved by hand so that the vapour is in equilibrium with the
+  mother liquor S16 (UNIFAC and the vapour pressures of SRC-7; activity coefficients water 1.76,
+  acetone 0.20, phenol 1.00, the bisphenols 0.68). The mother liquor's bubble pressure at
+  318.15 K is then 0.85 kPa(a) (1.03 kPa(a) by Raoult's law), the crystallizer's pressure; the
+  vapour (129.5 kmol/h, 6.12 t/h: 56.2 mol% water, 11.3 % acetone, 32.5 % phenol) is condensed
+  (S12). The patents' 40-50 mbar hold for wetter liquors (SRC-2's Examples 1 and 3: 6.9 and
+  8.5 % water in the feed); this liquor, with 0.5 wt% water and 0.4 wt% acetone left after the
+  evaporation, boils at 0.85 kPa(a) at 318 K, and at 5 kPa(a) it would boil only near 353 K.
 - X201, core's crystallizer: solute bisphenol A, solvent phenol, crystal the 1:1 adduct (a
   solvate with one phenol, which core takes as a hydrate of phenol), basis imposed yield 0.75
-  (ASSUMED: the mother liquor then carries 6.0 wt% bisphenol A, inside SRC-1's 5-15 wt%; no open
-  solubility of the adduct in phenol was read, L-1), spectators acetone, water, the isomer and
-  the by-products. Energy: liquor heat capacity 2.07 kJ/(kg K) (materials.yaml), heat of
+  (ASSUMED: the mother liquor S16 then carries 6.5 wt% bisphenol A, inside SRC-1's 5-15 wt%; no
+  open solubility of the adduct in phenol was read, L-1), spectators acetone, water, the isomer
+  and the by-products. Energy: liquor heat capacity 2.07 kJ/(kg K) (materials.yaml), heat of
   crystallization -110.46 kJ per kg of adduct from SRC-3's example (0.4 million kcal/h for
-  15 161 kg/h), the feed at the mixed temperature of S9 and S10 (350.99 K, hand calculation).
-  Core's duty: 1.53 MW (Q4).
-- Hand check of the evaporative cooling (the water dose's basis): the vapour of FL201 (2077.8
-  kg/h water at 43.13 kJ/mol, 984.6 kg/h acetone at 29.82 kJ/mol, 467.5 kg/h phenol at 56.32
-  kJ/mol, all at 318 K, SRC-7) carries 1599.9 kW of latent heat against the 1526.6 kW of Q4,
-  4.8 % more (the vapour's own sensible cooling from 351 K is not in Q4). The crystallizer feed
-  then holds 3.8 wt% water and 1.6 wt% acetone, inside SRC-2's 2-12 and 0.1-8 wt%.
+  15 161 kg/h), the feed at the mixed temperature of S9 and S10 (352.25 K, hand calculation).
+  Core's duty: 1.50 MW (Q4).
+- Hand check of the evaporative cooling (the water dose's basis): the vapour of FL201 (1309.8
+  kg/h water at 43.13 kJ/mol, 850.8 kg/h acetone at 29.82 kJ/mol, 3964.0 kg/h phenol at 56.32
+  kJ/mol, all at 318 K, SRC-7) carries 1651.3 kW of latent heat; Q4 (1501.9 kW) plus the
+  evaporated material's own cooling from 352.25 to 318.15 K (147.0 kW) is 1648.9 kW, 0.15 % less.
+  The crystallizer feed holds 2.4 wt% water and 1.6 wt% acetone, inside SRC-2's 2-12 and
+  0.1-8 wt%.
+- Condensing the vapour: at the crystallizer's pressure it cannot be condensed on cooling water
+  (supply 298.15 K, return 308.15 K, approach 5 K): water alone saturates at 5 kPa(a) only at
+  306 K, and the condensate (S12's composition) has a bubble pressure of 7.1 kPa(a) at 303 K and
+  11.8 kPa(a) at 313 K (UNIFAC). A two-stage booster K-201 with an intercooler lifts the vapour
+  (about 403 000 m3/h at the suction) to 12 kPa(a), where E-201 condenses it totally to 313 K on
+  cooling water: 392.8 kW of electricity (Q14; ideal gas, cp 63.5 J/(mol K), isentropic
+  efficiency 0.7 ASSUMED, the phenol that condenses in the intercooler carried through the second
+  stage, an upper bound). The intercooler and E-201 reject Q4 plus Q15 (563.8 kW: the vapour's
+  own cooling, the condensate subcooled to 313 K and the booster's power), 2.07 MW in all. A
+  steam-jet ejector set is the alternative to the booster (its motive steam not estimated); the
+  non-condensables (air ingress) go to the vacuum pump of the Q3 allowance.
 - F201, core's filter with a displacement wash: all crystals to the cake (fines not modelled),
   cake liquid 0.25 kg/kg (ASSUMED), wash 0.6 kg of polished phenol per kg of adduct (SRC-2's
   Example 1; design specification `wash`, propagate varying the split of SP101), efficiency 0.8
   (ASSUMED): 2.1 % of the cake's mother liquor stays in it. The cake carries 3.09 t/h of phenol
   liquor with the 12.35 t/h of adduct.
-Rejected: external cooling of the crystallizer through its wall (SRC-4: scale on a cooled wall);
-a centrifuge (SRC-1) is equivalent at this level.
+Rejected, and open alternatives:
+- A wetter liquor at SRC-2's preferred pressure (its Examples 1 and 3 at about 50 mbar): fewer
+  phenol evaporated, about six times less vapour volume per mole and a smaller booster, but
+  several wt% of water back to the reactor with the mother liquor, so a dehydration of the
+  recycle would be needed (not designed; the resin's tolerance of water not read). The best
+  choice between the two is open.
+- External cooling of the crystallizer through its wall or a heat exchanger: SRC-4 warns of scale
+  on a cooled wall, while SRC-2's Example 2 holds its crystallizer at about 42 C by a heat
+  exchanger at about 920 mbar (0.14 % impurities, 8 APHA); it would remove the booster and is an
+  open option.
+- A centrifuge (SRC-1) is equivalent to the filter at this level.
 
 ## D-008 Mother liquor, purge and condensate (2026-11-19)
-Decision: the filtrate and the washings (52.6 t/h) are collected; 5 % is purged to a cracking
-still C302 (ASSUMED share), the rest passes an isomerisation bed of resin R301 (SRC-1's stream
-28), which turns 30 % of the o,p-isomer to p,p-bisphenol A (ASSUMED: SRC-1 gives no conversion),
+Decision: the filtrate and the washings (49.3 t/h) are collected; 5 % is purged to a cracking
+still C302 (ASSUMED share), the rest passes an isomerisation bed of resin R301 (SRC-1's
+ion-exchange isomerization reactor 28, RxV, whose product returns to the reactor by its stream
+40), which turns 30 % of the o,p-isomer to p,p-bisphenol A (ASSUMED: SRC-1 gives no conversion),
 and returns to the reactor feed. The still recovers 95 % of the purge's phenol overhead (ASSUMED)
-and leaves the bisphenols and by-products as a residue (384 kg/h) to incineration; the cracking
+and leaves the bisphenols and by-products as a residue (375 kg/h) to incineration; the cracking
 of bisphenols back to phenol and isopropenylphenol that SRC-1 describes is not modelled (L-4),
 which is conservative for the phenol and acetone use. The condensate column C401 (a column with a
-phenol-water decanter, lumped) returns 99.5 % of the acetone and 98 % of the phenol with 3 % of
-the water to the reactor (ASSUMED); the rest of the water, with about 0.5 wt% phenol, goes to
-biological treatment. The loop's steady state: the mother liquor holds 88.1 wt% phenol, 6.0 wt%
-bisphenol A, 2.1 wt% isomer and 2.9 wt% by-products; SRC-1 gives 70-85 % phenol, so the
-by-products in this loop are on the low side (the purge share and the isomerisation are the open
-inputs that set them).
+phenol-water decanter, lumped) takes the crystallizer's condensate (6.12 t/h, 65 wt% phenol) and
+returns 99.5 % of the acetone and 99.8 % of the phenol with 3 % of the water to the reactor
+(ASSUMED); the rest of the water, with about 0.6 wt% phenol, goes to biological treatment. The
+loop's steady state: the mother liquor (S16) holds 87.2 wt% phenol, 6.5 wt% bisphenol A,
+2.3 wt% isomer and 3.1 wt% by-products; SRC-1 gives 70-85 % phenol, so the by-products in this
+loop are on the low side (the purge share and the isomerisation are the open inputs that set
+them).
 
 ## D-009 Melting and phenol stripping (2026-11-19)
 Decision: the washed cake is melted on HP steam and heated to 453 K (M301, a conversion step
 `ADDUCT_MELT`, kind phase-change, with the heat of fusion of D-007; core's duty 1.56 MW, Q6), and
-the phenol is stripped in a vacuum column (about 3 kPa(a) at the top, 493 K at the bottom; SRC-2:
-150-230 C, 5-180 mbar) to about 35 wt-ppm in the product (C301, recovery 99.995 %, ASSUMED). The
-product: 8750 kg/h of 99.96 wt% bisphenol A (isomer 160 ppm, by-products 220 ppm), inside the
-commercial 99-99.8 % and the impurity limits of SRC-6 (phenol below 0.06 %, isomers below 0.2 %).
-The impurities taken into the adduct crystals themselves are not modelled (L-1): only those in
-the cake's liquor reach the product, so the purity is an upper bound. Prilling or flaking is
-outside the boundary (SRC-2).
+the phenol is removed in a vacuum column C301 (about 3 kPa(a) at the top, 493 K at the bottom;
+SRC-2: 150-230 C, 5-180 mbar) in two parts:
+- the feed is heated to 493 K and flashed at about 3 kPa(a) (a falling-film heater on HP steam,
+  Q7): the bulk of the phenol goes up to a short rectifying section (reflux ratio 0.2, ASSUMED)
+  that holds back the bisphenol A. A reboiler alone cannot go further: at 493 K bisphenol A's
+  vapour pressure is 0.53 kPa and phenol's 264.1 kPa (SRC-7), so a melt with 38 wt-ppm phenol
+  boils at only about 0.56 kPa, and at 3 kPa(a) the liquid in equilibrium holds 1.2 mol% phenol
+  (about 0.5 wt%; UNIFAC activity coefficient of phenol in the melt 0.77);
+- below the feed, a stripping section with 30 kg/h of superheated steam (S29, raised from
+  demineralised water) takes the melt from 1.2 mol% to 9.3e-5 (about 38 wt-ppm; C301's recovery
+  99.995 %, ASSUMED): Kremser hand calculation with K = 50.4 (phenol's activity coefficient 0.76
+  and vapour pressure at 493 K, 4 kPa(a) at the bottom, ASSUMED 1 kPa below the top), six
+  theoretical stages (ASSUMED): stripping factor 2.0, 27.6 kg/h, rounded up to 30 kg/h (the
+  minimum with infinite stages 13.6 kg/h). The steam goes overhead and condenses with the phenol
+  (S25: 0.6 wt% water), which returns it to the loop; its water leaves in the wastewater. The
+  water dissolved in the hot melt at the bottom is not modelled (all water to the top). A deeper
+  vacuum alone (below about 0.6 kPa(a) at the bottom, inside SRC-2's 2-650 mbar but not its
+  preferred range) would evaporate bisphenol A with the phenol; nitrogen would do the stripping
+  steam's job with a vent to treat (rejected: steam needs no new utility).
+The product: 8750 kg/h of 99.96 wt% bisphenol A (isomer 170 ppm, by-products 230 ppm, phenol
+38 ppm). That meets or exceeds the commercial purity of SRC-6 (99-99.8 %) and its impurity limits
+(phenol below 0.06 %, isomers below 0.2 %); it is a model upper bound: the impurities taken into
+the adduct crystals themselves are not modelled (L-1), only those in the cake's liquor reach the
+product. Prilling or flaking is outside the boundary (SRC-2).
 
 ## D-010 Recycle solution (2026-11-19)
 Decision: two tears, S7 (the mixed reactor feed) and S5 (the wash phenol), and three design
@@ -169,34 +220,50 @@ and the tar. The loop converges in 8 iterations, worst residual about 4e-6 kg/h.
 ## D-011 Hand-calculated duties and powers (2026-11-19)
 With the liquid heat capacities of materials.yaml and SRC-7's latent heats (arithmetic in the
 flowsheet's sources):
-- Q1, feed heater: S7 from 321.79 K (mixed, hand) to 333.15 K, 414.2 kW (LP steam).
-- Q7, Q8, phenol stripper: reflux ratio 0.2 (ASSUMED) on 70.97 kmol/h phenol at 53.57 kJ/mol
-  (360 K, 3 kPa(a)), the bottoms heated 453 to 493 K, the overhead's sensible heat credited:
-  reboiler 1123.2 kW (HP steam), condenser 1350.0 kW.
-- Q10, Q11, cracking still at atmospheric pressure, reflux ratio 0.5 (ASSUMED): 686.7 kW and
-  628.3 kW.
-- Q12, Q13, condensate column, reflux ratio 2 (ASSUMED): 716.0 kW (LP steam) and 526.6 kW.
-- Powers (ASSUMED allowances, no open figure read): crystallizer circulation, agitation and
-  vacuum with the main liquor pumps 150 kW (Q3), filter 100 kW (Q5), stripper vacuum and melt
-  pumps 80 kW (Q9).
+- Q1, feed heater: S7 from 321.92 K (mixed, hand) to 333.15 K, 407.6 kW (LP steam).
+- Q7, Q8, phenol stripper (D-009): reflux ratio 0.2 (ASSUMED) on 70.87 kmol/h phenol at
+  53.57 kJ/mol (360 K, 3 kPa(a)), the bottoms heated 453 to 493 K, the stripping steam raised
+  from 298 K water (IAPWS-95), the overhead's sensible heat credited: reboiler 1142.8 kW (HP
+  steam), condenser 1368.5 kW.
+- Q10, Q11, cracking still at atmospheric pressure, reflux ratio 0.5 (ASSUMED): 633.8 kW and
+  578.0 kW.
+- Q12, Q13, condensate column, reflux ratio 2 (ASSUMED): reboiler 561.7 kW (LP steam), the feed
+  at 313.15 K heated in the column with no feed-bottoms exchange; condenser and wastewater cooler
+  533.4 kW on cooling water (the overhead condensed and cooled to 323 K, the bottoms cooled 373 to
+  313 K). Q12 - Q13 is the products' sensible heat above the feed (28.3 kW), so the block closes.
+- Q14, Q15, the crystallizer's vapour booster and condensers (D-007): 392.8 kW of electricity
+  and 563.8 kW to cooling water above Q4.
+- Powers (ASSUMED allowances, no open figure read): crystallizer circulation, agitation, the
+  vacuum pump for the non-condensables and the main liquor pumps 150 kW (Q3), filter 100 kW (Q5),
+  stripper vacuum and melt pumps 80 kW (Q9).
 - Steam levels: LP 450 kPa(a); HP 4000 kPa(a) (523.5 K) for the 493 K stripper bottoms (hot oil
   an alternative). No heat integration is attempted (the stripper's condenser at about 360 K
   could heat the feed: an open option).
+- The phenol condensers (Q8, Q11, and the subcooling of the stripped and recovered phenol to
+  338 K) are cooled by a tempered-water loop held above phenol's 314 K melting point (about
+  318 K at the supply, ASSUMED), which rejects the heat to cooling water: 298 K cooling water on
+  the tubes would freeze phenol on the cold end. The duties are unchanged and booked to cooling
+  water; the loop's pump is in the allowances. E-201's condensate (65 wt% phenol with water and
+  acetone) leaves at 313 K, at the cooling-water limit; its freezing point was not checked
+  (an open input).
 
 ## D-012 Equipment (2026-11-19)
 First sizes in equipment/equipment-list.yaml: R-101 about 157 m3 of resin bed (SRC-3's space
-time), X-201 about 103 m3 working (SRC-3's 1.8 h; SRC-2: 0.5-6 h). Column stages, filter area,
-resin volumes of V-101 and R-301 and the tanks are not sized.
+time), X-201 about 98 m3 working (SRC-3's 1.8 h; SRC-2: 0.5-6 h), the vapour booster K-201
+393 kW (D-007), C-301's stripping section six theoretical stages (D-009). The other column
+stages, filter area, resin volumes of V-101 and R-301 and the tanks are not sized.
 
 ## D-013 Hazards (noted, not designed) (2026-11-19)
 - Phenol is toxic and corrosive, also through the skin, and is handled molten (above 314 K):
   closed systems, heat tracing, nitrogen blanketing; acetone is highly flammable. Not quantified
-  here (no safety data sheet read in this work).
+  here (no safety data sheet read in this work). The phenol condensers and the phenol
+  subcoolers run on a tempered-water loop above the melting point, not on cooling water, so that
+  phenol cannot freeze on their tubes (D-011).
 - Bisphenol A dust in prilling and bagging (outside the boundary): SRC-6 gives a minimum
   explosive concentration of 0.012 g/l, a flash point of about 207 C and an autoflammability of
   about 532 C; the melt at 493 K is above the flash point (nitrogen blanketing of the melt tanks).
 - The condensation is mildly exothermic: `cheme process reactor-hazards` (core 1.13.0) screens
-  R101 with the whole feed as accumulation: dT_ad 31.6 K, MTSR 364.7 K from 333.1 K (BPA_FORM
+  R101 with the whole feed as accumulation: dT_ad 31.7 K, MTSR 364.9 K from 333.1 K (BPA_FORM
   and DIANIN_FORM govern; the flowsheet's beds rise by 20 K at 69 % conversion), R301 0.1 K;
   M301 is a phase change and not screened. MTT, TD24 and the class stay open (info findings
   cheme.reactor-hazard-missing). Read for a liquid-full resin bed: a cooling failure cannot raise
@@ -204,9 +271,9 @@ resin volumes of V-101 and R-301 and the tanks are not sized.
   stripper's own 493 K; the limit that matters is the resin's thermal stability (sulfonic acid
   groups and the promoter degrade at high temperature; no open limit read), so a high-temperature
   trip on the beds belongs to basic engineering.
-- The vacuum equipment (crystallizer, stripper) can draw in air: oxygen in hot phenol and
-  bisphenol A gives colour bodies, and acetone vapour with air is flammable; nitrogen breaks the
-  vacuum.
+- The vacuum equipment (crystallizer at 0.85 kPa(a), its booster, the stripper) can draw in air:
+  oxygen in hot phenol and bisphenol A gives colour bodies, and acetone vapour with air is
+  flammable; nitrogen breaks the vacuum.
 - Resin: life, regeneration and make-up are open inputs; spent resin is a solid waste not
   counted (D-014).
 
@@ -219,14 +286,17 @@ steam are counted as heat delivered (`steam-heat`), electricity, cooling water, 
 water and wastewater link through the shared lci/mappings.yaml by their chemical slugs; the tar
 to incineration stays a gap. No emission to air or water is in the balance (the vacuum vents are
 not designed): SRC-6's six production sites released, after treatment, 228.6 kg/a of bisphenol
-A to water and up to 984.7 kg/a to air (four of the six as dust) in 2006; over the 1 150 000 t/a
+A to water and up to 984.7 kg/a to air (three of the six as dust) in 2006; over the 1 150 000 t/a
 of Western Europe (ASSUMED to be those sites' output) that is about 0.2 g/t to water and 0.86
 g/t to air, recorded as emission exclusions, not as exchanges.
-Inventory per kg of bisphenol A (`cheme assess lca --write`): phenol 0.8631 kg, acetone 0.2642
-kg, demineralised water 0.1486 kg, electricity 0.0377 kWh, LP steam 0.129 kWh, HP steam 0.385
-kWh; outputs: tar 0.0439 kg, wastewater 0.232 kg, heat to cooling water 0.464 kWh. Phenol and
-acetone yields 95.5 % and 96.3 % of the stoichiometric 0.8245 and 0.2544 kg/kg; the losses are
-the tar (no cracking modelled, L-4) and the wastewater. `cheme assess lca --balance` closes mass
+Inventory per kg of bisphenol A (`cheme assess lca --write`): phenol 0.8619 kg, acetone 0.2641
+kg, demineralised water 0.0634 kg, electricity 0.0826 kWh (of which the crystallizer's vapour
+booster 0.0449 kWh), LP steam 0.111 kWh, HP steam 0.381 kWh; outputs: tar 0.0429 kg, wastewater
+0.147 kg, heat to cooling water 0.524 kWh. Phenol and acetone yields 95.7 % and 96.3 % of the
+stoichiometric 0.8245 and 0.2544 kg/kg; the losses are the tar (no cracking modelled, L-4) and
+the wastewater. The acetone above stoichiometry (85.8 kg/h) is bound in the bisphenol A (37.0
+kg/h), the isomer (13.0) and the by-products (30.3) left in the tar, dissolved in the wastewater
+(4.3) and bound in the product's impurities (1.3). `cheme assess lca --balance` closes mass
 and every element.
 Excluded and listed: vacuum vents and tank breathing, the site effluent's bisphenol A, resin and
 promoter make-up and spent resin, nitrogen blanketing; construction, transport, end of life.
@@ -238,6 +308,8 @@ promoter make-up and spent resin, nitrogen blanketing; construction, transport, 
 | reactor R101, isomeriser R301, melter M301 | conversion models; R101's and M301's duties from core's conversion-step model, R301 adiabatic | reactions.yaml, D-005, D-006, D-008, D-009 |
 | crystallizer X201, filter F201 | core's imposed-yield crystallizer with its energy balance, core's filter with a displacement wash | D-007 |
 | recycle | two tears and three design specifications in propagate | D-010 |
+| crystallizer pressure and evaporation, condensate bubble point | hand calculation: FL201's acetone and phenol fractions and the water dose solved with propagate so that the vapour is in equilibrium with the mother liquor (UNIFAC, SRC-7) and its latent heat takes Q4 | D-007 |
+| vapour booster, stripping steam | hand calculations: ideal-gas compression at an ASSUMED efficiency; Kremser stripping section with UNIFAC and SRC-7's vapour pressures; IAPWS-95 for the steam | D-007, D-009 |
 | heater, columns, still | hand calculation, liquid heat capacities of materials.yaml and SRC-7's latent heats, ASSUMED | D-011 |
 | LCI | `cheme assess lca --write` | lca/, D-014 |
 
@@ -260,9 +332,11 @@ promoter make-up and spent resin, nitrogen blanketing; construction, transport, 
   distribution coefficient for the isomer would let core predict both.
 - L-2: core's crystallizer evaporates only its solvent: the water and acetone (spectators) that
   carry the evaporative cooling here must be flashed in a separate component separator (FL201),
-  and the water dose that matches the latent heat to the crystallizer's duty is a hand check
-  (D-007). An evaporation of named spectators, with their latent heats in the energy balance,
-  would close it in the model.
+  and the water dose that matches the latent heat to the crystallizer's duty and the split that
+  puts the vapour in equilibrium with the mother liquor are hand calculations iterated with
+  propagate (D-007). An evaporation of named spectators at the crystallizer's temperature, with
+  the pressure from the liquor's bubble point and the latent heats in the energy balance, would
+  close it in the model.
 - L-3: no property package covers bisphenol A, its isomer or the adduct: the liquid heat
   capacities are estimates (Rowlinson-Bondi on Joback), thermo's VDI_TABULAR liquid heat
   capacity of phenol (919 J/(mol K) at 338 K, about 4.8 times the corresponding-states value) was
@@ -282,5 +356,8 @@ Phenol and acetone specifications; the adduct's solubility in the mother liquor 
 isomer's uptake into the crystals; the resin's activity, life and promoter loss; the purge share,
 the isomerisation and the cracking still's yields (and the mother liquor's by-product level
 against SRC-1's 70-85 % phenol); filter data (cake liquid, wash efficiency); column stages and
-reflux; heat integration (the stripper's condenser to the feed); the vacuum vents' treatment and
+reflux; the crystallizer's pressure against a wetter liquor with a dehydration of the recycle,
+or wall cooling as in SRC-2's Example 2 (D-007), and the booster against steam-jet ejectors; the
+freezing point of E-201's condensate; heat integration (the stripper's condenser to the feed);
+the vacuum vents' treatment and
 emissions (SRC-6's site data as a check); prices for a TEA; benchmark ranges for utilities.
