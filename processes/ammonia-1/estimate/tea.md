@@ -70,7 +70,7 @@ Class 4 accuracy: 386,189,575 to 468,944,484 (low end), 662,039,271 to 827,549,0
 
 | line | rate | provenance | price | net per year | status | source | year |
 |---|---|---|---|---|---|---|---|
-| feed:NG | 35645.6 kg/h | given | 11.397 EUR/GJ | -176,791,464 | QUOTED | Eurostat nrg_pc_203, non-household gas prices, NL, band I6 (4,000,000 GJ or over), excluding VAT and recoverable taxes, EUR per GJ (GCV): mean of 2025-S1 12.4122 and 2025-S2 10.3818 (both flagged estimated), read 2026-10-29 | 2025 |
+| feed:NG | 35645.6 kg/h | given | 11.397 EUR/GJ | -176,807,714 | QUOTED | Eurostat nrg_pc_203, non-household gas prices, NL, band I6 (4,000,000 GJ or over), excluding VAT and recoverable taxes, EUR per GJ (GCV): mean of 2025-S1 12.4122 and 2025-S2 10.3818 (both flagged estimated), read 2026-10-29 | 2025 |
 | feed:AIR | 236664 kg/h | given | free: ambient air for the process and the furnace |  |  |  |  |
 | feed:DMW | 109850 kg/h | given | 2 EUR/t | -1,757,605 | ASSUMED | screening value chosen in this design for demineralised water bought from an industrial water supplier at the battery limit (water treatment is outside the boundary, D-001); no quote (D-036) | 2025 |
 | feed:POWER | 36770.8 kWh/h | assumed | 100.65 EUR/MWh | -29,607,888 | QUOTED | Eurostat nrg_pc_205, non-household electricity prices, NL, band IG (150,000 MWh or over), excluding VAT and recoverable taxes: mean of 2025-S1 0.1062 and 2025-S2 0.0951 EUR/kWh, read 2026-10-29 | 2025 |
@@ -124,7 +124,7 @@ The variable operating cost above excludes:
 
 | part | EUR/t | EUR/a |
 |---|---|---|
-| feeds | 357.3 | 178,549,069 |
+| feeds | 357.3 | 178,565,319 |
 | utilities | 65.47 | 32,720,869 |
 | emissions | 115.3 | 57,627,543 |
 | co-product credits | -39.16 | -19,571,928 |
@@ -137,12 +137,12 @@ The variable operating cost above excludes:
 | result | value |
 |---|---|
 | revenue per year | 238,972,890 EUR |
-| variable cost per year | 268,897,481 EUR |
+| variable cost per year | 268,913,731 EUR |
 | fixed cost per year | 26,867,976 EUR |
-| NPV | -845,296,069 EUR |
+| NPV | -845,406,419 EUR |
 | IRR | none |
 | LCOP of NH3 | 688.1 EUR/t |
-| cash cost of NH3 | 552.6 EUR/t |
+| cash cost of NH3 | 552.7 EUR/t |
 | discounted payback | never |
 
 Cash flow by year: estimate/tea-cashflow.csv.
@@ -151,25 +151,25 @@ Cash flow by year: estimate/tea-cashflow.csv.
 
 | scenario | fixed capital | NPV | IRR | LCOP | meets |
 |---|---|---|---|---|---|
-| baseline | 551,699,393 | -845,296,069 |  | 688.1 | no |
-| no-carbon-price | 551,699,393 | -453,964,148 | -7.5% | 572.8 | no |
-| gas-2024 | 551,699,393 | -576,472,969 |  | 608.9 | no |
-| capex-urea-share-0.6 | 472,806,380 | -758,138,792 |  | 662.4 | no |
+| baseline | 551,699,393 | -845,406,419 |  | 688.1 | no |
+| no-carbon-price | 551,699,393 | -454,074,498 | -7.6% | 572.8 | no |
+| gas-2024 | 551,699,393 | -576,558,609 |  | 608.9 | no |
+| capex-urea-share-0.6 | 472,806,380 | -758,249,142 |  | 662.4 | no |
 
 ## What dominates the outcome (lcop, one input at a time)
 
 | input | base | low .. high | at low | at high | swing from |
 |---|---|---|---|---|---|
-| price:feed:NG | 11.397 EUR/GJ | x 0.6 .. x 1.6 | 546.6 EUR/t | 900.3 EUR/t | swing |
+| price:feed:NG | 11.397 EUR/GJ | x 0.6 .. x 1.6 | 546.6 EUR/t | 900.4 EUR/t | swing |
 | rate:product:NH3 | 62471.8 kg/h | x 0.8 .. x 1.2 | 860.1 EUR/t | 573.4 EUR/t | default |
-| conversion:feed:NG | 0.054397 GJ/kg | x 0.8 .. x 1.2 | 617.3 EUR/t | 758.8 EUR/t | default |
-| rate:feed:NG | 35645.6 kg/h | x 0.8 .. x 1.2 | 617.3 EUR/t | 758.8 EUR/t | default |
-| capex:isbl | 387,441,320 EUR | x 0.8549 .. x 1.3 | 662 EUR/t | 741.9 EUR/t | P10/P90 |
-| operation:hours_per_year | 8000 h/a | x 0.8 .. x 1.2 | 735.4 EUR/t | 656.5 EUR/t | default |
-| operation:utilisation | 1 fraction | x 0.8 .. x 1.2 | 735.4 EUR/t | 656.5 EUR/t | default |
-| price:carbon | 74 EUR/t CO2-eq | x 0.8 .. x 1.2 | 665 EUR/t | 711.1 EUR/t | default |
+| rate:feed:NG | 35645.6 kg/h | x 0.8 .. x 1.2 | 617.3 EUR/t | 758.9 EUR/t | default |
+| conversion:feed:NG | 0.054402 GJ/kg | x 0.8 .. x 1.2 | 617.3 EUR/t | 758.9 EUR/t | default |
+| capex:isbl | 387,441,320 EUR | x 0.8549 .. x 1.3 | 662 EUR/t | 742 EUR/t | P10/P90 |
+| operation:hours_per_year | 8000 h/a | x 0.8 .. x 1.2 | 735.4 EUR/t | 656.6 EUR/t | default |
+| operation:utilisation | 1 fraction | x 0.8 .. x 1.2 | 735.4 EUR/t | 656.6 EUR/t | default |
+| price:carbon | 74 EUR/t CO2-eq | x 0.8 .. x 1.2 | 665 EUR/t | 711.2 EUR/t | default |
 | finance:discount_rate | 0.08 fraction | x 0.8 .. x 1.2 | 666 EUR/t | 711.9 EUR/t | default |
-| rate:emission:process-co2 | 1 t CO2-eq/t | x 0.8 .. x 1.2 | 670.8 EUR/t | 705.3 EUR/t | default |
+| rate:emission:process-co2 | 1 t CO2-eq/t | x 0.8 .. x 1.2 | 670.9 EUR/t | 705.3 EUR/t | default |
 
 ## What would change the decision (lcop = 439 EUR/t)
 
@@ -185,11 +185,11 @@ Cash flow by year: estimate/tea-cashflow.csv.
 | rate:feed:DMW | 109850 kg/h | never | |
 | rate:feed:POWER | 36770.8 kWh/h | never | |
 | rate:product:NH3 | 62471.8 kg/h | 9.792e+04 kg/h | +57% |
-| rate:product:STEAM | 63727.3 kg/h | 4.69e+05 kg/h | +636% |
+| rate:product:STEAM | 63727.3 kg/h | 4.691e+05 kg/h | +636% |
 | rate:product:CW | 136534 kWh/h | never | |
 | rate:emission:process-co2 | 1 t CO2-eq/t | never | |
 | rate:emission:flue-co2 | 1 t CO2-eq/t | never | |
-| conversion:feed:NG | 0.054397 GJ/kg | 0.0161 GJ/kg | -70% |
+| conversion:feed:NG | 0.054402 GJ/kg | 0.0161 GJ/kg | -70% |
 | rate:product:CO2V | 74276.6 kg/h | never | |
 | rate:product:STACK | 178547 kg/h | never | |
 | capex:isbl | 387,441,320 EUR | never | |
