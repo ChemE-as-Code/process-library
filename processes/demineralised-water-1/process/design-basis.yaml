@@ -1,0 +1,42 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Demineralised water from fresh surface water by media filtration, two-stage reverse osmosis
+# and mixed-bed ion exchange, a site utility plant, issue ChemE-as-Code/process-library#470.
+# Values marked ASSUMED are engineering choices of this concept study, not client or vendor
+# data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: demineralised water at the battery limit to the site's header
+  demineralised_water_m3_per_h: 50          # ASSUMED (D-002): 50 000 kg/h, a mid-size site demin plant
+  operating_hours_per_year: 8000            # ASSUMED (D-002)
+  demineralised_water_m3_per_year: 400000   # from the two above
+feeds:
+  - name: Raw water (fresh surface water, clarified)
+    terminal: RAW
+    source_of_values: "ASSUMED (D-002): 500 mg/kg dissolved solids, lumped as NaCl; suspended solids removed by the filters, not carried; SDI below 5 after the filters (SRC-1 p. 100 Table 22, surface water with conventional pretreatment)"
+    composition: "water 99.95 wt-%, dissolved solids 0.05 wt-% (as NaCl)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Hydrochloric acid 33 wt-% (hydrogen-chloride-1)
+    terminal: HCL
+    source_of_values: "D-005, D-006: regeneration at 100 g HCl per L of cation resin (SRC-2) and the trim acid of the neutralisation (SRC-5)"
+    composition: "HCl 33 wt-% in water"
+  - name: Caustic soda 50 wt-% (chlor-alkali-1)
+    terminal: NAOH
+    source_of_values: "D-005: regeneration at 110 g NaOH per L of anion resin (SRC-2)"
+    composition: "NaOH 50 wt-% in water"
+products:
+  - name: Demineralised water
+    terminal: DEMIN
+    purity: "conductivity below 0.1 uS/cm (a mixed bed's quality, SRC-3), modelled about 0.02 mg/kg residual salt as NaCl; silica and CO2 not modelled (L-2)"
+    delivery: {temperature_K: 298.15, pressure_kPa_a: 500, battery_limit: site demineralised water header}
+  - name: Wastewater to the site's treatment
+    terminal: WW
+    note: "filter backwash and rinse, RO concentrate (about 2000 mg/kg salt) and the neutralised regeneration effluent, pH 6 to 9 (SRC-5), mixed in a sump (D-006)"
+utilities:
+  - {name: Electricity, note: "pumps and auxiliaries, about 49 kW, 0.98 kWh per m3 of product (D-007)"}
+site:
+  location: generic (not chosen); a chemical site with a hydrochloric acid and caustic supply and a biological wastewater treatment
+assumptions:
+  - "Dissolved solids of the raw water lumped as NaCl at 500 mg/kg (D-002, L-2)."
+  - "Design at 25 degC, the membranes' rating temperature; colder water needs a higher RO feed pressure (D-004)."
+  - "Mixed beds regenerated in place every 72 h; one in service, one regenerating or on standby (D-005)."
+  - "All wastewater goes to the site's biological treatment, the conservative choice for the RO concentrate (D-006)."

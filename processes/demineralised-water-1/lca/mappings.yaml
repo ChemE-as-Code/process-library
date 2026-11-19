@@ -1,0 +1,14 @@
+# demineralised-water-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `dataset` (an Atlas producer).
+#
+# Linked here (DESIGN.md D-008): the hydrochloric acid to hydrogen-chloride-1 (33 wt-% acid, kg
+# for kg) and the caustic soda to chlor-alkali-1 (50 wt-% solution, kg for kg), pinned so that no
+# other producer of the substance is taken. The electricity (feed:POWER, registry slug
+# electricity) and the wastewater (product:WW, slug wastewater, to processes/utility-wwtp) link
+# by their process.yaml inventory_key; the raw water is a water resource (lca/lca.yaml).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:HCL": {dataset: {path: processes/hydrogen-chloride-1/lca/dataset.yaml, product: "product:HCLACID"}, source: "the Atlas producer hydrogen-chloride-1, hydrochloric acid 33 wt-% counted by mass of the acid, as the flowsheet's S13 and S16 (D-005, D-006)"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-% counted by mass of the solution, as the flowsheet's S14 (D-005)"}
