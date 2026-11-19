@@ -50,7 +50,7 @@ def _asu_library(tmp: Path, user: bool = True) -> Path:
         shutil.copy(ASU / name, library / "processes" / "asu-1" / "lca")
     shutil.copytree(KIT / "chemicals", library / "chemicals")
     # the markets of ASU-1's products only: the fixture library has no other supplier
-    shutil.copytree(KIT / "markets", library / "markets", ignore=shutil.ignore_patterns("water.yaml"))
+    shutil.copytree(KIT / "markets", library / "markets", ignore=shutil.ignore_patterns("water.yaml", "ammonia.yaml"))
     if user:
         shutil.copytree(FIXTURES / "lin-user", library / "processes" / "fixture-lin-user")
     return library
@@ -77,7 +77,7 @@ def test_library_markets_load_without_problems() -> None:
     markets, problems = mk.load(KIT / "markets", SCHEMA, _registry(), KIT)
     assert problems == []
     assert sorted(m.code for m in markets) == [
-        "market:argon/gar:RER", "market:argon/lar:RER", "market:nitrogen/gan-8barg-10ppm:RER", LIN_MARKET,
+        "market:ammonia:RER", "market:argon/gar:RER", "market:argon/lar:RER", "market:nitrogen/gan-8barg-10ppm:RER", LIN_MARKET,
         "market:oxygen/gox-30barg-99.5:RER", "market:oxygen/lox:RER", "market:water/demineralised:GLO",
     ]
     # every number has a status and a source; nothing in the liquid markets is presented as cited
@@ -180,6 +180,32 @@ def test_link_dataset_pins_the_plant_and_is_checked(tmp_path: Path) -> None:
     lin = _exchange(_activities(tmp_path / "out")[USER], "feed:LIN")
     assert lin["database"] == "cheme-as-code-atlas-0.1.0" and lin["atlas code"] == LIN and lin["atlas link"] == "pinned"
     assert "boundary plant gate (pinned)" in lin["atlas check"]
+
+
+def test_nitric_acid_1_takes_its_ammonia_from_the_ammonia_market(tmp_path: Path) -> None:
+    """markets/ammonia.yaml: nitric-acid-1's feed:NH3 (registry slug ammonia, no pin) links to
+    market:ammonia:RER, supplied by ammonia-1, with ammonia-1's plant beside it for pinning."""
+    library = tmp_path / "library"
+    for pid in ("ammonia-1", "nitric-acid-1"):
+        (library / "processes" / pid).mkdir(parents=True)
+        shutil.copy(KIT / "processes" / pid / "process.yaml", library / "processes" / pid)
+        shutil.copytree(KIT / "processes" / pid / "lca", library / "processes" / pid / "lca")
+    for folder in ("chemicals", "lci", "taxonomy"):
+        shutil.copytree(KIT / folder, library / folder)
+    (library / "markets").mkdir()
+    shutil.copy(KIT / "markets" / "ammonia.yaml", library / "markets")
+    report = build_lci.build(library, tmp_path / "out", "0.1.0", commit="fixture")
+    assert report.errors == [] and not [w for w in report.warnings if "ammonia" in w]
+    market, consumer = "market:ammonia:RER", "nitric-acid-1:weak-nitric-acid-dual-pressure-ammonia-oxidation-1000-t-d-hno3-as-60-wt-acid:product:ACID"
+    links = {(l["consumer"], l["key"]): l for l in _json(tmp_path / "out" / "lci" / "datapackage.json")["atlas_links"]}
+    nh3 = links[(consumer, "feed:NH3")]
+    assert (nh3["provider"], nh3["kind"], nh3["compatible"]) == (market, "market", True)
+    assert nh3["plant"].startswith("ammonia-1:") and nh3["plant"].endswith(":product:NH3")
+    assert links[(market, "supplier:ammonia-1")]["provider"] == nh3["plant"]
+    activity = _activities(tmp_path / "out")[market]
+    assert (activity["name"], activity["meta"]["location"]) == ("market for ammonia", "RER")
+    lorry = _exchange(activity, "distribution:road-tanker")  # 100 km ASSUMED, no losses counted
+    assert lorry["unit"] == "ton kilometer" and lorry["amount"] == pytest.approx(0.1, rel=1e-11)
 
 
 # --- layers, regions, imports ----------------------------------------------------------------

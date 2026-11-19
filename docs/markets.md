@@ -155,7 +155,9 @@ comparisons (for example cryogenic versus PSA oxygen) without changing the regio
 ## The first markets
 
 The oxygen, nitrogen and argon markets came first (#49); the demineralised water market followed
-with its plant (#470).
+with its plant (#470), and the ammonia market with ammonia-1 as its supplier, so that a consumer
+naming the slug `ammonia` without pinning a plant (nitric-acid-1's feed) links to a market and
+not to the plant gate.
 
 | market | supplier | distribution | losses | status |
 |---|---|---|---|---|
@@ -165,27 +167,44 @@ with its plant (#470).
 | `market:nitrogen/gan-8barg-10ppm:RER` | ASU-1 GAN (105084 t/a, calculated) | pipeline, 5 km, ASSUMED | leakage 0, ASSUMED | exported |
 | `market:argon/lar:RER`, `market:argon/gar:RER` | none: ASU-1 has no argon column | | | planned |
 | `market:water/demineralised:GLO` | demineralised-water-1 (400000 t/a, calculated) | on-site pipeline header, 1 km, ASSUMED (no recompression) | none counted | exported |
+| `market:ammonia:RER` | ammonia-1 (499774 t/a, calculated from the dataset) | road tanker (lorry), 100 km, ASSUMED | none counted (no open source read) | exported |
 
 What is behind the numbers:
 
 - **Distances.** No open source with the delivery distance of merchant liquid oxygen or
-  nitrogen in Europe was found, so 100 km is an ASSUMED round screening placeholder. TODO
+  nitrogen, or of merchant ammonia, in Europe was found, so 100 km by road is an ASSUMED round
+  screening placeholder for the three road markets (markets/ammonia.yaml reuses the oxygen and
+  nitrogen value). Ammonia also travels by rail, ship and pipeline, or over the fence on the
+  producer's site; each would change its leg. The pipeline distances (5 km for gaseous oxygen
+  and nitrogen, 1 km for the demineralised water header) are ASSUMED as well. TODO
   (unverified, not a citation): check whether the standard transport distances of ecoinvent v2
   (Frischknecht et al. 2007, ecoinvent report No. 1) give 100 km by road for chemicals, or replace
   the value with a cited distance. The
   background's lorry carries its average load factor, which covers the tanker's empty return; it
-  has no cryogenic tanker activity.
-- **Losses.** No open source with a boil-off or transfer loss per delivery was found. The values
-  are ASSUMED and shown in every market comment. A pipeline leakage of 0 is recorded as ASSUMED
-  rather than invented.
+  has no cryogenic tanker activity and no pressurised or refrigerated ammonia tanker activity.
+- **Losses.** No open source with a boil-off or transfer loss per delivery was found. The
+  oxygen and nitrogen values are ASSUMED and shown in every market comment. A pipeline leakage
+  of 0 is recorded as ASSUMED rather than invented. The ammonia market counts no losses on the
+  way (vapour vented or flared on loading, transfer and tanker venting), and the water market no
+  header leakage: no open source with a value was read, so none is counted rather than an
+  invented fraction, and the market's `excluded` list says so.
 - **Outside the markets:** the customer's storage tank, its boil-off and the vaporiser (the
   consumer's system), ASU-1's own LOX and LIN tanks (the plant dataset ends at the tank), and
-  pipeline infrastructure.
+  pipeline infrastructure; for ammonia, the customer's storage and vaporiser and the
+  refrigeration or pressurisation of the stored ammonia (the consumer's system) and ammonia-1's
+  refrigerated storage (its product leaves the plant dataset at the battery limit, stream S60);
+  for demineralised water, the site's header and the consumers' storage tanks. Each market's
+  `excluded` list in markets/ is the full record.
 - **Production equals consumption:** UN Comtrade and CEPII BACI report oxygen (HS 2804.40) and
   nitrogen (HS 2804.30) without telling liquid from gas, and their terms are not yet checked for
-  redistribution, so none is packaged.
-- **Representativeness:** ASU-1 is the only Atlas producer. Each market stands for the Atlas's
-  own cryogenic technology, not for the region's actual production, and the build's caveats say so.
+  redistribution, so none is packaged. For ammonia the same terms are not yet checked, so no
+  trade data is packaged either. Demineralised water is made and used on one site and not
+  traded.
+- **Representativeness:** each market has one Atlas producer: ASU-1 for oxygen and nitrogen,
+  ammonia-1 for ammonia and demineralised-water-1 for demineralised water. A market stands for
+  that plant's technology (cryogenic air separation; natural-gas steam reforming with a
+  Haber-Bosch loop; reverse osmosis and mixed-bed ion exchange), not for the region's actual
+  production, and the build's caveats say so.
 
 A utility market (steam, cooling water) follows when the utility processes exist (#45). The
 first site utility with a market is demineralised water (a substance grade, see above): an
