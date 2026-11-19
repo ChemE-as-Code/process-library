@@ -1,0 +1,102 @@
+# Process Atlas manifest of mtbe-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: mtbe-1
+title: Methyl tert-butyl ether by catalytic distillation of a C4 raffinate with methanol over acidic resin (500 kt/a)
+summary: >-
+  A continuous plant: the isobutene of a C4 raffinate reacts with methanol on an acidic
+  ion-exchange resin inside a distillation column at 11 bar, MTBE leaves at the bottom; the C4
+  overhead is washed with water and the methanol recovered and recycled. Concept stage, the
+  column of an open simulation study, balance solved by core, preliminary LCI.
+description: |
+  Isobutene and methanol react to methyl tert-butyl ether, C4H8 + CH3OH <=> (CH3)3COCH3, on a
+  strongly acidic ion-exchange resin. The plant is the catalytic distillation column of the open
+  simulation study of Murat, Mohamed and Bhatia (2003), their model of Nijhuis et al.'s column:
+  17 equilibrium stages at 11 bar with the resin (6400 kg) on stages 3 to 10, reflux ratio 7,
+  methanol (206 mol/s, liquid at 320 K) and a C4 raffinate (549 mol/s, 35.6 mol% isobutene, the
+  inert C4 represented by 1-butene, vapour at 350 K) both fed to stage 10. The reaction removes
+  the isobutene from the C4 as it forms MTBE, which leaves at the bottom: 99.5 % of the
+  isobutene is converted, and the bottoms hold 98.6 mol% MTBE (99.10 wt%) with 1.4 mol% C4. The
+  C4 overhead carries the excess methanol (1.84 wt%). As US 4 918 243 A and US 5 336 841 A
+  describe it, the overhead is washed with water (0.15 kg/kg, ASSUMED) to about 10 ppm(wt) of
+  methanol and returned to the C4 supplier as raffinate-2, and a low-pressure methanol column
+  recovers 99.9 % of the extracted methanol for recycle; 2 % of the wash water is purged.
+
+  The material balance is solved by cheme-as-code (core ADRs 0060, 0070): the reactive zone is a
+  conversion step and the column's separation, the wash and the methanol column are component
+  splits; two design specifications set the fresh methanol for the column's 206 mol/s and the
+  make-up water for the wash ratio, with the methanol and wash-water recycles as tears. The
+  column's condenser (49.7 MW) and reboiler (39.3 MW) are the source's; the other duties come
+  from a balance script. Per kg of MTBE product: 0.634 kg isobutene (as raffinate-1, whose
+  1.147 kg of inert C4 return as raffinate-2), 0.360 kg methanol, 0.631 kWh MP steam, 0.259 kWh
+  LP steam, 0.938 kWh to cooling water, 0.0038 kWh electricity. See DESIGN.md for every
+  assumption.
+families: [oxygenates]
+keywords: [MTBE, methyl tert-butyl ether, tert-butyl methyl ether, etherification, isobutene, isobutylene, methanol, C4 raffinate, raffinate-1, raffinate-2, reactive distillation, catalytic distillation, ion-exchange resin, Amberlyst, water wash, methanol recovery, fuel oxygenate, design specification, recycle]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals, fuels]
+  unit_operations: [reaction, reactive-distillation, distillation, extraction]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. The column's feeds, conversion,
+# product and duties are the open study's; the wash and methanol column's splits, the C-202
+# reflux and the steam levels are assumed (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept continuous PFD with closed mass, component and element balances (cheme validate,
+    cheme process streams: 3 blocks and 13 steps within tolerance). cheme process propagate
+    solves the feeds with two design specifications (206 mol/s of methanol to the column, Murat
+    et al. 2003 Table 1; 0.15 kg of wash water per kg of distillate, ASSUMED) together with two
+    tear streams (the methanol recycle S16, the wash water S20), the conversion step R101 (99.5 %
+    of the isobutene, Murat et al. 2003 Table 2) and three component separators: C101 from the
+    source's bottoms composition, C201 and C202 with ASSUMED splits after US 5 336 841 A and
+    US 4 918 243 A. Core has no reactive-distillation model, so the column is a conversion step
+    followed by a component split (L-1); its condenser and reboiler duties are the source's.
+    scripts/balance.py gives the other duties and the pumps on constant liquid heat capacities
+    and pure-component heats of vaporization (thermo 0.6.1; no property package of core covers
+    these liquids, L-2). The column's multiple steady states (Svandova et al. 2007) are reasoned
+    in DESIGN.md D-009, not screened. Preliminary gate-to-gate LCI with the raffinate subdivided:
+    its isobutene linked to butadiene-1's raffinate-1, its inert C4 and the raffinate-2 outside
+    the system; methanol linked to methanol-1, both steams as heat, electricity, cooling water
+    and the purge's treatment through the shared proxies. The resin's replacement is cut off
+    with an ASSUMED life. cheme maturity reaches no level (assumed splits); the claim `maturity:
+    concept` is the lowest value of the schema, not an evidenced level. Not reviewed. Needs
+    cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: c4-raffinate, role: feedstock, inventory_key: "feed:IBC", note: "The isobutene of raffinate-1 (butadiene-1's c4-raffinate), 0.634 kg/kg; 99.5 % of it to MTBE. The raffinate's inert C4 (1.147 kg/kg, feed:C4I) pass the plant and return as raffinate-2, outside the system (DESIGN.md D-010)"}
+    - {chemical: methanol, role: feedstock, inventory_key: "feed:MEOH", note: "Grade AA methanol (methanol-1), 0.360 kg/kg; all but 0.003 % of it to MTBE"}
+    - {chemical: water, role: utility, inventory_key: "feed:DMW", note: "Demineralised make-up water of the wash loop, 0.0040 kg/kg"}
+  outputs:
+    - {chemical: methyl-tert-butyl-ether, role: main-product, inventory_key: "product:MTBEP", note: "MTBE 99.10 wt% (98.6 mol%) with 0.90 wt% C4, 62.3 t/h"}
+    - {chemical: c4-raffinate-2, role: by-product, inventory_key: "product:RAF2", note: "Raffinate-2: the washed C4 with 0.28 wt% isobutene and about 10 ppm(wt) methanol, back to the C4 supplier; outside the system with the inert C4 it comes from (DESIGN.md D-010)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Wash-water purge to biological treatment, 0.0035 kg/kg with about 120 ppm(wt) methanol"}
+  utilities:
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.631 kWh/kg of MP steam 1500 kPa(a) for C-101's reboiler (39.3 MW, Murat et al. 2003)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.259 kWh/kg of LP steam 450 kPa(a): raffinate vaporiser, methanol heater, methanol column"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.0038 kWh/kg: pumps"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.938 kWh/kg removed by cooling water: C-101's condenser (49.7 MW), the coolers and C-202's condenser"}
+basis:
+  capacity: "about 500 kt/a of MTBE product (62.3 t/h in 8000 h), the basis of Murat et al. (2003): 197 mol/s of bottoms (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic site beside a C4 supplier (steam cracker or refinery), not chosen
+references:
+  - {title: "Murat, M.N.; Mohamed, A.R.; Bhatia, S. (2003) Modeling of a reactive distillation column: methyl tertiary butyl ether (MTBE) simulation studies. IIUM Engineering Journal 4(2), 13-30 (open access; the column's configuration, feeds, rate law and results in Tables 1 to 4)", url: "https://journals.iium.edu.my/ejournal/index.php/iiumej/article/download/371/319/1573"}
+  - {title: "Svandova, Z.; Labovsky, J.; Markos, J.; Jelemensky, L. (2007) Impact of mathematical model selection on prediction of steady state and dynamic behaviour of a reactive distillation column. ESCAPE17 (the MTBE column at 1110 kPa, feeds, stage efficiency, three steady states and isolas)", url: "https://skoge.folk.ntnu.no/prost/proceedings/escape17/papers/T5-410.pdf"}
+  - {title: "Smith, L.A.; Jones, E.M.; Hearn, D. (Chemical Research and Licensing, priority 1988) US 4 918 243 A: Heat recovery in MTBE methanol recovery (water wash of the C4 raffinate at 0.1-0.4 kg/kg, methanol/water column, 99.9+ wt% methanol overhead, the usual low-pressure column)", url: "https://patents.google.com/patent/US4918243A/en"}
+  - {title: "Adams, J.R. (Chemical Research and Licensing, priority 1993) US 5 336 841 A: Oxygenate removal in MTBE process (the water wash of the C4 raffinate after etherification; washed C4 with about 10 ppm methanol and 400 ppm water)", url: "https://patents.google.com/patent/US5336841A/en"}
+  - {title: "Bell, C. et al.: chemicals 1.5.2 and thermo 0.6.1 (MIT): ideal-gas formation enthalpies, entropies and heat capacities, liquid heat capacities, heats of vaporization, vapour pressures and liquid densities; single values with the package named (library ADR 0037)", url: "https://github.com/CalebBell/chemicals"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/mtbe-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

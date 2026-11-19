@@ -1,0 +1,23 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the sizes the balance and the sources give. Design pressures, temperatures and materials
+# are not set yet (basic engineering); carbon steel is the usual choice for this dry,
+# non-corrosive service, to be confirmed. All values ASSUMED unless a source is named (DESIGN.md).
+schema: cheme/equipment/v1
+equipment:
+  - {tag: E-104, type: HeatExchanger, service: "Raffinate vaporiser: the liquid C4 raffinate heated and vaporised to the column's vapour feed (LP steam)",
+     notes: "110.9 t/h of raffinate-1 from 298 K liquid to saturated vapour at 350 K and 1100 kPa(a) (SRC-1's butenes feed), 13.7 MW of LP steam (Q1, scripts/balance.py); the bottoms' heat could cover a third of it (open, D-008)."}
+  - {tag: E-103, type: HeatExchanger, service: "Methanol feed heater (LP steam)",
+     notes: "23.8 t/h of fresh and recycle methanol from 301 to 320 K (SRC-1's methanol feed), 0.39 MW (Q2)."}
+  - {tag: C-101, type: Column, service: "Catalytic distillation column: reactive zone with acidic ion-exchange resin, MTBE at the bottom, C4 raffinate with the excess methanol overhead",
+     notes: "17 equilibrium stages numbered from the top (total condenser 0, partial reboiler 16), the reactive zone on stages 3 to 10 with 800 kg of resin each (6400 kg, 4.9 equiv H+/kg), both feeds on stage 10, 11 bar, reflux ratio 7, top 348.8 K, bottom 423.8 K, condenser 49.7 MW (Q4), reboiler 39.3 MW on MP steam (Q3): all as Murat et al. (2003) Tables 1 and 2 give them (SRC-1); 99.5 % of the isobutene converted. The real trays are about 1.7 times the equilibrium stages at SRC-2's 60 % efficiency; diameter not sized (no hydraulics). The column can run at three steady states at the same feeds (SRC-2): start-up procedure and control in D-009."}
+  - {tag: E-101, type: HeatExchanger, service: "MTBE product cooler (cooling water)",
+     notes: "62.3 t/h of MTBE from 423.8 to 313 K, 4.62 MW (Q5); a feed preheat against the raffinate is the obvious integration (D-008)."}
+  - {tag: E-102, type: HeatExchanger, service: "Distillate cooler ahead of the water wash (cooling water)",
+     notes: "72.4 t/h from 348.8 to 313 K, 2.13 MW (Q6)."}
+  - {tag: C-201, type: Column, service: "Raffinate water wash: countercurrent extraction of the methanol from the C4 distillate with water",
+     notes: "72.4 t/h of distillate with 1.84 wt% methanol washed with 10.9 t/h of water (0.15 kg/kg, ASSUMED inside 0.1-0.4 of US 4 918 243 A, SRC-3); raffinate-2 with about 10 ppm(wt) methanol and 400 ppm(wt) water (as US 5 336 841 A's washed C4, SRC-4); extract 10.9 wt% methanol to C-202; stages not sized (no LLE model in core for this system, L-3), 313 K, 1000-1100 kPa(a) (ASSUMED, D-006)."}
+  - {tag: C-202, type: Column, service: "Methanol column: recycle methanol overhead, wash water at the bottom",
+     notes: "Top 136 kPa(a) and 345 K, bottom 160 kPa(a) and 386 K (the low-pressure column US 4 918 243 A names as the usual one, SRC-3; ASSUMED); reflux 1.5 (ASSUMED); condenser 1.01 MW (Q8), reboiler 1.98 MW on LP steam (Q7); overhead 1.35 t/h, 99.9 wt% methanol on a C4-free basis, with the dissolved C4, back to C-101 (D-007)."}
+  - {tag: E-201, type: HeatExchanger, service: "Wash-water cooler (cooling water)",
+     notes: "10.8 t/h of water from 386 to 313 K, 0.93 MW (Q9); 2 % purged to treatment, make-up demineralised water 0.25 t/h (D-007)."}

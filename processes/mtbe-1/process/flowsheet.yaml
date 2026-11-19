@@ -1,0 +1,561 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# MTBE from the isobutene of a C4 raffinate and methanol by catalytic (reactive) distillation
+# over an acidic ion-exchange resin, about 500 kt/a (D-001, D-002). Where the values come from:
+# - the column's feeds, pressure, conversion, bottoms composition and its two duties are the
+#   ones of Murat, Mohamed and Bhatia (2003, Tables 1 and 2; SRC-1): methanol 206 mol/s liquid
+#   at 320 K and butenes 549 mol/s (0.356 isobutene, 0.644 1-butene) vapour at 350 K, 11 bar,
+#   99.5 % of the isobutene converted, bottoms 98.6 mol% MTBE with 1.4 mol% C4, condenser
+#   49.7 MW, reboiler 39.3 MW;
+# - the raffinate is booked as two feed terminals, its isobutene (IBC) and its inert C4 (C4I),
+#   joined in M100 at the battery limit: one stream physically, two exchanges for the LCI
+#   (D-010);
+# - the column is two steps: its reactive zone R101 (a conversion step, D-004) and its
+#   separation C101 (a component split, `recovery:`, D-005), because core has no reactive-
+#   distillation model (L-1);
+# - the water wash of the distillate and the methanol column, which the column sources do not
+#   model, follow US 4 918 243 A and US 5 336 841 A (SRC-3, SRC-4) with ASSUMED splits (D-006);
+# - the methanol recycle S16 and the wash-water recycle S20 are torn (core ADR 0060) and solved
+#   with two design specifications (core ADR 0070): the fresh methanol S5 for the column's
+#   206 mol/s of methanol, the make-up water S21 for 0.15 kg of wash water per kg of distillate;
+#   `cheme process propagate --fill` writes every flow and composition but the feeds';
+# - the duties other than the column's, the pumps and the mixers' outlet temperatures come from
+#   scripts/balance.py (D-008).
+schema: cheme/process/v1
+kind: flowsheet
+title: Methyl tert-butyl ether by catalytic distillation of a C4 raffinate with methanol (500 kt/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: the column of Murat et al. (2003), 197 mol/s of bottoms, about 500 kt/a of MTBE in 8000 h (D-002)"
+    default: true
+    capacity: 62.3 t/h MTBE product
+    provenance: given
+    source: "Murat, Mohamed and Bhatia (2003), section 3.1: 197 mol/s of MTBE, 500 000 t/a (SRC-1, D-002)"
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+tears:
+  - stream: S16
+    initial: {flow: 1345, unit: kg/h, basis: mass_fraction, composition: {MEOH: 0.988, B1: 0.01, IB: 0.001, H2O: 0.001}}
+  - stream: S20
+    initial: {flow: 10600, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.9999, MEOH: 0.0001}}
+convergence: {method: wegstein, max_iterations: 200}
+specs:
+  - id: methanol
+    vary: {stream: S5, initial: 22400}
+    target: {stream: S7, component: MEOH, quantity: flow, value: 23762.35, unit: kg/h}
+    provenance: given
+    source: "Murat et al. (2003) Table 1 (SRC-1): 206 mol/s of methanol to stage 10 (741.6 kmol/h, 23 762.35 kg/h), fresh and recycled together (D-003)"
+  - id: wash
+    vary: {stream: S21, initial: 300}
+    target: {stream: S13, quantity: ratio, basis: mass, per: {stream: S12}, value: 0.15}
+    provenance: assumed
+    source: "D-006: 0.15 kg of wash water per kg of distillate, ASSUMED inside the 0.1-0.4 of US 4 918 243 A (SRC-3)"
+
+feeds:
+  - {id: IBC, title: "Isobutene of the C4 raffinate (raffinate-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: C4I, title: "Inert C4 of the C4 raffinate (1-butene for the n-butenes and butanes), returned as raffinate-2", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEOH, title: "Methanol (Grade AA, methanol-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: "Demineralised make-up water of the wash loop", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 421.05, provenance: assumed, source: "saturation at 450 kPa(a) (thermo 0.6.1, IAPWS), D-008"}
+    ports:
+      - {id: e104, direction: out, kind: energy}
+      - {id: e103, direction: out, kind: energy}
+      - {id: c202, direction: out, kind: energy}
+  - id: MPS
+    title: MP steam 1500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 471.44, provenance: assumed, source: "saturation at 1500 kPa(a) (thermo 0.6.1, IAPWS), D-008"}
+    ports:
+      - {id: c101, direction: out, kind: energy}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: rxd, direction: out, kind: energy}
+      - {id: mrc, direction: out, kind: energy}
+products:
+  - {id: MTBEP, title: MTBE to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: RAF2, title: "Raffinate-2 (washed C4) back to the C4 supplier", category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Wash-water purge to biological treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+    ports:
+      - {id: c101, direction: in, kind: energy}
+      - {id: e101, direction: in, kind: energy}
+      - {id: e102, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+
+blocks:
+  - id: FEED
+    title: Feed preparation (raffinate vaporiser, methanol feed heater)
+    class: ExchangingThermalEnergy
+    ports:
+      - {id: ibc, direction: in}
+      - {id: c4i, direction: in}
+      - {id: meoh, direction: in}
+      - {id: rec, direction: in}
+      - {id: c4, direction: out}
+      - {id: me, direction: out}
+      - {id: stm1, direction: in, kind: energy}
+      - {id: stm2, direction: in, kind: energy}
+  - id: RXD
+    title: Catalytic distillation column (reactive zone with ion-exchange resin) and product cooler
+    class: ReactingChemicals
+    ports:
+      - {id: c4, direction: in}
+      - {id: me, direction: in}
+      - {id: top, direction: out}
+      - {id: mtbe, direction: out}
+      - {id: stm, direction: in, kind: energy}
+      - {id: pw, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: MRC
+    title: Methanol recovery (raffinate water wash, methanol column, wash-water loop)
+    class: SeparatingByContact
+    ports:
+      - {id: top, direction: in}
+      - {id: dmw, direction: in}
+      - {id: raf, direction: out}
+      - {id: rec, direction: out}
+      - {id: ww, direction: out}
+      - {id: stm, direction: in, kind: energy}
+      - {id: pw, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+
+steps:
+  # ---------------------------------------------------------------- feeds (D-003)
+  - id: M100
+    block: FEED
+    title: Raffinate-1 at the battery limit (its isobutene and its inert C4, one stream)
+    class: Mixing
+    ports:
+      - {id: ibc, direction: in, delegates: ibc}
+      - {id: c4i, direction: in, delegates: c4i}
+      - {id: out, direction: out}
+  - id: E104
+    block: FEED
+    title: Raffinate vaporiser (LP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: c4}
+      - {id: stm, direction: in, kind: energy, delegates: stm1}
+  - id: M101
+    block: FEED
+    title: Fresh and recycle methanol
+    class: Mixing
+    ports:
+      - {id: fresh, direction: in, delegates: meoh}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: E103
+    block: FEED
+    title: Methanol feed heater (LP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: me}
+      - {id: stm, direction: in, kind: energy, delegates: stm2}
+  # ---------------------------------------------------------------- catalytic distillation (D-004, D-005)
+  - id: R101
+    block: RXD
+    title: Reactive zone of C-101 (stages 3 to 10, ion-exchange resin)
+    class: ReactingChemicals
+    reactions: [ETH]
+    reactor: conversion
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: c4, direction: in, delegates: c4}
+      - {id: me, direction: in, delegates: me}
+      - {id: out, direction: out}
+  - id: C101
+    block: RXD
+    title: Separation of C-101 (C4 and excess methanol overhead, MTBE at the bottom)
+    class: Distilling
+    recovery:
+      outlets:
+        bot: {MTBE: 1.0, B1: 0.00781, H2O: 1.0}
+      provenance: given
+      source: "Murat et al. (2003) Table 2 (SRC-1): the bottoms 98.6 mol% MTBE and 1.4 mol% C4 without methanol or isobutene, the distillate the rest; the share of 1-butene to the bottoms follows (9.94 of 1272.8 kmol/h); the trace water of the recycle methanol with the MTBE (ASSUMED, D-005)"
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: top}
+      - {id: bot, direction: out}
+      - {id: stm, direction: in, kind: energy, delegates: stm}
+      - {id: pw, direction: in, kind: energy, delegates: pw}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: E101
+    block: RXD
+    title: MTBE product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: mtbe}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  # ---------------------------------------------------------------- methanol recovery (D-006, D-007)
+  - id: E102
+    block: MRC
+    title: Distillate cooler ahead of the water wash
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in, delegates: top}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C201
+    block: MRC
+    title: Raffinate water wash (countercurrent extraction column)
+    class: SeparatingByContact
+    recovery:
+      outlets:
+        ext: {MEOH: 0.9995, H2O: 0.99737, IB: 0.0002, B1: 0.0002}
+      provenance: assumed
+      source: "D-006: ASSUMED split; the washed raffinate keeps about 10 ppm(wt) methanol and 400 ppm(wt) water, as the washed C4 feed of US 5 336 841 A (SRC-4, the figure's stream 27); C4 dissolved in the extract 0.02 % of the C4 (ASSUMED)"
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: wat, direction: in}
+      - {id: raf, direction: out, delegates: raf}
+      - {id: ext, direction: out}
+  - id: C202
+    block: MRC
+    title: Methanol column (methanol recycle overhead, water at the bottom)
+    class: Distilling
+    recovery:
+      outlets:
+        top: {MEOH: 0.999, IB: 1.0, B1: 1.0, H2O: 0.000123}
+      provenance: assumed
+      source: "D-007: ASSUMED split; methanol of 99.9 wt% on a C4-free basis overhead (US 4 918 243 A: 99.9+ wt%, SRC-3), 0.1 % of the methanol left in the water; the dissolved C4 overhead and back to C-101 with the methanol"
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: rec}
+      - {id: bot, direction: out}
+      - {id: stm, direction: in, kind: energy, delegates: stm}
+      - {id: pw, direction: in, kind: energy, delegates: pw}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: E201
+    block: MRC
+    title: Wash-water cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+  - id: X201
+    block: MRC
+    title: Wash-water purge
+    class: SplittingMaterial
+    split: {purge: 0.02}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: ww}
+      - {id: rec, direction: out}
+  - id: M201
+    block: MRC
+    title: Make-up water into the wash loop
+    class: Mixing
+    ports:
+      - {id: rec, direction: in}
+      - {id: dmw, direction: in, delegates: dmw}
+      - {id: out, direction: out}
+
+streams:
+  - id: S1
+    title: Isobutene of the raffinate-1
+    from: IBC.out
+    to: M100.ibc
+    template: mixture
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003: liquid from storage"}
+        pressure: {value: 1300, provenance: assumed, source: "D-003: pumped above the column"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        composition: {basis: mole_fraction, values: {IB: 1.0}, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1): 0.356 of the butenes feed"}
+        flow: {value: 39476.09, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1): 549 mol/s x 0.356 = 703.598 kmol/h"}
+  - id: S2
+    title: Inert C4 of the raffinate-1
+    from: C4I.out
+    to: M100.c4i
+    template: mixture
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003: liquid from storage"}
+        pressure: {value: 1300, provenance: assumed, source: "D-003: pumped above the column"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        composition: {basis: mole_fraction, values: {B1: 1.0}, provenance: given, source: "Murat et al. (2003) Table 1 and section 3.2 (SRC-1): 0.644 of the butenes feed, 1-butene for every inert C4"}
+        flow: {value: 71411.81, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1): 549 mol/s x 0.644 = 1272.802 kmol/h"}
+  - id: S3
+    title: Raffinate-1 to the vaporiser
+    from: M100.out
+    to: E104.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 1300, provenance: assumed, source: "D-003"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        flow: {value: 110888.0, provenance: calculated, source: 'cheme process propagate: mixer M100 from S1 S2', fingerprint: 01526e3d4f02da99}
+        composition: {basis: mole_fraction, values: {IB: 0.356, B1: 0.644, MEOH: 0.0, MTBE: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M100 from S1 S2', fingerprint: f57544a57e71484c}
+  - id: S4
+    title: Butenes feed to C-101 (vapour, stage 10)
+    from: E104.out
+    to: R101.c4
+    template: mixture
+    state:
+      design:
+        temperature: {value: 350.0, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1): vapour at 350 K"}
+        pressure: {value: 1100, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1): 11 bar"}
+        phase: {value: vapor, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1)"}
+        flow: {value: 110888.0, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S3', fingerprint: a806935296922080}
+        composition: {basis: mole_fraction, values: {IB: 0.356, B1: 0.644, MEOH: 0.0, MTBE: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S3', fingerprint: a806935296922080}
+  - id: S5
+    title: Fresh methanol
+    from: MEOH.out
+    to: M101.fresh
+    template: mixture
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 1300, provenance: assumed, source: "D-003: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        composition: {basis: mole_fraction, values: {MEOH: 1.0}, provenance: assumed, source: "D-003: methanol-1's Grade AA product taken as pure methanol (its 500 ppm water not modelled)"}
+        flow: {value: 22432.7, provenance: calculated, source: 'cheme process propagate: spec methanol (S7 MEOH flow kg/h 23762.3)', fingerprint: 7c99196622c8622e}
+  - id: S6
+    title: Methanol to the feed heater
+    from: M101.out
+    to: E103.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 300.82, provenance: assumed, source: "scripts/balance.py: S5 and S16 mixed adiabatically (D-008)"}
+        pressure: {value: 1300, provenance: assumed, source: "D-003"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        flow: {value: 23777.9, provenance: calculated, source: 'cheme process propagate: mixer M101 from S5 S16', fingerprint: e75b1056da081ac1}
+        composition: {basis: mole_fraction, values: {IB: 9.48337e-07, B1: 0.000340493, MEOH: 0.999559, MTBE: 0.0, H2O: 9.96592e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S5 S16', fingerprint: 40c4a5c44de28e48}
+  - id: S7
+    title: Methanol feed to C-101 (liquid, stage 10)
+    from: E103.out
+    to: R101.me
+    template: mixture
+    state:
+      design:
+        temperature: {value: 320.0, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1): liquid at 320 K"}
+        pressure: {value: 1100, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1): 11 bar"}
+        phase: {value: liquid, provenance: given, source: "Murat et al. (2003) Table 1 (SRC-1)"}
+        flow: {value: 23777.9, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S6', fingerprint: 35fcbd0a5a664c88}
+        composition: {basis: mole_fraction, values: {IB: 9.48337e-07, B1: 0.000340493, MEOH: 0.999559, MTBE: 0.0, H2O: 9.96592e-05}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S6', fingerprint: 35fcbd0a5a664c88}
+  - id: S8
+    title: Reactive zone to the column's separation (internal)
+    from: R101.out
+    to: C101.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 370.0, provenance: assumed, source: "D-005: inside the reactive zone's profile of SRC-1 (348-424 K); an internal stream of C-101, no duty on it"}
+        pressure: {value: 1100, provenance: given, source: "Murat et al. (2003): 11 bar"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 134666.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S7', fingerprint: d0d192749b8370ef}
+        composition: {basis: mole_fraction, values: {IB: 0.0017431, B1: 0.630773, MEOH: 0.0205716, MTBE: 0.346876, H2O: 3.66357e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S7', fingerprint: b2e789bac4fdb2fa}
+  - id: S9
+    title: C-101 distillate (C4 with the excess methanol)
+    from: C101.top
+    to: E102.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 348.8, provenance: given, source: "Murat et al. (2003) Table 2 (SRC-1): top 348.8 K, total condenser"}
+        pressure: {value: 1100, provenance: given, source: "Murat et al. (2003): 11 bar"}
+        phase: {value: liquid, provenance: given, source: "Murat et al. (2003): total condenser"}
+        flow: {value: 72396.0, provenance: calculated, source: 'cheme process propagate: separator C101 from S8', fingerprint: 095dc5821b2fafc9}
+        composition: {basis: mole_fraction, values: {IB: 0.0026893, B1: 0.965572, MEOH: 0.0317384, MTBE: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C101 from S8', fingerprint: 095dc5821b2fafc9}
+  - id: S10
+    title: C-101 bottoms (MTBE)
+    from: C101.bot
+    to: E101.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 423.8, provenance: given, source: "Murat et al. (2003) Table 2 (SRC-1): bottom 423.8 K"}
+        pressure: {value: 1110, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: given, source: "Murat et al. (2003): partial reboiler"}
+        flow: {value: 62270.0, provenance: calculated, source: 'cheme process propagate: separator C101 from S8', fingerprint: 095dc5821b2fafc9}
+        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0140017, MEOH: 0.0, MTBE: 0.985894, H2O: 0.000104126}, provenance: calculated, source: 'cheme process propagate: separator C101 from S8', fingerprint: 095dc5821b2fafc9}
+  - id: S11
+    title: MTBE product to storage
+    from: E101.out
+    to: MTBEP.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-002"}
+        pressure: {value: 800, provenance: assumed, source: "D-002"}
+        phase: {value: liquid, provenance: assumed, source: "D-002"}
+        flow: {value: 62270.0, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S10', fingerprint: 52091d35abd27ced}
+        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0140017, MEOH: 0.0, MTBE: 0.985894, H2O: 0.000104126}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S10', fingerprint: 52091d35abd27ced}
+  - id: S12
+    title: Cooled distillate to the water wash
+    from: E102.out
+    to: C201.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006: inside the 20-50 C to which US 5 336 841 A cools a C4 overhead (SRC-4, claim 4)"}
+        pressure: {value: 1050, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        flow: {value: 72396.0, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 70641da58adb4b08}
+        composition: {basis: mole_fraction, values: {IB: 0.0026893, B1: 0.965572, MEOH: 0.0317384, MTBE: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S9', fingerprint: 70641da58adb4b08}
+  - id: S13
+    title: Wash water to C-201
+    from: M201.out
+    to: C201.wat
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006: S20 and S21 both at 313.15 K, so their mix too"}
+        pressure: {value: 1100, provenance: assumed, source: "D-006: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        flow: {value: 10859.4, provenance: calculated, source: 'cheme process propagate: mixer M201 from S20 S21', fingerprint: 3d21ff22446c7303}
+        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0, MEOH: 6.75357e-05, MTBE: 0.0, H2O: 0.999932}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S20 S21', fingerprint: 4946fb0d80912906}
+  - id: S14
+    title: Washed raffinate-2 to the battery limit
+    from: C201.raf
+    to: RAF2.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 1000, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        flow: {value: 71080.7, provenance: calculated, source: 'cheme process propagate: separator C201 from S12 S13', fingerprint: fc778f7c6f1e7b9f}
+        composition: {basis: mole_fraction, values: {IB: 0.00277393, B1: 0.99596, MEOH: 1.63879e-05, MTBE: 0.0, H2O: 0.00125015}, provenance: calculated, source: 'cheme process propagate: separator C201 from S12 S13', fingerprint: fc778f7c6f1e7b9f}
+  - id: S15
+    title: Extract (methanol in water) to C-202
+    from: C201.ext
+    to: C202.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 1000, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        flow: {value: 12174.7, provenance: calculated, source: 'cheme process propagate: separator C201 from S12 S13', fingerprint: fc778f7c6f1e7b9f}
+        composition: {basis: mole_fraction, values: {IB: 1.09436e-06, B1: 0.000392923, MEOH: 0.064608, MTBE: 0.0, H2O: 0.934998}, provenance: calculated, source: 'cheme process propagate: separator C201 from S12 S13', fingerprint: fc778f7c6f1e7b9f}
+  - id: S16
+    title: Recycle methanol from C-202
+    from: C202.top
+    to: M101.rec
+    template: mixture
+    state:
+      design:
+        temperature: {value: 345.3, provenance: assumed, source: "D-007: methanol's bubble point at the column top, 136 kPa(a) (thermo 0.6.1 vapour pressure), total condenser"}
+        pressure: {value: 1300, provenance: assumed, source: "D-007: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 1345.2, provenance: calculated, source: 'cheme process propagate: recycle C202 from S15 (tear, broyden)', fingerprint: 2a8f739c2a9ef1be}
+        composition: {basis: mole_fraction, values: {IB: 1.68226e-05, B1: 0.00604003, MEOH: 0.992175, MTBE: 0.0, H2O: 0.00176786}, provenance: calculated, source: 'cheme process propagate: recycle C202 from S15 (tear, broyden)', fingerprint: 2a8f739c2a9ef1be}
+  - id: S17
+    title: C-202 bottoms water
+    from: C202.bot
+    to: E201.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 386.45, provenance: assumed, source: "D-007: water's bubble point at 160 kPa(a) (thermo 0.6.1, IAPWS)"}
+        pressure: {value: 160, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 10829.5, provenance: calculated, source: 'cheme process propagate: separator C202 from S15', fingerprint: e055184a1fa8b406}
+        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0, MEOH: 6.91033e-05, MTBE: 0.0, H2O: 0.999931}, provenance: calculated, source: 'cheme process propagate: separator C202 from S15', fingerprint: e055184a1fa8b406}
+  - id: S18
+    title: Cooled water to the purge split
+    from: E201.out
+    to: X201.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 1100, provenance: assumed, source: "D-007: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 10829.5, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S17', fingerprint: 431d2b26c19145a2}
+        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0, MEOH: 6.91033e-05, MTBE: 0.0, H2O: 0.999931}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S17', fingerprint: 431d2b26c19145a2}
+  - id: S19
+    title: Wash-water purge
+    from: X201.purge
+    to: WW.in
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 216.59, provenance: calculated, source: 'cheme process propagate: splitter X201 from S18', fingerprint: eba2b2ff6e9f799e}
+        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0, MEOH: 6.91033e-05, MTBE: 0.0, H2O: 0.999931}, provenance: calculated, source: 'cheme process propagate: splitter X201 from S18', fingerprint: b709b72dac10250a}
+  - id: S20
+    title: Recycle wash water
+    from: X201.rec
+    to: M201.rec
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 1100, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 10612.9, provenance: calculated, source: 'cheme process propagate: recycle X201 from S18 (tear, broyden)', fingerprint: 2a8f739c2a9ef1be}
+        composition: {basis: mole_fraction, values: {IB: 0.0, B1: 0.0, MEOH: 6.91041e-05, MTBE: 0.0, H2O: 0.999931}, provenance: calculated, source: 'cheme process propagate: recycle X201 from S18 (tear, broyden)', fingerprint: 2a8f739c2a9ef1be}
+  - id: S21
+    title: Make-up water
+    from: DMW.out
+    to: M201.dmw
+    template: mixture
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 1100, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-006: demineralised water"}
+        flow: {value: 246.453, provenance: calculated, source: 'cheme process propagate: spec wash (S13 per S12 (mass) 0.15)', fingerprint: 7c99196622c8622e}
+  # energy streams: Q3 and Q4 are the column's duties of the source; the rest from
+  # scripts/balance.py (D-008)
+  - {id: Q1, title: "Raffinate vaporiser E-104 (LP steam)", kind: energy, from: LPS.e104, to: E104.stm, state: {design: {duty: {value: 13746.7, provenance: assumed, source: "scripts/balance.py: S3 heated as liquid to 350 K and vaporised"}}}}
+  - {id: Q2, title: "Methanol feed heater E-103 (LP steam)", kind: energy, from: LPS.e103, to: E103.stm, state: {design: {duty: {value: 391.9, provenance: assumed, source: "scripts/balance.py: S6 heated to S7"}}}}
+  - {id: Q3, title: "C-101 reboiler (MP steam)", kind: energy, from: MPS.c101, to: C101.stm, state: {design: {duty: {value: 39300.0, provenance: given, source: "Murat et al. (2003) Table 2 (SRC-1): reboiler 39.3 MW in their model (35.1 MW in Nijhuis et al.'s), D-008"}}}}
+  - {id: Q4, title: "C-101 overhead condenser", kind: energy, from: C101.cw, to: CW.c101, state: {design: {duty: {value: 49700.0, provenance: given, source: "Murat et al. (2003) Table 2 (SRC-1): condenser 49.7 MW, reflux ratio 7, D-008"}}}}
+  - {id: Q5, title: "MTBE product cooler E-101", kind: energy, from: E101.cw, to: CW.e101, state: {design: {duty: {value: 4623.5, provenance: assumed, source: "scripts/balance.py: S10 cooled to S11"}}}}
+  - {id: Q6, title: "Distillate cooler E-102", kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 2125.6, provenance: assumed, source: "scripts/balance.py: S9 cooled to S12"}}}}
+  - {id: Q7, title: "C-202 reboiler (LP steam)", kind: energy, from: LPS.c202, to: C202.stm, state: {design: {duty: {value: 1975.0, provenance: assumed, source: "scripts/balance.py: C-202's balance with its condenser Q8"}}}}
+  - {id: Q8, title: "C-202 overhead condenser", kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 1007.7, provenance: assumed, source: "scripts/balance.py: the top product at reflux 1.5, ASSUMED"}}}}
+  - {id: Q9, title: "Wash-water cooler E-201", kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 930.2, provenance: assumed, source: "scripts/balance.py: S17 cooled to S18"}}}}
+  - {id: P1, title: "Pumps of C-101: reflux, feeds and product", kind: energy, from: POWER.rxd, to: C101.pw, state: {design: {duty: {value: 232.3, provenance: assumed, source: "scripts/balance.py: V dP / efficiency, ASSUMED"}}}}
+  - {id: P2, title: "Pumps of the methanol recovery: wash water, C-202 reflux, recycle methanol", kind: energy, from: POWER.mrc, to: C202.pw, state: {design: {duty: {value: 5.5, provenance: assumed, source: "scripts/balance.py: V dP / efficiency, ASSUMED"}}}}
+layout: {bfd: {}, pfd: {}}

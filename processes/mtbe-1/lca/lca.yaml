@@ -1,0 +1,89 @@
+# Goal and scope of the mtbe-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit those
+# by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-010): every exchange of the plant
+# with its amount per kg of MTBE from the design case of process/flowsheet.yaml. This study
+# links no background, so every feed, utility and waste carries `missing:` with the activity it
+# should connect to, never zero. In the Atlas LCI (scripts/build_lci.py) lca/mappings.yaml links
+# the methanol to methanol-1, the raffinate's isobutene to butadiene-1's raffinate-1, both
+# steams as heat and the make-up water to deionised water; the shared lci/mappings.yaml links
+# electricity, cooling water and the purge's treatment through its proxies.
+#
+# Subdivision of the C4 raffinate (D-010): the etherification takes only the isobutene out of
+# the raffinate; its inert C4 passes the plant and goes back to the supplier as raffinate-2.
+# The flowsheet books the one raffinate stream as two terminals: its isobutene (feed:IBC),
+# which carries the raffinate's burden per kg, and its inert C4 (feed:C4I), which is outside
+# the system like the raffinate-2 it returns as (product:RAF2). So MTBE is the one product and
+# needs no allocation.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of methyl tert-butyl ether made from the
+  isobutene of a C4 raffinate and methanol by catalytic distillation over an acidic ion-exchange
+  resin, with a water wash of the raffinate-2 and methanol recovery, at the concept stage: which
+  raw materials, utilities, wastes and emissions the plant exchanges per kg of MTBE, as the
+  foreground for a cradle-to-gate study with the library's methanol and C4 raffinate.
+functional_unit: {product: MTBEP, amount: 1, unit: kg, source: "1 kg of MTBE product (99.10 wt% MTBE, 0.90 wt% C4) at the plant gate to storage, stream S11 (D-002)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain gaps or links
+# instead of being mapped free (the schema's gate-to-gate maps every feed free).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Catalytic (reactive) distillation of a C4 raffinate (0.356 isobutene, the rest inert C4 as 1-butene) with methanol at 11 bar over an acidic ion-exchange resin (6400 kg, 4.9 equiv H+/kg) on 8 of 17 stages, reflux ratio 7, 99.5 % of the isobutene converted, MTBE 98.6 mol% as bottoms (Murat et al. 2003); the C4 distillate washed with water (0.15 kg/kg), the methanol recovered in a low-pressure column and recycled; raffinate-2 back to the C4 supplier; about 500 kt/a in 8000 h; no heat integration"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # --- raw materials
+  - key: feed:IBC
+    missing: "linked to processes/butadiene-1 (lca/mappings.yaml): the isobutene of the raffinate-1 by mass, per kg of raffinate-1 (that dataset allocates by mass, so every kg of its raffinate carries the same burden)"
+    source: "flowsheet stream S1, the raffinate's isobutene, 0.634 kg/kg (D-003, D-010)"
+  - key: feed:C4I
+    free: true
+    source: "flowsheet stream S2: the raffinate's inert C4, which passes the plant and returns to the supplier as raffinate-2 (S14); outside the system by subdivision (D-010)"
+  - key: feed:MEOH
+    missing: "linked to processes/methanol-1 (lca/mappings.yaml): Grade AA methanol from natural gas"
+    source: "flowsheet stream S5, 0.360 kg/kg (D-003)"
+  - key: feed:DMW
+    missing: "linked in the Atlas LCI to deionised water (lca/mappings.yaml); connect to: demineralised water from the site's water treatment, per kg"
+    source: "flowsheet stream S21, the wash loop's make-up, 0.0040 kg/kg (D-006, D-007)"
+  # --- utilities
+  - key: feed:POWER
+    missing: "linked in the Atlas LCI by the shared mapping (market for electricity, medium voltage); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 and P2, the pumps, 0.0038 kWh/kg (D-008)"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1500 kPa(a), from a natural-gas-fired site boiler (processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q3, C-101's reboiler, 39.3 MW of Murat et al. (2003) Table 2, 0.631 kWh/kg (D-008)"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (raffinate vaporiser), Q2 (methanol heater) and Q7 (C-202's reboiler), 0.259 kWh/kg (D-008)"
+  - key: product:CW
+    missing: "linked in the Atlas LCI by the shared mapping (cooling water service per kWh rejected, a screening proxy); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q4, Q5, Q6, Q8 and Q9: C-101's condenser (49.7 MW, SRC-1), the coolers and C-202's condenser, 0.938 kWh/kg (D-008)"
+  # --- outputs outside the system and wastes
+  - key: product:RAF2
+    free: true
+    source: "flowsheet stream S14: the washed raffinate-2 (99.7 wt% inert C4, 0.28 wt% isobutene, 10 ppm methanol, 400 ppm water) back to the C4 supplier; outside the system as the inert C4 feed it comes from (D-010). The unconverted isobutene and the methanol in it are charged to MTBE through feed:IBC and feed:MEOH (conservative)"
+  - key: product:WW
+    treatment: {kind: waste, route: "biological treatment of the wash-water purge (water with about 120 ppm(wt) methanol)"}
+    missing: "linked in the Atlas LCI by the shared mapping (wastewater to treatment per kg, a unit proxy); connect to: treatment of industrial waste water in a biological plant, per kg (processes/utility-wwtp)"
+    source: "flowsheet stream S19, 0.0035 kg/kg (D-007)"
+emission_exclusions:
+  - {id: fugitive-losses, method: equipment-leaks, reason: "No P&ID yet: fugitive losses of C4, methanol and MTBE from flanges, seals and valves are not estimated at the concept stage (D-010)."}
+  - {id: storage-breathing, method: storage-tank, reason: "The MTBE product and methanol tanks' breathing (floating roof or blanketed, ASSUMED) is not estimated (D-010)."}
+cutoff:
+  - {id: resin-replacement, title: "Acidic ion-exchange resin of C-101's reactive zone", unit: kg, per_year: 3200, reason: "6400 kg of resin in the column (Murat et al. 2003, section 3.1), replaced every 2 years (ASSUMED: no open source read here gives its life); 6.4 ppm of the input mass, its manufacture and the spent resin's disposal cut off with the amount", source: "D-010; SRC-1 for the charge, the life ASSUMED"}
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 20 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic site beside a C4 supplier (steam cracker or refinery), not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #509, unreviewed"
