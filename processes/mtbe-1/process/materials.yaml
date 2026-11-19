@@ -1,0 +1,63 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+# Ideal-gas and critical data: `cheme chemistry thermo 1634-04-4 115-11-7 106-98-9 67-56-1
+# 7732-18-5 --fit 298.15,700` (core 1.13.0 with chemicals 1.5.2 and thermo 0.6.1: ATcT and CRC
+# formation enthalpies, CRC, NIST WebBook and Yaws entropies, heat capacities fitted to thermo's
+# TRC ideal-gas correlations, HEOS and IUPAC critical constants), single values with the
+# package named (library ADR 0037; DESIGN.md SRC-6). Normal boiling points: chemicals (Tb).
+# B1 is 1-butene, which stands for every inert C4 of the raffinate (the n-butenes and the
+# butanes), as the sources model it (Murat et al. 2003, section 3.2; DESIGN.md D-003).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: IB
+    name: Isobutene (2-methylpropene)
+    formula: C4H8
+    cas: 115-11-7
+    molar_mass: 56.106
+    normal_boiling_point: 266.15
+    critical: {Tc: 418.09, Pc: 4009.8, omega: 0.193, provenance: given, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -17600.0, S_298: 293.59, cp_R: [3.38712, 0.0179196, 3.76558e-05, -6.48818e-08, 3.03488e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 WEBBOOK, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.02%)"}
+  - id: B1
+    name: 1-Butene (the inert C4 of the raffinate)
+    formula: C4H8
+    cas: 106-98-9
+    molar_mass: 56.106
+    normal_boiling_point: 266.9
+    critical: {Tc: 419.29, Pc: 4005.1, omega: 0.192, provenance: given, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -30.0, S_298: 307.88, cp_R: [3.05781, 0.0151478, 5.34005e-05, -8.90664e-08, 4.24742e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.04%)"}
+  - id: MEOH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.042
+    normal_boiling_point: 337.63
+    critical: {Tc: 513.38, Pc: 8215.85, omega: 0.5625, provenance: given, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -200700.0, S_298: 239.9, cp_R: [5.50344, -0.0151027, 7.0746e-05, -8.59838e-08, 3.65802e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.04%)"}
+  - id: MTBE
+    name: Methyl tert-butyl ether
+    formula: C5H12O
+    cas: 1634-04-4
+    molar_mass: 88.148
+    normal_boiling_point: 328.25
+    critical: {Tc: 497.1, Pc: 3430, omega: 0.267, provenance: given, source: "chemicals 1.5.2: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: -283700.0, S_298: 357.8, cp_R: [9.18733, -0.00698804, 0.000157748, -2.15719e-07, 9.34807e-11], temperature_range: [298.15, 700], provenance: given, source: "chemicals 1.5.2: dHf_298 CRC, S_298 WEBBOOK, cp_R fitted to thermo TRCIG 298.15-700 K (max deviation 0.04%)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064, omega: 0.3443, provenance: given, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.38266, -0.00362257, 1.14244e-05, -1.19492e-08, 4.84609e-12], temperature_range: [298.15, 700], provenance: given, source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-700 K (max deviation 0.00%)"}
+templates:
+  - {id: mixture, title: "Etherification mixture: C4, methanol, MTBE, water", components: [IB, B1, MEOH, MTBE, H2O]}
+# property_method is a placeholder: no property package of core covers methanol / C4 / MTBE /
+# water (strongly non-ideal liquid, methanol activity coefficients up to 11.6 in the column,
+# Murat et al. 2003; azeotropes; two liquid phases in the wash), so `props --fill` and
+# `simulate --fill` are not used. The column duties are the source's; the other duties come
+# from scripts/balance.py (DESIGN.md D-008, L-2).
+property_method:
+  adapter: thermo
+  status: placeholder

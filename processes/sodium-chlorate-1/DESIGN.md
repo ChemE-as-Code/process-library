@@ -118,7 +118,9 @@ component: at 3-5 g/L it circulates, and its make-up is a consumable (D-010).
   and one OXY make one WATER_SPLIT. With the conversions of CHEM and OXY in the ratio
   0.95 : 0.045, the extents (CHEM 59.444, OXY 4.2235 kmol/h) equal the cell's (CHLORATE 59.444,
   WATER_SPLIT 4.2237 kmol/h): the flowsheet and the cell model carry the same chemistry. The
-  anodic oxygen is booked in the tanks (L-1).
+  anodic oxygen is booked in the tanks, because only there a conversion reactor holds the cell's
+  current-fraction ratio (L-7). The cell's link names EL201, which lists HYPO, not the cell's
+  CHLORATE: a core limit, accepted (L-7).
 
 ### D-007 The reaction tanks (sized from the kinetics of SRC-3)
 
@@ -306,10 +308,8 @@ inventory's mass balance as open by that amount (cheme.lci-mass-balance, a recor
 ## Core limits (L-n)
 
 - **L-1** No electrolyte speciation: the liquor is neutral salts, the active chlorine one lumped
-  component; the pH and the HOCl/OCl- split enter only the hand sizing of D-007. A cell's
-  flowsheet step must list the cell's reaction (`cheme.cell-flowsheet` warning), but a
-  conversion reactor cannot hold the cell's current-fraction ratio on a recirculating feed, so the
-  step lists HYPO and the tanks CHEM and OXY, whose extents equal the cell's (D-006).
+  component; the pH and the HOCl/OCl- split enter only the hand sizing of D-007. The cell's
+  overall reaction is split over the cells and the tanks in the flowsheet (L-7).
 - **L-2** No heats of solution or dilution and no formation enthalpy of dissolved species: the
   cell's heat of reaction is on solids (CRC) and liquid water, the crystallizer's heat of
   crystallization is left out, and HYPO, CHEM and OXY carry none.
@@ -325,6 +325,31 @@ inventory's mass balance as open by that amount (cheme.lci-mass-balance, a recor
   D-010) goes into the product.
 - **L-6** The reaction-tank volume is a hand calculation (D-007): a `reactor: cstr` with the rate
   law would need liquid molar volumes of the dissolved salts, which are not sourced.
+- **L-7** A cell's link to the flowsheet (`flowsheet:` in process/cells.yaml) names one step,
+  and `cheme validate` expects that step to list the cell's overall reaction
+  (`cheme.cell-flowsheet` warning, "step EL201 lists reactions ['HYPO'], not CHLORATE"). Here
+  the overall reaction is the sum of an electrode step in the cells and a bulk step in the tanks
+  (D-006): 3 HYPO (EL201) + CHEM (R201) = CHLORATE, and 2 HYPO + OXY (R201) = WATER_SPLIT. The
+  link has no field for the flowsheet reactions that sum to the cell's reaction, or for a
+  second step. Listing CHLORATE and WATER_SPLIT on EL201 instead would form the chlorate and the
+  oxygen in the cells, drop the active chlorine between the cells and the tanks, and with it the
+  basis of D-007 (the tanks' conversion, the 3 g/L at the crystallizer). Listing CHLORATE beside
+  HYPO with no extent would silence the warning without being true. Listing WATER_SPLIT beside
+  HYPO on EL201, with CHEM alone in R201, would keep the active chlorine but not the cell's
+  current-fraction ratio: a conversion reactor gives each reaction a conversion of its own key
+  (HYPO of the NaCl, WATER_SPLIT of the water), so on the recirculating feed, whose NaCl-to-water
+  ratio the loop sets, the ratio of the two extents would follow the feed and not the
+  0.95 : 0.045 of the current. In the tanks CHEM and OXY both convert the NaOCl, so conversions
+  in the ratio 0.95 : 0.045 give extents in that ratio whatever the feed; the anodic oxygen is
+  therefore booked there (OXY, D-006). Size of the effect: none on
+  the numbers. Core still checks P2 and Q2 against the cell model (30 186.84 kW and 14 607.62
+  kW, no `cheme.cell-flowsheet-duty` finding). The extents the warning stands for agree
+  (`cheme process reactors` against `cheme process cell`): CHEM 59.4442 against CHLORATE
+  59.4443 kmol/h (0.0001 %), OXY 4.22345 against WATER_SPLIT 4.22367 kmol/h (0.005 %), HYPO
+  186.784 against 3 x CHLORATE + 2 x WATER_SPLIT = 186.780 kmol/h (0.002 %); the cell gas S10
+  carries 376.56 kg/h H2 against the cell's 376.549 kg/h (0.003 %, molar masses). Core does not
+  compare the step's chemistry with the cell's; tests/test_sodium_chlorate_1.py does. The
+  finding is accepted in checks/checks.yaml with this reason.
 
 ## Open items
 

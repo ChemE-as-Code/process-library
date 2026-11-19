@@ -1,0 +1,18 @@
+# mtbe-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, a `dataset` (an Atlas producer), `atlas: false`, or a
+# `properties_reason`.
+#
+# Linked here: the methanol to methanol-1, the raffinate's isobutene to butadiene-1's raffinate-1
+# (per kg; that dataset allocates by mass, DESIGN.md D-010), both steams counted as heat
+# delivered (kWh) and the make-up water to deionised water. Electricity, cooling water and the
+# purge's treatment are linked by the shared lci/mappings.yaml. The inert C4 and the raffinate-2
+# are free (outside the system by subdivision, lca/lca.yaml).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MEOH": {dataset: {path: processes/methanol-1/lca/dataset.yaml, product: "product:MEOH"}, source: "the Atlas producer methanol-1, Grade AA methanol (500 ppm water), the grade this feed takes (D-003)"}
+  "feed:IBC": {chemical: c4-raffinate, dataset: {path: processes/butadiene-1/lca/datasets/butadiene-c4-extractive-distillation.yaml, product: "product:c4-raffinate"}, source: "the Atlas producer butadiene-1, raffinate-1 of butadiene extraction: the isobutene the etherification takes out of it, by mass at the raffinate's burden per kg (butadiene-1 allocates by mass, so a kg of its isobutene carries the burden of a kg of raffinate); the inert C4 return free (D-010)"}
+  "feed:DMW": {use: water, source: "demineralised make-up water of the wash loop by mass: the shared entry is water, deionised (D-006)"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1500 kPa(a) to C-101's reboiler (Q3), counted as the heat it delivers (kWh), D-008"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the raffinate vaporiser, the methanol heater and C-202's reboiler (Q1, Q2, Q7), counted as the heat it delivers (kWh), D-008"}
