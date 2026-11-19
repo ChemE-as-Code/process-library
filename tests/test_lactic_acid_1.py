@@ -6,7 +6,9 @@ mappings are checked against them:
 
 - the specs hold: 100 000 t/a of lactic acid in 8000 h, the titer's calcium lactate fraction, 1.5
   mol of ethanol per mol of lactic acid and 12 mol of water per mol of ester, and the followers
-  sit at their stated ratios to the syrup;
+  sit at their stated ratios to the syrup, which follow from the materials and reactions;
+- the mixers create no heat: the hydrolysis feed is at its inlets' mixing temperature, and the
+  medium water, from the same feed as the slaking water, is warmed by a stated steam duty;
 - the product is 88 wt% lactic acid;
 - the fermentation's conversions are the BioSTEAM model's, and the lactic acid formed reaches the
   product at about 92 %;
@@ -82,12 +84,13 @@ def test_specs_hold(sheet, kg, streams, materials) -> None:
     specs = {s["id"]: s for s in sheet["specs"]}
     assert kg("S32")["LA"] * 8000 / 1000 == pytest.approx(100_000, rel=1e-4)
     assert specs["rate"]["target"]["value"] == 100000
-    broth = kg("S8")
-    assert broth["CALA"] / sum(broth.values()) == pytest.approx(0.14716, rel=1e-4)
-    # 130 g/L of lactic acid as calcium lactate at 1070 kg/m3
-    assert 130 * 218.218 / 180.156 / 1070 == pytest.approx(0.14716, rel=1e-4)
-    feed = kg("S20")
     mw = {k: materials[k]["molar_mass"] for k in materials}
+    titer = specs["titer"]["target"]["value"]
+    broth = kg("S8")
+    assert broth["CALA"] / sum(broth.values()) == pytest.approx(titer, rel=1e-4)
+    # 130 g/L of lactic acid as calcium lactate (one per 2 lactic acid) at 1070 kg/m3
+    assert 130 * mw["CALA"] / (2 * mw["LA"]) / 1070 == pytest.approx(titer, rel=1e-4)
+    feed = kg("S20")
     assert (feed["ETOH"] / mw["ETOH"]) / (feed["LA"] / mw["LA"]) == pytest.approx(1.5, rel=1e-4)
     hyd = kg("S25")
     assert (hyd["H2O"] / mw["H2O"]) / (hyd["ETLA"] / mw["ETLA"]) == pytest.approx(12.0, rel=1e-4)
@@ -96,15 +99,46 @@ def test_specs_hold(sheet, kg, streams, materials) -> None:
         assert streams[sid]["flow"]["value"] == pytest.approx(ratio * syrup, rel=1e-4), sid
 
 
-def test_follower_ratios_follow_their_stated_basis(materials) -> None:
-    """Lime 10 % over the acids formed (and the CSL's acid), the acid 1.01 mol per mol of calcium."""
-    glc = 0.70 / 180.156  # kmol of glucose per kg of syrup
-    csl_la = 0.04092 * 0.25 / 90.078 / 2  # kmol of Ca for the CSL's lactic acid
-    cao = (glc * (0.76 + 0.07 * 1.5) + csl_la) * 1.1
-    assert cao * 56.077 == pytest.approx(0.21084, rel=2e-3)
-    assert cao * 1.01 * 98.072 / 0.93 == pytest.approx(0.40047, rel=2e-3)
+def test_follower_ratios_follow_their_stated_basis(sheet, streams, materials) -> None:
+    """Lime 10 % over the acids formed (and the CSL's acid), the acid 1.01 mol per mol of calcium,
+    the slaking water for a 20 wt% Ca(OH)2 slurry: the flowsheet's follower ratios against the
+    syrup's and CSL's compositions, the fermentation's conversions and the molar masses."""
+    ratios = {s["id"]: s for s in sheet["specs"]}["rate"]["vary"]["with"]
+    mw = {k: m["molar_mass"] for k, m in materials.items()}
+    rxns = {r["id"]: r for r in _load("process/reactions.yaml")["reactions"]}
+    syrup = streams["S1"]["composition"]["values"]
+    csl = streams["S3"]["composition"]["values"]
+    acid = streams["S11"]["composition"]["values"]
+    glc = syrup["GLC"] / mw["GLC"]  # kmol of glucose per kg of syrup
+    csl_la = ratios["S3"] * csl["LA"] / mw["LA"] / 2  # kmol of Ca for the CSL's lactic acid
+    # FLA: 2 lactic acid per glucose, 1 Ca; FAA: 3 acetic acid per glucose, 1.5 Ca
+    ca_per_glc = rxns["FLA"]["conversion"]["value"] + rxns["FAA"]["conversion"]["value"] * 1.5
+    cao = (glc * ca_per_glc + csl_la) * 1.1
+    assert cao * mw["CAO"] == pytest.approx(ratios["S4"], rel=2e-3)
+    assert cao * 1.01 * mw["H2SO4"] / acid["H2SO4"] == pytest.approx(ratios["S11"], rel=2e-3)
     # a 20 wt% slurry of Ca(OH)2: water per kg of CaO
-    assert (74.092 / 56.077 / 0.20 - 1) * 0.21084 == pytest.approx(1.18205, rel=2e-3)
+    water = (mw["CAOH"] / mw["CAO"] / 0.20 - 1) * ratios["S4"]
+    assert water == pytest.approx(ratios["S5"], rel=2e-3)
+
+
+def _heat_flow(kg, materials, sid: str) -> float:
+    """A stream's heat capacity flow (kW/K) at the liquid heat capacities of materials.yaml."""
+    return sum(
+        m / materials[k]["molar_mass"] * materials[k]["liquid_heat_capacity"]
+        for k, m in kg(sid).items()
+    ) / 3600
+
+
+def test_mixers_create_no_heat(kg, streams, materials) -> None:
+    """M402 is adiabatic: S25 at the mixing temperature of S24 and S29; M101's medium water comes
+    at the slaking water's temperature (one feed) and Q17 warms it to the medium's."""
+    t = {s: streams[s]["temperature"]["value"] for s in ("S1", "S2", "S3", "S5", "S6", "S24", "S25", "S29")}
+    a, b = _heat_flow(kg, materials, "S24"), _heat_flow(kg, materials, "S29")
+    assert t["S25"] == pytest.approx((a * t["S24"] + b * t["S29"]) / (a + b), abs=0.05)
+    assert t["S2"] == t["S5"]
+    assert t["S1"] == t["S3"] == t["S6"]
+    warm = _heat_flow(kg, materials, "S2") * (t["S6"] - t["S2"])
+    assert _duty(streams, "Q17") == pytest.approx(warm, rel=1e-3)
 
 
 def test_product_is_88_percent(kg) -> None:
@@ -154,6 +188,8 @@ def test_hand_duties_state_their_arithmetic(sheet) -> None:
             duty = s["state"]["design"]["duty"]
             assert duty["provenance"] == "assumed"
             assert duty["source"].startswith("D-009 hand estimate"), s["id"]
+        if s["id"] == "Q17":
+            assert s["state"]["design"]["duty"]["source"].startswith("D-005 hand estimate")
     calc = {"Q1", "Q2", "Q3", "Q6", "Q11"}
     for s in sheet["streams"]:
         if s["id"] in calc:
@@ -172,7 +208,7 @@ def test_lca_covers_every_heat_stream_and_biogenic_carbon(sheet) -> None:
     for key in ("feed:LPS", "feed:MPS", "product:CW", "feed:POWER"):
         assert key in flows
     lps = flows["feed:LPS"]["source"]
-    for q in ("Q4", "Q6", "Q9", "Q11", "Q12", "Q14"):
+    for q in ("Q4", "Q6", "Q9", "Q11", "Q12", "Q14", "Q17"):
         assert q in lps
     cw = flows["product:CW"]["source"]
     for q in ("Q1", "Q2", "Q3", "Q5", "Q8", "Q10", "Q13", "Q15", "Q16"):
@@ -184,6 +220,13 @@ def test_lca_covers_every_heat_stream_and_biogenic_carbon(sheet) -> None:
     for tag in ("R-401", "C-401", "C-402", "C-403", "R-402", "E-404"):
         assert tag in excluded
     assert {c["id"] for c in lca["consumables"]} == {"cip-water", "cip-caustic"}
+    # the esterifier's resin and the fermenters' steaming are cut off with their amounts
+    cut = {c["id"]: c for c in lca["cutoff"]}
+    assert cut["amberlyst-15"]["catalyst"] is True
+    s20 = {s["id"]: s for s in sheet["streams"]}["S20"]["state"]["design"]["flow"]["value"]
+    # SRC-1's charge: 3.9 wt% of one hour's feed mass, replaced once a year
+    assert cut["amberlyst-15"]["per_year"] == pytest.approx(0.039 * s20, rel=0.01)
+    assert cut["fermenter-sip-steam"]["per_year"] > 0
 
 
 def test_mappings_link_library_producers() -> None:
@@ -193,6 +236,10 @@ def test_mappings_link_library_producers() -> None:
     assert maps["feed:ETOHF"]["dataset"]["path"] == "processes/bioethanol-1/lca/dataset.yaml"
     for key in ("feed:LIMEF", "feed:ACIDF", "feed:ETOHF"):
         assert (KIT / maps[key]["dataset"]["path"]).is_file()
+    # the sugar residue is not tagged as wastewater, so it is not linked to activated sludge
+    assert "product:RES" not in maps
+    outputs = {o["inventory_key"]: o for o in _load("process.yaml")["chemistry"]["outputs"]}
+    assert outputs["product:RES"]["chemical"] == "sugar-residue"
 
 
 def test_specific_consumptions(kg, streams) -> None:
@@ -201,10 +248,10 @@ def test_specific_consumptions(kg, streams) -> None:
     assert kg("S4")["CAO"] / la == pytest.approx(0.42, abs=0.01)
     assert kg("S11")["H2SO4"] / la == pytest.approx(0.75, abs=0.01)
     assert streams["S13"]["flow"]["value"] / la == pytest.approx(1.61, abs=0.01)
-    steam = sum(_duty(streams, q) for q in ("Q4", "Q6", "Q7", "Q9", "Q11", "Q12", "Q14"))
-    assert steam / la == pytest.approx(3.90, abs=0.02)
+    steam = sum(_duty(streams, q) for q in ("Q4", "Q6", "Q7", "Q9", "Q11", "Q12", "Q14", "Q17"))
+    assert steam / la == pytest.approx(4.09, abs=0.02)
     text = _text("README.md")
-    for figure in ("1.40 kg", "0.42 kg", "0.75 kg", "3.90 kWh", "1.61 kg"):
+    for figure in ("1.40 kg", "0.42 kg", "0.75 kg", "4.09 kWh", "1.61 kg"):
         assert figure in text
 
 

@@ -3,15 +3,19 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-011): the build reports each
-# as a gap (lci/gaps.json). Linked here: the quicklime to lime-1, the sulfuric acid to
-# sulfuric-acid-1, the ethanol to bioethanol-1, and the LP and MP steam counted as heat
-# delivered (kWh), as biodiesel-1 does. Glucose syrup and corn steep liquor have no library
-# producer; their gaps name the activity each should connect to (CONTRIBUTING, "Gaps").
+# Linked here (DESIGN.md D-011): the quicklime to lime-1, the sulfuric acid to sulfuric-acid-1,
+# the ethanol to bioethanol-1, and the LP and MP steam counted as heat delivered (kWh), as
+# biodiesel-1 does. The build links process water, power, cooling water and the wastewater WW
+# through the shared lci/mappings.yaml entries. The ester column's residue RES is a sugar
+# residue (process.yaml, registry slug sugar-residue), not a wastewater, so neither the shared
+# wastewater entry nor the Atlas wastewater treatment takes it. Gaps in the build (lci/gaps.json): glucose
+# syrup and corn steep liquor (no library producer), the gypsum and cell mass cakes, the residue
+# and the cleaning consumables with their disposal; each names the activity it should connect
+# to (CONTRIBUTING, "Gaps").
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:LIMEF": {dataset: {path: processes/lime-1/lca/datasets/quicklime-pfrk-natural-gas.yaml, product: "product:quicklime"}, source: "the Atlas producer lime-1, quicklime counted as CaO, kg for kg as this exchange counts it (D-006)"}
-  "feed:ACIDF": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, kg for kg of the 93 wt% acid this feed takes: conservative by about 5.6 % (0.985/0.93), D-007"}
+  "feed:ACIDF": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, kg for kg of the 93 wt% acid this feed takes: conservative by about 5.9 % (0.985/0.93 = 1.059), D-007"}
   "feed:ETOHF": {dataset: {path: processes/bioethanol-1/lca/dataset.yaml, product: "product:ETOH"}, source: "the Atlas producer bioethanol-1, anhydrous ethanol 99.55 wt%, the grade this make-up takes (D-008)"}
-  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the evaporator, the esterifier, the ethanol column, the hydrolysis, the stripper and the concentrator (Q4, Q6, Q9, Q11, Q12, Q14), counted as heat delivered (kWh), D-009"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the evaporator, the esterifier, the ethanol column, the hydrolysis, the stripper and the concentrator (Q4, Q6, Q9, Q11, Q12, Q14) and the medium's steriliser (Q17), counted as heat delivered (kWh), D-005, D-009"}
   "feed:MPS": {use: steam-heat, source: "MP steam 1000 kPa(a) to the ester column's reboiler (Q7), counted as heat delivered (kWh), D-008, D-009"}

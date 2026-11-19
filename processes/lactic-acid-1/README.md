@@ -50,7 +50,7 @@ the flowsheet carries (ADR 0051), and the fermenters' cleaning per batch enters 
 | sulfuric acid | 0.75 kg as 100 % (0.80 kg of 93 wt%) |
 | ethanol make-up | 0.011 kg (bioethanol-1) |
 | process water | 6.4 kg, plus 0.16 kg for the fermenters' cleaning |
-| steam heat | 3.90 kWh (14.0 MJ): LP 2.93, MP 0.97 |
+| steam heat | 4.09 kWh (14.7 MJ): LP 3.12, MP 0.97 |
 | power | 0.24 kWh |
 | gypsum cake | 1.61 kg (20 wt% moisture), not credited |
 | wastes | cell mass cake 0.07 kg, ester column residue 0.25 kg (mostly unconverted glucose), wastewater 6.7 kg |
@@ -68,6 +68,7 @@ the flowsheet carries (ADR 0051), and the fermenters' cleaning per batch enters 
 
 Hazards (D-012): ethanol in the purification under vacuum, quicklime slaking, concentrated
 sulfuric acid, hot concentrated lactic acid, gypsum scaling. The fermentation's heat release is
-slow and self-limiting. No HAZOP at this stage.
+slow; with the agitators' heat a whole batch without cooling could reach its boiling point, so
+an agitator trip on lost cooling is an open safeguard. No HAZOP at this stage.
 
 Issue: ChemE-as-Code/process-library#517.

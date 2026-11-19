@@ -4,10 +4,13 @@
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-011): every exchange of the plant
 # with its amount per kg of the 88 wt% product, from the flowsheet's design case (the recipe's
-# year averages), and the fermenters' cleaning per batch (consumables, library ADR 0035). The
-# backgrounds are left unmapped (`missing:` with the activity each should connect to), except
-# where lca/mappings.yaml links a library producer or a shared entry: a gap, never zero, and no
-# values from licensed databases. Glucose syrup and corn steep liquor have no library producer.
+# year averages), and the fermenters' cleaning per batch (consumables, library ADR 0035). This
+# folder's assessment (`cheme assess lca`) leaves the backgrounds unmapped (`missing:` with the
+# activity each should connect to), except where lca/mappings.yaml links a library producer: a
+# gap, never zero, and no values from licensed databases. The Atlas build (build_lci.py) also
+# links process water, power, cooling water and the wastewater WW through the shared
+# lci/mappings.yaml; the residue RES, a sugar residue, stays a gap (D-011). Glucose
+# syrup and corn steep liquor have no library producer.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -38,26 +41,26 @@ flows:
     missing: "linked to processes/lime-1 (lca/mappings.yaml): quicklime"
     source: "flowsheet stream S4 (D-006)"
   - key: feed:ACIDF
-    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt%, kg for kg of the 93 wt% acid (conservative by 5.6 %)"
+    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt%, kg for kg of the 93 wt% acid (conservative by about 5.9 %, 0.985/0.93 = 1.059)"
     source: "flowsheet stream S11 (D-007)"
   - key: feed:ETOHF
     missing: "linked to processes/bioethanol-1 (lca/mappings.yaml): anhydrous ethanol 99.5 wt%"
     source: "flowsheet stream S17 (D-008)"
   - key: feed:PW
-    missing: "not mapped yet (D-011); connect to: process water (softened) from the site water treatment, per kg"
+    missing: "a gap in this folder's assessment; the Atlas build links it through the shared lci/mappings.yaml water entry (D-011). Connect to: process water (softened) from the site water treatment, per kg"
     source: "flowsheet streams S2 (medium water) and S5 (slaking water), D-005, D-006"
   # utilities
   - key: feed:POWER
-    missing: "not mapped yet (D-011); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    missing: "a gap in this folder's assessment; the Atlas build links it through the shared lci/mappings.yaml electricity entry (D-011). Connect to: electricity, medium voltage, grid mix of the (undecided) site country"
     source: "flowsheet energy streams P1 to P6 (D-009)"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q4 (evaporator), Q9 (ethanol column), Q12 (stripper), Q14 (concentrator), hand estimates, and Q6 (esterifier) and Q11 (hydrolysis), core's conversion duties (D-009)"
+    source: "flowsheet energy streams Q4 (evaporator), Q9 (ethanol column), Q12 (stripper), Q14 (concentrator) and Q17 (the medium's steriliser), hand estimates, and Q6 (esterifier) and Q11 (hydrolysis), core's conversion duties (D-005, D-009)"
   - key: feed:MPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1000 kPa(a), from a natural-gas-fired site boiler, per kWh of condensing heat"
     source: "flowsheet energy stream Q7 (the ester column's reboiler, hand estimate, D-008, D-009)"
   - key: product:CW
-    missing: "not mapped yet (D-011); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    missing: "a gap in this folder's assessment; the Atlas build links it through the shared lci/mappings.yaml cooling-water entry (D-011). Connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
     source: "flowsheet energy streams Q1, Q2, Q3, Q5, Q8, Q10, Q13, Q15 and Q16 (D-009)"
   # wastes
   - key: product:GYPC
@@ -70,11 +73,11 @@ flows:
     source: "flowsheet stream S9 (D-006)"
   - key: product:RES
     treatment: {kind: waste, route: "the ester column's residue (residual glucose, unconverted lactic acid, sulfuric acid, fine gypsum) to anaerobic digestion (D-008)"}
-    missing: "not mapped yet (D-011); connect to: anaerobic digestion of a concentrated sugar residue, per kg (a high-strength organic wastewater)"
+    missing: "not mapped (D-011): a concentrated sugar residue (registry slug sugar-residue), not a wastewater for activated sludge, so the Atlas build leaves it a gap too. Connect to: anaerobic digestion of a concentrated sugar residue, per kg"
     source: "flowsheet stream S23 (D-008)"
   - key: product:WW
     treatment: {kind: waste, route: "the evaporator's condensate (about 1.4 wt% acetic acid) and the hydrolysis-water purge (ethyl lactate, ethanol) to the site's biological wastewater treatment (D-008)"}
-    missing: "not mapped yet (D-011); connect to: treatment of wastewater with an organic load in an industrial biological plant, per kg (processes/utility-wwtp)"
+    missing: "a gap in this folder's assessment; the Atlas build links it through the shared lci/mappings.yaml wastewater entry (D-011). Connect to: treatment of wastewater with an organic load in an industrial biological plant, per kg (processes/utility-wwtp)"
     source: "flowsheet streams S15 and S30 (D-008)"
 # What the fermenters use per batch and the flowsheet does not carry (library ADR 0035, core ADR
 # 0053), converted with the recipe's batches per year (process/recipe.yaml).
@@ -121,6 +124,10 @@ emission_exclusions:
   - {id: ethanol-vents, method: storage-tank, equipment: [R-401, C-401, C-402, C-403, R-402, E-404], reason: "No P&ID yet: the vents of the ethanol-bearing columns, reactors and drums (and the vacuum pumps of C-401 and E-404) carry ethanol vapour; to a vent condenser, not estimated at the concept stage (D-012)."}
   - {id: lime-and-acid-vents, method: storage-tank, equipment: [R-101, R-301], reason: "The lime slaker gives off steam and lime dust and the acidulation tank holds a hot slurry with traces of acetic acid; vented to a scrubber or dust filter, not estimated at the concept stage (D-012)."}
   - {id: fermenter-vents, method: storage-tank, equipment: [R-201, T-201], reason: "The fermenters breathe sterile air at filling and harvest; homofermentative lactic acid bacteria give off little gas and the model carries none (D-005, limit L-3); not estimated."}
+# Left out with their amounts (D-011): the esterifier's resin and the fermenters' steaming.
+cutoff:
+  - {id: amberlyst-15, title: "Amberlyst-15 ion-exchange resin of the reactive distillation R-401, replaced", unit: kg, per_year: 1135, catalyst: true, reason: "about 1.0e-5 kg per kg of product, far below 1 % of the input mass; an ion-exchange resin, no precious or critical metal (D-011)", source: "the charge on SRC-1's basis, 3.9 wt% of one hour's feed mass (`_units.py` Esterification, cat_load 0.039, mcat = cat_load x F_mass), on S20's 29 101.7 kg/h: 1135 kg; replaced once a year, ASSUMED (SRC-1 costs the charge once and gives no life)"}
+  - {id: fermenter-sip-steam, title: "LP steam of the fermenters' sterilisation in place between batches", unit: kWh, per_year: 2159000, reason: "about 0.02 kWh per kg of lactic acid, 0.5 % of the plant's steam heat (D-005, D-011); not in the flowsheet's steam feed", source: "ASSUMED order of magnitude: 100 t of steel per 1291 m3 fermenter at 0.5 kJ/(kg K) heated 298 to 394 K, doubled for the internals, the losses and the vented steam: 2667 kWh per batch x 809.8 batches/a (process/recipe.yaml)"}
 dataset:
   version: 0.1.0
   classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals

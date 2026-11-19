@@ -19,6 +19,24 @@ technology: Batch fermentation of a 70 wt% glucose syrup with corn steep liquor 
   hydrolysis with water and concentration to 88 wt%; 100 000 t/a of lactic acid in 8000 h/a
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
+- key: cutoff:amberlyst-15
+  title: Amberlyst-15 ion-exchange resin of the reactive distillation R-401, replaced
+  amount: 0.141875
+  reason: about 1.0e-5 kg per kg of product, far below 1 % of the input mass; an ion-exchange resin, no
+    precious or critical metal (D-011)
+  catalyst: true
+  source: 'the charge on SRC-1''s basis, 3.9 wt% of one hour''s feed mass (`_units.py` Esterification,
+    cat_load 0.039, mcat = cat_load x F_mass), on S20''s 29 101.7 kg/h: 1135 kg; replaced once a year,
+    ASSUMED (SRC-1 costs the charge once and gives no life)'
+- key: cutoff:fermenter-sip-steam
+  title: LP steam of the fermenters' sterilisation in place between batches
+  amount: 269.875
+  unit: kWh
+  reason: about 0.02 kWh per kg of lactic acid, 0.5 % of the plant's steam heat (D-005, D-011); not in
+    the flowsheet's steam feed
+  source: 'ASSUMED order of magnitude: 100 t of steel per 1291 m3 fermenter at 0.5 kJ/(kg K) heated 298
+    to 394 K, doubled for the internals, the losses and the vented steam: 2667 kWh per batch x 809.8 batches/a
+    (process/recipe.yaml)'
 - key: emission-excluded:ethanol-vents
   title: storage-tank emissions of R-401, C-401, C-402, C-403, R-402, E-404
   direction: output
@@ -91,8 +109,8 @@ exchanges:
   unit: kg
   link:
     source: flowsheet streams S2 (medium water) and S5 (slaking water), D-005, D-006
-    missing: 'not mapped yet (D-011); connect to: process water (softened) from the site water treatment,
-      per kg'
+    missing: 'a gap in this folder''s assessment; the Atlas build links it through the shared lci/mappings.yaml
+      water entry (D-011). Connect to: process water (softened) from the site water treatment, per kg'
   streams:
   - S2
   - S5
@@ -167,7 +185,7 @@ exchanges:
   link:
     source: flowsheet stream S11 (D-007)
     missing: 'linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt%, kg for
-      kg of the 93 wt% acid (conservative by 5.6 %)'
+      kg of the 93 wt% acid (conservative by about 5.9 %, 0.985/0.93 = 1.059)'
   streams:
   - S11
   source: flowsheet stream S11 (D-007)
@@ -212,11 +230,12 @@ exchanges:
 - key: feed:LPS
   title: LP steam 450 kPa(a) (condensate returned)
   type: input
-  amount: 36654.216
+  amount: 38992.257
   unit: kWh
   link:
-    source: flowsheet energy streams Q4 (evaporator), Q9 (ethanol column), Q12 (stripper), Q14 (concentrator),
-      hand estimates, and Q6 (esterifier) and Q11 (hydrolysis), core's conversion duties (D-009)
+    source: flowsheet energy streams Q4 (evaporator), Q9 (ethanol column), Q12 (stripper), Q14 (concentrator)
+      and Q17 (the medium's steriliser), hand estimates, and Q6 (esterifier) and Q11 (hydrolysis), core's
+      conversion duties (D-005, D-009)
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
@@ -227,8 +246,10 @@ exchanges:
   - Q11
   - Q12
   - Q14
-  source: flowsheet energy streams Q4 (evaporator), Q9 (ethanol column), Q12 (stripper), Q14 (concentrator),
-    hand estimates, and Q6 (esterifier) and Q11 (hydrolysis), core's conversion duties (D-009)
+  - Q17
+  source: flowsheet energy streams Q4 (evaporator), Q9 (ethanol column), Q12 (stripper), Q14 (concentrator)
+    and Q17 (the medium's steriliser), hand estimates, and Q6 (esterifier) and Q11 (hydrolysis), core's
+    conversion duties (D-005, D-009)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -268,7 +289,8 @@ exchanges:
   unit: kWh
   link:
     source: flowsheet energy streams P1 to P6 (D-009)
-    missing: 'not mapped yet (D-011); connect to: electricity, medium voltage, grid mix of the (undecided)
+    missing: 'a gap in this folder''s assessment; the Atlas build links it through the shared lci/mappings.yaml
+      electricity entry (D-011). Connect to: electricity, medium voltage, grid mix of the (undecided)
       site country'
   streams:
   - P1
@@ -403,8 +425,9 @@ exchanges:
   provenance: calculated
   link:
     source: flowsheet stream S23 (D-008)
-    missing: 'not mapped yet (D-011); connect to: anaerobic digestion of a concentrated sugar residue,
-      per kg (a high-strength organic wastewater)'
+    missing: 'not mapped (D-011): a concentrated sugar residue (registry slug sugar-residue), not a wastewater
+      for activated sludge, so the Atlas build leaves it a gap too. Connect to: anaerobic digestion of
+      a concentrated sugar residue, per kg'
   streams:
   - S23
   source: flowsheet stream S23 (D-008)
@@ -438,7 +461,8 @@ exchanges:
   provenance: calculated
   link:
     source: flowsheet streams S15 and S30 (D-008)
-    missing: 'not mapped yet (D-011); connect to: treatment of wastewater with an organic load in an industrial
+    missing: 'a gap in this folder''s assessment; the Atlas build links it through the shared lci/mappings.yaml
+      wastewater entry (D-011). Connect to: treatment of wastewater with an organic load in an industrial
       biological plant, per kg (processes/utility-wwtp)'
   streams:
   - S15
@@ -473,8 +497,9 @@ exchanges:
   unit: kWh
   link:
     source: flowsheet energy streams Q1, Q2, Q3, Q5, Q8, Q10, Q13, Q15 and Q16 (D-009)
-    missing: 'not mapped yet (D-011); connect to: heat rejected to a recirculating cooling-water system
-      with cooling tower (processes/utility-cooling-tower), per kWh removed'
+    missing: 'a gap in this folder''s assessment; the Atlas build links it through the shared lci/mappings.yaml
+      cooling-water entry (D-011). Connect to: heat rejected to a recirculating cooling-water system with
+      cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
   - Q1
   - Q2
@@ -572,8 +597,8 @@ provenance:
   plant: Lactic acid by fermentation of glucose (100 000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:3e62d6de29f4e56155bbe603b3d8fe8d5d574294f1b0940a9d0f1039e24be929
-    lca/lca.yaml: sha256:a0c8dcdda5007fe7f2fd8e2196df9c7e17093e815655fa22eb7fd313affde25b
-    process.yaml: sha256:57852394297d5ca9b549447ce1fff872557dd706e9762b0c9d1f89e43c0aae26
-    process/flowsheet.yaml: sha256:abb134321fd5c14b568200437739ae504750da070103fda91a575410c2376833
+    equipment/equipment-list.yaml: sha256:bd3cbddd74a57458a9036f7bbbfe8205c8eab8619dba06bdc4fa9d8bf10d605f
+    lca/lca.yaml: sha256:68488a6fa875d7d2451c2e345f121a44b822d02bb066bd186efec885fc2eaa5c
+    process.yaml: sha256:e53854f5d2bcb564695647720907e4db26704e601fa289a88d5eb0de5e4e0f37
+    process/flowsheet.yaml: sha256:9a5fa21c9a49c4c8b19409c9087e07f4652b6f5ee0d97de5f8e303e5364d735f
     process/materials.yaml: sha256:0aafe474d61b62e5287816cea52a462b138023362baae60eeaafbbebac9d93cd

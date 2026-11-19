@@ -31,7 +31,8 @@ Python packages queried).
 | SRC-3 | Wikipedia, "Glucose" (infobox: enthalpy of formation -1271 kJ/mol, citing Ponomarev and Migarskaya 1960) and "Calcium lactate" (solubility of the L-lactate: 6.7 g/100 mL at 25 C, 8.5 g/100 mL at 30 C, citing Vavrusova et al. 2013) | infoboxes and text, read 2026-11-19 | secondary sources, values ASSUMED | reactions (FLA, FAA), D-005 |
 | SRC-4 | thermo 0.6.1 and chemicals 1.5.2 (Caleb Bell, MIT; core's environment) | formation enthalpies (kJ/mol): L-lactic acid(s) -694.08 (`Hfs`, method WEBBOOK, the NIST WebBook value as packaged), CaO(s) -634.9 and Ca(OH)2(s) -985.2 (`Hfs`, CRC), water(l) -285.825 and acetic acid(l) -483.58 (`Hfl`, ATCT_L, the Active Thermochemical Tables); heat capacities: water 75.33 and ethanol 122.02 kJ/(kmol K) at 323.15 K (HEOS_FIT), acetic acid 135.55 (VDI_TABULAR, the VDI Heat Atlas as bundled), sulfuric acid 138.9 (CRCSTD), CaO 42.10 and Ca(OH)2 87.48 (WEBBOOK_SHOMATE), gypsum 195.81 (PERRY151, Perry's Handbook table 2-151 as bundled); heats of vaporisation (HEOS_FIT): water 43.34, 42.47, 42.25, 41.65 kJ/mol at 313.15, 333.15, 338.15, 351.57 K, ethanol 40.43 and 39.14 kJ/mol at 333.15 and 351.57 K; boiling points (`Tb`): water 373.12 (HEOS), ethanol 351.57 (HEOS), acetic acid 391.05 (CRC_ORG), ethyl lactate 427.15 K (COMMON_CHEMISTRY); water's vapour pressure 20 kPa at 333.2 K, 450 kPa at 421.1 K, 1000 kPa at 453.0 K (IAPWS_PSAT). No heat capacity of lactic acid, ethyl lactate, glucose or the calcium salts, no heat of vaporisation of ethyl lactate, no formation enthalpy of liquid ethyl lactate or the calcium salts | open-source package queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037). The underlying works (the CRC Handbook, the VDI Heat Atlas, Perry's Handbook, CoolProp's reference equations, the NIST WebBook, the ATcT) were not read here | materials, reactions, D-009 |
 | SRC-5 | PubChem (identifiers of L-lactic acid CID 107689, D-glucose CID 107526 (open chain, the identity the chemicals package gives CAS 50-99-7) and CID 5793 (pyranose), calcium sulfate dihydrate CID 24928: formula, InChIKey, ChEBI cross-reference) | PUG REST, queried 2026-11-19 | open data | chemicals registry |
-| SRC-6 | processes/lime-1, sulfuric-acid-1, bioethanol-1, biodiesel-1, oxalyl-chloride-1 (this library) | quicklime; 98.5 wt% sulfuric acid; anhydrous fuel ethanol; the templates' structure and LCA | library, internal | D-006 to D-008, D-011 |
+| SRC-6 | processes/lime-1, sulfuric-acid-1, bioethanol-1, biodiesel-1, oxalyl-chloride-1, 4-aminophenol-1 (this library) | quicklime; 98.5 wt% sulfuric acid; anhydrous fuel ethanol; the templates' structure and LCA; 4-aminophenol-1 D-009: the heat of dilution of sulfuric acid, 59.2 kJ/mol, derived from SRC-8 | library, internal | D-006 to D-008, D-011 |
+| SRC-8 | US 4 307 249 A, E. L. Derrenbacker (Mallinckrodt), 1981, https://patents.google.com/patent/US4307249A/en | Example 1: 110 g of 95 to 98 % sulfuric acid added to 650 mL of water at 70 C, which rises to 90 to 95 C | read 2026-11-20 (Google Patents); facts only | D-007 (the order of the acid's dilution heat, with processes/4-aminophenol-1 D-009's derivation, 59.2 kJ/mol, a lower bound) |
 | SRC-7 | Li, Y. et al. (2021) Sustainable Lactic Acid Production from Lignocellulosic Biomass. ACS Sustainable Chem. Eng. 9, 1341-1351, doi:10.1021/acssuschemeng.0c08055 | - | not read (not open); the paper SRC-1 implements | the model's citation only |
 
 Searched and not found openly (2026-11-19): a design of a dextrose-fed lactic acid plant with
@@ -113,11 +114,28 @@ ester column's residue (D-008). For a refined dextrose the sugar would likely be
 no source for that was read, so the source's conversions stand (the issue's caveat).
 
 The titer, 130 g/L (SRC-1), sets the medium water: the design specification `titer` holds
-calcium lactate at 0.14727 kg/kg in the broth (130 g/L of lactic acid as calcium lactate at an
-ASSUMED broth density of 1070 kg/m3). The CSL dose is 10 g per litre of broth (SRC-1). 157 g/L of
+calcium lactate at 0.14716 kg/kg in the broth (130 g/L of lactic acid as calcium lactate at an
+ASSUMED broth density of 1070 kg/m3). The CSL dose is SRC-1's loading of 10 g/L, but per litre
+of broth, ASSUMED: SRC-1 doses it per litre of its sugar feed (`_units.py` CoFermentation, the CSL
+from the feed's volume times CSL_loading), a dilute hydrolysate that is most of its broth; the
+70 wt% syrup here is diluted with the medium water, so per litre of syrup the dose would be
+several times smaller. 157 g/L of
 calcium lactate is about twice its solubility at 30 C (8.5 g/100 mL, SRC-3); whether it stays
 dissolved at 50 C is not checked (L-4). The broth is therefore kept at or above 323 K until
 acidulation (T-201), and crystallisation of calcium lactate in a cold spot is an open point.
+
+The medium is sterilised continuously (E-101) and enters the fermenters at 323 K. The process
+water S2 comes at 298 K like the slaking water; the syrup and the CSL arrive at 323 K. The net
+LP steam of the steriliser is the medium water's warm-up, Q17 1478 kW (59.1 kW/K x 25 K, hand
+estimate, 0.12 kWh per kg of lactic acid): the heat to the sterilising temperature is given back
+to the incoming medium in a regenerative exchanger, which with the medium mixed at about 306.6 K
+and leaving at 323 K works at an approach of about 16.5 K (ASSUMED); the sterilising
+temperature and holding time are not set, and the holding section's losses are not counted.
+The fermenters' sterilisation in place between batches (the recipe's cleaning step) is left out
+of the flowsheet; its steam is an ASSUMED order of magnitude, about 2.7 MWh per batch (100 t of
+steel at 0.5 kJ/(kg K) heated 298 to 394 K, doubled for the internals, losses and vented
+steam), 2.2 GWh/a or 0.02 kWh per kg of lactic acid, 0.5 % of the steam heat, recorded as a
+cut-off in lca/lca.yaml (D-011).
 
 ## D-006 Lime, cell mass (2026-11-19)
 Decision: quicklime (lime-1) slaked on site to a 20 wt% milk of lime (ASSUMED) in R-101, which
@@ -136,12 +154,23 @@ Calcium lactate, calcium acetate and the excess lime all go to gypsum (SRC-1's r
 conversion 1), taken as the dihydrate CaSO4.2H2O (SRC-1 carries anhydrous CaSO4; the hydrate
 formed at 323 K is ASSUMED). The gypsum belt filter (S-302) takes 99.5 % of the gypsum (SRC-1)
 into a cake of 20 wt% moisture (SRC-1), which holds 3.85 % of the filtrate's liquid: 522 kg/h of
-lactic acid, the largest single loss (3.9 %). A displacement wash of the cake would recover most
+lactic acid, the largest single loss (3.8 % of the 13 601 kg/h formed, the basis of D-008). A displacement wash of the cake would recover most
 of it at the cost of more water to evaporate; SRC-1 has none and none is designed here (an open
 optimisation). Gypsum cake: 20.2 t/h, 1.61 kg per kg of lactic acid, to landfill or use, not
-credited (D-011). The heats of the acidulation and of the acid's dilution are ASSUMED 0 (L-5);
-R301's duty (237 kW to cooling water) is the acid's sensible heat and the gypsum's water of
-crystallisation only.
+credited (D-011). The heats of the acidulation and of the acid's dilution are ASSUMED 0 (L-5),
+so R301's duty (237 kW to cooling water) is not a heat of reaction: it comes from the heat
+capacities assumed per kg (D-009). With the heats at 298.15 K set to 0, the reactions' change of
+heat capacity over the 25 K between 298.15 K and 323.15 K gives -350 kW (ACL -599.6, ACA -484.0
+and ACH -30.6 kJ/(kmol K) at 75.3, 10.2 and 8.6 kmol/h), mostly the dissolved calcium lactate
+taken at water's heat capacity per kg; warming the 93 % acid S11 from 298.15 to 323.15 K takes
++112 kW back: -237 kW net. The heat left out is far larger. The acid's dilution alone is about
+59 kJ per mol of H2SO4 or more (a lower bound that processes/4-aminophenol-1 D-009 derives from
+SRC-8, US 4 307 249 A Example 1: 110 g of 95 to 98 % acid into 650 mL of water raise it from
+70 C to 90 to 95 C); on the 95.3 kmol/h of S11 that is about 1.6 MW,
+ASSUMED transferable to the 93 % acid, which has given up part of it already. The acidulation's
+own heat (calcium lactate to gypsum and the free acid) is not sized (no data, L-5). R-301's
+cooling is therefore of the order of 1.5 to 2 MW, not 237 kW, and the cooling water about
+1.5 MW more than the model's; R-301's coil is to be sized on it (D-010).
 
 ## D-008 Evaporation and purification through ethyl lactate (2026-11-19)
 Decision, step by step (component separators on the recoveries named, D-010 for sizes):
@@ -154,18 +183,28 @@ Decision, step by step (component separators on the recoveries named, D-010 for 
   specification `ethanol-ratio`) at 351 K on Amberlyst-15 (SRC-1), in a reactive distillation
   column that takes the water and the ester out of the reaction zone: 98 % conversion, ASSUMED.
   SRC-1 uses a stirred reactor at equilibrium and recycles 97 % of the ester column's bottoms;
-  that recycle is rejected here because the unconverted glucose of D-005 (2.5 t/h) would build
+  that recycle is rejected here because the unconverted glucose (2.6 t/h in the broth, D-005;
+2.5 t/h reaching the esterifier after the cakes) would build
   up in it to some thirty times its feed. With the bottoms purged, a high single-pass conversion
   is needed; at SRC-1's equilibrium constant (4.5 at 351 K) and an ideal solution, a stirred
   reactor on this feed (with the recycles' water) would stop near 67 %, so the 98 % rests on the reactive distillation's
   removal of water, not on a source read (L-6).
 - C-401, ester column at 20 kPa(a): ethanol, water, acetic acid and 99.5 % of the ethyl lactate
   (SRC-1's D403) overhead; the residue (glucose, the unconverted 2 % of the lactic acid, the
-  sulfuric acid, fine gypsum; 3.1 t/h) at about 423 K (ASSUMED) to anaerobic digestion.
+  sulfuric acid, fine gypsum; 3.1 t/h) at about 423 K (ASSUMED) to anaerobic digestion. With all
+  the water overhead, the residue is a water-free melt of 82 wt% glucose with 8.5 wt% lactic
+  acid and 3.7 wt% sulfuric acid at 423 K; whether it stays a stable, pumpable liquid is not
+  checked (acid-catalysed dehydration and caramelisation of the sugar, its viscosity). A real
+  column would likely keep water in its bottoms or dilute the residue as it leaves; that changes
+  C-401's bottoms temperature and the residue's mass, not the lactic acid balance. An open point
+  (Open inputs).
 - C-402, ethanol column at 1 atm: 99 % of the ethanol (SRC-1's D402) overhead at about 91 wt%
   (SRC-1's recycle composition; the water split set for it), back to the esterifier (tear S18).
 - R-402, hydrolysis at 363 K (ASSUMED; SRC-1 gives 4 h but no temperature) with 12 mol of water
   per mol of ester (SRC-1; the design specification `hydrolysis-water`), 80 % per pass (SRC-1).
+  Its feed S25 is the ester S24 (373 K) and the recycled water S29 (323 K) mixed without heat
+  exchange, 338.05 K at the heat capacities of process/materials.yaml; R-402 heats it to 363 K
+  (Q11).
 - C-403, ethanol stripper at 1 atm: 90 % of the ethanol overhead (SRC-1's D404) at about
   92 wt% (the water split set near C-402's, ASSUMED: SRC-1's 0.9935 of the water to the bottoms
   would give 96.6 wt% ethanol here), back to the esterifier (tear S19).
@@ -187,8 +226,10 @@ column's reboiler, whose residue boils near 423 K; cooling water 298 to 308 K. A
 - Core's conversion duties (propagate, from the heats of reaction of process/reactions.yaml and
   the heat capacities of process/materials.yaml, net of the power booked on the step): R101 Q1
   820 kW; R201 Q2 7153 kW (the fermentation's heat and the agitators' 1880 kW, to cooling
-  water); R301 Q3 237 kW; R401 Q6 214 kW; R402 Q11 528 kW. Heats of reaction: SLK, FLA, FAA from
-  formation enthalpies (SRC-3, SRC-4), the neutralisations at the strong acid-strong base value
+  water); R301 Q3 237 kW (an artefact of the assumed heat capacities, the acid's dilution heat
+  left out, D-007); R401 Q6 214 kW; R402 Q11 1388 kW (the mixed feed S25 heated from 338 to
+  363 K). Heats of reaction: SLK, FLA, FAA from formation enthalpies (SRC-3, SRC-4), the
+  fermentation's neutralisations (in FLA, FAA, NEU) at the strong acid-strong base value
   -55.8 kJ/mol (ASSUMED); FBIO, ACL, ACA, ACH, EST, HYD ASSUMED 0 for want of data (L-5). The
   heat capacities of lactic acid and ethyl lactate are taken at acetic acid's per kg, those of
   glucose, the salts, cell mass and CSL at water's per kg (ASSUMED).
@@ -197,14 +238,20 @@ column's reboiler, whose residue boils near 423 K; cooling water 298 to 308 K. A
   effects without thermocompression (Q4 13.7 MW of steam, Q5 14.5 MW condensed); C-401 reflux
   ratio 1 (Q7 12.1 MW MP steam, Q8 12.5 MW); C-402 reflux ratio 3 (Q9 5.1 MW, Q10 4.2 MW);
   C-403 reflux ratio 2 (Q12 6.1 MW, Q13 5.8 MW); E-404 two effects (Q14 11.0 MW, Q15 13.1 MW);
-  E-405 product cooler (Q16 0.6 MW). Ethyl lactate's heat of vaporisation by Trouton's rule
+  E-405 product cooler (Q16 0.6 MW); E-101 the medium's steriliser (Q17 1.5 MW, D-005). Ethyl
+  lactate's heat of vaporisation by Trouton's rule
   (88 J/(mol K) x 427.15 K = 37.6 kJ/mol, ASSUMED).
-- Power (ASSUMED except the agitators): fermenter agitators 1880 kW (SRC-1's 0.0985 kW/m3 on
-  20 656 m3 of vessels, over the 146 h of 158 h they ferment), centrifuges 300 kW, filter 200 kW,
+- Power (all ASSUMED): fermenter agitators 1880 kW (0.0985 kW/m3, the default of SRC-1's
+  generic Reactor class, which SRC-1's own fermenter does not use: it takes a mixing intensity,
+  or in batch mode a costed agitator; on 20 656 m3 of vessels, over the 146 h of 158 h they
+  ferment), centrifuges 300 kW, filter 200 kW,
   evaporator 250 kW, purification 300 kW, preparation 100 kW; 3.03 MW, 0.24 kWh per kg of
   lactic acid.
-Per kg of lactic acid (as 100 %): 3.90 kWh of steam heat (14.0 MJ), of which E-401 1.10,
-C-401 0.97, E-404 0.88, C-403 0.48, C-402 0.41 kWh. No heat integration (L-7): the condensers
+Per kg of lactic acid (as 100 %): 4.09 kWh of steam heat (14.7 MJ), of which E-401 1.10,
+C-401 0.97, E-404 0.88, C-403 0.48, C-402 0.41, the medium's steriliser 0.12, the hydrolysis
+0.11 kWh; per kg of the 88 wt% product 2.75 kWh of LP and 0.855 kWh of MP steam. The
+fermenters' sterilisation in place, about 0.02 kWh more, is a cut-off (D-005, D-011). No heat
+integration (L-7): the condensers
 reject at 313 to 352 K what the reboilers take at 373 to 423 K.
 
 ## D-010 Equipment sizes (2026-11-19)
@@ -219,10 +266,19 @@ Decision: `cheme assess lca --write` from the design case per kg of the 88 wt% p
 no allocation (one product; the gypsum, cell mass, residue and wastewater are wastes; the
 gypsum is not credited, as SRC-1 gives it no price in its baseline). Linked: quicklime to
 lime-1, sulfuric acid to sulfuric-acid-1 (98.5 wt%, kg for kg of the 93 wt% acid: conservative
-by 5.6 %), ethanol to bioethanol-1, LP and MP steam as heat delivered. Gaps with the activity
-each should connect to: glucose syrup and corn steep liquor (no library producer; corn wet
-milling is not in the library), process water, power, cooling, the four waste streams and the
-cleaning consumables. The carbon of glucose, CSL and ethanol is declared biogenic. Emission
+by about 5.9 %, 0.985/0.93 = 1.059), ethanol to bioethanol-1, LP and MP steam as heat
+delivered. The Atlas build (build_lci.py) also links process water, power, cooling water and
+the wastewater WW through the shared lci/mappings.yaml entries; this folder's own assessment
+(lca/gaps.csv) lists them as not mapped. The ester column's residue RES is a concentrated sugar
+residue for anaerobic digestion (the registry's sugar-residue, added here), not a wastewater for
+activated sludge, so the build does not link it to the wastewater treatment. Gaps in the build, with the
+activity each should connect to: glucose syrup and corn steep liquor (no library producer; corn
+wet milling is not in the library), the gypsum and cell mass cakes, the residue, and the
+cleaning consumables with their disposal. Cut off with their amounts (lca/lca.yaml `cutoff:`):
+the Amberlyst-15 resin of R-401, its charge 1135 kg on SRC-1's basis (3.9 wt% of one hour's
+feed mass, `_units.py` Esterification) replaced once a year (ASSUMED), 1.0e-5 kg per kg; and the
+fermenters' sterilisation steam (D-005). The carbon of glucose, CSL and ethanol is declared
+biogenic. Emission
 exclusions: the ethanol-bearing vents, the fermenters' and broth tank's breathing, the slaker
 and acidulation vents (D-012). Not checked: SRC-1's cradle-to-gate 4.567 kg CO2-eq/kg is for a
 lignocellulosic biorefinery with its own boiler and is not comparable with this gate-to-gate
@@ -232,9 +288,15 @@ inventory.
 - The fermentation is exothermic: 5.27 MW for the whole train (Q2 less the agitators' 1.88
   MW), about 187 GJ per batch (5.27 MW x 9.879 h) released over 146 h, 0.36 MW per fermenter.
   If the cooling were lost for a whole batch, its 1106 t of broth (at water's 4.18 kJ/(kg K))
-  would warm by about 40 K, to about 363 K, below the broth's boiling point at 1 atm; the heat
-  comes from the bacteria, which ferment at 323 K (SRC-1, SRC-2), so an overheated batch is
-  expected to stop releasing heat well before (ASSUMED, not quantified). The rise is slow (days),
+  would warm by about 40 K from the fermentation alone. The agitators add heat whatever the
+  bacteria do: 2035 kW / 16 = 127.2 kW per fermenter (P2) over the 146.07 h, 66.9 GJ, another
+  14.5 K. Together about 55 K, to about 378 K: above the broth's boiling point at 1 atm (water
+  373.12 K; the dissolved salts raise it by about 1 K at most, ASSUMED). So the adiabatic whole-batch bound does not
+  stay below boiling. What keeps it there: the fermentation heat comes from the bacteria, which
+  ferment at 323 K (SRC-1, SRC-2), so an overheated batch is expected to stop releasing heat
+  well before (ASSUMED, not quantified), which leaves the agitators' 14.5 K, to about 338 K; and
+  a trip of the agitator on high temperature or lost cooling, which the safeguarding stage must
+  add (control/cause-effect.yaml has no interlocks yet; Open inputs). The rise is slow (days),
   so the fermenter's temperature alarm and the operator have time. `cheme process
   reactor-hazards` has no full screening of these conversion steps (no MTT or TD24 given), so
   this hand estimate stands (L-8).
@@ -282,7 +344,7 @@ fermentation, not a reaction mass with accumulation).
   D-005); core's crystallizer solubility (ADR 0076) applies to a crystallizer step only.
 - L-5: no formation enthalpies of dissolved calcium salts, ethyl lactate (liquid) or the cell
   mass in core's data, and no heats of solution or dilution: several heats of reaction are
-  ASSUMED 0 and the acid's dilution heat is left out.
+  ASSUMED 0 and the acid's dilution heat is left out (of the order of 1.6 MW at R-301, D-007).
 - L-6: no reactive distillation model: the esterifier is a conversion step and a separator,
   its 98 % assumed; no kinetic or equilibrium esterification model to check it.
 - L-7: component separators carry no duty model (as biodiesel-1 L-4): the evaporators' and
@@ -296,4 +358,11 @@ fermentation, not a reaction mass with accumulation).
 - The reactive distillation's conversion and the ester column's conditions from an open source.
 - Calcium lactate's solubility at 323 K.
 - Whether a gypsum cake wash pays.
-- Sterilisation of the medium (continuous, steam) and the seed train.
+- The medium steriliser's conditions (temperature, holding time, the regenerative exchanger)
+  and the fermenters' sterilisation in place, here a hand estimate and a cut-off (D-005); the
+  seed train.
+- R-301's cooling with the acid's heat of dilution and the acidulation's heat (D-007, L-5).
+- Whether the ester column's water-free residue stays stable and pumpable at 423 K, or the
+  column keeps water in its bottoms (D-008).
+- An agitator trip on high temperature or lost cooling of a fermenter (D-012), for the
+  safeguarding stage.

@@ -32,7 +32,7 @@ description: |
   as component separators on ASSUMED recoveries. The fermenters' batch cycle is a recipe whose
   year averages the flowsheet holds. The reactors' duties are core's, the separations' duties
   hand estimates. Per kg of lactic acid (as 100 %): 1.40 kg of glucose, 0.42 kg of quicklime,
-  0.75 kg of sulfuric acid (as 100 %), 1.61 kg of wet gypsum cake, 3.9 kWh of steam heat and
+  0.75 kg of sulfuric acid (as 100 %), 1.61 kg of wet gypsum cake, 4.1 kWh of steam heat and
   0.24 kWh of power (unallocated); 92 % of the lactic acid formed reaches the product. See
   DESIGN.md for every assumption.
 families: [bio-based-chemicals]
@@ -67,13 +67,14 @@ validation:
     (DESIGN.md D-009). No property package of core covers these liquids; no heat integration.
     Preliminary gate-to-gate LCI with no allocation (one product); quicklime linked to lime-1,
     sulfuric acid to sulfuric-acid-1, ethanol to bioethanol-1, LP and MP steam as heat; glucose
-    syrup and corn steep liquor gaps. cheme maturity reaches no level (assumed separations);
+    syrup and corn steep liquor gaps; the Amberlyst-15 resin and the fermenters' steaming cut off
+    with their amounts. cheme maturity reaches no level (assumed separations);
     the claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
     reviewed. Needs cheme-as-code 1.13.0.
 chemistry:
   inputs:
     - {chemical: glucose, role: feedstock, inventory_key: "feed:GLCF", note: "Glucose syrup 70 wt% (dextrose from corn starch; no library process, gap), 1.768 kg/kg of product, 1.404 kg of glucose per kg of lactic acid"}
-    - {chemical: corn-steep-liquor, role: feedstock, inventory_key: "feed:CSLF", note: "Corn steep liquor, 10 g per litre of broth (SRC-1), 0.072 kg/kg; no library process, gap"}
+    - {chemical: corn-steep-liquor, role: feedstock, inventory_key: "feed:CSLF", note: "Corn steep liquor, SRC-1's 10 g/L taken per litre of broth (ASSUMED; SRC-1 doses per litre of its sugar feed, D-005), 0.072 kg/kg; no library process, gap"}
     - {chemical: calcium-oxide, role: feedstock, inventory_key: "feed:LIMEF", note: "Quicklime (lime-1), slaked to milk of lime on site, 0.373 kg/kg: the acids formed plus 10 % (SRC-1)"}
     - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:ACIDF", note: "Sulfuric acid 93 wt% (sulfuric-acid-1), 0.708 kg/kg, 1.01 mol per mol of the lime's calcium"}
     - {chemical: ethanol, role: feedstock, inventory_key: "feed:ETOHF", note: "Ethanol make-up (bioethanol-1), 9.3 g/kg: the ethanol that leaves with the hydrolysis purge and the residue"}
@@ -82,11 +83,11 @@ chemistry:
     - {chemical: lactic-acid, role: main-product, inventory_key: "product:LAP", note: "Lactic acid 88 wt% solution (modelled 88.1 wt% lactic acid, 0.6 wt% ethyl lactate, 0.1 wt% acetic acid, the rest water), to storage"}
     - {chemical: gypsum, role: waste, inventory_key: "product:GYPC", note: "Gypsum filter cake at 20 wt% moisture, 1.42 kg/kg, to disposal or use (not credited, D-007)"}
     - {chemical: cell-mass, role: waste, inventory_key: "product:CELL", note: "Cell mass and CSL solids at 35 wt% moisture, 0.062 kg/kg, to anaerobic digestion"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:RES", note: "Ester column residue (82 wt% residual glucose, unconverted lactic acid, sulfuric acid), 0.216 kg/kg, to anaerobic digestion"}
+    - {chemical: sugar-residue, role: waste, inventory_key: "product:RES", note: "Ester column residue (82 wt% residual glucose, unconverted lactic acid, sulfuric acid), 0.216 kg/kg, to anaerobic digestion"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Evaporator condensate (about 1.4 wt% acetic acid) and the hydrolysis-water purge, 5.90 kg/kg, to biological treatment"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.214 kWh/kg: fermenter agitators (SRC-1's 0.0985 kW/m3), centrifuges, filter, pumps, vacuum pumps (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "2.58 kWh/kg of LP steam 450 kPa(a): evaporator, ethanol column, stripper, concentrator (hand estimates), esterifier and hydrolysis (core's conversion duties)"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.214 kWh/kg: fermenter agitators (0.0985 kW/m3, SRC-1's generic Reactor default), centrifuges, filter, pumps, vacuum pumps (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "2.75 kWh/kg of LP steam 450 kPa(a): evaporator, ethanol column, stripper, concentrator, medium steriliser (hand estimates), esterifier and hydrolysis (core's conversion duties)"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.855 kWh/kg of MP steam 1000 kPa(a): the ester column's reboiler (hand estimate)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "4.15 kWh/kg removed by cooling water: fermenters, slaker, acidulation, condensers, product cooler"}
 basis:
