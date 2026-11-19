@@ -1,0 +1,53 @@
+# Reactions of liquid-solvent direct air capture (DESIGN.md D-001, D-003 to D-007). Schema:
+# `cheme schema process-reactions`.
+#
+# The four reactions of the two chemical loops of SRC-1 (Keith et al. 2018, Fig. 1) and the
+# oxy-combustion of the calciner's fuel. They are overall reactions on the inventory basis of
+# materials.yaml (dissolved KOH and K2CO3, no ions; limit L-1), with no kinetics: the extents
+# follow from the capture fraction, conversions and retention of scripts/dac_balance.py, each
+# sourced or ASSUMED in DESIGN.md. Heats of reaction are the values SRC-1 Fig. 1 gives per mol
+# of carbon at standard conditions (aqueous KOH and K2CO3, solid calcium species, gaseous CO2,
+# liquid water); they document the energetics and are not used by core for a duty here (D-009).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ABS
+    title: CO2 absorption into the KOH liquor (air contactor)
+    equation: CO2 + 2 KOH -> K2CO3 + H2O
+    stoichiometry: {CO2: -1, KOH: -2, K2CO3: 1, H2O: 1}
+    phase: mixed
+    conversion: {key: CO2, value: 0.745, provenance: given, source: "SRC-1 Table 1: fraction of the CO2 captured in the contactor 74.5 % (performance model validated by pilot data), D-003"}
+    heat_of_reaction: {value: -95800, provenance: given, source: "SRC-1 Fig. 1: -95.8 kJ per mol of carbon at standard conditions"}
+    sources: ["Keith, D. W. et al. (2018) A Process for Capturing CO2 from the Atmosphere. Joule 2, 1573-1594, Fig. 1 and Table 1"]
+  - id: CAUST
+    title: Causticisation and CaCO3 precipitation on pellets (pellet reactor)
+    equation: K2CO3 + Ca(OH)2 -> CaCO3 + 2 KOH
+    stoichiometry: {K2CO3: -1, CAOH2: -1, CACO3: 1, KOH: 2}
+    phase: mixed
+    conversion: {key: CAOH2, value: 1.0, provenance: assumed, source: "D-004: the lime is the limiting reagent of the pellet reactor (SRC-1 p. 1578); all of it reacts, about 90 % of the calcium onto the pellets and the rest as fines that are filtered and joined to the pellets (SRC-1 p. 1578 and Fig. 2), ASSUMED complete"}
+    heat_of_reaction: {value: -5800, provenance: given, source: "SRC-1 Fig. 1: -5.8 kJ per mol of carbon at standard conditions"}
+    sources: ["Keith, D. W. et al. (2018) Joule 2, 1573-1594, Fig. 1, Table 1, p. 1578"]
+  - id: SLAKE
+    title: Slaking of quicklime (steam slaker; the rest in the pellet reactor)
+    equation: CaO + H2O -> Ca(OH)2
+    stoichiometry: {CAO: -1, H2O: -1, CAOH2: 1}
+    phase: mixed
+    conversion: {key: CAO, value: 0.85, provenance: given, source: "SRC-1 Table 1: conversion to Ca(OH)2 in the steam slaker 85 % (estimate from tests at CanmetENERGY), D-006; the CaO left slakes in the pellet reactor's slurry (step override 1.0, ASSUMED)"}
+    heat_of_reaction: {value: -63900, provenance: given, source: "SRC-1 Fig. 1: -63.9 kJ per mol at standard conditions"}
+    sources: ["Keith, D. W. et al. (2018) Joule 2, 1573-1594, Fig. 1 and Table 1"]
+  - id: CALC
+    title: Calcination of the CaCO3 pellets (oxy-fired calciner)
+    equation: CaCO3 -> CaO + CO2
+    stoichiometry: {CACO3: -1, CAO: 1, CO2: 1}
+    phase: mixed
+    conversion: {key: CACO3, value: 0.98, provenance: given, source: "SRC-1 Table 1: CaCO3 to CaO conversion 98 % at 900 C (pilot data), D-007"}
+    heat_of_reaction: {value: 178300, provenance: given, source: "SRC-1 Fig. 1: +178.3 kJ per mol at standard conditions"}
+    sources: ["Keith, D. W. et al. (2018) Joule 2, 1573-1594, Fig. 1 and Table 1"]
+  - id: COMB
+    title: Oxy-combustion of natural gas (as methane) in the calciner
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    phase: vapor
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-007: complete combustion in oxygen with about 4.6 % excess O2 (the oxidant ratio of SRC-1 Fig. 2), ASSUMED"}
+    heat_of_reaction: {value: -802150, provenance: assumed, source: "D-007: the lower heating value SRC-1 Fig. 2 implies, 670 GJ/h for 13.4 t/h of CH4 = 50.0 GJ/t, times 16.043 kg/kmol = 802.2 kJ/mol (water as vapour)"}
+    sources: ["Keith, D. W. et al. (2018) Joule 2, 1573-1594, Fig. 2"]
