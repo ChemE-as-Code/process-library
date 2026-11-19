@@ -183,7 +183,7 @@ exchanges:
 - key: feed:COF
   title: Carbon monoxide (merchant; no library process)
   type: input
-  amount: 73.2297
+  amount: 93.078
   unit: kg
   link:
     source: flowsheet stream S18 (D-004)
@@ -250,7 +250,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 93.0
+  amount: 97.0
   unit: kWh
   link:
     source: flowsheet energy streams P1 to P4 (D-009)
@@ -273,10 +273,10 @@ exchanges:
 - key: feed:MPS
   title: MP steam 1100 kPa(a)
   type: input
-  amount: 1474.0631999999998
+  amount: 1464.2631999999999
   unit: kWh
   link:
-    source: flowsheet energy streams Q2, Q3, Q5, Q10, Q13 and Q15 (D-009)
+    source: flowsheet energy streams Q2, Q3, Q5, Q10, Q13, Q15, Q17, Q19 and Q20 (D-009)
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       1100 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per
       kWh of condensing heat'
@@ -287,7 +287,10 @@ exchanges:
   - Q10
   - Q13
   - Q15
-  source: flowsheet energy streams Q2, Q3, Q5, Q10, Q13 and Q15 (D-009)
+  - Q17
+  - Q19
+  - Q20
+  source: flowsheet energy streams Q2, Q3, Q5, Q10, Q13, Q15, Q17, Q19 and Q20 (D-009)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -390,7 +393,7 @@ exchanges:
 - key: product:VENT
   title: Hydrogen and CO vent to the thermal oxidiser
   type: output
-  amount: 6.91468
+  amount: 26.763
   unit: kg
   provenance: calculated
   link:
@@ -406,12 +409,13 @@ exchanges:
   basic_uncertainty: 1.05
   treatment:
     kind: waste
-    route: 'thermal oxidiser: the vented hydrogen and carbon monoxide burnt to water and CO2 (0.66 kg
-      of CO2 per kg of ibuprofen-equivalent CO not counted here, D-010)'
+    route: 'thermal oxidiser: the vented hydrogen and carbon monoxide burnt to water and CO2: the vent''s
+      CO (S21, 26.50 kg/h) gives 26.50 x 44.01 / 28.01 = 41.6 kg/h of CO2, 0.094 kg per kg of ibuprofen
+      before allocation, not counted here (D-010)'
   composition:
     fractions:
-      H2: 0.037324606
-      CO: 0.962675394
+      H2: 0.009643428
+      CO: 0.990356572
     formulas:
       H2: H2
       CO: CO
@@ -440,8 +444,8 @@ exchanges:
       traces of organics)
   composition:
     fractions:
-      HCL: 0.005331784
-      H2O: 0.994668216
+      HCL: 0.005331764
+      H2O: 0.994668236
     formulas:
       HCL: HCl
       H2O: H2O
@@ -469,19 +473,19 @@ exchanges:
       distillation''s lights and residue and the mother liquor purge (D-008)'
   composition:
     fractions:
-      IBB: 0.003324749
-      AC2O: 0.009693645
-      IBAP: 0.05009523
-      ISO: 0.468118887
-      IBPE: 0.019161154
-      IBPET: 0.035980808
-      HCL: 4.4557e-05
-      H2O: 0.142164826
-      IBU: 0.197279718
-      IBU_S: 0.002875016
-      IPPA: 0.017942662
-      HE: 0.043504993
-      HEX: 0.009813756
+      IBB: 0.003324748
+      AC2O: 0.00969363
+      IBAP: 0.050095216
+      ISO: 0.468118765
+      IBPE: 0.019161127
+      IBPET: 0.035980798
+      HCL: 4.4556e-05
+      H2O: 0.142164789
+      IBU: 0.197279926
+      IBU_S: 0.002875015
+      IPPA: 0.017942683
+      HE: 0.043504981
+      HEX: 0.009813764
     formulas:
       IBB: C10H14
       AC2O: C4H6O3
@@ -500,10 +504,10 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 676.9082000000001
+  amount: 757.3059000000001
   unit: kWh
   link:
-    source: flowsheet energy streams Q1, Q6, Q7, Q9, Q11 and Q16 (D-009)
+    source: flowsheet energy streams Q1, Q6, Q7, Q9, Q11, Q16 and Q18 (D-009)
     missing: 'no background in this study; the Atlas build links it to the cooling-water proxy per kWh
       removed through the shared lci/mappings.yaml (D-010); connect to: heat rejected to a recirculating
       cooling-water system (processes/utility-cooling-tower), per kWh removed'
@@ -514,7 +518,8 @@ exchanges:
   - Q9
   - Q11
   - Q16
-  source: flowsheet energy streams Q1, Q6, Q7, Q9, Q11 and Q16 (D-009)
+  - Q18
+  source: flowsheet energy streams Q1, Q6, Q7, Q9, Q11, Q16 and Q18 (D-009)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -526,7 +531,7 @@ exchanges:
 - key: product:BRINE
   title: Brine return (refrigeration at 263 K)
   type: output
-  amount: 722.1359
+  amount: 768.3359
   unit: kWh
   link:
     source: flowsheet energy streams Q4 (C-101's HF condenser), Q12 (the crystalliser) and Q14 (the dryer's
@@ -660,8 +665,8 @@ provenance:
   plant: Ibuprofen by the BHC route, HF acylation, hydrogenation and Pd carbonylation (3500 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:10fb43a2c0399f5bfc8ea8605491bc548df78bea3feb505c4f0f72b39d22f63d
-    lca/lca.yaml: sha256:91b90f387c5a6b82ee476bc99ace08adbd9951d0eb918516471eeb98b25ec94b
-    process.yaml: sha256:d1634df55e3df102b576d9aaf1c26ec50aa756a6a93af4a7dcc3ec3324891c15
-    process/flowsheet.yaml: sha256:03a97203d47aa205b93dd083513d50c086dc8ffb9f2f51355561f3b95b8daa1d
-    process/materials.yaml: sha256:8dbd1983d5be6f6a0f0850a1937392b0ab824386601c37df0e55cade80e336ba
+    equipment/equipment-list.yaml: sha256:0f972f4eb58c5d7141c13320f13d0eef3af8c40b67bc6d123ab1ad59e9364ec8
+    lca/lca.yaml: sha256:25198f461c21054d125a969de9f59616b17d50cb307ae1fcdce3f0765df411b9
+    process.yaml: sha256:f584d5e15db3b934c9a23f0eb2af3477fbd54dbbd3956ac8f33b1dec34b861b2
+    process/flowsheet.yaml: sha256:ad37f7f7dad77586d6afe896dfcae101547feaa9deb354518e19f47494993d12
+    process/materials.yaml: sha256:8bcb7ab9dae78022f3daad511eabe6e00ff9ddfe1a5094d3744641486926847c

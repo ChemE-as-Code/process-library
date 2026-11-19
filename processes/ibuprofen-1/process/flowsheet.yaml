@@ -11,8 +11,8 @@
 # 2. Hydrogenation: neat IBAP over Raney nickel at 343 K (R-201, a conversion step), hydrogen
 #    5 % in excess, vented.
 # 3. Carbonylation: IBPE with aqueous HCl (0.75 mol per mol) and CO at 403 K and 16.6 MPa
-#    (R-301, a conversion step; Pd catalyst recycled outside the balance), CO 10 % in excess,
-#    vented; the aqueous acid decanted (V-301) and recycled, a tenth purged.
+#    (R-301, a conversion step; Pd catalyst recycled outside the balance), the CO left in the
+#    head space vented on let-down; the aqueous acid decanted (V-301) and recycled, a tenth purged.
 # 4. Purification (SRC-2 Example 2's sequence): water washes of the melt (V-401), vacuum
 #    distillation (C-401: lights, product cut, residue), cooling crystallisation from hexane at
 #    278 K (CR-401, 25 wt% feed), filtration (F-401), vacuum drying (D-401); the hexane is
@@ -27,9 +27,11 @@
 #   specified splits; D401: core's dryer; mixers and splitters; all calculated by `cheme
 #   process propagate --fill` with the five recycles converged at their tears and the feeds
 #   set by the design specifications below (core ADRs 0060, 0070);
-# - R101's duty (Q1, with the charge's heat-up on Q2), CR401's (Q12) and D401's (Q13) are
-#   written by `cheme process propagate --fill` from the models; the conversion steps' and the
-#   separators' duties are hand arithmetic from the stream table (D-009), given as ASSUMED.
+# - R101's duty (Q1, with the charge's heat-up on Q2), R201's (Q7) and R301's (Q9, both with
+#   the step's power P2, P3) and CR401's (Q12) are written by `cheme process propagate --fill`
+#   from the models, D401's (Q13) by core's dryer model; the separators' duties and the
+#   sensible heats of the dose (Q20), the let-down (Q18), the washes (Q17) and the dissolver
+#   (Q19) are hand arithmetic from the stream table (D-009), given as ASSUMED.
 schema: cheme/process/v1
 kind: flowsheet
 title: Ibuprofen by the BHC route, HF acylation, hydrogenation and Pd carbonylation (3500 t/a)
@@ -81,19 +83,19 @@ specs:
     target: {stream: S15, component: H2, quantity: ratio, value: 0.05075, basis: mole, per: {stream: S12, component: IBAP}}
     tolerance: 1.0e-6
     provenance: assumed
-    source: "hydrogen 5 % above its use, 0.995 x (0.98 + 2 x 0.02) = 1.015 mol per mol of IBAP, the excess vented (D-004)"
+    source: "hydrogen 5 % above its use, 0.995 x (0.98 + 2 x 0.02) = 1.015 mol per mol of IBAP (0.995 conversion ASSUMED within SRC-1 Example 3A's >99 %), the excess vented (D-004)"
   - id: co
     vary: {stream: S18, initial: 95.0, low: 1, high: 1000}
-    target: {stream: S21, component: CO, quantity: ratio, value: 0.09662, basis: mole, per: {stream: S19, component: IBPE}}
+    target: {stream: S21, component: CO, quantity: ratio, value: 0.3847, basis: mole, per: {stream: S19, component: IBPE}}
     tolerance: 1.0e-6
     provenance: assumed
-    source: "CO 10 % above its use, 0.99 x (0.966 + 0.010) = 0.9662 mol per mol of IBPE, the excess vented when R-301 is let down (D-004)"
+    source: "the CO left in R-301's head space at the end of the reaction, vented when R-301 is let down (D-004): an 8 m3 autoclave (ASSUMED) holding the 6.2 m3 of liquor a batch (S20 x 9.0 h at the molar volumes of process/materials.yaml) leaves about 1.8 m3 of gas at 16.65 MPa and 403.15 K, n = P V / (Z R T) = 16650 x 1.8 / (1.05 x 8.314 x 403.15) = 8.52 kmol a batch (Z of CO from thermo 0.6.1's Peng-Robinson equation of state), over the 22.14 kmol of IBPE a batch: 0.3847 mol per mol, on top of the 0.9662 used; the CO dissolved in the liquor not counted, the let-down gas not recovered (ASSUMED)"
   - id: hcl
     vary: {stream: S17, initial: 30.0, low: 1, high: 2000}
     target: {stream: S19, component: HCL, quantity: ratio, value: 0.75, basis: mole, per: {stream: S19, component: IBPE}}
     tolerance: 1.0e-6
     provenance: assumed
-    source: "0.75 mol of HCl per mol of IBPE in the charge (SRC-1 Example 100: H+/IBPE 0.75), made up with 33 wt% hydrochloric acid (D-004)"
+    source: "0.75 mol of HCl per mol of IBPE in the charge (SRC-1 Example 100: H+/IBPE 0.75), made up with 33 wt% hydrochloric acid (D-004); the spec sets the HCl, not the water: the charge S19 is 31 wt% HCl with 3.3 mol of water per mol of IBPE, against Example 100's 775 mL of 26 % HCl on 8.43 mol (H3O+/H2O 0.173, about 4.3 mol of water per mol); the example's conversion and selectivities applied to the stronger acid unchanged (ASSUMED, D-004)"
   - id: wash
     vary: {stream: S25, initial: 1800.0, low: 10, high: 10000}
     target: {stream: S25, quantity: ratio, value: 3.0, basis: mass, per: {stream: S24}}
@@ -141,6 +143,9 @@ feeds:
       - {id: c401, direction: out, kind: energy}
       - {id: c402, direction: out, kind: energy}
       - {id: d401, direction: out, kind: energy}
+      - {id: v101, direction: out, kind: energy}
+      - {id: v401, direction: out, kind: energy}
+      - {id: m402, direction: out, kind: energy}
 products:
   - {id: IBU, title: Ibuprofen crystals to packing, category: product, ports: [{id: in, direction: in}]}
   - {id: HOAC, title: Acetic acid co-product (to acetic acid recovery), category: by_product, ports: [{id: in, direction: in}]}
@@ -163,6 +168,7 @@ products:
       - {id: r301, direction: in, kind: energy}
       - {id: c401, direction: in, kind: energy}
       - {id: c402, direction: in, kind: energy}
+      - {id: v301, direction: in, kind: energy}
   - id: BRINE
     title: Brine return (refrigeration at 263 K)
     category: utility
@@ -194,6 +200,7 @@ blocks:
       - {id: qc1, direction: out, kind: energy}
       - {id: qs2, direction: in, kind: energy}
       - {id: qc2, direction: out, kind: energy}
+      - {id: qd, direction: in, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: HYDR
     title: Hydrogenation
@@ -216,6 +223,7 @@ blocks:
       - {id: vent, direction: out}
       - {id: purge, direction: out}
       - {id: q, direction: out, kind: energy}
+      - {id: qc, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: PURIF
     title: Washing, vacuum distillation, crystallisation and drying
@@ -235,6 +243,8 @@ blocks:
       - {id: qdc, direction: out, kind: energy}
       - {id: qs2, direction: in, kind: energy}
       - {id: qc2, direction: out, kind: energy}
+      - {id: qw, direction: in, kind: energy}
+      - {id: qm, direction: in, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: VENTS
     title: Vent and liquid waste collection
@@ -268,6 +278,7 @@ steps:
       - {id: ac2o, direction: in, delegates: ac2o}
       - {id: rec, direction: in}
       - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: qd}
   - id: R101
     block: ACYL
     title: Acylator (acetic anhydride dosed into IBB in HF at 353 K)
@@ -283,9 +294,9 @@ steps:
       provenance: assumed
       source: "the anhydride with the recycled IBB dosed at a constant rate over 1.5 h into the IBB in HF at 353.15 K, then held to 0.85 conversion of the IBB (SRC-1 Example 1: 80 C, 3 h, 85 %, all charged at once into the cooled autoclave; dosing instead, D-005, D-011); the charge heated from 283.15 K on steam (heat_up_port), the reaction's heat to cooling water"
     hazard:
-      mtt: 373.15
+      mtt: 365.8
       provenance: assumed
-      source: "MTT: the temperature at which HF's vapour pressure reaches 1051 kPa(a) (thermo 0.6.1, Chemical('7664-39-3').Psat at 373.15 K, its default method), R-101's ASSUMED relief set pressure of 950 kPa(g); the liquor's other components are far less volatile (D-011)"
+      source: "MTT: the temperature at which R-101's pressure reaches its ASSUMED relief set pressure of 950 kPa(g), 1051 kPa(a): HF's vapour pressure (thermo 0.6.1, Chemical('7664-39-3').Psat, method 'Fit 2023', a correlation fitted by the package's authors: 631.8 kPa at 353.15 K) plus the nitrogen pad, 800 - 631.8 = 168.2 kPa at 353.15 K, compressed with the temperature in a fixed head space (168.2 x T / 353.15); the total reaches 1051 kPa(a) at 365.8 K (pure HF's vapour pressure taken, the lower of the two bases: with Raoult's law on S5's 0.943 mole fraction of HF 366.4 K); the pad not vented before relief, no control action credited; the liquor's other components are far less volatile (D-011)"
     energy_port: q
     links: [{target: equipment, ref: R-101}]
     ports:
@@ -413,6 +424,7 @@ steps:
       - {id: gas, direction: out, delegates: vent}
       - {id: aq, direction: out}
       - {id: org, direction: out, delegates: out}
+      - {id: qc, direction: out, kind: energy, delegates: qc}
   - id: SP301
     block: CARB
     title: Acid phase split (nine tenths back to the next batch)
@@ -439,16 +451,17 @@ steps:
       - {id: wash, direction: in, delegates: wash}
       - {id: aq, direction: out, delegates: ww}
       - {id: org, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: qw}
   - id: C401
     block: PURIF
-    title: Vacuum distillation, packed (lights, ibuprofen cut 403 to 407 K at 40 to 90 Pa, residue)
+    title: Vacuum distillation, packed (lights, ibuprofen cut 403 to 407 K at 40 to 93 Pa, residue)
     class: Distilling
     recovery:
       outlets:
         lights: {H2O: 1.0, HCL: 1.0, IBB: 1.0, AC2O: 1.0, IBAP: 0.95, IBPET: 0.95, IBPE: 0.90, ISO: 0.50}
         res: {HE: 0.98, IBU: 0.03, IPPA: 0.10, ISO: 0.30, IBAP: 0.05, IBPE: 0.05, IBPET: 0.05}
       provenance: assumed
-      source: "SRC-2 Example 2: lights off up to 130 C, the product cut at 130 to 134 C at 0.3 to 0.7 mm Hg (40 to 93 Pa), assay 88.6 to 97.4 %; the cuts' splits ASSUMED (D-008): 3 % of the ibuprofen and the heavy ends to the residue, the isomeric 3-IPPA hardly separated"
+      source: "SRC-2 Example 2: lights off up to 130 C, the product cut at 130 to 134 C at 0.3 to 0.7 mm Hg (40 to 93 Pa), assay 88.6 to 97.4 %; the cuts' splits ASSUMED (D-008): 3 % of the ibuprofen and the heavy ends to the residue, the isomeric 3-IPPA hardly separated; the lights taken in two stages (ASSUMED, D-008): the water the washed melt keeps (S27, 5.7 wt%), the HCl, the IBB and the anhydride first at about 15 kPa (water boils at 327.1 K there, IBB at 381.8 K and the anhydride at 356.7 K, thermo 0.6.1 Psat: IAPWS_PSAT and WAGNER_MCGARRY), condensed on cooling water; then the column pulled down to 40 to 93 Pa for the rest of the lights and the cut, as SRC-2 flashes its solvent and water at about 200 mm Hg before the column"
     links: [{target: equipment, ref: C-401}]
     ports:
       - {id: in, direction: in}
@@ -468,6 +481,7 @@ steps:
       - {id: hexm, direction: in, delegates: hex}
       - {id: ml, direction: in}
       - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: qm}
   - id: CR401
     block: PURIF
     title: Cooling crystallisation from hexane to 278 K
@@ -479,7 +493,7 @@ steps:
       basis: yield
       temperature: 278.15
       yield: {value: 0.80, provenance: assumed, source: "ASSUMED 80 % of the dissolved ibuprofen crystallised at 5 C from 25 wt% (SRC-2 states no yield and no open solubility of ibuprofen in hexane was read, L-4)"}
-      energy: {heat_capacity: 2.05, heat_of_crystallization: -126.9, provenance: assumed, source: "feed heat capacity from process/materials.yaml, 75 wt% hexane 2.27 and 25 wt% ibuprofen 1.37 kJ/(kg K); heat of crystallisation minus the heat of fusion, thermo 0.6.1 Chemical('15687-27-1').Hfusm 26175 kJ/kmol / 206.285 (D-009)"}
+      energy: {heat_capacity: 2.05, heat_of_crystallization: -126.9, provenance: assumed, source: "feed heat capacity from process/materials.yaml, 75 wt% hexane 2.27 and 25 wt% ibuprofen 1.37 kJ/(kg K); heat of crystallisation minus the heat of fusion, thermo 0.6.1 Chemical('15687-27-1').Hfusm 26175 kJ/kmol (method JOBACK, Joback's group contribution, an estimation) / 206.285 (D-009)"}
       spectators: [IBB, AC2O, IBAP, ISO, IBPE, IBPET, HCL, H2O, IPPA, HE]
       outlets: {slurry: out}
     energy_port: q
@@ -605,7 +619,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {IBB: 1.0}, provenance: assumed, source: "isobutylbenzene, impurities not modelled (D-004)"}
-        flow: {value: 427.347, provenance: calculated, source: 'cheme process propagate: spec capacity (S31 IBU_S t/a 3420)', fingerprint: 75061fe9e90f3cc0}
+        flow: {value: 427.347, provenance: calculated, source: 'cheme process propagate: spec capacity (S31 IBU_S t/a 3420)', fingerprint: 98690ef5572a91c1}
   - id: S6
     title: HF make-up
     from: HFF.out
@@ -616,7 +630,7 @@ streams:
         temperature: {value: 283.15, provenance: assumed, source: "stored chilled below its 293 K boiling point (D-011)"}
         pressure: {value: 300, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {HF: 1.0}, provenance: assumed, source: "anhydrous HF (D-004)"}
-        flow: {value: 3.70286, provenance: calculated, source: 'cheme process propagate: spec hf (S3 HF per S5 IBB (mole) 330)', fingerprint: 75061fe9e90f3cc0}
+        flow: {value: 3.70286, provenance: calculated, source: 'cheme process propagate: spec hf (S3 HF per S5 IBB (mole) 330)', fingerprint: 98690ef5572a91c1}
   - id: S7
     title: Recycled HF
     from: C101.hf
@@ -626,8 +640,8 @@ streams:
       design:
         temperature: {value: 283.15, provenance: assumed, source: "condensed on brine, stored chilled (D-009)"}
         pressure: {value: 300, provenance: assumed, source: "design basis"}
-        flow: {value: 3699.16, provenance: calculated, source: 'cheme process propagate: recycle C101 from S5 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 1.0, IBAP: 0.0, ISO: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C101 from S5 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
+        flow: {value: 3699.16, provenance: calculated, source: 'cheme process propagate: recycle C101 from S5 (tear, broyden)', fingerprint: 3335ebca79f73183}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 1.0, IBAP: 0.0, ISO: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C101 from S5 (tear, broyden)', fingerprint: 3335ebca79f73183}
   - id: S3
     title: R-101 charge (IBB in HF)
     from: M101.out
@@ -649,7 +663,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {AC2O: 0.995, HOAC: 0.005}, provenance: assumed, source: "acetic anhydride 99.5 wt% of acetic-anhydride-1, the rest acetic acid (D-004)"}
-        flow: {value: 337.127, provenance: calculated, source: 'cheme process propagate: spec anhydride (S4 AC2O per S5 IBB (mole) 13.3333)', fingerprint: 75061fe9e90f3cc0}
+        flow: {value: 337.127, provenance: calculated, source: 'cheme process propagate: spec anhydride (S4 AC2O per S5 IBB (mole) 13.3333)', fingerprint: 98690ef5572a91c1}
   - id: S9
     title: Recycled IBB and anhydride
     from: C102.rec
@@ -659,8 +673,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "recycle tank (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 504.481, provenance: calculated, source: 'cheme process propagate: recycle C102 from S8 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
-        composition: {basis: mole_fraction, values: {IBB: 0.11616, AC2O: 0.877064, HOAC: 0.00677538, HF: 0.0, IBAP: 0.0, ISO: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C102 from S8 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
+        flow: {value: 504.481, provenance: calculated, source: 'cheme process propagate: recycle C102 from S8 (tear, broyden)', fingerprint: 3335ebca79f73183}
+        composition: {basis: mole_fraction, values: {IBB: 0.11616, AC2O: 0.877064, HOAC: 0.00677538, HF: 0.0, IBAP: 0.0, ISO: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C102 from S8 (tear, broyden)', fingerprint: 3335ebca79f73183}
   - id: S4
     title: Dose (anhydride and recycled IBB)
     from: M102.out
@@ -668,7 +682,7 @@ streams:
     template: acyl
     state:
       design:
-        temperature: {value: 333.15, provenance: assumed, source: "V-101 warmed with tempered water so that the dose does not cool R-101 below its 353 K (D-005)"}
+        temperature: {value: 333.15, provenance: assumed, source: "V-101 warmed with tempered water (heated on MP steam, Q20) so that the dose does not cool R-101 below its 353 K (D-005, D-009)"}
         pressure: {value: 1000, provenance: assumed, source: "dosed against R-101's pressure (D-005)"}
         flow: {value: 841.608, provenance: calculated, source: 'cheme process propagate: mixer M102 from S2 S9', fingerprint: 590ec13a9f5ada8e}
         composition: {basis: mole_fraction, values: {IBB: 0.0686018, AC2O: 0.923929, HOAC: 0.00746936, HF: 0.0, IBAP: 0.0, ISO: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S2 S9', fingerprint: 2389c95d1f127f10}
@@ -682,7 +696,7 @@ streams:
         temperature: {value: 353.15, provenance: assumed, source: "SRC-1 Example 1: 80 C (D-005)"}
         pressure: {value: 800, provenance: assumed, source: "as S3"}
         flow: {value: 4971.82, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: 177328640040757b}
-        composition: {basis: mole_fraction, values: {IBB: 0.00285626, AC2O: 0.0218979, HOAC: 0.0164934, HF: 0.942567, IBAP: 0.01311, ISO: 0.00307551}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: 58489fbf8d35f664}
+        composition: {basis: mole_fraction, values: {IBB: 0.00285626, AC2O: 0.0218979, HOAC: 0.0164934, HF: 0.942567, IBAP: 0.01311, ISO: 0.00307551}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: 96588e230f14d9f5}
   - id: S8
     title: Stripped liquor
     from: C101.bottoms
@@ -749,7 +763,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 1000, provenance: assumed, source: "design basis (D-005)"}
         composition: {basis: mass_fraction, values: {H2: 1.0}, provenance: assumed, source: "hydrogen of hydrogen-1 (D-004)"}
-        flow: {value: 5.41948, provenance: calculated, source: 'cheme process propagate: spec hydrogen (S15 H2 per S12 IBAP (mole) 0.05075)', fingerprint: 75061fe9e90f3cc0}
+        flow: {value: 5.41948, provenance: calculated, source: 'cheme process propagate: spec hydrogen (S15 H2 per S12 IBAP (mole) 0.05075)', fingerprint: 98690ef5572a91c1}
   - id: S14
     title: Hydrogenated mass
     from: R201.out
@@ -794,7 +808,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {HCL: 0.33, H2O: 0.67}, provenance: assumed, source: "hydrochloric acid 33 wt% of hydrogen-chloride-1 (D-004)"}
-        flow: {value: 25.8846, provenance: calculated, source: 'cheme process propagate: spec hcl (S19 HCL per S19 IBPE (mole) 0.75)', fingerprint: 75061fe9e90f3cc0}
+        flow: {value: 25.8846, provenance: calculated, source: 'cheme process propagate: spec hcl (S19 HCL per S19 IBPE (mole) 0.75)', fingerprint: 98690ef5572a91c1}
   - id: S22
     title: Recycled aqueous acid
     from: SP301.rec
@@ -804,8 +818,8 @@ streams:
       design:
         temperature: {value: 323.15, provenance: assumed, source: "T-301 (D-007)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 187.767, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S23 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.183559, H2O: 0.816441, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S23 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
+        flow: {value: 187.767, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S23 (tear, broyden)', fingerprint: 3335ebca79f73183}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.183559, H2O: 0.816441, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP301 from S23 (tear, broyden)', fingerprint: 3335ebca79f73183}
   - id: S19
     title: R-301 charge
     from: M301.out
@@ -827,7 +841,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 17000, provenance: assumed, source: "compressed to R-301's pressure (D-005)"}
         composition: {basis: mass_fraction, values: {CO: 1.0}, provenance: assumed, source: "carbon monoxide, its impurities not modelled (D-004)"}
-        flow: {value: 73.2297, provenance: calculated, source: 'cheme process propagate: spec co (S21 CO per S19 IBPE (mole) 0.09662)', fingerprint: 75061fe9e90f3cc0}
+        flow: {value: 93.078, provenance: calculated, source: 'cheme process propagate: spec co (S21 CO per S19 IBPE (mole) 0.3847)', fingerprint: 98690ef5572a91c1}
   - id: S20
     title: Carbonylated mass
     from: R301.out
@@ -837,8 +851,8 @@ streams:
       design:
         temperature: {value: 403.15, provenance: assumed, source: "SRC-1 Example 100: 130 C (D-005)"}
         pressure: {value: 16650, provenance: assumed, source: "SRC-1 Example 100: 2400 psig (D-005)"}
-        flow: {value: 750.315, provenance: calculated, source: 'cheme process propagate: reactor R301 from S19 S18', fingerprint: 8f831943b65eddea}
-        composition: {basis: mole_fraction, values: {IBB: 0.000435826, AC2O: 0.00167066, HOAC: 0.0, HF: 0.0, IBAP: 0.000999799, ISO: 0.00469281, H2: 0.0, IBPE: 0.00191139, IBPET: 0.00390118, CO: 0.0184666, HCL: 0.143353, H2O: 0.637612, IBU: 0.182794, IBU_S: 0.0, IPPA: 0.00189227, HE: 0.00227073, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S19 S18', fingerprint: 304cf3e9f22ce5b9}
+        flow: {value: 770.163, provenance: calculated, source: 'cheme process propagate: reactor R301 from S19 S18', fingerprint: 35ebe97e2745a18e}
+        composition: {basis: mole_fraction, values: {IBB: 0.000413081, AC2O: 0.00158347, HOAC: 0.0, HF: 0.0, IBAP: 0.000947621, ISO: 0.00444789, H2: 0.0, IBPE: 0.00181163, IBPET: 0.00369758, CO: 0.069692, HCL: 0.135871, H2O: 0.604336, IBU: 0.173254, IBU_S: 0.0, IPPA: 0.00179352, HE: 0.00215222, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S19 S18', fingerprint: 14c3f869df749d27}
   - id: S21
     title: CO vented
     from: V301.gas
@@ -848,8 +862,8 @@ streams:
       design:
         temperature: {value: 323.15, provenance: assumed, source: "after cooling (D-005)"}
         pressure: {value: 120, provenance: assumed, source: "vent header"}
-        flow: {value: 6.65659, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: 72d78489e2122d9a}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 1.0, HCL: 0.0, H2O: 0.0, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: 72d78489e2122d9a}
+        flow: {value: 26.5049, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: abb19ef77851e1c9}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 1.0, HCL: 0.0, H2O: 0.0, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: abb19ef77851e1c9}
   - id: S23
     title: Aqueous acid
     from: V301.aq
@@ -859,8 +873,8 @@ streams:
       design:
         temperature: {value: 323.15, provenance: assumed, source: "D-007"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 208.63, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: 72d78489e2122d9a}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.183559, H2O: 0.816441, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: 72d78489e2122d9a}
+        flow: {value: 208.63, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: abb19ef77851e1c9}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.183558, H2O: 0.816442, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: abb19ef77851e1c9}
   - id: S38
     title: Aqueous acid purge
     from: SP301.purge
@@ -870,8 +884,8 @@ streams:
       design:
         temperature: {value: 323.15, provenance: assumed, source: "D-007"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 20.863, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S23 S22', fingerprint: cc6deff358f284a9}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.183559, H2O: 0.816441, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S23', fingerprint: 84834f65c97e00c8}
+        flow: {value: 20.863, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S23 S22', fingerprint: 8eeb2a2833a3a671}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.183558, H2O: 0.816442, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP301 from S23', fingerprint: 5fcef75b2f5d02e4}
   - id: S24
     title: Crude ibuprofen
     from: V301.org
@@ -881,8 +895,8 @@ streams:
       design:
         temperature: {value: 353.15, provenance: assumed, source: "molten (ibuprofen melts at 349 K), D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 535.029, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: 72d78489e2122d9a}
-        composition: {basis: mole_fraction, values: {IBB: 0.00194567, AC2O: 0.00745838, HOAC: 0.0, HF: 0.0, IBAP: 0.00446344, ISO: 0.0209503, H2: 0.0, IBPE: 0.00853308, IBPET: 0.0174162, CO: 0.0, HCL: 0.0191993, H2O: 0.0853954, IBU: 0.816053, IBU_S: 0.0, IPPA: 0.00844772, HE: 0.0101373, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: 72d78489e2122d9a}
+        flow: {value: 535.028, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: abb19ef77851e1c9}
+        composition: {basis: mole_fraction, values: {IBB: 0.00194568, AC2O: 0.00745839, HOAC: 0.0, HF: 0.0, IBAP: 0.00446344, ISO: 0.0209503, H2: 0.0, IBPE: 0.00853306, IBPET: 0.0174162, CO: 0.0, HCL: 0.0191992, H2O: 0.0853955, IBU: 0.816053, IBU_S: 0.0, IPPA: 0.00844776, HE: 0.0101373, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S20', fingerprint: abb19ef77851e1c9}
   # --- PURIF
   - id: S25
     title: Wash water
@@ -891,10 +905,10 @@ streams:
     template: all
     state:
       design:
-        temperature: {value: 353.15, provenance: assumed, source: "warm washes (SRC-2: 60 to 70 C), D-007"}
+        temperature: {value: 298.15, provenance: assumed, source: "process water at the design basis, heated to 353 K in V-401 for the warm washes (SRC-2: 60 to 70 C; Q17, D-007, D-009)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
-        flow: {value: 1605.07, provenance: calculated, source: 'cheme process propagate: spec wash (S25 per S24 (mass) 3)', fingerprint: 75061fe9e90f3cc0}
+        flow: {value: 1605.07, provenance: calculated, source: 'cheme process propagate: spec wash (S25 per S24 (mass) 3)', fingerprint: 98690ef5572a91c1}
   - id: S26
     title: Wash water off
     from: V401.aq
@@ -904,8 +918,8 @@ streams:
       design:
         temperature: {value: 353.15, provenance: assumed, source: "D-007"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 1579.32, provenance: calculated, source: 'cheme process propagate: separator V401 from S24 S25', fingerprint: 16f951c978cd7841}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.00062856, H2O: 0.999371, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V401 from S24 S25', fingerprint: 16f951c978cd7841}
+        flow: {value: 1579.32, provenance: calculated, source: 'cheme process propagate: separator V401 from S24 S25', fingerprint: 34abfbf592e72b4b}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.000628555, H2O: 0.999371, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V401 from S24 S25', fingerprint: 34abfbf592e72b4b}
   - id: S39
     title: Acid and wash water to neutralisation
     from: M502.out
@@ -915,8 +929,8 @@ streams:
       design:
         temperature: {value: 343.15, provenance: assumed, source: "D-007"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 1600.18, provenance: calculated, source: 'cheme process propagate: mixer M502 from S38 S26', fingerprint: 32e8a1bbca40c385}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.00264172, H2O: 0.997358, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M502 from S38 S26', fingerprint: 4fd29924d30f0f7e}
+        flow: {value: 1600.18, provenance: calculated, source: 'cheme process propagate: mixer M502 from S38 S26', fingerprint: 0d08d109f69381cd}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.00264171, H2O: 0.997358, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M502 from S38 S26', fingerprint: 203dcc603edaf4ed}
   - id: S27
     title: Washed melt
     from: V401.org
@@ -926,8 +940,8 @@ streams:
       design:
         temperature: {value: 353.15, provenance: assumed, source: "D-008"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 560.777, provenance: calculated, source: 'cheme process propagate: separator V401 from S24 S25', fingerprint: 16f951c978cd7841}
-        composition: {basis: mole_fraction, values: {IBB: 0.00128397, AC2O: 0.00492185, HOAC: 0.0, HF: 0.0, IBAP: 0.00294547, ISO: 0.0138253, H2: 0.0, IBPE: 0.00563106, IBPET: 0.0114931, CO: 0.0, HCL: 6.3349e-05, H2O: 0.409051, IBU: 0.538521, IBU_S: 0.0, IPPA: 0.00557473, HE: 0.0066897, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V401 from S24 S25', fingerprint: 16f951c978cd7841}
+        flow: {value: 560.776, provenance: calculated, source: 'cheme process propagate: separator V401 from S24 S25', fingerprint: 34abfbf592e72b4b}
+        composition: {basis: mole_fraction, values: {IBB: 0.00128397, AC2O: 0.00492186, HOAC: 0.0, HF: 0.0, IBAP: 0.00294546, ISO: 0.0138253, H2: 0.0, IBPE: 0.00563104, IBPET: 0.0114931, CO: 0.0, HCL: 6.33486e-05, H2O: 0.409051, IBU: 0.53852, IBU_S: 0.0, IPPA: 0.00557475, HE: 0.00668969, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V401 from S24 S25', fingerprint: 34abfbf592e72b4b}
   - id: S28
     title: Ibuprofen cut
     from: C401.cut
@@ -937,8 +951,8 @@ streams:
       design:
         temperature: {value: 405.15, provenance: assumed, source: "SRC-2 Example 2: 130 to 134 C (D-008)"}
         pressure: {value: 0.067, provenance: assumed, source: "SRC-2 Example 2: 0.3 to 0.7 mm Hg (D-008)"}
-        flow: {value: 477.777, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: b591885e8e9f1110}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.00521156, H2: 0.0, IBPE: 0.000530668, IBPET: 0.0, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.984549, IBU_S: 0.0, IPPA: 0.00945648, HE: 0.000252174, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: b591885e8e9f1110}
+        flow: {value: 477.776, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: df74a5dded80f08a}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.00521157, H2: 0.0, IBPE: 0.000530667, IBPET: 0.0, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.984549, IBU_S: 0.0, IPPA: 0.00945653, HE: 0.000252174, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: df74a5dded80f08a}
   - id: S41
     title: Lights
     from: C401.lights
@@ -947,9 +961,9 @@ streams:
     state:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "D-008"}
-        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 54.3113, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: b591885e8e9f1110}
-        composition: {basis: mole_fraction, values: {IBB: 0.00291138, AC2O: 0.0111602, HOAC: 0.0, HF: 0.0, IBAP: 0.00634487, ISO: 0.0156743, H2: 0.0, IBPE: 0.0114915, IBPET: 0.0247574, CO: 0.0, HCL: 0.000143643, H2O: 0.927517, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: b591885e8e9f1110}
+        pressure: {value: 15, provenance: assumed, source: "the first lights stage of C-401 at about 15 kPa, where the water condenses on cooling water (D-008)"}
+        flow: {value: 54.3112, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: df74a5dded80f08a}
+        composition: {basis: mole_fraction, values: {IBB: 0.00291138, AC2O: 0.0111602, HOAC: 0.0, HF: 0.0, IBAP: 0.00634484, ISO: 0.0156743, H2: 0.0, IBPE: 0.0114915, IBPET: 0.0247574, CO: 0.0, HCL: 0.000143642, H2O: 0.927517, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: df74a5dded80f08a}
   - id: S42
     title: Distillation residue
     from: C401.res
@@ -959,8 +973,8 @@ streams:
       design:
         temperature: {value: 433.15, provenance: assumed, source: "C-401's pot (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 28.6888, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: b591885e8e9f1110}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.00518202, ISO: 0.145939, H2: 0.0, IBPE: 0.00990683, IBPET: 0.02022, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.568458, IBU_S: 0.0, IPPA: 0.0196155, HE: 0.230679, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: b591885e8e9f1110}
+        flow: {value: 28.6888, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: df74a5dded80f08a}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.00518201, ISO: 0.145939, H2: 0.0, IBPE: 0.00990681, IBPET: 0.0202201, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.568458, IBU_S: 0.0, IPPA: 0.0196156, HE: 0.230679, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S27', fingerprint: df74a5dded80f08a}
   - id: S35
     title: Hexane make-up
     from: HEXF.out
@@ -971,7 +985,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {HEX: 1.0}, provenance: assumed, source: "n-hexane, the isomers of a technical grade not modelled (D-004)"}
-        flow: {value: 2.664, provenance: calculated, source: 'cheme process propagate: spec hexane (S29 IBU mass fraction 0.25)', fingerprint: 75061fe9e90f3cc0}
+        flow: {value: 2.664, provenance: calculated, source: 'cheme process propagate: spec hexane (S29 IBU mass fraction 0.25)', fingerprint: 98690ef5572a91c1}
   - id: S36
     title: Recycled hexane
     from: M403.out
@@ -981,8 +995,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: "T-402 (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 1593.48, provenance: calculated, source: 'cheme process propagate: recycle M403 from S37 S43 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 1.0}, provenance: calculated, source: 'cheme process propagate: recycle M403 from S37 S43 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
+        flow: {value: 1593.48, provenance: calculated, source: 'cheme process propagate: recycle M403 from S37 S43 (tear, broyden)', fingerprint: 3335ebca79f73183}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.0, IBPE: 0.0, IBPET: 0.0, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 1.0}, provenance: calculated, source: 'cheme process propagate: recycle M403 from S37 S43 (tear, broyden)', fingerprint: 3335ebca79f73183}
   - id: S34
     title: Recycled mother liquor residue
     from: SP402.rec
@@ -992,8 +1006,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: "T-403 (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 89.9503, provenance: calculated, source: 'cheme process propagate: recycle SP402 from S44 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0468308, H2: 0.0, IBPE: 0.00476855, IBPET: 0.0, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.718672, IBU_S: 0.015537, IPPA: 0.0849756, HE: 0.00226602, HEX: 0.12695}, provenance: calculated, source: 'cheme process propagate: recycle SP402 from S44 (tear, broyden)', fingerprint: 2a3f94c61df4c6e9}
+        flow: {value: 89.9503, provenance: calculated, source: 'cheme process propagate: recycle SP402 from S44 (tear, broyden)', fingerprint: 3335ebca79f73183}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0468308, H2: 0.0, IBPE: 0.00476855, IBPET: 0.0, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.718672, IBU_S: 0.015537, IPPA: 0.0849756, HE: 0.00226602, HEX: 0.12695}, provenance: calculated, source: 'cheme process propagate: recycle SP402 from S44 (tear, broyden)', fingerprint: 3335ebca79f73183}
   - id: S29
     title: Crystalliser feed (25 wt% ibuprofen in hexane)
     from: M402.out
@@ -1003,8 +1017,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: "SRC-2 Example 1: held at about 60 C (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 2163.87, provenance: calculated, source: 'cheme process propagate: mixer M402 from S28 S35 S36 S34', fingerprint: 1ea07426bce3554f}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.00160808, H2: 0.0, IBPE: 0.000163742, IBPET: 0.0, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.123044, IBU_S: 0.000345489, IPPA: 0.00291789, HE: 7.78106e-05, HEX: 0.871843}, provenance: calculated, source: 'cheme process propagate: mixer M402 from S28 S35 S36 S34', fingerprint: ec87928af97a8025}
+        flow: {value: 2163.87, provenance: calculated, source: 'cheme process propagate: mixer M402 from S28 S35 S36 S34', fingerprint: 2960c5fc5cc5eb5e}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.00160808, H2: 0.0, IBPE: 0.000163742, IBPET: 0.0, CO: 0.0, HCL: 0.0, H2O: 0.0, IBU: 0.123044, IBU_S: 0.000345489, IPPA: 0.00291789, HE: 7.78106e-05, HEX: 0.871843}, provenance: calculated, source: 'cheme process propagate: mixer M402 from S28 S35 S36 S34', fingerprint: 32ffb17784c7f7c0}
   - id: S30
     title: Slurry at 278 K
     from: CR401.out
@@ -1014,8 +1028,8 @@ streams:
       design:
         temperature: {value: 278.15, provenance: assumed, source: "SRC-2 Example 1: cooled to 5 C (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 2163.87, provenance: calculated, source: 'cheme process propagate: crystallizer CR401 from S29', fingerprint: 0bd7bb8f2a72e7f2}
-        composition: {basis: mole_fraction, values: {IBU: 0.0246779, HEX: 0.871843, IBU_S: 0.0987116, IBB: 0.0, AC2O: 0.0, IBAP: 0.0, ISO: 0.00160808, IBPE: 0.000163742, IBPET: 0.0, HCL: 0.0, H2O: 0.0, IPPA: 0.00291789, HE: 7.78106e-05}, provenance: calculated, source: 'cheme process propagate: crystallizer CR401 from S29', fingerprint: 0bd7bb8f2a72e7f2}
+        flow: {value: 2163.87, provenance: calculated, source: 'cheme process propagate: crystallizer CR401 from S29', fingerprint: e74ae3c1f9a9befb}
+        composition: {basis: mole_fraction, values: {IBU: 0.0246779, HEX: 0.871843, IBU_S: 0.0987116, IBB: 0.0, AC2O: 0.0, IBAP: 0.0, ISO: 0.00160808, IBPE: 0.000163742, IBPET: 0.0, HCL: 0.0, H2O: 0.0, IPPA: 0.00291789, HE: 7.78106e-05}, provenance: calculated, source: 'cheme process propagate: crystallizer CR401 from S29', fingerprint: e74ae3c1f9a9befb}
   - id: S31
     title: Wet cake
     from: F401.cake
@@ -1102,8 +1116,8 @@ streams:
       design:
         temperature: {value: 323.15, provenance: assumed, source: "T-404 (D-008)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 226.428, provenance: calculated, source: 'cheme process propagate: mixer M404 from S40 S41 S42 S45', fingerprint: 0705eb9f47273b65}
-        composition: {basis: mole_fraction, values: {IBB: 0.00196883, AC2O: 0.00754712, HOAC: 0.0, HF: 0.0, IBAP: 0.0225901, ISO: 0.211095, H2: 0.0, IBPE: 0.00854288, IBPET: 0.0176234, CO: 0.0, HCL: 9.7139e-05, H2O: 0.627236, IBU: 0.076013, IBU_S: 0.00110776, IPPA: 0.00691341, HE: 0.0102143, HEX: 0.00905132}, provenance: calculated, source: 'cheme process propagate: mixer M404 from S40 S41 S42 S45', fingerprint: 13f43b6461e9dd21}
+        flow: {value: 226.428, provenance: calculated, source: 'cheme process propagate: mixer M404 from S40 S41 S42 S45', fingerprint: 8595e1abc34c2af4}
+        composition: {basis: mole_fraction, values: {IBB: 0.00196883, AC2O: 0.00754711, HOAC: 0.0, HF: 0.0, IBAP: 0.0225901, ISO: 0.211095, H2: 0.0, IBPE: 0.00854287, IBPET: 0.0176234, CO: 0.0, HCL: 9.71383e-05, H2O: 0.627236, IBU: 0.0760131, IBU_S: 0.00110776, IPPA: 0.00691342, HE: 0.0102143, HEX: 0.00905133}, provenance: calculated, source: 'cheme process propagate: mixer M404 from S40 S41 S42 S45', fingerprint: fbdae138feb66c04}
   # --- vents
   - id: S47
     title: Vent gas
@@ -1114,25 +1128,29 @@ streams:
       design:
         temperature: {value: 323.15, provenance: assumed, source: "vent header"}
         pressure: {value: 120, provenance: assumed, source: "vent header"}
-        flow: {value: 6.91468, provenance: calculated, source: 'cheme process propagate: mixer M501 from S15 S21', fingerprint: bde48ce02febed78}
-        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.350096, IBPE: 0.0, IBPET: 0.0, CO: 0.649904, HCL: 0.0, H2O: 0.0, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M501 from S15 S21', fingerprint: cb14b92e445235ba}
+        flow: {value: 26.763, provenance: calculated, source: 'cheme process propagate: mixer M501 from S15 S21', fingerprint: 480aa98523c654cf}
+        composition: {basis: mole_fraction, values: {IBB: 0.0, AC2O: 0.0, HOAC: 0.0, HF: 0.0, IBAP: 0.0, ISO: 0.0, H2: 0.119167, IBPE: 0.0, IBPET: 0.0, CO: 0.880833, HCL: 0.0, H2O: 0.0, IBU: 0.0, IBU_S: 0.0, IPPA: 0.0, HE: 0.0, HEX: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M501 from S15 S21', fingerprint: bba59acab31da3b4}
   # --- energy
-  - {id: Q1, title: "R-101: heat of acylation to cooling water", kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 10.4609, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3 S4', fingerprint: c629575346b887f8}}}}
-  - {id: Q2, title: "R-101: the charge heated to 353 K", kind: energy, from: MPS.r101, to: R101.qh, state: {design: {duty: {value: 236.476, provenance: calculated, source: 'cheme process propagate: heat-up duty R101 from S3 S4', fingerprint: 78b217358f6640a7}}}}
-  - {id: Q3, title: "C-101 reboiler", kind: energy, from: MPS.c101, to: C101.qs, state: {design: {duty: {value: 618.0, provenance: assumed, source: "hand arithmetic from the stream table (D-009): the HF boiled up, S7 188.1 kmol/h x 7702 kJ/kmol (thermo 0.6.1 Hvapm at 298.15 K, DIPPR_PERRY_8E; HF's association not counted, L-3) x (1 + reflux 0.5, ASSUMED) = 593.3 kW, and the bottoms S8 heated from 353.15 to 393.15 K (24.7 kW, process/materials.yaml heat capacities)"}}}}
-  - {id: Q4, title: "C-101 HF condenser on brine", kind: energy, from: C101.qc, to: BRINE.c101, state: {design: {duty: {value: 624.9, provenance: assumed, source: "hand arithmetic (D-009): the HF vapour condensed, 593.3 kW as in Q3, and the condensate cooled from 293 to 283 K (31.6 kW)"}}}}
-  - {id: Q5, title: "C-102 reboilers", kind: energy, from: MPS.c102, to: C102.qs, state: {design: {duty: {value: 223.1, provenance: assumed, source: "hand arithmetic (D-009): the overheads boiled up at reflux ratios ASSUMED (acid cut 1, recycle cut 1, IBAP cut 0.5): acid S11 22.0 kW, recycle S9 64.1 kW, crude IBAP S12 33.9 kW of latent heat (thermo 0.6.1 Hvapm at 298.15 K: IBB 48098, Ac2O 48492, HOAc 23420, IBAP 46728 kJ/kmol) x (1 + R); the feed's sensible heat left out"}}}}
-  - {id: Q6, title: "C-102 condensers", kind: energy, from: C102.qc, to: CW.c102, state: {design: {duty: {value: 223.1, provenance: assumed, source: "hand arithmetic (D-009): the same vapour condensed as in Q5"}}}}
-  - {id: Q7, title: "R-201: heat of hydrogenation", kind: energy, from: R201.q, to: CW.r201, state: {design: {duty: {value: 51.2766, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S12 S13 S14', fingerprint: e753e45faaa18cf7}}}}
-  - {id: Q9, title: "R-301: heat of carbonylation less the charge's heat-up (net)", kind: energy, from: R301.q, to: CW.r301, state: {design: {duty: {value: 76.7707, provenance: calculated, source: 'cheme process propagate: conversion duty R301 from S19 S18 S20', fingerprint: 6da3d4731f43b879}}}}
+  - {id: Q1, title: "R-101: heat of acylation to cooling water", kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 10.4609, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3 S4', fingerprint: fd6aa7906d000b5a}}}}
+  - {id: Q2, title: "R-101: the charge heated to 353 K", kind: energy, from: MPS.r101, to: R101.qh, state: {design: {duty: {value: 236.476, provenance: calculated, source: 'cheme process propagate: heat-up duty R101 from S3 S4', fingerprint: 8cfcc1337b0adfdc}}}}
+  - {id: Q3, title: "C-101 reboiler", kind: energy, from: MPS.c101, to: C101.qs, state: {design: {duty: {value: 474.4, provenance: assumed, source: "hand arithmetic from the stream table (D-009), C-101's energy balance on liquid at 283.15 K: the condenser's 671.1 kW (Q4) plus the bottoms S8 at 393.15 K (67.9 kW) and the HF to the scrubber S10 (0.03 kW), less the feed S5's sensible heat at 353.15 K (its HF 185.09 kmol/h x 61.53 kJ/(kmol K) x 70 K = 221.4 kW, the organics 43.2 kW; process/materials.yaml heat capacities); the feed flashes about 39 % of its HF when let down to C-101's 150 kPa, where HF boils at 303.3 K (thermo 0.6.1 Psat, method 'Fit 2023')"}}}}
+  - {id: Q4, title: "C-101 HF condenser on brine", kind: energy, from: C101.qc, to: BRINE.c101, state: {design: {duty: {value: 671.1, provenance: assumed, source: "hand arithmetic (D-009): the HF boiled up and condensed, S7 3699.16 / 20.006 = 184.90 kmol/h x 7883 kJ/kmol (thermo 0.6.1 Hvapm at 303.3 K, HF's boiling point at C-101's 150 kPa, DIPPR_PERRY_8E: Perry's 8th ed. drawing on DIPPR 801, not read; HF's association not counted, L-3) x (1 + reflux 0.5, ASSUMED) = 607.4 kW, and the condensate S7 cooled from 303.3 to 283.15 K (63.7 kW)"}}}}
+  - {id: Q5, title: "C-102 reboilers", kind: energy, from: MPS.c102, to: C102.qs, state: {design: {duty: {value: 223.1, provenance: assumed, source: "hand arithmetic (D-009): the overheads boiled up at reflux ratios ASSUMED (acid cut 1, recycle cut 1, IBAP cut 0.5): acid S11 22.0 kW, recycle S9 64.1 kW, crude IBAP S12 33.9 kW of latent heat (thermo 0.6.1 Hvapm at 298.15 K: IBB 48098 and IBAP 46728 kJ/kmol, MORGAN_KOBAYASHI, an estimation; Ac2O 48492 and HOAc 23420 kJ/kmol, DIPPR_PERRY_8E, not read) x (1 + R); the feed S8 enters at 393.15 K, above its products, so the reboilers need no sensible heat (the excess is in Q6)"}}}}
+  - {id: Q6, title: "C-102 condensers", kind: energy, from: C102.qc, to: CW.c102, state: {design: {duty: {value: 263.5, provenance: assumed, source: "hand arithmetic (D-009): the same vapour condensed as in Q5 (223.1 kW), and the products S9, S11, S12 and S40 cooled below the feed S8's 393.15 K to their temperatures (40.4 kW, process/materials.yaml heat capacities)"}}}}
+  - {id: Q7, title: "R-201: heat of hydrogenation, with P2's power", kind: energy, from: R201.q, to: CW.r201, state: {design: {duty: {value: 51.2766, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S12 S13 S14', fingerprint: 2582f73312fa1382}}}}
+  - {id: Q9, title: "R-301: heat of carbonylation less the charge's heat-up, with P3's power (net)", kind: energy, from: R301.q, to: CW.r301, state: {design: {duty: {value: 80.1684, provenance: calculated, source: 'cheme process propagate: conversion duty R301 from S19 S18 S20', fingerprint: 7f7515730776278a}}}}
   - {id: Q10, title: "C-401 reboiler", kind: energy, from: MPS.c401, to: C401.qs, state: {design: {duty: {value: 133.8, provenance: assumed, source: "hand arithmetic (D-009): the lights S41 boiled off (23.6 kW, water 43987 and the aromatics 46728 kJ/kmol), the cut S28 boiled up at reflux 0.5 ASSUMED (60.4 kW x 1.5, ibuprofen 94172 kJ/kmol, thermo 0.6.1 Hvapm at 298.15 K, MORGAN_KOBAYASHI) and the melt S27 heated from 353 to 433 K (19.5 kW)"}}}}
-  - {id: Q11, title: "C-401 condensers", kind: energy, from: C401.qc, to: CW.c401, state: {design: {duty: {value: 114.3, provenance: assumed, source: "hand arithmetic (D-009): the lights and the cut's vapour condensed, as in Q10 without the melt's heat-up"}}}}
-  - {id: Q12, title: "CR-401 cooling crystallisation", kind: energy, from: CR401.q, to: BRINE.cr401, state: {design: {duty: {value: 83.0159, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR401 from S29', fingerprint: 77355fdc5cb375ec}}}}
+  - {id: Q11, title: "C-401 condensers", kind: energy, from: C401.qc, to: CW.c401, state: {design: {duty: {value: 125.2, provenance: assumed, source: "hand arithmetic (D-009): the lights and the cut's vapour condensed, as in Q10 without the melt's heat-up (114.3 kW), and the lights and the cut cooled from the pot's 433 K to their 313 and 405 K (10.9 kW, so that C-401's balance closes on S27's 353 K); the lights' water, HCl, IBB and anhydride condensed at the first stage's 15 kPa (D-008)"}}}}
+  - {id: Q12, title: "CR-401 cooling crystallisation", kind: energy, from: CR401.q, to: BRINE.cr401, state: {design: {duty: {value: 83.0159, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR401 from S29', fingerprint: 7fffb6ff9665a07d}}}}
   - {id: Q13, title: "D-401 jacket", kind: energy, from: MPS.d401, to: D401.steam, state: {design: {duty: {value: 35.0872, provenance: assumed, source: "cheme process crystallizers: D401's dryer model, the wet cake S31 from 278.15 to 323.15 K and the hexane evaporated, over an efficiency of 0.7 (D-009)"}}}}
   - {id: Q14, title: "E-401 dryer condenser", kind: energy, from: D401.qc, to: BRINE.d401, state: {design: {duty: {value: 14.22, provenance: assumed, source: "hand arithmetic (D-009): the dryer's hexane vapour S37 condensed in E-401 at 348.9 kJ/kg (11.6 kW) and cooled from 323 to 288 K (2.6 kW)"}}}}
   - {id: Q15, title: "C-402 reboiler", kind: energy, from: MPS.c402, to: C402.qs, state: {design: {duty: {value: 227.6, provenance: assumed, source: "hand arithmetic (D-009): the hexane S43 boiled off at 335.8 kJ/kg (thermo 0.6.1 Hvap at its boiling point, HEOS_FIT) x (1 + reflux 0.2, ASSUMED) = 165.0 kW and the mother liquor S32 heated from 278.15 to 341.87 K (62.6 kW)"}}}}
   - {id: Q16, title: "C-402 condenser", kind: energy, from: C402.qc, to: CW.c402, state: {design: {duty: {value: 201.0, provenance: assumed, source: "hand arithmetic (D-009): the hexane vapour condensed (165.0 kW) and the condensate cooled to 303 K (36.0 kW)"}}}}
   - {id: P1, title: "Power, acylation (agitator, HF pumps)", kind: energy, from: POWER.acyl, to: R101.power, state: {design: {duty: {value: 30.0, provenance: assumed, source: "year average: R-101's agitator and the HF and dosing pumps (D-009)"}}}}
   - {id: P2, title: "Power, hydrogenation (agitator, filter)", kind: energy, from: POWER.hydr, to: R201.power, state: {design: {duty: {value: 8.0, provenance: assumed, source: "year average: R-201's gas-inducing agitator and the catalyst filter (D-009)"}}}}
-  - {id: P3, title: "Power, carbonylation (agitator, CO compressor)", kind: energy, from: POWER.carb, to: R301.power, state: {design: {duty: {value: 25.0, provenance: assumed, source: "year average: the CO compressor to 17 MPa, 2.66 kmol/h isothermally 9.5 kW (n R T ln(170) at 300 K) over an efficiency of 0.6, and R-301's agitator 9 kW (D-009)"}}}}
+  - {id: P3, title: "Power, carbonylation (agitator, CO compressor)", kind: energy, from: POWER.carb, to: R301.power, state: {design: {duty: {value: 29.0, provenance: assumed, source: "year average: the CO compressor from 100 kPa to 17 MPa, S18 93.08 / 28.01 = 3.323 kmol/h isothermally 11.75 kW (n R T ln(170) at 298.15 K) over an efficiency of 0.6 = 19.6 kW, and R-301's agitator 9 kW, rounded up (D-009); core's conversion model puts this power into R-301's cooling duty Q9, though the compressor's share is rejected in its own after-cooler, to the same cooling water"}}}}
   - {id: P4, title: "Power, purification (column vacuum pumps, crystalliser, filter and dryer)", kind: energy, from: POWER.purif, to: D401.power, state: {design: {duty: {value: 30.0, provenance: assumed, source: "year average: C-401's and D-401's vacuum pumps, CR-401's agitator, F-401 and D-401's agitator (D-009)"}}}}
+  - {id: Q17, title: "V-401: the wash water heated to 353 K", kind: energy, from: MPS.v401, to: V401.q, state: {design: {duty: {value: 102.5, provenance: assumed, source: "hand arithmetic (D-009): the wash water S25 heated from 298.15 to 353.15 K, 1.864 kW/K (process/materials.yaml heat capacity) x 55 K"}}}}
+  - {id: Q18, title: "V-301: the carbonylated mass cooled before let-down and decanting", kind: energy, from: V301.qc, to: CW.v301, state: {design: {duty: {value: 25.7, provenance: assumed, source: "hand arithmetic (D-009): R-301's mass S20 cooled from 403.15 K to the let-down's 323.15 K (CO S21, acid S23) and the crude's 353.15 K (S24) on R-301's jacket in the recipe's 1 h cool step, process/materials.yaml heat capacities"}}}}
+  - {id: Q19, title: "M402 dissolver (CR-401): the cut, hexane and recycled residue brought to 333 K", kind: energy, from: MPS.m402, to: M402.q, state: {design: {duty: {value: 22.1, provenance: assumed, source: "hand arithmetic (D-009): the cut S28 (405 K), the hexane S35 and S36 (298 K) and the residue S34 (333 K) brought to the feed S29's 333.15 K, process/materials.yaml heat capacities"}}}}
+  - {id: Q20, title: "V-101: the dose warmed to 333 K (tempered water on MP steam)", kind: energy, from: MPS.v101, to: M102.q, state: {design: {duty: {value: 9.2, provenance: assumed, source: "hand arithmetic (D-009): the anhydride S2 (298 K) and the recycle S9 (313 K) warmed to the dose S4's 333.15 K, 0.356 kW/K in S4 (process/materials.yaml heat capacities); the tempered water heated on MP steam"}}}}

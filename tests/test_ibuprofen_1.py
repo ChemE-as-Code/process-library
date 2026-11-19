@@ -124,21 +124,37 @@ def test_stated_purity_yield_and_per_kg(streams: dict) -> None:
     yield_ = ((s33["IBU"] + s33["IBU_S"]) / MW["IBU"]) / (ibb / MW["IBB"])
     assert yield_ == pytest.approx(0.670, abs=1e-3)
     assert "99.56 wt%" in _text("DESIGN.md") and "67.0 %" in _text("DESIGN.md")
-    per_kg = {"S1": 0.967, "S2": 0.763, "S18": 0.166, "S11": 0.456}
+    per_kg = {"S1": 0.967, "S2": 0.763, "S18": 0.211, "S11": 0.456}
     for sid, value in per_kg.items():
         assert sum(_mass(streams[sid]).values()) / product == pytest.approx(value, abs=1.5e-3)
-    steam = sum(_duty(streams, q) for q in ["Q2", "Q3", "Q5", "Q10", "Q13", "Q15"])
-    assert steam / product == pytest.approx(3.34, abs=0.01)
+    steam = sum(_duty(streams, q) for q in ["Q2", "Q3", "Q5", "Q10", "Q13", "Q15", "Q17", "Q19", "Q20"])
+    assert steam / product == pytest.approx(3.31, abs=0.01)
+    cooling = sum(_duty(streams, q) for q in ["Q1", "Q6", "Q7", "Q9", "Q11", "Q16", "Q18"])
+    assert cooling / product == pytest.approx(1.71, abs=0.01)
     brine = sum(_duty(streams, q) for q in ["Q4", "Q12", "Q14"])
-    assert brine / product == pytest.approx(1.63, abs=0.01)
+    assert brine / product == pytest.approx(1.74, abs=0.01)
+    assert "3.31 kWh of steam" in _text("DESIGN.md")
 
 
 def test_hazard_and_mtt_are_recorded() -> None:
     fs = _yaml("process/flowsheet.yaml")
     r101 = next(s for s in fs["steps"] if s["id"] == "R101")
     assert r101["reactor"] == "semibatch"
-    assert r101["hazard"]["mtt"] == 373.15
-    assert "MTSR 357.7 K" in _text("DESIGN.md")
+    assert r101["hazard"]["mtt"] == 365.8
+    assert "MTSR 357.7 K" in _text("DESIGN.md") and "8 K below the MTT" in _text("DESIGN.md")
+
+
+def test_c101_duties_close_its_energy_balance(streams: dict) -> None:
+    """C-101's reboiler and condenser close its balance on liquid at 283.15 K (D-009)."""
+    cp = {c["id"]: c.get("liquid_heat_capacity") for c in _yaml("process/materials.yaml")["components"]}
+
+    def sensible(sid: str) -> float:
+        st = streams[sid]["state"]["design"]
+        kmol = {k: m / MW[k] for k, m in _mass(streams[sid]).items()}
+        return sum(n * cp[k] for k, n in kmol.items()) / 3600 * (st["temperature"]["value"] - 283.15)
+
+    held = sensible("S8") + sensible("S7") + sensible("S10") - sensible("S5")
+    assert _duty(streams, "Q3") - _duty(streams, "Q4") == pytest.approx(held, abs=0.5)
 
 
 def test_public_manifest_and_registry() -> None:

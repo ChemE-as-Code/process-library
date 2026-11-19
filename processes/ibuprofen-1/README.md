@@ -18,7 +18,7 @@ US 5 151 551 A:
   catalyst at 403 K and 16.6 MPa, 99 % conversion, 96.6 % to ibuprofen; the acid phase decanted
   and recycled.
 - **Purification.** Water washes of the melt, vacuum distillation in a packed column (the cut at
-  403 to 407 K and 40 to 90 Pa), crystallisation from hexane at 278 K, cold filtration, vacuum
+  403 to 407 K and 40 to 93 Pa, the water taken off first at about 15 kPa), crystallisation from hexane at 278 K, cold filtration, vacuum
   drying at 323 K; the hexane recovered.
 
 | | |
@@ -26,10 +26,10 @@ US 5 151 551 A:
 | batch | 3977 kg of dried ibuprofen every 9.0 h, 880 batches a year on a dedicated train |
 | product | 99.56 wt% ibuprofen (model; one crystallisation) |
 | yield | 67.0 % of the isobutylbenzene becomes product |
-| per kg product | 0.967 kg isobutylbenzene, 0.763 kg acetic anhydride, 8.4 g HF make-up, 12 g hydrogen, 0.166 kg CO, 0.059 kg hydrochloric acid 33 %, 6 g hexane |
+| per kg product | 0.967 kg isobutylbenzene, 0.763 kg acetic anhydride, 8.4 g HF make-up, 12 g hydrogen, 0.211 kg CO, 0.059 kg hydrochloric acid 33 %, 6 g hexane |
 | co-product and wastes | 0.456 kg acetic acid; 0.51 kg organic residues to incineration; 3.62 kg wastewater |
 | vessels | R-101 80 m3 HF autoclave, D-401 16 m3 (sized by the recipe) |
-| thermal screening | acylation dT_ad 5.5 K, MTSR 357.7 K against an MTT of 373.15 K |
+| thermal screening | acylation dT_ad 5.5 K, MTSR 357.7 K against an MTT of 365.8 K (HF and the nitrogen pad); hydrogenation and carbonylation about 190 and 200 K adiabatic, by hand, not screened |
 
 ## How it is modelled
 
@@ -55,5 +55,5 @@ cheme assess lca --check
 
 Kinetics, heats of reaction, the separations and the crystallisation yield are assumed; no
 property package covers these liquids; the hydrogenation and the carbonylation are not screened
-thermally. Isobutylbenzene, HF, CO, hexane, the refrigeration, the catalysts and the wastes'
+thermally by core (their adiabatic rises are sized by hand, DESIGN.md D-011). Isobutylbenzene, HF, CO, hexane, the refrigeration, the catalysts and the wastes'
 treatment are LCI gaps. No P&IDs, layout, HAZOP or cost estimate yet.

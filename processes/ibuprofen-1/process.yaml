@@ -33,8 +33,9 @@ description: |
   design specifications that set the feeds (capacity, ratios, make-ups). The recipe gives a
   9.0 h cycle (HF stripping and the vacuum distillation the bottlenecks, 880 batches a year) and
   sizes R-101 (80 m3) and D-401. Thermal screening of the acylation: dT_ad 5.5 K, MTSR 357.7 K
-  against an MTT of 373.15 K (HF's vapour pressure at R-101's ASSUMED relief set pressure). See
-  DESIGN.md for every assumption.
+  against an MTT of 365.8 K (HF's vapour pressure and the nitrogen pad at R-101's ASSUMED relief
+  set pressure), 8 K of margin; the hydrogenation and the carbonylation (adiabatic rises of
+  about 190 and 200 K by hand) are not screened by core. See DESIGN.md for every assumption.
 families: [oxygenates]
 keywords: [ibuprofen, BHC process, Boots-Hoechst-Celanese, green chemistry, isobutylbenzene, 4-isobutylacetophenone, Friedel-Crafts acylation, hydrogen fluoride, acetic anhydride, hydrogenation, Raney nickel, carbonylation, palladium, carbon monoxide, vacuum distillation, crystallisation, hexane, batch, semi-batch, thermal screening, pharmaceuticals, active pharmaceutical ingredient]
 facets:
@@ -59,7 +60,7 @@ validation:
     (D-009). The recipe's year-average rate agrees with the flowsheet (no cheme.recipe-basis
     finding); it sizes R-101 (80 m3) and D-401 (16 m3). Thermal screening (cheme process
     reactor-hazards): R101 dT_ad 5.5 K, accumulation 0.86, MTSR 357.7 K against an MTT of
-    373.15 K; no criticality class without a TD24; the hydrogenation and the carbonylation are
+    365.8 K (with the nitrogen pad); no criticality class without a TD24; the hydrogenation and the carbonylation are
     conversion steps without a screening (L-2). Preliminary gate-to-gate LCI with economic
     allocation to the acetic acid co-product (ASSUMED prices); in the Atlas build the acetic
     anhydride, the hydrogen and the hydrochloric acid are linked to acetic-anhydride-1,
@@ -74,7 +75,7 @@ chemistry:
     - {chemical: acetic-anhydride, role: feedstock, inventory_key: "feed:AC2OF", note: "Acetic anhydride 99.5 wt% (acetic-anhydride-1), 0.763 kg/kg"}
     - {chemical: hydrogen-fluoride, role: feedstock, inventory_key: "feed:HFF", note: "Anhydrous HF make-up, 8.4 g/kg; 8.4 kg circulate per kg (catalyst and solvent, >99.9 % recovered)"}
     - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2F", note: "Hydrogen (hydrogen-1), 12.3 g/kg, 5 % above its use"}
-    - {chemical: carbon-monoxide, role: feedstock, inventory_key: "feed:COF", note: "Carbon monoxide (no library process exports it), 0.166 kg/kg, 10 % above its use"}
+    - {chemical: carbon-monoxide, role: feedstock, inventory_key: "feed:COF", note: "Carbon monoxide (no library process exports it), 0.211 kg/kg: its use and the CO of R-301's head space vented on let-down"}
     - {chemical: hydrogen-chloride, role: feedstock, inventory_key: "feed:HCLF", note: "Hydrochloric acid 33 wt% (hydrogen-chloride-1), 0.0586 kg/kg, the make-up of the recycled acid phase"}
     - {chemical: water, role: feedstock, inventory_key: "feed:WASHW", note: "Process water for the melt washes, 3.63 kg/kg"}
     - {chemical: n-hexane, role: feedstock, inventory_key: "feed:HEXF", note: "n-Hexane make-up of the crystallisation, 6.0 g/kg"}
@@ -84,19 +85,19 @@ chemistry:
     - {chemical: acetic-acid, role: co-product, inventory_key: "product:HOAC", note: "Acetic acid 95.6 wt% (4.4 wt% anhydride), 0.456 kg/kg, to acetic acid recovery; economic allocation with ASSUMED prices (D-010)"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Acid purge and wash water, 3.62 kg/kg, 0.53 wt% HCl, to neutralisation and biological treatment"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.210 kWh/kg: agitators, pumps, the CO compressor, vacuum pumps, filter and dryer (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "3.34 kWh/kg of MP steam 1100 kPa(a): R-101's heat-up, the reboilers of C-101, C-102, C-401 and C-402, the dryer"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.53 kWh/kg removed by cooling water: the reactors' heat and the condensers of C-102, C-401 and C-402"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "1.63 kWh/kg removed by brine at 263 K: C-101's HF condenser, the crystallisation and the dryer's condenser"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.220 kWh/kg: agitators, pumps, the CO compressor, vacuum pumps, filter and dryer (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "3.31 kWh/kg of MP steam 1100 kPa(a): R-101's heat-up, the reboilers of C-101, C-102, C-401 and C-402, the dryer, the wash water, the dissolver and the dose"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.71 kWh/kg removed by cooling water: the reactors' heat (with the power of R-201 and R-301), the carbonylated mass's cool-down and the condensers of C-102, C-401 and C-402"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "1.74 kWh/kg removed by brine at 263 K: C-101's HF condenser, the crystallisation and the dryer's condenser"}
 basis:
   capacity: "3500 t/a dried ibuprofen: 880 batches/a of 3977.01 kg in 7920 h on a dedicated train (441.89 kg/h year average), ASSUMED (DESIGN.md D-002, D-003)"
   operating_hours_per_year: 7920
   location: generic fine-chemicals site with HF handling, hydrogen and CO supply and a biological wastewater treatment (not chosen)
 references:
-  - {title: "Elango, V.; Murphy, M. A.; Smith, B. L.; Davenport, K. G.; Mott, G. N.; Moss, G. L. (Hoechst Celanese, 1991) US 4 981 995 A: Method for producing ibuprofen (acylation of isobutylbenzene in HF, Example 1; hydrogenation, Examples 2, 3, 3A; carbonylation, Examples 49, 50, 100, 106)", url: "https://patents.google.com/patent/US4981995A/en"}
+  - {title: "Elango, V.; Murphy, M. A.; Smith, B. L.; Davenport, K. G.; Mott, G. N.; Zey, E. G.; Moss, G. L. (Hoechst Celanese, 1991) US 4 981 995 A: Method for producing ibuprofen (acylation of isobutylbenzene in HF, Example 1; hydrogenation, Examples 2, 3, 3A; carbonylation, Examples 49, 50, 100, 106)", url: "https://patents.google.com/patent/US4981995A/en"}
   - {title: "Hoechst Celanese (1992) US 5 151 551 A: Method for purification of ibuprofen comprising mixtures (water washes, vacuum distillation and crystallisation from hexane or heptane, Examples 1 to 3)", url: "https://patents.google.com/patent/US5151551A/en"}
   - {title: "US EPA (1997) Presidential Green Chemistry Challenge, Greener Synthetic Pathways Award: BHC Company, an efficient process for the manufacture of ibuprofen (Bishop, TX, 7.7 Mlb/a since 1992; three catalytic steps; HF recovered at more than 99.9 %)", url: "https://19january2021snapshot.epa.gov/greenchemistry/presidential-green-chemistry-challenge-1997-greener-synthetic-pathways-award_.html"}
-  - {title: "thermo 0.6.1 and chemicals 1.5.2 (Caleb Bell and contributors, MIT): liquid volumes, heat capacities, vaporisation enthalpies, formation enthalpies and HF's vapour pressure, each with its method (package values, library ADR 0037)", url: "https://github.com/CalebBell/thermo"}
+  - {title: "thermo 0.6.1 and chemicals 1.5.2 (Caleb Bell and contributors, MIT): liquid volumes, heat capacities, vaporisation enthalpies, formation enthalpies, boiling points and vapour pressures, each with its method and underlying work (DESIGN.md SRC-4) (package values, library ADR 0037)", url: "https://github.com/CalebBell/thermo"}
 lca:
   source: auto
 maintainers:
