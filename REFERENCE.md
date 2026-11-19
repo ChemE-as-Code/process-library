@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 103 public process folders: 63 engineering projects (a `plant.yaml` with a process
+The table lists 104 public process folders: 64 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -100,6 +100,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`methylamines-1`](processes/methylamines-1/) | Methylamines (MMA, DMA, TMA) from methanol and ammonia | concept (calculation maturity: balanced, report from core 0.8.0, re-checked with core v1.2.1; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methylmagnesium-bromide-1`](processes/methylmagnesium-bromide-1/) | Methylmagnesium bromide, 35 wt% in 2-MeTHF, by semi-batch Grignard reaction with methyl bromide gas dosing and a vent (4400 t/a of solution, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`methyltriphenylphosphonium-bromide-1`](processes/methyltriphenylphosphonium-bromide-1/) | Methyltriphenylphosphonium bromide by semi-batch quaternisation of triphenylphosphine with liquid methyl bromide in toluene, precipitation, a filter-dryer and toluene recovery in a batch still (820 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
+| [`mto-olefins-1`](processes/mto-olefins-1/) | Ethylene and propylene from methanol by MTO in a fluidised bed with catalyst regeneration (1800 kt/a methanol, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`n-bromosuccinimide-1`](processes/n-bromosuccinimide-1/) | N-Bromosuccinimide by semi-batch bromination of succinimide in aqueous NaOH, precipitation, reslurry wash and filter-drying (500 t/a, the first batch entry) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`natural-gas-processing-1`](processes/natural-gas-processing-1/) | Natural gas processing (amine CO2 removal, TEG dehydration, turbo-expander NGL recovery) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`nitric-acid-1`](processes/nitric-acid-1/) | Weak nitric acid by dual-pressure ammonia oxidation (1000 t/d HNO3 as 60 wt% acid) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |

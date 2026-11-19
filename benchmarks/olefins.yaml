@@ -1,4 +1,5 @@
-# Benchmarks of olefins: propane dehydrogenation and butadiene by C4 extraction. Schema:
+# Benchmarks of olefins: propane dehydrogenation, butadiene by C4 extraction and
+# methanol-to-olefins. Schema:
 # schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
 # source, in our own form.
 #
@@ -93,8 +94,32 @@ kpis:
         note: "Best practice technology, 6.7 GJ/t of steam as final energy (converted at 3.6 MJ/kWh), one value. Same paper as the dataset's average of 7.3 GJ/t, so not an independent check."
         conditions: {technology: "butadiene by C4 separation, best practice", region: global}
         source: *iea
+  mto-methanol-per-light-olefins:
+    title: Methanol per kg of ethylene and propylene by methanol-to-olefins
+    unit: kg/kg
+    no_open_reference: >-
+      No open source independent of the dataset's own read (2026-11-19). The dataset's yields are
+      US 7 138 557 B2's Table 1 (one UOP example). Read: US 9 233 350 B2 Example 1 (82.48 wt%
+      average light-olefin yield over 60 days, its basis not stated, so not convertible to kg
+      of methanol per kg); US 6 166 282 A (no yield figures). The commercial figures seen (2.97
+      and 2.85 t/t) are in an article that its publisher marks as retracted (Ye et al. 2021,
+      Engineering 7:17) and are not used. An open review (J. Mater. Chem. A 2025) could not be
+      retrieved.
+  mto-direct-co2:
+    title: Direct CO2 (regenerator coke burn) per t of ethylene by methanol-to-olefins
+    unit: kg/t
+    no_open_reference: >-
+      No open source read with a regenerator CO2 or a coke yield of a commercial unit
+      (2026-11-19); the dataset's value follows from the coke of US 7 138 557 B2's Table 1
+      (2.85 % of the methanol's carbon) burnt completely.
 
 datasets:
+  - process: mto-olefins-1
+    dataset: ethylene-and-propylene-from-methanol-mto-1800-kt-a-methanol
+    conditions: {technology: "fluidised-bed MTO on SAPO-34 with continuous regeneration, oxygenates recycled", basis: "concept flowsheet, yields of one patent example"}
+    kpis:
+      mto-methanol-per-light-olefins: {expression: feed:MEOH / ( product:ETHYLENE + product:PROPYLENE )}
+      mto-direct-co2: {expression: emission:CO2 / product:ETHYLENE, per: product:ETHYLENE}
   - process: propylene-pdh-1
     dataset: propylene-propane-dehydrogenation
     conditions: {technology: "moving bed with continuous catalyst regeneration (Oleflex type), net gas burnt on site", basis: conceptual inventory from one 2022 design}
