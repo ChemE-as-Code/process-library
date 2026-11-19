@@ -1,0 +1,55 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Vinyl acetate monomer by gas-phase acetoxylation of ethylene, issue
+# ChemE-as-Code/process-library#479. Values marked ASSUMED are engineering choices of this
+# concept study, not owner, licensor or vendor data; every decision is in DESIGN.md. The
+# capacity is a per-unit-product normalisation for the inventory, not a claim about a
+# commercial plant.
+schema: cheme/design_basis/v1
+capacity:
+  basis: vinyl acetate monomer from the dewatering column's side draw, cooled to storage
+  product_t_per_d: 600                  # ASSUMED (D-002): 25 t/h
+  product_kg_per_h: 25000               # 200 kt/a in 8000 h
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Ethylene (pipeline, polymer grade)
+    terminal: ETH
+    source_of_values: "library process ethylene-1 (product ETHYLENE: C2H4 >= 99.95 mol%, ethane the impurity), D-003"
+    composition_mol_percent: {C2H4: 99.95, C2H6: 0.05}
+    conditions: {pressure_kPa_a: 2000, temperature_K: 298.15}   # ASSUMED pipeline delivery above the loop
+  - name: Oxygen (pipeline GOX)
+    terminal: OXY
+    source_of_values: "library process asu-1 (product GOXP: 99.7 mol% O2 at 31 bar(a)), the rest counted as argon, D-003"
+    composition_mol_percent: {O2: 99.7, Ar: 0.3}
+    conditions: {pressure_kPa_a: 1200, temperature_K: 298.15}   # ASSUMED, let down from the pipeline
+  - name: Acetic acid (glacial)
+    terminal: ACF
+    source_of_values: "library process acetic-acid-1 (product HAC at its design point: 691 ppm(wt) water), D-003"
+    composition_wt_percent: {acetic_acid: 99.931, water: 0.069}
+products:
+  - name: Vinyl acetate monomer
+    terminal: VAMP
+    purity: "VAM 99.99 wt%, water 95 ppm(wt) (calculated from the ASSUMED splits; US 8 410 307 B2 aims at >= 99.95 wt% with <= 100 ppm water, D-007); stabilised with an inhibitor (not modelled)"
+  - name: Cycle-gas purge
+    terminal: PURGE
+    use: "to the site's thermal oxidiser (ASSUMED, D-006): carries the argon and ethane out of the loop"
+  - name: CO2 vent
+    terminal: CO2V
+    use: "the carbonate regenerator's CO2 with the co-absorbed ethylene, to atmosphere in the base case (US 6 420 595 B1 sends it to a flare; D-006)"
+  - name: Aqueous effluent
+    terminal: WW
+    use: "the azeotropic column's water phase and the dewatering column's top, to biological treatment (ASSUMED, D-007)"
+utilities:
+  - {name: LP steam raised in R-101, pressure_kPa_a: 450, use: "acid saturator T-101, CO2 regenerator, reboilers of C-202 and C-201 (internal, D-008)", note: "ASSUMED level inside 2.5-5 bar of US 8 765 995 B2"}
+  - {name: LP steam import, pressure_kPa_a: 450, saturation_K: 420.8, use: "the rest of C-201's reboiler (D-008)", note: ASSUMED level}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-008)}
+  - {name: Electric power, use: "cycle-gas compressor, solution and distillation pumps (electric drives ASSUMED, D-008)"}
+site:
+  location: ASSUMED generic site with ethylene, oxygen and acetic acid supply, not chosen
+  atmospheric_pressure_kPa: 101.325
+  design_ambient_K: 288.15
+assumptions:
+  - "Reactor feed 65 mol% ethylene, 12.3 mol% acetic acid, 8.6 mol% oxygen (US 8 765 995 B2 Table 2), 1000 kPa(a), 423 K in, 438 K out (ASSUMED inside 130-200 C and 8-12 bar(a)), D-004, D-005."
+  - "Per pass 9.61 % of the ethylene to VAM and 0.95 % burnt (from the same table's space-time yield, GHSV and 91.0 % selectivity, the GHSV taken at 273.15 K, ASSUMED), D-004."
+  - "ASSUMED separator splits, purge 0.3 % of the cycle gas, scrub acid 30 % of the recycle acid, CO2 removal 45 % of the CO2 of the slip stream (US 6 420 595 B1: almost half), D-005 to D-007."
+  - "No property package covers the liquids or the cycle gas with acetic acid: the duties other than R-101's come from scripts/balance.py on an ideal-gas and constant liquid heat capacity basis, ASSUMED (D-008, L-2)."
