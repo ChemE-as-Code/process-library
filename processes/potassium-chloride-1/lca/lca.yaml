@@ -41,24 +41,24 @@ flows:
   # utilities
   - key: feed:POWER
     missing: "not mapped yet in this folder (D-010; the Atlas build links it through the shared lci/mappings.yaml electricity entry): electricity, medium voltage, grid mix of the (undecided) site country"
-    source: "flowsheet energy stream P1, 187.5 kWh per t of product (ASSUMED from SRC-4), D-008"
+    source: "flowsheet energy stream P1, 141.3 kWh per t of product (ASSUMED from SRC-1 Table 128 per t), D-008"
   - key: feed:LPS
-    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam from a natural-gas-fired site boiler or CHP (e.g. processes/utility-steam-ng-boiler; SRC-1 raises steam with natural gas), per kWh of condensing heat"
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam from the site's boilers, per kWh of condensing heat; SRC-1 raises its steam in high-voltage electrode boilers on grid power (section 15.2.7), the shared steam-heat entry is a natural-gas-fired background (D-010)"
     source: "flowsheet energy stream Q3 (the mother-liquor heater, hand balance), D-008"
   - key: feed:FUEL
-    missing: "linked as heat from natural gas (lca/mappings.yaml): the dryer's direct-fired air heater, per kWh absorbed; combustion emissions in the background"
+    missing: "linked as heat from natural gas (lca/mappings.yaml): the dryer's direct-fired air heater, per kWh the drying air takes up (core's dryer duty, the cake's heat over the dryer's ASSUMED efficiency of 0.6); the burner's losses and combustion emissions in the background"
     source: "flowsheet energy stream Q4 (core's dryer model), D-008"
   - key: product:CW
-    missing: "heat rejected to a recirculating cooling-water system (prefer_atlas: processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy stream Q2: the surface condensers of the last two crystallizer stages, D-008"
+    missing: "heat rejected to a recirculating cooling-water system, per kWh removed; a gap here, the Atlas build links the shared cooling-tower utility (processes/utility-cooling-tower) by the slug cooling-water (D-010)"
+    source: "flowsheet energy stream Q2: the crystallizer's surface condensers, the vapour the preheaters cannot take (D-008)"
   # wastes and emissions
   - key: product:TAIL
     treatment: {kind: waste, route: "salt tailings (halite with anhydrite, insolubles and brine) stacked on a tailings pile with a brine pond, part returned underground as backfill (SRC-1); the pile's brine to deep-well injection"}
-    missing: "not mapped yet (D-010): disposal of potash salt tailings on a pile (with the long-term dissolution of the salt by rain), per kg"
+    missing: "not mapped yet (D-010; slug potash-tailings, no entry, a gap in the Atlas build too): disposal of potash salt tailings on a pile (with the long-term dissolution of the salt by rain), per kg"
     source: "flowsheet stream S4 (D-006)"
   - key: product:BRINE
     treatment: {kind: waste, route: "brine purge injected into a deep saline aquifer (SRC-1: 310-400 m; SRC-2: 1800 m)"}
-    missing: "not mapped yet (D-010): deep-well injection of a KCl-NaCl brine, per kg"
+    missing: "not mapped yet (D-010; slug potash-brine-purge, no entry, a gap in the Atlas build too): deep-well injection of a KCl-NaCl brine, per kg"
     source: "flowsheet stream S12 (D-006)"
   - key: product:DRYV
     emission: true

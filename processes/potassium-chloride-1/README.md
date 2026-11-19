@@ -19,7 +19,8 @@ Cyclones, a hot thickener and a filter send the salt tailings to the pile. The h
 to about 45 C in seven vacuum stages, where 28 % of its KCl crystallises; the flashed water is
 condensed and returned as dilution water so that the NaCl stays dissolved. Centrifuges and a
 gas-fired dryer give the product; the mother liquor, less a small purge to deep-well injection,
-is heated by the stages' own vapour and by LP steam and goes back to the leach.
+is heated by the stages' own vapour (as far as the brine's boiling-point elevation allows) and
+by LP steam and goes back to the leach.
 
 How core models it:
 
@@ -28,24 +29,31 @@ How core models it:
   with NaCl as a spectator, an adiabatic flash, centrifuge) and dryer, two tears (the mother
   liquor and the condensate) and two design specifications: the ore for 150 t/h of crystal and
   the make-up water for the hot brine's 14.19 wt% KCl.
-- The duties are hand balances on the propagated streams with thermo's latent heats and solid
-  heat capacities; the dryer is core's model (`cheme process crystallizers`).
+- The duties are enthalpy balances on the propagated streams with thermo's latent heats and solid
+  heat capacities that close around the loop; the vapour heat recovery is limited by the brine's
+  boiling-point elevation (core's Pitzer model of NaCl-H2O, `cheme process electrolyte`, the
+  KCl's share ASSUMED); the dryer is core's model (`cheme process crystallizers`).
 
 Headline numbers and their caveats:
 
-- 4.0 t of ore, 0.31 t of make-up water, 1.07 GJ of LP steam, 0.23 GJ of fired heat and 187.5 kWh
-  per t of product; 3.16 t of salt tailings per t; KCl recovery 90.8 % (the Brazil Potash
-  figure, to which the leach's dissolution is set).
-- The hot brine's KCl and the crystallizer's per-pass yield (0.28) are ASSUMED: no open solubility
-  data of the KCl-NaCl-water system were read, so they come from an open cavern-brine analysis
-  (Encanto PFS 2017) and the patent's statement that the KCl solubility doubles between 20 and
-  110 C (DESIGN.md D-004, D-007, L-3).
-- Heats of solution are left out; the mother liquor needs 366 K to hold the leach at 363 K here,
-  against the about 115 C of the Brazil Potash report: the steam is a lower bound (D-008, L-2).
-- The electricity is ASSUMED from an open study of a carnallite plant (PLoS ONE 2024); reagents
-  without an amount read (flocculant, anti-caking agent) are left out (D-008, D-009).
-- The preliminary LCI has one product; the ore, electricity (the Atlas build links the shared
-  grid entry), cooling water, tailings and brine purge are gaps (D-010).
+- 4.0 t of ore, 0.31 t of make-up water, 1.80 GJ of LP steam, 0.23 GJ of fired heat and 141.3 kWh
+  per t of product; 3.15 t of salt tailings per t; KCl recovery 90.8 % (the Brazil Potash
+  figure, to which the leach's dissolution is set). The steam is 1.2 times the Brazil Potash
+  report's hot-leach steam per t (D-008).
+- The hot brine's KCl and the crystallizer's per-pass yield (0.2685, the equilibrium on the same
+  line) are ASSUMED: no open solubility data of the KCl-NaCl-water system were read, so they come
+  from an open cavern-brine analysis (Encanto PFS 2017) and the patent's statement that the KCl
+  solubility doubles between 20 and 110 C. The patent's own example forms 1.5-1.7 times more
+  crystal per kg of feed and K, so the brine circulation and the steam are probably high (DESIGN.md
+  D-004, D-007, L-3).
+- Heats of solution and crystallisation, the ejectors' steam and heat losses are left out and
+  sized in D-009; the mother liquor needs 368 K to hold the leach at 363 K here, against the about
+  115 C of the Brazil Potash report: on these counts the steam is a lower bound (D-008, D-009, L-2).
+- The electricity is ASSUMED from the Brazil Potash report's process load list per t (Table 128);
+  reagents without an amount read (flocculant, anti-caking agent) are left out (D-008, D-009).
+- The preliminary LCI has one product; the ore, the tailings and the brine purge are gaps; the
+  electricity and the cooling water are gaps in `cheme assess lca`, and the Atlas build links them
+  to the shared grid entry and cooling-tower utility (D-010).
 - Hazards (D-011): hot brine and steam, vacuum vessels, the dryer's gas burners, dust, rotating
   machinery, corrosion by hot chloride brine, the tailings pile and brine injection; no reaction.
 

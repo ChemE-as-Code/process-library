@@ -37,7 +37,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 1216640000.0
+  amount: 1216696000.0
   unit: kg/a
   source: product:KCLP per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -51,7 +51,7 @@ exchanges:
 - key: feed:ORE
   title: Crushed sylvinite ore (below 4 mm, 27.3 wt% KCl)
   type: input
-  amount: 607743.0
+  amount: 607813.0
   unit: kg
   link:
     source: flowsheet stream S1, set by the design specification for 150 t/h of crystal (D-003)
@@ -82,7 +82,7 @@ exchanges:
 - key: feed:PW
   title: Process make-up water
   type: input
-  amount: 46873.4
+  amount: 47390.4
   unit: kg
   link:
     source: flowsheet stream S6, set by the design specification for the hot brine's 14.19 wt% KCl (D-005)
@@ -103,15 +103,17 @@ exchanges:
 - key: feed:POWER
   title: Electric power (grid)
   type: input
-  amount: 28515.0
+  amount: 21490.2
   unit: kWh
   link:
-    source: flowsheet energy stream P1, 187.5 kWh per t of product (ASSUMED from SRC-4), D-008
+    source: flowsheet energy stream P1, 141.3 kWh per t of product (ASSUMED from SRC-1 Table 128 per t),
+      D-008
     missing: 'not mapped yet in this folder (D-010; the Atlas build links it through the shared lci/mappings.yaml
       electricity entry): electricity, medium voltage, grid mix of the (undecided) site country'
   streams:
   - P1
-  source: flowsheet energy stream P1, 187.5 kWh per t of product (ASSUMED from SRC-4), D-008
+  source: flowsheet energy stream P1, 141.3 kWh per t of product (ASSUMED from SRC-1 Table 128 per t),
+    D-008
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -122,13 +124,13 @@ exchanges:
 - key: feed:LPS
   title: LP steam 450 kPa(a) (mother-liquor heater; condensate returned)
   type: input
-  amount: 45280.66
+  amount: 75889.91
   unit: kWh
   link:
     source: flowsheet energy stream Q3 (the mother-liquor heater, hand balance), D-008
-    missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam from a natural-gas-fired
-      site boiler or CHP (e.g. processes/utility-steam-ng-boiler; SRC-1 raises steam with natural gas),
-      per kWh of condensing heat'
+    missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam from the site''s boilers,
+      per kWh of condensing heat; SRC-1 raises its steam in high-voltage electrode boilers on grid power
+      (section 15.2.7), the shared steam-heat entry is a natural-gas-fired background (D-010)'
   streams:
   - Q3
   source: flowsheet energy stream Q3 (the mother-liquor heater, hand balance), D-008
@@ -145,12 +147,13 @@ exchanges:
 - key: feed:FUEL
   title: Natural gas firing of the dryer air (direct-fired air heater)
   type: input
-  amount: 9672.68
+  amount: 9664.67
   unit: kWh
   link:
     source: flowsheet energy stream Q4 (core's dryer model), D-008
     missing: 'linked as heat from natural gas (lca/mappings.yaml): the dryer''s direct-fired air heater,
-      per kWh absorbed; combustion emissions in the background'
+      per kWh the drying air takes up (core''s dryer duty, the cake''s heat over the dryer''s ASSUMED
+      efficiency of 0.6); the burner''s losses and combustion emissions in the background'
   streams:
   - Q4
   source: flowsheet energy stream Q4 (core's dryer model), D-008
@@ -166,7 +169,7 @@ exchanges:
 - key: product:KCLP
   title: Potassium chloride (MOP), dried, to compaction, screening and storage
   type: product
-  amount: 152080.0
+  amount: 152087.0
   unit: kg
   provenance: calculated
   streams:
@@ -177,15 +180,15 @@ exchanges:
   basic_uncertainty: 1.05
   state:
     temperature: 150.0
-    purity: 0.980988
+    purity: 0.980942
     basis: mole
     component: KCl_s
   composition:
     fractions:
-      KCl_s: 0.986326272
-      KCl: 0.004316703
-      NaCl: 0.008357025
-      H2O: 0.001
+      KCl_s: 0.986276302
+      KCl: 0.004379788
+      NaCl: 0.008343909
+      H2O: 0.001000001
     formulas:
       KCl_s: KCl
       KCl: KCl
@@ -195,13 +198,13 @@ exchanges:
 - key: product:TAIL
   title: Salt tailings (halite, anhydrite, insolubles with brine) to the tailings pile and backfill
   type: output
-  amount: 480037.0
+  amount: 479812.0
   unit: kg
   provenance: calculated
   link:
     source: flowsheet stream S4 (D-006)
-    missing: 'not mapped yet (D-010): disposal of potash salt tailings on a pile (with the long-term dissolution
-      of the salt by rain), per kg'
+    missing: 'not mapped yet (D-010; slug potash-tailings, no entry, a gap in the Atlas build too): disposal
+      of potash salt tailings on a pile (with the long-term dissolution of the salt by rain), per kg'
   streams:
   - S4
   source: flowsheet stream S4 (D-006)
@@ -215,13 +218,13 @@ exchanges:
       a brine pond, part returned underground as backfill (SRC-1); the pile's brine to deep-well injection
   composition:
     fractions:
-      KCl_s: 0.013583163
-      NaCl_s: 0.71436249
-      CaSO4_s: 0.091407798
-      INSOL: 0.080646421
-      KCl: 0.014190014
-      NaCl: 0.019779482
-      H2O: 0.066030631
+      KCl_s: 0.013376635
+      NaCl_s: 0.714469023
+      CaSO4_s: 0.091460925
+      INSOL: 0.080693205
+      KCl: 0.014190037
+      NaCl: 0.019774789
+      H2O: 0.066035385
     formulas:
       KCl_s: KCl
       NaCl_s: NaCl
@@ -234,12 +237,13 @@ exchanges:
 - key: product:BRINE
   title: Brine purge to deep-well injection
   type: output
-  amount: 18329.6
+  amount: 19140.7
   unit: kg
   provenance: calculated
   link:
     source: flowsheet stream S12 (D-006)
-    missing: 'not mapped yet (D-010): deep-well injection of a KCl-NaCl brine, per kg'
+    missing: 'not mapped yet (D-010; slug potash-brine-purge, no entry, a gap in the Atlas build too):
+      deep-well injection of a KCl-NaCl brine, per kg'
   streams:
   - S12
   source: flowsheet stream S12 (D-006)
@@ -252,9 +256,9 @@ exchanges:
     route: 'brine purge injected into a deep saline aquifer (SRC-1: 310-400 m; SRC-2: 1800 m)'
   composition:
     fractions:
-      KCl: 0.105036939
-      NaCl: 0.203349608
-      H2O: 0.691613454
+      KCl: 0.106577435
+      NaCl: 0.203039357
+      H2O: 0.690383207
     formulas:
       KCl: KCl
       NaCl: NaCl
@@ -263,7 +267,7 @@ exchanges:
 - key: product:DRYV
   title: Dryer exhaust vapour (with the drying gas) to atmosphere
   type: output
-  amount: 4170.49
+  amount: 4162.82
   unit: kg
   provenance: calculated
   streams:
@@ -282,15 +286,18 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 40162.49
+  amount: 65808.66
   unit: kWh
   link:
-    source: 'flowsheet energy stream Q2: the surface condensers of the last two crystallizer stages, D-008'
-    missing: 'heat rejected to a recirculating cooling-water system (prefer_atlas: processes/utility-cooling-tower),
-      per kWh removed'
+    source: 'flowsheet energy stream Q2: the crystallizer''s surface condensers, the vapour the preheaters
+      cannot take (D-008)'
+    missing: heat rejected to a recirculating cooling-water system, per kWh removed; a gap here, the Atlas
+      build links the shared cooling-tower utility (processes/utility-cooling-tower) by the slug cooling-water
+      (D-010)
   streams:
   - Q2
-  source: 'flowsheet energy stream Q2: the surface condensers of the last two crystallizer stages, D-008'
+  source: 'flowsheet energy stream Q2: the crystallizer''s surface condensers, the vapour the preheaters
+    cannot take (D-008)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -302,7 +309,7 @@ exchanges:
 - key: emission:H2O
   title: H2O to the environment
   type: emission
-  amount: 4170.49
+  amount: 4162.82
   unit: kg
   provenance: calculated
   free: true
@@ -329,8 +336,8 @@ provenance:
   plant: Potassium chloride by hot leaching of sylvinite and vacuum cooling crystallisation (150 t/h)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:936202ee12508d9f6eeee2e557aadf72711af3ad6d6c81773646ba97014a8fe2
-    lca/lca.yaml: sha256:c4c06b65ff6d77b62a5513d8c6d46e4aab3753682d17445d0bedd2060a0114a1
-    process.yaml: sha256:8191af7a89bea3fce491818fd0c448af2d7c4734b085d1cfb3096636f5aea89f
-    process/flowsheet.yaml: sha256:ea95af6ff4c9c3e81207aa50e1dcb4d60060084d10cc16921e0ab9a97324cd86
+    equipment/equipment-list.yaml: sha256:7a180c32707401c3a4ead810d2f69028fdb8a5d0c26db539300fcc5dafa25429
+    lca/lca.yaml: sha256:2bdb9969721720c0f1c0dca2a1a3be7ba0098ca22f12a8561f01aed0bbc0a750
+    process.yaml: sha256:8a296efa599b37abf7c09f83dbe5a1d34f65b065766aec83c3a0535f230ea615
+    process/flowsheet.yaml: sha256:30627df01e2d813c52f338c6339d9b59a07a2658b3dde30c0bb5b8a3af78b486
     process/materials.yaml: sha256:6e3524c4e05f7024f395f0f22796a1e46792405551ed9ba94b00ea316169753b

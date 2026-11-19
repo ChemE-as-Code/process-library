@@ -8,7 +8,7 @@ summary: >-
   Muriate of potash from crushed sylvinite: KCl leached into hot mother liquor at about 90 C,
   tailings separated, the brine cooled to 45 C in seven vacuum stages, the crystals centrifuged
   and dried, the mother liquor reheated by the stages' vapour and steam. Concept stage, 4.0 t of
-  ore and 1.07 GJ of steam per t, 90.8 % recovery, preliminary LCI.
+  ore and 1.80 GJ of steam per t, 90.8 % recovery, preliminary LCI.
 description: |
   Sylvinite crushed below 4 mm (27.3 wt% KCl, 58.8 wt% NaCl, anhydrite and insolubles) is
   leached in two agitated stages with mother liquor at about 90 C: the brine, near saturation in
@@ -16,10 +16,10 @@ description: |
   the salt tailings (3.2 t per t of product) to the pile, and the clarified hot brine, saturated in
   KCl, to a seven-stage vacuum cooling crystallizer. The water flashed in the stages is condensed
   and returned to the crystallizer feed with the make-up water, so that the NaCl stays dissolved
-  while 28 % of the KCl crystallises between 90 and 45 C. Centrifuges give a 96 % solids cake,
+  while 27 % of the KCl crystallises between 90 and 45 C. Centrifuges give a 96 % solids cake,
   dried with natural-gas-fired air; the mother liquor, less a 0.5 % purge to deep-well injection,
-  is preheated by the vapour of the first five stages and heated with LP steam before it returns
-  to the leach.
+  is preheated by the vapour of the first five stages, as far as the brine's boiling-point
+  elevation allows, and heated with LP steam before it returns to the leach.
 
   cheme process propagate solves the whole flowsheet: the leach as a conversion of the sylvite and
   a little halite, the tailings separation as a solid separation, core's crystallizer and dryer,
@@ -47,14 +47,17 @@ validation:
     design specifications rate and liquor). The leach is a conversion of sylvite (DISK) and of
     halite (DISN), set so that the plant recovers the 90.8 % of SRC-1 and the brine holds its
     NaCl; the lumped insolubles are written as SiO2 so that the element balances evaluate (L-1).
-    The crystallizer is core's model on an imposed, ASSUMED per-pass yield of 0.28 and an
-    adiabatic flash of 7.85 % of its feed water; the dryer is core's model with ASSUMED
-    parameters. Duties are hand balances on sensible heat with ASSUMED heat capacities and thermo's
-    latent heats; heats of solution are left out (L-2). The mother liquor needs 366 K to hold the
-    leach at 363 K, against the about 115 C of SRC-1 (D-008). Preliminary gate-to-gate LCI, one
-    product, no allocation; the water, steam and fired heat linked to shared entries, the ore,
-    electricity (in cheme assess lca; the Atlas build links it to the shared grid entry), cooling
-    water, tailings and brine purge gaps. cheme maturity reaches no level; the claim
+    The crystallizer is core's model on an imposed per-pass yield of 0.2685, the equilibrium on
+    the ASSUMED KCl solubility line, and an adiabatic flash of 7.97 % of its feed water; the dryer
+    is core's model with ASSUMED parameters. Duties are hand balances on sensible heat with
+    ASSUMED heat capacities and thermo's latent heats that close around the loop; the vapour heat
+    recovery is limited by the brine's boiling-point elevation (core's Pitzer NaCl-H2O model, the
+    KCl's share ASSUMED); heats of solution are left out (L-2). The mother liquor needs 368 K to
+    hold the leach at 363 K, against the about 115 C of SRC-1 (D-008); the steam per t is about
+    1.2 times SRC-1's hot-leach steam. Preliminary gate-to-gate LCI, one product, no allocation;
+    the water, steam and fired heat linked to shared entries; the ore, electricity (in cheme
+    assess lca; the Atlas build links it to the shared grid entry), cooling water (in cheme assess
+    lca; the Atlas build links the shared cooling-tower utility), tailings and brine purge gaps. cheme maturity reaches no level; the claim
     `maturity: concept` is the lowest value of the schema, not an evidenced level. Not reviewed.
     Needs cheme-as-code 1.13.0.
 chemistry:
@@ -62,24 +65,25 @@ chemistry:
     - {chemical: sylvinite, role: feedstock, inventory_key: "feed:ORE", note: "Crushed sylvinite ore (27.3 wt% KCl, below 4 mm), 3.996 kg/kg product; no library producer (gap)"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process make-up water, 0.308 kg/kg"}
   outputs:
-    - {chemical: potassium-chloride, role: main-product, inventory_key: "product:KCLP", note: "Potassium chloride (MOP), dried (modelled 99.06 wt% KCl, 0.84 wt% NaCl, 0.1 wt% water), to compaction, screening and storage"}
-    - {chemical: sodium-chloride, role: waste, inventory_key: "product:TAIL", note: "Salt tailings (71 wt% halite, anhydrite, insolubles, 10 wt% brine) to the pile and backfill, 3.156 kg/kg"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:BRINE", note: "Brine purge (10.5 wt% KCl, 20.3 wt% NaCl) to deep-well injection, 0.121 kg/kg"}
+    - {chemical: potassium-chloride, role: main-product, inventory_key: "product:KCLP", note: "Potassium chloride (MOP), dried (modelled 99.07 wt% KCl, 0.83 wt% NaCl, 0.1 wt% water), to compaction, screening and storage"}
+    - {chemical: potash-tailings, role: waste, inventory_key: "product:TAIL", note: "Salt tailings (71 wt% halite, anhydrite, insolubles, 10 wt% brine) to the pile and backfill, 3.155 kg/kg; a gap (no disposal entry), not a sodium chloride product"}
+    - {chemical: potash-brine-purge, role: waste, inventory_key: "product:BRINE", note: "Brine purge (10.7 wt% KCl, 20.3 wt% NaCl) to deep-well injection, 0.126 kg/kg; a gap (no injection entry), not wastewater for treatment"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.1875 kWh/kg, all drives lumped (ASSUMED from SRC-4)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) for the mother-liquor heater, 0.298 kWh/kg (1.07 GJ/t, counted as heat)"}
-    - {chemical: methane, role: utility, inventory_key: "feed:FUEL", note: "Natural-gas firing of the dryer air (natural gas taken as methane), 0.0636 kWh/kg absorbed (core's dryer model)"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.264 kWh/kg removed in the last two crystallizer stages' condensers"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.1413 kWh/kg, all drives lumped (ASSUMED from SRC-1's process load list per t)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) for the mother-liquor heater, 0.499 kWh/kg (1.80 GJ/t, counted as heat)"}
+    - {chemical: methane, role: utility, inventory_key: "feed:FUEL", note: "Natural-gas firing of the dryer air (natural gas taken as methane), 0.0635 kWh/kg: the heat the drying air takes up from the direct-fired heater (core's dryer duty: 0.0381 kWh/kg to the cake over the dryer's ASSUMED efficiency of 0.6); the burner's losses in the background"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.433 kWh/kg removed in the crystallizer's surface condensers (the vapour the preheaters cannot take)"}
 basis:
   capacity: "1.2 Mt/a potassium chloride crystal, 150 t/h (152.08 t/h of dried product) in 8000 h, one of the two trains of SRC-1, ASSUMED (DESIGN.md D-002)"
   operating_hours_per_year: 8000
   location: generic potash mine site, the plant beside the mine, not chosen
 references:
-  - {title: "Brazil Potash Corp. (2024) S-K 1300 Technical Report Summary, Autazes Potash Project, exhibit 96.1 to the Form F-1 filed with the SEC: executive summary sections 1.9-1.11 (ore 8.32 Mt/a at 27.3 % KCl crushed below 4 mm, two-stage hot leach at about 90 C, seven-stage vacuum cooling crystallizer to about 45 C, mother liquor reheated to about 115 C, KCl recovery 90.8 %, 2.44 Mt/a design capacity in two trains, 95 % KCl product, natural gas for drying and steam, tailings to piles and backfill, brine injection) and Table 10 (2014 averaged grades)", url: "https://www.sec.gov/Archives/edgar/data/1472326/000119312524203710/d303049dex961.htm"}
+  - {title: "Brazil Potash Corp. (2024) S-K 1300 Technical Report Summary, Autazes Potash Project, exhibit 96.1 to the Form F-1 filed with the SEC: executive summary sections 1.9-1.11 (ore 8.32 Mt/a at 27.3 % KCl crushed below 4 mm, two-stage hot leach at about 90 C, seven-stage vacuum cooling crystallizer to about 45 C, mother liquor reheated to about 115 C, KCl recovery 90.8 %, 2.44 Mt/a design capacity in two trains, 95 % KCl product, natural gas for drying, tailings to piles and backfill, brine injection), Table 10 (2014 averaged grades), section 13 (7620 h/a), Table 85 (steam per use) and section 15.2.7 (the steam raised in four high-voltage electrode boilers), Table 128 (process electrical demand by area) and section 18.6.4.3.2 with Table 129 (natural gas for the product dryers only)", url: "https://www.sec.gov/Archives/edgar/data/1472326/000119312524203710/d303049dex961.htm"}
   - {title: "Amec Foster Wheeler for Encanto Potash Corp. (2017) Muskowekwan Project PEA and PFS, NI 43-101 Technical Report: Table 13-1 (primary brine 148 g/L KCl and 254 g/L NaCl at 60 C), section 17 (multi-effect evaporation of NaCl, vacuum cooling crystallizers, centrifuge cake about 96 % solids, gas-fired fluid-bed dryers, crystals out at 140-160 C, anti-caking and de-dusting oil, deep-well brine disposal), Table 17-1 (8100 h/a)", url: "https://minedocs.com/12/Muskowekwan_PFS_05242017.pdf"}
-  - {title: "Metallgesellschaft AG (1983) Process for recovering potassium chloride. US Patent 4,412,838 A: hot leaching of sylvinite at 95-100 C, seven-stage vacuum crystallisation to 35 C, mother liquor reheated to 111 C with the vapour of the first five stages, product 98.13 % KCl; the KCl solubility more than doubles between 20 and 110 C while the NaCl solubility changes little", url: "https://patents.google.com/patent/US4412838A/en"}
+  - {title: "Metallgesellschaft AG (1983) Process for recovering potassium chloride. US Patent 4,412,838 A: hot leaching of sylvinite at 95-100 C, seven-stage vacuum crystallisation to 35 C, mother liquor reheated to 111 C with the vapour of the first five stages, product 98.13 % KCl; the example's 164 kg of KCl crystallised and 141 kg of water vapour per hour from 1846 kg of solution and 26 kg of KCl saturated at 95 C, with 118 kg of water added, cooled to 35 C; the KCl solubility more than doubles between 20 and 110 C while the NaCl solubility changes little", url: "https://patents.google.com/patent/US4412838A/en"}
+  - {title: "Gevantman, L. H. (ed.) (1981) Physical properties data for rock salt. NBS Monograph 167, National Bureau of Standards: Table 1.10 (NaCl solubility in KCl solutions, 0-100 C) and section 2.5.1 (the KCl solubility rises strongly with temperature in the NaCl-KCl-water system while the NaCl solubility falls slightly)", url: "https://nvlpubs.nist.gov/nistpubs/Legacy/MONO/nbsmonograph167.pdf"}
   - {title: "Shahvarooghi Farahani, S.; Zamanifard, H.; Taki, M. (2024) Assessing the energy load and environmental footprint of potash fertilizer production in Iran. PLoS ONE 19(11): e0313129 (CC BY 4.0): Table 3, KCl plant electricity 312.5 kWh and fuel oil 36 L per t K2O (60 % K2O in KCl)", doi: 10.1371/journal.pone.0313129}
-  - {title: "Bell, C.; et al.: thermo 0.6.1 and chemicals 1.5.2 Python packages (heat of vaporisation of water, HEOS_FIT; solid heat capacities of KCl and NaCl, WEBBOOK_SHOMATE, and CaSO4, PERRY151; single values, ADR 0037)", url: "https://github.com/CalebBell/thermo"}
+  - {title: "Bell, C.; et al.: thermo 0.6.1 and chemicals 1.5.2 Python packages (heat of vaporisation of water, HEOS_FIT; solid heat capacities of KCl and NaCl, WEBBOOK_SHOMATE, and CaSO4, PERRY151, the package's correlation of Table 2-151 of Perry's Chemical Engineers' Handbook, 8th ed. (Green and Perry, McGraw-Hill, 2007), not read here; single values, ADR 0037)", url: "https://github.com/CalebBell/thermo"}
 lca:
   source: auto
 maintainers:

@@ -38,9 +38,9 @@
 # potassium-chloride-1:
 # The ore per t is the one figure of the Brazil Potash S-K 1300 summary (2024) that the dataset does
 # not share: the dataset takes the ore grade (27.3 %) and the recovery (90.8 %) from the same
-# summary, so it checks the plant balance, not an independent plant. The electricity reference is
-# the open study the dataset borrows its value from (a carnallite plant, another route), so it is a
-# record of that borrowing, not a check.
+# summary, so it checks the plant balance, not an independent plant. The electricity reference is an
+# independent plant of another route (a carnallite plant, PLoS ONE 2024): the dataset takes its
+# electricity from the Brazil Potash summary's process load list (Table 128), not from it.
 schema: cheme-as-code/benchmarks/v1
 family: fertilizers
 
@@ -315,5 +315,9 @@ datasets:
         expression: feed:ORE / product:KCLP
         per: product:KCLP
         reference: brazil-potash-2024-ore
-        out_of_range_reason: "The dataset's product is 99.06 wt% KCl, the reference's 95 %: per kg of KCl contained the reference needs 8.32 / (2.16 x 0.95) = 4.05 kg of ore and the dataset 3.996 / 0.9906 = 4.03, at the same grade and recovery (D-003, D-005)."
-      kcl-specific-electricity: {expression: feed:POWER / product:KCLP, per: product:KCLP, reference: farahani-2024-kcl-electricity}
+        out_of_range_reason: "The dataset's product is 99.07 wt% KCl, the reference's 95 %: per kg of KCl contained the reference needs 8.32 / (2.16 x 0.95) = 4.05 kg of ore and the dataset 3.996 / 0.9907 = 4.03, at the same grade and recovery (D-003, D-005)."
+      kcl-specific-electricity:
+        expression: feed:POWER / product:KCLP
+        per: product:KCLP
+        reference: farahani-2024-kcl-electricity
+        out_of_range_reason: "The dataset's 0.141 kWh/kg is the Brazil Potash summary's process electrical demand per t of product for a hot-leach plant (Table 128, without mining, crushing, brine injection, the electrode boilers and the port; D-008); the reference's 0.1875 is a carnallite plant of another route (flotation and decomposition, Khur, Iran) whose boundary was not compared. Both are single cited figures."
