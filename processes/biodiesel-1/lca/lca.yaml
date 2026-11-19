@@ -23,22 +23,22 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Continuous plant: refined soybean oil transesterified with methanol (6 mol per mol of oil) and sodium methoxide (0.25 wt% of the oil) in two CSTRs at 333 K, the glycerol decanted after each; methanol flashed off the esters at 50 kPa(a) and stripped from the neutralised glycerol phase at atmospheric pressure, and recycled; the esters washed once with warm water acidified with HCl and vacuum dried; 32 420 t/a of biodiesel and 3 890 t/a of crude glycerol (about 87 wt%) in 8000 h/a"
+technology: "Continuous plant: refined soybean oil transesterified with methanol (6 mol per mol of oil) and sodium methoxide (0.25 wt% of the oil) in two CSTRs at 333 K, the glycerol decanted after each; methanol flashed off the esters at 40 kPa(a) and stripped from the neutralised glycerol phase in a column at 40 kPa(a) with an MP-steam reboiler, and recycled; the esters washed once with water warmed to 333 K and acidified with HCl, and vacuum dried; 32 420 t/a of biodiesel and 3 880 t/a of crude glycerol (about 87 wt%) in 8000 h/a"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 allocation:
-  # Mass allocation written as its shares (D-011): S27 4052.5 kg/h biodiesel and S32 486.517
-  # kg/h crude glycerol give 4052.5 / 4539.017 = 0.8928 and 0.1072.
+  # Mass allocation written as its shares (D-011): S27 4052.51 kg/h biodiesel and S32 485.06
+  # kg/h crude glycerol give 4052.51 / 4537.57 = 0.8931 and 0.1069.
   method: shares
   coproducts: [BD, CGLY]
-  shares: {BD: 0.8928, CGLY: 0.1072}
+  shares: {BD: 0.8931, CGLY: 0.1069}
   source: >-
     D-011 (agent proposal, for the LCA practitioner to confirm): two products leave for use,
     biodiesel and crude glycerol. The library hierarchy (docs/system-model.md) gives an energy
     allocation for co-produced fuels; crude glycerol is not traded as a fuel here but as a
     chemical feed (to a glycerol refinery such as glycerol-1), so the WBCSD rule applies. No
     prices are sourced at the concept stage, so the price ratio is not known, and the shares are
-    by mass, as the USDA plant model of Pradhan and Shrestha (2009, p. 8) allocates the
+    by mass, as the USDA plant model of Pradhan and Shrestha (2009, pp. 7-9) allocates the
     conversion energy (82.4 % to the biodiesel, 17.6 % to its 80 % crude glycerin).
   deviation: >-
     The method rests on missing prices: Van Gerpen et al. (2004, p. 40) put crude glycerol of 50 %
@@ -58,7 +58,7 @@ flows:
     source: "flowsheet stream S4 (D-005)"
   - key: feed:PW
     missing: "not mapped yet (D-011); connect to: softened process water from the site water treatment, per kg (processes/demineralised-water-1 when merged, a stricter grade)"
-    source: "flowsheet stream S23 (D-007)"
+    source: "flowsheet stream S23, softened water at 298 K warmed in the wash by the esters and LP steam (Q5) (D-007)"
   - key: feed:HCLW
     missing: "linked to processes/hydrogen-chloride-1 (lca/mappings.yaml): hydrochloric acid 33 wt%"
     source: "flowsheet stream S24 (D-007)"
@@ -68,13 +68,16 @@ flows:
   # utilities
   - key: feed:POWER
     missing: "not mapped yet (D-011); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
-    source: "flowsheet energy streams P1 to P4 (D-009)"
+    source: "flowsheet energy streams P1 to P6 (D-009)"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q1 and Q2 (the reactors, core's conversion duties), Q3 (the ester flash), Q6 (the dryer) and Q10 (the glycerol column's reboiler), hand estimates, D-009"
+    source: "flowsheet energy streams Q1 (R-101) and Q5 (the wash, its water warmed from 298 to 333 K), core's conversion duties, Q3 (the ester flash) and Q6 (the dryer), hand estimates, D-009"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1000 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q10 (the glycerol column's reboiler, whose bottoms boil at 405 K), hand estimate, D-008, D-009"
   - key: product:CW
     missing: "not mapped yet (D-011); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q4, Q5, Q7, Q8, Q9, Q11 and Q12 (D-009)"
+    source: "flowsheet energy streams Q2 (R-102), Q4, Q7, Q8, Q9, Q11 and Q12 (D-009)"
   # wastes
   - key: product:WW
     treatment: {kind: waste, route: "the spent wash water and the dryer condensate (traces of methanol, glycerol, NaCl and HCl) to the site's biological wastewater treatment (D-007)"}
@@ -84,10 +87,24 @@ operation:
   hours_per_year: 8000
   life_years: 20
   source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 20 a service life ASSUMED"
+carbon_accounting:
+  content:
+    "feed:OIL":
+      biogenic_fraction: 1.0
+      source: "D-004, D-011: refined soybean oil, all its carbon from the plant (the triglyceride lump, 0.7732 kg C per kg)"
+    "feed:MEOHF":
+      biogenic_fraction: 0.0
+      source: "D-011: methanol from natural gas (methanol-1)"
+    "feed:CATF":
+      biogenic_fraction: 0.0
+      source: "D-011: sodium methoxide and its methanol from fossil methanol"
+  source: "D-011: the oil's chains carry their biogenic carbon into the esters and the crude glycerol; the esters' methyl groups and the methanol lost are fossil (methanol from natural gas, methanol-1)"
+
 emission_exclusions:
-  - {id: methanol-vents, method: storage-tank, equipment: [V-101, V-501, E-201, D-204], reason: "No P&ID yet: the breathing of the methanol drums and the discharges of the flash and dryer vacuum pumps carry methanol vapour; vented through a vent condenser, not estimated at the concept stage (D-007)."}
-  - {id: reactor-vents, method: storage-tank, equipment: [R-101, R-102, R-302], reason: "The reactors and the neutraliser run liquid-full above methanol's vapour pressure (D-005) with nitrogen-blanketed vents to the methanol vent condenser; their breathing at start-up and level changes is not estimated (D-007)."}
-  - {id: storage-breathing, method: storage-tank, equipment: [V-301], reason: "The breathing of the oil, biodiesel and crude glycerol tanks is not estimated (low vapour pressures, D-011)."}
+  - {id: methanol-vents, method: storage-tank, equipment: [V-101, V-501, E-201, D-204, C-303], reason: "No P&ID yet: the breathing of the methanol drums and the discharges of the vacuum pumps of the ester flash, the dryer and the glycerol column carry methanol vapour; vented through a vent condenser, not estimated at the concept stage (D-012)."}
+  - {id: reactor-vents, method: storage-tank, equipment: [R-101, R-102, V-102, V-103, R-302], reason: "The reactors, the decanters and the neutraliser run liquid-full above methanol's vapour pressure (D-005, D-006) with nitrogen-blanketed vents to the methanol vent condenser (D-012); their breathing at start-up and level changes is not estimated."}
+  - {id: glycerol-phase-vents, method: storage-tank, equipment: [V-301], reason: "The glycerol phase collection tank holds the decanted glycerol phases with about 26 wt% methanol (S28, D-006); nitrogen-blanketed and vented to the methanol vent condenser (D-012); its breathing is not estimated."}
+  - {id: wash-vents, method: storage-tank, equipment: [C-202, V-203], reason: "The wash contactor and settler hold the esters and wash water at 333 K with about 0.4 wt% methanol in the water (S22, D-007); vented to the methanol vent condenser (D-012); not estimated."}
 dataset:
   version: 0.1.0
   classification: {isic: "2029"}   # ISIC Rev.4 2029 Manufacture of other chemical products n.e.c. (biodiesel)

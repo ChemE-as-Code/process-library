@@ -15,10 +15,11 @@ of refined soybean oil, the route of the NREL report by Van Gerpen et al. (2004,
 NREL/SR-510-36244): the oil reacts with methanol (6 mol per mol of oil) and sodium methoxide
 (0.25 wt% of the oil, as its 25 wt% solution in methanol) in two stirred tanks in series at 333 K,
 triglyceride + 3 CH3OH -> 3 methyl esters + glycerol, with the glycerol decanted after each
-reactor. The esters are flashed at 50 kPa(a) to recover their methanol, washed once with warm
-water acidified with hydrochloric acid and dried under vacuum. The glycerol phases are
-neutralised with hydrochloric acid and stripped of methanol in a column at atmospheric
-pressure, which leaves crude glycerol of about 87 wt%; the recovered, dry methanol is recycled.
+reactor. The esters are flashed at 373 K and 40 kPa(a) to recover their methanol, washed once
+with water warmed to 333 K and acidified with hydrochloric acid, and dried under vacuum. The
+glycerol phases are neutralised with hydrochloric acid to near neutral and stripped of methanol
+in a column at 40 kPa(a) with an MP-steam reboiler, which leaves crude glycerol of about 87 wt%;
+the recovered, dry methanol is recycled.
 
 Core solves the flowsheet with `cheme process propagate`: the oil feed for 32 420 t/a of
 biodiesel and the fresh methanol for the 6:1 ratio are design specifications (`specs:`, core
@@ -26,23 +27,26 @@ ADR 0070), with the catalyst, wash water and acids following the oil; the methan
 converged tear (`tears:`, ADR 0060); the reactors and neutralisations run on their conversions,
 the decanters, flash, wash settler, dryer and glycerol column on specified recoveries (component
 separators, ADR 0070), and the conversion steps' duties come from the heats of reaction and the
-liquids' heat capacities (ADR 0059). Needs cheme-as-code 1.12.0. DESIGN.md lists the core
+liquids' heat capacities, net of the agitators' and pumps' work (ADR 0059). Needs cheme-as-code 1.12.0. DESIGN.md lists the core
 features used and the core limits hit.
 
 Headline numbers and their caveats (per kg of biodiesel, unallocated):
-- 1.005 kg of oil and 0.108 kg of methanol (0.101 fresh, 0.0075 in the catalyst solution), close
-  to the stoichiometric 0.996 and 0.108 kg of the source's mass balance; 0.120 kg of crude
-  glycerol (86.6 wt% glycerol). The conversions (90 % and 97 % of the rest, 99.7 % overall) are
+- 1.005 kg of oil and 0.112 kg of methanol (0.104 fresh, 0.0075 in the catalyst solution),
+  against the stoichiometric 0.996 and 0.108 kg of the source's mass balance: 0.0046 kg of
+  methanol is lost, mostly the 6 % that one flash stage leaves in the esters, which the wash
+  sends to treatment (D-007, L-7); 0.120 kg of crude glycerol (86.8 wt% glycerol). The conversions (90 % and 97 % of the rest, 99.7 % overall) are
   ASSUMED design values, not a kinetic result (D-005, L-2).
 - The product has 0.03 wt% total glycerol (ASTM D6751: at most 0.24) and 0.02 wt% water; it rests
   on ASSUMED decanter, wash and dryer splits, as no liquid-liquid model for
   FAME-glycerol-methanol is qualified in core (D-006, D-007, L-1).
-- 0.134 kWh of LP-steam heat, 0.120 kWh to cooling water and 0.017 kWh of power, without heat
-  integration (D-009, L-6). The flash, dryer and column duties are hand estimates (D-009, L-4).
+- 0.124 kWh of LP-steam heat (the wash water warmed from 298 K included), 0.032 kWh of MP-steam
+  heat (the glycerol column's reboiler, whose bottoms boil at 405 K at 42 kPa(a)), 0.096 kWh to
+  cooling water and 0.018 kWh of power, without heat integration (D-008, D-009, L-6). The flash,
+  dryer and column duties are hand estimates (D-009, L-4).
 - 1.15 kg of wash water to treatment, one wash at the source's 1 gallon per gallon (D-007).
 - The preliminary LCI allocates by mass (89.3 % to the biodiesel); the soybean oil and the
   sodium methoxide are gaps with recorded proxies, the methanol linked to methanol-1 and the
-  acid to hydrogen-chloride-1 (D-011).
+  acid to hydrogen-chloride-1; the oil's carbon is declared biogenic (D-011).
 
 | path | what |
 |---|---|

@@ -6,7 +6,7 @@
 schema: cheme/design_basis/v1
 capacity:
   basis: dried biodiesel (fatty acid methyl esters) at the battery limit to storage
-  biodiesel_t_per_year: 32420            # D-002: the 9.8 Mgal/a plant of Pradhan and Shrestha (2009, p. 8) at 0.8739 kg/L (methyl oleate, Van Gerpen et al. 2004, p. 4)
+  biodiesel_t_per_year: 32420            # D-002: the 9.8 Mgal/a plant of Pradhan and Shrestha (2009, p. 9) at 0.8739 kg/L (methyl oleate, Van Gerpen et al. 2004, p. 4)
   operating_hours_per_year: 8000         # ASSUMED (D-002): continuous, 24/7 (Van Gerpen et al. 2004, p. 40: continuous plants run 24/7)
   biodiesel_kg_per_h: 4052.5             # 32 420 t / 8000 h
 feeds:
@@ -22,21 +22,22 @@ feeds:
     source_of_values: "D-005: 0.25 wt% sodium methoxide on the oil (Van Gerpen et al. 2004, p. 52), as the 25 wt% solution (p. 33)"
     composition: "sodium methoxide 25 wt%, methanol 75 wt%"
   - name: Hydrochloric acid 33 wt% (hydrogen-chloride-1)
-    source_of_values: "D-007, D-008: 5 % over the methoxide in the ester wash and the glycerol phase, ASSUMED"
-  - name: Process water, softened, warm (wash)
-    source_of_values: "D-007: one wash with about 1 gallon of water per gallon of ester (Van Gerpen et al. 2004, p. 77), 1.14 kg per kg of oil; 333 K (p. 68: 120 to 140 F)"
+    source_of_values: "D-007, D-008: 5 % over the methoxide in the ester wash, equal to it (pH control) in the glycerol phase, ASSUMED"
+  - name: Process water, softened (wash)
+    source_of_values: "D-007: one wash with about 1 gallon of water per gallon of ester (Van Gerpen et al. 2004, p. 77), 1.14 kg per kg of oil; supplied at 298 K, warmed in the wash to 333 K (p. 68: 120 to 140 F)"
 products:
   - name: Biodiesel (FAME)
     purity: "specification ASTM D6751 as listed by Van Gerpen et al. 2004, p. 23: total glycerin at most 0.240 wt%, water and sediment at most 0.050 vol%; modelled 99.68 wt% esters, 0.30 wt% unreacted glycerides (0.031 wt% bound glycerol), 0.023 wt% water, no methanol (D-005, D-007)"
     delivery: {temperature_K: 313.15, pressure_kPa_a: 300, battery_limit: product storage}
   - name: Crude glycerol (co-product)
-    note: "about 87 wt% glycerol with 8 wt% esters, 3 wt% water and 2 wt% NaCl, neutralised and stripped of methanol (D-008); Van Gerpen et al. 2004, p. 40: 88 % crude glycerol earns a credit; to sale or to a glycerol refinery such as glycerol-1"
+    note: "about 87 wt% glycerol with 8 wt% esters, 3 wt% water and 2 wt% NaCl, neutralised to near neutral and stripped of methanol (D-008); Van Gerpen et al. 2004, p. 40: 88 % crude glycerol earns a credit; to sale or to a glycerol refinery such as glycerol-1"
   - name: Wastewater (spent wash water and dryer condensate)
     note: "about 1.15 kg per kg of biodiesel, with traces of methanol, glycerol and NaCl, to the site's treatment (D-007)"
 utilities:
   - {name: Electric power, use: "agitators, pumps, vacuum pumps (D-009)", note: ASSUMED}
-  - {name: LP steam, pressure_kPa_a: 450, use: "the reactors' hot-water loop, the ester flash, the dryer, the glycerol column's reboiler (D-009)", note: ASSUMED}
-  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "condensers, coolers, the wash contactor, the neutraliser", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 450, use: "R-101's hot-water loop, the ester flash, the wash, the dryer (D-009)", note: ASSUMED}
+  - {name: MP steam, pressure_kPa_a: 1000, use: "the glycerol column's reboiler at 405 K (D-008, D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "condensers, coolers, R-102, the neutraliser", note: ASSUMED}
 site:
   location: ASSUMED generic site beside an oilseed crushing and refining plant, not chosen
   design_ambient_K: 298.15            # ASSUMED

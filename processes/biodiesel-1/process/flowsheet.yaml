@@ -16,8 +16,9 @@
 #   FAME-glycerol-methanol in core, limit L-1);
 # - temperatures and pressures are design choices, ASSUMED (design basis);
 # - the reactors' and neutralisers' duties are written by propagate from the heats of reaction and
-#   the liquids' heat capacities (D-009); the flash, column, dryer and cooler duties are hand
-#   estimates, ASSUMED, with their arithmetic in their sources (D-009, limit L-4).
+#   the liquids' heat capacities, net of the work of the step's agitator and pumps (D-009); the
+#   flash, column, dryer and cooler duties are hand estimates, ASSUMED, with their arithmetic in
+#   their sources, each step's heater and condenser closing its balance (D-009, limit L-4).
 schema: cheme/process/v1
 kind: flowsheet
 title: Biodiesel (FAME) from soybean oil by base-catalysed transesterification (32 420 t/a)
@@ -38,10 +39,10 @@ convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 1.0e-6, re
 
 specs:
   - id: rate
-    vary: {stream: S1, initial: 4040, with: {S4: 0.01, S23: 1.14, S24: 0.0001503, S29: 0.0052182}}
+    vary: {stream: S1, initial: 4040, with: {S4: 0.01, S23: 1.14, S24: 0.0001503, S29: 0.0049700}}
     target: {stream: S27, quantity: annual, value: 32420, unit: t, hours: 8000}
     provenance: assumed
-    source: "D-002: the 9.8 Mgal/a plant of Pradhan and Shrestha (2009, p. 8) at 0.8739 kg/L (Van Gerpen et al. 2004, p. 4) is 32 420 t/a; 8000 h/a ASSUMED. Followers at their ratios to the oil: catalyst solution 0.01 (D-005), wash water 1.14 (D-007), wash acid 0.0001503 and glycerol acid 0.0052182 (D-007, D-008)"
+    source: "D-002: the 9.8 Mgal/a plant of Pradhan and Shrestha (2009, p. 9) at 0.8739 kg/L (Van Gerpen et al. 2004, p. 4) is 32 420 t/a; 8000 h/a ASSUMED. Followers at their ratios to the oil: catalyst solution 0.01 (D-005), wash water 1.14 (D-007), wash acid 0.0001503 (5 % over the methoxide, D-007) and glycerol acid 0.0049700 (equal to the methoxide, D-008)"
   - id: methanol-ratio
     vary: {stream: S3, initial: 440}
     target: {stream: S5, component: MEOH, quantity: ratio, per: {stream: S1, component: TG}, basis: mole, value: 6.0}
@@ -62,13 +63,23 @@ feeds:
       kind: steam
       level: LP
       pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
-      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-009"}
+      supply_temperature: {value: 421.1, provenance: assumed, source: "saturation at 450 kPa(a) (thermo 0.6.1, IAPWS), D-009"}
       min_approach: {value: 10, provenance: assumed, source: D-009}
     ports:
       - {id: r101, direction: out, kind: energy}
-      - {id: r102, direction: out, kind: energy}
       - {id: e201, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
       - {id: d201, direction: out, kind: energy}
+  - id: MPS
+    title: MP steam 1000 kPa(a) (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a) (thermo 0.6.1, IAPWS), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports:
       - {id: c301, direction: out, kind: energy}
   - id: POWER
     title: Electric power
@@ -77,11 +88,13 @@ feeds:
     ports:
       - {id: met, direction: out, kind: energy}
       - {id: rxn, direction: out, kind: energy}
+      - {id: rxn2, direction: out, kind: energy}
       - {id: est, direction: out, kind: energy}
       - {id: gly, direction: out, kind: energy}
+      - {id: gly2, direction: out, kind: energy}
 products:
   - {id: BD, title: "Biodiesel (FAME) to storage", category: product, ports: [{id: in, direction: in}]}
-  - {id: CGLY, title: "Crude glycerol (about 88 wt%) to sale or refining (glycerol-1)", category: by_product, ports: [{id: in, direction: in}]}
+  - {id: CGLY, title: "Crude glycerol (about 87 wt%) to sale or refining (glycerol-1)", category: by_product, ports: [{id: in, direction: in}]}
   - id: WW
     title: Wash water and dryer condensate to wastewater treatment
     category: wastewater
@@ -95,8 +108,8 @@ products:
       return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
       min_approach: {value: 5, provenance: assumed, source: D-009}
     ports:
+      - {id: r102, direction: in, kind: energy}
       - {id: e201, direction: in, kind: energy}
-      - {id: r201, direction: in, kind: energy}
       - {id: d201, direction: in, kind: energy}
       - {id: e202, direction: in, kind: energy}
       - {id: r301, direction: in, kind: energy}
@@ -126,8 +139,9 @@ blocks:
       - {id: gly1, direction: out}
       - {id: gly2, direction: out}
       - {id: q1, direction: in, kind: energy}
-      - {id: q2, direction: in, kind: energy}
+      - {id: q2, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
   - id: EST
     title: Ester finishing (methanol flash, acid water wash, vacuum drying)
     class: SeparatingByThermalProcess
@@ -141,7 +155,7 @@ blocks:
       - {id: prod, direction: out}
       - {id: q3, direction: in, kind: energy}
       - {id: q4, direction: out, kind: energy}
-      - {id: q5, direction: out, kind: energy}
+      - {id: q5, direction: in, kind: energy}
       - {id: q6, direction: in, kind: energy}
       - {id: q7, direction: out, kind: energy}
       - {id: q8, direction: out, kind: energy}
@@ -160,6 +174,7 @@ blocks:
       - {id: q11, direction: out, kind: energy}
       - {id: q12, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
 
 steps:
   # methanol make-up and recycle (D-005, D-006)
@@ -226,12 +241,14 @@ steps:
     class: ReactingChemicals
     reactions: [TRANS]
     conversion: {TRANS: 0.97}
+    energy_port: cw
     links: [{target: equipment, ref: R-102}]
     ports:
       - {id: in, direction: in}
       - {id: meoh, direction: in, delegates: m2}
       - {id: out, direction: out}
-      - {id: heat, direction: in, kind: energy, delegates: q2}
+      - {id: cw, direction: out, kind: energy, delegates: q2}
+      - {id: power, direction: in, kind: energy, delegates: power2}
   - id: V102
     block: RXN
     title: Second glycerol decanter
@@ -239,9 +256,9 @@ steps:
     links: [{target: equipment, ref: V-103}]
     recovery:
       outlets:
-        gly: {GLY: 0.98, MEOH: 0.40, NAOME: 0.90, FAME: 0.005}
+        gly: {GLY: 0.98, MEOH: 0.1203, NAOME: 0.90, FAME: 0.005}
       provenance: assumed
-      source: "D-006: as V101 (Van Gerpen et al. 2004, pp. 4 and 75), ASSUMED"
+      source: "D-006: GLY, NAOME and FAME as V101 (Van Gerpen et al. 2004, p. 4), ASSUMED. The 60:40 methanol split of p. 75 holds at 90:10 ester to glycerol; this feed is about 99:1, so the methanol is split instead at V101's distribution coefficient (5.4, mass fraction in the glycerol phase over that in the ester phase), held constant, ASSUMED: 12.0 % of the methanol to the glycerol phase"
     ports:
       - {id: in, direction: in}
       - {id: est, direction: out, delegates: est}
@@ -254,9 +271,9 @@ steps:
     links: [{target: equipment, ref: E-201}]
     recovery:
       outlets:
-        vap: {MEOH: 0.99}
+        vap: {MEOH: 0.9376}
       provenance: assumed
-      source: "D-007: 99 % of the methanol flashed off the esters at 363 K and 50 kPa(a) (methanol condenses at 320.7 K there, against cooling water) before the wash, so that little methanol reaches the wash water (Van Gerpen et al. 2004, pp. 68 and 76), ASSUMED"
+      source: "D-007: one equilibrium stage at 373.15 K and 40 kPa(a) (methanol condenses at 315.7 K there, against cooling water), the vapour taken as pure methanol: x = 40 / (gamma Psat) = 40 / (2.933 x 353.7) = 0.0386 mol/mol of methanol left in the esters (Psat thermo 0.6.1 HEOS_FIT; gamma Dortmund UNIFAC in thermo 0.6.1, DOUFIP2016, methyl oleate as 2 CH3, 13 CH2, 1 CH=CH, 1 CH2COO), 93.76 % of S13's methanol off; methanol removed before the wash (Van Gerpen et al. 2004, pp. 68 and 76). Recovery ASSUMED as that equilibrium value"
     ports:
       - {id: in, direction: in, delegates: in}
       - {id: vap, direction: out, delegates: meoh}
@@ -274,7 +291,7 @@ steps:
       - {id: water, direction: in, delegates: water}
       - {id: acid, direction: in, delegates: acid}
       - {id: out, direction: out}
-      - {id: cw, direction: out, kind: energy, delegates: q5}
+      - {id: heat, direction: in, kind: energy, delegates: q5}
   - id: V201
     block: EST
     title: Wash water settler
@@ -347,13 +364,14 @@ steps:
       outlets:
         top: {MEOH: 0.995}
       provenance: assumed
-      source: "D-008: a packed column at 101.3 kPa(a) with a reboiler at 393 K, 99.5 % of the methanol overhead with no water (a rectifying section with reflux 1, ASSUMED); the water of the acid stays in the crude glycerol, which ends near the 88 wt% of Van Gerpen et al. 2004, p. 40"
+      source: "D-008: a packed column at 40 kPa(a) at the top (methanol condenses at 315.7 K on cooling water) and 42 kPa(a) at the bottom, reboiler on MP steam at 405 K, 99.5 % of the methanol overhead with no water (a rectifying section with reflux 1, ASSUMED); the water of the acid stays in the crude glycerol, which ends near the 88 wt% of Van Gerpen et al. 2004, p. 40"
     ports:
       - {id: in, direction: in}
       - {id: top, direction: out, delegates: meoh}
       - {id: bot, direction: out}
       - {id: reb, direction: in, kind: energy, delegates: q10}
       - {id: cond, direction: out, kind: energy, delegates: q11}
+      - {id: power, direction: in, kind: energy, delegates: power2}
   - id: E301
     block: GLY
     title: Crude glycerol cooler
@@ -376,7 +394,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: design basis}
         pressure: {value: 300, provenance: assumed, source: design basis}
         composition: {basis: mass_fraction, values: {TG: 1.0}, provenance: assumed, source: "D-004: refined, dry soybean oil as one triglyceride lump; free fatty acids below 0.05 % in refined oils (Van Gerpen et al. 2004, p. 52) not carried"}
-        flow: {value: 4071.78, provenance: calculated, source: 'cheme process propagate: spec rate (S27 t/a 32420)', fingerprint: 3424c05c769f739f}
+        flow: {value: 4071.78, provenance: calculated, source: 'cheme process propagate: spec rate (S27 t/a 32420)', fingerprint: 98fd4302510fe48a}
   - id: S3
     title: Fresh methanol
     from: MEOHF.out
@@ -387,7 +405,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: design basis}
         pressure: {value: 300, provenance: assumed, source: design basis}
         composition: {basis: mass_fraction, values: {MEOH: 1.0}, provenance: assumed, source: "D-005: anhydrous methanol (Van Gerpen et al. 2004, p. 32), from methanol-1"}
-        flow: {value: 407.51, provenance: calculated, source: 'cheme process propagate: spec methanol-ratio (S5 MEOH per S1 TG (mole) 6)', fingerprint: 3424c05c769f739f}
+        flow: {value: 422.689, provenance: calculated, source: 'cheme process propagate: spec methanol-ratio (S5 MEOH per S1 TG (mole) 6)', fingerprint: 98fd4302510fe48a}
   - id: S4
     title: Sodium methoxide solution 25 wt% in methanol
     from: CATF.out
@@ -398,7 +416,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: design basis}
         pressure: {value: 300, provenance: assumed, source: design basis}
         composition: {basis: mass_fraction, values: {NAOME: 0.25, MEOH: 0.75}, provenance: given, source: "D-005: sodium methoxide usually as a 25 % solution in methanol (Van Gerpen et al. 2004, p. 33)"}
-        flow: {value: 40.7178, provenance: calculated, source: 'cheme process propagate: spec rate (0.01 x S1)', fingerprint: 3424c05c769f739f}
+        flow: {value: 40.7178, provenance: calculated, source: 'cheme process propagate: spec rate (0.01 x S1)', fingerprint: 98fd4302510fe48a}
   - id: S23
     title: Wash water (softened, warm)
     from: PW.out
@@ -406,10 +424,10 @@ streams:
     template: bio
     state:
       design:
-        temperature: {value: 333.15, provenance: assumed, source: "D-007: warm water, 120 to 140 F (Van Gerpen et al. 2004, p. 68), heated by the site"}
+        temperature: {value: 298.15, provenance: assumed, source: "D-007: softened water at the design ambient; warmed to the wash's 333 K (120 to 140 F, Van Gerpen et al. 2004, p. 68) inside the wash step, by the hot esters and LP steam (Q5)"}
         pressure: {value: 300, provenance: assumed, source: design basis}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-007}
-        flow: {value: 4641.83, provenance: calculated, source: 'cheme process propagate: spec rate (1.14 x S1)', fingerprint: 3424c05c769f739f}
+        flow: {value: 4641.83, provenance: calculated, source: 'cheme process propagate: spec rate (1.14 x S1)', fingerprint: 98fd4302510fe48a}
   - id: S24
     title: Hydrochloric acid 33 wt% to the wash
     from: HCLW.out
@@ -420,7 +438,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: design basis}
         pressure: {value: 300, provenance: assumed, source: design basis}
         composition: {basis: mass_fraction, values: {HCL: 0.33, H2O: 0.67}, provenance: assumed, source: "D-007: the 33 wt% acid of hydrogen-chloride-1"}
-        flow: {value: 0.611989, provenance: calculated, source: 'cheme process propagate: spec rate (0.0001503 x S1)', fingerprint: 3424c05c769f739f}
+        flow: {value: 0.611989, provenance: calculated, source: 'cheme process propagate: spec rate (0.0001503 x S1)', fingerprint: 98fd4302510fe48a}
   - id: S29
     title: Hydrochloric acid 33 wt% to the glycerol neutraliser
     from: HCLG.out
@@ -430,8 +448,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: design basis}
         pressure: {value: 300, provenance: assumed, source: design basis}
-        composition: {basis: mass_fraction, values: {HCL: 0.33, H2O: 0.67}, provenance: assumed, source: "D-008: the 33 wt% acid of hydrogen-chloride-1"}
-        flow: {value: 21.2474, provenance: calculated, source: 'cheme process propagate: spec rate (0.0052182 x S1)', fingerprint: 3424c05c769f739f}
+        composition: {basis: mass_fraction, values: {HCL: 0.33, H2O: 0.67}, provenance: assumed, source: "D-008: the 33 wt% acid of hydrogen-chloride-1, dosed equal to the methoxide (pH control)"}
+        flow: {value: 20.2367, provenance: calculated, source: 'cheme process propagate: spec rate (0.00497 x S1)', fingerprint: 98fd4302510fe48a}
   # methanol loop
   - id: S20
     title: Recovered methanol
@@ -442,8 +460,8 @@ streams:
       design:
         temperature: {value: 308.15, provenance: assumed, source: "D-006: condensed against cooling water"}
         pressure: {value: 300, provenance: assumed, source: design basis}
-        flow: {value: 446.028, provenance: calculated, source: 'cheme process propagate: recycle M501 from S15 S17 (tear, broyden)', fingerprint: 3da73a0e9ce852c6}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 1.0, FAME: 0.0, GLY: 0.0, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle M501 from S15 S17 (tear, broyden)', fingerprint: 3da73a0e9ce852c6}
+        flow: {value: 430.849, provenance: calculated, source: 'cheme process propagate: recycle M501 from S15 S17 (tear, broyden)', fingerprint: 6b3423113ab115f4}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 1.0, FAME: 0.0, GLY: 0.0, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle M501 from S15 S17 (tear, broyden)', fingerprint: 6b3423113ab115f4}
   - id: S5
     title: Methanol and catalyst to the reactors
     from: M101.out
@@ -453,8 +471,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "D-006: mixed feeds and recycle"}
         pressure: {value: 300, provenance: assumed, source: design basis}
-        flow: {value: 894.256, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4 S20', fingerprint: 872c4aefff020d6d}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.993217, FAME: 0.0, GLY: 0.0, NAOME: 0.00678284, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4 S20', fingerprint: a4c5c9b625b74de9}
+        flow: {value: 894.256, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4 S20', fingerprint: 4c4d061ec1478647}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.993217, FAME: 0.0, GLY: 0.0, NAOME: 0.00678284, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4 S20', fingerprint: 6c150180783d5e04}
   - id: S6
     title: Methanol and catalyst to R-101
     from: SP101.r1
@@ -531,8 +549,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: D-006}
         pressure: {value: 200, provenance: assumed, source: design basis}
-        flow: {value: 4244.58, provenance: calculated, source: 'cheme process propagate: separator V102 from S11', fingerprint: 3de5c17c702bd56a}
-        composition: {basis: mole_fraction, values: {TG: 0.000702502, MEOH: 0.304745, FAME: 0.693746, GLY: 0.000538585, NAOME: 0.000268659, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V102 from S11', fingerprint: 3de5c17c702bd56a}
+        flow: {value: 4333.97, provenance: calculated, source: 'cheme process propagate: separator V102 from S11', fingerprint: a1bb8cf05a40fb17}
+        composition: {basis: mole_fraction, values: {TG: 0.000615118, MEOH: 0.391228, FAME: 0.60745, GLY: 0.00047159, NAOME: 0.00023524, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V102 from S11', fingerprint: a1bb8cf05a40fb17}
   - id: S14
     title: Second glycerol phase
     from: V102.gly
@@ -542,8 +560,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: D-006}
         pressure: {value: 200, provenance: assumed, source: design basis}
-        flow: {value: 198.429, provenance: calculated, source: 'cheme process propagate: separator V102 from S11', fingerprint: 3de5c17c702bd56a}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.862843, FAME: 0.0148059, GLY: 0.112082, NAOME: 0.0102691, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V102 from S11', fingerprint: 3de5c17c702bd56a}
+        flow: {value: 109.039, provenance: calculated, source: 'cheme process propagate: separator V102 from S11', fingerprint: a1bb8cf05a40fb17}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.654217, FAME: 0.0373266, GLY: 0.282567, NAOME: 0.025889, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V102 from S11', fingerprint: a1bb8cf05a40fb17}
   # ester finishing
   - id: S15
     title: Methanol condensed from the ester flash
@@ -554,8 +572,8 @@ streams:
       design:
         temperature: {value: 308.15, provenance: assumed, source: "D-007: condensed against cooling water"}
         pressure: {value: 300, provenance: assumed, source: "design basis: condensate pump"}
-        flow: {value: 189.839, provenance: calculated, source: 'cheme process propagate: separator E201 from S13', fingerprint: b24699f85b1a08d7}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 1.0, FAME: 0.0, GLY: 0.0, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E201 from S13', fingerprint: b24699f85b1a08d7}
+        flow: {value: 263.603, provenance: calculated, source: 'cheme process propagate: separator E201 from S13', fingerprint: cad806e8ca0cb249}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 1.0, FAME: 0.0, GLY: 0.0, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E201 from S13', fingerprint: cad806e8ca0cb249}
   - id: S16
     title: Esters after the methanol flash
     from: E201.liq
@@ -563,10 +581,10 @@ streams:
     template: bio
     state:
       design:
-        temperature: {value: 363.15, provenance: assumed, source: D-007}
-        pressure: {value: 50, provenance: assumed, source: D-007}
-        flow: {value: 4054.74, provenance: calculated, source: 'cheme process propagate: separator E201 from S13', fingerprint: b24699f85b1a08d7}
-        composition: {basis: mole_fraction, values: {TG: 0.00100601, MEOH: 0.00436408, FAME: 0.993474, GLY: 0.000771277, NAOME: 0.000384731, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E201 from S13', fingerprint: b24699f85b1a08d7}
+        temperature: {value: 373.15, provenance: assumed, source: "D-007: flash at 373 K"}
+        pressure: {value: 40, provenance: assumed, source: "D-007: flash at 40 kPa(a), where methanol condenses at 315.7 K on cooling water"}
+        flow: {value: 4070.37, provenance: calculated, source: 'cheme process propagate: separator E201 from S13', fingerprint: cad806e8ca0cb249}
+        composition: {basis: mole_fraction, values: {TG: 0.000971467, MEOH: 0.0385553, FAME: 0.959357, GLY: 0.000744791, NAOME: 0.000371519, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E201 from S13', fingerprint: cad806e8ca0cb249}
   - id: S19
     title: Esters and wash water
     from: R201.out
@@ -576,8 +594,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: "D-007: 60 C, within the 120 to 140 F of Van Gerpen et al. 2004, p. 68"}
         pressure: {value: 150, provenance: assumed, source: design basis}
-        flow: {value: 8697.18, provenance: calculated, source: 'cheme process propagate: reactor R201 from S23 S24 S16', fingerprint: 2fbda51e74b66c2d}
-        composition: {basis: mole_fraction, values: {TG: 5.083e-05, MEOH: 0.00023994, FAME: 0.0501966, GLY: 3.89698e-05, NAOME: 0.0, HCL: 9.69372e-07, NACL: 1.9439e-05, H2O: 0.949453}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S23 S24 S16', fingerprint: 5306622dc2d8dbed}
+        flow: {value: 8712.81, provenance: calculated, source: 'cheme process propagate: reactor R201 from S23 S24 S16', fingerprint: 7c3933fde88926fe}
+        composition: {basis: mole_fraction, values: {TG: 5.07391e-05, MEOH: 0.00203312, FAME: 0.0501066, GLY: 3.89e-05, NAOME: 0.0, HCL: 9.6761e-07, NACL: 1.94042e-05, H2O: 0.94775}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S23 S24 S16', fingerprint: 4c85b0792ecf0ed8}
   - id: S21
     title: Washed esters
     from: V201.est
@@ -587,8 +605,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: D-007}
         pressure: {value: 150, provenance: assumed, source: design basis}
-        flow: {value: 4060.96, provenance: calculated, source: 'cheme process propagate: separator V201 from S19', fingerprint: 537352f5fb1bb1e5}
-        composition: {basis: mole_fraction, values: {TG: 0.000974525, MEOH: 0.000230009, FAME: 0.962382, GLY: 7.47139e-06, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.0364063}, provenance: calculated, source: 'cheme process propagate: separator V201 from S19', fingerprint: 537352f5fb1bb1e5}
+        flow: {value: 4061.75, provenance: calculated, source: 'cheme process propagate: separator V201 from S19', fingerprint: b1aef52f6f10c8c0}
+        composition: {basis: mole_fraction, values: {TG: 0.000972854, MEOH: 0.00194912, FAME: 0.960727, GLY: 7.45855e-06, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.0363437}, provenance: calculated, source: 'cheme process propagate: separator V201 from S19', fingerprint: b1aef52f6f10c8c0}
   - id: S22
     title: Spent wash water
     from: V201.wat
@@ -598,8 +616,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: D-007}
         pressure: {value: 150, provenance: assumed, source: design basis}
-        flow: {value: 4636.22, provenance: calculated, source: 'cheme process propagate: separator V201 from S19', fingerprint: 537352f5fb1bb1e5}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.000240487, FAME: 0.0, GLY: 4.07031e-05, NAOME: 0.0, HCL: 1.02272e-06, NACL: 2.05087e-05, H2O: 0.999697}, provenance: calculated, source: 'cheme process propagate: separator V201 from S19', fingerprint: 537352f5fb1bb1e5}
+        flow: {value: 4651.06, provenance: calculated, source: 'cheme process propagate: separator V201 from S19', fingerprint: b1aef52f6f10c8c0}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.00203774, FAME: 0.0, GLY: 4.06301e-05, NAOME: 0.0, HCL: 1.02085e-06, NACL: 2.04719e-05, H2O: 0.9979}, provenance: calculated, source: 'cheme process propagate: separator V201 from S19', fingerprint: b1aef52f6f10c8c0}
   - id: S25
     title: Dryer condensate
     from: D201.vap
@@ -609,8 +627,8 @@ streams:
       design:
         temperature: {value: 308.15, provenance: assumed, source: "D-007: condensed against cooling water"}
         pressure: {value: 150, provenance: assumed, source: "design basis: condensate pump"}
-        flow: {value: 8.46035, provenance: calculated, source: 'cheme process propagate: separator D201 from S21', fingerprint: c2bfc02335a941f7}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.00697088, FAME: 0.0, GLY: 0.0, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.993029}, provenance: calculated, source: 'cheme process propagate: separator D201 from S21', fingerprint: c2bfc02335a941f7}
+        flow: {value: 9.24167, provenance: calculated, source: 'cheme process propagate: separator D201 from S21', fingerprint: bbd40119da0baf85}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.0562379, FAME: 0.0, GLY: 0.0, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.943762}, provenance: calculated, source: 'cheme process propagate: separator D201 from S21', fingerprint: bbd40119da0baf85}
   - id: S26
     title: Dried biodiesel
     from: D201.out
@@ -620,8 +638,8 @@ streams:
       design:
         temperature: {value: 368.15, provenance: assumed, source: D-007}
         pressure: {value: 10, provenance: assumed, source: D-007}
-        flow: {value: 4052.5, provenance: calculated, source: 'cheme process propagate: separator D201 from S21', fingerprint: c2bfc02335a941f7}
-        composition: {basis: mole_fraction, values: {TG: 0.00100778, MEOH: 0.0, FAME: 0.99522, GLY: 7.72632e-06, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.00376485}, provenance: calculated, source: 'cheme process propagate: separator D201 from S21', fingerprint: c2bfc02335a941f7}
+        flow: {value: 4052.51, provenance: calculated, source: 'cheme process propagate: separator D201 from S21', fingerprint: bbd40119da0baf85}
+        composition: {basis: mole_fraction, values: {TG: 0.00100778, MEOH: 0.0, FAME: 0.99522, GLY: 7.72633e-06, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.00376485}, provenance: calculated, source: 'cheme process propagate: separator D201 from S21', fingerprint: bbd40119da0baf85}
   - id: S27
     title: Biodiesel to storage
     from: E202.out
@@ -631,8 +649,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "design basis: product to storage at 40 C"}
         pressure: {value: 300, provenance: assumed, source: "design basis: product pump"}
-        flow: {value: 4052.5, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S26', fingerprint: ac97a7c6d2b2d4ae}
-        composition: {basis: mole_fraction, values: {TG: 0.00100778, MEOH: 0.0, FAME: 0.99522, GLY: 7.72632e-06, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.00376485}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S26', fingerprint: ac97a7c6d2b2d4ae}
+        flow: {value: 4052.51, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S26', fingerprint: 3c7af7315f0183bb}
+        composition: {basis: mole_fraction, values: {TG: 0.00100778, MEOH: 0.0, FAME: 0.99522, GLY: 7.72633e-06, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.00376485}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S26', fingerprint: 3c7af7315f0183bb}
   # glycerol phase
   - id: S28
     title: Glycerol phases
@@ -643,8 +661,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: D-008}
         pressure: {value: 200, provenance: assumed, source: design basis}
-        flow: {value: 721.46, provenance: calculated, source: 'cheme process propagate: mixer M301 from S10 S14', fingerprint: fd84b596a752a028}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.616348, FAME: 0.0102463, GLY: 0.35903, NAOME: 0.0143756, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S10 S14', fingerprint: 1ac22f20fd8f4371}
+        flow: {value: 632.07, provenance: calculated, source: 'cheme process propagate: mixer M301 from S10 S14', fingerprint: 74e326e956495dd9}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.508785, FAME: 0.013119, GLY: 0.45969, NAOME: 0.018406, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S10 S14', fingerprint: 27fccf94e0cc3254}
   - id: S30
     title: Neutralised glycerol phase
     from: R301.out
@@ -654,8 +672,8 @@ streams:
       design:
         temperature: {value: 333.15, provenance: assumed, source: "D-008: held at 60 C by cooling water"}
         pressure: {value: 200, provenance: assumed, source: design basis}
-        flow: {value: 742.707, provenance: calculated, source: 'cheme process propagate: reactor R301 from S29 S28', fingerprint: 297f4bc955a52ef0}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.585565, FAME: 0.00951269, GLY: 0.333324, NAOME: 0.0, HCL: 0.000667184, NACL: 0.0133463, H2O: 0.0575841}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S29 S28', fingerprint: bc8d9dd6266cc898}
+        flow: {value: 652.307, provenance: calculated, source: 'cheme process propagate: reactor R301 from S29 S28', fingerprint: 94e5b4aa5f7febcc}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.481874, FAME: 0.0119913, GLY: 0.420175, NAOME: 0.0, HCL: 7.58902e-07, NACL: 0.0168238, H2O: 0.0691352}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S29 S28', fingerprint: f7bb173f4f718239}
   - id: S17
     title: Methanol from the glycerol column
     from: C301.top
@@ -665,8 +683,8 @@ streams:
       design:
         temperature: {value: 308.15, provenance: assumed, source: "D-008: condensed against cooling water, subcooled"}
         pressure: {value: 300, provenance: assumed, source: "design basis: reflux pump"}
-        flow: {value: 256.19, provenance: calculated, source: 'cheme process propagate: separator C301 from S30', fingerprint: d60afdd62df36f84}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 1.0, FAME: 0.0, GLY: 0.0, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S30', fingerprint: d60afdd62df36f84}
+        flow: {value: 167.247, provenance: calculated, source: 'cheme process propagate: separator C301 from S30', fingerprint: 03b90702f455f338}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 1.0, FAME: 0.0, GLY: 0.0, NAOME: 0.0, HCL: 0.0, NACL: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S30', fingerprint: 03b90702f455f338}
   - id: S31
     title: Crude glycerol from the column
     from: C301.bot
@@ -674,10 +692,10 @@ streams:
     template: bio
     state:
       design:
-        temperature: {value: 393.15, provenance: assumed, source: "D-008: reboiler at 120 C"}
-        pressure: {value: 120, provenance: assumed, source: D-008}
-        flow: {value: 486.517, provenance: calculated, source: 'cheme process propagate: separator C301 from S30', fingerprint: d60afdd62df36f84}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.00701507, FAME: 0.0227924, GLY: 0.798645, NAOME: 0.0, HCL: 0.00159857, NACL: 0.0319777, H2O: 0.137972}, provenance: calculated, source: 'cheme process propagate: separator C301 from S30', fingerprint: d60afdd62df36f84}
+        temperature: {value: 405.15, provenance: assumed, source: "D-008: the bottoms' bubble point at 42 kPa(a), 404.9 K by Raoult's law (thermo 0.6.1 vapour pressures), rounded up; the real one a few K higher, ASSUMED"}
+        pressure: {value: 42, provenance: assumed, source: "D-008: column top 40 kPa(a), 2 kPa packing pressure drop, ASSUMED"}
+        flow: {value: 485.06, provenance: calculated, source: 'cheme process propagate: separator C301 from S30', fingerprint: 03b90702f455f338}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.00462864, FAME: 0.0230365, GLY: 0.807198, NAOME: 0.0, HCL: 1.45793e-06, NACL: 0.0323202, H2O: 0.132816}, provenance: calculated, source: 'cheme process propagate: separator C301 from S30', fingerprint: 03b90702f455f338}
   - id: S32
     title: Crude glycerol to storage
     from: E301.out
@@ -687,21 +705,21 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "design basis: to storage at 40 C"}
         pressure: {value: 300, provenance: assumed, source: "design basis: product pump"}
-        flow: {value: 486.517, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S31', fingerprint: 200fdd9059659ffb}
-        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.00701507, FAME: 0.0227924, GLY: 0.798645, NAOME: 0.0, HCL: 0.00159857, NACL: 0.0319777, H2O: 0.137972}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S31', fingerprint: 200fdd9059659ffb}
+        flow: {value: 485.06, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S31', fingerprint: c26123374f45353e}
+        composition: {basis: mole_fraction, values: {TG: 0.0, MEOH: 0.00462864, FAME: 0.0230365, GLY: 0.807198, NAOME: 0.0, HCL: 1.45793e-06, NACL: 0.0323202, H2O: 0.132816}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S31', fingerprint: c26123374f45353e}
   # energy
-  - {id: Q1, title: R-101 heating, kind: energy, from: LPS.r101, to: R101.heat, state: {design: {duty: {value: 116.334, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S1 S6 S8', fingerprint: ae5c3b0cb3068246}}}}
-  - {id: Q2, title: R-102 heating, kind: energy, from: LPS.r102, to: R102.heat, state: {design: {duty: {value: 9.23872, provenance: calculated, source: 'cheme process propagate: conversion duty R102 from S7 S9 S11', fingerprint: f8f18a1199bfbebd}}}}
-  - {id: Q3, title: Ester flash heater, kind: energy, from: LPS.e201, to: E201.heat, state: {design: {duty: {value: 141.3, provenance: assumed, source: "D-009 hand estimate: S13 heated 333.15 to 363.15 K at 9785 kJ/(h K) (the components' liquid heat capacities of materials.yaml) = 81.5 kW, plus 5.925 kmol/h of methanol (S15) at 36.32 kJ/mol (thermo 0.6.1 HEOS_FIT, 320 K) = 59.8 kW"}}}}
-  - {id: Q4, title: Ester flash condenser, kind: energy, from: E201.cond, to: CW.e201, state: {design: {duty: {value: 61.4, provenance: assumed, source: "D-009 hand estimate: 5.925 kmol/h of methanol condensed at 50 kPa(a) (320.7 K, thermo 0.6.1) at 36.32 kJ/mol = 59.8 kW, subcooled to 308.15 K = 1.6 kW"}}}}
-  - {id: Q5, title: Wash contactor cooling, kind: energy, from: R201.cw, to: CW.r201, state: {design: {duty: {value: 77.1912, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S23 S24 S16 S19', fingerprint: 4c5e3d723d98e7d0}}}}
-  - {id: Q6, title: Dryer heater, kind: energy, from: LPS.d201, to: D201.heat, state: {design: {duty: {value: 95.9, provenance: assumed, source: "D-009 hand estimate: S21 heated 333.15 to 368.15 K at 9287 kJ/(h K) = 90.3 kW, plus 0.464 kmol/h of water (S25) at 43.09 kJ/mol (thermo 0.6.1 HEOS_FIT, 319 K) = 5.6 kW"}}}}
-  - {id: Q7, title: Dryer condenser, kind: energy, from: D201.cond, to: CW.d201, state: {design: {duty: {value: 5.7, provenance: assumed, source: "D-009 hand estimate: the dryer's vapour condensed at 10 kPa(a) (319.0 K, thermo 0.6.1) and subcooled to 308.15 K"}}}}
-  - {id: Q8, title: Biodiesel cooler, kind: energy, from: E202.cw, to: CW.e202, state: {design: {duty: {value: 141.3, provenance: assumed, source: "D-009 hand estimate: S26 cooled 368.15 to 313.15 K at 9251 kJ/(h K); no feed-effluent exchange with the dryer's feed (limit L-6)"}}}}
-  - {id: Q9, title: Neutraliser cooling, kind: energy, from: R301.cw, to: CW.r301, state: {design: {duty: {value: 12.1206, provenance: calculated, source: 'cheme process propagate: conversion duty R301 from S29 S28 S30', fingerprint: 350bdaa619b25bbe}}}}
-  - {id: Q10, title: Glycerol column reboiler, kind: energy, from: LPS.c301, to: C301.reb, state: {design: {duty: {value: 178.3, provenance: assumed, source: "D-009 hand estimate: 7.995 kmol/h of methanol overhead (S17) at reflux 1 (ASSUMED, D-008), twice its 35.28 kJ/mol at 337.6 K (thermo 0.6.1 HEOS_FIT) = 156.7 kW, plus the bottoms S31 heated 333.15 to 393.15 K at 1242 kJ/(h K) = 20.7 kW and the distillate to its boiling point = 0.9 kW"}}}}
-  - {id: Q11, title: Glycerol column condenser, kind: energy, from: C301.cond, to: CW.c301, state: {design: {duty: {value: 162.6, provenance: assumed, source: "D-009 hand estimate: twice the overhead's latent heat = 156.7 kW, the distillate subcooled 337.6 to 308.15 K = 5.8 kW"}}}}
-  - {id: Q12, title: Crude glycerol cooler, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 27.6, provenance: assumed, source: "D-009 hand estimate: S31 cooled 393.15 to 313.15 K at 1242 kJ/(h K)"}}}}
+  - {id: Q1, title: R-101 heating, kind: energy, from: LPS.r101, to: R101.heat, state: {design: {duty: {value: 131.334, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S1 S6 S8', fingerprint: 230fd4a93e6592cd}}}}
+  - {id: Q2, title: R-102 cooling, kind: energy, from: R102.cw, to: CW.r102, state: {design: {duty: {value: 5.76128, provenance: calculated, source: 'cheme process propagate: conversion duty R102 from S7 S9 S11', fingerprint: 9b56153a71ebc0e0}}}}
+  - {id: Q3, title: Ester flash heater, kind: energy, from: LPS.e201, to: E201.heat, state: {design: {duty: {value: 189.5, provenance: assumed, source: "D-009 hand estimate, closing the step's balance on the condenser's path: Q3 = Q4 + S16 heated 333.15 to 373.15 K at 9299 kJ/(h K) (the components' liquid heat capacities of materials.yaml) = 103.3 kW, less S15's 8.227 kmol/h of methanol cooled as liquid from the 333.15 K feed to 308.15 K at 89.33 kJ/(kmol K) = 5.1 kW: 91.3 + 103.3 - 5.1 = 189.5 kW (the direct path, vaporised at 333 K at 35.56 kJ/mol and the vapour heated to 373 K, gives 189.0 kW)"}}}}
+  - {id: Q4, title: Ester flash condenser, kind: energy, from: E201.cond, to: CW.e201, state: {design: {duty: {value: 91.3, provenance: assumed, source: "D-009 hand estimate: 8.227 kmol/h of methanol vapour (S15) cooled from 373.15 K to its dew point at 40 kPa(a), 315.73 K, at a mean ideal-gas cp of 47.26 J/(mol K) = 6.2 kW, condensed at 36.55 kJ/mol = 83.5 kW and subcooled to 308.15 K at 89.33 kJ/(kmol K) = 1.6 kW (thermo 0.6.1 HEOS_FIT)"}}}}
+  - {id: Q5, title: Wash heating (wash water warmed to 333 K), kind: energy, from: LPS.r201, to: R201.heat, state: {design: {duty: {value: 85.4721, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S23 S24 S16 S19', fingerprint: 047a6f35e9abf3f9}}}}
+  - {id: Q6, title: Dryer heater, kind: energy, from: LPS.d201, to: D201.heat, state: {design: {duty: {value: 95.9, provenance: assumed, source: "D-009 hand estimate, closing on the condenser's path: Q6 = Q7 + S26 heated 333.15 to 368.15 K at 9251 kJ/(h K) = 89.9 kW, less S25 cooled as liquid from 333.15 to 308.15 K at 37.4 kJ/(h K) = 0.3 kW: 6.2 + 89.9 - 0.3 = 95.9 kW"}}}}
+  - {id: Q7, title: Dryer condenser, kind: energy, from: D201.cond, to: CW.d201, state: {design: {duty: {value: 6.2, provenance: assumed, source: "D-009 hand estimate: the dryer's vapour (S25: 0.4638 kmol/h of water, 0.0276 of methanol) cooled from 368.15 K to 318.96 K (water's saturation at 10 kPa(a)) at its ideal-gas cp = 0.2 kW, condensed at 43.09 and 36.37 kJ/mol = 5.8 kW and subcooled to 308.15 K at 37.4 kJ/(h K) = 0.1 kW (thermo 0.6.1 HEOS_FIT)"}}}}
+  - {id: Q8, title: Biodiesel cooler, kind: energy, from: E202.cw, to: CW.e202, state: {design: {duty: {value: 141.3, provenance: assumed, source: "D-009 hand estimate: S26 cooled 368.15 to 313.15 K at 9251 kJ/(h K) = 141.3 kW; no feed-effluent exchange with the dryer's feed (limit L-6)"}}}}
+  - {id: Q9, title: Neutraliser cooling, kind: energy, from: R301.cw, to: CW.r301, state: {design: {duty: {value: 6.15482, provenance: calculated, source: 'cheme process propagate: conversion duty R301 from S29 S28 S30', fingerprint: 1cfbfb92d9e5f56c}}}}
+  - {id: Q10, title: Glycerol column reboiler, kind: energy, from: MPS.c301, to: C301.reb, state: {design: {duty: {value: 128.5, provenance: assumed, source: "D-009 hand estimate, closing the column's balance on the condenser's path: Q10 = Q11 + S31 heated 333.15 to 405.15 K at 1237 kJ/(h K) = 24.7 kW, less the distillate S17 cooled as liquid from 333.15 to 308.15 K at 466 kJ/(h K) = 3.2 kW: 107.0 + 24.7 - 3.2 = 128.5 kW, on MP steam (the bottoms boil at 405 K, above what LP steam reaches, D-008)"}}}}
+  - {id: Q11, title: Glycerol column condenser, kind: energy, from: C301.cond, to: CW.c301, state: {design: {duty: {value: 107.0, provenance: assumed, source: "D-009 hand estimate: at reflux 1 (ASSUMED, D-008) twice the 5.220 kmol/h of methanol overhead (S17) condensed at 40 kPa(a) (315.73 K) at 36.55 kJ/mol (thermo 0.6.1 HEOS_FIT) = 106.0 kW, the distillate subcooled to 308.15 K = 1.0 kW"}}}}
+  - {id: Q12, title: Crude glycerol cooler, kind: energy, from: E301.cw, to: CW.e301, state: {design: {duty: {value: 31.6, provenance: assumed, source: "D-009 hand estimate: S31 cooled 405.15 to 313.15 K at 1237 kJ/(h K) = 31.6 kW"}}}}
   - id: P1
     title: Methanol pumps
     kind: energy
@@ -709,11 +727,17 @@ streams:
     to: M101.power
     state: {design: {duty: {value: 5.0, provenance: assumed, source: "D-009: methanol feed, recycle and catalyst dosing pumps, about 5 kW absorbed, ASSUMED"}}}
   - id: P2
-    title: Reactor agitators and pumps
+    title: R-101 agitator and oil feed pump
     kind: energy
     from: POWER.rxn
     to: R101.power
-    state: {design: {duty: {value: 30.0, provenance: assumed, source: "D-009: agitators of R-101 and R-102 (2 x 11 kW, the mixing that a CSTR needs, Van Gerpen et al. 2004, p. 35) and the oil and ester transfer pumps (8 kW), ASSUMED"}}}
+    state: {design: {duty: {value: 15.0, provenance: assumed, source: "D-009: R-101's agitator (11 kW, the mixing that a CSTR needs, Van Gerpen et al. 2004, p. 35) and the oil feed pump (4 kW), ASSUMED; their work ends as heat in R-101, which core's conversion duty counts against Q1"}}}
+  - id: P5
+    title: R-102 agitator and ester transfer pump
+    kind: energy
+    from: POWER.rxn2
+    to: R102.power
+    state: {design: {duty: {value: 15.0, provenance: assumed, source: "D-009: R-102's agitator (11 kW) and the ester transfer pump from V-102 (4 kW), ASSUMED; their work ends as heat in R-102, which core's conversion duty counts against Q2"}}}
   - id: P3
     title: Wash and dryer pumps and vacuum pumps
     kind: energy
@@ -721,9 +745,15 @@ streams:
     to: D201.power
     state: {design: {duty: {value: 25.0, provenance: assumed, source: "D-009: the vacuum pumps of the ester flash and the dryer (2 x 7.5 kW), the wash water, ester and product pumps (10 kW), ASSUMED"}}}
   - id: P4
-    title: Glycerol pumps and neutraliser agitator
+    title: Neutraliser agitator
     kind: energy
     from: POWER.gly
     to: R301.power
-    state: {design: {duty: {value: 10.0, provenance: assumed, source: "D-009: the neutraliser's agitator (4 kW), the column's feed, reflux and bottoms pumps (6 kW), ASSUMED"}}}
+    state: {design: {duty: {value: 4.0, provenance: assumed, source: "D-009: the neutraliser's agitator (4 kW), ASSUMED; its work ends as heat in R-302, which core's conversion duty counts in Q9"}}}
+  - id: P6
+    title: Glycerol column pumps and vacuum pump
+    kind: energy
+    from: POWER.gly2
+    to: C301.power
+    state: {design: {duty: {value: 10.0, provenance: assumed, source: "D-009: the column's feed, reflux and bottoms pumps (6 kW) and its vacuum pump (4 kW), ASSUMED; booked at the column, whose duties are hand estimates, so not counted as heat"}}}
 layout: {bfd: {}, pfd: {}}
