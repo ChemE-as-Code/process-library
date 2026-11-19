@@ -1,0 +1,16 @@
+# pvc-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, a `dataset` (an Atlas producer), `atlas: false`, or a
+# `properties_reason`.
+#
+# Linked here (DESIGN.md D-011): the VCM to vcm-1, the demineralised water to the shared water
+# entry, the live steam by mass, the LP steam as heat delivered (kWh). The suspending agent, the
+# initiator, the short-stop, the chilled water and the vent treatment stay gaps: no library
+# process makes them (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:VCMF": {dataset: {path: processes/vcm-1/lca/datasets/vcm-balanced-oxygen.yaml, product: "product:vinyl-chloride"}, source: "the Atlas producer vcm-1, vinyl chloride monomer by the balanced EDC process with oxygen-based oxychlorination (Tier 1, EU plants of the LVOC BREF), kg for kg; its own feeds link ethylene-1, chlor-alkali-1 and asu-1 (D-004, D-011)"}
+  "feed:DMW": {use: water, source: "demineralised water for the charge and the rinse, the shared entry (kg), D-004"}
+  "feed:LSTM": {use: steam, source: "live steam 450 kPa(a) saturated into the stripper, counted by mass (kg); the shared entry's steam is 11 bar(a) saturated, whose enthalpy is about 1 % above that of 450 kPa(a) steam, so the burden is slightly overstated (D-007, D-011)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the autoclaves' hot-water loop (Q1) and the dryer's air heater (Q3), counted as heat delivered (kWh), D-008, D-009"}
