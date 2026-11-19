@@ -1,5 +1,7 @@
 # Benchmarks of oxygenated intermediates: purified terephthalic acid, adipic acid and propylene
-# oxide. Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
+# oxide, and vinyl acetate (vinyl-acetate-1: the ethylene KPI is bound to the reactor
+# selectivity of the patent the dataset takes its own selectivity from, so it tests the plant's
+# losses beside the reactor, not new data; the acetic acid KPI has no open reference). Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
 # from the cited source, in our own form.
 #
 # terephthalic-acid-1:
@@ -398,6 +400,26 @@ kpis:
     unit: kg/kg
     no_open_reference: "No open source with a plant's tert-butanol use per kg of potassium tert-butoxide found (searched 2026-11-06, the sources named under kotbu-specific-potassium; US 4 577 045 A says the alcohol is recycled almost completely, without a figure). The stoichiometric floor is 0.6606 kg/kg; the losses to the vent, the purge and the sieve's regeneration are this design's ASSUMED values (potassium-tert-butoxide-1, DESIGN.md D-006, D-007)."
 
+  vam-specific-ethylene:
+    title: Ethylene consumption per kg of vinyl acetate (gas-phase acetoxylation)
+    unit: kg/kg
+    references:
+      - id: us8765995-ethylene-selectivity
+        range: [0.3489, 0.3585]
+        basis: unallocated
+        note: "The ethylene selectivity to vinyl acetate of Wacker's pilot tubes, 90.9 to 93.4 % over 300 to 1500 h (Tables 1 to 4, the comparative 33 mm and the 27 mm tubes), as ethylene per kg of vinyl acetate (28.054 / 86.090 = 0.3259 kg/kg at 100 %, divided by 0.934 and 0.909). A reactor's selectivity, not a plant's consumption: it leaves out the ethylene lost in the purge and the CO2 vent. Not independent of vinyl-acetate-1, which takes its selectivity (91.0 %) from the same Table 2."
+        conditions: {technology: "multitubular fixed bed, Pd/Au catalyst, 65 mol% ethylene, 150-155 C, pilot reactor with 4 and 7 tubes of 6.3 m", region: DE, year: 2014}
+        source:
+          citation: "Dafinger, W.; Holl, P.; Rudolf, G.; Schoenleben, M. (Wacker Chemie AG) (2014) Process and apparatus for preparing vinyl acetate monomer. US Patent 8,765,995 B2"
+          url: https://patents.google.com/patent/US8765995B2/en
+          locator: "Examples, Tables 1 to 4 (ethylene selectivity)"
+          kind: other
+          accessed: "2026-11-19"
+  vam-specific-acetic-acid:
+    title: Acetic acid consumption per kg of vinyl acetate
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's acetic acid use per kg of vinyl acetate found (searched 2026-11-19: Google Patents US 8 765 995 B2, US 8 410 307 B2, US 6 420 595 B1 and US 5 550 281 A read, which give conversions, selectivities on ethylene and oxygen and compositions but no acetic acid consumption; Wikipedia, Vinyl acetate, the routes without figures). Only the stoichiometric floor, 0.6976 kg/kg (60.052 / 86.090), is known."
+
 datasets:
   - process: terephthalic-acid-1
     dataset: pta-px-air-oxidation
@@ -516,3 +538,13 @@ datasets:
     kpis:
       kotbu-specific-potassium: {expression: feed:K / product:KOTBU, per: product:KOTBU}
       kotbu-specific-tert-butanol: {expression: feed:TBAF / product:KOTBU, per: product:KOTBU}
+  - process: vinyl-acetate-1
+    dataset: vinyl-acetate-monomer-by-gas-phase-acetoxylation-of-ethylene-200-kt-a
+    conditions: {technology: "gas-phase acetoxylation of ethylene over Pd/Au in a boiling-water-cooled multitubular fixed bed, acetic acid scrubbing, hot carbonate CO2 removal on a slip stream, 0.3 % purge, azeotropic and dewatering columns", basis: "concept balance, the reactor feed, conversion and selectivity of US 8 765 995 B2 Table 2, ASSUMED separator splits, purge and duties (DESIGN.md D-004 to D-008)"}
+    kpis:
+      vam-specific-ethylene:
+        expression: feed:ETH / product:VAMP
+        per: product:VAMP
+        reference: us8765995-ethylene-selectivity
+        out_of_range_reason: "The reference is a reactor's selectivity; the dataset's 0.370 kg/kg adds the ethylene of the 0.3 % purge (9.1 g/kg) and of the CO2 vent (1.0 g/kg) and the vinyl acetate lost to the effluent (0.38 %), all ASSUMED (vinyl-acetate-1 DESIGN.md D-006, D-007). At the reactor alone its 91.0 % gives 0.3581 kg/kg, inside the range."
+      vam-specific-acetic-acid: {expression: feed:ACF / product:VAMP, per: product:VAMP}
