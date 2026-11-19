@@ -44,6 +44,11 @@
 # potassium and 0.6606 kg tert-butanol per kg) are limits, not ranges, and are not recorded as
 # references (docs/benchmarks.md).
 #
+# acetylsalicylic-acid-1 (#476; aspirin, an acetylated aromatic acid, filed among the
+# oxygenates): the salicylic acid reference is the patent example the dataset takes its charge and
+# solubility from, so it is not independent; the Dow yields are another applicant's, counted as
+# tablet-grade crystals only. The anhydride records no_open_reference.
+#
 # tert-butanol-1:
 # The selectivity reference is a patent (Sumitomo Chemical) that the dataset does not use: the dataset's
 # by-product rate is from another applicant's patent (Nippon Oil, US 4,180,688, Example 4). The selectivity
@@ -539,6 +544,36 @@ kpis:
     unit: kWh/kg
     no_open_reference: "No open source with the steam an acrylic acid plant exports per kg found (searched 2026-11-19, as for acrylic-acid-specific-lp-steam; the patents read cool the reactors with a molten nitrate salt and give no steam figure). The dataset's value is the two reactors' heat of reaction from the ideal-gas formation data (DESIGN.md D-005, D-006)."
 
+  asa-specific-salicylic-acid:
+    title: Salicylic acid consumption per kg of acetylsalicylic acid (acetylation with acetic anhydride)
+    unit: kg/kg
+    references:
+      - id: us2731492-example1-sa
+        range: [0.7678, 1.0229]
+        basis: unallocated
+        note: "Example I of the patent: 1382 kg salicylic acid per batch with acetic anhydride in acetic acid and sulfuric acid at 90-92 C, the mother liquor recycled; the first batch gives 1351 to 1621 kg of aspirin (1382 / 1621 = 0.853 and 1382 / 1351 = 1.023 kg/kg), the recycled batches 1790 to 1800 kg (0.768 to 0.772 kg/kg); the range spans both. The dataset takes its batch size, catalyst and solubility from this example but its yield from its own balance, so the reference is not independent."
+        conditions: {technology: "salicylic acid with acetic anhydride in glacial acetic acid with sulfuric acid, 90-92 C, cooled to 15-25 C, mother liquor recycled after ketene treatment; a 6000 L enamelled reactor", region: US, year: 1956}
+        source:
+          citation: "Kamlet, J. (1956) Process for the manufacture of acetylsalicylic acid. US Patent 2,731,492 A"
+          url: https://patents.google.com/patent/US2731492A/en
+          locator: "Example I"
+          kind: other
+          accessed: "2026-11-19"
+      - id: us2987539-yield-sa
+        range: [0.8244, 0.8712]
+        basis: unallocated
+        note: "The patent's overall yields of tablet-grade aspirin on the salicylic acid, 88 % without and 93 % with the salicylic acid recovered from the still residue (138.122 / 180.159 = 0.7667 kg/kg at 100 %, divided by 0.93 and 0.88); uncatalysed, at 85 C, with 30 to 70 % of the mother liquor recycled. Only the tablet-grade crystals are counted, so the range lies above a balance that counts all the aspirin."
+        conditions: {technology: "salicylic acid with excess acetic anhydride in acetic acid at 85 C, crystallised at 15 C, acetic acid and water washes, 30 to 70 % of the mother liquor recycled, the rest reacted with more salicylic acid in a second reactor for a second crop, and only the second mother liquor distilled; laboratory example of a plant process", region: US, year: 1961}
+        source:
+          citation: "Stoesser, W. C.; Surine, W. R. (The Dow Chemical Company) (1961) Process for the production of aspirin. US Patent 2,987,539 A"
+          url: https://patents.google.com/patent/US2987539A/en
+          locator: "Example, Steps 1 to 5"
+          kind: other
+          accessed: "2026-11-19"
+  asa-specific-acetic-anhydride:
+    title: Acetic anhydride consumption per kg of acetylsalicylic acid
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's acetic anhydride use per kg of aspirin found (searched 2026-11-19: US 2 731 492 A read, which regenerates the anhydride from the liquor's acetic acid with ketene, so its anhydride use is not a consumption; US 2 987 539 A read, laboratory charges with the excess recycled in the liquor; US 6 278 014 B1 read, a solvent-free route). The stoichiometric floor is 0.5667 kg/kg (102.089 / 180.159), a limit, not a range of real plants."
 datasets:
   - process: terephthalic-acid-1
     dataset: pta-px-air-oxidation
@@ -711,3 +746,12 @@ datasets:
         reference: mitsubishi-patents-aa-yield
       acrylic-acid-specific-lp-steam: {expression: feed:LPS / product:PRODUCT, per: product:PRODUCT}
       acrylic-acid-specific-hp-steam-export: {expression: product:STMX / product:PRODUCT, per: product:PRODUCT}
+  - process: acetylsalicylic-acid-1
+    dataset: acetylsalicylic-acid-by-semi-batch-acetylation-of-salicylic-acid-with-acetic-anhydride-in-acetic-acid
+    conditions: {technology: "salicylic acid in the recycled mother liquor with sulfuric acid, acetic anhydride dosed at 358 K, cooling crystallisation to 293 K, two alternating filter-dryers with an acetic acid reslurry wash, 60 % of the liquor recycled, the rest distilled directly at 15 kPa(a) (no second-crop reactor)", basis: "concept balance, the charge and solubility after US 2 731 492 A Example I, ASSUMED kinetics, filter and dryer data (DESIGN.md D-004 to D-009)"}
+    kpis:
+      asa-specific-salicylic-acid:
+        expression: feed:SAF / product:PROD
+        per: product:PROD
+        reference: us2731492-example1-sa
+      asa-specific-acetic-anhydride: {expression: feed:AC2OF / product:PROD, per: product:PROD}

@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 124 public process folders: 84 engineering projects (a `plant.yaml` with a process
+The table lists 125 public process folders: 85 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -41,6 +41,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`acetone-1`](processes/acetone-1/) | Acetone and phenol from cumene (cumene hydroperoxide route, 200 kt/a phenol; cumene bought in, no alkylation step) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`acetyl-chloride-1`](processes/acetyl-chloride-1/) | Acetyl chloride by semi-batch reaction of acetic acid with PCl3, HCl vent, phase split and batch distillation through a packed column (2000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`acetylene-1`](processes/acetylene-1/) | Acetylene by partial oxidation of natural gas with NMP recovery (6.25 t/h, synthesis-gas co-product) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`acetylsalicylic-acid-1`](processes/acetylsalicylic-acid-1/) | Acetylsalicylic acid (aspirin) by semi-batch acetylation of salicylic acid with acetic anhydride in acetic acid, cooling crystallisation, filter-dryers, mother liquor recycle and acetic acid recovery in a vacuum batch still (1291 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`acrylic-acid-1`](processes/acrylic-acid-1/) | Acrylic acid by two-stage propylene oxidation with air and steam, water quench absorption, azeotropic dehydration with toluene and vacuum distillation with inhibitors, HP steam export (100 kt/a, continuous) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`acrylonitrile-1`](processes/acrylonitrile-1/) | Acrylonitrile by SOHIO propylene ammoxidation in a fluidised bed (120 kt/a, HCN and acetonitrile co-products) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`adipic-acid-1`](processes/adipic-acid-1/) | Adipic acid from cyclohexane via KA oil and nitric acid oxidation, with and without catalytic N2O decomposition (EPA, IEA, IPCC sources) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI datasets only) |
