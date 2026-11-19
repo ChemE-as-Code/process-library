@@ -2,7 +2,8 @@
 # Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
 # Design pressure and temperature are ASSUMED concept values (DESIGN.md D-012): one design
 # pressure per pressure level (HP loop 160 barg, LP section 6 barg, vacuum section full vacuum
-# / 3.5 barg), design temperature the highest operating value + about 25 K. Duties and flows
+# / 3.5 barg), design temperature the highest operating value + about 25 K, the heating medium
+# included (MP-steam heated items: 250 C over saturated MP steam at 221.8 C). Duties and flows
 # from scripts/urea_balance.py (D-006, D-010). Materials of the carbamate service are a
 # corrosion-governed choice (urea-grade austenitic or duplex stainless steel with passivation
 # air) and an open input for the licensor/materials engineer (D-012). Sizes, dimensions and
@@ -20,7 +21,7 @@ equipment:
      design_pressure_barg: 160, design_temperature_degc: 210, material: "urea-grade stainless liner in a CS pressure shell (open input, D-012)",
      notes: "180 C, 14000 kPa(a), N/C 2.8 at the inlet (BREF LVIC-AAF Table 8.14); 239.5 t/h; CO2 conversion 0.58 per pass ASSUMED (D-005). Residence time 20-30 min typical (BREF Table 8.2); volume not sized."}
   - {tag: E-101, type: TubularHeatExchanger, service: HP CO2 stripper (falling film),
-     design_pressure_barg: 160, design_temperature_degc: 215, material: "tubes urea-grade stainless or duplex; shell CS (MP steam 25 barg)",
+     design_pressure_barg: 160, design_temperature_degc: 250, material: "tubes urea-grade stainless or duplex; shell CS (MP steam 2400 kPa(a), about 23 barg)",
      notes: "Reactor effluent stripped with the feed CO2; ~30.4 MW from MP steam 2400 kPa(a) (D-010, the BREF total less E-302 and R-401). Stripping efficiency ASSUMED (D-006)."}
   - {tag: E-102, type: TubularHeatExchanger, service: HP carbamate condenser (raises LP steam),
      design_pressure_barg: 160, design_temperature_degc: 200, material: "process side urea-grade stainless; steam side CS (LP steam 450 kPa(a))",
@@ -46,7 +47,7 @@ equipment:
      design_pressure_barg: 3.5, design_temperature_degc: 165, material: stainless (open input),
      notes: "33 kPa(a), 403 K, to 95 wt% urea; ~19.0 MW LP steam (D-010). Full vacuum design."}
   - {tag: E-302, type: TubularHeatExchanger, service: 2nd evaporator,
-     design_pressure_barg: 3.5, design_temperature_degc: 230, material: stainless (open input),
+     design_pressure_barg: 3.5, design_temperature_degc: 250, material: stainless (open input),
      notes: "3 kPa(a), 413 K, melt 99.6 wt% solids; ~2.6 MW MP steam (D-010); biuret forms here (lumped, D-007). Full vacuum design."}
   - {tag: E-303, type: TubularHeatExchanger, service: Evaporator vacuum condensers,
      design_pressure_barg: 3.5, design_temperature_degc: 165, material: stainless (open input),
@@ -56,7 +57,7 @@ equipment:
      design_pressure_barg: 6, design_temperature_degc: 165, material: stainless (open input),
      notes: "300 kPa(a); heated by the overhead of C-402 (D-006)."}
   - {tag: R-401, type: Vessel, service: Hydrolyser,
-     design_pressure_barg: 22, design_temperature_degc: 230, material: stainless (open input),
+     design_pressure_barg: 22, design_temperature_degc: 250, material: stainless (open input),
      notes: "1900 kPa(a), 473 K; urea hydrolysed to 1 ppm(wt) in the treated water (BREF Table 8.20); ~1.0 MW net MP steam after feed/effluent exchange (ASSUMED, D-010)."}
   - {tag: C-402, type: ProcessColumn, service: Desorber 2,
      design_pressure_barg: 6, design_temperature_degc: 165, material: stainless (open input),
@@ -67,4 +68,4 @@ equipment:
      notes: "Melt 83.5 t/h at 413 K, air 706.5 t/h (554 kNm3/h) 303 -> 343 K from the heat balance (D-007); fan ~0.52 MW (D-010). Tower height and prill size not designed."}
   - {tag: C-501, type: ProcessColumn, service: Prilling exhaust wet scrubber,
      design_pressure_barg: 0.1, design_temperature_degc: 90, material: stainless (open input),
-     notes: "Water scrubbing to dust 35 and NH3 30 mg/Nm3 (within the BAT levels of BREF section 8.5, D-009); liquor 45 wt% urea to E-301."}
+     notes: "Water scrubbing to dust 35 and NH3 30 mg/Nm3 (within the BAT levels of BREF section 8.5, D-009); liquor to E-301 at 45 wt% urea on an NH3-free basis (stream S52: 43.5 wt% urea, 3.4 wt% NH3)."}
