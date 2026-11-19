@@ -1,0 +1,15 @@
+# bhet-pet-glycolysis-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Linked here (DESIGN.md D-012): the fresh glycol to ethylene-glycol-1, the make-up water to
+# demineralised-water-1, and both steam levels counted as heat delivered (kWh). The washed PET
+# flake (its sorting and washing; the waste itself is burden-free under cut-off), the zinc
+# acetate, power, cooling, chilled water and the waste treatments stay gaps.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:EGF": {dataset: {path: processes/ethylene-glycol-1/lca/dataset.yaml, product: "product:MEG"}, source: "the Atlas producer ethylene-glycol-1, MEG of 99.90 wt% from EO hydration (fibre grade), kg for kg, as pet-1 links it (D-004)"}
+  "feed:WATF": {dataset: {path: processes/demineralised-water-1/lca/dataset.yaml, product: "product:DEMIN"}, source: "the Atlas producer demineralised-water-1, demineralised water by RO and mixed-bed ion exchange, kg for kg (D-004)"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 4100 kPa(a) to R-101's jacket (Q1) and the column's reboiler (Q8), counted as heat delivered (kWh), D-009"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to the quench vessel (Q2), the redissolution (Q4) and the dryer (Q6), counted as heat delivered (kWh), D-009"}
