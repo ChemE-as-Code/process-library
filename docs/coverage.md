@@ -160,7 +160,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 49 | `bio-ethylene` | Bio-ethylene by ethanol dehydration | bio-based-chemicals | n/a, to be sourced | medium | - | polyethylene | 0 | bio-ethylene-1 (T1) |
 | 50 | `waste-incineration` | Waste incineration with energy recovery | waste-treatment | n/a, to be sourced | medium | - | steam-generation | 1 | waste-incineration-1 (T1) |
 | 51 | `caprolactam` | Caprolactam | nitrogen-organics | n/a, to be sourced | medium | - | - | 2 | caprolactam-1 (T2) |
-| 52 | `acrylonitrile` | Acrylonitrile (propylene ammoxidation) | nitrogen-organics | n/a, to be sourced | low | - | - | 0 | - |
+| 52 | `acrylonitrile` | Acrylonitrile (propylene ammoxidation) | nitrogen-organics | n/a, to be sourced | low | - | - | 2 | acrylonitrile-1 (T2) |
 | 53 | `mdi-tdi` | Isocyanates (MDI, TDI) | nitrogen-organics | n/a, to be sourced | medium | - | - | 0 | - |
 | 54 | `polystyrene` | Polystyrene | polymers | n/a, to be sourced | low | - | - | 0 | - |
 | 55 | `biogas` | Biogas and biomethane | biogas | n/a, to be sourced | medium | anaerobic-digestion, upgrading | steam-generation, hydrogen | 0 | - |
