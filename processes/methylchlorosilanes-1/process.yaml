@@ -1,0 +1,119 @@
+# Process Atlas manifest of methylchlorosilanes-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: methylchlorosilanes-1
+title: Methylchlorosilanes by the direct process in a copper-catalysed fluidised bed with crude distillation (60 kt/a Me2SiCl2)
+summary: >-
+  Ground silicon reacts with methyl chloride over a copper catalyst in a fluidised bed at 573 K;
+  the methyl chloride is recovered in a column at about 90 psig and recycled, and the crude is
+  distilled into dimethyldichlorosilane, a methyltrichlorosilane cut, a light silanes cut and a
+  residue. Concept stage, 60 kt/a, balanced flowsheet with the feeds solved for the rate,
+  preliminary gate-to-gate LCI.
+description: |
+  Liquid methyl chloride (fresh from chloromethane-1 and recovered) is vaporised and superheated
+  to 453 K and fluidises a bed of ground metallurgical silicon (mean 100 to 150 um, at least 98 %
+  Si) with 0.5 wt% copper at 573 K and 400 kPa(a), the conditions of US 4 500 724 A (General
+  Electric) and the ranges of the direct process (Wikipedia). 95 % of the silicon and half of
+  the methyl chloride convert per pass (both ASSUMED inside the open ranges). The crude
+  distribution is ASSUMED inside those ranges: 84.0 wt% Me2SiCl2, 7.0 MeSiCl3, 3.0 Me3SiCl,
+  1.5 MeHSiCl2 and 4.5 of a high-boiling residue, with US 4 500 724 A's continuous fluid-bed T/D
+  ratio and residue. Cooling coils in the bed take 4.64 MW (about 239 kJ per mol of silicon)
+  and raise MP steam. Without them the gas would heat to about 1250 K. Cyclones return the
+  fines; the spent contact mass leaves the bed.
+
+  The crude gas is cooled on cooling water, and the condensed silanes and the compressed methyl
+  chloride enter a column at 722 kPa(a), the 90 psig of US 2 563 557 at which methyl chloride
+  condenses on cooling water (306 K). The methyl chloride returns to the feed, and the ethane
+  and ethylene (the lumped hydrocarbons) are vented to the site's thermal oxidiser. Three
+  columns follow US 2 563 557: the heavies, the lights (Me3SiCl, MeHSiCl2) and the close-boiling
+  MeSiCl3/Me2SiCl2 split (66.1 and 70.1 C, relative volatility 1.17 after EP 1 957 504 B1). That
+  split needs 93 theoretical stages at a reflux of 94 for 99.5 wt% Me2SiCl2 and an 89 wt%
+  MeSiCl3 cut, and its reboilers take 43 % of the plant's steam.
+
+  Per kg of Me2SiCl2: 0.276 kg of silicon (0.218 stoichiometric), 0.963 kg of methyl chloride,
+  1.4 g of copper, 0.030 kWh of electricity, 0.48 kWh of MP and 0.47 kWh of LP steam drawn,
+  0.62 kWh of MP steam raised and 1.04 kWh to cooling water. Co-products: 0.087 kg of the
+  MeSiCl3 cut and 0.063 kg of the light silanes cut. Wastes: 0.055 kg of residue, 15 g of
+  spent contact mass and 20 g of vent gas. Hazards: methyl chloride, a flammable gas (7.6 to 19 vol%
+  in air) handled under pressure; the chlorosilanes, flammable liquids (Me2SiCl2: flash point
+  -9 C, H225) that release HCl with water; combustible silicon dust; and a strongly exothermic
+  bed (DESIGN.md D-011).
+
+  The mass balance is solved by cheme-as-code: the reactor as a conversion step on the silicon,
+  the cyclones and columns as component separators with sourced or ASSUMED splits, the silicon
+  solved for 60 000 t/a and the fresh methyl chloride for the reactor's ratio by design
+  specifications, and the methyl chloride loop torn and converged (core ADRs 0060, 0070). Every
+  duty comes from a balance script (chemicals 1.5.2 / thermo 0.6.1 data). Me2SiCl2's formation
+  enthalpy is ASSUMED, because no open value was found. See DESIGN.md for every assumption.
+families: [chlorinated-organics]
+keywords: [methylchlorosilanes, dimethyldichlorosilane, dichlorodimethylsilane, methyltrichlorosilane, trimethylchlorosilane, methyldichlorosilane, direct process, Mueller-Rochow, Rochow process, silicon, methyl chloride, chloromethane, copper catalyst, fluidised bed, contact mass, superfractionation, close-boiling distillation, silicones]
+facets:
+  feedstock_basis: [mineral, fossil]
+  product_classes: [chemicals]
+  unit_operations: [reaction, compression, condensation, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, the conversions, the crude
+# distribution, the splits and Me2SiCl2's formation enthalpy are assumed; the conditions, the
+# selectivity metrics, the column pressure, the product cuts and the relative volatility come
+# from patents (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams). cheme process propagate solves the reactor R201 as a conversion step on the silicon,
+    the cyclones CY202 and the columns C302, C401, C402 and C403 as component separators (core ADR
+    0070), the silicon for 60 000 t/a of Me2SiCl2 and the fresh methyl chloride for 6.9152 kg per
+    kg of silicon at the bed (design specifications), and the methyl chloride loop at the tear S2
+    (ADR 0060). scripts/balance.py derives the reaction shares from the ASSUMED crude
+    distribution and gives every duty and power: the reactor's energy balance with the silicon
+    and copper as solids (core counts every inlet of a conversion step as an ideal gas), the
+    vaporiser, the condenser, the compressor and each column closed from its feed to its outlets;
+    the superfractionator's minimum reflux and stages by Underwood, Fenske and Gilliland at
+    EP 1 957 504 B1's relative volatility. Conditions and selectivity metrics from US 4 500 724
+    A; the methyl chloride column's pressure and the product cuts from US 2 563 557; conversions,
+    the crude distribution, the lumped by-product chemistry, the splits, reflux ratios and
+    Me2SiCl2's formation enthalpy ASSUMED. Preliminary gate-to-gate LCI, mass allocation between
+    the three silane products, the exported steam at share 0; methyl chloride linked to
+    chloromethane-1, silicon and copper are gaps. cheme maturity not evaluated; the claim
+    `maturity: concept` is the lowest value of the schema, not an evidenced level. Not reviewed.
+    Needs cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: chloromethane, role: feedstock, inventory_key: "feed:MECLF", note: "Methyl chloride, liquid, from chloromethane-1, 0.963 kg/kg Me2SiCl2"}
+    - {chemical: silicon, role: feedstock, inventory_key: "feed:SIF", note: "Metallurgical-grade silicon, ground (no library process), 0.276 kg/kg"}
+    - {chemical: copper, role: feedstock, inventory_key: "feed:CUF", note: "Copper catalyst make-up (no library process), 1.4 g/kg; the zinc and tin promoters not modelled"}
+  outputs:
+    - {chemical: dichlorodimethylsilane, role: main-product, inventory_key: "product:DMDCSP", note: "Dimethyldichlorosilane, modelled 99.51 wt% (at most 0.5 wt% MeSiCl3), to storage"}
+    - {chemical: methyltrichlorosilane, role: co-product, inventory_key: "product:MTCSP", note: "MeSiCl3 cut, 89 wt% MeSiCl3 with 10 % Me2SiCl2, 0.087 kg/kg; mass allocation (DESIGN.md D-012)"}
+    - {chemical: chlorotrimethylsilane, role: co-product, inventory_key: "product:LIGHTSP", note: "Light silanes cut, 56 wt% Me3SiCl, 29 wt% MeHSiCl2 (dichloromethylsilane) and 9 wt% methyl chloride, 0.063 kg/kg; mass allocation (D-012)"}
+    - {chemical: steam, role: co-product, inventory_key: "product:MPS", note: "MP steam 1500 kPa(a) raised in the reactor's cooling coils, 0.62 kWh/kg; allocation share 0 (D-012)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.030 kWh/kg: silicon handling, the recycle-gas compressor K-303, pumps"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPSI", note: "0.476 kWh/kg of MP steam 1500 kPa(a): the methyl chloride vaporiser and the reboilers of C-302 and C-401"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.475 kWh/kg of LP steam 450 kPa(a): the reboilers of C-402 and C-403"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.036 kWh/kg removed: the crude cooler-condenser and the column condensers"}
+basis:
+  capacity: "60 000 t/a dimethyldichlorosilane in 8000 h (7500 kg/h), ASSUMED (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic chemical site with a methyl chloride supply, a steam system and a thermal oxidiser (not chosen)
+references:
+  - {title: "US 4 500 724 A (General Electric, filed 1983-07-28, granted 1985): alkylhalosilanes from silicon and methyl chloride (copper with zinc and tin promoters, fluid bed at 250 to 350 C, silicon of at least 98 % and mean 100 to 150 um, T/D ratio and residue, Example 3 continuous fluid bed)", url: "https://patents.google.com/patent/US4500724A/en"}
+  - {title: "US 2 563 557 A (1951): Rectification of methylchlorosilanes (four columns, column 1 at about 90 psig on cooling water, example crude composition, 99.5 % Me2SiCl2 and a 90 % MeSiCl3 cut)", url: "https://patents.google.com/patent/US2563557"}
+  - {title: "EP 1 957 504 B1 (Dow Corning): separating close-boiling chlorosilanes with a distillation aid (MeSiCl3 66.1 C and Me2SiCl2 70.1 C, 200 or more stages conventionally, relative volatilities without and with distillation aids)", url: "https://patents.google.com/patent/EP1957504B1/en"}
+  - {title: "US 2017/0305939 A1: Method for the direct synthesis of methyl chlorosilanes in fluidized-bed reactors (two reactors, 200 to 450 C, 1 to 5 bar, catalyst and promoter ranges, laboratory selectivities)", url: "https://patents.google.com/patent/US20170305939A1/en"}
+  - {title: "Wikipedia, Direct process (conditions, silicon and methyl chloride conversions, typical product distribution, boiling points, world production)", url: "https://en.wikipedia.org/wiki/Direct_process"}
+  - {title: "Wikipedia, Dimethyldichlorosilane (properties, GHS hazard statements, hydrolysis, product distribution)", url: "https://en.wikipedia.org/wiki/Dimethyldichlorosilane"}
+  - {title: "NIST Chemistry WebBook, SRD 69: dichlorodimethylsilane (C75785): enthalpy of vaporisation, liquid heat capacity, boiling points (no formation enthalpy listed)", url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C75785&Mask=6"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/methylchlorosilanes-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

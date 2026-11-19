@@ -1,0 +1,15 @@
+# methylchlorosilanes-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, or links
+# an Atlas producer's dataset.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the methyl chloride to chloromethane-1, kg for kg, and
+# the MP and LP steam the plant draws, counted as heat delivered (kWh), as maleic-anhydride-1
+# counts steam. Silicon and copper stay gaps: no library process makes them (CONTRIBUTING,
+# "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MECLF": {dataset: {path: processes/chloromethane-1/lca/dataset.yaml, product: "product:MECL"}, source: "the Atlas producer chloromethane-1, liquid methyl chloride to storage, per kg, the basis of both its product and this exchange (S1, D-003, D-012)"}
+  "feed:MPSI": {use: steam-heat, source: "MP steam 1500 kPa(a) to the vaporiser E-101 (Q1) and the reboilers of C-302 (Q4) and C-401 (Q6), counted as heat delivered (kWh), D-009"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the reboilers of C-402 (Q8) and C-403 (Q10), counted as heat delivered (kWh), D-009"}

@@ -1,0 +1,28 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the sizes the balance gives (DESIGN.md D-003 to D-009). Design pressures, temperatures
+# and materials are not set yet (basic engineering). All sizes ASSUMED unless a source is named.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: V-101, type: Vessel, service: "Methyl chloride feed drum (fresh and recovered)",
+     notes: "7.2 t/h of fresh liquid methyl chloride (chloromethane-1) with 7.1 t/h recovered from C-302, about 800 kPa(a) and 302 K; methyl chloride's vapour pressure is 577 kPa at 298 K (thermo 0.6.1), a pressure vessel (D-003)."}
+  - {tag: E-101, type: TubularHeatExchanger, service: "Methyl chloride vaporiser and superheater on MP steam",
+     notes: "2019 kW (Q1): 14.3 t/h vaporised at 450 kPa(a) and superheated to 453 K on MP steam 1500 kPa(a) (D-003, D-009)."}
+  - {tag: R-201, type: Reactor, service: "Fluid-bed direct-process reactor: ground silicon with a copper catalyst (Zn, Sn promoted) fluidised by methyl chloride, internal cooling coils raising MP steam, internal cyclones",
+     notes: "573 K (SRC-1: 250 to 350 C, the examples about 300 C) and 400 kPa(a) (SRC-4: 2 to 5 bar); silicon 2.07 t/h (mean 100 to 150 um, at least 98 % Si, SRC-1) by lock hopper, copper 10.3 kg/h (0.5 wt% of the silicon, ASSUMED); about 0.94 m3/s of gas at the bed's inlet (283 kmol/h of methyl chloride at 573 K and 400 kPa(a), ideal gas), about 2 m in diameter at an ASSUMED superficial velocity of 0.3 m/s (no open source on it read); bed inventory and height not sized (no open rate per unit of contact mass read, D-004). 4636 kW (Q2, scripts/balance.py) to the cooling coils: without them the gas would leave at about 1250 K (D-005, D-010)."}
+  - {tag: CY-202, type: Separator, service: "External cyclones, dust filter and contact-mass purge",
+     notes: "The fines return to the bed (SRC-1 recycles fines of 2 to 50 um); the spent contact mass, 114 kg/h (the 5 % of the silicon not converted and the copper), and the finest dust leave to a cooled, nitrogen-blanketed hopper (D-006)."}
+  - {tag: E-301, type: TubularHeatExchanger, service: "Crude gas cooler-condenser on cooling water, with a hot scrubber for the last dust",
+     notes: "1820 kW (Q3): 16.3 t/h of crude gas from 573 to 313 K at 380 kPa(a); the silanes condense, the methyl chloride and hydrocarbons stay in the gas (D-007)."}
+  - {tag: V-302, type: Vessel, service: "Crude separator after E-301",
+     notes: "Separates the condensed crude (9.0 t/h, pumped into C-302) from the methyl chloride gas (7.3 t/h to K-303), D-007."}
+  - {tag: K-303, type: CentrifugalCompressor, service: "Methyl chloride recycle-gas compressor into C-302",
+     notes: "7.3 t/h from 380 to 760 kPa(a), 104.5 kW shaft at an isentropic efficiency of 0.75, outlet 374 K (ASSUMED, scripts/balance.py, D-007)."}
+  - {tag: C-302, type: ProcessColumn, service: "Methyl chloride column at 722 kPa(a)",
+     notes: "About 90 psig so that the methyl chloride condenses on cooling water (SRC-2, US 2 563 557, column 1): condenser at 306 K (Q5 1437 kW at reflux 1.0, ASSUMED), reboiler on MP steam at about 422 K (Q4 1007 kW); the methyl chloride back to V-101, the hydrocarbons vented from the reflux drum to the site thermal oxidiser with 0.4 % of the methyl chloride (D-007)."}
+  - {tag: C-401, type: ProcessColumn, service: "Heavies column",
+     notes: "200 kPa(a) at the top (ASSUMED); the residue boiling above 70 C at the bottom (416 kg/h, SRC-2's column 2), the rest overhead; reflux 0.5 (ASSUMED); reboiler on MP steam at about 456 K (Q6 542 kW), condenser and residue cooler on cooling water (Q7 773 kW) (D-008)."}
+  - {tag: C-402, type: ProcessColumn, service: "Lights column",
+     notes: "200 kPa(a); Me3SiCl, MeHSiCl2 and the dissolved methyl chloride overhead as the light silanes cut (470 kg/h, SRC-2's column 3); reflux 15 (ASSUMED); reboiler on LP steam (Q8 481 kW), condenser on cooling water (Q9 494 kW) (D-008)."}
+  - {tag: C-403, type: ProcessColumn, service: "MeSiCl3/Me2SiCl2 superfractionator, two shells in series",
+     notes: "200 kPa(a); relative volatility 1.17 (SRC-3, EP 1 957 504 B1, Example 2); 93 theoretical stages for SRC-2's cuts (Fenske 47.8 minimum, Gilliland after Eduljee at 1.2 times Underwood's minimum reflux of 78, scripts/balance.py); SRC-3 states 200 or more stages for a commercial split. Reflux 93.6, boil-up 419 kmol/h; reboilers on LP steam (Q10 3078 kW), condenser on cooling water (Q11 3246 kW); overhead 650 kg/h of an 89 wt% MeSiCl3 cut, bottoms 7500 kg/h of 99.5 wt% Me2SiCl2 (D-008)."}
