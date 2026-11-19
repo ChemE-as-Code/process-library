@@ -1,0 +1,55 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the duties of scripts/energy_balance.py and the flows of the propagated flowsheet.
+# Design pressures, temperatures, materials and sizes are not set (basic engineering); the
+# materials named are the usual service choices to be confirmed (open input, DESIGN.md D-012).
+# The "black end" (chlorination to TiCl4 storage) and the oxidation train handle chlorine and
+# TiCl4 and are totally enclosed (BREF LVIC-S 3.2.2.1).
+schema: cheme/equipment/v1
+equipment:
+  # ---- chlorination (block CHLOR)
+  - {tag: M-101, type: StaticMixer, service: Make-up and recycle chlorine mixer,
+     notes: "1.6 t/h make-up chlorine (chlor-alkali-1) and 23 t/h recycle gas from F-201 (Cl2 with the oxidiser's O2 excess) to the bed at 180 kPa(a), 416 K (D-006)."}
+  - {tag: R-101, type: Reactor, service: "Fluidised-bed chlorinator (1273 K)",
+     notes: "15.2 t/h feedstock and 3.9 t/h calcined petroleum coke fluidised by the chlorine at 1273 K (BREF LVIC-S 3.2.2.2); refractory-lined steel shell; the bed's surplus heat, about 1.0 MW, is lost through the shell (scripts/energy_balance.py, D-004). Bed purge and annual bed replacement (BREF) not modelled. Not sized."}
+  - {tag: E-101, type: Quench, service: Chlorinator gas spray cooler (cold TiCl4),
+     notes: "1273 -> 473 K, 7.0 MW, rejected through the circulating TiCl4 cooler to cooling water (D-006)."}
+  - {tag: S-101, type: Cyclone, service: Blow-over and metal chloride cyclone,
+     notes: "Unreacted ore and coke, silica and the condensed FeCl2 (99.5 % of the solids) to the neutraliser R-401 through a lock hopper (D-006)."}
+  # ---- condensation (block COND)
+  - {tag: E-102, type: TubularHeatExchanger, service: TiCl4 condenser (cooling water),
+     notes: "473 -> 308 K, 2.9 MW; 96 % of the TiCl4 condensed by Raoult's law (D-006)."}
+  - {tag: E-103, type: TubularHeatExchanger, service: TiCl4 after-condenser (brine) and cold TiCl4 jet scrubber,
+     notes: "308 -> 263 K, 0.46 MW to brine at 243 K (D-006)."}
+  - {tag: V-101, type: Vessel, service: Crude TiCl4 separator,
+     notes: "Crude TiCl4 with the fines to T-101; the CO/CO2 off-gas (0.3 % of the TiCl4) to T-301 (D-006)."}
+  # ---- purification (block PURIF)
+  - {tag: T-101, type: Column, service: TiCl4 still (oil added for the vanadium oxychloride),
+     notes: "Atmospheric, reflux ratio 1.0 ASSUMED; reboiler 4.1 MW on HP steam, condenser 3.1 MW; bottoms sludge (1 % of the TiCl4, the fines) to R-401 (BREF LVIC-S 3.2.2.7-3.2.2.8; D-006). Mineral oil about 5 kg/t TiO2 (BREF Table 3.12) is an LCA consumable, not a stream."}
+  # ---- oxidation (block OXID)
+  - {tag: E-201, type: TubularHeatExchanger, service: TiCl4 vaporiser (HP steam),
+     notes: "409.6 -> 493 K at 280 kPa(a), 1.9 MW on HP steam 4000 kPa(a) (D-007)."}
+  - {tag: E-202, type: Furnace, service: TiCl4 superheater (fired),
+     notes: "493 -> 723 K, 1.05 MW absorbed, natural gas fired; nickel-alloy coil to be confirmed (D-007)."}
+  - {tag: E-203, type: Furnace, service: Oxygen preheater (fired),
+     notes: "298 -> 1273 K, 1.6 MW absorbed (D-007)."}
+  - {tag: R-201, type: Reactor, service: TiCl4 oxidiser,
+     notes: "TiCl4 + O2 at 250 kPa(a), 15 % O2 excess, adiabatic outlet 1997 K (scripts/energy_balance.py; BREF LVIC-S 3.2.2.9: 900-2000 C). Nucleating light-metal chlorides (AlCl3) and scouring solids not modelled (L-3)."}
+  - {tag: E-204, type: TubularHeatExchanger, service: "Oxidiser product cooler (water-cooled flue, scoured with sand or salt)",
+     notes: "1997 -> 423 K, 10.6 MW to cooling water (BREF LVIC-S 3.2.2.10; D-007)."}
+  - {tag: F-201, type: Filter, service: Pigment bag filter,
+     notes: "12.5 t/h TiO2 to finishing; the chlorine and O2 excess returned directly to M-101 (BREF LVIC-S 3.2.2.12; D-007)."}
+  # ---- off-gas (block OFFGAS)
+  - {tag: T-301, type: Column, service: Off-gas scrubber (water stage and caustic stage),
+     notes: "TiCl4 traces hydrolysed, HCl and the chlorine slip absorbed in caustic (BREF LVIC-S 3.2.2.14; D-008)."}
+  - {tag: K-301, type: Fan, service: Combustion air fan,
+     notes: "46 t/h air for X-301 (scripts/energy_balance.py, D-009). Power within the BREF lump (P1)."}
+  - {tag: X-301, type: Furnace, service: Thermal oxidiser (CO to CO2),
+     notes: "Burns the CO-rich scrubbed off-gas without support fuel, adiabatic outlet 1123 K, 99.9 % CO destruction (D-009). No waste-heat boiler in the design case (open, D-009)."}
+  # ---- waste (block WASTE)
+  - {tag: M-401, type: Tank, service: Lime slaker,
+     notes: "1.04 t/h quicklime slaked to a 20 wt% slurry (D-010)."}
+  - {tag: R-401, type: Tank, service: Neutralisation tank (agitated),
+     notes: "Blow-over solids, still sludge and scrubber liquor neutralised with lime, metals precipitated as hydroxides (BREF LVIC-S 3.2.2.15; D-010)."}
+  - {tag: F-401, type: Filter, service: Filter press,
+     notes: "Cake to landfill, filtrate to the outfall (D-010)."}

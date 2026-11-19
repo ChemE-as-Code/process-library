@@ -1,0 +1,127 @@
+# Components and templates of titanium-dioxide-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Chloride route (DESIGN.md D-001). Gas data printed by `cheme chemistry thermo --fit
+# 298.15,1800` (chemicals 1.5.2 / thermo 0.6.1: formation data ATcT and CRC, Cp fitted to the
+# packages' TRCIG, JANAF and HEOS sets), single facts with their package and method (library ADR
+# 0037). Solids are separate components (`phase: solid`) without ideal-gas data: core has no
+# condensed-phase enthalpy in a flowsheet step, so the duties come from scripts/energy_balance.py
+# (DESIGN.md L-1). Lumps (D-003): FeO stands for every chlorinatable oxide impurity of the
+# feedstock (Fe, Mn, Mg, Al, V oxides), SiO2 for the non-chlorinating inerts (silica, zircon),
+# C for the fixed carbon of the calcined petroleum coke (its sulfur, ash and volatiles are not
+# modelled). The scrubber and neutraliser species are dissolved pseudo-components.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: TIO2, name: Titanium dioxide (rutile), formula: TiO2, cas: 1317-80-2, molar_mass: 79.866, phase: solid}
+  - {id: FEO, name: Chlorinatable oxide impurities (lumped as iron(II) oxide), formula: FeO, cas: 1345-25-1, molar_mass: 71.844, phase: solid}
+  - {id: SIO2, name: Non-chlorinating inerts (lumped as silica), formula: SiO2, cas: 14808-60-7, molar_mass: 60.083, phase: solid}
+  - {id: C, name: Carbon (fixed carbon of the calcined petroleum coke), formula: C, cas: 7440-44-0, molar_mass: 12.011, phase: solid}
+  - {id: FECL2, name: Iron(II) chloride (metal chlorides lumped), formula: FeCl2, cas: 7758-94-3, molar_mass: 126.750, phase: solid}
+  - {id: CAO, name: Calcium oxide (lime), formula: CaO, cas: 1305-78-8, molar_mass: 56.077, phase: solid}
+  - {id: FEOH2, name: Iron(II) hydroxide (precipitated metal hydroxides lumped), formula: Fe(OH)2, cas: 18624-44-7, molar_mass: 89.859, phase: solid}
+  - id: TICL4
+    name: Titanium tetrachloride
+    formula: TiCl4
+    cas: 7550-45-0
+    molar_mass: 189.678
+    normal_boiling_point: 409.6
+    critical: {Tc: 638.0, Pc: 4660.95, omega: 0.2837, source: "chemicals 1.5.2: Tc MATTHEWS, Pc MATTHEWS, omega YAWS"}
+    ideal_gas: {dHf_298: -763200.0, S_298: 353.2, cp_R: [9.05105, 0.0123108, -1.50947e-05, 8.21561e-09, -1.64833e-12], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 CRC, S_298 CRC, cp_R fitted to thermo 0.6.1 JANAF 298.15-1800 K (max deviation 0.74 %); Tb CRC"}
+  - id: CL2
+    name: Chlorine
+    formula: Cl2
+    cas: 7782-50-5
+    molar_mass: 70.906
+    normal_boiling_point: 239.11
+    critical: {Tc: 416.865, Pc: 7642.4, omega: 0.07, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 223.1, cp_R: [3.39657, 0.00335642, -3.90405e-06, 2.04835e-09, -3.94367e-13], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 0.6.1 TRCIG 298.15-1800 K (max deviation 0.43 %)"}
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.999
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.15406, 0.00108226, 6.0199e-07, -8.98583e-10, 2.55812e-13], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 0.6.1 HEOS_FIT 298.15-1800 K (max deviation 0.70 %)"}
+  - id: CO
+    name: Carbon monoxide
+    formula: CO
+    cas: 630-08-0
+    molar_mass: 28.010
+    normal_boiling_point: 81.6
+    critical: {Tc: 132.86, Pc: 3494.0, omega: 0.0497, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -110525.0, S_298: 197.7, cp_R: [3.6354, -0.00130094, 3.42893e-06, -2.26233e-09, 4.874e-13], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 0.6.1 TRCIG 298.15-1800 K (max deviation 0.24 %)"}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.010
+    normal_boiling_point: 194.67
+    critical: {Tc: 304.128, Pc: 7377.3, omega: 0.22394, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [2.4374, 0.00868584, -6.98247e-06, 2.8678e-09, -4.76414e-13], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 0.6.1 HEOS_FIT 298.15-1800 K (max deviation 0.26 %)"}
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.71178, -0.00158835, 3.57659e-06, -2.23254e-09, 4.63739e-13], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 0.6.1 HEOS_FIT 298.15-1800 K (max deviation 0.17 %)"}
+  - id: AR
+    name: Argon
+    formula: Ar
+    cas: 7440-37-1
+    molar_mass: 39.948
+    normal_boiling_point: 87.30
+    critical: {Tc: 150.687, Pc: 4863.0, omega: -0.00219, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 154.8, cp_R: [2.50001, 0.0, 0.0, 0.0, 0.0], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC; monatomic ideal gas"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [3.9526, -0.000331674, 2.35862e-06, -1.20951e-09, 1.943e-13], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 0.6.1 HEOS_FIT 298.15-1800 K (max deviation 0.17 %)"}
+  - id: HCL
+    name: Hydrogen chloride
+    formula: HCl
+    cas: 7647-01-0
+    molar_mass: 36.461
+    normal_boiling_point: 188.15
+    critical: {Tc: 324.68, Pc: 8313.5, omega: 0.129, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.74664, -0.00146453, 2.66432e-06, -1.39061e-09, 2.46405e-13], temperature_range: [298.15, 1800], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo 0.6.1 TRCIG 298.15-1800 K (max deviation 0.20 %)"}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997}
+  - {id: NACL, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.443}
+  - {id: NAOCL, name: Sodium hypochlorite (dissolved), formula: NaOCl, cas: 7681-52-9, molar_mass: 74.442}
+  - {id: CACL2, name: Calcium chloride (dissolved), formula: CaCl2, cas: 10043-52-4, molar_mass: 110.984}
+templates:
+  - {id: ore, title: Chloride-grade titanium feedstock (slag and synthetic rutile blend), components: [TIO2, FEO, SIO2]}
+  - {id: coke, title: Calcined petroleum coke (fixed carbon), components: [C]}
+  - {id: chlorine, title: Chlorine gas, components: [CL2, O2]}
+  - {id: oxygen, title: Gaseous oxygen, components: [O2, AR]}
+  - {id: recycle, title: Chlorine recycle gas, components: [TIO2, TICL4, CL2, O2, AR]}
+  - {id: chlorinator, title: Chlorinator gas and solids, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR]}
+  - {id: blowover, title: Blow-over solids and metal chlorides, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR]}
+  - {id: ticl4, title: Titanium tetrachloride, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR]}
+  - {id: offgas, title: Condenser off-gas, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR]}
+  - {id: oxidiser, title: Oxidiser gas and pigment, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR]}
+  - {id: product, title: Raw titanium dioxide, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR]}
+  - {id: caustic, title: Caustic soda solution, components: [H2O, NAOH]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: scrub, title: Scrubber contents, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR, H2O, HCL, NAOH, NACL, NAOCL]}
+  - {id: vent, title: Scrubbed CO-rich off-gas, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR, H2O, HCL, NAOH, NACL, NAOCL]}
+  - {id: liquor, title: Spent scrubber liquor, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, AR, H2O, HCL, NAOH, NACL, NAOCL]}
+  - {id: air, title: Dry air, components: [O2, N2, AR]}
+  - {id: flue, title: Oxidiser flue gas, components: [TIO2, FEO, SIO2, C, FECL2, TICL4, CL2, O2, CO, CO2, N2, AR, H2O, HCL, NAOH, NACL, NAOCL]}
+  - {id: lime, title: Lime slurry, components: [CAO, H2O]}
+  - {id: slurry, title: Neutralised waste slurry, components: [TIO2, FEO, SIO2, C, FECL2, CAO, FEOH2, TICL4, CL2, O2, CO, CO2, AR, H2O, HCL, NAOH, NACL, NAOCL, CACL2]}
+  - {id: cake, title: Neutralised filter cake to landfill, components: [TIO2, FEO, SIO2, C, FECL2, CAO, FEOH2, TICL4, CL2, O2, CO, CO2, AR, H2O, HCL, NAOH, NACL, NAOCL, CACL2]}
+  - {id: effluent, title: Neutralised filtrate, components: [TIO2, FEO, SIO2, C, FECL2, CAO, FEOH2, TICL4, CL2, O2, CO, CO2, AR, H2O, HCL, NAOH, NACL, NAOCL, CACL2]}
+# No benchmarked property package covers the solids, TiCl4 or the hot chlorinator gas (cheme
+# process props --coverage): the duties come from scripts/energy_balance.py (DESIGN.md L-1).
+property_method:
+  adapter: thermo
+  status: placeholder

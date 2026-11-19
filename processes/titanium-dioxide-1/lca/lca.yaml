@@ -1,0 +1,156 @@
+# Goal and scope of the titanium-dioxide-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-013): every exchange of the plant
+# with its amount per kg of raw TiO2, from the balanced flowsheet. The backgrounds are left
+# unmapped (`missing:` with the activity each should connect to) except where lca/mappings.yaml
+# links a library producer (chlorine and caustic from chlor-alkali-1, oxygen from asu-1, lime
+# from lime-1) or a shared entry (power, steam heat, fired heat, cooling water, water): a gap,
+# never zero, and no values from licensed databases. The titanium feedstock and the petroleum
+# coke have no library producer: their gaps name what they should connect to.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of raw rutile titanium dioxide made by the
+  chloride process (carbochlorination of a slag and synthetic rutile blend, TiCl4 purification,
+  oxidation with oxygen and direct chlorine recycle) at the concept stage: which raw materials,
+  utilities, wastes and emissions the plant exchanges per kg of raw TiO2, as the foreground for
+  a later cradle-to-gate study. The finishing plant (coating, drying, micronising) is outside
+  the boundary (D-002).
+functional_unit: {product: TIO2P, amount: 1, unit: kg, source: "1 kg of raw rutile TiO2 from the bag filter to the finishing plant, stream S21 (D-002, D-013)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as phosgene-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Chloride process: fluidised-bed carbochlorination at 1273 K of an 88 wt% TiO2 slag and synthetic rutile blend with calcined petroleum coke, quench and cyclone for the blow-over and metal chlorides, TiCl4 condensation (cooling water, brine) and distillation, TiCl4 oxidation with 15 % excess oxygen preheated in fired heaters (adiabatic outlet about 2000 K), bag filter and direct chlorine recycle; off-gas scrubbed with water and caustic and its CO burnt in a thermal oxidiser; blow-over, still sludge and scrubber liquor neutralised with lime and filtered; 100 kt/a raw TiO2 at 8000 h"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:ORE
+    missing: "not mapped yet (D-013); no library process makes it. Connect to: chloride-grade titanium feedstock, a blend of titanium slag (ilmenite smelted with anthracite in an electric furnace, the iron recovered as pig iron) and synthetic rutile (ilmenite reduced and the iron leached), at about 88 wt% TiO2, per kg, with its transport from outside Europe (BREF LVIC-S 3.2.2.1); the upgrading is the main upstream burden of the chloride route"
+    source: "flowsheet stream S1 (D-003)"
+  - key: feed:COKE
+    missing: "not mapped yet (D-013); connect to: calcined petroleum coke, granular, from a refinery coker and a rotary calciner, per kg; the registry slug petroleum-coke has no shared technosphere entry yet, and metallurgical coke would be a doubtful proxy"
+    source: "flowsheet stream S2 (D-005)"
+  - key: feed:CL2
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): dry chlorine gas"
+    source: "flowsheet stream S3 (D-006)"
+  - key: feed:OXY
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): GOX"
+    source: "flowsheet stream S17 (D-007)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt%"
+    source: "flowsheet stream S30 (D-008)"
+  - key: feed:LIME
+    missing: "linked to processes/lime-1 (lca/mappings.yaml): quicklime counted as CaO"
+    source: "flowsheet stream S40 (D-010)"
+  - key: feed:PW
+    missing: "linked through the registry slug water (deionised water background) in lca/mappings.yaml; process water would do"
+    source: "flowsheet stream S31 (D-008)"
+  - key: feed:PWL
+    missing: "linked through the registry slug water in lca/mappings.yaml"
+    source: "flowsheet stream S41 (D-010)"
+  - {key: feed:AIR, free: true, source: "combustion air for the thermal oxidiser: a resource taken from nature without burden (O2 consumed, N2/Ar returned)"}
+  # utilities
+  - key: feed:POWER
+    missing: "linked through the registry slug electricity (medium voltage, the site's grid) in lca/mappings.yaml"
+    source: "flowsheet energy streams P1 and P2: BREF LVIC-S Table 3.16 site averages (D-011)"
+  - key: feed:HPS
+    missing: "linked as heat from steam (lca/mappings.yaml, steam-heat); connect to: HP steam 4000 kPa(a) from a natural-gas-fired site boiler, per kWh of condensing heat"
+    source: "flowsheet energy streams Q5 (still reboiler) and Q7 (TiCl4 vaporiser), scripts/energy_balance.py (D-011)"
+  - key: feed:FUEL
+    missing: "linked as fired heat from natural gas (lca/mappings.yaml, heat-natural-gas), counted as the heat absorbed"
+    source: "flowsheet energy streams Q8 and Q9 (fired preheaters), scripts/energy_balance.py (D-007)"
+  - key: product:CW
+    missing: "linked through the registry slug cooling-water (processes/utility-cooling-tower with prefer_atlas) in lca/mappings.yaml"
+    source: "flowsheet energy streams Q2, Q3, Q6 and Q10, scripts/energy_balance.py (D-011)"
+  - key: product:BRINE
+    missing: "not mapped yet (D-013); connect to: refrigeration at 243 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller at a lower level), per kWh of heat removed"
+    source: "flowsheet energy stream Q4 (after-condenser E-103), scripts/energy_balance.py"
+  - {key: product:AMB, free: true, source: "heat lost from the chlorinator shell to the surroundings (Q1): no utility, no burden"}
+  # wastes
+  - key: product:CAKE
+    treatment: {kind: waste, route: "landfill of the neutralised filter cake (unreacted ore and coke, silica, metal hydroxides, excess lime and retained liquor), as BREF LVIC-S 3.2.2.15 describes"}
+    missing: "not mapped yet (D-013); connect to: landfill of a neutralised metal-hydroxide residue with coke, per kg (residual-material or hazardous-waste landfill depending on the leachable metals; not decided)"
+    source: "flowsheet stream S44 (D-010)"
+  - key: product:EFF
+    treatment: {kind: waste, route: "discharge of the neutralised filtrate (CaCl2, NaCl, traces of hypochlorite) after settling, as BREF LVIC-S 3.2.2.15 describes"}
+    missing: "not mapped yet (D-013); connect to: treatment and discharge of a saline neutral effluent (CaCl2, NaCl) to surface water or sea, per kg"
+    source: "flowsheet stream S45 (D-010)"
+  # emissions: the thermal oxidiser flue gas to the stack
+  - {key: product:STACK, emission: true, source: "thermal oxidiser flue gas to atmosphere through the stack, stream S37 (D-009)"}
+  # Components that the flowsheet carries at zero in S37 (the propagated composition lists every
+  # component of its inlets, DESIGN.md L-2): zero-amount exchanges, given their compartment only
+  # (free emissions need a shared pass-through decision, which these do not merit).
+  - {key: emission:C, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37 (template completeness): a zero-amount exchange, no emission"}
+  - {key: emission:FECL2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37 (template completeness): a zero-amount exchange, no emission"}
+  - {key: emission:FEO, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37 (template completeness): a zero-amount exchange, no emission"}
+  - {key: emission:SIO2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37 (template completeness): a zero-amount exchange, no emission"}
+  - {key: emission:TIO2, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37 (template completeness): a zero-amount exchange, no emission"}
+  - {key: emission:TICL4, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37: the TiCl4 of the off-gas is hydrolysed in the scrubber; a zero-amount exchange"}
+  - {key: emission:NACL, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37 (template completeness): a zero-amount exchange, no emission"}
+  - {key: emission:NAOCL, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37 (template completeness): a zero-amount exchange, no emission"}
+  - {key: emission:NAOH, elementary: {compartment: air, subcompartment: non-urban-high-stack}, source: "zero in S37 (template completeness): a zero-amount exchange, no emission"}
+  - {key: emission:H2O, free: true, source: "zero in S37: the water saturation of the scrubbed gas is not modelled (L-3)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 of the combustion air returned"}
+  - {key: emission:O2, free: true, source: "excess atmospheric O2 of the combustion air returned"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned, with the argon of the GOX"}
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 of the coke carbon burnt in the chlorinator and of the CO burnt in the thermal oxidiser (petroleum coke: fossil), stream S37"
+  - key: emission:CO
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "CO not destroyed in the thermal oxidiser: 0.1 % (99.9 % destruction ASSUMED, D-009), stream S37"
+  - key: emission:CL2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "chlorine slip of the caustic scrubber (0.01 %, ASSUMED, D-008), stream S37"
+  - key: emission:HCL
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "HCl slip of the scrubber (0.01 % of the HCl, ASSUMED, D-008), stream S37"
+# What the plant uses and the flowsheet does not carry: the oil that complexes the vanadium in
+# the still and the abrasive solids that scour the oxidiser product cooler (both separated and
+# sent to the solid waste, not modelled as streams), at the BREF LVIC-S means per t of TiO2.
+consumables:
+  - id: still-oil
+    title: Mineral oil for the vanadium removal in the TiCl4 still
+    unit: kg
+    per_year: 500000
+    source: "BREF LVIC-S Table 3.12: mean 5 kg per t of TiO2 pigment (range 2-10), x 100 000 t/a (D-006)"
+    missing: "not mapped yet (D-013); connect to: mineral or vegetable oil, per kg (the registry's white-mineral-oil has no shared technosphere entry)"
+    disposal: {kind: waste, route: "with the still sludge to the neutraliser and the filter cake to landfill (BREF LVIC-S 3.2.2.8: the oil complex is separated as a sludge)", missing: "not mapped yet (D-013): landfill with the filter cake", source: "the oil leaves with the still bottoms (D-006, D-010)"}
+  - id: scouring-sand
+    title: Silica sand to scour the oxidiser product cooler
+    unit: kg
+    per_year: 4900000
+    source: "BREF LVIC-S Table 3.14: mean 49 kg per t of TiO2 pigment (range 26-73), x 100 000 t/a (D-007)"
+    missing: "not mapped yet (D-013); connect to: silica sand, per kg"
+    disposal: {kind: waste, route: "landfill after the lock hoppers or sand screens (BREF LVIC-S 3.2.2.15)", missing: "not mapped yet (D-013): landfill of inert sand", source: "BREF LVIC-S 3.2.2.15: separated through lock hoppers or sand screens and sent to landfill, or re-used; landfill taken"}
+  - id: scouring-salt
+    title: Rock salt to scour the oxidiser product cooler
+    unit: kg
+    per_year: 1600000
+    source: "BREF LVIC-S Table 3.14: mean 16 kg per t of TiO2 pigment (range 7-29), x 100 000 t/a (D-007)"
+    missing: "linked to the shared entry sodium-chloride (lca/mappings.yaml)"
+    disposal: {kind: waste, route: "dissolved in the scrubber and neutraliser water and discharged with the filtrate", missing: "not mapped yet (D-013): discharge of dissolved NaCl", source: "ASSUMED: the salt dissolves where it is separated and leaves with the effluent"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED"
+emission_exclusions:
+  - {id: cos-so2, method: combustion, equipment: [R-101, X-301], reason: "The coke's sulfur (0.8-1.8 wt%, BREF LVIC-S 3.2.3.4.2) leaves as COS, burnt to SO2 in the thermal oxidiser: not modelled (the coke is carried as carbon only, L-3). BREF LVIC-S Table 3.19 reports 2.39 kg COS and 1.14 kg SO2 per t from chlorination (1999 averages): open for the next stage."}
+  - {id: oxidiser-nox, method: combustion, equipment: [X-301, E-202, E-203], reason: "NOx of the thermal oxidiser and of the fired preheaters not estimated (BREF LVIC-S Table 3.19: 0.10 kg NOx per t from chlorination, 1999 average); the fired heaters' combustion emissions are in the background of the fired-heat entry."}
+  - {id: dust, method: equipment-leaks, equipment: [F-201, S-101], reason: "Dust from raw material handling and from the pigment filters (BREF LVIC-S Tables 3.18 and 3.23: 0.002 and 0.158 kg per t, 1999 averages) not in the balance: no P&ID or abatement design yet."}
+  - {id: waste-tanks, method: storage-tank, equipment: [M-401, R-401], reason: "The lime slaker and the neutralisation tank are open aqueous tanks at 313-323 K holding no volatile component in the balance (the TiCl4 and HCl are neutralised); their vapour is water: negligible."}
+  - {id: fugitive-chlorine, method: equipment-leaks, reason: "No P&ID yet: fugitive chlorine, TiCl4 and CO from flanges, valves and seals cannot be counted; the black end is totally enclosed (BREF LVIC-S 3.2.2.1). Open for basic engineering."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic site with chlorine, oxygen and lime supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #463, unreviewed"

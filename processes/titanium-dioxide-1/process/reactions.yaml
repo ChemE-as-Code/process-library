@@ -1,0 +1,92 @@
+# Reactions of titanium-dioxide-1 (chloride route, DESIGN.md D-001). Schema: `cheme schema
+# process-reactions`. Conversions are design inputs (a conversion model, not kinetics; ASSUMED
+# unless stated, DESIGN.md D-004..D-009). Heats of reaction at 298.15 K from formation enthalpies
+# of the chemicals 1.5.2 package (single facts, library ADR 0037): rutile -944.0 kJ/mol (CRC,
+# CAS 1317-80-2), FeO(s) -272.0 (CRC), FeCl2(s) -341.8 (CRC), CaO(s) -634.9 (CRC), CaCl2(s)
+# -795.4 (CRC), Fe(OH)2(s) -574.04 (WEBBOOK), TiCl4(g) -763.2 (CRC), the gases as in
+# materials.yaml; the solid-phase values are not in materials.yaml (L-1), so the heats are given
+# here and scripts/energy_balance.py prints them as a cross-check.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # --- R-101 fluidised-bed chlorinator, 1273 K ---------------------------------------------------
+  - id: CHLOR
+    equation: TiO2 + 2 Cl2 + 3/2 C -> TiCl4 + CO + 1/2 CO2
+    stoichiometry: {TIO2: -1.0, CL2: -2.0, C: -1.5, TICL4: 1.0, CO: 1.0, CO2: 0.5}
+    reversible: false
+    conversion:
+      key: TIO2
+      value: 0.95
+      provenance: assumed
+      source: >-
+        D-004: 95 % of the TiO2 entering the bed chlorinated per pass, the rest blown over with
+        the fines and the bed purge; set so that the TiO2 in the feedstock per t of product
+        (1.06 t) lies near the BREF LVIC-S mean of 1075 kg/t (Table 3.8, range 975-1145)
+    heat_of_reaction: {value: -126462.0, provenance: given, source: "formation enthalpies above (chemicals 1.5.2), 298.15 K, TiCl4 gas, rutile and graphite solid; scripts/energy_balance.py"}
+    sources:
+      - "European Commission JRC (2007) BREF LVIC-S, section 3.2.2.2 (p. 110): the primary reaction 2 TiO2 + 4 Cl2 + 3 C -> 2 TiCl4 + 2 CO + CO2 in a fluidised bed at 1000 C, written here per mol TiO2"
+  - id: FECL
+    equation: FeO + Cl2 + C -> FeCl2 + CO
+    stoichiometry: {FEO: -1.0, CL2: -1.0, C: -1.0, FECL2: 1.0, CO: 1.0}
+    reversible: false
+    conversion: {key: FEO, value: 1.0, provenance: assumed, source: "D-004: the chlorinatable impurities are chlorinated completely (BREF LVIC-S 3.2.2.2: impurities such as iron oxide react in a similar manner; the variation of the chlorine usage is a direct function of the impurities, 3.2.3.2.1)"}
+    heat_of_reaction: {value: -180325.0, provenance: given, source: "formation enthalpies above (chemicals 1.5.2), 298.15 K, FeO and FeCl2 solid"}
+    sources: ["BREF LVIC-S section 3.2.2.2 (p. 110): FeO + Cl2 + C -> FeCl2 + CO"]
+  - id: CBURN
+    equation: C + O2 -> CO2
+    stoichiometry: {C: -1.0, O2: -1.0, CO2: 1.0}
+    reversible: false
+    conversion: {key: O2, value: 1.0, provenance: assumed, source: "D-005: the oxygen that enters the bed with the chlorine (the oxidiser's excess in the recycle gas, the make-up chlorine's O2) burns coke completely at 1273 K; burnt to CO2 (ASSUMED, a CO share not resolved)"}
+    heat_of_reaction: {value: -393474.0, provenance: given, source: "formation enthalpy of CO2 (ATcT, materials.yaml), graphite reference"}
+  # --- R-201 oxidiser ----------------------------------------------------------------------------
+  - id: OXID
+    equation: TiCl4 + O2 -> TiO2 + 2 Cl2
+    stoichiometry: {TICL4: -1.0, O2: -1.0, TIO2: 1.0, CL2: 2.0}
+    reversible: false
+    conversion:
+      key: TICL4
+      value: 0.998
+      provenance: assumed
+      source: "D-007: 99.8 % per pass; the TiCl4 not oxidised returns with the chlorine to the chlorinator and is condensed again (no loss)"
+    heat_of_reaction: {value: -180800.0, provenance: given, source: "formation enthalpies above (chemicals 1.5.2), 298.15 K, TiCl4 gas, rutile solid"}
+    sources: ["BREF LVIC-S section 3.2.2.9 (p. 111): TiCl4 + O2 -> TiO2 + 2 Cl2, 900-2000 C, preheated TiCl4 and oxygen, plasma or toluene-fired furnace"]
+  # --- R-301 off-gas scrubber (water, then caustic) ----------------------------------------------
+  - id: HYD_NAOH
+    equation: TiCl4 + 4 NaOH -> TiO2 + 4 NaCl + 2 H2O
+    stoichiometry: {TICL4: -1.0, NAOH: -4.0, TIO2: 1.0, NACL: 4.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: TICL4, value: 1.0, provenance: assumed, source: "D-008: the TiCl4 left in the off-gas hydrolyses completely (TiCl4 + 2 H2O -> TiO2 + 4 HCl) and its HCl is neutralised in the same liquor; written as one reaction so that the conversion model neutralises the HCl it forms"}
+    sources: ["BREF LVIC-S section 3.2.2.14 (p. 112): aqueous scrubbers absorb the HCl and the TiCl4 of the chlorination off-gas, caustic scrubbing removes the chlorine"]
+  - id: CL2_NAOH
+    equation: Cl2 + 2 NaOH -> NaCl + NaOCl + H2O
+    stoichiometry: {CL2: -1.0, NAOH: -2.0, NACL: 1.0, NAOCL: 1.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: CL2, value: 0.9999, provenance: assumed, source: "D-008: chlorine slip absorbed in caustic (BREF LVIC-S 3.2.2.14: caustic scrubbing removes the chlorine; hypochlorite formed)"}
+  - id: HCL_NAOH
+    equation: HCl + NaOH -> NaCl + H2O
+    stoichiometry: {HCL: -1.0, NAOH: -1.0, NACL: 1.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: HCL, value: 0.9999, provenance: assumed, source: "D-008: the HCl of the hydrolysed TiCl4 neutralised in the same liquor"}
+  # --- X-301 thermal oxidiser --------------------------------------------------------------------
+  - id: CO_COMB
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    reversible: false
+    conversion: {key: CO, value: 0.999, provenance: assumed, source: "D-009: CO destruction in the thermal oxidiser (BREF LVIC-S 3.2.3.4.2: all sites now have thermal oxidisers for CO and COS)"}
+    heat_of_reaction: {value: -282949.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  # --- R-401 neutraliser of the solid wastes -----------------------------------------------------
+  - id: FECL_LIME
+    equation: FeCl2 + CaO + H2O -> Fe(OH)2 + CaCl2
+    stoichiometry: {FECL2: -1.0, CAO: -1.0, H2O: -1.0, FEOH2: 1.0, CACL2: 1.0}
+    reversible: false
+    conversion: {key: FECL2, value: 1.0, provenance: assumed, source: "D-010: the metal chlorides precipitated as hydroxides with lime (BREF LVIC-S 3.2.2.4 and 3.2.2.15: neutralised in a chalk or lime slurry, the metals precipitated)"}
+  - id: HYD_LIME
+    equation: TiCl4 + 2 CaO -> TiO2 + 2 CaCl2
+    stoichiometry: {TICL4: -1.0, CAO: -2.0, TIO2: 1.0, CACL2: 2.0}
+    reversible: false
+    conversion: {key: TICL4, value: 1.0, provenance: assumed, source: "D-010: the TiCl4 on the blow-over and in the still sludge hydrolyses in the slurry and its HCl is neutralised with lime; written as one reaction (hydrolysis plus neutralisation) for the conversion model"}
+  - id: HCL_LIME
+    equation: 2 HCl + CaO -> CaCl2 + H2O
+    stoichiometry: {HCL: -2.0, CAO: -1.0, CACL2: 1.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: HCL, value: 1.0, provenance: assumed, source: "D-010: the acid of the hydrolysed TiCl4 neutralised with lime"}
