@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 132 public process folders: 92 engineering projects (a `plant.yaml` with a process
+The table lists 133 public process folders: 93 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -49,6 +49,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`alumina-1`](processes/alumina-1/) | Alumina by the Bayer process (3000 t/d smelter-grade alumina, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`aluminium-1`](processes/aluminium-1/) | Primary aluminium by Hall-Heroult electrolysis with point-feed prebaked anodes (NFM BREF ranges, IPCC 2006 PFC) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`ammonia-1`](processes/ammonia-1/) | Ammonia from natural gas (1500 t/d, steam reforming with air-fed secondary reformer, Haber-Bosch loop) | concept (calculation maturity: not recorded; not reviewed) | yes (DEXPI P&IDs (14), BFD/PFD, flowsheet, LCI dataset) |
+| [`ammonia-cracking-1`](processes/ammonia-cracking-1/) | Hydrogen by catalytic ammonia cracking in a fired tubular cracker with PSA purification, the tail gas the only fuel (200 t/d) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ammonium-hydroxide-1`](processes/ammonium-hydroxide-1/) | Ammonium hydroxide, 25 wt% aqueous ammonia, by continuous dilution of liquid ammonia (heat of solution from NBS tables) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`ammonium-nitrate-1`](processes/ammonium-nitrate-1/) | Ammonium nitrate and calcium ammonium nitrate by neutralisation of nitric acid with ammonia (LVIC-AAF BREF values) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and two LCI datasets only) |
 | [`ammonium-sulfate-1`](processes/ammonium-sulfate-1/) | Ammonium sulfate by direct neutralisation of ammonia with sulfuric acid (saturator-crystallizer, AP-42 dust) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |

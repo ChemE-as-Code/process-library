@@ -237,6 +237,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 126 | `biodiesel` | Biodiesel (fatty acid methyl esters) | bio-based-chemicals | n/a, to be sourced | n/a | - | - | 2 | biodiesel-1 (T2) |
 | 127 | `methyl-tert-butyl-ether` | Methyl tert-butyl ether (MTBE) | oxygenates | n/a, to be sourced | n/a | - | isobutene | 2 | mtbe-1 (T2) |
 | 128 | `direct-air-capture` | Carbon dioxide by direct air capture (liquid solvent) | carbon-capture | n/a, to be sourced | high | - | e-fuels | 2 | direct-air-capture-1 (T2) |
+| 129 | `hydrogen-from-ammonia` | Hydrogen from ammonia (ammonia cracking) | hydrogen | n/a, to be sourced | n/a | - | - | 2 | ammonia-cracking-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

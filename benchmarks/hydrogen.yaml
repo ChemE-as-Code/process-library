@@ -1,0 +1,65 @@
+# Benchmarks of hydrogen production: KPIs and reference ranges.
+# Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md.
+#
+# Ranges are facts from cited open sources, in our own form, with the conditions the source
+# states. Each range below is a single value recorded as a zero-width range; none is widened by
+# a margin.
+schema: cheme-as-code/benchmarks/v1
+family: hydrogen
+
+kpis:
+  ammonia-per-hydrogen:
+    title: Ammonia consumed (feed and fuel) per t of hydrogen from ammonia cracking
+    unit: t/t
+    description: >-
+      All the ammonia the cracking plant takes, cracked or burnt, per t of hydrogen product.
+    references:
+      - id: jrc-2022-unpacking
+        range: [7.30, 7.30]
+        basis: unallocated
+        note: "Our inversion of the source's 0.137 t of hydrogen per t of ammonia (feed and fuel, the recovered ammonia recycled): 1 / 0.137 = 7.30 t/t."
+        conditions: {technology: "fired ammonia cracker (fuel 85 % NH3, 15 % H2), water absorption and stripping of the unconverted ammonia, cryogenic purification", product: "hydrogen 99.97 %, 25 MPa", capacity: 200 t/d hydrogen, region: EU, year: 2022}
+        source:
+          citation: "European Commission, Joint Research Centre (2022) Assessment of Hydrogen Delivery Options, EUR 31199 EN, JRC130442, Publications Office of the European Union, Luxembourg"
+          url: https://publications.jrc.ec.europa.eu/repository/bitstream/JRC130442/kjna31199enn.pdf
+          locator: section 5.5.3.4 Unpacking, PDF p. 45
+          kind: government
+          accessed: "2026-11-19"
+      - id: ep4337600-ref2-ammonia
+        range: [7.31, 7.31]
+        basis: unallocated
+        note: "Our derivation from the source's hydrogen recovery from the ammonia, 77.05 %: 17.031 / (1.5 x 2.016 x 0.7705) = 7.31 t of ammonia per t of hydrogen (registry molar masses). A patent example simulated in Aspen Plus, not plant data."
+        conditions: {technology: "fired tubular cracker at equilibrium at 11 bar and 500 C, PSA (79.4 % recovery), the PSA tail gas the only fuel", product: "hydrogen to ISO 14687 at about the reaction pressure", region: generic, year: 2021}
+        source: &ap
+          citation: "Shaw, A., Saloway, S. C., White, V. (Air Products and Chemicals Inc.) EP 4 337 600 A1, Ammonia cracking process, priority 2021-06-18, published 2024-03-20"
+          url: https://patents.google.com/patent/EP4337600A1/en
+          locator: Examples, reference example 2 (Fig. 3)
+          kind: other
+          accessed: "2026-11-19"
+  hydrogen-recovery-from-ammonia:
+    title: Share of the hydrogen in the ammonia fed that ends in the hydrogen product
+    unit: kg/kg
+    references:
+      - id: ep4337600-ref2-recovery
+        range: [0.7705, 0.7705]
+        basis: unallocated
+        note: "The source's hydrogen recovery from the ammonia in its reference example 2, in which the PSA recovery (79.4 %) is set so that the tail gas provides all the process heat."
+        conditions: {technology: "fired tubular cracker at equilibrium at 11 bar and 500 C, PSA, the tail gas the only fuel", region: generic, year: 2021}
+        source:
+          <<: *ap
+          locator: Examples, reference example 2 (Fig. 3)
+
+datasets:
+  - process: ammonia-cracking-1
+    dataset: hydrogen-by-catalytic-ammonia-cracking-with-psa-purification-200-t-d
+    conditions: {technology: "fired tubular cracker at equilibrium at 11 bar and 500 C on ideal-gas data, PSA 79.4 % recovery, the tail gas the only fuel", product: "hydrogen 99.99 mol% at 1030 kPa(a)", capacity: 200 t/d hydrogen, basis: "concept design, one design case"}
+    kpis:
+      ammonia-per-hydrogen:
+        expression: feed:NH3 / product:H2P
+        per: product:H2P
+        reference: ep4337600-ref2-ammonia
+        out_of_range_reason: "The dataset cracks 97.42 % of the ammonia at the source's equilibrium conditions on ideal-gas data, against the 97.04 % the source's recoveries imply (DESIGN.md D-004), and its product (99.99 mol%) counts 84 ppm(mol) of nitrogen: 7.272 t/t per t of product, 7.281 per t of H2, against 7.31. JRC's 7.30 belongs to a different design (ammonia fuel and recycle)."
+      hydrogen-recovery-from-ammonia:
+        expression: product:H2P * 0.998834 / (feed:NH3 * 0.177559)
+        reference: ep4337600-ref2-recovery
+        out_of_range_reason: "Same as ammonia-per-hydrogen: the ideal-gas equilibrium cracks 0.4 points more ammonia than the source's simulation (77.35 % against 77.05 % at the same PSA recovery). The expression takes the product's H2 mass fraction (0.998834, flowsheet S7) and ammonia's hydrogen mass fraction (3 x 1.008 / 17.031)."
