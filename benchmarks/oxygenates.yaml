@@ -60,6 +60,9 @@
 # inside it). The steam KPIs record no_open_reference (searched 2026-11-19, DESIGN.md source
 # register and D-012).
 #
+# ibuprofen-1 (#508; an aryl propionic acid, filed among the oxygenates): no open source gives a
+# plant's consumptions independent of the dataset's patents; both KPIs record no_open_reference.
+#
 # salicylic-acid-1 (#507; a hydroxy acid, filed among the oxygenates): benchmarks must be
 # independent of the dataset (docs/benchmarks.md). The dataset takes its charge, CO2 dose and
 # conversion from US 4 376 867 A, Example I, and its water from the same patent's background (8 to
@@ -589,6 +592,14 @@ kpis:
     title: Acetic anhydride consumption per kg of acetylsalicylic acid
     unit: kg/kg
     no_open_reference: "No open source with a plant's acetic anhydride use per kg of aspirin found (searched 2026-11-19: US 2 731 492 A read, which regenerates the anhydride from the liquor's acetic acid with ketene, so its anhydride use is not a consumption; US 2 987 539 A read, laboratory charges with the excess recycled in the liquor; US 6 278 014 B1 read, a solvent-free route). The stoichiometric floor is 0.5667 kg/kg (102.089 / 180.159), a limit, not a range of real plants."
+  ibuprofen-specific-isobutylbenzene:
+    title: Isobutylbenzene consumption per kg of ibuprofen (BHC route)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's isobutylbenzene use per kg of ibuprofen independent of the dataset found (searched 2026-11-19: US 4 981 995 A and US 5 151 551 A, the dataset's own sources, give laboratory conversions and selectivities per step; the US EPA 1997 Green Chemistry award page gives atom utilisation, about 80 %, not a consumption). The stoichiometric floor is 0.651 kg/kg (134.222 / 206.285), a limit, not a range."
+  ibuprofen-specific-acetic-anhydride:
+    title: Acetic anhydride consumption per kg of ibuprofen (BHC route)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's acetic anhydride use per kg of ibuprofen found (searched 2026-11-19 as for ibuprofen-specific-isobutylbenzene); US 4 981 995 A Example 1 charges 2 mol per mol of isobutylbenzene in a laboratory batch, the dataset's own source. The stoichiometric floor is 0.495 kg/kg (102.089 / 206.285)."
 datasets:
   - process: terephthalic-acid-1
     dataset: pta-px-air-oxidation
@@ -776,3 +787,9 @@ datasets:
     kpis:
       salicylic-acid-specific-phenol: {expression: feed:PHF / product:SA, per: product:SA}
       salicylic-acid-specific-wastewater: {expression: product:WW / product:SA, per: product:SA}
+  - process: ibuprofen-1
+    dataset: ibuprofen-by-the-bhc-route-hf-acylation-hydrogenation-and-pd-carbonylation-3500-t-a
+    conditions: {technology: "BHC route: acylation of isobutylbenzene with acetic anhydride in anhydrous HF (semi-batch, HF recycled), Raney nickel hydrogenation, Pd-catalysed carbonylation with CO in aqueous HCl; water washes, vacuum distillation, crystallisation from hexane; batch, 3500 t/a", region: generic, year: 2026}
+    kpis:
+      ibuprofen-specific-isobutylbenzene: {expression: feed:IBBF / product:IBU, per: product:IBU}
+      ibuprofen-specific-acetic-anhydride: {expression: feed:AC2OF / product:IBU, per: product:IBU}
