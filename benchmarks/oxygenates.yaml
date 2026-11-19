@@ -461,6 +461,31 @@ kpis:
     unit: kg/kg
     no_open_reference: "No open source with a plant's acetic acid use per kg of vinyl acetate found (searched 2026-11-19: Google Patents US 8 765 995 B2, US 8 410 307 B2, US 6 420 595 B1 and US 5 550 281 A read, which give conversions, selectivities on ethylene and oxygen and compositions but no acetic acid consumption; Wikipedia, Vinyl acetate, the routes without figures). Only the stoichiometric floor, 0.6976 kg/kg (60.052 / 86.090), is known."
 
+  pa-specific-o-xylene:
+    title: o-Xylene consumption per kg of phthalic anhydride (fixed-bed gas-phase oxidation)
+    unit: kg/kg
+    references:
+      - id: ap42-pa-feed-utilisation
+        range: [1.0, 1.0]
+        basis: unallocated
+        note: >-
+          AP-42 states a feed utilisation of about 1.0 lb of PA per lb of o-xylene for the plants of
+          its time (1970s, US), one rounded figure, kept as a point (the source gives no spread).
+          The dataset's 0.9495 kg/kg (1.053 kg PA per kg) is a newer catalyst's yield. Independent of phthalic-anhydride-1, whose selectivities come
+          from patents and a flowsheet paper; the dataset's CO share and condenser recovery are
+          calibrated to AP-42's emission factors, not to this utilisation.
+        conditions: {technology: "o-xylene or naphthalene oxidation over vanadium pentoxide, fixed bed (o-xylene) or fluid bed (naphthalene), switch condensers, vacuum distillation", region: US, year: 1983}
+        source:
+          citation: "US EPA (1983, reformatted 1995) AP-42, Compilation of Air Pollutant Emission Factors, 5th ed., Vol. I, section 6.5 Phthalic anhydride"
+          url: https://www.epa.gov/sites/default/files/2020-10/documents/c06s05.pdf
+          locator: "6.5.1 General, first paragraph"
+          kind: government
+          accessed: "2026-11-19"
+  pa-specific-electricity:
+    title: Electricity per kg of phthalic anhydride
+    unit: kWh/kg
+    no_open_reference: "No open source with a plant's electricity use per kg of phthalic anhydride found (searched 2026-11-19: US EPA AP-42 section 6.5, Google Patents US 8 859 459 B2, US 7 592 293 B2, EP 0 574 855 A2, US 5 730 844 A, US 4 036 783 A and the ESCAPE-15 paper of Jara et al. 2005 read; none states a utility consumption). The dataset's value is its air blower (hand calculation) and ASSUMED pump and vacuum allowances (phthalic-anhydride-1, DESIGN.md D-010)."
+
 datasets:
   - process: terephthalic-acid-1
     dataset: pta-px-air-oxidation
@@ -603,3 +628,17 @@ datasets:
         per: product:MAP
         reference: us5688970-compression
         out_of_range_reason: "The dataset's 1.072 kWh/kg includes the pumps, vacuum pumps and the oxidiser's fan (0.100 kWh/kg); its air compressor alone, 0.971 kWh/kg to 260 kPa(a) at an ASSUMED isentropic efficiency of 0.80, lies inside the range."
+  - process: phthalic-anhydride-1
+    dataset: phthalic-anhydride-by-o-xylene-oxidation-over-v2o5-tio2-5.06-t-h-about-40-kt-a
+    conditions: {technology: "o-xylene at 80 g/Nm3 in air over V2O5/TiO2 in a salt-cooled multitubular reactor raising HP steam, switch condensers, thermal pre-treatment, two vacuum columns, recuperative thermal oxidiser", basis: "concept balance, ASSUMED selectivities inside patent and paper ranges, the CO share and condenser recovery calibrated to AP-42 6.5's uncontrolled factors (DESIGN.md D-005, D-007)"}
+    kpis:
+      pa-specific-o-xylene:
+        expression: feed:OX / product:PAN
+        per: product:PAN
+        reference: ap42-pa-feed-utilisation
+        out_of_range_reason: >-
+          AP-42's 1.0 kg/kg is a rounded figure for the vanadium pentoxide catalysts of the 1970s;
+          phthalic-anhydride-1 takes the reactor yield of a newer graded catalyst (1.102 kg PA per
+          kg in the reactor gas, inside the 1.088 to 1.15 of EP 0 574 855 A2, Jara et al. 2005 and
+          US 4 036 783 A), so it needs 0.9495 kg/kg (DESIGN.md D-005).
+      pa-specific-electricity: {expression: feed:POWER / product:PAN, per: product:PAN}

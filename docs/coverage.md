@@ -226,6 +226,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 115 | `tert-butyldimethylsilyl-chloride` | tert-Butyldimethylsilyl chloride (TBSCl) | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | tert-butyldimethylsilyl-chloride-1 (T2) |
 | 116 | `vinyl-acetate` | Vinyl acetate monomer (gas-phase acetoxylation of ethylene) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | vinyl-acetate-1 (T2) |
 | 117 | `maleic-anhydride` | Maleic anhydride | oxygenates | n/a, to be sourced | n/a | - | - | 2 | maleic-anhydride-1 (T2) |
+| 118 | `phthalic-anhydride` | Phthalic anhydride | oxygenates | n/a, to be sourced | n/a | o-xylene-fixed-bed, naphthalene-fluid-bed | phthalimide | 2 | phthalic-anhydride-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);
