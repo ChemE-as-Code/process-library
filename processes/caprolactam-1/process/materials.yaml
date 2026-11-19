@@ -1,0 +1,65 @@
+# Components and templates of caprolactam-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol from the formula
+# with the IUPAC 2021 atomic weights; normal_boiling_point in K at 101.325 kPa.
+#
+# The aqueous salt solutions are represented by molecular salts, not ions (DESIGN.md D-005), as
+# hydroxylamine-1 does: hydroxylammonium sulfate (NH3OH)2SO4, ammonium sulfate (NH4)2SO4 and
+# ammonium nitrate dissolved in water. The lactam in the oleum is counted as caprolactam and
+# H2SO4, not as its bisulfate salt (no speciation in core, DESIGN.md L-1).
+#
+# liquid_heat_capacity, kJ/(kmol K), constant, for the conversion steps' duties (core ADR 0059;
+# DESIGN.md D-008, SRC-10): queried 2026-11-19 from the open-source packages chemicals 1.5.2 and
+# thermo 0.6.1; single values with their source, not open data (library ADR 0037):
+#   CHN 182.2, H2SO4 138.9, H2O 75.3, BZ 136.0, HNO3 109.9: chemicals, CRC_standard_data (Cpl,
+#     298.15 K; CRC Handbook as packaged, the printed handbook not read);
+#   OXM 268.66, CPL 249.39: thermo HeatCapacityLiquid at 363.15 K, ZABRANSKY_SPLINE and
+#     ZABRANSKY_SPLINE_C (Zabransky et al., liquid heat capacity correlations, as packaged);
+#   SO3 226.8: thermo HeatCapacityLiquid, POLING_CONST (Poling et al., as packaged);
+#   NH3 81.41: thermo HeatCapacityLiquid at 298.15 K, HEOS_FIT;
+#   AS 187.5, AN 139.3: chemicals, CRC_standard_data, the solids' Cp at 298.15 K, used for the
+#     dissolved salts (ASSUMED: no partial molar heat capacity in solution is modelled);
+#   HAS 200.0: ASSUMED by analogy with AS (no value in either package).
+# The heats of reaction (process/reactions.yaml) are on the same liquid/solid basis.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: CHN, name: Cyclohexanone, formula: C6H10O, cas: 108-94-1, molar_mass: 98.145, normal_boiling_point: 428.55, liquid_heat_capacity: 182.2}
+  - {id: OXM, name: Cyclohexanone oxime, formula: C6H11NO, cas: 100-64-1, molar_mass: 113.160, normal_boiling_point: 481.15, liquid_heat_capacity: 268.66}
+  - {id: CPL, name: Caprolactam, formula: C6H11NO, cas: 105-60-2, molar_mass: 113.160, normal_boiling_point: 543.95, liquid_heat_capacity: 249.39}
+  # Bis(hydroxylammonium) sulfate; 1 kmol carries 2 kmol NH2OH (33.030 kg/kmol).
+  - {id: HAS, name: Hydroxylammonium sulfate, formula: H8N2O6S, cas: 10039-54-0, molar_mass: 164.132, liquid_heat_capacity: 200.0}
+  - {id: AS, name: Ammonium sulfate, formula: H8N2O4S, cas: 7783-20-2, molar_mass: 132.134, liquid_heat_capacity: 187.5}
+  - {id: AN, name: Ammonium nitrate, formula: H4N2O3, cas: 6484-52-2, molar_mass: 80.043, liquid_heat_capacity: 139.3}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.072, liquid_heat_capacity: 138.9}
+  - {id: SO3, name: Sulfur trioxide, formula: SO3, cas: 7446-11-9, molar_mass: 80.057, normal_boiling_point: 317.65, liquid_heat_capacity: 226.8}
+  - {id: HNO3, name: Nitric acid, formula: HNO3, cas: 7697-37-2, molar_mass: 63.012, normal_boiling_point: 356.15, liquid_heat_capacity: 109.9}
+  - {id: NH3, name: Ammonia, formula: H3N, cas: 7664-41-7, molar_mass: 17.031, normal_boiling_point: 239.82, liquid_heat_capacity: 81.41}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_heat_capacity: 75.3}
+  - {id: BZ, name: Benzene, formula: C6H6, cas: 71-43-2, molar_mass: 78.114, normal_boiling_point: 353.22, liquid_heat_capacity: 136.0}
+templates:
+  - {id: ketone, title: Cyclohexanone, components: [CHN]}
+  # Every component: the streams downstream of the reactors, whose compositions propagate
+  # writes with every component that reaches them (zeros included).
+  - {id: process, title: Process stream, components: [CPL, OXM, CHN, HAS, AS, AN, H2SO4, SO3, HNO3, NH3, H2O, BZ]}
+  - {id: has_solution, title: Hydroxylammonium sulfate solution, components: [HAS, AS, H2SO4, HNO3, H2O]}
+  - {id: ammonia, title: Liquid ammonia, components: [NH3]}
+  - {id: oleum, title: Oleum, components: [H2SO4, SO3]}
+  - {id: water, title: Water, components: [H2O]}
+  - {id: benzene, title: Benzene, components: [BZ]}
+  - {id: oximation, title: Oximation mixture, components: [OXM, CHN, HAS, AS, AN, H2SO4, HNO3, NH3, H2O]}
+  - {id: oxime, title: Cyclohexanone oxime melt, components: [OXM, CHN, H2O]}
+  - {id: rearr, title: Rearrangement mixture (lactam in oleum), components: [CPL, OXM, CHN, HAS, H2SO4, SO3, H2O]}
+  - {id: neutral, title: Neutralised mixture, components: [CPL, CHN, HAS, AS, AN, H2SO4, SO3, NH3, H2O]}
+  - {id: as_solution, title: Ammonium sulfate solution, components: [AS, HAS, AN, CPL, CHN, NH3, H2SO4, H2O]}
+  - {id: crude_lactam, title: Crude lactam, components: [CPL, CHN, AS, H2O]}
+  - {id: extract, title: Lactam in benzene, components: [CPL, CHN, BZ]}
+  - {id: aqueous_lactam, title: Aqueous lactam, components: [CPL, CHN, BZ, H2O]}
+  - {id: lactam, title: Caprolactam, components: [CPL, H2O]}
+  - {id: organics, title: Organic waste to incineration, components: [CPL, CHN, BZ, H2O]}
+  - {id: as_crystals, title: Ammonium sulfate crystals, components: [AS]}
+  - {id: purge, title: Mother-liquor purge, components: [AS, HAS, AN, CPL, CHN, NH3, H2SO4, H2O]}
+# No benchmarked property package of core covers the aqueous salt solutions, the lactam in
+# oleum or the lactam/benzene/water system (DESIGN.md L-2): placeholder.
+property_method:
+  adapter: thermo
+  status: placeholder

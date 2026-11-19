@@ -300,8 +300,10 @@ def test_core_screening_and_the_classes_without_td24():
 
     report = screen(PROCESS)
     entry = next(e for e in report.entries if e.node == "R101")
-    assert entry.mtsr == pytest.approx(354.2, abs=0.05)
-    assert entry.mtt == pytest.approx(373.12, abs=0.01)
+    # core 1.12.0 (D-014): hazard.potential network counts COMP's heat, and hazard.mtt is the
+    # charged brine's bubble point (Raoult) instead of water's boiling point
+    assert entry.mtsr == pytest.approx(354.4, abs=0.05)
+    assert entry.mtt == pytest.approx(375.8, abs=0.01)
     assert entry.accumulation == pytest.approx(0.0063, abs=0.0002)
     possible = {criticality(entry.mtsr, entry.mtt, td24) for td24 in (300.0, 360.0, 400.0)}
     assert possible == {1, 2, 5}
@@ -310,6 +312,10 @@ def test_core_screening_and_the_classes_without_td24():
     assert "| k (design) | 0.63 % | 354.2 K | 373.1 K | 354.4 K |" in design
     assert "| k/10 | 4.26 % | 357.9 K | 373.1 K | 359.8 K |" in design
     assert "| k/100 | 28.1 % | 363.5 K | 373.1 K | 372.1 K |" in design
+    # D-014: the network MTSR in the screening, against the brine's bubble point
+    assert "| k (design) | 0.63 % | 354.2 K | 354.4 K | 375.8 K | 21.4 K |" in design
+    assert "| k/10 | 4.26 % | 357.9 K | 359.8 K | 375.8 K | 16.0 K |" in design
+    assert "| k/100 | 28.1 % | 363.5 K | 372.1 K | 375.8 K | 3.7 K |" in design
     assert not [f for f in report.findings if f.level in ("warning", "error")]
 
 
@@ -345,7 +351,8 @@ def _network_mtsr(root: Path) -> tuple[float, float, float]:
 def test_network_mtsr_as_stated(tmp_path):
     """D-011, L-2: core's MTSR takes each reaction alone; the network's, with COMP's heat on the
     CuCl2 the accumulated chlorine forms and on the CuCl2 present, is higher, and at k/100 it
-    comes within about 1 K of the MTT (water's boiling point)."""
+    comes within about 1 K of water's boiling point. Core 1.12.0 screens it (D-014, hazard.potential
+    network) against the brine's bubble point, 375.8 K: 3.7 K below that MTT at k/100."""
     pytest.importorskip("chemeascode")
     import shutil
 
@@ -366,6 +373,7 @@ def test_network_mtsr_as_stated(tmp_path):
         assert core_found == pytest.approx(core, abs=0.05), div
         assert copper_margin > 0, div  # the copper covers the whole network in every case
     assert 373.12 - stated[100][0] == pytest.approx(1.0, abs=0.05)
+    assert 375.8 - stated[100][0] == pytest.approx(3.7, abs=0.05)
     design = _text("DESIGN.md")
     assert "at k/100 it reaches 372.1 K, 1.0 K below water's boiling point" in design
     assert "Safety requirement (recorded, for the basic engineering and the HAZOP):** the chlorine dosing stops on a sign of accumulation" in design
@@ -375,8 +383,10 @@ def test_network_mtsr_as_stated(tmp_path):
         assert "conservative choice" not in _text(rel), rel
     for rel in ("README.md", "process.yaml"):
         text = _text(rel)
-        assert "372.1 K" in text and "within about 1 K of the MTT" in text, rel
+        assert "372.1 K" in text and "within about 1 K of the MTT" not in text, rel
         assert "also at a hundred times slower rates" not in text, rel
+    assert "3.7 K below that MTT" in _text("README.md")
+    assert "3.7 K below the MTT at k/100" in _text("process.yaml")
 
 
 def test_r101_vessel_and_jacket_as_the_recipe_gives():
@@ -452,9 +462,12 @@ def test_property_sources_are_registered():
     assert "CRC Handbook)" not in cited.replace("citing the CRC Handbook", "")
 
 
-def test_requires_core_1_9_and_published_public():
-    assert _yaml("plant.yaml")["requires"] == "cheme-as-code>=1.9"
+def test_requires_core_1_12_and_published_public():
+    """Modelled on 1.9.0, screened on 1.12.0 (D-014: hazard.potential network), which it needs."""
+    assert _yaml("plant.yaml")["requires"] == "cheme-as-code>=1.12"
     assert "1.9.0" in _text("README.md") and "cheme-as-code 1.9.0" in _text("process.yaml")
+    assert "1.12.0, which it needs" in _text("README.md")
+    assert "Needs cheme-as-code 1.12.0" in _text("process.yaml")
     publication = _yaml("process.yaml")["publication"]
     assert publication == {"status": "public", "license": "CC-BY-4.0"}
 

@@ -1,0 +1,21 @@
+# mdi-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Linked here: the four main raw materials to their library producers and the steam counted as
+# heat delivered (kWh). Linked without an entry here, through the shared lci/mappings.yaml by
+# the exchange's chemical slug (process.yaml): power (electricity), cooling water
+# (cooling-water), process water (water) and the brine (wastewater, the generic activated-sludge
+# treatment, which does not reflect its 10.6 wt% NaCl). The Atlas gaps are the MCB make-up,
+# refrigeration, the methanol condensate, the residue and the vent (DESIGN.md D-012); for
+# `cheme assess lca` the shared links do not apply and lca/lca.yaml records them as `missing:`.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ANLF": {dataset: {path: processes/aniline-1/lca/dataset.yaml, product: "product:ANILINE"}, source: "the Atlas producer aniline-1, aniline to storage; kg for kg (D-002)"}
+  "feed:HCHOF": {dataset: {path: processes/formaldehyde-1/lca/dataset.yaml, product: "product:FORMALIN"}, source: "the Atlas producer formaldehyde-1, formalin 50 wt% counted by mass of the solution, as this exchange counts it (D-002)"}
+  "feed:NAOHF": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it (D-003)"}
+  "feed:PHOSF": {dataset: {path: processes/phosgene-1/lca/dataset.yaml, product: "product:PHOSGENE"}, source: "the Atlas producer phosgene-1, liquid phosgene delivered to an adjacent isocyanate plant without storage, its design consumer (D-005)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 600 kPa(a) to the brine stripper and the phosgenation tower, counted as heat delivered (kWh), D-009"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1600 kPa(a) to the cascade, the dephosgenation column and the solvent column with its evaporator, counted as heat delivered (kWh); the background does not distinguish pressure levels (D-009)"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 4000 kPa(a) to the MDA and MDI column reboilers, counted as heat delivered (kWh); the background does not distinguish pressure levels (D-009)"}

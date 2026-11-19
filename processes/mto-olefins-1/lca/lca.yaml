@@ -1,0 +1,126 @@
+# Goal and scope of the mto-olefins-1 preliminary LCI. Schema: `cheme schema lca`. Outputs:
+# `cheme assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json,
+# results); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the MTO
+# plant with its amount per kg of ethylene from the balanced flowsheet. The methanol is linked
+# to processes/methanol-1 and the steam exchanges are counted as heat (lca/mappings.yaml);
+# every other background is a gap with the activity it
+# should connect to (`missing:`), never zero, and no values from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary life cycle inventory of polymer-grade ethylene and propylene from methanol by
+  methanol-to-olefins (fluidised bed on SAPO-34 with continuous catalyst regeneration, oxygenate
+  recycle, front-end deethaniser recovery train) at the concept stage: which raw materials,
+  utilities, emissions and wastes the plant exchanges per kg of ethylene, as the foreground for
+  a cradle-to-gate study with methanol-1's methanol. Not an impact assessment: most backgrounds
+  are not mapped yet (D-012).
+functional_unit: {product: ETHYLENE, amount: 1, unit: kg, source: "1 kg of polymer-grade ethylene (modelled 99.97 mol%) at the C2 splitter top, stream S27 (D-002, D-010, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps or links
+# instead of being mapped free (the schema's gate-to-gate maps every feed free), as
+# oxalyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "UOP/Hydro-type MTO: methanol vapour over SAPO-34 in a fluidised bed at 475 C and 239 kPa(a) (99.5 % conversion, yields of US 7 138 557 B2), coke burnt off in a fluidised-bed regenerator at 650 C, steam raised in the catalyst coolers; quench, oxygenate recovery and recycle, five-stage compression with caustic wash and drying, deethaniser, demethaniser, C2 splitter, depropaniser, C3 splitter and debutaniser; 1800 kt/a methanol, 266 kt/a ethylene and 350 kt/a propylene"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  # method: mass (D-012) is the default and is left unset on purpose, as in ethylene-1: core does
+  # not write a default method into lca/dataset.yaml, and the strict library build would flag an
+  # explicit 'mass' as differing from the dataset's None.
+  coproducts: [ETHYLENE, PROPYLENE, C4, C5PLUS, FUELGAS]
+  source: >-
+    D-012: mass allocation among the hydrocarbon products, as ethylene-1 does for the
+    steam-cracker outputs: all are hydrocarbons from the same methanol carbon, and ethylene and
+    propylene, 80 % of the product mass, have similar prices per kg. The tail gas is a fuel and
+    small (4.2 t/h of 96.4 t/h); it is allocated by mass with the rest. The exported HP steam
+    (product:HPS) is an energy output kept as its own exchange, outside the allocation and
+    without a burden: the methanol and electricity that raise it stay with the hydrocarbon
+    products, so the figures per kg are gross. Substitution and economic allocation are to be
+    compared once backgrounds and prices exist.
+  deviation: >-
+    D-012: the WBCSD price-ratio test cannot be applied at concept stage because no co-product
+    prices are sourced; mass allocation is kept as the physical relationship among co-products
+    that are all hydrocarbons, to be re-tested once prices exist.
+flows:
+  # --- raw materials
+  - key: feed:MEOH
+    missing: "linked to processes/methanol-1 (lca/mappings.yaml): Grade AA methanol"
+    source: "fresh methanol S1 (D-003)"
+  - key: feed:AIR
+    free: true
+    source: "ambient regeneration air: a resource without burden"
+  - key: feed:CAUSTIC
+    missing: "not mapped yet (D-012): the exchange counts the 10 wt% solution, while processes/chlor-alkali-1 exports 50 wt% caustic per kg of solution, so a kg-for-kg link would count five times the NaOH; connect to: 0.2 kg of chlor-alkali-1's 50 wt% caustic and 0.8 kg of process water per kg of solution"
+    source: "fresh caustic S16 (D-009): 3 mol NaOH per mol CO2, ASSUMED excess"
+  # --- utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, high voltage, grid mix of the (undecided) site country"
+    source: "air blower Q4, product gas compressor Q8, Q10, refrigeration Q22 as electric motors (D-011)"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: MP steam 1800 kPa(a) from the site utility system (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "feed vaporiser Q1, no heat integration (D-011)"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: LP steam 450 kPa(a) from the site utility system (e.g. processes/utility-steam-ng-boiler), per kWh"
+    source: "oxygenate stripper Q6 and column reboilers Q12, Q16, Q18, Q20 (D-011)"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "quench Q5, stripper condenser Q7, compressor coolers Q9, Q11, caustic tower liquor cooler Q26, column condensers Q17, Q19, Q21, refrigeration condensers Q23 (D-009, D-011)"
+  - key: product:HPS
+    missing: "linked as heat from steam (lca/mappings.yaml); exported HP steam 4000 kPa(a) raised in the catalyst coolers and the flue gas cooler; under substitution it would avoid steam from a natural-gas boiler (utility-steam-ng-boiler), in an integrated design it drives the compressors instead of the electric motors (D-007, D-011)"
+    source: "reactor and regenerator duties Q2, Q3 from core's conversion-step model (D-007)"
+  # --- emissions and wastes
+  - key: product:FLUE
+    emission: true
+    source: "regenerator flue gas S10 to atmosphere (D-007)"
+  - {key: emission:CO2, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "CO2 of the coke burnt in the regenerator; the coke's carbon comes from the methanol, fossil for methanol-1's natural-gas route (D-007)"}
+  - {key: emission:N2, free: true, source: "atmospheric N2 of the regeneration air returned"}
+  - {key: emission:O2, free: true, source: "excess O2 of the regeneration air returned"}
+  # Components of the flue gas template at zero (the coke contains no hydrogen in the model and
+  # burns completely, D-007): listed so that the inventory names them; not burden-free.
+  - {key: emission:H2O, free: true, source: "zero in the model (coke as carbon); water vapour from the coke's hydrogen in a plant"}
+  - {key: emission:H2, free: true, source: "zero (template component)"}
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero after complete combustion (template component, D-007); see the exclusion regenerator-co-nox"}
+  - {key: emission:CH4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:MEOH, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:DME, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:C2H4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:C2H6, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:C3H6, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:C3H8, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:C4H6, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:C4H8, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:C4H10, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:C5H10, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero (template component)"}
+  - {key: emission:COKE, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "zero after complete combustion (template component); catalyst fines with coke are excluded (catalyst-fines)"}
+  - key: product:WATER
+    treatment: {kind: waste, route: wastewater-treatment}
+    missing: "not mapped yet (D-012); connect to: industrial wastewater treatment of the stripped reaction water (5 ppm(mol) methanol; organic acids not modelled) (processes/utility-wwtp)"
+    source: "stripped process water S38 (D-008)"
+  - key: product:SPENT
+    treatment: {kind: waste, route: wastewater-treatment, hazardous: true}
+    missing: "not mapped yet (D-012); connect to: spent caustic treatment (neutralisation or wet air oxidation, then biological treatment; processes/utility-wwtp or a dedicated dataset)"
+    source: "spent caustic S18 (D-009)"
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 25 a service life ASSUMED"
+emission_exclusions:
+  - {id: regenerator-co-nox, method: combustion, equipment: [R-201], reason: "The regenerator burns the coke completely to CO2 in the model (D-007); its CO, NOx and dust (catalyst fines past the cyclones) are not estimated: no open source with an MTO regenerator's flue-gas concentrations was read (open item, D-012)."}
+  - {id: catalyst-fines, method: non-routine, equipment: [R-101, R-201], reason: "Catalyst attrition, make-up and the fines in the flue gas and the quench water are not quantified (no open make-up rate read, D-007): the catalyst make-up is excluded here, not counted as zero, an open item of the inventory (a consumable needs a rate)."}
+  - {id: fugitives, method: equipment-leaks, reason: "No P&ID take-off at concept stage to count components; diffuse and fugitive VOC of the recovery train are an open item for basic engineering (D-012)."}
+  - {id: flare, method: flare, reason: "No continuous flaring in normal operation; start-up, shutdown and upset flaring is non-routine and not quantified (D-012)."}
+  - {id: water-effluent, method: effluent, exchange: product:WATER, reason: "The organic acids, ketones and aldehydes of the reaction water are not modelled (US 6 403 854 B1 names organic acids neutralised in the quench); the water goes to treatment outside the boundary (D-008)."}
+  - {id: spent-caustic-effluent, method: effluent, exchange: product:SPENT, reason: "Goes to treatment outside the boundary; red oil and dissolved hydrocarbons not modelled (D-009)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011", cpc: "34110"}
+  modelling: {principle: attributional}
+  geography: {description: "Generic site with a methanol supply, country not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #466, unreviewed"

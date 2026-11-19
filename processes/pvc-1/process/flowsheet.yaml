@@ -1,0 +1,653 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Suspension PVC (S-PVC) from vinyl chloride monomer (VCM), a batch polymerisation section on
+# four autoclaves that take the batches in turn and a continuous finishing section (DESIGN.md
+# D-001):
+# - each autoclave R-101 to R-104 is charged with demineralised water and the suspending agent,
+#   evacuated, charged with VCM (fresh from vcm-1 and recovered) and the initiator (M101), and
+#   heated to 330.15 K on its hot-water loop (E101);
+# - the VCM polymerises in its droplets at 330.15 K, the heat removed by the jacket and the
+#   cooled baffles on chilled water, until the pressure drops at 90 % conversion (R101, a
+#   batch);
+# - the short-stop is added, the unreacted VCM vented from the autoclave to the recovery
+#   (DG101), the suspension dropped with the autoclave's rinse water to the slurry tank;
+# - the slurry is stripped of its residual VCM with live steam in a continuous column (ST301);
+#   the overhead is condensed (CN301), the condensate goes to the wastewater stripper;
+# - the VCM from the autoclaves' venting and the stripper is compressed and condensed in the
+#   recovery (REC401) and returns to the charge (the tear S17); the water knocked out goes to
+#   the wastewater stripper, the uncondensed vent to the vent treatment;
+# - the stripped slurry is cooled (E501), dewatered in a decanter centrifuge (CF501) and the wet
+#   cake dried in a fluid-bed dryer on LP steam (DR601) to the resin, which is sieved and stored
+#   in silos (the sieving is not modelled).
+# The batch section's flows are the year averages of the recipe (process/recipe.yaml, `cheme
+# process recipe`, D-003): per-batch amounts over the cycle of 1.9145 h (7.658 h per autoclave,
+# four autoclaves).
+# Where the values come from:
+# - the charge's ratios: US 6 825 288 B2, Example 1 (46.3 t VCM, 56.8 t water, 22.2 kg of
+#   suspending agents, 22.5 kg of initiator, 44.7 kg of short-stop dispersion per batch), D-004;
+# - R101: cheme's batch model (core ADR 0050, 0059) from the ASSUMED rate law (D-005);
+# - M101, M401, M701 (mixers), E101, E501 (pass-through), DG101, ST301, CN301, REC401
+#   (component separators, recovery: ASSUMED splits, D-006, D-007), CF501 (core's solid
+#   separation) and DR601 (core's dryer): `cheme process propagate --fill`, the recycle
+#   converged at the tear S17 (core ADR 0060);
+# - duties: R101's (Q2) written by propagate from its model; the dryer's (Q3) is the model's
+#   (`cheme process crystallizers`), entered as assumed; the heat-up (Q1, not the recipe's,
+#   L-6), the slurry cooler (Q4), the stripper's condenser (Q5), the recovery's condensers (Q6)
+#   and the motors' power by hand, ASSUMED, with the arithmetic in their sources (D-006 to
+#   D-009).
+schema: cheme/process/v1
+kind: flowsheet
+title: Polyvinyl chloride by batch suspension polymerisation of vinyl chloride with VCM recovery, steam stripping, centrifuge and fluid-bed drying
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: year averages of the batch recipe, four 130 m3 autoclaves, 8000 h/a (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# One recycle (core ADR 0060): the recovered VCM S17 back to the charge; its gain is the
+# unreacted share of the charge, about 0.1.
+tears:
+  - stream: S17
+    initial: {flow: 2470.0, unit: kg/h, basis: mass_fraction, composition: {VCM: 1.0, H2O: 0.0}}
+convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 1.0e-6, rel: 1.0e-8}}
+
+feeds:
+  - {id: VCMF, title: Vinyl chloride monomer (vcm-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: Demineralised water (charge and rinse), category: raw_material, ports: [{id: out, direction: out}, {id: rinse, direction: out}]}
+  - {id: PVAF, title: Suspending agent (partially hydrolysed polyvinyl alcohol; no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: INITF, title: "Initiator, di(2-ethylhexyl) peroxydicarbonate (no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: STOPF, title: Short-stop antioxidant dispersion 30 wt% (no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: LSTM
+    title: LP steam 450 kPa(a), live steam to the slurry stripper
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis (D-007)"}
+      supply_temperature: {value: 421.0, provenance: assumed, source: "saturation at 450 kPa(a), IAPWS-IF97 (420.7 K)"}
+    ports: [{id: out, direction: out}]
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: rec401, direction: out, kind: energy}
+      - {id: cf501, direction: out, kind: energy}
+      - {id: dr601, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 450 kPa(a) (heat, condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis (D-008)"}
+      supply_temperature: {value: 421.0, provenance: assumed, source: "saturation at 450 kPa(a), IAPWS-IF97 (420.7 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-008"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: dr601, direction: out, kind: energy}
+products:
+  - {id: PVCP, title: "PVC resin (suspension grade) to sieving and silos", category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Process wastewater to the wastewater stripper and the site's treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Recovery vent (VCM traces) to the vent treatment (incinerator), category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: DRYEX, title: "Dryer exhaust (water vapour, VCM traces) through the cyclones to air", category: emission, ports: [{id: in, direction: in}]}
+  - id: CHW
+    title: Chilled water return (293 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 283.15, provenance: given, source: "US 6 825 288 B2, Example 1: cold water at 10 C from a refrigeration device through the jacket and the baffle (D-008)"}
+      return_temperature: {value: 293.15, provenance: assumed, source: "design basis (D-008)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-008"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: rec401, direction: in, kind: energy}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-008)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-008)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-008"}
+    ports:
+      - {id: e501, direction: in, kind: energy}
+      - {id: cn301, direction: in, kind: energy}
+
+blocks:
+  - id: REACT
+    title: Batch polymerisation in four autoclaves (R-101 to R-104)
+    class: ReactingChemicals
+    ports:
+      - {id: vcm, direction: in}
+      - {id: water, direction: in}
+      - {id: pva, direction: in}
+      - {id: init, direction: in}
+      - {id: rec, direction: in}
+      - {id: stop, direction: in}
+      - {id: rinse, direction: in}
+      - {id: gas, direction: out}
+      - {id: slurry, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: STRIP
+    title: Slurry stripping with live steam (C-301)
+    class: Separating
+    ports:
+      - {id: in, direction: in}
+      - {id: steam, direction: in}
+      - {id: gas, direction: out}
+      - {id: cond, direction: out}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+  - id: RECOVER
+    title: VCM recovery (gas holder, compressor, condensers)
+    class: Separating
+    ports:
+      - {id: dg, direction: in}
+      - {id: st, direction: in}
+      - {id: vcm, direction: out}
+      - {id: water, direction: out}
+      - {id: vent, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: FINISH
+    title: Slurry cooling, centrifuge and fluid-bed drying
+    class: Drying
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: centrate, direction: out}
+      - {id: vapour, direction: out}
+      - {id: heat, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: power_cf, direction: in, kind: energy}
+      - {id: power_dr, direction: in, kind: energy}
+  - id: WATER
+    title: Process wastewater collection
+    class: Mixing
+    ports:
+      - {id: cond, direction: in}
+      - {id: rec, direction: in}
+      - {id: centrate, direction: in}
+      - {id: out, direction: out}
+
+steps:
+  - id: M101
+    block: REACT
+    title: Charge of the autoclave (water, suspending agent, VCM, initiator)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: vcm, direction: in, delegates: vcm}
+      - {id: water, direction: in, delegates: water}
+      - {id: pva, direction: in, delegates: pva}
+      - {id: init, direction: in, delegates: init}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: E101
+    block: REACT
+    title: Charge heated to 330.15 K (autoclave jacket, hot-water loop on LP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: heat}
+  - id: R101
+    block: REACT
+    title: Suspension polymerisation at 330.15 K to the pressure drop (batch)
+    class: ReactingChemicals
+    reactions: [POLY]
+    reactor: batch
+    energy_port: q
+    batch:
+      target: {key: VCM, conversion: 0.90}
+      heat: isothermal
+      provenance: assumed
+      source: "the charge held at 330.15 K (57.0 C) until 90 % of the VCM is converted, where the pressure drops (US 6 825 288 B2, Example 1: 57.0 C, end at 0.588 MPa, a conversion of 90 %; the EU Polymers BREF 2007, 5.2.3.1: 35 to 70 C, 0.4 to 1.2 MPa, 85 to 95 % converted); the heat to chilled water through the jacket and the cooled baffles (D-005, D-008)"
+    hazard:
+      mtt: 357.10
+      provenance: assumed
+      source: "the temperature at which the charge's vapour pressure, VCM's plus water's, reaches the autoclave's relief set pressure of 1700 kPa(a) (ASSUMED, D-010): 357.10 K (VCM 1644 kPa on the DIPPR_PERRY_8E line of the thermo 0.6.1 package, water 56 kPa on IAPWS; scripts are not needed for it, the arithmetic is in D-010). The autoclave is closed while it polymerises: a cooling failure raises its pressure along the monomer's vapour pressure, and the relief opens at the MTT; it is no boiling barrier at the vessel's pressure (D-010)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: DG101
+    block: REACT
+    title: Short-stop added, unreacted VCM vented to the recovery, slurry dropped with the rinse water
+    class: Separating
+    recovery:
+      outlets:
+        gas: {VCM: 0.85, H2O: 0.0008, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}
+      provenance: assumed
+      source: "ASSUMED (D-006): venting from the pressure drop to near atmospheric pressure takes 85 % of the unreacted VCM to the recovery, the rest stays dissolved in the PVC and the water (about 1.7 wt% on the resin) for the stripper; the vent gas carries water vapour, about 0.04 mol per mol of VCM (17 kPa of water over about 400 kPa of VCM on average at 330 K); no open figure for the residual VCM after venting was found"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: stop, direction: in, delegates: stop}
+      - {id: rinse, direction: in, delegates: rinse}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: slurry, direction: out, delegates: slurry}
+  - id: ST301
+    block: STRIP
+    title: Continuous slurry stripping column with live steam
+    class: Separating
+    recovery:
+      outlets:
+        top: {VCM: 0.99995, H2O: 0.030, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}
+      provenance: assumed
+      source: "ASSUMED (D-007): the stripper takes all but 0.005 % of the slurry's VCM overhead, so that the resin keeps below 1 g of VCM per t (the ECVM limits quoted in the EU Polymers BREF 2007, Table 5.4: 5 g/t general purpose, 1 g/t food and medical); the overhead carries about 3 % of the water in, as steam (about 2 t a batch of the 7.1 t of live steam, the rest condenses heating the slurry to about 368 K)"
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: top, direction: out}
+      - {id: bottom, direction: out, delegates: out}
+  - id: CN301
+    block: STRIP
+    title: Stripper overhead condenser (water condensed, VCM to the recovery)
+    class: Separating
+    recovery:
+      outlets:
+        gas: {VCM: 0.999, H2O: 0.005}
+      provenance: assumed
+      source: "ASSUMED (D-007): the overhead's steam condensed on cooling water at about 313 K; the uncondensed VCM, saturated with water, to the recovery; 0.1 % of the VCM dissolves in the condensate, which goes to the wastewater stripper"
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: q, direction: out, kind: energy, delegates: q}
+  - id: M401
+    block: RECOVER
+    title: Gas holder (vent gas from the autoclaves and the stripper)
+    class: Mixing
+    links: [{target: equipment, ref: T-401}]
+    ports:
+      - {id: dg, direction: in, delegates: dg}
+      - {id: st, direction: in, delegates: st}
+      - {id: out, direction: out}
+  - id: REC401
+    block: RECOVER
+    title: VCM recovery (compression, condensation on cooling and chilled water, water knock-out)
+    class: Separating
+    recovery:
+      outlets:
+        vcm: {VCM: 0.998, H2O: 0.0}
+        water: {VCM: 0.0, H2O: 1.0}
+      provenance: assumed
+      source: "ASSUMED (D-006): compressed and condensed in two stages, cooling water then chilled water (EU Polymers BREF 2007, 5.2.7: the recovery's efficiency set by low temperature and raised pressure); 99.8 % of the VCM recovered as liquid, the water separated, 0.2 % of the VCM leaves with the uncondensed vent to the vent treatment"
+    links: [{target: equipment, ref: K-401}, {target: equipment, ref: E-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vcm, direction: out, delegates: vcm}
+      - {id: water, direction: out, delegates: water}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E501
+    block: FINISH
+    title: Stripped slurry cooled to 333 K on cooling water
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+  - id: CF501
+    block: FINISH
+    title: Decanter centrifuge (wet cake and centrate)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.999
+      cake_liquid: {value: 0.30, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: centrate}
+      provenance: assumed
+      source: "ASSUMED (D-009): the suspension dewatered in a centrifuge (EU Polymers BREF 2007, 5.2.4 and 5.2.5) to a wet cake of 0.30 kg water per kg resin (23 wt% moisture); 0.1 % of the resin (fines) leaves with the centrate to the wastewater treatment, where it is flocculated out"
+    links: [{target: equipment, ref: CF-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: centrate, direction: out, delegates: centrate}
+      - {id: power, direction: in, kind: energy, delegates: power_cf}
+  - id: DR601
+    block: FINISH
+    title: Fluid-bed dryer on LP steam (cyclones on the exhaust)
+    class: Drying
+    dryer:
+      volatiles: [H2O, VCM]
+      residual_moisture: {value: 0.003, basis: mass_fraction, provenance: assumed, source: "0.3 wt% volatiles in the dried resin, ASSUMED (D-009); no open specification found"}
+      temperature: 338.15
+      energy:
+        heat_capacity: 1.66
+        latent_heat: {H2O: 2350.0, VCM: 274.1}
+        efficiency: 0.55
+        port: heat
+        provenance: assumed
+        source: "ASSUMED (D-009): the wet cake's heat capacity from its 0.9 kJ/(kg K) resin and 4.18 kJ/(kg K) water at 0.30 kg/kg, (0.9 + 0.3 x 4.18) / 1.3 = 1.66; latent heats at 338 K from the DIPPR_PERRY_8E method of the thermo 0.6.1 package (water 42.33 kJ/mol / 18.015 = 2350 kJ/kg, VCM 17.13 kJ/mol / 62.496 = 274.1 kJ/kg); the resin dried at 338 K, below its glass transition (355 K, Wikipedia); 55 % of the steam's heat reaches the cake, the rest leaves with the exhaust air (a usual figure for a convective dryer, ASSUMED)"
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: DR-601}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out, delegates: vapour}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+      - {id: power, direction: in, kind: energy, delegates: power_dr}
+  - id: M701
+    block: WATER
+    title: Wastewater collection (centrate, stripper condensate, recovery water) to the wastewater stripper
+    class: Mixing
+    links: [{target: equipment, ref: T-701}]
+    ports:
+      - {id: cond, direction: in, delegates: cond}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: centrate, direction: in, delegates: centrate}
+      - {id: out, direction: out, delegates: out}
+
+streams:
+  - id: S1
+    title: Vinyl chloride monomer, fresh
+    from: VCMF.out
+    to: M101.vcm
+    template: slurry
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "pressurised storage at ambient temperature (EU Polymers BREF 2007, 5.2.2; D-004)"}
+        pressure: {value: 1000.0, provenance: assumed, source: "charge pump (D-004)"}
+        flow: {value: 21770.70, provenance: assumed, source: "41 680 kg per batch over the cycle of 1.9145 h: the 46 300 kg of US 6 825 288 B2, Example 1's charge less the recovered VCM (D-003, D-004)"}
+        composition: {basis: mass_fraction, values: {VCM: 1.0, H2O: 0.0, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: assumed, source: "polymerisation-grade VCM (vcm-1), its traces not modelled (D-004)"}
+  - id: S2
+    title: Demineralised water to the charge
+    from: DMW.out
+    to: M101.water
+    template: slurry
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 1000.0, provenance: assumed, source: "charge pump (D-004)"}
+        flow: {value: 29668.32, provenance: assumed, source: "56 800 kg per batch (US 6 825 288 B2, Example 1) over the cycle of 1.9145 h (D-003, D-004)"}
+        composition: {basis: mass_fraction, values: {VCM: 0.0, H2O: 1.0, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: given, source: "demineralised water"}
+  - id: S3
+    title: Suspending agent
+    from: PVAF.out
+    to: M101.pva
+    template: slurry
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 1000.0, provenance: assumed, source: "charge pump (D-004)"}
+        flow: {value: 11.596, provenance: assumed, source: "22.2 kg per batch (US 6 825 288 B2, Example 1: 13.7 and 2.9 kg of two partially hydrolysed polyvinyl alcohols and 5.6 kg of hydroxypropyl methylcellulose, lumped) over the cycle of 1.9145 h (D-004)"}
+        composition: {basis: mass_fraction, values: {VCM: 0.0, H2O: 0.0, PVC: 0.0, PVA: 1.0, INIT: 0.0, STOP: 0.0}, provenance: assumed, source: "the suspending agents lumped as polyvinyl alcohol, dissolved in the charge water (D-004)"}
+  - id: S4
+    title: Initiator
+    from: INITF.out
+    to: M101.init
+    template: slurry
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: "the peroxydicarbonate kept cold until charged (D-004, D-010)"}
+        pressure: {value: 1000.0, provenance: assumed, source: "charge pump (D-004)"}
+        flow: {value: 11.752, provenance: assumed, source: "22.5 kg of di(2-ethylhexyl) peroxydicarbonate per batch (US 6 825 288 B2, Example 1) over the cycle of 1.9145 h (D-004)"}
+        composition: {basis: mass_fraction, values: {VCM: 0.0, H2O: 0.0, PVC: 0.0, PVA: 0.0, INIT: 1.0, STOP: 0.0}, provenance: assumed, source: "the initiator as the pure peroxide; its solvent or emulsion not modelled (D-004)"}
+  - id: S5
+    title: Charge
+    from: M101.out
+    to: E101.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the feeds at about ambient temperature (D-004)"}
+        pressure: {value: 1000.0, provenance: assumed, source: "D-004"}
+        flow: {value: 53875.5, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S4 S17', fingerprint: e855fa1857b8e3de}
+        composition: {basis: mole_fraction, values: {VCM: 0.190237, H2O: 0.809617, PVC: 0.0, PVA: 0.000129406, INIT: 1.66753e-05, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S4 S17', fingerprint: 74c609f6412a4f7d}
+  - id: S6
+    title: Charge at the polymerisation temperature
+    from: E101.out
+    to: R101.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 330.15, provenance: given, source: "US 6 825 288 B2, Example 1: polymerisation at 57.0 C (D-005)"}
+        pressure: {value: 940.0, provenance: assumed, source: "the charge's vapour pressure at 330.15 K: VCM 921.7 kPa (thermo 0.6.1, DIPPR_PERRY_8E) and water 17.3 kPa (IAPWS), rounded (D-010)"}
+        flow: {value: 53875.5, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: 2a77290f33b21b1f}
+        composition: {basis: mole_fraction, values: {VCM: 0.190237, H2O: 0.809617, PVC: 0.0, PVA: 0.000129406, INIT: 1.66753e-05, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: 2a77290f33b21b1f}
+  - id: S7
+    title: Polymerised suspension (90 % conversion)
+    from: R101.out
+    to: DG101.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 330.15, provenance: assumed, source: "isothermal batch (D-005)"}
+        flow: {value: 53875.5, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 200d3b7d8ed11a28}
+        composition: {basis: mole_fraction, values: {VCM: 0.0190237, H2O: 0.809617, PVC: 0.171213, PVA: 0.000129406, INIT: 1.66753e-05, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 3ec130c11ee82340}
+        pressure: {value: 940.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 3ec130c11ee82340}
+  - id: S8
+    title: Short-stop dispersion
+    from: STOPF.out
+    to: DG101.stop
+    template: slurry
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 1000.0, provenance: assumed, source: "D-004"}
+        flow: {value: 23.348, provenance: assumed, source: "44.7 kg per batch of a 30 % aqueous dispersion of the antioxidant (US 6 825 288 B2, Example 1) over the cycle of 1.9145 h (D-004)"}
+        composition: {basis: mass_fraction, values: {VCM: 0.0, H2O: 0.70, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.30}, provenance: given, source: "US 6 825 288 B2, Example 1: a 30 % aqueous dispersion"}
+  - id: S25
+    title: Autoclave rinse water (to the slurry)
+    from: DMW.rinse
+    to: DG101.rinse
+    template: slurry
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 1000.0, provenance: assumed, source: "rinse pump (D-004)"}
+        flow: {value: 1044.66, provenance: assumed, source: "2000 kg per batch over the cycle of 1.9145 h, ASSUMED (D-004): the autoclave rinsed with water after the drop, drained with the slurry to the stripper (EU Polymers BREF 2007, BAT 3 of 13.4)"}
+        composition: {basis: mass_fraction, values: {VCM: 0.0, H2O: 1.0, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: given, source: "demineralised water"}
+  - id: S9
+    title: Vent gas from the autoclaves to the gas holder
+    from: DG101.gas
+    to: M401.dg
+    template: slurry
+    state:
+      design:
+        temperature: {value: 320.0, provenance: assumed, source: "the vent gas cooled by its expansion (D-006)"}
+        pressure: {value: 120.0, provenance: assumed, source: "gas holder (D-006)"}
+        flow: {value: 2080.21, provenance: calculated, source: 'cheme process propagate: separator DG101 from S7 S8 S25', fingerprint: 6f950e1b38589af1}
+        composition: {basis: mole_fraction, values: {VCM: 0.960165, H2O: 0.0398347, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator DG101 from S7 S8 S25', fingerprint: 6f950e1b38589af1}
+  - id: S10
+    title: Degassed slurry to the stripper
+    from: DG101.slurry
+    to: ST301.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 330.0, provenance: assumed, source: "D-006"}
+        pressure: {value: 300.0, provenance: assumed, source: "slurry pump (D-007)"}
+        flow: {value: 52863.3, provenance: calculated, source: 'cheme process propagate: separator DG101 from S7 S8 S25', fingerprint: 6f950e1b38589af1}
+        composition: {basis: mole_fraction, values: {VCM: 0.00281939, H2O: 0.827867, PVC: 0.169163, PVA: 0.000127857, INIT: 1.64756e-05, STOP: 5.79824e-06}, provenance: calculated, source: 'cheme process propagate: separator DG101 from S7 S8 S25', fingerprint: 6f950e1b38589af1}
+  - id: S11
+    title: Live steam to the stripper
+    from: LSTM.out
+    to: ST301.steam
+    template: slurry
+    state:
+      design:
+        temperature: {value: 421.0, provenance: assumed, source: "saturated at 450 kPa(a) (D-007)"}
+        pressure: {value: 450.0, provenance: assumed, source: "D-007"}
+        flow: {value: 3708.54, provenance: assumed, source: "7100 kg per batch over the cycle of 1.9145 h, ASSUMED (D-007): the stripper's feed S10 (58.8 t of water at 4.18 and 41.7 t of resin at 0.9 kJ/(kg K) a batch, 283 MJ/K) heated from 330 to 368 K by condensing steam (10.8 GJ at 2.12 MJ/kg, 5.1 t; the condensate's cooling from 421 to 368 K not counted, a margin) plus about 2 t a batch leaving overhead as stripping steam, rounded up"}
+        composition: {basis: mass_fraction, values: {VCM: 0.0, H2O: 1.0, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: given, source: "steam"}
+  - id: S12
+    title: Stripper overhead
+    from: ST301.top
+    to: CN301.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 368.0, provenance: assumed, source: "D-007"}
+        pressure: {value: 110.0, provenance: assumed, source: "D-007"}
+        flow: {value: 1395.14, provenance: calculated, source: 'cheme process propagate: separator ST301 from S10 S11', fingerprint: 069bdf6c4cba293c}
+        composition: {basis: mole_fraction, values: {VCM: 0.0919671, H2O: 0.908033, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator ST301 from S10 S11', fingerprint: 069bdf6c4cba293c}
+  - id: S13
+    title: Stripped slurry
+    from: ST301.bottom
+    to: E501.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 368.0, provenance: assumed, source: "D-007"}
+        pressure: {value: 200.0, provenance: assumed, source: "D-007"}
+        flow: {value: 55176.7, provenance: calculated, source: 'cheme process propagate: separator ST301 from S10 S11', fingerprint: 069bdf6c4cba293c}
+        composition: {basis: mole_fraction, values: {VCM: 1.31829e-07, H2O: 0.841665, PVC: 0.158195, PVA: 0.000119567, INIT: 1.54073e-05, STOP: 5.42229e-06}, provenance: calculated, source: 'cheme process propagate: separator ST301 from S10 S11', fingerprint: 069bdf6c4cba293c}
+  - id: S14
+    title: Stripper gas to the gas holder
+    from: CN301.gas
+    to: M401.st
+    template: slurry
+    state:
+      design:
+        temperature: {value: 313.0, provenance: assumed, source: "condensed on cooling water (D-007)"}
+        pressure: {value: 105.0, provenance: assumed, source: "D-007"}
+        flow: {value: 367.54, provenance: calculated, source: 'cheme process propagate: separator CN301 from S12', fingerprint: 505d451f16bf176a}
+        composition: {basis: mole_fraction, values: {VCM: 0.95291, H2O: 0.0470897, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator CN301 from S12', fingerprint: 505d451f16bf176a}
+  - id: S15
+    title: Stripper condensate to the wastewater stripper
+    from: CN301.cond
+    to: M701.cond
+    template: slurry
+    state:
+      design:
+        temperature: {value: 313.0, provenance: assumed, source: "D-007"}
+        pressure: {value: 105.0, provenance: assumed, source: "D-007"}
+        flow: {value: 1027.6, provenance: calculated, source: 'cheme process propagate: separator CN301 from S12', fingerprint: 505d451f16bf176a}
+        composition: {basis: mole_fraction, values: {VCM: 0.00010178, H2O: 0.999898, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator CN301 from S12', fingerprint: 505d451f16bf176a}
+  - id: S16
+    title: Gas to the recovery compressor
+    from: M401.out
+    to: REC401.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 318.0, provenance: assumed, source: "D-006"}
+        pressure: {value: 105.0, provenance: assumed, source: "gas holder (D-006)"}
+        flow: {value: 2447.75, provenance: calculated, source: 'cheme process propagate: mixer M401 from S9 S14', fingerprint: 48e3f0e6c363e7da}
+        composition: {basis: mole_fraction, values: {VCM: 0.959071, H2O: 0.040929, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S9 S14', fingerprint: ccb4572390a834ff}
+  - id: S17
+    title: Recovered VCM to the charge
+    from: REC401.vcm
+    to: M101.rec
+    template: slurry
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the recovered VCM tank (D-006)"}
+        pressure: {value: 1000.0, provenance: assumed, source: "D-006"}
+        flow: {value: 2413.17, provenance: calculated, source: 'cheme process propagate: recycle REC401 from S16 (tear, wegstein)', fingerprint: 25c5d5d40b22ef11}
+        composition: {basis: mole_fraction, values: {VCM: 1.0, H2O: 0.0, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle REC401 from S16 (tear, wegstein)', fingerprint: 25c5d5d40b22ef11}
+  - id: S18
+    title: Water knocked out in the recovery
+    from: REC401.water
+    to: M701.rec
+    template: slurry
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 105.0, provenance: assumed, source: "D-006"}
+        flow: {value: 29.7454, provenance: calculated, source: 'cheme process propagate: separator REC401 from S16', fingerprint: c6a30fe0260cd480}
+        composition: {basis: mole_fraction, values: {VCM: 0.0, H2O: 1.0, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator REC401 from S16', fingerprint: c6a30fe0260cd480}
+  - id: S19
+    title: Recovery vent to the vent treatment
+    from: REC401.vent
+    to: VENT.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: "the chilled-water condenser's outlet (D-006)"}
+        pressure: {value: 105.0, provenance: assumed, source: "D-006"}
+        flow: {value: 4.83601, provenance: calculated, source: 'cheme process propagate: separator REC401 from S16', fingerprint: c6a30fe0260cd480}
+        composition: {basis: mole_fraction, values: {VCM: 1.0, H2O: 0.0, PVC: 0.0, PVA: 0.0, INIT: 0.0, STOP: 0.0}, provenance: calculated, source: 'cheme process propagate: separator REC401 from S16', fingerprint: c6a30fe0260cd480}
+  - id: S20
+    title: Cooled slurry to the centrifuge
+    from: E501.out
+    to: CF501.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-009"}
+        pressure: {value: 200.0, provenance: assumed, source: "D-009"}
+        flow: {value: 55176.7, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S13', fingerprint: 6221e8d924aed49e}
+        composition: {basis: mole_fraction, values: {VCM: 1.31829e-07, H2O: 0.841665, PVC: 0.158195, PVA: 0.000119567, INIT: 1.54073e-05, STOP: 5.42229e-06}, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S13', fingerprint: 6221e8d924aed49e}
+  - id: S21
+    title: Wet cake to the dryer
+    from: CF501.cake
+    to: DR601.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-009"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        flow: {value: 28291.2, provenance: calculated, source: 'cheme process propagate: solid-separation CF501 from S20', fingerprint: ca8749acbc773400}
+        composition: {basis: mole_fraction, values: {PVC: 0.489825, INIT: 4.77062e-05, STOP: 1.67892e-05, VCM: 7.98867e-08, H2O: 0.510038, PVA: 7.24561e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation CF501 from S20', fingerprint: ca8749acbc773400}
+  - id: S22
+    title: Centrate to the wastewater collection
+    from: CF501.centrate
+    to: M701.centrate
+    template: slurry
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-009"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        flow: {value: 26885.5, provenance: calculated, source: 'cheme process propagate: solid-separation CF501 from S20', fingerprint: ca8749acbc773400}
+        composition: {basis: mole_fraction, values: {VCM: 1.5657e-07, H2O: 0.999624, PVC: 0.000233546, PVA: 0.000142007, INIT: 2.27461e-08, STOP: 8.00502e-09}, provenance: calculated, source: 'cheme process propagate: solid-separation CF501 from S20', fingerprint: ca8749acbc773400}
+  - id: S23
+    title: PVC resin
+    from: DR601.product
+    to: PVCP.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 338.15, provenance: assumed, source: "the drying temperature (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        flow: {value: 21830.2, provenance: calculated, source: 'cheme process propagate: dryer DR601 from S21', fingerprint: 339d28df9c53e44a}
+        composition: {basis: mole_fraction, values: {VCM: 1.6192e-09, H2O: 0.0103378, PVC: 0.989386, PVA: 0.000146352, INIT: 9.63606e-05, STOP: 3.39121e-05}, provenance: calculated, source: 'cheme process propagate: dryer DR601 from S21', fingerprint: 339d28df9c53e44a}
+  - id: S24
+    title: Dryer exhaust (vapour)
+    from: DR601.vapour
+    to: DRYEX.in
+    template: vcm
+    state:
+      design:
+        temperature: {value: 338.15, provenance: assumed, source: "D-009"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        flow: {value: 6460.97, provenance: calculated, source: 'cheme process propagate: dryer DR601 from S21', fingerprint: 339d28df9c53e44a}
+        composition: {basis: mole_fraction, values: {VCM: 1.56629e-07, H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: dryer DR601 from S21', fingerprint: 339d28df9c53e44a}
+  - id: S26
+    title: Process wastewater
+    from: M701.out
+    to: WW.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 330.0, provenance: assumed, source: "D-009"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        flow: {value: 27942.8, provenance: calculated, source: 'cheme process propagate: mixer M701 from S15 S18 S22', fingerprint: 04aae7340bf0be9c}
+        composition: {basis: mole_fraction, values: {VCM: 3.89552e-06, H2O: 0.999635, PVC: 0.000224704, PVA: 0.000136631, INIT: 2.1885e-08, STOP: 7.70196e-09}, provenance: calculated, source: 'cheme process propagate: mixer M701 from S15 S18 S22', fingerprint: 406dd12c42e36b31}
+  - {id: Q1, title: "Charge heated (autoclave jacket, hot water on LP steam)", kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 1687.0, provenance: assumed, source: "by hand (D-003, D-008): the charge (its components' liquid heat capacities, 313 356 kJ/K: 10 027 MJ) and the autoclave's metal (ASSUMED 50 000 kJ/K, 1600 MJ) from 298.15 to 330.15 K, 11 627 MJ per batch in 0.946 h on hot water at 353.15 K, over the cycle of 1.9145 h; not from cheme process recipe, which heats the end-of-batch content when nothing is dosed (L-6)"}}}}
+  - {id: Q2, title: Heat of polymerisation to chilled water (jacket and baffles), kind: energy, from: R101.q, to: CHW.r101, state: {design: {duty: {value: 9309.06, provenance: calculated, source: 'cheme process propagate: batch duty R101 from S6', fingerprint: 425ad3fa7582e765}}}}
+  - {id: Q3, title: Dryer heat (LP steam to the air heater), kind: energy, from: LPS.dr601, to: DR601.heat, state: {design: {duty: {value: 7786.92, provenance: assumed, source: "the dryer model's duty (cheme process crystallizers, core ADR 0057): 6461.0 kg/h of water evaporated at 2350 kJ/kg and the wet cake heated from 333.15 to 338.15 K, over an efficiency of 0.55 (D-009)"}}}}
+  - {id: Q4, title: Slurry cooler to cooling water, kind: energy, from: E501.q, to: CW.e501, state: {design: {duty: {value: 1543.6, provenance: assumed, source: "by hand (D-007): S13, 33 381 kg/h of water at 4.19 and 21 765 kg/h of resin at 0.9 kJ/(kg K) (44.29 kW/K), from 368 to 333.15 K; no heat recovered against the stripper's feed (a feed/bottoms exchanger would recover most of it, D-007)"}}}}
+  - {id: Q5, title: Stripper overhead condenser to cooling water, kind: energy, from: CN301.q, to: CW.cn301, state: {design: {duty: {value: 720.8, provenance: assumed, source: "by hand (D-007): the overhead S12's steam condensed (1027 kg/h at 2278 kJ/kg, thermo 0.6.1 DIPPR_PERRY_8E at 368 K: 650.0 kW), the condensate cooled from 368 to 313 K at 4.19 kJ/(kg K) (65.8 kW) and its 363 kg/h of VCM at about 0.9 kJ/(kg K) (5.0 kW)"}}}}
+  - {id: Q6, title: Recovery condensers to chilled water, kind: energy, from: REC401.q, to: CHW.rec401, state: {design: {duty: {value: 560.7, provenance: assumed, source: "by hand (D-006): the recovered VCM condensed (2413 kg/h at 321.8 kJ/kg, thermo 0.6.1 DIPPR_PERRY_8E at 298 K: 215.7 kW), the water knocked out (29.7 kg/h at 2440 kJ/kg: 20.2 kW), the gas S16 cooled from its 318 K to 283 K at 0.9 kJ/(kg K) (21.4 kW), and the compressor's shaft power P2 (303.4 kW), which ends as heat in the gas and its intercooler and leaves through the same coolers (the first law over REC401, motor losses not split off); the share on cooling water before the chilled stage not split, all booked to chilled water (D-006)"}}}}
+  - {id: P1, title: "Autoclave agitators", kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 1062.0, provenance: assumed, source: "ASSUMED (D-008): 35 % of the plant's 139 kWh per t of PVC (the example S-PVC plant of the EU Polymers BREF 2007, Table 5.10, without off-site and utilities) x 21.83 t/h = 3034.4 kW; the share by usual motor sizes; its heat in the suspension is not added to Q2 (D-008)"}}}}
+  - {id: P2, title: VCM recovery compressor, kind: energy, from: POWER.rec401, to: REC401.power, state: {design: {duty: {value: 303.4, provenance: assumed, source: "ASSUMED (D-008): 10 % of the 3034.4 kW (139 kWh/t, EU Polymers BREF 2007, Table 5.10), an allocation of the plant's power, not a compressor rating; rejected as heat in Q6 (D-006)"}}}}
+  - {id: P3, title: Centrifuge, kind: energy, from: POWER.cf501, to: CF501.power, state: {design: {duty: {value: 455.2, provenance: assumed, source: "ASSUMED (D-008): 15 % of the 3034.4 kW (139 kWh/t, EU Polymers BREF 2007, Table 5.10)"}}}}
+  - {id: P4, title: "Dryer fans, pneumatic conveying and sieving", kind: energy, from: POWER.dr601, to: DR601.power, state: {design: {duty: {value: 1213.8, provenance: assumed, source: "ASSUMED (D-008): 40 % of the 3034.4 kW (139 kWh/t, EU Polymers BREF 2007, Table 5.10): the dryer's fans, pneumatic conveying, sieving, the slurry and water pumps"}}}}

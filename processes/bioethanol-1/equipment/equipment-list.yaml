@@ -1,0 +1,37 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the sizes that follow from SRC-1's residence times and the year-average flows of
+# process/flowsheet.yaml. Design pressures, temperatures and materials are not set yet (basic
+# engineering); the materials named are usual choices, to be confirmed. All sizes ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: X-101, type: Separator, service: "Grain cleaning: scalper and screens, tramp metal and stones (0.3 % of the corn) removed",
+     notes: "SRC-1 p. 6: corn from two silos (10 days' storage) to grain cleaning; 28.15 t/h of corn (S1)."}
+  - {tag: Z-101, type: Mill, service: "Hammer mills (two operating, one standby)",
+     notes: "SRC-1 p. 6; 28.07 t/h of cleaned corn to meal; 167 kW with the grain handling (SRC-1 p. 24, 8 % of the plant's power)."}
+  - {tag: T-201, type: Tank, service: "Slurry tank: meal mixed with hot evaporator condensate and stripper bottoms, alpha-amylase, lime and urea dosed",
+     notes: "Agitated, stainless steel; about 91 t/h of slurry at 26 wt% solids (S5)."}
+  - {tag: R-201, type: StirredTankReactor, service: "Continuous liquefaction tank at 88 C (pH 6, alpha-amylase), heated with MP steam",
+     notes: "SRC-1 p. 6; residence time not stated by SRC-1 (ASSUMED about 1 h, about 100 m3); steam duty Q1 ASSUMED 25 % of the plant's steam (D-009)."}
+  - {tag: R-202, type: StirredTankReactor, service: "Jet cooker and hold (110 C, 20 min), flash cooling to 60 C, continuous saccharification tank (6 h, glucoamylase, pH 4.4 with sulfuric acid), mash cooler to 32 C",
+     notes: "SRC-1 pp. 6-7; about 106.8 t/h of mash with backset (S7), 6 h hold, about 610 m3 working volume (density about 1050 kg/m3 ASSUMED); the mash cooler on heat recovery and cooling water is not modelled (L-4)."}
+  - {tag: R-301, type: StirredTankReactor, service: "Four continuous cascade fermentors (air-lift mixed by recirculated off-gas), 46 h in all, below 34 C, two external coolers on well or cooling water",
+     notes: "SRC-1 p. 7; 106.8 t/h of saccharified mash (S8), 46 h, about 4 x 1200 m3 working volume (4680 m3 at an ASSUMED density of 1050 kg/m3); heat of fermentation 1903 kW (Q7) to cooling water; yeast added to the first fermentor; CO2 vented through V-301 to A-301."}
+  - {tag: V-301, type: Vessel, service: "Beer well and degasser: the whole beer heated and degassed before the beer column",
+     notes: "SRC-1 p. 7; 97.8 t/h of beer at 9.0 wt% ethanol (S11); the off-gas with the fermentors' to A-301."}
+  - {tag: A-301, type: Column, service: "CO2 scrubber: water scrubbing of the fermentor off-gas and degasser vapours, ethanol to the beer column",
+     notes: "9.0 t/h of off-gas (S10), 99 % of its ethanol recovered (as SRC-2 p. 46); 9.3 t/h make-up water (S12), set by the plant's water balance (D-006; SRC-1's appendix: 8.9 t/h)."}
+  - {tag: C-401, type: Column, service: "Beer column: ethanol stripped from the whole beer to a vapour of about 45 wt%, whole stillage below 0.1 wt%",
+     notes: "SRC-1 p. 7; solids-tolerant trays (as SRC-2 p. 45), reboiler on MP steam (Q2 with the evaporator's and the superheater's steam, D-009)."}
+  - {tag: C-402, type: Column, service: "Rectifier and stripper: to about 91 wt% ethanol vapour, stripper bottoms below 0.1 wt% back to the slurry tank",
+     notes: "SRC-1 p. 7; its overhead condensed in the evaporator for the reflux (SRC-1 p. 7, not modelled as a heat stream, L-4)."}
+  - {tag: D-401, type: Vessel, service: "Molecular sieve dehydration: two vapour-phase beds, one adsorbing while the other regenerates under vacuum, with the superheater",
+     notes: "SRC-1 p. 7, SRC-2 p. 46; 13.0 t/h of 91 wt% vapour (S19) to 99.55 wt% ethanol; regenerate (72 wt% ethanol) back to C-402 (D-007)."}
+  - {tag: E-402, type: HeatExchanger, service: "Product condenser and cooler on cooling water",
+     notes: "2436 kW (Q8: condensing and cooling to 308 K), 9.00 t/h of anhydrous ethanol to storage (12 days' storage and denaturing at the load-out, SRC-1 p. 7, outside the boundary, D-003)."}
+  - {tag: S-501, type: Centrifuge, service: "Decanter centrifuges (one operating, one standby): whole stillage to wet cake (35 wt% solids) and thin stillage",
+     notes: "SRC-1 p. 7; 87.5 t/h of whole stillage (S17), 13.7 t/h of wet cake (S23); the plant's solids separation, evaporation and drying take 1108 kW (SRC-1 p. 24, Q5)."}
+  - {tag: E-501, type: Evaporator, service: "Multiple-effect vacuum evaporator: thin stillage to syrup at 55 wt% solids, condensate to the slurry tank",
+     notes: "SRC-1 p. 7 (six effects; SRC-1 evaporates the whole stillage partly before the decanter, here all after it, D-008); heated by the rectifier's overhead and steam (in Q2); its final condenser on cooling water, with the column condensers and coolers in Q11 (9642 kW, D-009)."}
+  - {tag: D-601, type: Dryer, service: "Natural-gas-fired rotary dryer: wet cake and syrup to DDGS at 9 wt% moisture, with its burner",
+     notes: "SRC-1 p. 7; 19.5 t/h of wet distillers' grains with solubles (S29) to 8.82 t/h of DDGS (S30), 10.7 t/h evaporated; 9.28 MW of natural gas (LHV, Q9), about 3.1 MJ per kg of water evaporated (D-008); exhaust to atmosphere (in a real plant through a thermal oxidiser for VOC, not modelled, D-011)."}

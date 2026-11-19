@@ -157,7 +157,8 @@ capacity behind the BREF figure has not been checked, so the two cannot be compa
 tonne yet. Per tonne, the exhaust emissions scale with this air flow (O-5; corrected
 2026-10-27 after review R-05, which found that "same order" overstated the agreement). Half of the heat the air took up turns
 into evaporation in the wet scrubber (ASSUMED), so the scrubber takes 6.07 t/h treated water.
-The liquor (45 wt% urea) returns to E-301.
+The liquor (45 wt% urea on an NH3-free basis; with the scrubbed NH3, stream S52 is 43.5 wt%
+urea and 3.4 wt% NH3) returns to E-301.
 Assumptions: fusion enthalpy and heat capacities are approximate (ASSUMED); the scrubber
 evaporation share is the largest uncertainty in the water balance (O-5).
 
@@ -182,7 +183,9 @@ of that by mole (ASSUMED), saturated with water. Prilling exhaust raw dust 100 m
 the BREF raw range 60–130) and raw NH3 35 mg/Nm3, water-scrubbed to 35 and 30 mg/Nm3 (inside
 the BAT 15–55 / 3–35 mg/Nm3 of BREF §8.5). Result: 0.27 g NH3, 0.23 g urea dust and 0.09 g
 CO2 per kg urea to air. Treated condensate at 1 ppm NH3/urea (BREF Table 8.20) is re-used as
-boiler feed water, so no wastewater leaves.
+boiler feed water, so no wastewater leaves. The flowsheet terminal WATER is therefore a
+`by_product`, as `process.yaml` and `lca/lca.yaml` treat it (it was `wastewater` until
+2026-11-19, which needed an effluent exclusion in `lca/lca.yaml`).
 Rejected: acidic scrubbing (BREF §8.5 prefers it when the liquor can be re-used). It makes
 ammonium sulphate and needs a sulphuric acid feed and an outlet for the salt; to be revisited
 with granulation.
@@ -232,13 +235,16 @@ credit.
 Results: each inventory exchange equals its flowsheet stream (S1, S3, S4, S50 in; S51, S31,
 S54, S45 out; power = Q1–Q4, MP steam = Q5–Q7, cooling water = Q11–Q13). Material in
 816 309.6 kg/h, out 816 308.1 kg/h (+1.5 kg/h, 0.0002 %). `cheme assess lca --balance` closes
-mass, C, H, N, O and carbon origin (residual below 0.001 %); `--coverage` classifies the (empty) impact result as a partial screening
+mass, C, H, N, O and carbon origin (residual below 0.001 % for mass, H, N and O; carbon 0.38 kg C/h,
+0.002 %); `--coverage` classifies the (empty) impact result as a partial screening
 carbon footprint with 5 declared background gaps. It is not an impact result.
 
 ## D-012 Equipment design values (2026-10-27)
 Decision: equipment list with ASSUMED design pressures per level (HP 160 barg, LP 6 barg,
 vacuum section 3.5 barg/full vacuum, hydrolyser 22 barg) and design temperatures of about the
-operating maximum + 25 K. Carbamate-service materials are named as urea-grade austenitic or
+operating maximum + 25 K, the heating medium included: the MP-steam heated items (E-101,
+E-302, R-401) are at 250 C, about 28 K over saturated MP steam at 2400 kPa(a) (494.9 K,
+221.8 C; corrected 2026-11-19, E-101 was 215 C and E-302/R-401 230 C). Carbamate-service materials are named as urea-grade austenitic or
 duplex stainless steel and left as an open input.
 Reason: carbamate corrosion governs the material and the passivation air (skill
 `tech-petchem-ammonia-and-urea`); the selection is a licensor/materials-engineering decision.
@@ -289,9 +295,10 @@ Consequence: the process is marked preliminary, as `process.yaml` `validation.no
   exhaust S54 at 318 K (25 K below 343 K, about 5 MW of evaporation) does not match the
   assumed half of 8.0 MW (4 MW, about 20 K): settle both together (review R-05). Also, the
   air flow per tonne against an open source of known capacity.
-- O-6 Registry entries (shared files, consolidated PR): `urea` (with a grade for prilled
-  fertiliser urea, 46 % N), `ammonia` (liquid anhydrous); optionally `biuret`. CPC class of
-  the dataset not given (unverified).
+- O-6 Registry entries (shared files, consolidated PR): `urea`, `ammonia` and `carbon-dioxide`
+  exist in `chemicals/chemicals.yaml` (#251); still open are a `urea` grade for prilled
+  fertiliser urea (46 % N) and, optionally, a `biuret` entry. CPC class of the dataset not
+  given (unverified).
 - O-7 Core: `cheme process build` 0.8.0 fails on the DEXPI step class `Pumping` (its
   `method` field is a typing Union that `step_method` cannot iterate); the pumps use
   `GeneratingFlow`. `cheme process propagate` writes compositions to 6 digits, so S11 sums

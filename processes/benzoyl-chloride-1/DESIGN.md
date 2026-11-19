@@ -32,6 +32,12 @@ gas released at the MTSR with the liquid's vapour, 107.2 m3/h, exceeds the 100 m
 set for the HCl alone, so the off-gas system is sized for 130 m3/h (D-014, D-015). Requires
 cheme-as-code 1.10 (plant.yaml).
 
+Core pin 0e85885 (v1.12.0 with QSDsan, 2026-11-19): the screening's largest gas release over the
+batch and its default MTT from the product (ADR 0069) and the vent condenser's freezing check
+(ADR 0071) are used for library issue #427's blocked vent, water ingress and absorber-water
+cases (D-016); `hazard.mtt` is no longer set by hand, the components carry melting points.
+Requires cheme-as-code 1.12 (plant.yaml).
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -40,13 +46,13 @@ in this session (Google Patents machine text; NIST WebBook and PubChem pages).
 | id | source | locator | access / terms | used for |
 |---|---|---|---|---|
 | SRC-1 | US 4 276 231 A, W. Bockmann, K.-A. Lipper, F. Bruhne (Bayer AG), 1981: Process for preparing optionally substituted benzoyl chloride, https://patents.google.com/patent/US4276231A/en | description: catalysts (acids and metal halides, ZnCl2 and FeCl3 among the preferred, 0.005-10 wt% of the benzoyl chloride formed), 70-200 C (preferably 120-160 C), 0.8-2 bar, a 1-20 mol% (preferably 3-8 %) excess of acid or water, vacuum distillation at about 12-190 mbar; off-gas washed with benzotrichloride (and cold toluene) before absorption to very pure hydrochloric acid; bottoms of 20-70 % benzoyl chloride, 20-70 % benzoic acid and the catalyst, re-reacted with excess benzotrichloride; yields 96-98 % of theory, purity above 99.5 %. Example 1: 13.6 g ZnCl2 in 1832 g (15.0 mol) benzoic acid at 140 C, 2737 g (14.0 mol) benzotrichloride added over 2 h, held 2 h; crude with 3.5 wt% benzoic acid and anhydride; distilled at 50 mbar to 3805 g benzotrichloride-free product, 96.7 % of theory; off-gas washed with the 2737 g benzotrichloride gave about 30 % hydrochloric acid with 18 ppm organic carbon. Example 2 (water route, 3 % H2SO4 at 150 C): 92.6 %, 97.3 % with the bottoms re-reacted; 3255 g product and 210 g bottoms. Example 3: continuous, FeCl2, 97.9 % | read; patent, facts only | D-001, D-004, D-005, D-007, D-008, D-010, benchmarks |
-| SRC-2 | NIST Chemistry WebBook, SRD 69: benzoyl chloride (C98884), benzotrichloride (C98077), benzoic acid (C65850) | Antoine constants (NIST fits to Stull 1947: benzoyl chloride 305-470 K, benzotrichloride 319-487 K, benzoic acid 369-522 K); heats of vaporization (benzoyl chloride 49.6 kJ/mol at 320 K, benzotrichloride 52.0 at 333 K, Stephenson and Malanowski 1987; benzoic acid 63.3 at 401-416 K, Pena et al. 2003); normal boiling points (benzoyl chloride 471 +/- 2 K, mean of 8; benzotrichloride 493.8 K; benzoic acid 522.2 K); liquid heat capacities (benzoyl chloride 187.0 J/(mol K), von Reis 1881; benzoic acid 259 at 413 K, Pacor 1967); benzoic acid's melting point 395.2 K and heat of fusion 18.0 kJ/mol (Ginnings and Furukawa 1953), solid cp 146.8 J/(mol K) at 298 K; formation enthalpies of liquid benzoyl chloride (-157.3 kJ/mol) and benzoic acid (-385 kJ/mol); none for benzotrichloride | read | materials.yaml, D-005, D-007, D-009 |
+| SRC-2 | NIST Chemistry WebBook, SRD 69: benzoyl chloride (C98884), benzotrichloride (C98077), benzoic acid (C65850) | Antoine constants (NIST fits to Stull 1947: benzoyl chloride 305-470 K, benzotrichloride 319-487 K, benzoic acid 369-522 K); heats of vaporization (benzoyl chloride 49.6 kJ/mol at 320 K, benzotrichloride 52.0 at 333 K, Stephenson and Malanowski 1987; benzoic acid 63.3 at 401-416 K, Pena et al. 2003); normal boiling points (benzoyl chloride 471 +/- 2 K, mean of 8; benzotrichloride 493.8 K; benzoic acid 522.2 K); liquid heat capacities (benzoyl chloride 187.0 J/(mol K), von Reis 1881; benzoic acid 259 at 413 K, Pacor 1967); benzoic acid's melting point 395.2 K and heat of fusion 18.0 kJ/mol (Ginnings and Furukawa 1953), solid cp 146.8 J/(mol K) at 298 K; formation enthalpies of liquid benzoyl chloride (-157.3 kJ/mol) and benzoic acid (-385 kJ/mol); none for benzotrichloride; melting points of benzoyl chloride 272.0 K and benzotrichloride 236.0 K, as `cheme chemistry props <CAS> -p temperature_fusion` gives them from the WebBook (queried 2026-11-19) | read; the two melting points through `cheme chemistry props` | materials.yaml, D-005, D-007, D-009, D-016 |
 | SRC-3 | PubChem CIDs 7412 (benzoyl chloride), 7367 (benzotrichloride), 243 (benzoic acid), 5727 (zinc chloride) | identity (formula, InChIKey, ChEBI cross-reference); densities (HSDB): benzoyl chloride 1.2070 g/cm3 at 25 C, benzotrichloride 1.3756 at 20 C, benzoic acid 1.029 (liquid) at 180 C, ZnCl2 2.907 at 25 C | read (PUG REST, PUG View) | materials.yaml, chemicals registry |
 | SRC-4 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and the criticality classes of a semi-batch (method, implemented in core ADR 0050) | method reference, no data taken | D-011 |
 | SRC-5 | processes/asu-1 (this library) | gaseous nitrogen to the battery limit | library, internal | D-012 |
 | SRC-6 | Ullmann's Encyclopedia of Industrial Chemistry, Benzoic Acid and Derivatives, doi:10.1002/14356007.a03_555 | - | not read (licensed); named by the route scouting as a lead that describes the same two variants | route lead only |
 | SRC-7 | US 5 514 254, EP 0 612 707, US 3 816 287 (toluene side-chain chlorination to benzotrichloride) | - | not read in full; leads only | D-001 (boundary), lca.yaml gap text |
-| SRC-8 | chemicals 1.5.2 (Caleb Bell, MIT licence), as packaged with cheme-as-code (`cheme chemistry thermo`) | HCl's ideal-gas data: formation enthalpy (ATcT), entropy (CRC), heat capacity polynomial (Poling et al., The Properties of Gases and Liquids, 5th ed.) | open-source package, facts only | materials.yaml, D-010 (E-102's gas cooling), scripts/balance.py (29.1 kJ/(kmol K)) |
+| SRC-8 | chemicals 1.5.2 (Caleb Bell, MIT licence), as packaged with cheme-as-code (`cheme chemistry thermo`; `chemicals.phase_change.Tm` with its `method`) | HCl's ideal-gas data: formation enthalpy (ATcT), entropy (CRC), heat capacity polynomial (Poling et al., The Properties of Gases and Liquids, 5th ed.); benzotrichloride's (98-07-7) melting point 268.15 K from the method COMMON_CHEMISTRY (CAS Common Chemistry as chemicals packages it, not queried directly), against the package's other values for it: 236.0 K (WEBBOOK, as SRC-2), 256.15 K (CRC_ORG), 269.15 K (WIKIDATA, Wikidata as packaged) (queried 2026-11-19) | open-source package queried, single values, facts only (library ADR 0037); CAS Common Chemistry and Wikidata are not read here, only their values as the package carries them | materials.yaml, D-010 (E-102's gas cooling), D-016 (melting points), scripts/balance.py (29.1 kJ/(kmol K)) |
 
 Searched and not found openly (2026-11-05): kinetics or calorimetry of the benzotrichloride /
 benzoic acid reaction, its heat of reaction (no formation enthalpy of benzotrichloride in the
@@ -105,8 +111,8 @@ times come from the models, so a change of the rate law or the boil-up changes t
 other durations are ASSUMED concept values.
 Per batch: 1.19 m3 of crude in R-101 at the end of the dosing; the recipe sizes R-101 from
 R101's model (core ADR 0052, fill fraction 0.8 and H/D 1.2 ASSUMED): a 1.6 m3 vessel (the R10
-preferred size), 75 % full, 1.19 m diameter; its jacket (U 300 W/(m2 K), tempered water at
-363 K, ASSUMED) removes 45.6 kW at the charge's 3.04 m2 against the model's 22.8 kW peak.
+preferred size), 75 % full, 1.19 m diameter; its jacket (U 300 W/(m2 K), a coolant at 363 K,
+ASSUMED; tempered water until 2026-11-19, a heat-transfer oil since, D-016) removes 45.6 kW at the charge's 3.04 m2 against the model's 22.8 kW peak.
 
 ## D-004 Feeds and charge (2026-11-05)
 Decision: 15/14 mol of benzoic acid per mol of benzotrichloride (7.1 % excess) and 0.742 kg of
@@ -264,7 +270,8 @@ duty):
   (solid cp 175 J/(mol K), mean, ASSUMED from 146.8 at 298 K) to its melt at 395.2 K, its fusion
   (18.0 kJ/mol) and the liquid to 413 K (259 J/(mol K)), the catalyst, 10 % losses (SRC-2); 30 kW
   over the 2 h melt.
-- Q2 2.889 kW from R-101 to cooling water through a pressurised tempered-water loop at 363 K,
+- Q2 2.889 kW from R-101 to cooling water through a heat-transfer oil loop at 363 K (a
+  pressurised tempered-water loop until 2026-11-19, D-016),
   R101's semi-batch model (`calculated`, ADR 0059): the reaction heat (-50 kJ/mol, D-005, 12.829
   kW) less the benzotrichloride's heating from 298 to 413 K (250 J/(mol K), ASSUMED, 7.384 kW),
   the latent heat of the vapour the HCl carries off the liquid (1.831 kW) and the condensate
@@ -395,6 +402,10 @@ scrubber or to air; stopping the dosing does not stop it, since the accumulated 
 (7 %, about 0.32 kmol of HCl a batch) keeps reacting. The benzotrichloride dosing should also be
 interlocked on A-101's water flow and on HCl breakthrough at the tail scrubber, and the scrubber
 sized for the accumulated HCl. For the HAZOP of the next stage.
+Since 2026-11-19 (core 1.12.0, D-016): R-101's jacket is a heat-transfer oil loop (water
+eliminated from it), R-101's head space has a nitrogen vacuum breaker and the off-gas line a
+suck-back catch pot, and the tail scrubber an inventory of its own for the accumulated HCl;
+C-101's steam jacket stays open for the HAZOP.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-05)
 Decision: `cheme assess lca --write` per kg of distilled benzoyl chloride from the flowsheet's
@@ -482,7 +493,10 @@ rated for, and during the dosing the HCl forms all the time. So R-101 needs a re
 (rupture disc to a catch tank or the scrubber) sized for the gas generation with the liquid's
 vapour, the benzotrichloride dosing interlocked on R-101's pressure and on the off-gas flow
 (D-011), and the off-gas line traced against benzoic acid deposits. Reasoning only, not a relief
-sizing.
+sizing. Since 2026-11-19 (core 1.12.0, D-016): the relief device is decided, on its own line,
+with its basis (0.6649 mol/s of HCl with its vapour, 0.052 kg/s, 5.7 kPa/s in the head space);
+its area waits for a closed-cell test; E-102 freezing with benzoic acid at the start of each
+dosing is a credible cause of the blocked vent (`cheme.process-condenser-freezing`).
 
 ## D-015 Core 1.10.0: the still's column and the vent's vapour from the models (2026-11-06)
 Decision: the hand workarounds of the column and of the off-gas move onto core 1.10.0:
@@ -542,6 +556,152 @@ Checks after the change: `cheme validate` 0 errors and 0 warnings; `propagate --
 `reactor-hazards` exits 0 (info only); the balance script's values agree
 (`check_balance_scripts.py --strict`).
 
+## D-016 Core 1.12.0: blocked vent, water ingress and loss of the absorber water (2026-11-19, issue #427)
+Library issue #427 lists for this entry: the blocked-vent case (about 2.7 MPa in the head
+space), water ingress from the jacket or by suck-back from the absorber, and the loss of the
+absorber water (D-011, D-014). Rerun on core 1.12.0 (pin 0e85885; ADRs 0069, 0071). Numbers
+from `cheme process reactor-hazards --json`, `process reactors` and `process recipe` unless
+said otherwise; hand arithmetic on them is shown.
+
+**What core 1.12.0 now screens, and its result here.**
+- The largest gas release over the batch (ADR 0069): 0.6649 mol/s of HCl at 1.94 h (its MTSR
+  421.1 K), 107.4 m3/h with the liquid's vapour (share 0.230: benzoyl chloride 0.1929,
+  benzotrichloride 0.0040, benzoic acid 0.0019 mol/s), 0.826 x the 130 m3/h vent capacity; the
+  release at the MTSR at the end of the dosing, 107.2 m3/h (0.825 x), is within 0.2 % of it.
+  D-014's capacity stands. At k/10 (scratch copy, A divided by 10) the largest over the batch is
+  the release at the MTSR, 273.2 m3/h at 2.0 h (2.10 x), as D-011's table says; 1.161 kmol of
+  HCl from the accumulated benzotrichloride.
+- The MTT (ADR 0069): core's default now counts the product formed in the liquid and gives
+  benzoyl chloride's 471.0 K, the value D-011 set by hand (L-5 resolved). `hazard.mtt` is
+  removed from R101; the default is used. With `mtt_from: bubble-point` (scratch copy) the
+  content's bubble point at 101.3 kPa(a) is 473.3 K at the worst moment and 471.7 K after the
+  cooling failure (HCl left out): 0.7 K above the default, but beyond the 470.4 K top of
+  benzoyl chloride's Antoine range (SRC-2), so not taken. The MTSR, 421.9 K, stays 49 K below.
+- One reaction and one dosed reactant without excess: no network, no `accumulations`. No
+  `dissolved_release`: HCl is vented whole as it forms (fraction 1, L-3), so core holds none in
+  the liquid; the HCl the hot crude does hold is not known (open below).
+- Core 1.12.0 has no closed-vessel or blocked-vent pressure model and no relief sizing (ADR
+  0069, its known limitations; ADR 0071 keeps the vessel at its stream pressure).
+- The vent condenser's freezing check (ADR 0071) with the melting points added to
+  materials.yaml: `cheme.process-condenser-freezing` warns on E-102 for benzoic acid (395.2 K)
+  against its 308.15 K outlet and the 298.15 K cooling water; benzoyl chloride (272.0 K) and
+  benzotrichloride (268.15 K) are below both. The still's condenser is not flagged (its
+  distillate carries benzoic acid far below 1 mol%).
+
+**The vent condenser E-102 can freeze at the start of each dosing (a blocked-vent cause).** The
+rule tests the pure melting point. The mixture was checked by hand on the model's own basis: the
+liquid's composition from the accumulation profile of `reactor-hazards` (the benzotrichloride
+dosed at a constant rate, 4.5007 kmol a batch, into 4.8222 kmol of benzoic acid and 0.0321 kmol
+of ZnCl2), Raoult's law at 413.15 K with the NIST Antoine constants (benzoic acid 1.89,
+benzoyl chloride 19.80, benzotrichloride 11.47 kPa), all vapour condensed in E-102; against
+benzoic acid's ideal solubility, ln x = -(dH_fus/R)(1/T - 1/T_m) with 18.0 kJ/mol and 395.2 K
+(SRC-2), an ideal liquid ASSUMED as in D-010: x = 0.168 at the 298.15 K cooling water, 0.213 at
+the 308.15 K outlet. At the start of the dosing the melt is benzoic acid only and the condensate
+is benzoic acid; it falls to 0.368 of the condensate at 0.17 h, 0.215 at 0.33 h and 0.139 at
+0.51 h, to 0.007 at the end of the dosing. It is above the solubility at 298.15 K for the first
+0.43 h (at 308.15 K, 0.34 h), which holds the HCl's normal peak (0.11 h); the benzoic acid in
+excess of the solubility then is about 1.0 kg a batch at 298.15 K (0.8 kg at 308.15 K), of 4.6 kg
+of benzoic acid that E-102 condenses over a batch (year average 0.00775 kmol/h, `process
+reactors`, times 7920 h over 1627.1 batches). The later, benzoyl-chloride-rich condensate is unsaturated and may redissolve it, but
+not before the peak. So E-102 freezing shut at the gas peak is a credible cause of the blocked
+vent, not a remote one. The warning is kept (it is true on the data at hand), not argued away.
+Rejected, with numbers: a tempered coolant above benzoic acid's melting point, or a two-stage
+condenser with a first stage at 398 K (benzoic acid still above its ideal solubility in the
+second stage's condensate early in the dosing, 0.24 at 0.17 h), and E-102's outlet at 353 K
+(benzoyl chloride's vapour pressure 1.9 kPa there: about 2.4 kg/h of it to the acid, 1 % of the
+product, against 0.18 kg/h now). A heel of benzoyl chloride in the charge (SRC-1 re-reacts
+bottoms of 20-70 % benzoyl chloride) would make the condensate benzoyl-chloride-rich from the
+start: about 2.3 kmol (320 kg) would keep benzoic acid below 0.168 of the condensate (ideal), a
+change of the batch, R-101's volume and the model, not made here (open, with the solubility).
+
+**Decision 1: R-101 gets a relief device of its own, and the blocked vent is a design case.**
+The head space cannot hold what the reaction gives off:
+- Dosing stopped, cooling lost, vent blocked at the end of the dosing: 0.3169 kmol of HCl from
+  the accumulated benzotrichloride raise the 0.408 m3 head space (1.6 m3 less 1.192 m3 of batch)
+  by about 2.7 MPa at 421.9 K (0.3169 x 8.314 x 421.9 / 0.408 = 2725 kPa), with HCl's solubility
+  at pressure not credited (not known). At k/10, 1.161 kmol at 443.3 K: about 10.5 MPa.
+- Rate: the largest release, 0.6649 mol/s at 421.1 K, raises it by 5.7 kPa/s (0.6649e-3 x 8.314
+  x 421.1 / 0.408); at k/10, 1.255 mol/s at 443.3 K, 11.3 kPa/s. The normal peak, 0.6173 mol/s at
+  0.11 h (`process recipe`), into the head space then (about 0.99 m3: 1.6 m3 less about 0.61 m3 of
+  melt and dosed benzotrichloride, from materials.yaml's molar volumes), about 2.1 kPa/s. A
+  pressure trip of the dosing acts within seconds of an overpressure, and does not stop the
+  accumulated benzotrichloride's HCl, so it reduces the case to the 2.7 MPa above, not below.
+Decided: (a) a relief device on R-101's head space with its own line, not through the vapour
+line, E-102 or A-101, since their blockage (E-102 frozen, above; A-101 flooded; liquid drawn
+back) is the case it protects; to a catch tank and on to a scrubber. (b) Its relief basis, per
+batch of the recipe: the largest gas release over the batch, 0.6649 mol/s of HCl with 0.1988
+mol/s of organic vapour at 421.1 K and 101.3 kPa(a), 0.052 kg/s (HCl 0.0242, benzoyl chloride
+0.0271, benzotrichloride 0.0008, benzoic acid 0.0002 kg/s), and 0.3169 kmol of HCl in all from
+the accumulation; at k/10 1.255 mol/s and 1.161 kmol (the kinetics are ASSUMED, D-005). (c) The
+benzotrichloride dosing trips on R-101's high pressure (as D-014 proposed); no reliability is
+claimed for it. The content is a gassy system at the relief (421.9 K, 49 K below its boiling
+point), and R-101 is 75 % full, so the relief may be two-phase: the device is not sized here.
+Open (lab data): a closed-cell adiabatic test (pressure and temperature, e.g. a vent-sizing
+package) of the end-of-dosing mixture (7 % of the benzotrichloride unreacted in the crude with
+the ZnCl2, at 413 K) for the gas-generation rate and the pressure against temperature up to and
+beyond 471 K, with the onset of any decomposition (it also gives the TD24 D-011 lacks) and a
+foaming or level-swell check: it gates the relief area, the single- or two-phase method, the
+catch tank's volume and the criticality class. Open (vendor): R-101's design pressure (the set
+pressure follows it) and the HCl solubility in the crude at pressure (lowers the rise, not
+credited). Open (human): the relief study and its sign-off; the trip in the HAZOP's
+cause-and-effect.
+
+**Decision 2: R-101's jacket on a non-aqueous heat-transfer fluid, not tempered water.**
+Water reacts with both chlorides and gives HCl gas at once: 2 mol of HCl per mol of water with
+benzotrichloride (0.1110 kmol per kg of water, 3.76 m3 at 413.15 K and 101.3 kPa(a), the "about
+3.8 m3 at 413 K" of D-011), 1 mol with benzoyl chloride. With the vent open, the 130 m3/h takes
+about 35 kg/h of water ingress with no reaction gas (130 / 3.76), about 14 kg/h beside the normal
+peak (75.25 m3/h of HCl with about 0.04 vapour, 78.7 m3/h); with the vent blocked, each kg raises
+the head space by about 0.95 MPa (0.1110 x 8.314 x 421.9 / 0.408). The heat is small: benzoyl
+chloride's hydrolysis to liquid benzoic acid and gaseous HCl is about -16 kJ/mol at 298 K
+(formation enthalpies: benzoyl chloride liquid -157.3 and benzoic acid solid -385 kJ/mol, SRC-2,
+the solid raised by its 18.0 kJ/mol of fusion; water liquid -285.83 and HCl gas -92.17 kJ/mol,
+chemicals 1.5.2, SRC-8), under 1 MJ per kg of water, under 1 K in the batch (dT_ad 94.7 K for 225
+MJ, so about 2.4 MJ/K); benzotrichloride's is not known (no formation enthalpy, SRC-2). So water
+ingress is a gas-generation case. A pressurised tempered-water loop leaks inward at any jacket or
+wall failure, at a rate the design cannot bound; a loop held below the vessel's pressure (water at
+363 K boils at 70 kPa(a), against R-101's 101.3 kPa(a)) leaves too thin a margin and reverses
+when R-101 pressurises. Leak detection would be a safeguard whose reliability is not known here.
+Elimination is preferred: the loop on R-101's jacket is a heat-transfer oil (single-fluid
+heating and cooling; ASSUMED, its type to choose), still cooled by cooling water in its own
+exchanger, so water reaches R-101 only through two failures. The recipe's jacket check keeps its
+363.15 K coolant and its U of 300 W/(m2 K), ASSUMED: it passes down to 150 W/(m2 K) (45.63 kW
+removable at 300 against the 22.8 kW peak), so the decision does not depend on the oil's film
+coefficient within a factor of 2. The flowsheet and the LCI do not change (Q2 still ends in the
+cooling water). The oil loop also allows the jacket above benzoic acid's 395.2 K melting point
+while R-101 receives the melt, which a 363 K water loop does not; not decided here. Open
+(vendor): the fluid's compatibility with HCl and benzoyl chloride, its range, and U. C-101's LP
+steam jacket (450 kPa(a) against 5 kPa(a)) stays: a steam leak hydrolyses benzoyl chloride to
+HCl into the vacuum system (0.0555 kmol, about 35 m3 at 376 K and 5 kPa(a) per kg of steam,
+against the dry vacuum pump's capacity, not known); open for the HAZOP.
+
+**Decision 3: no suck-back into R-101.** When the HCl stops (end of the post-reaction, or a
+trip) A-101 absorbs what fills R-101's head space and the line; with nothing to replace it R-101
+falls to the liquid's vapour pressure (0.189 of 101.3 kPa at the end of the batch, `process
+reactors`), about 82 kPa below the atmosphere, which lifts the absorber's liquid about 8 m (as
+water). Decided: (a) a pressure-controlled nitrogen supply into R-101's head space that opens
+below atmospheric pressure (a vacuum breaker on nitrogen), sized for the absorber's design
+uptake of HCl, 0.79 mol/s (D-014), about 64 Nm3/h of nitrogen, ASSUMED basis; its nitrogen per
+batch (the head space, about 0.4 m3) lies within D-012's 8 Nm3 a batch, so the LCI is unchanged;
+(b) a suck-back catch pot in the off-gas line between E-102 and A-101, empty in operation, larger
+than the liquid A-101 can send back (its hold-up, vendor data, open); (c) whether a barometric
+leg (A-101 about 8 m below the line's high point) is possible is left to the layout.
+
+**Decision 4: the loss of the absorber water.** Stopping the dosing does not stop the HCl:
+0.3169 kmol (11.55 kg) from the benzotrichloride accumulated at the end of the dosing, 1.161
+kmol (42.3 kg) at k/10. Decided: (a) the dosing trips on low water flow to A-101 and on HCl
+breakthrough at the tail scrubber (D-011's proposal; no reliability claimed); (b) the tail
+scrubber has an inventory of its own, independent of A-101's water supply, for at least the
+accumulated HCl: about 104 kg of water for 11.55 kg to at most 10 wt% HCl (ASSUMED end point;
+about 381 kg at k/10), or the caustic equivalent (0.317 kmol NaOH, 12.7 kg). Open (vendor): the
+end point from the HCl partial pressure over the acid at the scrubber's temperature, and water
+or caustic.
+
+**Open, the gas the hot crude holds.** Core reports no dissolved release because the vent takes
+all HCl (fraction 1, L-3). The HCl dissolved in the crude at 413 to 471 K (lab or literature
+solubility data) gates the dissolved release on a cooling failure or transfer, the still's
+lights and the vacuum system's HCl load, and would lower the blocked-vent pressure.
+
 ## Method and dependency table
 
 | step | status | basis |
@@ -586,6 +746,12 @@ Checks after the change: `cheme validate` 0 errors and 0 warnings; `propagate --
   `still.heat_up`, `vessel.metal_heat_capacity`, a `purity` end (D-015 gives the reasons);
   `tears:` (ADR 0060; no recycle is modelled), `hazard.reactions` (one reaction), the default MTT
   (still not the product's boiling point, L-5).
+- 1.12.0 (ADRs 0069, 0071): the largest gas release over the batch
+  (`gas_release.largest_over_batch`), the default MTT from the product (L-5), `melting_point` on
+  the components with `cheme.process-condenser-freezing` (D-016). Tried, not used:
+  `hazard.mtt_from: bubble-point` (471.7 K, beyond the Antoine range); not needed: `potential:
+  network` (one reaction), `vent.inerts` and `head_space` (no sweep modelled; the vacuum breaker
+  flows only when the gas stops), `vent.heat_of_absorption` and `vapour.henry` (no HCl solubility).
 - Not used, not needed by this route: `dosing.absorbed` (no gas is dosed), the crystallizer, the
   dryer and the filter (no solids: the benzoic acid is charged molten).
 
@@ -614,7 +780,9 @@ Checks after the change: `cheme validate` 0 errors and 0 warnings; `propagate --
   charge no heat-up and its flash is not modelled), and does not size its column, condenser or
   vacuum system: C-101 and K-101 are sized by hand (core 1.10.0 could size the still's pot from
   the recipe, not used: C-101 is 1.6 m3 as R-101).
-- L-5: the default MTT is the lowest boiling point of the charge and the doses; it ignores the
+- L-5 (**resolved in core 1.12.0**, ADR 0069: the default MTT counts the product formed in the
+  liquid and gives benzoyl chloride's 471.0 K; `hazard.mtt` removed, D-016): the default MTT
+  was the lowest boiling point of the charge and the doses; it ignored the
   product formed in the liquid. Here the product, benzoyl chloride (471 K), boils below both the
   charge (benzoic acid, 522 K) and the dose (benzotrichloride, 494 K), so the default would be 23 K
   too high; `hazard.mtt` was set by hand (phosphorus-tribromide-1's L-2 is the mirror case).
@@ -641,4 +809,9 @@ benzotrichloride (SRC-1, Example 2); the product specification, the benzotrichlo
 which sets the column (D-008); the benzotrichloride wash of the off-gas (D-010); prices for the
 allocation; a TEA (`operation.batch: {recipe: true}`); R-101's relief device and blocked-vent
 case, the off-gas system's capacity against a slower reaction (330 m3/h with the vapour for
-k/10, or the dosing rate from calorimetry), and the off-gas line's hydraulics (D-014).
+k/10, or the dosing rate from calorimetry), and the off-gas line's hydraulics (D-014); for
+D-016: a closed-cell adiabatic test of the end-of-dosing mixture (gas generation and pressure
+against temperature, decomposition onset, level swell) for the relief device, R-101's design
+pressure, the solid-liquid equilibrium of benzoic acid in benzoyl chloride at 298 to 395 K (E-102's
+freezing, or a benzoyl chloride heel), the heat-transfer oil's compatibility and U, A-101's
+liquid hold-up (the catch pot) and the tail scrubber's end point.

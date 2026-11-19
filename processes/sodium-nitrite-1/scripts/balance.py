@@ -209,7 +209,7 @@ cond_excess = evap - cond_to_t201
 LAT = 2257.0                # kJ/kg (latent heat at 373 K; D-010)
 # E301 double effect, backward feed (D-010): the feed enters effect 2 under vacuum, the
 # concentrate leaves effect 1 at 398 K / 120 kPa(a), whose calandria takes the WHB and LP steam
-# (420.8 K at 450 kPa(a), 22.6 K above the boiling liquor). BPE, approach and cp ASSUMED.
+# (421.06 K at 450 kPa(a), IAPWS-IF97; 22.9 K above the boiling liquor). BPE, approach and cp ASSUMED.
 BPE1, BPE2 = 20.0, 8.0      # K, near-saturated concentrate / effect-2 liquor (D-010)
 T1 = 398.15                 # effect 1 boiling liquor = S12; vapour saturated at 120 kPa 377.95 K
 T2 = 377.95 - 10.0          # effect 2 boiling liquor, 10 K below the effect-1 vapour
