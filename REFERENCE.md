@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 116 public process folders: 76 engineering projects (a `plant.yaml` with a process
+The table lists 117 public process folders: 77 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -142,6 +142,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`tert-butyldimethylsilyl-chloride-1`](processes/tert-butyldimethylsilyl-chloride-1/) | tert-Butyldimethylsilyl chloride (TBSCl) by a batch Grignard route: semi-batch Grignard formation with a vent, silylation with a thiocyanate catalyst, filter-dryer, solvent recycle, batch rectification and flaking (580 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`thf-1`](processes/thf-1/) | Tetrahydrofuran from 1,4-butanediol (50 kt/a, cyclodehydration and pressure-swing distillation) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`thionyl-chloride-1`](processes/thionyl-chloride-1/) | Thionyl chloride from sulfur, chlorine and SO2 over activated carbon (3.75 t/h) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`titanium-dioxide-1`](processes/titanium-dioxide-1/) | Titanium dioxide by the chloride process (100 kt/a raw rutile TiO2) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`urea-1`](processes/urea-1/) | Urea by CO2 stripping, total recycle, prilling (2000 t/d, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`utility-chiller`](processes/utility-chiller/) | Chilled water at 6 degC, electric chiller (library utility; refrigerant losses not yet counted) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
 | [`utility-cooling-tower`](processes/utility-cooling-tower/) | Cooling water, evaporative cooling tower, 25/35 degC (library utility) | concept (Tier 1 form, design parameters ASSUMED; not reviewed) | no (manifest and LCI dataset only) |
