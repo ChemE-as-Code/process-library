@@ -44,7 +44,13 @@ description: |
   MTSR is 279.5 K against an MTT of 333.15 K, the decomposition limit (Boc2O's precursors gave
   vigorous gas at 60-70 C, US 5 151 542 A), and a cooling failure releases at most 24.5 m3/h of
   gas with its vapour against the vent's 50 m3/h (52.9 m3/h at k/100, 1.06 of it: a design
-  finding). No TD24 is known: no class. See DESIGN.md for every assumption.
+  finding). No TD24 is known: no class. Rerun on cheme-as-code 1.12.0 with the reactions counted
+  as a network (DESIGN.md D-016): the content's bubble point (343.5 K or more) lies far above
+  every MTSR, so the dissolved phosgene (8.68 kg a batch at most) is stripped into the gas, not
+  boiled, at most 0.096 kg/h (7.72 kg/h at k/100, where the gas is 67.41 m3/h, 1.35 times the
+  vent). Boc2O's decomposition is bounded from an open rate at 50 C (at most 0.12 % in the
+  work-up) and in the vacuum still left to a measured rate (design findings for C-301's relief).
+  See DESIGN.md for every assumption.
 families: [oxygenates]
 keywords: [di-tert-butyl dicarbonate, Boc anhydride, Boc2O, potassium tert-butoxide, potassium tert-butyl carbonate, carbon dioxide, phosgene, DABCO, phosgenation, carbonation, semi-batch, batch, gas dosing, CO2 vent, hexane, batch still, vacuum distillation, liquid paraffin, caustic scrubber, fine chemicals, protecting group reagent]
 facets:
@@ -84,11 +90,15 @@ validation:
     the gas 26.6 m3/h, at k/100 292.0 K and 52.9 m3/h, 1.06 times the vent, with 36.1 % of the
     phosgene accumulated and stripped into that gas at up to 5.5 kg/h (y = x p*(T)/P over the
     cooling profile; 0.11 kg/h at the design rate) (a design finding: dosing interlocks, the
-    scrubber's caustic inventory, relief from calorimetry, DESIGN.md D-014). Preliminary
+    scrubber's caustic inventory, relief from calorimetry, DESIGN.md D-014). On cheme-as-code
+    1.12.0 (D-016) R101 counts its reactions as a network (dT_ad 82.0 K; MTSR 295.9 K and 67.41
+    m3/h at k/100), core screens the dissolved phosgene (0.0878 kmol a batch at most, stripped
+    at most 0.096 kg/h; the content's bubble point 343.5 K or more), and Boc2O's decomposition
+    is bounded from US 6 555 713 B1's rates at 50 C, the vacuum still's rate to be measured. Preliminary
     gate-to-gate LCI with nitrogen as a per-batch consumable; potassium tert-butoxide, phosgene,
     caustic soda and nitrogen linked to potassium-tert-butoxide-1, phosgene-1, chlor-alkali-1
     and asu-1, hexane, DABCO, CO2 and the paraffin gaps. Not reviewed. Needs cheme-as-code
-    1.10.0 (DESIGN.md D-015).
+    1.12.0 (DESIGN.md D-016; modelled on 1.10.0, D-015).
 chemistry:
   inputs:
     - {chemical: potassium-tert-butoxide, role: feedstock, inventory_key: "feed:KOTBU", note: "Potassium tert-butoxide (technical solid), 1.150 kg/kg Boc2O; linked to potassium-tert-butoxide-1 kg for kg (its make-up tert-butanol from tert-butanol-1, its potassium metal a gap there, D-012)"}
@@ -117,7 +127,8 @@ basis:
 references:
   - {title: "Mitsubishi Kasei (1986/1988) EP0256559A2: Process for the preparation of di-tert-butyl dicarbonate (alkali tert-butyl carbonate from the alkoxide and CO2, phosgene with a tertiary amine in an ether or hydrocarbon; washing out the alkali chloride, solvent removal under reduced pressure, distillation with a liquid paraffin; Example 1: 1.5 mol KOtBu, 3 mol CO2 over 3 h and 2.25 mol phosgene over 4 h at 5 C in THF with DABCO, 149 g; application refused)", url: "https://patents.google.com/patent/EP0256559A2/en"}
   - {title: "Sumitomo Seika (1991/1992) US5151542A: Process for preparing di-tert-butyl dicarbonate (potassium tert-butoxide and CO2 in hexane, methanesulfonyl chloride; water washes, solvent removal at no more than 50 C under reduced pressure; 87 % and 99.7 % in Example 1; vigorous gas and 11 % at 60-70 C in Comparative Example 1)", url: "https://patents.google.com/patent/US5151542A/en"}
-  - {title: "Wikipedia, Di-tert-butyl dicarbonate (density 0.95 g/cm3, mp 22-24 C, bp 56-57 C at 0.5 mmHg; decomposition to tert-butanol, isobutene and CO2; production routes)", url: "https://en.wikipedia.org/wiki/Di-tert-butyl_dicarbonate"}
+  - {title: "Wikipedia, Di-tert-butyl dicarbonate (density 0.95 g/cm3, mp 22-24 C, bp 56-57 C at 0.5 mmHg; decomposition to gaseous products on heating, and with moisture slowly to di-tert-butyl carbonate, tert-butanol and CO2; production routes)", url: "https://en.wikipedia.org/wiki/Di-tert-butyl_dicarbonate"}
+  - {title: "Tokuyama (1999/2003) US6555713B1: Protection of di-t-butyl dicarbonate against decomposition (loss of Boc2O at 50 C over 200 h: neat 4.5 %, with 50 wt% hexane 0.5 %; acids and bases at or below 1000 ppm)", url: "https://patents.google.com/patent/US6555713B1/en"}
   - {title: "PubChem CID 90495, Di-tert-butyl dicarbonate (identity: C10H18O5, InChIKey DYHSDKLCOJIUFX-UHFFFAOYSA-N)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/90495"}
   - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation, MTSR and the criticality classes of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
 lca:

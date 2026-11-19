@@ -18,7 +18,7 @@ cheme's solids models: the precipitation CR101 and the reslurry wash W101 are cr
 with the liquor's other solutes as spectators, the filter-dryer F-101 (two units) is one recipe
 vessel over the steps F101, W101, F102 and D101, and its filtration and drying times and its
 steam come from the filter and dryer models (`cheme process crystallizers`; DESIGN.md D-007,
-D-008). No balance script. Needs cheme-as-code 1.8.0.
+D-008). No balance script. Needs cheme-as-code 1.12.0 (M101's `hazard.potential: network`, D-011).
 
 | path | what |
 |---|---|

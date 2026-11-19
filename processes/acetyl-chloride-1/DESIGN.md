@@ -32,6 +32,11 @@ The vent's vapour and condenser (ADR 0062) were run on a scratch copy and not ad
 model the HCl's vapour, not the head space's and the nitrogen's, which carry most of it here.
 Requires cheme-as-code 1.10 (plant.yaml). D-015.
 
+Core pin 0e85885 (cheme-as-code 1.12.0, 2026-11-19): the screening's release over the batch,
+product MTT, bubble-point MTT and boil-up (ADR 0069) and the condenser freezing check (ADR 0071)
+rerun for issue process-library#427: no stream, duty or LCI value changes; the product grade,
+the warming loop's trips, R-101's relief basis and E-103's freezing decided in D-016.
+
 ## Source register
 
 Facts are restated in our own words; nothing is copied. "Read" means the passage named was read
@@ -44,7 +49,7 @@ itself (SRC-4).
 | SRC-1 | CS 272 248 B2, J. Pelyva et al. (Nitrokemia Ipartelepek), published 1991-01-15: simultaneous preparation of N-phosphonomethyliminodiacetic acid and C1-4 carboxylic acid chlorides, https://patents.google.com/patent/CS272248B2/en | Example 1: 180 g (3 mol) acetic acid, 137.3 g (1.0 mol) PCl3 added below 40 C, then 30 min at 40-50 C; the upper acetyl chloride layer separated for use (no yield, no purity); the lower phase 96 g, phosphorous acid with about 6 wt% HCl, 2 wt% acetyl chloride and 10 wt% acetic acid, diluted and used in a phosphonomethylation. Examples 2 and 3: the lower phase stripped, or re-treated with PCl3. Claim 1: PCl3 to acid 1:2.5 to 1:3.5 at 0-20 C. Description: lower phase typically 80-98 % phosphorous acid, 0-2 % acid, 1-5 % acyl chloride; phases separated by settling | read; patent, facts only | D-001, D-004, D-005, D-006 |
 | SRC-2 | US 4 209 460 A, A. Ohorodnik, E. Auer, K. Gehrmann (Hoechst AG), 1980: Production of pure acetyl chloride, https://patents.google.com/patent/US4209460A/en | description: commercial acetyl chloride is about 98 % pure, many uses need at least 99 %, and some fields not more than 1 ppm P (read 2026-11-06 for D-015); phosphorus compounds in acetyl chloride come from PCl3; acetyl chloride (bp 50.9 C) and PCl3 (75.9 C) are hard to separate by distillation at low PCl3 because their boiling and dew curves lie close; 1-20 L of chlorine per L turns the PCl3 into PCl5, which stays in the bottoms. Example 1 (no chlorine): a 2 m column of 50 mm packed with 8 mm saddles, reflux 1:1, 2.8 L/h of a crude with 125 ppm P, 2.32 L/h overhead with 9 ppm P. Examples 2 and 3: with 11-12.5 L chlorine per L, above 99 % acetyl chloride and below 1 ppm P. The crude came from another process (a phospholane synthesis) | read; patent, facts only | D-002, D-008, D-015 |
 | SRC-3 | US 4 060 546 A, B. Blaser, H.-G. Germscheid, K.-H. Worms (Henkel), 1977 (priority 1961): acylation products of phosphorous acid, https://patents.google.com/patent/US4060546A/en | background: PCl3 and anhydrous acetic acid in a 1:3 ratio as prior art; the invention reacts PCl3 with acetic acid and water to phosphonic acids with two P atoms per molecule, acetyl chloride distilling off | read; patent, facts only | D-004, D-005 (side reaction not modelled) |
-| SRC-4 | The `chemicals` 1.5.2 package (core's environment; open-source, MIT; the version core pins): its packaged CRC Handbook tables (`heat_capacity.CRC_standard_data`: standard formation enthalpies and heat capacities; `miscdata.CRC_organic_data`, `CRC_inorganic_data`: densities, boiling and melting points; `phase_change.Hvap_data_CRC`: PCl3's heat of vaporization at its boiling point; `phase_change.Hfus_data_CRC`: the heat of fusion), which chemicals takes from the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here | acetic acid (l) -484.3 kJ/mol, cp 123.3 J/(mol K), 1044.6 kg/m3; acetyl chloride (l) -272.9, 117.0, 1105.1, Tb 324.15 K; PCl3 (l) -319.7, 1574 kg/m3, Tb 349.15 K, heat of vaporization 30.5 kJ/mol at Tb; phosphorous acid (cr) -964.4, 1650 kg/m3, Tm 347.55 K, fusion 12.8 kJ/mol; water (l) -285.8; HCl (g) -92.3 and cp 29.1 | open-source package queried 2026-11-06; single values, facts only; not open data (library ADR 0037). The CRC values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook | materials, reactions, D-005, D-009 |
+| SRC-4 | The `chemicals` 1.5.2 package (core's environment; open-source, MIT; the version core pins): its packaged CRC Handbook tables (`heat_capacity.CRC_standard_data`: standard formation enthalpies and heat capacities; `miscdata.CRC_organic_data`, `CRC_inorganic_data`: densities, boiling and melting points; `phase_change.Hvap_data_CRC`: PCl3's heat of vaporization at its boiling point; `phase_change.Hfus_data_CRC`: the heat of fusion), which chemicals takes from the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here | acetic acid (l) -484.3 kJ/mol, cp 123.3 J/(mol K), 1044.6 kg/m3; acetyl chloride (l) -272.9, 117.0, 1105.1, Tb 324.15 K; PCl3 (l) -319.7, 1574 kg/m3, Tb 349.15 K, heat of vaporization 30.5 kJ/mol at Tb; phosphorous acid (cr) -964.4, 1650 kg/m3, Tm 347.55 K, fusion 12.8 kJ/mol; water (l) -285.8; HCl (g) -92.3 and cp 29.1; melting points (queried 2026-11-19, `CRC_organic_data`, `CRC_inorganic_data`) acetic acid 290.15 K, acetyl chloride 160.45 K, PCl3 180.15 K, water 273.15 K, and acetic acid's heat of fusion 11.73 kJ/mol (`Hfus_data_CRC`) | open-source package queried 2026-11-06; single values, facts only; not open data (library ADR 0037). The CRC values come from the tables packaged in `chemicals`, not from the printed (licensed) handbook | materials, reactions, D-005, D-009, D-016 |
 | SRC-5 | NIST Chemistry WebBook, SRD 69: acetyl chloride (C75365), acetic acid (C64197), PCl3 (C7719122), water | Antoine constants (acetyl chloride 266.9-324.2 K and acetic acid 290.3-391.0 K, McDonald, Shrader et al. 1959; PCl3 221.6-347.3 K and water, Stull 1947); acetyl chloride Tb 325 +/- 2 K (mean of 10), heat of vaporization 30.1 kJ/mol at 323.9 K, liquid cp 117.2 J/(mol K), formation enthalpy -272.0 to -275.2 kJ/mol; acetic acid heat of vaporization 40.3 kJ/mol at 340 K | read | materials, D-007 |
 | SRC-6 | PubChem CIDs 6367 (acetyl chloride), 24387 (PCl3), 407 (phosphonic acid) | identity (formula, InChIKey, ChEBI cross-reference); HSDB: acetyl chloride and PCl3 react violently with water to the acid and HCl | read (PUG REST) | registry, reactions |
 | SRC-7 | Wikipedia, Phosphorous acid, https://en.wikipedia.org/wiki/Phosphorous_acid | mp 73.6 C; on heating to about 200 C it disproportionates to phosphoric acid and phosphine; made industrially by hydrolysing PCl3 | read; CC BY-SA, facts only | D-007 (heating limit), D-012 |
@@ -482,7 +487,9 @@ Release cases (not assessed, reasoning only; for the HAZOP of the next stage):
   trips the steam valve (independent of the loop's controller); the loop's supply capped below
   the MTT by design (a steam pressure or a hot-water source whose temperature cannot exceed
   324 K); a dosing permissive on the jacket in cooling mode and on R-101's temperature; a
-  high-temperature trip on R-101 that isolates the steam and stops the dosing.
+  high-temperature trip on R-101 that isolates the steam and stops the dosing. Decided in
+  D-016: the steam's block valve open only in the heat step, R-101's trip at 318.15 K, the
+  loop's at 325.15 K, the relief sized for this case without credit for them.
 Screening values only, not a reaction-hazard assessment.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-06)
@@ -614,6 +621,11 @@ Decision, on the core pin's rise to 1.9.0 (314642c), for the three findings core
   device (a rupture disc to a catch tank or the scrubber) sized for them, and the PCl3 dosing
   interlocked on R-101's pressure and on the vent flow (D-011).
   The flowsheet keeps 50 m3/h, the design case's basis, until the relief study sizes the vent.
+  Core 1.12.0 (D-016): the warming loop gets a steam block valve open only in the heat step and
+  two independent trips; R-101's relief, a rupture disc to a catch tank, is sized for (2)
+  without credit for them (a vapour-only lower bound of 6.3 cm2 at 200 kPa(a)); (1) stays the
+  hand bound (core's boil-up does not follow the cooling failure's path); the blocked vent's
+  own cases, the normal HCl (+90 kPa) and SRC-1's dissolved HCl (up to 3.9 MPa), are added.
   Reasoning only, not a relief sizing.
 
 ## D-015 Core 1.10.0: the column on the still, its heat-up and condenser; the vent's vapour tried and not adopted (2026-11-06)
@@ -740,13 +752,159 @@ model is at least as credible as the hand value it replaces:
   electricity 0.0207 -> 0.0206 kWh (P2 on the 2.07 h distillation); the still residue 0.047 ->
   0.046 kg; PCl3 0.630 -> 0.629 kg, acetic acid 0.827 -> 0.826 kg; brine 0.0014 kWh unchanged.
 
+## D-016 Core 1.12.0: the screening rerun; product grade, the warming loop's trips, R-101's relief and E-103's freezing (2026-11-19)
+Decision, on the library's core pin 0e85885 (cheme-as-code 1.12.0), for the findings of issue
+process-library#427 (the phosphorus specification, the warming loop's failure and the blocked
+vent; D-014, D-015). `cheme process reactor-hazards --json`, `stills` and `validate` were rerun
+on the entry and on scratch copies (not committed; only the change named in each row).
+
+- **Screening rerun (ADR 0069), unchanged.** dT_ad 21.4 K, accumulation 11.7 % at 7200 s, MTSR
+  315.8 K against the MTT 324.15 K, the gas at the MTSR 0.41 m3/h (0.008 of the vent), the
+  largest release over the batch 31.2 m3/h at 0.0191 h (69 s, its MTSR 313.4 K; HCl 3.34e-4,
+  acetyl chloride 2.6e-6 kmol/s), 0.624 of the 50 m3/h vent: core now writes the figure the
+  scratch runs of D-011 found, and `cheme.reactor-hazard-vent` quotes 0.624 instead of 0.008.
+  No `dissolved_release`: the model holds no dissolved gas (all HCl is vented, L-6), so SRC-1's
+  dissolved HCl stays a hand case below. No consecutive pair, one dosed reactant: no `network`
+  or `accumulations` output.
+- **The MTT stays given, 324.15 K.** Core 1.12.0's default now counts a product and gives
+  acetyl chloride's 324.1 K ("a product, 75 % of the liquid after ACCL"; scratch copy without
+  `hazard.mtt`), the hand value: L-5 is resolved in core. `hazard.mtt` is kept as written, equal
+  to the default, so the screening does not hang on the default's 5 % rule (and the folder's
+  test reads it). Rejected: `hazard.mtt_from: bubble-point`. It takes the content as one ideal
+  liquid with the phosphorous acid dissolved, which here settles as a phase of its own (D-006,
+  L-2), and so dilutes the volatiles: 332.8 K for the content after ACCL (335.7 K the worst
+  moment's), 8.7 K above the upper phase's own bubble point, 324.33 K (`cheme process stills`:
+  the charge's). At k/100 it gives 332.7 K against the MTSR 330.5 K, so it would turn D-011's
+  "6.4 K above the MTT" into "below": not conservative. A scratch run with the volatiles'
+  activity raised to 1.33 (as if the phosphorous acid were not in the liquid; ASSUMED, not
+  sourced) gives 324.1 K, the given value.
+- **The release over the batch with the liquid's vapour** (scratch copies, R101's vent as
+  `{components: [HCL], vapour: {components: [ACCL, ACOH, PCL3, H2O]}}`): 32.6 m3/h at 61 s (its
+  MTSR 313.4 K, vapour 4.9 % of it, mostly acetic acid), 0.652 of the vent; at k/100 39.8 m3/h
+  at 67 s, 0.796 (37.9 m3/h without the vapour, D-011). Within the vent in both; the line's
+  allowance of about 53 m3/h (D-014) covers it.
+- **The k/100 boil-off is not settled by core.** At k/100 core's boil-up (`gas_release.
+  boil_up`, ADR 0069) is not reported: it takes the worst moment's content, 80.2 % of the PCl3
+  unreacted in acetic acid, whose bubble point is 362.5 K (353.0 K with the activity above),
+  above the MTSR 330.5 K. The mass boils only as the runaway forms acetyl chloride, along the
+  cooling failure's path, which core does not follow (ADR 0069's known limitations). D-014
+  (1)'s hand bound, at most 0.65 kmol/h (17.3 m3/h, 5.45 kW), stays.
+- **Product grade: the design stays at 99.0 wt% with 1293 ppm P; a low-phosphorus grade
+  takes SRC-2's chlorine treatment, not reflux.** No buyer's phosphorus specification is known
+  (D-002); 99.43 wt% meets the assay of at least 99.0 wt% (SRC-2: commercial acetyl chloride is
+  about 98 %, many uses need 99 %). The still was rerun at higher reflux (scratch copies,
+  10 stages, residue end 50 mol%, everything else as designed; ppm P = wt% PCl3 x 30.974 /
+  137.33 x 10^4):
+
+| reflux ratio | product wt% PCl3 (ppm P) | recovery of acetyl chloride | boil-up a batch | reboiler, year average |
+|---|---|---|---|---|
+| 1 (design) | 0.573 (1293) | 98.19 % | 2.07 h | 54.9 kW |
+| 2 | 0.0818 (184) | 97.91 % | 3.09 h | 81.3 kW |
+| 3 | 0.0317 (72) | 97.88 % | 4.11 h | 107.9 kW |
+| 5 | 0.0140 (31) | 97.87 % | 6.17 h | 161.2 kW |
+| 10 | 0.0072 (16) | 97.87 % | 11.30 h | 294.4 kW |
+
+  Distillation alone does not reach SRC-2's "below 1 ppm P": 16 ppm at reflux 10, on an ideal
+  liquid that separates the last PCl3 better than the plant would (L-10). Above a reflux of about
+  3.2 the still's step (boil-up plus 1.5 h of receiving, cooling and draining) exceeds R-101's
+  5.78 h cycle and C-101 becomes the bottleneck. So: (1) for a grade of a few hundred ppm P,
+  `reflux: constant_distillate` (D-015: 397 ppm P at 60.5 kW) before reflux 2 (184 ppm P at
+  81.3 kW); (2) for a grade of 1 ppm P or below, SRC-2's chlorination of the crude before the
+  still (SRC-2: chlorine fed counter-current to the crude in a packed column ahead of the
+  distillation, 1 to 20 L of chlorine per L of crude, 10 to 15 preferred, the PCl3 turned to
+  PCl5, which distils normally against acetyl chloride; Examples 2 and 3, about 12 L per L at
+  125 and 26 ppm P, give below 1 ppm P at reflux 1:1). Here the upper phase holds 2.86 wt% PCl3
+  (0.318 kmol a batch), 52 times SRC-2's crude: chlorine 0.318 kmol (22.5 kg, 7.1 Nm3) a
+  batch by stoichiometry, 5.2 L (at 273 K; SRC-2 states no reference state) per L of crude,
+  inside SRC-2's range. Not adopted now, because
+  no such grade is asked for, and because what it adds is not known from an open source: the
+  excess chlorine and the HCl to a scrubber that A-101 (water) is not designed for, the PCl5
+  (and any POCl3 from PCl5 and the acetic acid of the crude, not assessed) in the residue, the
+  chlorine's effect on acetyl chloride (SRC-2 reports none). Open: the buyer's phosphorus
+  specification (a commercial decision), and for a chlorinated grade the chlorination
+  measured on this crude.
+- **The warming loop: steam only in the heat step, and two trips.** The hazard (D-011 (d)) is
+  LP steam at 412 K reaching R-101's jacket while acetyl chloride is in it: about 129 kW, 15
+  kmol/h of acetyl chloride vapour, 410 m3/h at 324 K, 8.2 times the vent. Decided, as the
+  concept's safeguards (functions and set points ASSUMED; no reliability is claimed, their SIL
+  is for the LOPA):
+  (1) the steam to the tempered-water loop passes an on/off block valve of its own, apart from
+  the loop's temperature control valve, open only in the recipe's `heat` step, while R-101 holds
+  acetic acid alone (boiling at 391 K); before the `dose` step it is closed and proven closed and
+  the jacket is on cooling water: the PCl3 dosing's permissive, with R-101 at 313 +/- 2 K;
+  (2) a high-high temperature trip on R-101's mass at 318.15 K (5 K above the process
+  temperature, above the design MTSR of 315.8 K so that a cooling failure at the design
+  kinetics does not trip it, 6 K below the MTT), independent of R-101's and the loop's
+  controllers: it stops the PCl3 dosing, closes the steam block valve and puts the jacket on
+  full cooling water;
+  (3) a high-high temperature on the loop's supply at 325.15 K closing the steam block valve
+  (during the heat step it protects the acid's warming and is the first sign of a failed
+  control valve).
+  Rejected for now: a heating medium capped below the MTT (the site's heat is LP steam at
+  412 K, D-009; no hot-water source below 324 K is in the design basis). Recorded as the
+  inherently safer option for the HAZOP: warming the acetic acid in its charge line instead of
+  in R-101, which takes the steam off R-101's jacket altogether (and the 0.54 h warming off
+  the bottleneck's cycle); it changes the recipe and the batch basis, so it is not made here.
+- **R-101's relief: a rupture disc to a catch tank, sized for the warming loop's failure
+  without credit for its trips.** A blocked vent (a closed valve, a frozen or flooded E-103, a
+  scrubber that floods) leaves R-101 closed. Its cases, with numbers:
+  the normal HCl, 0.0464 kmol a batch from the acid's water, almost all in the first minutes,
+  into the 1.35 m3 head space over the 1.15 m3 charge at 313 K: +90 kPa, so a high-high pressure
+  on R-101 stops the dosing (D-014 (4)); SRC-1's 6 wt% HCl in the lower phase (1.06 kmol a
+  batch), if a warming mass degassed it into the 0.72 m3 head space at the end of the dosing:
+  up to 3.9 MPa (an upper bound: how much is dissolved, and where it comes from, is open, D-010,
+  L-6); water ingress, 1.43 m3 of HCl per kg (D-011 (a)); the k/100 boil-off, 0.65 kmol/h; the
+  warming loop's failure, the largest quantified. The relief is sized for the last without credit
+  for the trips above, whose reliability is not known. Basis, at an ASSUMED relieving pressure of
+  200 kPa(a) (R-101's design pressure and the disc's burst pressure are not known): acetyl
+  chloride boils at 345.2 K there (Clausius-Clapeyron from 324.15 K with 30.1 kJ/mol, beyond
+  the Antoine fit); the jacket gives 300 W/(m2 K) x 4.89 m2 x (412 - 345.2) K = 98 kW, 11.7
+  kmol/h (0.256 kg/s) of vapour. As vapour only (ideal-gas critical flow, isentropic exponent
+  1.1 and a disc's flow coefficient 0.62, both ASSUMED) that needs 6.3 cm2, about 28 mm: a lower
+  bound, since a mass 71 % full that swells would vent two-phase and need several times it.
+  The disc (its material for HCl and acetyl chloride) discharges to a catch tank whose gas goes
+  to a scrubber sized in the relief study; A-101 is not sized for it. Fire is not assessed (no
+  layout).
+  Open, each with what it decides: (i) a vent-sizing test of the reaction mass in an adiabatic
+  vent-sizing calorimeter (VSP2 or ARSST type) under the jacket's heat input and at k/100's
+  accumulation: whether it vents as vapour or two-phase, its foaming, the boil-off rate; it
+  gives the disc's area and the catch tank; (ii) HCl in both phases against temperature, or the
+  HCl balance by off-gas measurement in the reaction calorimetry (D-011): it decides the
+  dissolved-HCl case, possibly the largest; (iii) R-101's design pressure and the disc's burst
+  pressure (the glass-lined vessel's vendor): the relieving pressure; (iv) the largest credible
+  water ingress (the jacket's design): the water case; (v) the HAZOP, the LOPA of the trips and
+  the relief study's sign-off by a qualified engineer.
+- **E-103 can freeze: acetic acid melts at 290.15 K, above its 258 K brine and its 268 K gas
+  outlet** (CRC via chemicals 1.5.2, SRC-4: acetic acid 290.15 K, acetyl chloride 160.45 K,
+  PCl3 180.15 K, water 273.15 K). Core's check (`cheme.process-condenser-freezing`, ADR 0071)
+  cannot run on the entry: E-103 is a script estimate, not R101's `vent.condenser` (D-015,
+  L-3), and `melting_point` would need core 1.12 (`requires` stays 1.10). On a scratch copy
+  with these melting points, the vent's vapour and a condenser at 268.15 K it warns for acetic
+  acid and water; the condensate of R-101's own
+  vent gas is 96 mol% acetic acid (3.6e-4 of 3.8e-4 kmol/h year average, 0.13 kg a batch),
+  most of it in the first minutes, when the HCl peaks over the acetic acid. The ideal freezing
+  line (Schroeder-van Laar with acetic acid's 11.73 kJ/mol heat of fusion, CRC via chemicals
+  1.5.2, SRC-4) puts acetic acid out of a condensate above 0.55 mole fraction at 258 K (0.67 at
+  268 K). Over the batch E-103 condenses about 0.21 kmol of acetyl chloride (D-010's 0.039 kmol/h
+  per source, less what passes), about 1 mol% acetic acid on average, which dissolves the early
+  deposit. Kept: brine at 258 K, as a coolant above 290 K would leave acetyl chloride at about
+  31 kPa past E-103 instead of 9.3 kPa (about four times the vent's acetyl chloride). E-103 gets
+  a differential pressure alarm, and its blockage is one of the blocked-vent causes the relief
+  above covers. ASSUMED that the deposit redissolves; open: the freezing point of acetic acid in
+  acetyl chloride (or the condensate's composition over time with core's head space, ADR 0071,
+  not adopted here, L-3). The still's condenser Q4 passes on the scratch copy (cooling water at
+  298 K, the distillate acetyl chloride, 160.45 K): no finding.
+- **Files.** flowsheet.yaml: R101's `hazard` source (text only; `propagate --fill` wrote no stream);
+  BFD/PFD rebuilt (core 1.12.0's generator fingerprint); lca/ regenerated (fingerprints only);
+  equipment list. No stream, duty or LCI value changes.
+
 ## Method and dependency table
 
 | step | status | basis |
 |---|---|---|
 | mass, component, element balances | done in cheme | cheme validate / process streams / propagate |
 | semi-batch R-101 with its vent: composition, accumulation, cooling-failure temperature, peak cooling, off-gas, year-average duty Q2 | done in cheme, kinetics and conversion ASSUMED | D-005, D-009, D-011, core ADRs 0050, 0054, 0059 |
-| MTSR over the batch, gas release at the MTSR and over the batch against the vent capacity | done in cheme (the largest over the batch with core's `vent_gas_rate`), vent capacity ASSUMED; boiling and water cases beyond it a design finding | D-011, D-014, core ADR 0058 |
+| MTSR over the batch, gas release at the MTSR and over the batch against the vent capacity | done in cheme (the largest over the batch, core 1.12.0's `largest_over_batch`), vent capacity ASSUMED; boiling, water and dissolved-HCl cases beyond it go to R-101's relief (a vapour-only lower bound by hand) | D-011, D-014, D-016, core ADRs 0058, 0069 |
 | R-101's own evaporative cooling (not in Q2) | script bound, a recorded exclusion | D-009, D-014 |
 | batch recipe, cycle time, basis check, R-101's vessel, jacket and warming time | done in cheme | D-003, core ADRs 0051, 0052, 0057 |
 | phase split D101 | specified split in a script, calibrated to SRC-1 | D-006, L-2 |
@@ -802,7 +960,19 @@ Built on cheme-as-code 1.8.0, pinned to 1.9.0 since 2026-11-06 (D-014) and to 1.
   would lengthen R-101's warming and the cycle, an input for basic engineering).
 - Not used: `tears:` (ADR 0060; no recycle is modelled, the residue's recycle is a variant,
   D-008), `hazard.reactions` (the default counts the main reaction, D-014), the default MTT
-  (still not the product's boiling point, L-5).
+  (until 1.12.0 not the product's boiling point, L-5; since then equal to the given value).
+- 1.12.0 (D-016): the release over the batch in `cheme process reactor-hazards` (ADR 0069;
+  31.2 m3/h at 69 s, 0.624 of the vent, as D-011's scratch runs) and `cheme process stills`
+  rerun. Tried on scratch copies and not adopted: `melting_point` on the components (ADR 0071;
+  the still's condenser then passes the freezing check; left out so that the entry still runs
+  on its declared `requires: cheme-as-code>=1.10`, which the field would raise to 1.12); `hazard.mtt_from:
+  bubble-point` (332.8 K, the phosphorous acid taken as dissolved: not conservative, L-2);
+  `gas_release.boil_up` at k/100 (not reported: the worst moment's content does not boil at
+  the MTSR); the vent's vapour with a condenser at 268.15 K, on which
+  `cheme.process-condenser-freezing` warns for acetic acid (E-103, D-016). Not used: the head
+  space and inerts (ADR 0071, L-3; not assessed in this change), design specifications and
+  component separators (ADR 0070), the still's phases and cut conditions (ADR 0068; one
+  phase, one cut).
 - Not used, not needed by this route: `dosing.absorbed` (no gas is dosed), the crystallizer, the
   dryer and the filter (no solids), the still's `feed:` (D-008).
 
@@ -838,6 +1008,8 @@ Built on cheme-as-code 1.8.0, pinned to 1.9.0 since 2026-11-06 (D-014) and to 1.
   head space the dose displaces and the vapour pressure's rise expels, and the still's and the
   receivers' nitrogen, carry most of it here and are not modelled. The features were not
   adopted (D-015); a head space and inert sweep in the vent is the core follow-up (ADR 0062).
+  Core 1.12.0 adds them (ADR 0071; its authors' scratch copy of this entry: 0.014 % of the
+  acetyl chloride past a 268 K condenser, 0.024 kW); not assessed in D-016, still open here.
 - L-4 (ADR 0055; the heat-up resolved in core 1.10.0, ADR 0063): the still extrapolates an
   Antoine fit beyond its range (acetyl chloride's ends at 324.2 K, the still reaches 335.89 K
   with the column, 340.45 K with one stage; reported as a note only). Until core 1.10.0 it had no
@@ -849,14 +1021,18 @@ Built on cheme-as-code 1.8.0, pinned to 1.9.0 since 2026-11-06 (D-014) and to 1.
   charge (acetic acid, 391 K) and the dose (PCl3, 349 K), so the default would be 25 K too high;
   `hazard.mtt` was set by hand (as benzoyl-chloride-1's L-5). Still so in core 1.9.0: ADR 0058
   leaves vent and dissolved gases out of the default, but the products are no candidates (its
-  known limitations); the default stays PCl3's 349.15 K (D-014).
+  known limitations); the default stays PCl3's 349.15 K (D-014). Resolved in core 1.12.0 (ADR
+  0069): the default counts the product and gives 324.1 K; `hazard.mtt` is kept, equal to it.
+  Its `mtt_from: bubble-point` takes the phosphorous acid as dissolved and gives 332.8 K, 8.7 K
+  too high for the upper phase (D-016, L-2).
 - L-6 (ADR 0054; still open in core 1.10.0): no solubility of the vented gas. Core 1.10.0's
   `vent.henry` (ADR 0062) needs a Henry constant of HCl in these liquids, and none was found
   (searched 2026-11-05/06); it would also not degas the HCl the source's lower phase holds. The source's lower phase holds 6 wt% HCl (38.6
   kg a batch at this scale), the model none (all HCl formed is vented); the HCl dissolved in the
   product and the lights cut the still would take off are not represented. The model cannot carry
   dissolved HCl into the still anyway: HCl is supercritical at the still's temperatures, so it has
-  no Antoine there.
+  no Antoine there. Core 1.12.0's `dissolved_release` (ADR 0069) reports nothing for R101 for
+  the same reason; SRC-1's dissolved HCl is a hand case of R-101's relief (D-016).
 - L-7 (as n-bromosuccinimide-1's L-6): core propagates from the feeds and cannot solve them for a
   product rate, and the batch size and the cycle depend on each other through the jacket's warming
   time; both were iterated by hand (propagate, the script, the recipe, again).
@@ -894,4 +1070,10 @@ low-phosphorus grade is wanted; the masses of R-101 and C-101 for their metal's 
 PCl3; the lower phase's stripping (SRC-1, Example 2); prices for the allocation; a TEA
 (`operation.batch: {recipe: true}`); R-101's relief device and blocked-vent case, the vent's
 capacity against the boiling and water cases, E-103's design duty for the k/100 boil-off, and
-the vent line's hydraulics with the liquid's vapour (D-014).
+the vent line's hydraulics with the liquid's vapour (D-014). From D-016: the buyer's phosphorus
+specification (a commercial decision; a grade of 1 ppm P needs the chlorination measured on this
+crude); a vent-sizing calorimeter test of the reaction mass (vapour or two-phase relief, the
+disc's area and the catch tank); HCl in both phases against temperature (the dissolved-HCl
+case); R-101's design pressure and the disc's burst pressure (vendor); the largest credible
+water ingress; the freezing point of acetic acid in acetyl chloride (E-103); the HAZOP, the
+LOPA of the warming loop's trips and the relief study's sign-off.
