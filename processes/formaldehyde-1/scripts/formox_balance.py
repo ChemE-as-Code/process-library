@@ -133,7 +133,7 @@ def main():
     x_pass = meoh_conv / feed_r["CH3OH"]
     react = {"CH3OH": -meoh_conv, "O2": -o2_used, "HCHO": hcho_formed, "CO": co, "DME": dme,
              "H2O": xi1 + xi2 + xi3}
-    out_r = add(feed_r, react)                     # S8
+    out_r = add(feed_r, react)                     # reactor outlet (S7)
     meoh_prod = meoh_left - v * z_m
     w_prod = (I["product_kg_h"] - hcho_prod * MW["HCHO"] - meoh_prod * MW["CH3OH"]) / MW["H2O"]
     product = {"HCHO": hcho_prod, "CH3OH": meoh_prod, "H2O": w_prod}
@@ -150,7 +150,7 @@ def main():
     t_out = t_for_h(gas3, h_gas(gas3, t_in) + w, t2s)
     p_shaft = w / 3600
     p_el = p_shaft / I["eta_motor"]
-    # vaporiser E101: hot S8 (t_reactor_out) -> S9 (t_vap_hot_out); cold S5 -> S6
+    # vaporiser E101: hot S7 (t_reactor_out) -> S8 (t_vap_hot_out); cold S5 -> S6
     q_e101 = h_gas(out_r, I["t_reactor_out"]) - h_gas(out_r, I["t_vap_hot_out"])
     h_s5 = h_gas(gas3, t_out) + meoh_feed * (HF["CH3OH"] - I["dhvap_meoh"])  # liquid at 298 K
     t6 = t_for_h(feed_r, h_s5 + q_e101, 400)
@@ -187,15 +187,16 @@ def main():
     print(f"dry air {a:.2f} kmol/h, recycle {rec:.2f} kmol/h, vent {v:.2f} kmol/h, "
           f"split to recycle {rec / (rec + v):.6f}; vent {v * NM3:.0f} Nm3/h = "
           f"{v * NM3 / (hcho_prod * MW['HCHO'] / 1000):.0f} Nm3/t HCHO")
+    # labels are process/flowsheet.yaml's stream ids
     show("S1 air", air, I["t_air"])
-    show("S10 recycle", recycle, I["t_offgas"])
+    show("S11 recycle", recycle, I["t_offgas"])
     show("S3 blower out", gas3, t_out)
     show("S6 reactor in", feed_r, t6)
-    show("S8 reactor out", out_r, I["t_reactor_out"])
-    show("S11 off-gas", offgas_all, I["t_offgas"])
-    show("S13 vent to ECS", vent, I["t_offgas"])
-    show("S14 stack", stack, I["t_stack"])
-    show("S12 product", product, I["t_product"])
+    show("S7 reactor out", out_r, I["t_reactor_out"])
+    show("S10 off-gas", offgas_all, I["t_offgas"])
+    show("S12 vent to ECS", vent, I["t_offgas"])
+    show("S13 stack", stack, I["t_stack"])
+    show("S14 product", product, I["t_product"])
     print(f"process water {pw:.3f} kmol/h = {pw * MW['H2O']:.1f} kg/h")
     print(f"inlet O2 {feed_r['O2'] / sum(feed_r.values()):.4f}, blower T in {t_in:.2f} out {t_out:.2f}")
     print(f"K101 shaft {p_shaft:.1f} kW, electric {p_el:.1f} kW")
@@ -204,8 +205,7 @@ def main():
     for kk in ("CO", "HCHO", "CH3OH", "DME"):
         print(f"stack {kk}: {stack[kk] * MW[kk] * 1e6 / (sum(stack.values()) * NM3):.2f} mg/Nm3 (wet)")
     # the values process/flowsheet.yaml cites from this script (balance-output contract), by the
-    # flowsheet's stream ids: its S10 is the absorber off-gas (printed "S11"), its S14 the
-    # formalin product (printed "S12"); compositions as mole fractions
+    # flowsheet's stream ids; compositions as mole fractions
     def state(d):
         return {"flow": {"value": sum(n * MW[kk] for kk, n in d.items()), "basis": "mass"},
                 "composition": {"values": {kk: n / sum(d.values()) for kk, n in d.items()},
