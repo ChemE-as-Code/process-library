@@ -1,0 +1,50 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressure and temperature are ASSUMED concept values (DESIGN.md D-011): the highest
+# operating value + 10 % (at least + 2 bar) and + 25 K. Sizes, dimensions and weights come at
+# basic engineering (datasheets). Materials are first choices (D-011), an open input.
+schema: cheme/equipment/v1
+equipment:
+  # ---- Oximation (block OXI)
+  - {tag: R-101, type: Vessel, service: "Oximation reactor cascade (counter-current, ammonia to pH 5)", design_pressure_barg: 3, design_temperature_degc: 115, material: "SS 316L",
+     notes: "Stirred vessels in counter-current at 363 K (US 4,031,139); 11.2 t/h cyclohexanone, 36.7 t/h hydroxylammonium sulfate solution, 2.1 t/h ammonia; 3.5 MW to cooling water (Q1, core's conversion-step duty), an upper bound: the heat of reaction leaves out the heat of forming hydroxylammonium sulfate, each 100 kJ/mol of which lowers Q1 by 1.58 MW (D-008, L-3). Volume not sized (no kinetics). ASSUMED."}
+  - {tag: D-101, type: Vessel, service: Oxime separator (oxime melt / ammonium sulfate liquor), design_pressure_barg: 3, design_temperature_degc: 115, material: "SS 316L",
+     notes: "Liquid-liquid separator; 13.6 t/h oxime melt (4.6 wt% water). ASSUMED."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Oxime melt cooler, design_pressure_barg: 3, design_temperature_degc: 115, material: "SS 316L",
+     notes: "The melt from 363 to 358 K, 46 kW to cooling water (Q10, scripts/energy_balance.py, D-013). ASSUMED."}
+  # ---- Beckmann rearrangement (block BKR)
+  - {tag: R-201, type: Vessel, service: Rearrangement loop vessel (oxime in oleum), design_pressure_barg: 4, design_temperature_degc: 145, material: "Alloy for oleum (e.g. high-silicon SS), open input",
+     notes: "Circulating loop at 388 K, residence 30 to 120 min (US 4,804,754); 29.4 t/h out; volume not sized. ASSUMED."}
+  - {tag: E-201, type: TubularHeatExchanger, service: Rearrangement loop cooler, design_pressure_barg: 4, design_temperature_degc: 145, material: "Alloy for oleum, open input",
+     notes: "5.75 MW to cooling water (Q2, core's conversion-step duty); the oleum's heats of solution and the lactam's protonation not counted (L-3). ASSUMED."}
+  - {tag: P-201, type: CentrifugalPump, service: Rearrangement circulation pump, design_pressure_barg: 6, design_temperature_degc: 145, material: "Alloy for oleum, open input",
+     notes: "40 to 150 system volumes per hour (US 4,804,754); 250 kW ASSUMED."}
+  # ---- Neutralisation (block NEU)
+  - {tag: R-301, type: Vessel, service: Neutraliser loop (ammonia into the ammonium sulfate solution), design_pressure_barg: 3, design_temperature_degc: 105, material: "SS 316L",
+     notes: "353 K ASSUMED, pH 4 to 5 (US 4,804,754); 5.9 t/h ammonia; 97.2 t/h out. ASSUMED."}
+  - {tag: E-301, type: TubularHeatExchanger, service: Neutraliser loop cooler, design_pressure_barg: 3, design_temperature_degc: 105, material: "SS 316L",
+     notes: "12.0 MW to cooling water (Q3, core's conversion-step duty); at 353 K, below the plant's LP steam level (425 K), the heat could at most drive a vacuum effect of the crystalliser (open item O-4). ASSUMED."}
+  - {tag: D-301, type: Vessel, service: Crude lactam separator, design_pressure_barg: 3, design_temperature_degc: 105, material: "SS 316L",
+     notes: "18.8 t/h crude lactam (30 wt% water) and 78.4 t/h of 40 wt% ammonium sulfate solution. ASSUMED."}
+  - {tag: E-302, type: TubularHeatExchanger, service: Crude lactam cooler, design_pressure_barg: 3, design_temperature_degc: 105, material: "SS 316L",
+     notes: "The crude lactam from 353 to 323 K for the extraction, 0.44 MW to cooling water (Q11, scripts/energy_balance.py, D-013). ASSUMED."}
+  # ---- Extraction (block EXT)
+  - {tag: T-401, type: Tank, service: Benzene solvent tank, design_pressure_barg: 2, design_temperature_degc: 65, material: CS,
+     notes: "Nitrogen-blanketed, vented to the vapour destruction unit (LVOC BREF 2.1.4.7.1). ASSUMED."}
+  - {tag: C-401, type: Column, service: Benzene extraction column (crude lactam), design_pressure_barg: 4, design_temperature_degc: 75, material: "SS 316L",
+     notes: "Counter-current (rotating-disc or pulsed packed), 3 to 25 theoretical stages (US 6,448,395 B1); 44.7 t/h benzene, extract 22 wt% lactam. Stages not set. ASSUMED."}
+  - {tag: M-402, type: Mixer, service: Back-extraction water mixer, design_pressure_barg: 4, design_temperature_degc: 65, material: "SS 304L", notes: "ASSUMED."}
+  - {tag: C-402, type: Column, service: Back-extraction column (lactam into water), design_pressure_barg: 4, design_temperature_degc: 65, material: "SS 304L",
+     notes: "32.3 t/h water, aqueous lactam 28 wt% (US 6,448,395 B1). Stages not set. ASSUMED."}
+  - {tag: E-402, type: TubularHeatExchanger, service: Back-extraction cooler (extract and benzene), design_pressure_barg: 4, design_temperature_degc: 75, material: "SS 304L",
+     notes: "Holds the back-extraction at 313 K, 0.24 MW to cooling water (Q12, scripts/energy_balance.py, D-013). ASSUMED."}
+  # ---- Purification (block PUR)
+  - {tag: E-501, type: Evaporator, service: "Lactam evaporator (three effects, benzene stripper)", design_pressure_barg: 4, design_temperature_degc: 165, material: "SS 304L",
+     notes: "32.2 t/h water evaporated; 7.3 MW LP steam at three effects (ASSUMED), 6.7 MW to the last condenser. The ion exchange and the catalytic hydrogenation the LVOC BREF names are not modelled (D-009)."}
+  - {tag: C-501, type: Column, service: Lactam vacuum distillation, design_pressure_barg: 2, design_temperature_degc: 200, material: "SS 304L",
+     notes: "Vacuum (about 1 kPa(a), ASSUMED); 3.9 MW MP steam at reflux 1 (ASSUMED), 4.4 MW to the condenser and the product cooler; 12.5 t/h caprolactam. Stages not set. ASSUMED."}
+  - {tag: T-502, type: Tank, service: Organic residue tank (to incineration), design_pressure_barg: 2, design_temperature_degc: 165, material: "SS 304L", notes: "ASSUMED."}
+  # ---- Ammonium sulfate (block ASC)
+  - {tag: T-601, type: Tank, service: Ammonium sulfate solution tank, design_pressure_barg: 2, design_temperature_degc: 105, material: "SS 316L", notes: "ASSUMED."}
+  - {tag: EV-601, type: Evaporator, service: "Ammonium sulfate crystalliser (three effects), centrifuge and dryer", design_pressure_barg: 4, design_temperature_degc: 165, material: "SS 316L",
+     notes: "51.6 t/h water evaporated, 31.0 t/h crystals; 10.8 MW LP steam at three effects, 1.0 MW LP steam to the dryer's air heater, 14.4 MW to the last condenser and the coolers, and 0.9 MW power (ASSUMED, D-010)."}
