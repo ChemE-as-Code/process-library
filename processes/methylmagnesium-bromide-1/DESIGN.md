@@ -23,6 +23,13 @@ with a stated vent capacity (ADR 0058, D-011); `plant.yaml` requires `cheme-as-c
 balance, the recipe and the LCI amounts do not change (Q1 stays 134.1 kW); Q1 becomes
 `calculated`, so its pedigree in the LCA dataset goes from [4,4,1,3,3] to [3,4,1,3,3] and the
 data-quality rating changes (P 3.8 to 3.7, DQR 2.7 to 2.675).
+Rechecked on core **1.12.0** (0e85885, the library's pin) on 2026-11-19 for the design findings
+of process-library#427 (the vent, the relief and the heating medium, D-010 and D-011): the
+balance, the recipe, the MTSR and the MTT do not change; the new screening of core ADRs 0069 and
+0071 (the largest gas release over the batch, the dissolved gases a cooling failure releases,
+the consecutive-reaction network, the bubble-point MTT, the boil-up of a content boiling at the
+MTSR) decides the relief basis and the initiation and heating conditions in D-014. No file of
+the model changed for it: the boil-up needs the vent's vapour, which ran on scratch copies only.
 
 ## Source register
 
@@ -41,6 +48,8 @@ in this session, or in the route scouting of the same day where said.
 | SRC-8 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | the accumulation and MTSR of a semi-batch (method, implemented in core ADR 0050) | method reference, no data taken | D-011 |
 | SRC-9 | processes/asu-1, processes/iodine-1, processes/thf-1, processes/methanol-1, processes/hydrogen-bromide-1 (this library) | gaseous nitrogen and iodine to the battery limit (linked); THF, methanol and HBr (named as proxies, not linked) | library, internal | D-012 |
 | SRC-10 | NIST Chemistry WebBook, 2-Methyltetrahydrofuran (C96479), phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C96479&Mask=4 | enthalpy of vaporization 34.0 kJ/mol from vapour pressures of 283 to 353 K (Stephenson and Malanowski 1987), and 33.7 kJ/mol (Moiseev and Antonova 1970); boiling point 352 +/- 10 K (average of 6 values) | read 2026-11-06; US government data | D-011 (the MTT at 120 kPa(a)) |
+| SRC-10a | the same page (C96479, phase change data), fusion | triple/fusion point Tfus 137.05 K (Boord, Greenlee et al. 1949, uncertainty 0.4 K assigned by TRC); the page has no Antoine parameters for 2-MeTHF | read 2026-11-19; US government data | D-014 (the vent condenser cannot freeze) |
+| SRC-12 | NIST Chemistry WebBook, Bromomethane (C74839), phase change data, https://webbook.nist.gov/cgi/cbook.cgi?ID=C74839&Mask=4 | Antoine parameters log10(P/bar) = 4.26874 - 1069.708/(T/K - 25.771), 203 to 276.8 K (coefficients calculated by NIST from Beersmans and Jungers 1947); triple point 179.47 K (Egan and Kemp 1938); boiling point 276.6 K (Majer and Svoboda 1985 and others) | read 2026-11-19; US government data | D-014 (methyl bromide stripped on a cooling failure, scratch copies only; the vent condenser) |
 | SRC-11 | Montreal Protocol on Substances that Deplete the Ozone Layer, Article 1 (Definitions), UNEP Ozone Secretariat, https://ozone.unep.org/treaties/montreal-protocol/articles/article-1-definitions | paragraph 5: production is the amount produced minus the amount destroyed and minus the amount entirely used as feedstock in the manufacture of other chemicals | read (2026-11-06); treaty text, facts only | D-012 |
 
 Not read and not cited as read: Ullmann's Encyclopedia (licensed; the HSDB entries cite it),
@@ -87,6 +96,14 @@ consumptions, and a market volume.
 - `hazard.reactions` (ADR 0058) is not used: the default counts every reaction and takes the
   largest, GRIG (MTSR 321.5 K); the Wurtz coupling alone reaches 321.4 K at its worst moment
   (D-011), so naming the reactions would change nothing.
+- **Core 1.12.0's screening (ADRs 0069 and 0071), read without a change to the files (D-014):**
+  the largest gas release over the batch and the methyl bromide held in the liquid
+  (`dissolved_release`, rule `cheme.reactor-hazard-dissolved`) on the entry as it is; the
+  consecutive pair GRIG-WURTZ (`network`, reported without `hazard.potential`); on scratch
+  copies the bubble-point MTT (`hazard.mtt_from: bubble-point`, not adopted) and, with the
+  vent's vapour declared, the boil-up of a content boiling at the MTSR (`gas_release.boil_up`),
+  the relief basis. `hazard.potential: network`, the head space and inerts, the heat of
+  absorption and the Henry degassing of ADR 0071 are not used (D-014 says why).
 
 ## D-001 Route and boundary (2026-11-05)
 Decision: Mg + CH3Br -> CH3MgBr in dry 2-MeTHF at 318 K under nitrogen (SRC-3), methyl bromide
@@ -285,6 +302,21 @@ pad pressure being held. Rejected for now: lowering the hot water to 343.15 K, b
 boiling point. It lengthens the warm-up from 0.19 to 0.25 h, the cycle to 9.06 h and the year to
 873.9 batches (a scratch copy of `cheme process recipe`, not in the files), a choice for basic
 engineering together with the interlocks.
+Amended 2026-11-19 (core 1.12.0, D-014): the methyl bromide dissolved in an uninitiated
+initiation charge (71.2 kg, core's `dissolved_release`) lowers the bubble point of R-101's
+content to about 352.1 K at the pad's 120 kPa(a) and 346.8 K at atmospheric pressure (my
+arithmetic, Raoult's law over 2-MeTHF and methyl bromide, D-014). The hot water at 353.15 K is
+therefore above the content's bubble point **with the pad held** as soon as the first methyl
+bromide is in, not only above the normal boiling point. Decision: the heating permissive applies
+to the **initiation charge**, not only to the main dosing: no methyl bromide enters R-101 until
+the steam to the hot-water loop is shut and the jacket's loop is at or below the process
+temperature (318.15 K); the high-temperature trip of the hot-water supply stays. Recomputed on
+core 1.12.0, the 343.15 K alternative still costs a warm-up of 0.249 h (was 0.19 h), a cycle of
+9.062 h and 873.9 batches a year (scratch copy of `process recipe`), and would keep the medium
+3.7 K below the 346.8 K, so it no longer depends on the pad or the permissive; it is
+recommended, and left to the engineering review because it trades 0.6 % of the capacity
+against an instrumented permissive whose reliability is not known here (no SIL or frequency
+is claimed). Applying it changes the recipe, the flowsheet's year averages and the LCI.
 
 ## D-011 Thermal screening: initiation, accumulation and the vent (2026-11-05, core 1.9.0 2026-11-06)
 Result (`cheme process reactor-hazards`, core ADRs 0050, 0054 and 0058): adiabatic temperature
@@ -331,7 +363,7 @@ MTT and the gas release from core 1.9.0):
 | base (ASSUMED k) | 0.615 % | 321.5 K | -34.8 K | 2.8 m3/h | 0.063 h | 9.00 h | 879.5 | 241.6 kW | MTSR < MTT: dosing-controlled; gas within the vent |
 | k/10 | 4.27 % | 341.5 K | -14.8 K | 4.8 m3/h | 1.23 h | 10.17 h | 778.5 | 237.3 kW | MTSR < MTT, small margin; gas within the vent |
 | k/100 (sluggish or delayed initiation) | 21.1 % | 433.9 K | +77.6 K | 49.2 m3/h | 15.64 h | 24.58 h | 322.2 | 203.7 kW | MTSR far above MTT: the solvent boils off and the vessel pressurises; ethane alone 2.5 times the vent |
-| initiation charge uninitiated (5 % only, k/10000) | 99.8 % of the 5 % | 349.5 K | -6.8 K | - | - | - | - | - | the initiation charge alone stays below the MTT (1.7 K below the normal boiling point) |
+| initiation charge uninitiated (5 % only, k/10000) | 99.8 % of the 5 % | 349.5 K | -6.8 K | - | - | - | - | - | the initiation charge alone stays below the MTT (1.7 K below the normal boiling point); with its dissolved methyl bromide counted, 2.6 K below its content's bubble point at 120 kPa(a) and 2.7 K above it at atmospheric pressure (D-014) |
 | whole dose uninitiated (k/10000, dosing not stopped) | 95.8 % | 843 K | +487 K | 48.3 m3/h | - | - | - | - | Stoessel class 5 territory: the classic Grignard runaway; ethane alone 2.4 times the vent |
 
 The gas release of the k/100 and uninitiated cases takes the rate laws at the MTSR, far outside
@@ -359,6 +391,10 @@ temperature, loss of brine or of the agitator) keep the accumulation at the base
 case with its methyl bromide and ethane (two-phase venting likely, a DIERS-type sizing) and
 routed to a containment or the oxidiser, never to atmosphere. Both are open safeguards for basic
 engineering, with the calorimetry that sets the real accumulation.
+Rescreened on core 1.12.0 (2026-11-19, D-014): the relief basis is the boil-up of the k/100
+case, about 3.9e3 m3/h of 2-MeTHF vapour with its 301 kg of methyl bromide, to a catch tank;
+the uninitiated whole dose is excluded from the relief basis and prevented by the initiation
+permissive; the vent's 20 m3/h holds for the base and k/10 cases with the solvent vapour.
 Toxic gas release: what accumulates is dissolved methyl bromide, which boils at 276.55 K, 42 K
 below the process temperature. A cooling failure with accumulated dose therefore first drives the
 methyl bromide out of the liquor, before and with the solvent, through the vent or the relief.
@@ -374,7 +410,9 @@ from the vent, the relief, the vaporiser E-101 and the liquefied store).
 Open: calorimetry (heat of reaction in 2-MeTHF with gas dosing, heat-flow profile, the induction
 time, TD24 of the solution and of the wet magnesium cake), the relief of R-101 for the
 boiling-solvent case with its methyl bromide release and its routing, the vent's pressure case,
-the toxic-release consequence of methyl bromide, the heating-medium safeguards of D-010.
+the toxic-release consequence of methyl bromide, the heating-medium safeguards of D-010. D-014
+settles the relief's case and routing and the permissive's scope, and states what of these
+stays open and which measurement gates which decision.
 Screening values only, not a reaction-hazard assessment.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-11-05)
@@ -416,6 +454,147 @@ Out of scope, so not LCI gaps: the changeover cleaning between campaigns of othe
 quench and solvent flush of the train), the idle time of a multipurpose train, shared tank farms,
 the thermal oxidiser and the filling station.
 
+## D-014 Relief basis, initiation and heating conditions from core 1.12.0's screening (2026-11-19)
+Context: process-library#427 lists this entry's open design findings: the k/100 and the
+uninitiated whole-dose cases exceed the 20 m3/h vent about 2.5 times, they need the initiation
+permissive and a relief, and the heating medium is close to the MTT (D-010, D-011). Rescreened
+with `cheme process reactor-hazards` on core 1.12.0 (0e85885; core ADRs 0069 and 0071).
+
+**The entry as it is (no file changed).** dT_ad 548.0 K, accumulation 0.615 %, MTSR 321.5 K, MTT
+356.3 K, as on 1.9.0. The largest gas release over the batch is the release at the MTSR, 2.797
+m3/h of ethane at 5.75 h (0.14 times the vent). Methyl bromide held in the liquid: at most
+0.0924 kmol (8.77 kg) at 5.75 h (`dissolved_release`, `cheme.reactor-hazard-dissolved`, info),
+core's own figure for the 9 kg D-011 had by hand. Core reports WURTZ as a consecutive reaction
+on GRIG's product (`network`): dT_ad 548.0 K and MTSR 321.5 K, the same as the largest single
+reaction (GRIG takes the methyl bromide, the more exothermic of the pair), so
+`hazard.potential: network` is not set.
+
+**The cases of D-011 on 1.12.0** (scratch copies, both rate constants divided as in D-011; "with
+vapour" adds `vent.vapour: {components: [METHF]}` with 2-MeTHF's vapour pressure as the
+Clausius-Clapeyron line through 351.15 K with 34.0 kJ/mol, the line core's default MTT uses,
+written in Antoine form ln(P/kPa) = 16.2637 - 4089.26 K / T, my arithmetic from SRC-1 and
+SRC-10, ASSUMED; the files declare no vapour pressure):
+
+| case | MTSR | largest release over the batch (ethane) | times the vent | methyl bromide held, largest | with the 2-MeTHF vapour | boil-up at the bubble point |
+|---|---|---|---|---|---|---|
+| base | 321.5 K | 2.80 m3/h at 5.75 h | 0.14 | 8.77 kg at 5.75 h | 3.51 m3/h, vapour share 0.20 (0.18 times the vent) | does not boil |
+| k/10 | 341.5 K | 4.77 m3/h at 5.75 h | 0.24 | 60.9 kg at 5.75 h | 8.27 m3/h, vapour share 0.42 (0.41 times the vent) | does not boil |
+| k/100 | 433.9 K | 49.25 m3/h at 5.75 h | 2.46 | 301.2 kg at 5.75 h | boils at the MTSR | 3863 m3/h of vapour at 369.6 K from 1425 kW (193 times the vent) |
+| 5 % initiation charge, uninitiated | 349.5 K | 6.6e-5 m3/h | 3e-6 | 71.2 kg at 0.25 h | 1.1e-4 m3/h | does not boil (but see below) |
+| 3 % initiation charge, uninitiated | 337.0 K | - | - | 42.7 kg at 0.25 h | - | does not boil |
+| whole dose uninitiated | 843.0 K | 93.13 m3/h at 15.1 h (its MTSR 775.2 K) | 4.66 | 1366 kg at 5.75 h | boils at the MTSR | 503 m3/h at 375.7 K from 182.5 kW (25 times the vent) |
+
+The k/100 and uninitiated rows take the ASSUMED rate laws far outside their 298-338 K range: an
+order of magnitude, not a value. With the vapour, core's largest release over the batch at k/100
+is 3.1e4 m3/h: the reactions' heat at the MTSR, 434 K, a temperature a tempered content does not
+reach while it is relieved; the boil-up at the bubble point (`gas_release.boil_up`, a tempered
+reaction) is the relief's case. Core takes that bubble point at the vessel's stream pressure, the
+120 kPa(a) pad (ADR 0069, item 6), so 369.6 K is the tempering temperature only at the pad. A
+relief lifts at its set pressure and relieves above it (overpressure), where the content boils
+hotter and reacts faster (corrected after the review of PR #505; the first version said a content
+boiling at 369.6 K is what is relieved). Methyl bromide stripped by the gas release on a cooling
+failure (a further scratch run with methyl bromide's Antoine parameters, SRC-12, extrapolated
+from 276.8 K): at most 0.097 kg/h at the base rate and 2.83 kg/h at k/10, and the release with
+the vapour 3.53 and 9.43 m3/h (0.18 and 0.47 times the vent).
+
+**The bubble point with the dissolved methyl bromide** (my arithmetic: Raoult's law, an ideal
+liquid ASSUMED, over 2-MeTHF and methyl bromide only, both by Clausius-Clapeyron, methyl
+bromide from 276.55 K and 23.3 kJ/mol, SRC-7; the dissolved salts and the magnesium left out,
+which gives the lower, conservative value; core's bubble point leaves a dosed gas boiling below
+`T_p` out, L-14): base at its worst moment 355.8 K at 120 kPa(a) and 350.6 K at atmospheric
+pressure; the uninitiated 5 % initiation charge 352.1 and 346.8 K; 3 % 353.7 and 348.5 K; k/100
+at its worst moment 341.1 and 335.6 K; the whole uninitiated dose 316.2 K, below `T_p`: a whole
+dose could not be held dissolved at 120 kPa(a) (the fixed `absorbed: 0.99` does not follow this),
+so it would raise R-101's pressure and pass to the vent before it all accumulated.
+
+Decisions:
+1. **Relief basis: the tempered boil-up of a sluggish reaction (k/100); its load is open, with a
+   lower bound.** R-101's emergency relief, separate from the process vent, relieves the boil-up
+   of the k/100 case, preceded by the 301 kg of dissolved methyl bromide, which boils off first
+   (the content with it boils at about 341 K at the pad). Core's figure, about 3.9e3 m3/h of
+   2-MeTHF vapour at 369.6 K and 120 kPa(a) (0.0419 kmol/s, about 13 t/h, from 1.4 MW of
+   reaction heat), is the boil-up at the pad pressure: **a lower bound, not the design load**
+   (restated after the review of PR #505). At the relieving pressure (set pressure plus
+   overpressure, both open) the content tempers hotter and the reaction heat, and with it the
+   boil-off mass rate, is larger. My arithmetic, to show the size of it (the content at the
+   worst moment unchanged, its bubble point following the Clausius-Clapeyron line of the table's
+   note scaled through 369.6 K at 120 kPa(a), the rate constant by Ea 40 kJ/mol, the latent heat
+   taken as constant; relieving pressures ASSUMED for illustration, not decided):
+
+   | relieving pressure | tempering temperature | reaction heat | boil-off |
+   |---|---|---|---|
+   | 120 kPa(a) (core, the pad) | 369.6 K | 1.43 MW | about 13 t/h |
+   | 150 kPa(a) | 377.2 K | 1.85 MW | about 17 t/h |
+   | 200 kPa(a) | 387.5 K | 2.60 MW | about 24 t/h |
+   | 300 kPa(a) | 403.0 K | 4.19 MW | about 38 t/h |
+
+   The relief's load is decided once R-101's design and set pressures are (open, below), from
+   the calorimetry at that temperature; until then 13 t/h is the floor. It discharges to a catch tank, not to the oxidiser's header (193 times the
+   20 m3/h it is sized for) and never to atmosphere; the catch tank holds R-101's liquid at the
+   end of the dosing, 4.56 m3 (`cheme process recipe`; ASSUMED, as a two-phase discharge can
+   carry the content out), is kept dry and under nitrogen (the Grignard solution reacts with
+   water), and its vent goes to the thermal oxidiser and caustic scrubber for the methyl bromide.
+   Reason: the boil-up is two orders of magnitude above any process vent; the relief load of a
+   tempered reaction is the vapour the reaction heat makes at the bubble point (core ADR 0069,
+   Stoessel, SRC-8, method). The k/10 case needs no relief: the vent holds it with the solvent
+   vapour (0.41 times).
+2. **The uninitiated whole dose is not a relief case.** Its accumulated 1366 kg of methyl bromide
+   reacting at the initiated rate would release the batch's whole heat, about 4.2 GJ (14.39 kmol x
+   291.1 MJ/kmol), in seconds (at the base rate constant the same content releases about 1e4
+   times the 182.5 kW of the k/10000 case at 375.7 K: my arithmetic, the rate law ASSUMED far out
+   of range): no relief of a 6.3 m3 vessel can be sized for it. It is excluded from the relief
+   basis and prevented: the initiation permissive (the main dosing only after a positive
+   initiation signal of the initiation charge: temperature rise, heat flow or in-situ IR, SRC-6
+   practice) and the dosing stop on low heat flow, high temperature, loss of brine or of the
+   agitator (D-011). Their logic, signals and reliability (SIL) are for the HAZOP and LOPA; none
+   is claimed here.
+3. **Initiation charge: 5 % stays in the model; 3 % is recommended.** An uninitiated 5 % charge
+   reaches 349.5 K, 2.6 K below its content's bubble point with the pad at 120 kPa(a) and 2.7 K
+   above it at atmospheric pressure: it is safe only with the pad held through the hold. A 3 %
+   charge (scratch copy, core 1.12.0) reaches 337.0 K, 11.5 K below the atmospheric bubble point
+   of its content (348.5 K), with 42.7 kg of methyl bromide held instead of 71.2 kg; over the
+   whole batch it changes little (peak cooling 234.3 kW against the jacket's 249.2 kW, MTSR 321.6
+   K, accumulation 0.627 %, cycle unchanged). It is not adopted yet because the charge must give an
+   unambiguous initiation signal (3 % gives an adiabatic rise of 18.9 K against 31.4 K at 5 %),
+   which only the calorimetry can show.
+4. **The heating permissive covers the initiation charge** (D-010, amended): the hot water
+   (353.15 K) is above the bubble point of the initiation charge's content even at 120 kPa(a).
+5. **The MTT stays core's default, 356.3 K.** `hazard.mtt_from: bubble-point` gives 367.6 K (the
+   content after GRIG at 120 kPa(a), the MeMgBr counted as an ideal non-volatile solute at about
+   28 mol%): higher, so less conservative, resting on Raoult's law for a concentrated
+   organomagnesium solution with no basis, and blind to the dissolved methyl bromide, which
+   lowers the bubble point (above). Not adopted.
+6. **R-101's vent, 20 m3/h, stays.** It holds the base and k/10 cases with the solvent vapour and
+   the stripped methyl bromide (0.18 and 0.47 times). D-011's base-case figure (the dissolved 9
+   kg driven out in 15 min, 11.1 m3/h) stays as an upper bound: the base content at the MTSR is
+   34 K below its bubble point, so the methyl bromide leaves by stripping (0.1 kg/h).
+7. **The vent condenser cannot freeze.** R-101's reflux condenser on brine at 263.15 K is far above
+   the melting points of what it condenses, 2-MeTHF 137.05 K (SRC-10a) and methyl bromide
+   179.47 K (triple point, SRC-12); the train is dry. No tempered coolant is needed. The rule
+   `cheme.process-condenser-freezing` checks a modelled `vent.condenser`; the entry models none,
+   so the melting points are not declared.
+8. Not used from core ADR 0071: the head space and inerts (the nitrogen of inerting and the pad
+   are the LCI's per-batch nitrogen, D-012; modelling them would carry solvent vapour into the
+   vent, L-6, an LCI change outside #427), the heat of absorption and Henry's law (no sourced
+   value for methyl bromide in 2-MeTHF, L-7, D-004).
+
+Stays open, and what it gates:
+- reaction calorimetry with gas dosing in 2-MeTHF up to the bubble point at the relieving
+  pressure (heat flow, the induction time, the rate above 338 K, to about 400 K): the relief load
+  of decision 1 (the k/100 boil-up rests on the ASSUMED rate law extrapolated to 369.6 K and
+  beyond), the dosing-stop thresholds of decision 2 and, with the initiation signal it shows,
+  the 3 % or 5 % charge of decision 3;
+- R-101's design and set pressures (vendor, relief study): the tempering temperature and so the
+  relief's load of decision 1 (13 t/h at the 120 kPa(a) pad is its lower bound), and with the
+  vent-sizing tests of the solution (level swell, foaming, viscosity; DIERS method) the relief
+  area and the catch tank (core models no two-phase relief or vessel pressure);
+- the TD24 of the solution and the wet magnesium cake (DSC or ARC): the criticality class, and
+  whether the k/100 MTSR (434 K) reaches a decomposition;
+- the solubility and vapour-liquid equilibrium of methyl bromide in 2-MeTHF: the dissolved
+  inventory and the bubble points above (Raoult's law ASSUMED);
+- human sign-off: the hot water at 343.15 K against the instrumented heating permissive (D-010),
+  and the SIL and LOPA of the permissive and the dosing stops (none claimed here).
+
 ## Method and dependency table
 
 | step | status | basis |
@@ -443,7 +622,8 @@ the thermal oxidiser and the filling station.
   `reactor-hazards --json`, 7 printed), which shows the base case's MTSR from the initiation to
   the end of the dosing (D-011). The MTSR of an uninitiated initiation charge (5 % dosed into the
   cold charge, then a hold) still needs a second scratch run with only that dose and a slow rate:
-  the profile follows the modelled rate, not a failed initiation (L-1).
+  the profile follows the modelled rate, not a failed initiation (L-1). Core 1.12.0 adds the
+  largest gas release over the batch (ADR 0069; at the base rate the same as at the MTSR, D-014).
 - L-3: **propagate writes the vented component into the liquid outlet** with a mole fraction of 0
   (`C2H6: 0.0`), so the liquid's template must list the gas, or validate reports
   `cheme.process-component`. A vented component that never stays in the liquid should be left out
@@ -466,7 +646,10 @@ the thermal oxidiser and the filling station.
   with a stated `hazard.vent_capacity` (rule `cheme.reactor-hazard-vent`, D-011). Still open: the
   pressure of a blocked vent is not screened, and the release counts only the vent's components,
   not the dissolved toxic methyl bromide a cooling failure boils off (an ADR 0058 known
-  limitation; D-011 adds it by hand).
+  limitation; D-011 adds it by hand). Core 1.12.0 (ADR 0069) reports the methyl bromide held in
+  the liquid (8.77 kg at the base rate) and, with `vent.vapour`, what the gas release strips and
+  a boiling content's boil-up (D-014); still open: the blocked vent's pressure, a two-phase
+  relief, and the vapour pressure the entry would need to carry the solvent in the vent.
 - L-7: **heat of absorption.** A dissolving gas adds only its sensible heat; the heat of
   reaction is written on the gas basis (core ADR 0054), so the MTSR is conservative but the
   isothermal duty during the dosing leaves out the absorption of the unreacted gas (small here,
@@ -490,13 +673,22 @@ the thermal oxidiser and the filling station.
   disposal (`cheme.lca-disposal`, info).
 - L-13 (library, not core): the taxonomy has no organometallics family; `inorganic-chemicals` is
   the nearest (D-002).
+- L-14 (core 1.12.0): **the bubble point leaves a dissolved, dosed gas out.** `hazard.mtt_from:
+  bubble-point` and the boil-up's bubble point (ADR 0069) leave out a dosed gas boiling below
+  `T_p`, but methyl bromide dissolved at 2 to 8 mol% lowers R-101's bubble point by 4 to 15 K
+  (Raoult's law, D-014), the side that matters for the heating medium and the initiation charge.
+  A dosed gas with a declared vapour pressure (or Henry constant) could be counted in the
+  bubble point. L-7: core 1.12.0 has `vent.heat_of_absorption` (ADR 0071); the entry has no
+  sourced value to give it.
 
 ## Open inputs
 Kinetics, induction time and heat of reaction in 2-MeTHF with gas dosing (calorimetry, in-situ
 IR); TD24 of the solution and of the wet magnesium cake; methyl bromide's solubility in 2-MeTHF
 and the real slip to the vent; the Wurtz selectivity; R-101's cooling arrangement and U (D-010)
-and its relief for the boiling-solvent case, sized and routed for the methyl bromide it releases
-(D-011); the heating-medium safeguards or a hot water below the solvent's normal boiling point (D-010); the quench drum's
+and its relief, whose case (the k/100 boil-up) and routing (a catch tank) D-014 sets, sized by a
+two-phase study with the calorimetry and R-101's design pressure (D-011, D-014); the initiation
+charge, 3 % or 5 %, from the initiation signal (D-014); the heating-medium safeguards or a hot
+water below the content's bubble point (D-010, D-014); the quench drum's
 inerting and hydrogen vent (D-007); the filter cake's resistance and liquor (D-007); a
 magnesium heel as an alternative (D-007); the product specification beyond the assay; the
 oxidiser and scrubber; a TEA (`operation.batch: {recipe: true}`).

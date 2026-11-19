@@ -1,4 +1,5 @@
-# Benchmarks of olefins: propane dehydrogenation and butadiene by C4 extraction. Schema:
+# Benchmarks of olefins: propane dehydrogenation, butadiene by C4 extraction and
+# methanol-to-olefins. Schema:
 # schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
 # source, in our own form.
 #
@@ -93,8 +94,36 @@ kpis:
         note: "Best practice technology, 6.7 GJ/t of steam as final energy (converted at 3.6 MJ/kWh), one value. Same paper as the dataset's average of 7.3 GJ/t, so not an independent check."
         conditions: {technology: "butadiene by C4 separation, best practice", region: global}
         source: *iea
+  mto-methanol-per-light-olefins:
+    title: Methanol per kg of ethylene and propylene by methanol-to-olefins
+    unit: kg/kg
+    references:
+      - id: ye-2021-dmto-methanol-per-olefins
+        range: [2.85, 2.97]
+        basis: unallocated
+        note: "Two commercial DMTO units, one value each: about 2.97 t of methanol per t of ethylene and propylene in a 72 h performance test of the first unit (Shenhua Baotou), 2.85 t/t in a later unit (Baofeng Ningxia phase II) with a newer catalyst; recorded as the range between them. DMTO is another licensor's fluidised-bed MTO than the UOP example whose yields the dataset takes (US 7 138 557 B2, Table 1); independent of the dataset's source. Not retracted (Crossref has no update for the DOI; checked 2026-11-19)."
+        conditions: {technology: "DMTO fluidised-bed methanol-to-olefins on SAPO-34, commercial units", capacity: "1800 kt/a methanol (first unit)", region: China, year: 2021}
+        source:
+          citation: "Ye, M., Tian, P., Liu, Z. (2021) DMTO: A Sustainable Methanol-to-Olefins Technology. Engineering 7(1):17-21, doi:10.1016/j.eng.2020.12.001"
+          url: https://doi.org/10.1016/j.eng.2020.12.001
+          locator: "section 2 (2.97 t/t, 72 h performance test) and section 5.1 (2.85 t/t, Baofeng Ningxia phase II)"
+          kind: peer-reviewed
+          accessed: "2026-11-19"
+  mto-direct-co2:
+    title: Direct CO2 (regenerator coke burn) per t of ethylene by methanol-to-olefins
+    unit: kg/t
+    no_open_reference: >-
+      No open source read with a regenerator CO2 or a coke yield of a commercial unit
+      (2026-11-19); the dataset's value follows from the coke of US 7 138 557 B2's Table 1
+      (2.85 % of the methanol's carbon) burnt completely.
 
 datasets:
+  - process: mto-olefins-1
+    dataset: ethylene-and-propylene-from-methanol-mto-1800-kt-a-methanol
+    conditions: {technology: "fluidised-bed MTO on SAPO-34 with continuous regeneration, oxygenates recycled", basis: "concept flowsheet, yields of one patent example"}
+    kpis:
+      mto-methanol-per-light-olefins: {expression: feed:MEOH / ( product:ETHYLENE + product:PROPYLENE ), reference: ye-2021-dmto-methanol-per-olefins}
+      mto-direct-co2: {expression: emission:CO2 / product:ETHYLENE, per: product:ETHYLENE}
   - process: propylene-pdh-1
     dataset: propylene-propane-dehydrogenation
     conditions: {technology: "moving bed with continuous catalyst regeneration (Oleflex type), net gas burnt on site", basis: conceptual inventory from one 2022 design}
