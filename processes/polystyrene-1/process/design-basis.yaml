@@ -1,0 +1,46 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# General-purpose polystyrene (GPPS) by continuous bulk (mass) polymerisation of styrene, issue
+# ChemE-as-Code/process-library#467. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md. Facts are from the
+# EU POL BREF (2007), chapter 4 and section 13.3, in our own form (SRC-1).
+schema: cheme/design_basis/v1
+capacity:
+  basis: general-purpose polystyrene pellets (crystal PS, no rubber, no mineral oil) to the silos at the battery limit
+  polystyrene_t_per_year: 100000         # ASSUMED (D-002): one line of the BREF's reactor sizes (5 to 120 m3)
+  operating_hours_per_year: 8000         # ASSUMED (D-002): continuous operation
+feeds:
+  - name: Styrene monomer (styrene-1)
+    source_of_values: "ASSUMED (D-003): styrene-1's product, 99.85 wt% styrene with ethylbenzene; 1.005 kg per kg of polystyrene (POL BREF Table 13.6: 0.985 t/t with 0.02 t/t mineral oil; Table 4.10 up to 1.020 t/t)"
+    composition: "styrene 99.85 wt%, ethylbenzene 0.15 wt%; inhibited with 10 to 15 ppm TBC (POL BREF 4.2.1.2.1), not in the balance"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 300}
+  - name: Process water (pelletiser water loop make-up)
+    source_of_values: "ASSUMED (D-009): 0.596 kg per kg of polystyrene, the POL BREF's process water for GPPS (Table 13.6)"
+    composition: "water 100 %"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 400}
+  - name: Nitrogen (blanketing of the tanks and silos, purges)
+    source_of_values: "ASSUMED (D-011): 0.022 kg per kg of polystyrene, the POL BREF's figure (Table 13.6); a consumable of the LCI, not a flowsheet stream"
+products:
+  - name: General-purpose polystyrene pellets
+    purity: "about 520 ppm styrene and ethylbenzene left after the two devolatilisers (ASSUMED, D-007); no chain transfer agent, no mineral oil, no additives (D-003)"
+    delivery: {temperature_K: 323.15, pressure_kPa_a: 101.325, battery_limit: silos}
+  - name: Recycle purge
+    note: "1.37 % of the recovered monomer, 74 kg/h of styrene and ethylbenzene, to the site's thermal oxidiser or used as fuel (POL BREF BAT 2; D-004)"
+  - name: Vacuum vent
+    note: "about 86 g of volatiles per t of polystyrene with the leak air, to the thermal oxidiser (POL BREF BAT 2 and 3; D-007)"
+  - name: Pelletiser water purge
+    note: "the make-up's water to wastewater treatment (D-009)"
+utilities:
+  - {name: Electric power, use: "agitators of R-101 and R-102, the vacuum booster and pumps, the melt gear pump, the pelletiser, dryer, conveying and packing (D-009)", note: ASSUMED}
+  - {name: Hot oil, supply_K: 563.15, return_K: 543.15, use: "E-101 and the devolatilisers' jackets, from a natural-gas-fired heater (D-008)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's reflux condenser, R-102's oil loop, the vapour condenser E-103, the pelletiser's water loop (D-009)", note: ASSUMED}
+  - {name: Nitrogen, use: "blanketing of the styrene and recycle tanks and the pellet silos, purges (lca/lca.yaml, D-011)", note: ASSUMED}
+site:
+  location: ASSUMED generic EU petrochemical site integrated with a styrene plant, with a thermal oxidiser and wastewater treatment, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: continuous bulk polymerisation initiated by heat in a stirred prepolymeriser and stirred tower reactors, two-stage vacuum devolatilisation at 513 K, recycle of the unreacted monomer with a purge, underwater pelletising (POL BREF sections 4.2.1 and 4.2.2; D-001)."
+  - "One lumped reaction per repeat unit, styrene -> polystyrene, with the BREF's 710 kJ/kg; the conversions per pass (0.35 and 0.615, 0.75 overall) are ASSUMED inside the BREF's 60 to 90 %; no rate law, no molar-mass distribution (D-005, L-1)."
+  - "The devolatilisers and the pelletiser are component separators with ASSUMED recoveries; no polymer-solvent phase equilibrium (D-007, L-3)."
+  - "Constant liquid heat capacities at 298.15 K; the polymer's taken equal to the liquid monomer's per repeat unit (D-006)."
+  - "The duties and powers are concept estimates; accuracy +/-30 % not demonstrated."

@@ -1,0 +1,36 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the sizes the concept can give. No rate law is used (DESIGN.md D-005, L-1): the reactor
+# volumes are ASSUMED residence times on the flowsheet's volumetric flow (about 19.9 m3/h of
+# reactor feed at about 900 kg/m3), checked against the POL BREF's 5 to 120 m3 (Table 4.4) and
+# the 2.9 h of plug flow in US 8 912 296 B1's example. Design pressures, temperatures and
+# materials are not set yet (basic engineering); the materials named are usual choices for
+# styrene and its polymer, to be confirmed. All values ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: R-101, type: StirredTankReactor, service: "Prepolymeriser: styrene polymerised by heat to about 35 % conversion at 403 K, boiling under 50 kPa(a)",
+     notes: "About 75 m3 (2.5 h at 19.9 m3/h, 50 m3 of liquid, 65 % full; US 4 017 498 A's stirred reactor runs 65 % full), stainless-clad carbon steel, anchor or helical-ribbon agitator for a viscous solution (P1 with the pumps 90 kW); the heat of polymerisation removed by the cold feed and by boiling: the vapour condensed on cooling water in the reflux condenser E-102 and returned (Q1 366.7 kW, core's conversion duty, D-005); the vessel's pressure sets its temperature, so a failure of E-102 or of the cooling water raises the pressure and the temperature together (D-010); relief to a catch tank and the thermal oxidiser, sized in basic engineering."}
+  - {tag: E-102, type: TubularHeatExchanger, service: "Reflux condenser of R-101 on cooling water",
+     notes: "Condenses R-101's styrene and ethylbenzene vapour at about 340 K under 50 kPa(a) and returns it (Q1, about 0.37 MW, lumped in R101's duty, D-005); inhibitor-free condensate, kept warm and drained to the reactor so that no polymer builds up on its tubes (D-010)."}
+  - {tag: R-102, type: Reactor, service: "Tower reactors: three liquid-full stirred towers in series, 413 to 443 K, to 75 % overall conversion",
+     notes: "Three towers of about 20 m3 each (1 h each at about 19 m3/h, about 3 h in all), up to 400 kPa(a), internal tube bundles with a heat-transfer oil loop whose heat goes to cooling water (Q2 1056.7 kW, core's conversion duty; its use in E-101 not studied, D-008), slow agitators (P2 with the transfer pump 90 kW); temperature rising from tower to tower (D-005)."}
+  - {tag: E-101, type: TubularHeatExchanger, service: "Devolatiliser preheater on hot oil, vertical tube bundle on top of V-101, the volatiles flash in its tubes",
+     notes: "Polymer solution from 443 to 513 K and the flash's heat of evaporation, V-102's jacket lumped in (Q3 1043.8 kW, scripts/ps_balance.py, D-008); hot oil at 563/543 K from a natural-gas-fired heater outside the boundary of the drawing (LCA: heat from natural gas)."}
+  - {tag: V-101, type: Vessel, service: "First-stage devolatiliser: falling strands at 513 K and 4 kPa(a)",
+     notes: "Removes 97 % of the styrene and ethylbenzene, 1.3 wt% left in the melt (D-007); jacketed on hot oil; melt gear pump at its bottom (in P2's or P4's power)."}
+  - {tag: V-102, type: Vessel, service: "Second-stage devolatiliser at 513 K and 1 kPa(a)",
+     notes: "Removes 96 % of what is left, about 520 ppm of styrene and ethylbenzene in the pellets (D-007); jacketed on hot oil (lumped in Q3); water stripping between the stages not used (D-007)."}
+  - {tag: K-101, type: Compressor, service: "Vacuum booster and vacuum pumps: the second stage's vapour raised to 4 kPa(a), the non-condensables to the thermal oxidiser",
+     notes: "120 kW with the vacuum pumps (P3, ASSUMED, D-009); the vent carries about 86 g of volatiles per t of polymer (S18, D-007)."}
+  - {tag: E-103, type: TubularHeatExchanger, service: "Devolatiliser vapour condenser on cooling water at 4 kPa(a)",
+     notes: "1108.7 kW (Q4, scripts/ps_balance.py, D-008), condensate to 313 K."}
+  - {tag: V-103, type: Vessel, service: "Condensate receiver under vacuum",
+     notes: "Barometric leg or pump to T-201; the vacuum pumps draw its non-condensables (D-007)."}
+  - {tag: T-201, type: Tank, service: "Recycle tank: recovered styrene and ethylbenzene, the purge drawn from it",
+     notes: "About 50 m3 (some 8 h of recycle at 6 m3/h), nitrogen-blanketed, inhibited with TBC (POL BREF section 4.2.1.2.1: 10 to 15 ppm, at least 4 to 5 ppm), kept cool; the purge (1.37 % of the condensate, 74 kg/h) to the site's thermal oxidiser or fuel (POL BREF BAT 2, D-004)."}
+  - {tag: P-201, type: Pump, service: "Melt gear pump to the die plate",
+     notes: "12.5 t/h of melt at 513 K to about 15 MPa, 110 kW (P4, ASSUMED, D-009)."}
+  - {tag: X-301, type: CustomEquipment, service: "Underwater pelletiser with water loop and cooler, centrifugal pellet dryer, classifier, pneumatic conveying to the silos and packing",
+     notes: "Water loop at 323 K cooled on cooling water (Q5 937.2 kW, scripts/ps_balance.py), make-up 0.596 kg per kg of polymer and the same purged to wastewater (D-009); 250 kW in all (P5, ASSUMED); the conveying air and the pelletiser's fumes collected and treated with the vents (POL BREF BAT 3)."}
+  - {tag: T-101, type: Tank, service: "Styrene feed tank (from styrene-1's storage)",
+     notes: "Inhibited, nitrogen-blanketed, kept below about 298 K (POL BREF section 4.2.1.2.1); TBC removed from the feed by an adsorber before R-101 (optional per the BREF; not in the balance, D-003)."}

@@ -1,0 +1,101 @@
+# Process Atlas manifest of polystyrene-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: polystyrene-1
+title: General-purpose polystyrene by continuous bulk polymerisation of styrene (100 kt/a)
+summary: >-
+  Styrene from styrene-1 polymerised by heat in a stirred prepolymeriser boiling under vacuum and
+  three tower reactors to 75 % conversion, the solution devolatilised at 513 K in two vacuum
+  stages, the monomer recycled with a purge, the melt pelletised under water. Concept stage,
+  1.006 kg styrene per kg of polystyrene, preliminary gate-to-gate LCI.
+description: |
+  Fresh styrene (99.85 wt%, from styrene-1) is mixed with the recovered monomer to a reactor feed
+  with 7 wt% ethylbenzene, the diluent that the fresh styrene brings in and the purge holds at
+  that level. The feed is polymerised by heat, without initiator, in a stirred prepolymeriser at
+  403 K that boils under 50 kPa(a): its vapour is condensed on cooling water and refluxed, which
+  with the cold feed removes the heat of polymerisation (710 kJ/kg, EU POL BREF) at 35 % conversion.
+  Three liquid-full stirred tower reactors at 413 to 443 K take the conversion to 75 %, their heat
+  taken by oil-cooled coils. The solution (70 wt% polymer) is heated to 513 K on hot oil and
+  devolatilised at 4 and then 1 kPa(a); the vapours are condensed on cooling water and
+  recycled, 1.37 % purged to the site's thermal oxidiser; the melt, with about 520 ppm of
+  volatiles, is pumped through a die plate and pelletised under water, the pellets dried and
+  conveyed to the silos.
+
+  The flowsheet is solved by cheme-as-code's propagation: two design specifications (100 kt/a of
+  polymer; 7 wt% ethylbenzene in the reactor feed) set the fresh styrene and the purge fraction,
+  the recycle is converged at a tear stream, and the two conversion reactors write their own
+  duties. The devolatilisers, the condenser and the pelletiser are specified splits; their heats
+  come from an independent balance script. There is no polymerisation kinetics and no polymer
+  phase equilibrium in the model (the reactors are conversion steps, the devolatilisers
+  component separators), so the reactors are sized on assumed residence times and the thermal
+  runaway of the continuous reactors is screened by hand. See DESIGN.md for every assumption.
+families: [polymers]
+keywords: [polystyrene, GPPS, general-purpose polystyrene, crystal polystyrene, styrene, bulk polymerisation, mass polymerisation, thermal initiation, prepolymeriser, tower reactor, devolatilisation, vacuum, ethylbenzene, recycle, underwater pelletising, thermoplastics]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [polymers]
+  unit_operations: [reaction, flash, heat-exchange, compression]
+  region: EU
+# Honest claim: concept is the lowest level of the manifest. Capacity, conversions, recoveries,
+# heat capacities and powers are assumed inside the POL BREF's ranges (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: 3 blocks and 13 steps within tolerance). cheme process propagate solves the fresh
+    styrene and the purge fraction from two design specifications (100 kt/a of polystyrene in
+    8000 h; 7 wt% ethylbenzene in the reactor feed, inside the POL BREF's up to 10 %), converges
+    the recycle at the tear S2 and writes the reactors' duties (conversion steps with the BREF's
+    heat of polymerisation, 710 kJ/kg, and constant liquid heat capacities: R-101 366.7 kW, R-102
+    1056.7 kW to cooling water); scripts/ps_balance.py re-solves the mass balance independently
+    (fresh styrene 12 581.6 kg/h, purge fraction 0.01366, both as propagate) and gives the reactor
+    feed's temperature and the duties of the devolatiliser heater (1043.8 kW, hot oil), the vapour
+    condenser (1108.7 kW) and the pelletiser's water loop (937.2 kW). The conversions per pass
+    (0.35 and 0.615, 0.75 overall), the devolatilisers' recoveries, the polymer's heat capacity and
+    the electric powers are ASSUMED; no rate law, no molar-mass distribution, no polymer-solvent
+    phase equilibrium (core limits L-1 to L-3). Styrene 1.006 kg/kg, inside the BREF's 0.985 to
+    1.020 t/t; energy 0.49 GJ/t, below the BREF's 1.08 to 1.80 GJ/t (D-012). Thermal runaway of
+    the continuous reactors screened by hand: adiabatic rises of 245 K (R-101's content) and 95 K
+    (R-102's outlet) if the remaining styrene polymerised (D-010). Preliminary gate-to-gate LCI,
+    one product; the styrene linked to styrene-1, the hot oil's heat to heat from natural gas, the
+    nitrogen to asu-1, the purge's and vent's oxidation and the process water gaps. cheme
+    maturity reaches no level (assumed conversions and separations); the claim `maturity:
+    concept` is the lowest value of the schema, not an evidenced level. Not reviewed. Needs
+    cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: styrene, role: feedstock, inventory_key: "feed:SM", note: "Styrene monomer from styrene-1 (99.85 wt%, with 0.15 wt% ethylbenzene), 1.006 kg/kg polystyrene"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water make-up of the pelletiser's water loop, 0.596 kg/kg (the POL BREF's figure)"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for blanketing the tanks and silos and the purges, 0.022 kg/kg (the POL BREF's figure, ASSUMED for this plant)"}
+  outputs:
+    - {chemical: polystyrene, role: main-product, inventory_key: "product:PELLETS", note: "General-purpose polystyrene pellets with about 520 ppm residual styrene and ethylbenzene, no mineral oil or additives, 12.5 t/h"}
+    - {chemical: styrene, role: waste, inventory_key: "product:PURGE", note: "Recycle purge, 5.9 g/kg (77 % styrene, 23 % ethylbenzene), to the site's thermal oxidiser or fuel"}
+    - {chemical: styrene, role: waste, inventory_key: "product:VENT", note: "Vacuum vent, 86 mg/kg of styrene and ethylbenzene with the leak air, to the thermal oxidiser"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Pelletiser water purge, 0.596 kg/kg, to wastewater treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.053 kWh/kg: agitators, vacuum booster and pumps, melt gear pump, pelletiser, dryer, conveying and packing (ASSUMED powers)"}
+    - {chemical: methane, role: utility, inventory_key: "feed:HOTOIL", note: "0.083 kWh/kg of heat from a natural-gas-fired hot-oil heater to the devolatiliser preheater and jackets, counted as heat absorbed"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.277 kWh/kg removed by cooling water: R-101's reflux condenser and R-102's coils (core's conversion duties), the vapour condenser, the pelletiser's water loop"}
+basis:
+  capacity: "100 kt/a general-purpose polystyrene pellets in 8000 h (12.5 t/h), ASSUMED (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic EU petrochemical site integrated with a styrene plant, with a thermal oxidiser and wastewater treatment (not chosen)
+references:
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), chapter 4 (polystyrene: chemistry, raw materials, GPPS process and technical parameters, emission and consumption levels, Tables 4.4, 4.5, 4.10) and section 13.3 (BAT for polystyrene, Table 13.6)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf"}
+  - {title: "Bouquet, G.; Reifert, U.; Hermans, N. M. A. (Styron Europe, priority 2011) US 8 912 296 B1: Process for preparing polystyrene having a high melt flow rate (example: 95.8 wt% styrene with 4.2 wt% ethylbenzene, three plug-flow reactors at 122 to 170 C over about 2.9 h, 72 wt% conversion, devolatilisation and recycle)", url: "https://patents.google.com/patent/US8912296B1/en"}
+  - {title: "Hopkins, B. (Monsanto, 1975) US 4 017 498 A: Recycle control system for continuous polymerization (a stirred reactor of styrene at about 327 F and 21 psia cooled by boiling, its vapour condensed and returned; 65 wt% polymer in its effluent; a wiped-film devolatiliser at about 100 mm Hg leaving about 1 wt% monomer; the condensed monomer recycled)", url: "https://patents.google.com/patent/US4017498A/en"}
+  - {title: "Wikipedia, Polystyrene (CAS 9003-53-6; density, glass transition about 100 C, heat capacity of the solid 1.3 kJ/(kg K); suspension polymerisation for expandable beads; the 1 % styrene limit for food-contact polystyrene)", url: "https://en.wikipedia.org/wiki/Polystyrene"}
+  - {title: "ChEBI (EBI OLS), CHEBI:53276 poly(styrene): (C8H8)n, CAS 9003-53-6", url: "https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:53276"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/polystyrene-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
