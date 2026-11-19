@@ -116,6 +116,7 @@ NO_REGISTRY_IDENTITY = {
     "pet-1/input:stabiliser": "a phosphorus stabiliser, compound not named in the dataset (polyphosphoric acid only as an example)",
     "propylene-pdh-1/input:catalyst": CATALYST,
     "propylene-pdh-1/input:phosphate": "a phosphate, compound not named in the dataset",
+    "pvc-1/feed:STOPF": "the short-stop, a hindered-phenol antioxidant as a 30 wt% aqueous dispersion, compound not named in the dataset",
     "sodium-cyanide-1/consumable:hcn-stabiliser": "an acid stabiliser, compound not named in the dataset",
     "sodium-cyanide-1/consumable:pt-rh-gauze": CATALYST,
     "styrene-1/consumable:catalyst": CATALYST,
