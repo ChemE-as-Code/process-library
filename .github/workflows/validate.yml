@@ -4,8 +4,9 @@ on: [pull_request, push]
 permissions:
   contents: read
 
-# core v1.12.0 0e85885 (core#254 merged, 2026-11-18): shared QSDsan execution and
-# measured-basis stream results. Keep the version and short SHA together: the NBS regression
+# core v1.13.0 b97a833 (released 2026-11-19): semi-batch dosing timed against the jacket's
+# cooling and coupled batch steps (core ADR 0073), shared typed project-worker execution
+# (ADR 0072). Keep the version and short SHA together: the NBS regression
 # test reads this version note. The installed source is pinned by full SHA in every URL below.
 # This retains the generator 7 and offpage-lint support. An unpinned
 # install turned validate red when core changed its generated LCA records (#91). Bump the pin
@@ -42,8 +43,8 @@ jobs:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
       # core and pyDEXPI are public: no credentials.
       - uses: astral-sh/setup-uv@v6
-      # core#254 merge, pinned by commit (tests/test_workflows.py)
-      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@0e858853e159ded7fc408a98bc294a671cd75c60"
+      # core v1.13.0, pinned by commit (tests/test_workflows.py)
+      - run: uv tool install "git+https://github.com/ChemE-as-Code/core.git@b97a833b561eec06c163a86561da540a3c873b14"
       - run: cheme fmt --check
       - run: cheme validate
       # core's per-scenario LCA records (lca/scenarios/<id>.json) must be current
@@ -69,8 +70,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # core#254 merge (the same commit as every job)
-      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@0e858853e159ded7fc408a98bc294a671cd75c60"
+      # core v1.13.0 (the same commit as every job)
+      CORE: "cheme-as-code[units] @ git+https://github.com/ChemE-as-Code/core.git@b97a833b561eec06c163a86561da540a3c873b14"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         # Full history here only: the catalog records each process folder's last commit
@@ -113,8 +114,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      # core#254 merge (the same commit as every job, tests/test_workflows.py)
-      CORE: "cheme-as-code[units,props,png] @ git+https://github.com/ChemE-as-Code/core.git@0e858853e159ded7fc408a98bc294a671cd75c60"
+      # core v1.13.0 (the same commit as every job, tests/test_workflows.py)
+      CORE: "cheme-as-code[units,props,png] @ git+https://github.com/ChemE-as-Code/core.git@b97a833b561eec06c163a86561da540a3c873b14"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -137,9 +138,9 @@ jobs:
         with:
           fetch-depth: 1  # the files only, no history (see "Repository size" in README.md)
       - uses: astral-sh/setup-uv@v6
-      # core#254 merge with the property extras the balance scripts import (thermo,
+      # core v1.13.0 with the property extras the balance scripts import (thermo,
       # CoolProp, scipy through thermo, Cantera); the same commit as the validate job
-      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@0e858853e159ded7fc408a98bc294a671cd75c60"
+      - run: uv tool install --python 3.12 "cheme-as-code[props,units,cantera] @ git+https://github.com/ChemE-as-Code/core.git@b97a833b561eec06c163a86561da540a3c873b14"
       - name: balance scripts reproduce the flowsheet
         run: |
           uv run --python 3.12 scripts/check_balance_scripts.py --library . --strict --jobs 4 \
