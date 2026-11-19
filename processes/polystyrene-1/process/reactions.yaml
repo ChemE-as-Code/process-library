@@ -1,0 +1,28 @@
+# The reaction of polystyrene-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# Thermally initiated free-radical bulk polymerisation of styrene (EU POL BREF section 4.2.1.1,
+# SRC-1; DESIGN.md D-001, D-005): initiation by heat, propagation, chain transfer and
+# termination are lumped into one reaction per repeat unit, STY -> PS, polystyrene being
+# written per kmol of its repeat unit C8H8 (materials.yaml). The chain length distribution, the
+# initiation by heat and the oligomers (styrene dimers and trimers) are not modelled (L-1).
+#
+# The conversion per pass of each reactor is a design input on its step (flowsheet.yaml), not a
+# property of the reaction: R101 (the prepolymeriser) 0.35 and R102 (the tower reactors) 0.615
+# of their inlet styrene, 0.75 over the train (D-005, inside the BREF's 60 to 90 %).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: POLY
+    equation: n C8H8 (styrene, l) -> (C8H8)n (polystyrene, melt), per kmol of repeat units
+    stoichiometry: {STY: -1, PS: 1}
+    reversible: false
+    phase: liquid
+    conversion: {key: STY, value: 0.75, provenance: assumed, source: "D-005: the train's conversion, 0.75 of the styrene fed (POL BREF Table 4.4: 60 to 90 %; US 8 912 296 B1 example: 72 wt% over three plug-flow reactors); each reactor step gives its own per-pass conversion"}
+    heat_of_reaction:
+      # 710 kJ/kg x 104.152 kg/kmol = 73 948 kJ/kmol of repeat units, released (negative).
+      value: -73948
+      temperature: 298.15
+      provenance: given
+      source: "POL BREF (2007) section 4.2.1.1: about 710 kJ/kg of polymer formed (the heat of hydrogenation of the vinyl double bond), per kg of styrene converted; taken at 298.15 K, the liquid monomer to the amorphous polymer (temperature ASSUMED: the BREF states none), D-005"
+    sources:
+      - "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers, section 4.2.1.1"
