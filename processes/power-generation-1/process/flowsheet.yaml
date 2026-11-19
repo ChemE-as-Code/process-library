@@ -237,7 +237,7 @@ streams:
         temperature: {value: 300.15, provenance: given, source: "SRC-1 Exhibit 5-8 stream 2 (27 degC)"}
         pressure: {value: 2964.7, provenance: given, source: "SRC-1 Exhibit 5-8 stream 2 (430 psia, 2.96 MPa)"}
         flow: {value: 93272.0, basis: mass, provenance: given, source: "SRC-1 Exhibit 5-8 stream 2 and Exhibit 5-9 (natural gas feed flow), both trains"}
-        composition: {basis: mole_fraction, values: {CH4: 0.931, C2H6: 0.032, C3H8: 0.007, C4H10: 0.004, CO2: 0.010, N2: 0.016}, provenance: given, source: "SRC-1 Exhibit 2-6 and Exhibit 5-8 stream 2; the methanethiol odorant (5.75e-6 mol%, 1.0 kg/h S) left out (D-004)"}
+        composition: {basis: mole_fraction, values: {CH4: 0.931, C2H6: 0.032, C3H8: 0.007, C4H10: 0.004, CO2: 0.010, N2: 0.016}, provenance: given, source: "SRC-1 Exhibit 2-6 and Exhibit 5-8 stream 2; the methanethiol odorant (mole fraction 5.75e-6, 1.0 kg/h S) left out (D-004)"}
   - id: S3
     title: Turbine exhaust to the HRSGs
     from: R101.out
@@ -328,14 +328,14 @@ streams:
         flow: {value: 633792.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: the loop closed on S10; SRC-1 stream 11 carries 790 kg/h more (gland seal and ejector flows it does not show, D-006)"}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "condensate"}
   - id: S12
-    title: Condensate to the HRSGs (feedwater preheaters and boiler feed pumps)
+    title: Condensate to the HRSGs (condensate pump discharge)
     from: P201.out
     to: H101.bfw
     template: water
     state:
       design:
-        temperature: {value: 311.95, provenance: given, source: "SRC-1 Exhibit 5-15, condensate pump discharge (102 degF)"}
-        pressure: {value: 599.8, provenance: given, source: "SRC-1 Exhibit 5-15, condensate pump discharge (87 psia)"}
+        temperature: {value: 311.48, provenance: given, source: "SRC-1 Exhibit 5-15, condensate pump discharge (101 degF); the 0.3 K over S11 is the rounding of stream 11's 38 degC; the feedwater preheaters after the pumps (102 degF) are not modelled (D-006)"}
+        pressure: {value: 655.0, provenance: given, source: "SRC-1 Exhibit 5-15, condensate pump discharge (95 psia)"}
         flow: {value: 633792.0, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: = S11 (D-006)"}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "condensate"}
   - id: S13
@@ -359,7 +359,7 @@ streams:
         temperature: {value: 311.15, provenance: assumed, source: "D-008: at the condensate temperature (SRC-1 Exhibit 5-16 gives the vent 0.2 GJ/h)"}
         pressure: {value: 101.3, provenance: assumed, source: "D-008: to atmosphere"}
         flow: {value: 1271.9, basis: mass, provenance: assumed, source: "scripts/ngcc_balance.py: SRC-1 Exhibit 5-14, the deaerator vent equals the make-up (5.6 gpm, 2,804 lb/h); non-condensables not in the balance"}
-        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "water vapour"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "liquid water: SRC-1 Exhibit 5-15 gives the vent a liquid enthalpy (69 Btu/lb), Exhibit 5-14 books it as process water discharge (D-008)"}
   # ---- cooling tower (SRC-1 Exhibit 5-14, D-009)
   - id: S20
     title: Cooling tower make-up water

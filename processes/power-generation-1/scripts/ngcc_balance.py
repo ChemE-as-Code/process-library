@@ -52,7 +52,7 @@ AIR_KG_H = 3_834_126.0
 AIR_Y = {"AR": 0.0092, "CO2": 0.0003, "H2O": 0.0099, "N2": 0.7732, "O2": 0.2074}
 NG_KG_H = 93_272.0
 # SRC-1 Exhibit 2-6 (p. 38) and Exhibit 5-8: the fuel's volume (mole) fractions; the
-# methanethiol (5.75e-6 mol%, 1.0 kg/h of sulfur, Exhibit 5-13) is left out (D-004).
+# methanethiol (mole fraction 5.75e-6, 1.0 kg/h of sulfur, Exhibit 5-13) is left out (D-004).
 NG_Y = {"CH4": 0.931, "C2H6": 0.032, "C3H8": 0.007, "C4H10": 0.004, "CO2": 0.010, "N2": 0.016}
 T_AIR, T_NG, T_EXH = 288.15, 300.15, 898.15  # K: 15, 27 and 625 degC (Exhibit 5-8)
 

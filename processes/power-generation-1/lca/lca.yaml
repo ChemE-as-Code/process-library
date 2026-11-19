@@ -32,10 +32,10 @@ flows:
   - {key: feed:RW, missing: "not linked here: untreated raw water withdrawn for the cooling tower (half municipal, half ground water in SRC-1); a water resource, no treatment beyond clarification counted", source: "S20: cooling tower make-up (D-009)"}
   # outputs to the environment
   - {key: product:STACK, emission: true, source: "S4: HRSG stack gas to atmosphere through two 46 m stacks (D-006)"}
-  - {key: product:VENT, emission: true, source: "S14: deaerator vent, water vapour (D-008)"}
+  - {key: product:VENT, emission: true, source: "S14: deaerator vent, liquid water at 38 degC to atmosphere (SRC-1 Exhibit 5-14 books it as process water discharge; burden-free water either way, D-008)"}
   - {key: product:EVAP, emission: true, source: "S21: cooling tower evaporation and drift (D-009)"}
-  - {key: emission:CO2, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "S4: CO2 of the fuel's carbon and of the fuel's own CO2 (SRC-1 Exhibit 5-12: 67,890 kg/h carbon out), with the air's CO2 (0.03 mol%) passing through"}
-  - {key: emission:H2O, free: true, source: "water vapour of the stack gas, the deaerator vent and the cooling tower (S4, S14, S21); the water taken is counted at feed:RW and feed:DMW"}
+  - {key: emission:CO2, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "S4: CO2 of the fuel's carbon and of the fuel's own CO2 (246,852 kg/h, 0.3401 kg/kWh), plus the combustion air's CO2 (0.03 mol%, 1,754 kg/h, 0.0024 kg/kWh) passing through; the air's share, 0.7 % of the flow, is counted as fossil with the rest (ASSUMED, D-011, as ammonia-1). SRC-1 Exhibit 5-12: 67,890 kg/h carbon out, of which 521 kg/h came in with the air"}
+  - {key: emission:H2O, free: true, source: "water vapour of the stack gas and the cooling tower, and the liquid water of the deaerator vent (S4, S21, S14; D-008); the water taken is counted at feed:RW and feed:DMW"}
   - {key: emission:N2, free: true, source: "atmospheric N2 of the combustion air and the fuel's N2 returned"}
   - {key: emission:O2, free: true, source: "excess O2 of the combustion air returned (12.0 mol% in the stack gas)"}
   - {key: emission:AR, free: true, source: "argon of the combustion air returned (the library pass-through AR)"}
@@ -98,7 +98,9 @@ emission_estimates:
       D-011: NETL's own stack rates for the criteria pollutants of this plant (with its DLN burners
       and SCR), AP-42's uncontrolled turbine factors for CH4 and N2O (no NETL value). NETL's
       rates are given to two significant figures; the carbon of CO, CH4 and PM is not taken out
-      of the CO2 (under 0.01 % of it).
+      of the CO2: CH4 and CO carry 15.2 kg/h of carbon against 67,850 kg/h in the CO2, 0.022 %
+      (the PM's carbon is not known; all of it carbon would add 0.006 %), so the CO2 is counted
+      about 0.02 % high.
 emission_exclusions:
   - {id: ammonia-slip, method: combustion, equipment: [H-101], reason: "NH3 slip of the SCR: SRC-1 states a design limit of 10 ppmv at the end of the catalyst's life (Exhibit 5-5), not a time-average; the average slip is not sourced, so not estimated (D-011)", source: "D-011"}
   - {id: startup, method: non-routine, equipment: [GT-101, H-101], reason: "start-ups, shutdowns and part load (higher CO and NOx before the SCR is in its window) are not modelled: base load only (D-002)", source: "D-002"}

@@ -2,11 +2,14 @@
 # #469). Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from
 # the cited source, in our own form.
 #
-# How independent they are: the reference is NETL's comparison of currently offered F-class
-# machines (Exhibit 5-2, from three manufacturers' published ratings), a different figure from
-# the Case B31A model the dataset reproduces, but in the same report. It is a single value per
-# configuration, recorded as a zero-width range and not widened; the dataset's 2017 F-class
-# machine is a little less efficient than the currently offered ones (NETL section 5.1.2.1).
+# How independent they are: the reference is NETL's comparison of currently offered F- and
+# H-class machines (Exhibit 5-2, compiled from one manufacturer's published ratings: GE's 7F and
+# 7HA fact sheets and a trade article on GE's H class, NETL references [131] to [133]), a
+# different figure from the Case B31A model the dataset reproduces, but in the same report. It
+# is a single value per configuration, recorded as a zero-width range and not widened; the
+# dataset's 2017 F-class machine is a little less efficient than the currently offered ones
+# (NETL section 5.1.2.1). It is recorded as `kind: government`, the report that was read; the
+# value underneath is GE's vendor rating (docs/benchmarks.md), as its note says.
 schema: cheme-as-code/benchmarks/v1
 family: power-generation
 
@@ -18,7 +21,7 @@ kpis:
       - id: netl-rev4a-f-class-2x1-literature
         range: [0.1263, 0.1263]
         basis: unallocated
-        note: "NETL's literature value for an F-class 2x1 combined cycle, 60.4 % net efficiency on LHV: 3.6 / 0.604 = 5.960 MJ/kWh, converted to mass with the LHV of NETL's reference natural gas, 47.201 MJ/kg (Exhibit 2-6): 0.1263 kg/kWh. One value, not a range; NETL's own Case B31A model gives 59.4 % (0.1284 kg/kWh)."
+        note: "NETL's literature value for an F-class 2x1 combined cycle, GE vendor data compiled by NETL (GE's 7F fact sheet, NETL reference [131]; recorded as the government report that was read), 60.4 % net efficiency on LHV: 3.6 / 0.604 = 5.960 MJ/kWh, converted to mass with the LHV of NETL's reference natural gas, 47.201 MJ/kg (Exhibit 2-6): 0.1263 kg/kWh. One value, not a range; NETL's own Case B31A model gives 59.4 % (0.1284 kg/kWh)."
         conditions: {technology: "2x1 combined cycle with currently offered F-class gas turbines, natural gas", region: "US (ISO conditions)", year: 2022}
         source: &netl
           citation: "Schmitt, T. et al. (2022) Cost and Performance Baseline for Fossil Energy Plants Volume 1: Bituminous Coal and Natural Gas to Electricity, Revision 4a. National Energy Technology Laboratory, DOE/NETL-2023/4320"
@@ -27,7 +30,7 @@ kpis:
           kind: government
           accessed: "2026-11-19"
   ngcc-co2-direct:
-    title: Direct fossil CO2 per kWh of net electricity, combined cycle
+    title: Direct CO2 at the stack per kWh of net electricity, combined cycle (the combustion air's CO2 included, as in NETL's figure)
     unit: kg/kWh
     no_open_reference: >-
       No open source independent of the dataset's own was read for a range (2026-11-19). Read:

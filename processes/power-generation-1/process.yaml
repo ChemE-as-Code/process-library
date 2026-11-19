@@ -15,7 +15,7 @@ summary: >-
   A 2x1 F-class natural-gas combined cycle at the operating point of NETL's Case B31A: two gas
   turbine generators with dry low-NOx combustors, two three-pressure reheat HRSGs with SCR, one
   reheat steam turbine generator, a surface condenser and a wet cooling tower. Concept stage,
-  726 MW net at 53.6 % (HHV, 59.3 % LHV), 0.343 kg fossil CO2 per kWh, preliminary gate-to-gate LCI.
+  726 MW net at 53.6 % (HHV, 59.3 % LHV), 0.343 kg CO2 per kWh at the stack, preliminary gate-to-gate LCI.
 description: |
   Ambient air at ISO conditions and pipeline natural gas (93.1 mol% methane) are burnt in two
   F-class gas turbines; the exhaust leaves at 625 degC to two heat recovery steam generators
@@ -49,7 +49,8 @@ validation:
   status: unreviewed
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
-    streams: 5 blocks and 8 steps within tolerance). The gas turbines R101 are calculated by
+    streams: 4 blocks and 6 steps within tolerance; the energy-only block EL with its steps T901
+    and U901 is not balanced by core and is closed by the folder's tests, L-3). The gas turbines R101 are calculated by
     cheme process propagate (conversion step, complete combustion, ideal-gas data of the
     chemicals package): the exhaust S3 (138,413 kmol/h, NETL 138,406, composition within 0.0001
     mole fraction of NETL's stream 3) and their power Q1 (476.6 MW after NETL's 98.5 % generator
@@ -59,8 +60,9 @@ validation:
     NETL's auxiliary loads (13.6 MW); the net export (725.8 MW, NETL 727) is the bus's balance,
     checked by the folder's tests. Net efficiency 53.57 % HHV, 59.35 % LHV (NETL 53.6 and 59.4).
     No core model exists for the turbines' internals, the HRSG or the steam cycle (L-1 to L-3).
-    Preliminary gate-to-gate LCI: fossil CO2 from the balance (0.3425 kg/kWh; NETL 342 kg/MWh
-    net), NOx, CO, SO2 and particulates from NETL's stack rates, CH4 and N2O from AP-42 Section
+    Preliminary gate-to-gate LCI: CO2 from the balance (0.3425 kg/kWh, of which 0.3401 from the
+    fuel and 0.0024 the combustion air's CO2, counted as fossil, ASSUMED, D-011; NETL 342 kg/MWh
+    net, the air's CO2 included), NOx, CO, SO2 and particulates from NETL's stack rates, CH4 and N2O from AP-42 Section
     3.1; the natural gas, water and the SCR's ammonia (ammonia-1) linked in the Atlas build. Not
     reviewed. Needs cheme-as-code 1.12.0.
 chemistry:
@@ -72,7 +74,7 @@ chemistry:
     - {chemical: ammonia, role: reactant, note: "consumable:scr-ammonia: NH3 of the SCR's 19 wt% aqueous ammonia, 0.034 g/kWh, linked to ammonia-1 in lca/mappings.yaml"}
   outputs:
     - {chemical: electricity/high-voltage, role: main-product, note: "product:ELEC: net electricity at 345 kV, 725.8 MW; no inventory_key (see the header)"}
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Fossil CO2 of the fuel, 0.3425 kg/kWh"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "CO2 at the stack, 0.3425 kg/kWh: 0.3401 from the fuel, 0.0024 (0.7 %) the combustion air's CO2 passing through, counted as fossil (ASSUMED, D-011)"}
     - {chemical: water, role: emission, inventory_key: "emission:H2O", note: "Water vapour of the stack gas and the cooling tower's evaporation"}
     - {chemical: wastewater, role: waste, inventory_key: "product:BLOWDOWN", note: "Cooling tower blowdown to treatment, 0.204 kg/kWh"}
 basis:
@@ -82,7 +84,9 @@ basis:
 references:
   - {title: "Schmitt, T., Leptinsky, S., Turner, M., Zoelle, A., White, C. W., Hughes, S., Homsy, S., Woods, M., Hoffman, H., Shultz, T., James, R. (2022) Cost and Performance Baseline for Fossil Energy Plants Volume 1: Bituminous Coal and Natural Gas to Electricity, Revision 4a. National Energy Technology Laboratory, DOE/NETL-2023/4320 (Case B31A: Exhibits 5-5 to 5-16 and 5-19, section 5.1 NGCC process areas; Exhibits 2-2 and 2-6)", url: "https://netl.doe.gov/projects/files/CostAndPerformanceBaselineForFossilEnergyPlantsVolume1BituminousCoalAndNaturalGasToElectricity_101422.pdf"}
   - {title: "U.S. EPA (2000) AP-42, Fifth Edition, Volume I, Section 3.1 Stationary Gas Turbines, April 2000, Table 3.1-2a (CH4 and N2O of natural-gas-fired turbines)", url: "https://www.epa.gov/sites/default/files/2020-10/documents/c03s01.pdf"}
-  - {title: "Ruscic, B., Bross, D. H. Active Thermochemical Tables (ATcT); Poling, B. E., Prausnitz, J. M., O'Connell, J. P. (2001) The Properties of Gases and Liquids, 5th ed. (ideal-gas data as the chemicals package 1.5.2 evaluates them, via cheme chemistry thermo)"}
+  - {title: "Ruscic, B., Bross, D. H. Active Thermochemical Tables (ATcT); Poling, B. E., Prausnitz, J. M., O'Connell, J. P. (2001) The Properties of Gases and Liquids, 5th ed. (ideal-gas formation enthalpies and heat capacities as the chemicals package 1.5.2 packages them, via cheme chemistry thermo; the works themselves not read here)"}
+  - {title: "CRC Handbook of Chemistry and Physics, standard thermodynamic properties of chemical substances (standard entropies of eight components as the chemicals package 1.5.2 packages them, CRC_standard_data; the printed handbook not read here)"}
+  - {title: "Yaws, C. L. Yaws' Handbook of Thermodynamic Properties (standard entropy of n-butane as the chemicals package 1.5.2 packages it, Hfg_S0g_YAWS_data; the handbook not read here)"}
 lca:
   source: auto
 maintainers:

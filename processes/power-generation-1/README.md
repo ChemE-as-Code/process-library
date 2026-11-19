@@ -33,9 +33,11 @@ Headline numbers and their caveats:
   13.6 MW own use: 53.57 % net efficiency on HHV, 59.35 % on LHV (NETL 53.6 and 59.4 %), 6,720 kJ
   (HHV) or 0.1285 kg of gas per kWh (D-005 to D-010). These reproduce a published design point;
   they are not a prediction of the machines' performance (L-1, L-2).
-- 0.343 kg of fossil CO2 per kWh from the carbon balance (NETL 342 kg/MWh net). NOx, CO, SO2 and
-  particulates are NETL's stack rates for this plant's DLN burners and SCR; CH4 and N2O are
-  EPA AP-42 factors for natural-gas turbines (D-011). The preliminary gate-to-gate LCI links the
+- 0.343 kg of CO2 per kWh at the stack from the carbon balance (NETL 342 kg/MWh net): 0.340 kg
+  from the fuel and 0.002 kg (0.7 %) the combustion air's own CO2 passing through, which the LCI
+  counts as fossil with the rest (ASSUMED, D-011). NOx, CO, SO2 and particulates are NETL's
+  stack rates for this plant's DLN burners and SCR; CH4 and N2O are EPA AP-42 factors for
+  natural-gas turbines (D-011). The preliminary gate-to-gate LCI links the
   natural gas, the water and the SCR's ammonia (ammonia-1) in the Atlas build; the raw water is
   a gap.
 - Base load at ISO conditions only, 7446 full-load hours a year (NETL's 85 % capacity factor,

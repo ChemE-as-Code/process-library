@@ -31,13 +31,13 @@ Run record of this stage (2026-11-19): library branch `process/power-generation-
 
 ## 2. Source register
 
-Read status: "read" = the cited locator was read in full text by this run. Facts are in our own
+Read status: "read" = the cited locator was read in full text by this run; "not read here" = only a package holding the work's values was queried. Facts are in our own
 words and form; no table, figure or text is copied.
 
 | id | source | locator | status | terms | used for |
 |---|---|---|---|---|---|
 | SRC-1 | Schmitt, T. et al. (2022) Cost and Performance Baseline for Fossil Energy Plants Volume 1: Bituminous Coal and Natural Gas to Electricity, Revision 4a, NETL, DOE/NETL-2023/4320, https://netl.doe.gov/projects/files/CostAndPerformanceBaselineForFossilEnergyPlantsVolume1BituminousCoalAndNaturalGasToElectricity_101422.pdf | Exhibit 2-2 (site, p. 34), Exhibit 2-6 (natural gas, p. 38), section 3.1.9.1 and Exhibit 3-7 (F-class, p. 79), section 5 intro and 5.1.1 to 5.1.4 (NGCC process areas, pp. 549-553), Exhibit 5-2 (F- vs H-class, pp. 551-552), Exhibits 5-5 and 5-6 (Case B31A assumptions, pp. 560-561), Exhibit 5-8 (stream table, p. 563), Exhibits 5-9 to 5-14 (performance, auxiliaries, emissions, carbon, sulfur and water balance, pp. 564-567), section 5.2.4.2 (generator efficiencies, p. 567), Exhibit 5-15 (heat and mass balance, p. 569), Exhibit 5-16 (energy balance, p. 571), section 5.2.5 (equipment list, pp. 571-574), Exhibit 5-19 (consumables, p. 579); section 4.2.4 and 4.3.4 (Cases B11A and B12A, PC), 5.3.4 (Case B32A, H-class) | read (PDF text extracted with pypdf 7.1.1; printed page numbers) | US government work; numbers used as facts with the citation | D-001 to D-012, the flowsheet, the equipment list, the LCI |
-| SRC-2 | ATcT / CRC / Yaws / Poling 5th ed. via `cheme chemistry thermo` (the `chemicals` package 1.5.2) | printed records in process/materials.yaml | read (tool output) | single values with their source, not open data (ADR 0037) | the gas turbines' energy balance (D-005), heats of reaction |
+| SRC-2 | The `chemicals` 1.5.2 package (core's environment), via `cheme chemistry thermo`: ideal-gas formation enthalpies from its packaged ATcT table (`reaction.Hfg_ATcT_data`, method ATCT_G), standard entropies from its packaged CRC Handbook table (`heat_capacity.CRC_standard_data`, method CRC; n-butane from its packaged Yaws table, `reaction.Hfg_S0g_YAWS_data`, method YAWS), ideal-gas heat capacity polynomials from its packaged Poling et al. 5th ed. table (`heat_capacity.Cp_data_Poling`) | dHf_298 (kJ/mol, gas): CH4 -74.53, C2H6 -83.78, C3H8 -104.39, n-C4H10 -125.85, CO2 -393.47, H2O -241.82, N2, O2 and Ar 0; S_298 (J/mol K): CH4 186.3, C2H6 229.2, C3H8 270.3, n-C4H10 304.4 (Yaws), CO2 213.8, H2O 188.8, N2 191.6, O2 205.2, Ar 154.8; the cp/R polynomials printed in process/materials.yaml | open-source package queried 2026-11-19; the ATcT, the printed (licensed) CRC Handbook, Yaws' handbook and Poling et al. were not read here | open-source package queried; single values, facts only, with their source; not open data (library ADR 0037) | the gas turbines' energy balance (D-005), heats of reaction |
 | SRC-3 | U.S. EPA (2000) AP-42, Fifth Edition, Volume I, Section 3.1 Stationary Gas Turbines (April 2000), https://www.epa.gov/sites/default/files/2020-10/documents/c03s01.pdf | Table 3.1-2a, natural-gas-fired turbines, uncontrolled: methane 8.6E-03 lb/MMBtu (C), N2O 0.003 lb/MMBtu (E), HHV basis (footnote c) | read | US government work | D-011 CH4 and N2O |
 
 ## 3. Decisions
@@ -88,11 +88,13 @@ Rejected: two parallel trains with a splitter: twice the steps with no informati
 Decision: the natural gas is SRC-1's (Exhibit 2-6): 93.1 % methane, 3.2 % ethane, 0.7 % propane,
 0.4 % n-butane, 1.0 % CO2, 1.6 % N2 by volume, LHV 47,201 and HHV 52,295 kJ/kg, at the turbine
 fuel skids at 2.96 MPa and 27 degC (no booster or let-down, section 5.1.1). The odorant
-methanethiol (5.75e-6 mol%, 1.0 kg/h of sulfur, Exhibit 5-13) is left out of the balance; its SO2
-is counted in the LCA (D-011). The hydrocarbons burn completely (`reactions.yaml`, conversion
-1.0): SRC-1's exhaust (stream 3) carries none and about 1 ppmv CO (section 5.2.4.1).
-Reason: the methanethiol is 0.003 % of the fuel's mass; CO, NOx, CH4 slip and N2O are ppm-level
-and are counted by factors where they matter (the LCI), not in the mass balance.
+methanethiol (mole fraction 5.75e-6, i.e. 5.75e-4 mol%; 1.0 kg/h of sulfur, Exhibit 5-13) is left
+out of the balance; its SO2 is counted in the LCA (D-011). The hydrocarbons burn completely
+(`reactions.yaml`, conversion 1.0): SRC-1's exhaust (stream 3) carries none and about 1 ppmv CO
+(section 5.2.4.1).
+Reason: the methanethiol is 0.0016 % of the fuel's mass (1.5 kg/h in 93,272 kg/h); CO, NOx, CH4
+slip and N2O are ppm-level and are counted by factors where they matter (the LCI), not in the
+mass balance.
 Rejected: carrying CO and NO in the balance: the conversion step would need ASSUMED splits for
 numbers that SRC-1 gives directly as stack rates.
 Check: the calculated exhaust is 138,413 kmol/h and 3,927,398 kg/h (SRC-1: 138,406 and
@@ -125,7 +127,10 @@ and IP sections, section 5.1.4); the boiler feed pumps, with their interstage bl
 and LP feedwater, are its energy stream Q7. The gas leaves at 83 degC (stream 4) unchanged in
 composition (the SCR's ammonia and the NOx it removes are in the LCI, D-011). The loop is closed
 on the turbine's exhaust: the condensate equals stream 10 (633,792 kg/h); SRC-1's stream 11
-carries 790 kg/h more, the gland-seal and air-ejector flows its exhibits do not show.
+carries 790 kg/h more, the gland-seal and air-ejector flows its exhibits do not show. The condensate
+S12 is at the condensate pumps' discharge (Exhibit 5-15: 101 degF, 95 psia); the two feedwater
+preheaters after the pumps, which take heat from the gland-seal system and the steam air ejector
+(Exhibit 5-15: 102 degF, 87 psia after them; neither system shown by SRC-1), are not modelled.
 Reason: no core model or property package covers water and steam (L-2), so the loop's states
 are SRC-1's; only its flows enter the balance.
 Check (scripts/ngcc_balance.py, ideal-gas data for the gas, SRC-1's enthalpies for the water):
@@ -146,8 +151,12 @@ Decision: the surface condenser E201 at 50.8 mm Hg (6.77 kPa(a), SRC-1 Exhibit 5
 LP exhaust to 38 degC: 390.4 MW to the cooling water (Q5; SRC-1 Exhibit 5-9: 1,406 GJ/h =
 390.6 MW). Its integrated deaerator (SRC-1 p. 573) takes the demineralised make-up S13 (2,804
 lb/h = 1,271.9 kg/h, Exhibits 5-14 and 5-15) and vents the same mass S14 (Exhibit 5-14); the vent
-is put at the condensate temperature (ASSUMED: SRC-1 Exhibit 5-16 gives it 0.2 GJ/h, which a
-38 degC liquid-like enthalpy matches) and at atmospheric pressure. The demineraliser is outside
+is liquid water at the condensate temperature (ASSUMED: SRC-1 Exhibit 5-15 gives it 101 degF and
+69 Btu/lb, a liquid enthalpy, and Exhibit 5-16 0.2 GJ/h, which a 38 degC liquid enthalpy
+matches) and at atmospheric pressure. SRC-1's water balance books the vent as process water
+discharge (Exhibit 5-14: 5.6 gpm returned, not consumed); the LCI releases it with the other
+water as burden-free emission:H2O, so whether it goes to drain or to air changes no result
+(0.2 % of the 2,902 gpm withdrawn). The demineraliser is outside
 the boundary: the make-up is a feed (DMW).
 Reason: the condenser duty is the steam loop's heat sink and follows from SRC-1's enthalpies.
 
@@ -181,9 +190,12 @@ Net efficiency: 725.8 / 1,354.9 = 53.57 % (HHV; SRC-1 53.6 %), 59.35 % (LHV; SRC
 ### D-011 Preliminary LCI (2026-11-19)
 Decision: a gate-to-gate inventory per kWh of net electricity (`lca/lca.yaml`):
 - the balance's exchanges: natural gas, air (free), raw and demineralised water, the stack gas
-  (fossil CO2 0.3425 kg/kWh; SRC-1 Exhibit 5-11: 342 kg/MWh net), the vent, the cooling tower's
-  evaporation (water vapour, free; the water is counted where it is taken) and its blowdown to
-  treatment; the generator and transformer losses are heat to the surroundings (free);
+  (CO2 0.3425 kg/kWh: 0.3401 from the fuel's carbon and its own CO2, 0.0024 the combustion air's
+  CO2 passing through, 1,754 kg/h or 0.7 % of the flow, counted as fossil with the rest:
+  ASSUMED, as ammonia-1 D-020; SRC-1 Exhibit 5-11: 342 kg/MWh net, which includes the air's CO2
+  too, Exhibit 5-12: 521 of 67,890 kg/h carbon in from the air), the vent's liquid water, the
+  cooling tower's evaporation (water, free; the water is counted where it is taken) and its
+  blowdown to treatment; the generator and transformer losses are heat to the surroundings (free);
 - emissions the balance does not carry, as a combustion estimate on the fuel's HHV input
   (4,877.66 GJ/h): NOx 1.542, CO 0.7985, SO2 0.4130 and particulates 0.7985 g/GJ from SRC-1's
   own stack rates (Exhibit 5-11, t/a at an 85 % capacity factor, divided by 7446 h; they include
