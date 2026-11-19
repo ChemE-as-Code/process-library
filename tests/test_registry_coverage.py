@@ -35,6 +35,10 @@ FEED_PREFIXES = ("feed", "input", "consumable")
 UNNAMED_REGISTRY_FLOWS = {
     "acrylonitrile-1/feed:CAIR": "air",  # combustion air to the thermal oxidiser
     "bio-ethylene-1/feed:O2": "air",  # combustion oxygen from ambient air
+    "bioethanol-1/consumable:caustic": "sodium-hydroxide",
+    "bioethanol-1/consumable:lime": "calcium-oxide",  # quicklime, as its LCA mapping counts it
+    "bioethanol-1/consumable:sulfuric-acid": "sulfuric-acid",
+    "bioethanol-1/consumable:urea": "urea",
     "carbon-tetrabromide-1/consumable:rinse-water": "water",
     "co2-electrolysis-bpm-1/feed:AIR": "air",
     "copper-i-chloride-1/consumable:nitrogen": "nitrogen",
@@ -79,6 +83,9 @@ NO_REGISTRY_IDENTITY = {
     "aniline-1/consumable:hydrogenation-catalyst": CATALYST,
     "asu-1/consumable:lube-oil": ARTICLE,
     "asu-1/consumable:molecular-sieve": SORBENT,
+    "bioethanol-1/consumable:alpha-amylase": "an enzyme preparation, not one substance",
+    "bioethanol-1/consumable:gluco-amylase": "an enzyme preparation, not one substance",
+    "bioethanol-1/consumable:yeast": "purchased yeast (Saccharomyces cerevisiae), an organism, not a chemical",
     "bromine-1/feed:BRINE": "natural bromide brine from the brine field, of no fixed composition (chemistry has water as its stand-in)",
     "btx-1/input:clay": "treating clay of the clay treaters, a sorbent; the registry's clay is the cement raw-meal material",
     "catalytic-reforming-1/input:catalyst": CATALYST,
