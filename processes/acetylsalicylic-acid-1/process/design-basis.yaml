@@ -6,10 +6,10 @@
 schema: cheme/design_basis/v1
 capacity:
   basis: dried acetylsalicylic acid crystals to packing at the battery limit
-  asa_t_per_year: 1171.5                # from one 5 m3 R-101, one 5 m3 filter-dryer and the recipe (D-002, D-003); ASSUMED scale, no open market figure used
+  asa_t_per_year: 1291.3                # from one 5 m3 R-101, two 5 m3 filter-dryers and the recipe (D-002, D-003); ASSUMED scale, no open market figure used
   operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
-  batch_kg: 1710.65                     # ASSUMED (D-003): 10.0 kmol salicylic acid per batch (US 2 731 492 A, Example I's charge), one batch every 11.57 h
-  batches_per_year: 684.8               # from the recipe (process/recipe.yaml, D-003)
+  batch_kg: 1710.65                     # ASSUMED (D-003): 10.0 kmol salicylic acid per batch (US 2 731 492 A, Example I's charge), one batch every 10.49 h
+  batches_per_year: 754.9               # from the recipe (process/recipe.yaml, D-003)
 feeds:
   - name: Salicylic acid (merchant, Kolbe-Schmitt route, technical grade)
     source_of_values: ASSUMED (D-004)
@@ -27,15 +27,15 @@ products:
     purity: "modelled 99.85 wt% aspirin (crystals and the dissolved aspirin the cake liquor leaves), 0.037 wt% salicylic acid, 0.018 wt% sulfuric acid, 0.10 wt% acetic acid and anhydride (D-008); a model result, not a pharmacopoeia release: no open product specification was read, and a recrystallisation, if the grade needs one, is outside the boundary (D-002)"
     delivery: {temperature_K: 313.15, pressure_kPa_a: 101.325, battery_limit: "packing (drums or bags; not in the boundary)"}
   - name: Recovered acetic acid to the acetic anhydride plant
-    note: "94.1 wt% acetic acid with 5.9 wt% acetic anhydride, 0.351 kg per kg aspirin, a co-product (D-009, D-012)"
+    note: "95.7 wt% acetic acid with 4.3 wt% acetic anhydride, 0.267 kg per kg aspirin, a co-product (D-009, D-012)"
   - name: Still residue to incineration
-    note: "aspirin, salicylic acid and the catalyst in acetic acid and anhydride, about 62 wt% aspirin, 84 g per kg aspirin (D-009)"
+    note: "aspirin, salicylic acid and the catalyst in acetic acid and anhydride, about 31 wt% aspirin, 168 g per kg aspirin, a solution at the still's end temperature drained hot into drums, where it sets to a paste (D-009)"
 utilities:
   - {name: Electric power, use: "agitators of R-101, F-101 and C-301, the anhydride dosing pump, the vacuum pumps, transfer pumps (D-010)"}
-  - {name: LP steam, pressure_kPa_a: 350, use: "the still C-301; hot water at 368 K for R-101's heat-up and at 353 K for the filter-dryer (D-010)", note: ASSUMED}
-  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "F-101's vacuum condenser and product cool-down, the still's condenser and distillate cooler (D-010)", note: ASSUMED}
-  - {name: Tempered chilled water, supply_K: 283.15, return_K: 288.15, use: "R-101's jacket: the heat of acetylation and the crystallisation cool-down to 293 K (D-010)", note: "ASSUMED; from a chiller outside the boundary, kept above the liquor's freezing point (D-010)"}
-  - {name: Nitrogen, use: "inerting R-101, pressing F-101, breaking its vacuum, blanketing (a per-batch consumable, D-012)", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the still C-301; hot water at 368 K for R-101's heat-up and at 353 K for the filter-dryers (D-010)", note: "ASSUMED; about 412 K on C-301, above aspirin's melting point: the residue's thermal stability is an open input (D-011)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "R-101's pre-cool from 358 to 303 K, F-101's vacuum condenser and product cool-down, the still's condenser and distillate cooler (D-010)", note: ASSUMED}
+  - {name: Tempered chilled water, supply_K: 283.15, return_K: 288.15, use: "R-101's jacket: the heat of acetylation (for the jacket check at the start of the dosing) and the crystallisation cool-down from 303 to 293 K (D-010)", note: "ASSUMED; from a chiller outside the boundary, kept above the liquor's freezing point (D-010)"}
+  - {name: Nitrogen, use: "inerting R-101, the filter-dryers, the still and the tanks above the liquors' flash points, pressing F-101, breaking its vacuum, blanketing (a per-batch consumable, D-011, D-012)", note: ASSUMED}
 site:
   location: ASSUMED generic fine-chemicals site with acetic anhydride supply, a scrubber and a hazardous-waste incinerator, not chosen
   design_ambient_K: 298.15            # ASSUMED
@@ -44,6 +44,6 @@ assumptions:
   - "Route: salicylic acid + acetic anhydride -> aspirin + acetic acid in an acetic-acid diluent with a sulfuric acid catalyst at 358 K (US 2 731 492 A, Example I; US 2 987 539 A: 85 C, mother liquor recycled), the anhydride dosed (D-001, D-005)."
   - "Heat of reaction -29.01 kJ/mol by Hess's law on NIST WebBook data; ASSUMED second-order kinetics, k 1.54e-3 m3/(kmol s) at 358 K, Ea 60 kJ/mol, 0.995 conversion of the salicylic acid (D-005)."
   - "Solubility of aspirin in the mother liquor 0.0998 kg per kg of solute-free liquor at 293-296 K, derived from US 2 731 492 A, Example I (D-007)."
-  - "ASSUMED filter-dryer: all crystals retained, 0.3 kg liquor per kg cake solid, specific cake resistance 5e9 m/kg at 200 kPa; one reslurry wash with 0.4 kg recovered acid per kg crystals; vacuum drying at 333 K and 10 kPa(a) to 0.1 wt% acetic acid, 4 kg/(m2 h) on 16 m2 (D-008)."
-  - "60 % of the combined mother liquor and wash filtrate recycled to the next charge, inside US 2 987 539 A's 30-70 % (D-006); the rest distilled at 15 kPa(a), 90 % of the still charge's mass over, an ideal liquid (Raoult) with the NIST Antoine sets (D-009)."
+  - "ASSUMED filter-dryer: all crystals retained, 0.3 kg liquor per kg cake solid, specific cake resistance 5e9 m/kg at 200 kPa; one reslurry wash with 0.4 kg recovered acid per kg crystals; vacuum drying at 333 K and 10 kPa(a) to 0.1 wt% acetic acid, 4 kg/(m2 h) on the 7.88 m2 the cake wets, two filter-dryers taking alternate batches (D-008)."
+  - "60 % of the combined mother liquor and wash filtrate recycled to the next charge, inside US 2 987 539 A's 30-70 % (D-006); the rest distilled directly (the patent's second-crop reactor not used, D-001) at 15 kPa(a), 80 % of the still charge's mass over so that the residue stays a solution, an ideal liquid (Raoult) with the NIST Antoine sets (D-009)."
   - "All flows are year averages of the recipe (D-003); the recycles converged by cheme process propagate at the tears S3 and S11; the duties of R101, CR101, D101 and ST101 from their models, the rest hand arithmetic from cheme's reports (D-010); accuracy +/-30 % not demonstrated."

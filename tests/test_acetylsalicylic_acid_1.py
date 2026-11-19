@@ -6,16 +6,20 @@ lca/lca.yaml are checked against them:
 
 - the yield on the salicylic acid (94.8 %), the purity (99.85 wt%) and the specific
   consumptions follow from S1, S2, S6, S15, S22 and S23;
-- the heat of reaction is Hess's law on the NIST WebBook values DESIGN.md SRC-5 names, the rate
-  constant's A gives the stated k at 358.15 K, and the solubility is SRC-1 Example I's lower end;
+- the heat of reaction is Hess's law on the NIST WebBook values its source in reactions.yaml
+  states, the rate constant's A gives the stated k at 358.15 K, and the solubility is SRC-1
+  Example I's lower end;
+- the still residue stays a solution at its end temperature (D-009): its aspirin per kg of liquor
+  lies below the log-linear interpolation between SRC-1's 293 K value and SRC-2's Step 1 at 77 C;
 - the mixers' temperatures (S4, S12, S18, S20) are the adiabatic mixes of their inlets, and the
-  hand duties Q1, Q5, Q7 and Q8 follow from the stream table and materials.yaml;
+  hand duties Q1, Q5, Q7, Q8 and Q9 follow from the stream table and materials.yaml;
 - the recycle fraction lies inside US 2 987 539 A's 30 to 70 %, and the wash ratio is 0.4 kg per
   kg of crystals;
 - the recipe's batch size over the cycle the feeds state is the flowsheet's product rate;
 - the allocation shares are the products' values at the stated relative prices;
-- every heat stream reaches the LCI, the MTT exceeds every heating medium of R-101, and the
-  tempered water stays above 283 K;
+- every heat stream reaches the LCI, the MTT (acetic acid's boiling point in materials.yaml)
+  exceeds every heating medium of R-101, the tempered water stays above 283 K, and only the duties
+  below cooling water's reach go to it;
 - the registry names the product and the salicylic acid; the process is public with CC-BY-4.0
   and requires cheme-as-code 1.12.
 """
@@ -23,6 +27,7 @@ lca/lca.yaml are checked against them:
 from __future__ import annotations
 
 import math
+import re
 from pathlib import Path
 
 import pytest
@@ -32,7 +37,7 @@ KIT = Path(__file__).resolve().parents[1]
 PROCESS = KIT / "processes" / "acetylsalicylic-acid-1"
 
 MW = {"ACOH": 60.052, "AC2O": 102.089, "SA": 138.122, "ASA": 180.159, "ASA_S": 180.159, "H2SO4": 98.072}
-CYCLE = 11.5655  # h, cheme process recipe (D-003), stated in the feeds' sources
+CYCLE = 10.492  # h, cheme process recipe (D-003), stated in the feeds' sources
 METAL_R101, METAL_F101 = 4000.0, 5000.0  # kJ/K, ASSUMED (D-008, D-010)
 
 
@@ -97,11 +102,11 @@ def test_the_stated_yield_purity_and_consumptions_follow_from_the_flowsheet(stre
     assert sum(_kg(streams, "S6").values()) / p == pytest.approx(0.627, abs=0.0005)
     assert sum(_kg(streams, "S2").values()) / p * 1000 == pytest.approx(0.88, abs=0.005)
     acid = _kg(streams, "S23")
-    assert sum(acid.values()) / p == pytest.approx(0.351, abs=0.0005)
-    assert acid["ACOH"] / sum(acid.values()) == pytest.approx(0.941, abs=0.0005)
+    assert sum(acid.values()) / p == pytest.approx(0.267, abs=0.0005)
+    assert acid["ACOH"] / sum(acid.values()) == pytest.approx(0.957, abs=0.0005)
     residue = _kg(streams, "S22")
-    assert sum(residue.values()) / p == pytest.approx(0.084, abs=0.0005)
-    assert residue["ASA"] / sum(residue.values()) == pytest.approx(0.62, abs=0.005)
+    assert sum(residue.values()) / p == pytest.approx(0.168, abs=0.0005)
+    assert residue["ASA"] / sum(residue.values()) == pytest.approx(0.31, abs=0.005)
     # the residue's aspirin is the loss: 5.0 % of the salicylic acid
     assert residue["ASA"] / MW["ASA"] / (sa_fed / MW["SA"]) == pytest.approx(0.050, abs=0.0005)
     for text in (_text("README.md"), _text("process.yaml")):
@@ -123,20 +128,42 @@ def test_recipe_basis_and_capacity(streams):
     rate = streams["S15"]["flow"]["value"]
     assert batch / rate == pytest.approx(CYCLE, rel=2e-4)
     batches = rate * recipe["hours_per_year"]["value"] / batch
-    assert batches == pytest.approx(684.8, abs=0.1)
-    assert rate * recipe["hours_per_year"]["value"] / 1000 == pytest.approx(1171.5, abs=0.5)
+    assert batches == pytest.approx(754.9, abs=0.1)
+    capacity = rate * recipe["hours_per_year"]["value"] / 1000
+    assert capacity == pytest.approx(_yaml("process/design-basis.yaml")["capacity"]["asa_t_per_year"], abs=0.1)
+    stated = f"{capacity:.0f} t/a"
+    assert stated == "1291 t/a"
+    for text in (_text("process.yaml"), _text("README.md"), _text("DESIGN.md"), " ".join((KIT / "REFERENCE.md").read_text(encoding="utf-8").split())):
+        assert stated in text
     lca = _text("lca/lca.yaml")
-    assert "1710.65 kg per batch, 684.8 batches a year" in lca
+    assert f"1710.65 kg per batch, {batches:.1f} batches a year" in lca
+    # the two filter-dryers: their heated area is core's default from the vessel, not a given number
+    isolate = next(u for u in recipe["unit_procedures"] if u["id"] == "ISOLATE")
+    assert isolate["parallel"] == 2 and "heated_area" not in isolate["vessel"]
 
 
 def test_heat_of_reaction_is_hess_law_on_the_nist_values():
-    acetic, anhydride, water, hydrolysis_asa = -483.52, -625.0, -285.83, -27.2  # kJ/mol, SRC-5
-    anhydride_hydrolysis = 2 * acetic - anhydride - water
-    assert anhydride_hydrolysis == pytest.approx(-56.21, abs=0.005)
     reaction = _yaml("process/reactions.yaml")["reactions"][0]
+    source = reaction["heat_of_reaction"]["source"]
+
+    def value(pattern: str) -> float:
+        found = re.search(pattern, source)
+        assert found, pattern
+        return float(found.group(1))
+
+    # the NIST WebBook values as the source string states them (DESIGN.md SRC-5)
+    anhydride = value(r"(-\d+\.\d+) \(acetic anhydride, liquid")
+    water = value(r"(-\d+\.\d+) \(water, liquid")
+    acetic = value(r"(-\d+\.\d+) kJ/mol \(acetic acid, liquid")
+    hydrolysis_asa = value(r"heat of hydrolysis, solid phase, (-\d+\.\d+) kJ/mol")
+    anhydride_hydrolysis = 2 * acetic - anhydride - water
+    assert f"= {anhydride_hydrolysis:.2f} kJ/mol" in source
     assert reaction["heat_of_reaction"]["value"] / 1000 == pytest.approx(
         anhydride_hydrolysis - hydrolysis_asa, abs=0.005
     )
+    design = _text("DESIGN.md")
+    for figure in (acetic, anhydride, water, hydrolysis_asa):
+        assert f"{figure:g}" in design
 
 
 def test_rate_constant_gives_the_stated_k_at_the_reaction_temperature():
@@ -149,6 +176,27 @@ def test_solubility_is_the_lower_end_of_the_source_example(sheet):
     cr101 = next(s for s in sheet["steps"] if s["id"] == "CR101")
     # US 2 731 492 A, Example I: 180 kg aspirin with 1800 kg acetic acid and 4.0 kg sulfuric acid
     assert cr101["crystallizer"]["solubility"]["value"] == pytest.approx(180 / 1804, abs=5e-5)
+
+
+def test_the_still_residue_stays_a_solution_at_its_end(sheet, streams):
+    """D-009: the residue's aspirin per kg of liquor lies below the solubility interpolated
+    log-linearly between SRC-1's value at 293.15 K (CR101's) and SRC-2's Step 1, which began to
+    crystallise at about 77 C with the aspirin of 552 g salicylic acid in 240 g acetic acid and the
+    anhydride left of 572 g (full conversion)."""
+    cr101 = next(s for s in sheet["steps"] if s["id"] == "CR101")
+    low = cr101["crystallizer"]["solubility"]["value"]
+    sa = 552 / MW["SA"]
+    liquor = 240 + sa * MW["ACOH"] + 572 - sa * MW["AC2O"]
+    high = sa * MW["ASA"] / liquor
+    assert high == pytest.approx(1.118, abs=0.001)
+    end = _temp(streams, "S22")
+    solubility = math.exp(math.log(low) + (end - 293.15) / (350.15 - 293.15) * math.log(high / low))
+    residue = _kg(streams, "S22")
+    ratio = residue["ASA"] / (sum(residue.values()) - residue["ASA"])
+    assert ratio == pytest.approx(0.45, abs=0.005)
+    assert ratio < 0.6 * solubility
+    still = next(s for s in sheet["steps"] if s["id"] == "ST101")
+    assert still["still"]["end"]["distilled"] == pytest.approx(0.80)
 
 
 def test_mixing_temperatures_are_the_adiabatic_mixes(streams, materials):
@@ -167,7 +215,7 @@ def test_mixing_temperatures_are_the_adiabatic_mixes(streams, materials):
     assert _temp(streams, "S20") == pytest.approx(t20, abs=0.02)
 
 
-def test_hand_duties_follow_from_the_stream_table(streams, materials):
+def test_hand_duties_follow_from_the_stream_table(sheet, streams, materials):
     latent = {"ACOH": 394.7, "AC2O": 433.0}  # kJ/kg, D101's latent heats (materials.yaml)
     for c, value in latent.items():
         per_kmol = materials[c]["heat_of_vaporization"] / MW[c]
@@ -180,10 +228,19 @@ def test_hand_duties_follow_from_the_stream_table(streams, materials):
         return sum(kg.get(c, 0.0) * v for c, v in latent.items()) + _cp(streams, materials, sid) * (t_in - t_out)
 
     assert _duty(streams, "Q5") == pytest.approx(condensed("S16", 333.15, 303.15) / 3600, rel=1e-3)
-    still_mean = (339.22 + 355.28) / 2  # cheme process stills
+    # the still from its bubble point (cheme process stills, as Q7's source states it) to S22's end
+    q7_source = next(s for s in sheet["streams"] if s["id"] == "Q7")["state"]["design"]["duty"]["source"]
+    start = float(re.search(r"\((\d+\.\d+) to (\d+\.\d+) K, cheme process stills\)", q7_source).group(1))
+    assert f"to {_temp(streams, 'S22'):.2f} K, cheme process stills" in q7_source
+    still_mean = (start + _temp(streams, "S22")) / 2
     assert _duty(streams, "Q7") == pytest.approx(condensed("S21", still_mean, 303.15) / 3600, rel=1e-3)
-    q8 = _cp(streams, materials, "S15") * (333.15 - 313.15) + METAL_F101 * (333.15 - _temp(streams, "S13")) / CYCLE
+    # the product and F-101's metal cool together to 313 K on cooling water (D-008)
+    q8 = _cp(streams, materials, "S15") * (333.15 - 313.15) + METAL_F101 * (333.15 - 313.15) / CYCLE
     assert _duty(streams, "Q8") == pytest.approx(q8 / 3600, rel=1e-3)
+    # R-101's pre-cool on cooling water, 358 to 303 K, the reaction mass and the metal (D-010)
+    assert _temp(streams, "S24") == pytest.approx(303.15)
+    q9 = _cp(streams, materials, "S7") * (358.15 - 303.15) + METAL_R101 * (358.15 - 303.15) / CYCLE
+    assert _duty(streams, "Q9") == pytest.approx(q9 / 3600, rel=1e-3)
 
 
 def test_recycle_fraction_inside_the_source_range(sheet):
@@ -201,7 +258,7 @@ def test_allocation_shares_are_the_values_at_the_stated_prices(streams):
         assert share == pytest.approx(value[product] / total, abs=0.0005)
     assert sum(alloc["shares"].values()) == pytest.approx(1.0)
     mass = streams["S15"]["flow"]["value"] / (streams["S15"]["flow"]["value"] + streams["S23"]["flow"]["value"])
-    assert mass == pytest.approx(0.740, abs=0.0005)
+    assert mass == pytest.approx(0.789, abs=0.0005)
 
 
 def test_every_heat_stream_reaches_the_lci(sheet):
@@ -211,15 +268,20 @@ def test_every_heat_stream_reaches_the_lci(sheet):
             assert s["id"] in lca, s["id"]
 
 
-def test_heating_media_stay_below_the_mtt_and_the_chilled_water_above_283_k():
+def test_heating_media_stay_below_the_mtt_and_the_chilled_water_above_283_k(sheet, materials):
     recipe = _yaml("process/recipe.yaml")
     jacket = next(u for u in recipe["unit_procedures"] if u["id"] == "REACT")["vessel"]["jacket"]
-    mtt = 391.2  # acetic acid's normal boiling point, core's default MTT (D-011)
+    mtt = materials["ACOH"]["normal_boiling_point"]  # core's default MTT (D-011)
+    assert mtt == pytest.approx(391.2)
     assert jacket["heating_temperature"] < mtt
     assert jacket["coolant_temperature"] == pytest.approx((283.15 + 288.15) / 2)
     design = _text("DESIGN.md")
-    for figure in ("MTSR 365.5 K", "380.4 K", "400.6 K", "404.8 K", "19.5 %"):
+    for figure in (f"MTT of {mtt:g} K", "MTSR 365.5 K", "380.3 K", "400.7 K", "404.8 K", "19.3 %"):
         assert figure in design
+    # tempered chilled water takes only the dosing and the cool below cooling water's reach
+    to = {s["id"]: s["to"].split(".")[0] for s in sheet["streams"] if s.get("kind") == "energy"}
+    assert {q for q, sink in to.items() if sink == "CHW"} == {"Q2", "Q3"}
+    assert to["Q9"] == "CW"
 
 
 def test_registry_names_the_product_and_the_feed():

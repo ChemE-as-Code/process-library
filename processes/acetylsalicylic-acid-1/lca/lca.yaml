@@ -9,8 +9,8 @@
 # lca/mappings.yaml links a library producer: a gap, never zero, and no values from licensed
 # databases. The mother liquor is recycled and the acetic acid recovered in the still: part of
 # it washes the cake, the rest (the acetic acid the reaction forms, with the excess anhydride)
-# is a co-product to the acetic anhydride plant. The still residue goes to incineration, a waste
-# to treatment, not an emission (D-009).
+# is a co-product to the acetic anhydride plant. The still residue is drained hot into drums and incinerated,
+# a waste to treatment, not an emission (D-009).
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -28,7 +28,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Batch plant: salicylic acid and a sulfuric acid make-up charged into 60 % of the last batch's mother liquor and wash filtrate in a glass-lined vessel, heated to 358 K, acetic anhydride (1.05 mol per mol fresh) dosed over 1.5 h, post-reaction to 0.995 conversion, cooled to 293 K to crystallise; filtered, reslurry-washed with recovered acetic acid and vacuum-dried at 333 K in an agitated filter-dryer; 40 % of the liquor and the dryer's condensate distilled at 15 kPa(a), the distillate the next wash and a recovered acetic acid co-product; 1710.65 kg per batch, 684.8 batches a year on a dedicated train"
+technology: "Batch plant: salicylic acid and a sulfuric acid make-up charged into 60 % of the last batch's mother liquor and wash filtrate in a glass-lined vessel, heated to 358 K, acetic anhydride (1.05 mol per mol fresh) dosed over 1.5 h, post-reaction to 0.995 conversion, pre-cooled to 303 K on cooling water and cooled to 293 K on tempered chilled water to crystallise; filtered, reslurry-washed with recovered acetic acid and vacuum-dried at 333 K in one of two agitated filter-dryers; 40 % of the liquor and the dryer's condensate distilled at 15 kPa(a) until 80 % is over, the distillate the next wash and a recovered acetic acid co-product, the residue drummed for incineration; 1710.65 kg per batch, 754.9 batches a year on a dedicated train"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 allocation:
@@ -36,11 +36,11 @@ allocation:
   # relative prices per kg (aspirin 1, the recovered acetic acid 0.1).
   method: shares
   coproducts: [PROD, ACID]
-  # S15 147.911 x 1 and S23 51.904 x 0.1 kg/h give 147.911 and 5.190: 0.966 and 0.034
-  shares: {PROD: 0.966, ACID: 0.034}
+  # S15 163.045 x 1 and S23 43.523 x 0.1 kg/h give 163.045 and 4.352: 0.974 and 0.026
+  shares: {PROD: 0.974, ACID: 0.026}
   source: >-
     D-012 (agent proposal, for the LCA practitioner to confirm): the plant makes, per kg of
-    aspirin, 0.351 kg of recovered acetic acid (94.1 wt% acetic acid, 5.9 wt% acetic anhydride),
+    aspirin, 0.267 kg of recovered acetic acid (95.7 wt% acetic acid, 4.3 wt% acetic anhydride),
     the acetic acid the acetylation forms, which goes back to the acetic anhydride plant
     (processes/acetic-anhydride-1 takes acetic acid as its feed). The library hierarchy
     (docs/system-model.md) has no physical relationship between a pharmaceutical active and a
@@ -50,12 +50,12 @@ allocation:
     relative prices per kg 1 : 0.1 are ASSUMED.
   deviation: >-
     The shares rest on ASSUMED relative prices, not sourced ones. The conservative bound is all
-    burdens to the aspirin (share 1, the acid free); mass allocation would leave the aspirin 74 %
+    burdens to the aspirin (share 1, the acid free); mass allocation would leave the aspirin 79 %
     of the burdens. Sourced prices replace the ratio.
 flows:
   # raw materials
   - key: feed:SAF
-    missing: "not mapped yet (D-012); no library process makes salicylic acid. Connect to: salicylic acid, technical grade, by the Kolbe-Schmitt carboxylation of dry sodium phenoxide with CO2 under pressure, acidified with sulfuric acid (US 2 987 539 A's background and the general route, D-004). Recorded proxy for a later study, not linked (never map to a guess): the stoichiometric inputs C6H5OH + NaOH + CO2 + 1/2 H2SO4 -> C7H6O3 + 1/2 Na2SO4 + H2O, 0.681 kg phenol (processes/cumene-1 makes phenol), 0.290 kg sodium hydroxide (processes/chlor-alkali-1), 0.319 kg CO2 and 0.355 kg sulfuric acid (processes/sulfuric-acid-1) per kg of salicylic acid (my arithmetic), the carboxylation's yield, energy and the sodium sulfate brine left out"
+    missing: "not mapped yet (D-012); no library process makes salicylic acid. Connect to: salicylic acid, technical grade, made by the Kolbe-Schmitt carboxylation of sodium phenoxide with CO2 and acidified with sulfuric acid (the general commercial route, stated as general knowledge, ASSUMED: no source for it was read in this work; US 2 987 539 A charges bought salicylic acid and does not describe its making, D-012). Recorded proxy for a later study, not linked (never map to a guess): the stoichiometric inputs C6H5OH + NaOH + CO2 + 1/2 H2SO4 -> C7H6O3 + 1/2 Na2SO4 + H2O, 0.681 kg phenol (processes/cumene-1 makes phenol), 0.290 kg sodium hydroxide (processes/chlor-alkali-1), 0.319 kg CO2 and 0.355 kg sulfuric acid (processes/sulfuric-acid-1) per kg of salicylic acid (my arithmetic), the carboxylation's yield, energy and the sodium sulfate brine left out"
     source: "flowsheet stream S1 (D-004)"
   - key: feed:AC2OF
     missing: "linked to processes/acetic-anhydride-1 (lca/mappings.yaml): acetic anhydride 99.5 wt% by the ketene route"
@@ -65,21 +65,21 @@ flows:
     source: "flowsheet stream S2 (D-004)"
   # utilities
   - key: feed:POWER
-    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    missing: "not mapped yet in this LCA (D-012; the Atlas build links it through the shared lci/mappings.yaml default 'electricity'); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
     source: "flowsheet energy streams P1 (R-101 agitator and dosing pump), P2 (F-101 agitator and vacuum pump), P3 (C-301 agitator, vacuum pump and transfer pumps), D-010"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
     source: "flowsheet energy streams Q1 (R-101 heat-up with its metal), Q4 (the dryer's hot-water circuit, core's dryer model), Q6 (the still's model duty: the boil-up, the charge and C-301's metal heated to the boil), D-010"
   - key: product:CW
-    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q5 (F-101's vacuum condenser), Q7 (still condenser and distillate cooler) and Q8 (F-101's product and vessel cool-down), D-010"
+    missing: "not mapped yet in this LCA (D-012; the Atlas build links it through the shared lci/mappings.yaml default 'cooling-water'); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q5 (F-101's vacuum condenser), Q7 (still condenser and distillate cooler), Q8 (F-101's product and vessel cool-down) and Q9 (R-101's pre-cool from 358 to 303 K), D-010"
   - key: product:CHW
     missing: "not mapped yet (D-012); connect to: refrigeration at 283/288 K (tempered chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
-    source: "flowsheet energy streams Q2 (the heat of acetylation, R101's model) and Q3 (the slurry's and R-101's metal's cool-down, CR101's model), D-010"
+    source: "flowsheet energy streams Q2 (the heat of acetylation, R101's model, on tempered water for the jacket check at the start of the dosing) and Q3 (the slurry's and R-101's metal's cool-down from 303 to 293 K, CR101's model), D-010"
   # wastes
   - key: product:RESID
-    treatment: {kind: waste, route: "hazardous-waste incineration of the still residue (about 62 wt% aspirin, 23 wt% acetic acid, 13 wt% acetic anhydride, salicylic and sulfuric acid), a liquid organic waste with sulfur; the salicylic acid recovery of US 2 987 539 A, Step 5, is not in this concept (D-009, D-012)"}
-    missing: "not mapped yet (D-012); connect to: incineration of a sulfur-containing liquid organic waste, per kg"
+    treatment: {kind: waste, route: "hazardous-waste incineration of the still residue (about 56 wt% acetic acid, 31 wt% aspirin, 12 wt% acetic anhydride, salicylic and sulfuric acid), drained hot as a solution into closed steel drums where it sets to a crystal paste as it cools: a drummed organic waste with sulfur; the salicylic acid recovery of US 2 987 539 A, Step 5, is not in this concept (D-009, D-012)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a sulfur-containing organic hazardous waste delivered in drums, per kg"
     source: "flowsheet stream S22 (D-009)"
 # What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
 # ADR 0053), converted with the recipe's batches per year (process/recipe.yaml): the nitrogen that

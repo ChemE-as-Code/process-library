@@ -14,17 +14,19 @@ A batch plant for acetylsalicylic acid (aspirin) on the acetic-acid route of US 
 US 2 987 539 A: salicylic acid and a sulfuric acid make-up are charged into the mother liquor
 recycled from the last batch in the glass-lined R-101 and heated to 358 K; acetic anhydride
 (from `acetic-anhydride-1`) is dosed over 1.5 h, C7H6O3 + (CH3CO)2O -> C9H8O4 + CH3COOH
-(`reactor: semibatch`, core ADR 0050); the batch is cooled to 293 K and the aspirin crystallises
-(core's crystallizer with the dissolved anhydride, salicylic acid and catalyst as spectators,
-ADR 0056). The agitated filter-dryer F-101 filters it, reslurries the cake in recovered acetic
-acid, filters again and dries it at 333 K under vacuum (ADR 0057). 60 % of the combined liquors
-go back to the next charge, the rest with the dryer's condensate to the vacuum batch still C-301
-(ADR 0055), whose acetic acid is the next wash and a co-product to the acetic anhydride plant;
-its residue is incinerated. Core converges both recycles at tear streams (ADR 0060), the models
-write their duties (ADRs 0059, 0063), `process/recipe.yaml` gives the cycle (11.57 h, the
-filter-dryer the bottleneck), 684.8 batches a year of 1710.65 kg (1171 t/a), R-101's 5 m3 vessel
-and its jacket check (`cheme process recipe`), and `cheme process reactor-hazards` screens the
-dosing. Needs cheme-as-code 1.12.0. DESIGN.md lists the sources, the decisions, the core
+(`reactor: semibatch`, core ADR 0050); the batch is pre-cooled to 303 K on cooling water and
+cooled to 293 K on tempered chilled water, and the aspirin crystallises (core's crystallizer with
+the dissolved anhydride, salicylic acid and catalyst as spectators, ADR 0056). One of two agitated
+filter-dryers F-101 filters it, reslurries the cake in recovered acetic acid, filters again and
+dries it at 333 K under vacuum (ADR 0057). 60 % of the combined liquors go back to the next
+charge, the rest with the dryer's condensate straight to the vacuum batch still C-301 (ADR 0055),
+whose acetic acid is the next wash and a co-product to the acetic anhydride plant; the still
+stops at 80 % distilled so that its residue stays a solution, which is drained into drums and
+incinerated. Core converges both recycles at tear streams (ADR 0060), the models write their
+duties (ADRs 0059, 0063), `process/recipe.yaml` gives the cycle (10.49 h, R-101 the bottleneck,
+the two filter-dryers 90 % used), 754.9 batches a year of 1710.65 kg (1291 t/a), R-101's 5 m3
+vessel and its jacket check (`cheme process recipe`), and `cheme process reactor-hazards` screens
+the dosing. Needs cheme-as-code 1.12.0. DESIGN.md lists the sources, the decisions, the core
 features used and the core limits hit.
 
 Headline numbers and their caveats:
@@ -33,18 +35,22 @@ Headline numbers and their caveats:
   loss is the aspirin the still residue carries (5.0 %). US 2 987 539 A reports 88 % of
   tablet-grade aspirin (93 % with its salicylic acid recovery, not modelled here) (D-007, D-009).
 - Per kg of aspirin: 0.807 kg salicylic acid, 0.627 kg acetic anhydride, 0.88 g sulfuric acid;
-  0.351 kg recovered acetic acid (94.1 wt%, the rest anhydride) and 0.084 kg still residue.
+  0.267 kg recovered acetic acid (95.7 wt%, the rest anhydride) and 0.168 kg still residue (31
+  wt% aspirin, a solution at the still's 343 K end, setting to a paste in its drums) (D-009).
 - The heat of reaction, -29.0 kJ/mol, is Hess's law on NIST WebBook data; the kinetics are
-  ASSUMED (no open kinetics or calorimetry). Screening: dT_ad 46.6 K, at most 19.5 % of the
+  ASSUMED (no open kinetics or calorimetry). Screening: dT_ad 46.6 K, at most 19.3 % of the
   anhydride accumulated, MTSR 365.5 K against the MTT of 391.2 K (acetic acid's boiling point).
-  With a 100 times slower reaction, as without the catalyst, the MTSR is 400.6 K, above the MTT: a
+  With a 100 times slower reaction, as without the catalyst, the MTSR is 400.7 K, above the MTT: a
   design finding (the dosing interlocked with the catalyst charge and the heat flow), and the
   reason the anhydride is dosed rather than charged (an all-in batch reaches about 404.8 K)
-  (D-005, D-011).
-- Filtration, wash and drying data are ASSUMED (no open cake data); the drying is the bottleneck.
+  (D-005, D-011). The liquors run above their flash points (acetic acid 39 C, the anhydride
+  49 C) and the product is a combustible dust: the vessels are inerted with nitrogen, and the
+  oxygen limit, the dust data and the residue's thermal stability are open inputs (D-011).
+- Filtration, wash and drying data are ASSUMED (no open cake data); the drying, on the 7.88 m2
+  the cake wets, takes 14.3 h, so two filter-dryers alternate (D-008).
 - The preliminary LCI links acetic anhydride, sulfuric acid and nitrogen to library producers;
   salicylic acid (Kolbe-Schmitt) is a gap with a recorded proxy. Economic allocation at ASSUMED
-  relative prices gives the aspirin 96.6 % of the burdens (D-012).
+  relative prices gives the aspirin 97.4 % of the burdens (D-012).
 
 | path | what |
 |---|---|
