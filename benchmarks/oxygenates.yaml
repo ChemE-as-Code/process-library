@@ -485,6 +485,29 @@ kpis:
     title: Electricity per kg of phthalic anhydride
     unit: kWh/kg
     no_open_reference: "No open source with a plant's electricity use per kg of phthalic anhydride found (searched 2026-11-19: US EPA AP-42 section 6.5, Google Patents US 8 859 459 B2, US 7 592 293 B2, EP 0 574 855 A2, US 5 730 844 A, US 4 036 783 A and the ESCAPE-15 paper of Jara et al. 2005 read; none states a utility consumption). The dataset's value is its air blower (hand calculation) and ASSUMED pump and vacuum allowances (phthalic-anhydride-1, DESIGN.md D-010)."
+  mma-acetone-yield:
+    title: Methyl methacrylate per acetone fed (ACH-sulfo route), as a share of the stoichiometric maximum
+    unit: "%"
+    description: >-
+      Moles of MMA per mole of acetone, computed from the masses (100.1158 and 58.0791 g/mol). With
+      HCN equimolar it is the yield on ACH times the ACH unit's yield.
+    no_open_reference: >-
+      No open source independent of the dataset's was read (2026-11-19). The only open figures
+      found are the dataset's own source, US 2023/0416184 A1 (Table 4: 90.1 to 91.6 % MMA on ACH
+      in Examples A1 to A3, Table 7: 91.1 % in B1), which a check would pass by construction.
+      Read: US 9,890,105 B2 (routes, no ACH-route yield); the abstract of Darabi Mahboub et al.,
+      Chem. Soc. Rev. 47 (2018) 7703 (no figure); the full text and Ullmann's chapter were not
+      read.
+  mma-specific-natural-gas:
+    title: Natural gas (as methane) per kg of methyl methacrylate, spent acid regenerated on site
+    unit: kg/kg
+    no_open_reference: >-
+      No open source with the fuel of a spent-acid regeneration plant per kg of MMA or per kg of
+      spent acid was found (2026-11-19). Read: US 2023/0416184 A1 (thermal regeneration above
+      900 C, no fuel figure). The dataset's value comes from an adiabatic energy balance on
+      package formation enthalpies (methyl-methacrylate-1 DESIGN.md D-008), an approximation: the
+      heat loss it leaves out and the uncredited sensible heat of the 393 K spent acid act in
+      opposite directions.
 
 datasets:
   - process: terephthalic-acid-1
@@ -642,3 +665,9 @@ datasets:
           kg in the reactor gas, inside the 1.088 to 1.15 of EP 0 574 855 A2, Jara et al. 2005 and
           US 4 036 783 A), so it needs 0.9495 kg/kg (DESIGN.md D-005).
       pa-specific-electricity: {expression: feed:POWER / product:PAN, per: product:PAN}
+  - process: methyl-methacrylate-1
+    dataset: methyl-methacrylate-by-the-ach-sulfo-route-with-sulfuric-acid-regeneration-12.5-t-h-mma
+    conditions: {technology: "ACH-sulfo route: acetone + HCN to ACH, amidation in 98.5 wt% sulfuric acid, esterification with methanol, distillation, spent acid regenerated on site (natural-gas-fired decomposition, double-contact plant)", basis: "concept balance, the acid ratio, conditions and yield of US 2023/0416184 A1 Example A2, ASSUMED loss split, recoveries, SAR furnace and duties (DESIGN.md D-004 to D-009)"}
+    kpis:
+      mma-acetone-yield: {expression: product:MMAP * 58.0791 / 100.1158 / feed:ACEF}
+      mma-specific-natural-gas: {expression: feed:NG / product:MMAP, per: product:MMAP}

@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 121 public process folders: 81 engineering projects (a `plant.yaml` with a process
+The table lists 123 public process folders: 83 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -104,6 +104,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`mdi-1`](processes/mdi-1/) | MDI and polymeric MDI by aniline-formaldehyde condensation and liquid-phase phosgenation in MCB, HCl recycle and HCl gas export, monomeric MDI distilled off the polymeric MDI (178 kt/a crude MDI) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methanesulfonyl-chloride-1`](processes/methanesulfonyl-chloride-1/) | Methanesulfonyl chloride by semi-batch reaction of methanesulfonic acid with thionyl chloride, an SO2/HCl vent and batch vacuum distillation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`methanol-1`](processes/methanol-1/) | Methanol synthesis loop and purification (2500 t/d Grade AA, natural-gas syngas) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`methyl-methacrylate-1`](processes/methyl-methacrylate-1/) | Methyl methacrylate by the acetone cyanohydrin (ACH-sulfo) route: amidation in sulfuric acid, esterification with methanol, distillation, spent acid regenerated on site by decomposition and a contact plant (12.5 t/h, 100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methylamines-1`](processes/methylamines-1/) | Methylamines (MMA, DMA, TMA) from methanol and ammonia | concept (calculation maturity: balanced, report from core 0.8.0, re-checked with core v1.2.1; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methylmagnesium-bromide-1`](processes/methylmagnesium-bromide-1/) | Methylmagnesium bromide, 35 wt% in 2-MeTHF, by semi-batch Grignard reaction with methyl bromide gas dosing and a vent (4400 t/a of solution, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`methyltriphenylphosphonium-bromide-1`](processes/methyltriphenylphosphonium-bromide-1/) | Methyltriphenylphosphonium bromide by semi-batch quaternisation of triphenylphosphine with liquid methyl bromide in toluene, precipitation, a filter-dryer and toluene recovery in a batch still (820 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
@@ -156,6 +157,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`vcm-1`](processes/vcm-1/) | Vinyl chloride monomer by the balanced EDC process, oxygen-based oxychlorination (LVOC BREF ranges, IPCC factors) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`vinyl-acetate-1`](processes/vinyl-acetate-1/) | Vinyl acetate monomer by gas-phase acetoxylation of ethylene over Pd/Au, acetic acid cycle-gas scrubbing, CO2 removal, recycle gas and azeotropic and dewatering columns (200 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`waste-incineration-1`](processes/waste-incineration-1/) | Waste incineration with energy recovery (mixed MSW, moving grate, heat-oriented CHP; WI BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`wwtp-a2o`](processes/wwtp-a2o/) | A2/O wastewater waterline with direct QSDsan simulation (ASM2d, software example) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, QSDsan simulation, no LCI dataset) |
 
 Three separate axes, named as in core's [glossary](https://github.com/ChemE-as-Code/core/blob/main/docs/concepts/glossary.md):
 
