@@ -1,0 +1,39 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# No sizes, design pressures, temperatures or materials yet (basic engineering); the notes give
+# the operating point of the flowsheet and the duties of scripts/balance.py. All values ASSUMED
+# unless a source is named (DESIGN.md).
+schema: cheme/equipment/v1
+equipment:
+  - {tag: E-101, type: HeatExchanger, service: "Methanol feed vaporiser and superheater on MP steam",
+     notes: "229.1 t/h liquid methanol with the oxygenate recycle vaporised and superheated to 473 K, 88.2 MW (Q1, scripts/balance.py); no feed/effluent or quench-water heat integration (D-011): in a plant most of this heat comes from the reactor effluent and the quench water."}
+  - {tag: R-101, type: Reactor, service: "MTO fluidised-bed reactor (SAPO-34 microspheres) with spent catalyst stripper, cyclones and catalyst cooler",
+     notes: "748 K, 239 kPa(a) at the outlet, 99.5 % methanol conversion per pass (US 7 138 557 B2, D-004, D-005); the catalyst cooler raises 4000 kPa(a) steam, 14.2 MW (Q2, core's conversion-step duty); size, catalyst inventory, circulation rate and the cyclones' fines loss not set (open inputs, D-007)."}
+  - {tag: R-201, type: Reactor, service: "Fluidised-bed catalyst regenerator with catalyst cooler, air distributor, cyclones and flue gas steam generator",
+     notes: "923 K (US 9 233 350 B2, D-007), coke burnt off completely with air (2 vol% O2 in the dry flue gas, ASSUMED); 22.1 MW of steam raised in the catalyst cooler and the flue gas cooler, the flue gas leaving at 473 K (Q3, core's conversion-step duty, D-007)."}
+  - {tag: K-201, type: Compressor, service: "Regeneration air blower",
+     notes: "30.8 t/h air, 101 -> 300 kPa(a), 1.17 MW electric (Q4, isentropic efficiency 0.80 ASSUMED, scripts/balance.py)."}
+  - {tag: T-201, type: Column, service: "Quench tower: product gas cooled from 748 K to 313 K, reaction water condensed, organic acids neutralised in the pumparound",
+     notes: "143.7 MW to cooling water through the pumparound coolers (Q5, scripts/balance.py), no heat recovery counted (D-011); catalyst fines washed out with the water (US 6 403 854 B1, D-008)."}
+  - {tag: T-202, type: Column, service: "DME scrubber: residual DME and methanol absorbed from the compressed gas (lumped with T-201 in the flowsheet)",
+     notes: "US 7 138 557 B2 scrubs DME with a methanol solvent at about 1800 kPa(a); here a 99 % DME and 99.9 % methanol removal is lumped into T201 (D-008)."}
+  - {tag: T-203, type: Column, service: "Oxygenate stripper: methanol and DME stripped from the reaction water and recycled to R-101",
+     notes: "LP steam 4.58 MW (Q6, 0.06 kg steam per kg feed, ASSUMED); bottoms 125.5 t/h water with 5 ppm(mol) methanol to wastewater treatment (D-008)."}
+  - {tag: K-301, type: Compressor, service: "Product gas compressor, five stages in one train (stages 1-3 and 4-5) with intercoolers and an aftercooler",
+     notes: "200 -> 900 kPa(a) in three stages (4.32 MW) and 880 -> 2069 kPa(a) in two (2.36 MW), isentropic efficiency 0.78 (ASSUMED), electric drive (D-011)."}
+  - {tag: V-301, type: Vessel, service: "Stage 3 discharge drum", notes: "Water knocked out to saturation at 313 K and 900 kPa(a) (D-009)."}
+  - {tag: T-310, type: Column, service: "Caustic tower: CO2 neutralised with 10 wt% caustic soda",
+     notes: "17.8 kmol/h CO2 removed to a polymer-grade residue; 21.4 t/h fresh caustic at 3 mol NaOH per mol CO2 (ASSUMED excess, D-009)."}
+  - {tag: D-320, type: Vessel, service: "Product gas dryers (molecular sieve, twin beds with regeneration)", notes: "Regeneration gas and heat not modelled (D-009)."}
+  - {tag: T-401, type: Column, service: "Deethaniser (front end): C2 and lighter overhead, C3+ bottoms",
+     notes: "About 2000 kPa(a); reflux ratio 1 (ASSUMED), 11.6 MW reboiler on LP steam and condenser on -30 C propylene refrigerant (D-010, D-011)."}
+  - {tag: T-402, type: Column, service: "Demethaniser: hydrogen, CO and methane overhead to the tail gas",
+     notes: "Condenser on -103 C ethylene refrigerant, 1.89 MW; reboiled by the feed (ASSUMED, D-010)."}
+  - {tag: T-403, type: Column, service: "C2 splitter: polymer-grade ethylene overhead, ethane bottoms to the tail gas",
+     notes: "Reflux ratio 3.5 (ASSUMED), 20.1 MW condenser on -40 C propylene refrigerant; reboiler heated by the refrigerant (not counted apart, D-011)."}
+  - {tag: T-501, type: Column, service: "Depropaniser: C3 overhead, C4+ bottoms", notes: "Reflux ratio 1 (ASSUMED), 10.9 MW on LP steam and cooling water."}
+  - {tag: T-502, type: Column, service: "C3 splitter: polymer-grade propylene overhead, propane bottoms to the tail gas",
+     notes: "Reflux ratio 12 (ASSUMED), 69.1 MW reboiler on LP steam and condenser on cooling water; a heat-pumped splitter would replace most of it (D-011)."}
+  - {tag: T-503, type: Column, service: "Debutaniser: C4 olefin cut overhead, C5+ bottoms", notes: "Reflux ratio 1 (ASSUMED), 2.22 MW."}
+  - {tag: K-701, type: Compressor, service: "Propylene and ethylene refrigeration compressors (cascade)",
+     notes: "33.6 MW of refrigeration at 60 % of the Carnot COP (ASSUMED), 19.7 MW electric, 53.3 MW rejected to cooling water (Q22, Q23, D-011)."}
