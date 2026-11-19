@@ -193,7 +193,7 @@ def test_quench_jacket_peak_with_the_dilution_heat(model):
     peak = _dilution_kW(model) * 3600 * cycle_h / dosing_s
     assert peak == pytest.approx(55.5, abs=0.1)
     assert 135 + peak == pytest.approx(190.4, abs=0.2)
-    for rel in ("DESIGN.md", "equipment/equipment-list.yaml"):
+    for rel in ("DESIGN.md", "equipment/equipment-list.yaml", "README.md"):
         text = " ".join(_text(rel).split())
         assert "190.4 kW" in text and "210" in text, rel
         assert "189 kW" not in text and "54 kW" not in text, rel
@@ -434,11 +434,29 @@ def test_sources_name_the_right_equipment(model):
     recipe = _yaml("process/recipe.yaml")
     r101 = next(u for u in recipe["unit_procedures"] if u["id"] == "CHLOROSULFONATE")
     assert r101["vessel"]["volume"] * r101["vessel"]["fill_fraction"] == pytest.approx(4.0, abs=0.001)
-    p1 = model[1]["P1"]["state"]["design"]["duty"]["source"]
-    assert "4 m3" in p1 and "3.15" not in p1
+    p1 = model[1]["P1"]["state"]["design"]["duty"]
+    assert "4 m3" in p1["source"] and "3.15" not in p1["source"]
+    # the BE 4000's catalogue turbine drive (SRC-14 p. 2), not the BE 1000's 3 kW (D-018)
+    assert p1["value"] == pytest.approx(7.5) and "SRC-14" in p1["source"]
+    assert "electricity 0.229 kWh" in " ".join(_text("DESIGN.md").split())
+    assert "0.229 kWh/kg" in _text("process.yaml")
     s24 = model[1]["S24"]
     assert s24["from"].startswith("D101.")
     assert "DR-101" in s24["state"]["design"]["temperature"]["source"]
+
+
+def test_batch_size_and_decision_cited_alike():
+    """D-018 re-iterated the batch to 1748.15 kg and 572.0 batches a year: the LCA's technology
+    text (copied into the published dataset) says so, and the files cite D-018, not a "rev." of
+    D-003 that DESIGN.md does not name."""
+    lca = _yaml("lca/lca.yaml")
+    assert "1748.15 kg per batch, 572.0 batches a year" in lca["technology"]
+    dataset = " ".join(_text("lca/dataset.yaml").split())
+    assert "1748.15 kg per batch, 572.0 batches a year" in dataset
+    for rel in ("process/recipe.yaml", "equipment/equipment-list.yaml", "lca/lca.yaml",
+                "lca/dataset.yaml", "README.md", "DESIGN.md"):
+        text = _text(rel)
+        assert "rev. 1" not in text and "1748.95 kg per batch" not in text, rel
 
 
 def test_yield_and_assay_as_stated(model):

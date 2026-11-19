@@ -38,8 +38,8 @@ the locator is the part of the document).
 | SRC-10 | Harding, V. J. (1921) J. Chem. Soc., Trans. 119, 1261: the sulphonation of toluene with chlorosulphonic acid | - | not read (title and metadata only; named by SRC-1 as giving a favourable p:o ratio at higher temperature) | lead only |
 | SRC-11 | Property data of core's environment and the NIST WebBook: the `chemicals` 1.5.2 package (open-source, MIT; the version core pins; its packaged CRC Handbook tables: `chemicals.miscdata.CRC_inorganic_data` and `CRC_organic_data` for densities and boiling points, `chemicals.heat_capacity.CRC_standard_data` for heat capacities; `chemicals.phase_change.Tb`), CoolProp's IAPWS water (saturation, latent heat, viscosity, heat capacity), and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov: toluene and NH4Cl condensed-phase data, toluene and HCl phase-change data) | per component in `process/materials.yaml`; the dryer's latent heats (D-008); LP steam saturation; the wash filtrates' viscosity (D-007) | open-source packages queried and WebBook pages read (2026-11-05); single values, facts only; not open data (library ADR 0037). The CRC values come from the tables packaged in `chemicals`, not from the printed handbook (the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here) | materials, D-007, D-008, D-009 |
 | SRC-12 | Wikipedia, Hydrochloric acid, https://en.wikipedia.org/wiki/Hydrochloric_acid | physical properties table by concentration: total vapour pressure of the solution at 20 C, 1.95 kPa at 10 wt% and 1.40 kPa at 20 wt% HCl (values the article takes from the International Critical Tables), boiling point 103 C at 10 wt%; the azeotrope at 20.2 wt% HCl and 108.6 C | read 2026-11-19; CC BY-SA, facts only (the International Critical Tables not read) | D-017 (Q101's dissolved HCl) |
-| SRC-13 | Pfaudler, DIN BE Reactors: A solid design which can take a lot (product brochure, undated), the copy held by the ToxicDocs archive, https://cdn.toxicdocs.org/6w/6w5no2KXL29O4y5NvyoOJ4Ea9/6w5no2KXL29O4y5NvyoOJ4Ea9.pdf | p. 3: the BE series to DIN 28136, from 1600 l rated capacity; p. 5: the nominal reactor sizes to DIN 28136-1 (1600, 2500, 4000, 6300, 8000, 10000, 12500, 16000, 20000, 25000 l); p. 8, BE 4000 specifications: nominal volume 4000 l, overall capacity 5390 l, jacket capacity 605 l, heat exchange surface 13.23 m2, main dimension d1 1800 mm (BE 6300: 6300 l, 8190 l, 18.02 m2, d1 2200 mm) | read 2026-11-19 (text extracted from the PDF); vendor document, facts only | D-018 (R-101) |
-| SRC-14 | 3V Tech, Datasheet: Glass lined reactor - BE, capacity from 1.000 L to 6.300 L (2024), https://3v-tech.com/wp-content/uploads/2023/04/3V-Tech_Glass-Lined-Reactor-–-BE_240315.pdf | p. 1: type BE to DIN 28136, dimensions to DIN 28136; p. 2, type BE 4.000: vessel capacity 5425 l, jacket capacity 550 l, jacketed area 13.2 m2, d1 1800 mm (BE 6.300: 8820 l, 18 m2, d1 2000 mm) | read 2026-11-19 (text extracted from the PDF); vendor document, facts only | D-018 (cross-check of SRC-13) |
+| SRC-13 | Pfaudler, DIN BE Reactors: A solid design which can take a lot (product brochure, undated), the copy held by the ToxicDocs archive, https://cdn.toxicdocs.org/6w/6w5no2KXL29O4y5NvyoOJ4Ea9/6w5no2KXL29O4y5NvyoOJ4Ea9.pdf | p. 3: the BE series to DIN 28136, from 1600 l rated capacity; p. 5: the nominal reactor sizes to DIN 28136-1 (1600, 2500, 4000, 6300, 8000, 10000, 12500, 16000, 20000, 25000 l); p. 8, BE 4000 specifications: nominal volume 4000 l, overall capacity 5390 l, jacket capacity 605 l, heat exchange surface 13.23 m2, main dimension d1 1800 mm (BE 6300: 6300 l, 8190 l, 18.02 m2, d1 2200 mm); p. 6, drives and motors: the motors are rated for the real medium's physical properties and the operating conditions (no power listed) | read 2026-11-19 (text extracted from the PDF); vendor document, facts only | D-018 (R-101) |
+| SRC-14 | 3V Tech, Datasheet: Glass lined reactor - BE, capacity from 1.000 L to 6.300 L (2024), https://3v-tech.com/wp-content/uploads/2023/04/3V-Tech_Glass-Lined-Reactor-–-BE_240315.pdf | p. 1: type BE to DIN 28136, dimensions to DIN 28136; p. 2, type BE 4.000: vessel capacity 5425 l, jacket capacity 550 l, jacketed area 13.2 m2, d1 1800 mm, drive GRO-100 with a turbine of d5 740 mm at 105 rpm and Pa 7.5 kW (BE 1.000: 3 kW; BE 6.300: 8820 l, 18 m2, d1 2000 mm) | read 2026-11-19 (text extracted from the PDF); vendor document, facts only | D-018 (cross-check of SRC-13; R-101's agitator P1, D-009) |
 
 Searched and not found openly (2026-11-05): kinetics or reaction calorimetry of the
 chlorosulfonation of toluene, a sourced formation enthalpy of liquid chlorosulfonic acid or a
@@ -300,9 +300,11 @@ models, core ADR 0059, D-014; the others hand arithmetic given in the flowsheet'
     at the dryer's vacuum (5.6 kPa at 308 K, 3.2 kPa at 298 K) needs a coolant colder than the
     298 K cooling water;
   - the wash water chilled from 298 to 278 K in T-101, Q9 11.82 kW (508.36 kg/h, E103);
-- electricity 24.4 kW: R-101 agitator 3 kW, Q-101 agitator 11 kW at 55 % occupancy (6 kW),
+- electricity 28.9 kW: R-101 agitator 7.5 kW (the BE 4000's catalogue drive, SRC-14; 3 kW
+  before D-018), Q-101 agitator 11 kW at 55 % occupancy (6 kW),
   Nutsche agitator 4 kW at 73 % and paddle drive 7.5 kW plus vacuum pump 3 kW at 90 % (12.4 kW),
-  scrubber pump and fan 3 kW. All ASSUMED.
+  scrubber pump and fan 3 kW. The rated powers are taken as the draws while occupied; all
+  ASSUMED except R-101's rating, which is read.
 The crystallizers CR101, W101 and W102 are adiabatic (`process/simulation.yaml`): the heat of
 crystallisation of p-TsCl is small and not known openly. The temperatures of the washes and of
 the waste acid S26 (285.33 K) are therefore the mixes of their inlets (D-007). The vent mix S27
@@ -312,8 +314,8 @@ the dilution heat is in Q5, to the brine terminal, so product:BRINE counts it.
 Still left out: the heat losses and gains of the vessels and tanks, and the heats of
 crystallisation.
 During R101's toluene dosing the jacket removes up to 50 kW (the model's peak). During the
-quench it removes up to 190.5 kW, the model's peak with the dose's heat of solution (55.5 kW of
-it over the 4 h of dosing; D-003, D-015).
+quench it removes up to 190.4 kW (190.5 kW before D-018), the model's peak with the dose's heat
+of solution (55.5 kW of it over the 4 h of dosing; D-003, D-015).
 
 ## D-010 Wastes (2026-11-05)
 Decision: the mother liquor, the wash filtrates and the dryer condensate (12.6 kg per kg
@@ -419,7 +421,7 @@ vacuum broken twice; ASSUMED), 0.103 kg per kg (175 kg, 140 Nm3 and 0.100 kg per
 4 m3 R-101 before D-018); rinses of Q-101 and F-101, 2 x 1 m3 (ASSUMED), 1.14 kg per kg, to the
 wastewater treatment. R-101 is not rinsed: it is kept dry.
 Per kg p-TsCl: chlorosulfonic acid 2.32 kg, toluene 0.612 kg, ammonium chloride 0.160 kg,
-caustic soda 50 wt% 0.871 kg, water 12.66 kg (plus 1.14 kg of rinses), electricity 0.193 kWh,
+caustic soda 50 wt% 0.871 kg, water 12.66 kg (plus 1.14 kg of rinses), electricity 0.229 kWh (0.193 kWh before D-018),
 LP steam 0.340 kWh, cooling water 0.610 kWh removed, brine 0.811 kWh removed (of it 0.435 kWh
 the quench Q5, with 0.127 kWh of the dosed acids' dilution heat, 0.202 kWh the dryer's vacuum
 condenser Q8 and 0.094 kWh the wash water's chilling Q9), waste acid 12.6 kg,
@@ -771,8 +773,15 @@ What follows from the larger diameter:
   moves;
 - the nitrogen per batch: R-101 purged with 3 volumes of 5.39 m3 (16.2 Nm3, 12 Nm3 before), so
   about 144 Nm3 and 180 kg a batch, 0.103 kg per kg (D-012);
-- unchanged: R-101's agitator P1 (3 kW, about 0.75 kW per m3 of the nominal 4 m3), the
-  reactors' models and the hazards' screening otherwise; no cost estimate exists yet (TEA open).
+- R-101's agitator P1 3 -> 7.5 kW: SRC-14 p. 2 gives the BE 4000 a turbine drive of 7.5 kW
+  (GRO-100, turbine d5 740 mm at 105 rpm; 3 kW is the BE 1.000's). The ASSUMED 3 kW (about
+  0.75 kW per m3) is replaced by that read rating, taken as the year-average draw at 100 %
+  occupancy as the entry takes the other agitators' ratings (D-009; ASSUMED: a motor is rated above
+  what its agitator absorbs, so this is an upper estimate). SRC-13 p. 6 says Pfaudler rates its motors
+  for the medium and the operating conditions, so the vendor's motor may differ. Electricity
+  24.4 -> 28.9 kW, 0.193 -> 0.229 kWh per kg in the LCI (D-013);
+- unchanged: the reactors' models and the hazards' screening otherwise; no cost estimate
+  exists yet (TEA open).
 Reason: core 1.13.0's `cheme.recipe-vessel` showed that the given 4 m3 was 80.04 % full at the
 ASSUMED 0.8 just after R102's second acid portion (L-1). The 4 m3 of the first design is the
 BE 4000's size name: catalogues list the size by its nominal volume, and the vessel holds 5.39 m3
@@ -815,7 +824,7 @@ Core 1.10.0 part:
 
 | feature | where | ADR |
 |---|---|---|
-| a dose's `heat_of_solution`: in the semi-batch's duty (term `solution`), its peak cooling duty and the recipe's jacket check, and in dT_ad (not the MTSR) | Q101's dose S8 (the acids' dilution heat; Q5 54.946 kW, the jacket's 190.5 kW peak, dT_ad 39.1 K), D-015 | 0063 |
+| a dose's `heat_of_solution`: in the semi-batch's duty (term `solution`), its peak cooling duty and the recipe's jacket check, and in dT_ad (not the MTSR) | Q101's dose S8 (the acids' dilution heat; Q5 54.946 kW, the jacket's 190.5 kW peak on 1.10.0, 190.4 kW since D-018, dT_ad 39.1 K), D-015 | 0063 |
 
 Tried on a scratch copy and not adopted (D-015): `batch.vent.vapour` on R101 (toluene 0.033
 mol% of the vent). Not used: `still.column`, `purity`, `still.condenser_port` (ADR 0061, no
