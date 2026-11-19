@@ -64,6 +64,10 @@ the slugs other processes already use:
   name it as `chemical: oxygen/lox`, and add the grade under the substance's `grades` if it is
   new. The graph joins by substance; the LCI export names the grade. Rules:
   [docs/registry.md](docs/registry.md).
+- **Main product.** List it under `chemistry` with `role: main-product` and its
+  `inventory_key: product:<id>`. If the process leaves the key out (state the reason), its note
+  must start with `product:<id>` so the catalog can name the LCA functional unit; a library-wide
+  test checks this ([docs/registry.md](docs/registry.md), ADR 0040).
 - **Families.** `families` take slugs of `taxonomy/families.yaml` (mapped to ISIC Rev.4). A new
   family goes there and into the `process.schema.json` enum together.
 - **Coverage.** Add the process to its entry in `coverage.yaml` (`covered_by`,

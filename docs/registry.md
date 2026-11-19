@@ -252,8 +252,13 @@ would resolve the exchange through the registry slug and link it to a background
 Atlas process, which is a change of the LCI that each process decides with its own mapping
 review. Main products carry their `inventory_key` where the process had no reason against it,
 so that the LCI export names the chemical in the reference product and the catalog labels the
-functional unit with the product's name (issue #249). The catalog build warns for a process
-without a main product.
+functional unit with the product's name (issue #249). A main product left without an
+`inventory_key` must start its note with the key, `product:<id>` followed by a character that
+cannot continue the id (a space, `,` or `:`; not a letter, digit, `_` or `-`), e.g.
+`product:GLYC, refined ...`; the catalog then names the functional unit from it
+([ADR 0040](adr/0040-functional-unit-named-from-the-main-product-note.md)), and
+`tests/test_build_catalog.py` fails a process whose LCA functional unit matches neither an
+`inventory_key` nor such a note. The catalog build warns for a process without a main product.
 
 ## Build-time checks
 
