@@ -1,0 +1,54 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Dry-grind corn ethanol (DESIGN.md D-001, D-004). Corn is NONCONVENTIONAL: it is represented by
+# LUMPED model components with a nominal formula so that the elements balance, not by molecular
+# identities, following SRC-1's simplified corn (70 % starch, 18 % suspended and 12 % dissolved
+# non-fermentables, dry basis):
+# - STARCH: anhydroglucose unit C6H10O5 (the alpha-glucan of the kernel);
+# - NFS: suspended non-fermentables (fibre, protein, oil), lumped as C6H10O5 (ASSUMED nominal
+#   formula: the protein's nitrogen and the oil's lower oxygen content are not represented, L-2);
+# - NFD: dissolved non-fermentables (soluble protein, sugars, ash), lumped as C6H10O5 (ASSUMED,
+#   L-2);
+# - CO2B: biogenic CO2 from the fermentation (carbon from the corn), kept apart from the fossil
+#   CO2 of the dryer's natural gas burner, for the LCI (D-012).
+# No CAS is given for lumped components. Molar masses from the IUPAC 2021 abridged standard
+# atomic weights applied to the formula.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+  - {id: STARCH, name: Starch (anhydroglucose unit; lumped model component), formula: C6H10O5, molar_mass: 162.141, phase: solid}
+  - {id: NFS, name: "Suspended non-fermentables of corn (fibre, protein, oil; lumped as hexosan)", formula: C6H10O5, molar_mass: 162.141, phase: solid}
+  - {id: NFD, name: "Dissolved non-fermentables of corn (soluble protein, sugars, ash; lumped as hexosan)", formula: C6H10O5, molar_mass: 162.141}
+  - {id: GLC, name: Glucose (dissolved), formula: C6H12O6, cas: 50-99-7, molar_mass: 180.156}
+  - {id: ETOH, name: Ethanol, formula: C2H6O, cas: 64-17-5, molar_mass: 46.069, normal_boiling_point: 351.44}
+  - {id: GLY, name: Glycerol, formula: C3H8O3, cas: 56-81-5, molar_mass: 92.094}
+  - {id: HAC, name: Acetic acid, formula: C2H4O2, cas: 64-19-7, molar_mass: 60.052, normal_boiling_point: 391.1}
+  - {id: CO2B, name: Carbon dioxide (biogenic carbon from the corn), formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+  - {id: CO2, name: Carbon dioxide (fossil carbon from natural gas), formula: CO2, cas: 124-38-9, molar_mass: 44.009}
+  - {id: CH4, name: Natural gas (as methane), formula: CH4, cas: 74-82-8, molar_mass: 16.043, normal_boiling_point: 111.66}
+  - {id: O2, name: Oxygen, formula: O2, cas: 7782-44-7, molar_mass: 31.998, normal_boiling_point: 90.19}
+  - {id: N2, name: Nitrogen (with the argon of the air), formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.36}
+templates:
+  - id: corn
+    title: Shelled corn and corn meal
+    components: [H2O, STARCH, NFS, NFD]
+  - id: mash
+    title: Mash, beer, stillage, the fermentation off-gas and the ethanol-water streams
+    components: [H2O, STARCH, NFS, NFD, GLC, ETOH, GLY, HAC, CO2B]
+  - id: water
+    title: Water
+    components: [H2O]
+  - id: fuel
+    title: Natural gas, combustion air and flue gas
+    components: [CH4, O2, N2, CO2, H2O]
+  - id: exhaust
+    title: Dryer exhaust (flue gas with the evaporated water and volatiles)
+    components: [CH4, O2, N2, CO2, H2O, ETOH, HAC]
+# property_method is a placeholder: no benchmarked package covers corn mash, stillage, syrup or
+# ethanol-water (D-011, L-1); `cheme process props --coverage` reports them not covered.
+property_method:
+  adapter: thermo
+  status: placeholder

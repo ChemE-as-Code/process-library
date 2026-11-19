@@ -1,0 +1,129 @@
+# Goal and scope of the bioethanol-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit
+# those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the dry
+# mill with its amount per kg of anhydrous ethanol, from the flowsheet's year averages. Linked
+# where the library has a producer or a shared entry (lca/mappings.yaml): the natural gas, the
+# LP steam as heat, the power, the cooling water. The corn and the scrubber's make-up water stay
+# gaps: no library process makes them. A gap, never zero, and no values from licensed
+# databases. The carbon of the corn is biogenic: the fermentation CO2 (CO2B) is kept apart from
+# the burner's fossil CO2 (CO2) as components, so each elementary flow carries its own origin.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of anhydrous fuel ethanol from corn by the
+  dry-grind process (enzymatic liquefaction and saccharification, continuous cascade yeast
+  fermentation, distillation and molecular-sieve dehydration, stillage to DDGS) at the concept
+  stage: which raw materials, utilities, co-products and emissions the plant exchanges per kg of
+  ethanol, as the foreground for a later cradle-to-gate study. Most impacts rest on the corn,
+  which is not linked yet (D-012).
+functional_unit: {product: ETOH, amount: 1, unit: kg, source: "1 kg of anhydrous ethanol (modelled 99.55 wt%, undenatured) at the plant gate to storage, stream S22 (D-003, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as oxalyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Dry-grind corn ethanol plant of SRC-1 (NREL/TP-580-28893, the USDA-ARS model of a 25 million US gal/a dry mill): 633 dry short tons of corn a day hammer-milled, liquefied at 88 C with alpha-amylase, cooked at 110 C and saccharified at 60 C with glucoamylase, fermented by yeast in four continuous cascade fermentors (46 h, 32-34 C) to a 9 wt% beer, CO2 water-scrubbed and vented; beer column to 45 wt%, rectifier to 91 wt%, vapour-phase molecular sieves to 99.5 wt%; whole stillage to a decanter, thin stillage partly back as backset and the rest evaporated to a 55 wt% syrup, wet cake and syrup dried with natural gas to DDGS at 9 wt% moisture; zero liquid discharge; 7920 h/a"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  method: mass
+  coproducts: [ETOH, DDGS]
+  source: >-
+    D-012: the library hierarchy (docs/system-model.md). No physical relationship applies: DDGS
+    is an animal feed, not a fuel, so the energy rule for co-produced fuels does not; the WBCSD
+    rule then compares the prices per kg. SRC-1 gives DDG at $0.045/lb and says it provides
+    about 20 % of the plant's sales income (p. 19): with the modelled 9066 kg/h of ethanol and
+    8681 kg/h of DDGS, ethanol's price per kg is about 3.8 times the DDGS's, below 5, so the
+    rule gives mass allocation (about 0.51 / 0.49).
+  deviation: >-
+    None from the hierarchy. For comparison: economic allocation at SRC-1's income split would
+    give 0.80 / 0.20; the EU's Renewable Energy Directive (2018/2001, Annex V) allocates biofuel
+    co-products by energy content, which would need the DDGS's heating value (not sourced here).
+flows:
+  # raw materials
+  - key: feed:CORN
+    missing: "not mapped yet (D-012); no library process makes corn. Connect to: maize grain production (US Midwest or the site's region), per kg at 15 wt% moisture, with the biogenic carbon uptake of the grain (0.37 kg C per kg as fed, from SRC-1's composition as hexosan), field emissions (N2O from fertiliser), land use; the dominant burden of the product"
+    source: "flowsheet stream S1 (SRC-1 Table 3, D-002)"
+  - key: feed:WATER
+    missing: "not mapped yet (D-012); connect to: process water (well or surface water, filtered) for the CO2 scrubber, per kg; the shared entry `water` is deionised water and would overstate it"
+    source: "flowsheet stream S12: the make-up the zero-discharge water balance needs (D-006)"
+  - key: feed:NG
+    missing: "linked as natural gas by mass (lca/mappings.yaml)"
+    source: "flowsheet stream S32 (SRC-1 Table 8, D-009); its combustion emissions are in the foreground (STACK)"
+  - key: feed:AIR
+    free: true
+    source: "combustion air of the dryer's burner: ambient air, a resource taken without burden"
+  # utilities
+  - key: feed:POWER
+    missing: "linked to the shared electricity entry (lca/mappings.yaml): grid electricity, medium voltage, of the (undecided) site country"
+    source: "flowsheet energy streams Q3 to Q6: SRC-1's 2090 kW by its area shares (p. 24), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 and Q2: SRC-1's steam (Table 8) at 450 kPa(a), D-009"
+  - key: product:CW
+    missing: "connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q7 (fermentation) and Q8 (product condenser), D-009"
+  # wastes
+  - key: product:TRASH
+    treatment: {kind: waste, route: "grain-cleaning trash (tramp metal, stones, broken kernels and fines) to landfill or sold with the DDGS; landfilled here (D-008)"}
+    missing: "not mapped yet (D-012); connect to: disposal of inert and organic screenings to landfill, per kg"
+    source: "flowsheet stream S2 (SRC-1 p. 6: 0.3 %)"
+  # emissions
+  - {key: product:VENT, emission: true, source: "stream S13: scrubbed fermentation CO2 to atmosphere (SRC-1 p. 7), D-006"}
+  - {key: product:STACK, emission: true, source: "stream S35: the dryer exhaust, the burner's flue gas with the water and volatiles evaporated from the DDGS, D-008"}
+  - key: emission:CO2B
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: biogenic}
+    source: "biogenic CO2 of the fermentation (carbon from the corn's starch), S13 (D-012)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "fossil CO2 from the natural gas burnt in the dryer, S35 (D-012)"
+  - key: emission:ETOH
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: biogenic}
+    source: "ethanol slipping the CO2 scrubber (1 % of the off-gas's, S13) and leaving the dryer with the evaporated water (S35), D-006, D-008"
+  - key: emission:HAC
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: biogenic}
+    source: "acetic acid evaporated from the wet cake and syrup in the dryer (S35), D-008"
+  - key: emission:CH4
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "the burner's methane slip: zero at complete combustion (COMB conversion 1); mapped with its identity so a slip, once estimated, is characterised"
+  - {key: emission:N2, free: true, source: "nitrogen of the combustion air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the combustion air returned to the atmosphere"}
+  - {key: emission:H2O, free: true, source: "water vapour of the scrubbed CO2 and the dryer exhaust"}
+  - {key: emission:STARCH, free: true, source: "a component of the vent's template, zero in it (S13)"}
+  - {key: emission:NFS, free: true, source: "a component of the vent's template, zero in it (S13)"}
+  - {key: emission:NFD, free: true, source: "a component of the vent's template, zero in it (S13)"}
+  - {key: emission:GLC, free: true, source: "a component of the vent's template, zero in it (S13)"}
+  - {key: emission:GLY, free: true, source: "a component of the vent's template, zero in it (S13)"}
+# Emissions not estimated at this stage: declared, never silently 0 (D-011).
+emission_exclusions:
+  - {id: dryer-voc-particulates, method: combustion, equipment: [D-601], exchange: product:STACK, reason: "The DDGS dryer's other VOC (aldehydes, organic acids besides acetic acid), particulates, CO and NOx are not estimated; a real plant passes the exhaust through a thermal oxidiser or a regenerative oxidiser, not modelled (D-011)", source: "DESIGN.md D-011"}
+  - {id: fermentation-trace-voc, method: storage-tank, equipment: [R-301, A-301], exchange: product:VENT, reason: "Acetaldehyde and other trace volatiles of the fermentation off-gas are not components of the flowsheet; only the ethanol slip is counted (D-011)", source: "DESIGN.md D-011"}
+  - {id: mash-tanks, method: storage-tank, equipment: [T-201, R-201, R-202], reason: "The slurry, liquefaction and saccharification tanks hold no ethanol but the recycled condensate's traces (below 0.1 wt%); their vents (water vapour at 60 to 88 C) are not estimated (D-011)", source: "DESIGN.md D-011"}
+  - {id: storage-breathing, method: storage-tank, equipment: [E-402], reason: "The breathing of the ethanol storage tanks (12 days, SRC-1 p. 7) is not estimated; outside the flowsheet (D-011)", source: "DESIGN.md D-011"}
+# Carbon by origin (D-012): the corn's carbon is biogenic; natural gas carbon is fossil (the
+# default for an input). The flowsheet keeps the two origins apart as components (CO2B, CO2), so
+# the origin declared on each elementary flow is the physical split.
+carbon_accounting:
+  trace_emissions: false
+  source: "D-012: CO2B (corn carbon) and CO2 (natural gas carbon) are separate components; the declared origin per elementary flow wins over the pool share"
+  content:
+    feed:CORN: {biogenic_fraction: 1.0, source: "corn carbon, taken up from the atmosphere by the crop (D-012)"}
+    product:ETOH: {biogenic_fraction: 1.0, source: "the ethanol's carbon is the corn's starch carbon (D-012)"}
+    product:DDGS: {biogenic_fraction: 1.0, source: "the DDGS's carbon is the corn's (D-012)"}
+    product:TRASH: {biogenic_fraction: 1.0, source: "broken kernels and fines; corn carbon (D-012)"}
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "SRC-1 Table 3: 330 days a year on stream (7920 h); 20 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals (the bioethanol family's code)
+  modelling: {principle: attributional}
+  geography: {description: "Generic US Midwest-type dry mill (SRC-1 assumed Minnesota), site not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #468, unreviewed"

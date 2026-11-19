@@ -1,0 +1,824 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Fuel ethanol from corn by the dry-grind process (D-001), on the design basis of SRC-1 (NREL/TP-
+# 580-28893, the USDA-ARS dry-mill model of 25 million US gal/a of fuel ethanol). Where the
+# values come from:
+# - the corn feed S1 (633 dry short tons a day, SRC-1 Table 3), its simplified composition
+#   (SRC-1 p. 2), the trash removed (SRC-1 p. 6), the natural gas, the steam and the power are
+#   SRC-1's, given; the natural gas and the steam derived from SRC-1's costs (D-009);
+# - the reactor outlets are calculated by cheme from the conversions of process/reactions.yaml;
+# - the separators' outlets are calculated by cheme from their `recovery:` (ASSUMED shares,
+#   chosen per separator for SRC-1's stated compositions: 45 and 91 wt% ethanol, 35 wt% solids
+#   in the wet cake, 55 wt% in the syrup; D-006, D-007, D-008);
+# - the dryer's outlets by cheme's dryer model to SRC-1's 9 wt% moisture (D-008);
+# - the scrubber's make-up water and the backset split are solved by design specifications for
+#   SRC-1's 9 wt% ethanol in the beer and 15 % backset (D-006);
+# - the four recycles (backset, evaporator condensate, stripper bottoms, sieve regenerate) are
+#   converged by cheme at the tears (D-010).
+# Duties: the fermentation's and the burner's from their heats of reaction (cheme); steam,
+# power and the product condenser given or ASSUMED (D-009). Year-average flows, 7920 h/a.
+schema: cheme/process/v1
+kind: flowsheet
+title: Fuel ethanol from corn by dry grind (633 dry t/d of corn, 71 800 t/a anhydrous ethanol)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: SRC-1's dry mill, 633 dry short tons of corn a day, 114 gal of ethanol per dry ton, 9 wt% ethanol in the beer (D-002, D-005)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+tears:
+  - stream: S25
+    initial: {flow: 16000, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.94, NFD: 0.045, NFS: 0.005, GLY: 0.005, GLC: 0.004, HAC: 0.001}}
+  - stream: S27
+    initial: {flow: 45000, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.998, ETOH: 0.001, HAC: 0.001}}
+  - stream: S20
+    initial: {flow: 12000, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.999, ETOH: 0.001}}
+  - stream: S18
+    initial: {flow: 3400, unit: kg/h, basis: mass_fraction, composition: {ETOH: 0.72, H2O: 0.28}}
+convergence: {method: wegstein, max_iterations: 300, tolerance: {abs: 0.001, rel: 1.0e-6}}
+
+specs:
+  - id: beer
+    vary: {stream: S12, initial: 5000}
+    target: {stream: S11, component: ETOH, quantity: fraction, basis: mass, value: 0.09}
+    provenance: given
+    source: "SRC-1 p. 7: 9 wt% (12 vol%) ethanol in the whole beer leaving the fermentors; the plant's only water make-up besides the cooling tower is the CO2 scrubber's (SRC-1 p. 7), so its flow closes the water balance (D-006)"
+  - id: backset
+    vary: {node: X502, port: backset, initial: 0.25}
+    target: {stream: S25, quantity: ratio, per: {stream: S7}, basis: mass, value: 0.15}
+    provenance: given
+    source: "SRC-1 p. 6: backset (recycled thin stillage) 15 % by volume of the final mash; taken as 15 % by mass (ASSUMED: thin stillage and mash of similar density, D-006)"
+
+feeds:
+  - {id: CORN, title: Shelled corn (15 wt% moisture), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: WATER, title: Make-up water to the CO2 scrubber, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NG, title: Natural gas to the dryer's burner, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 421.05, provenance: assumed, source: "saturation at 450 kPa(a) (IAPWS-95 via the chemicals 1.5.2 package), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports: [{id: r201, direction: out, kind: energy}, {id: r202, direction: out, kind: energy}, {id: c401, direction: out, kind: energy}]
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: z101, direction: out, kind: energy}
+      - {id: r301, direction: out, kind: energy}
+      - {id: s501, direction: out, kind: energy}
+      - {id: c401, direction: out, kind: energy}
+products:
+  - {id: ETOH, title: Anhydrous ethanol to storage (undenatured), category: product, ports: [{id: in, direction: in}]}
+  - {id: DDGS, title: Distillers' dried grains with solubles (DDGS), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Scrubbed fermentation CO2 to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Dryer exhaust to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: TRASH, title: "Grain-cleaning trash (tramp metal, stones, fines)", category: solid_waste, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports: [{id: r301, direction: in, kind: energy}, {id: e402, direction: in, kind: energy}]
+
+blocks:
+  - id: GRN
+    title: Grain receiving, cleaning and milling
+    class: Grinding
+    ports:
+      - {id: corn, direction: in}
+      - {id: trash, direction: out}
+      - {id: meal, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: CNV
+    title: Liquefaction, cooking and saccharification
+    class: ReactingChemicals
+    ports:
+      - {id: meal, direction: in}
+      - {id: cond, direction: in}
+      - {id: strip, direction: in}
+      - {id: backset, direction: in}
+      - {id: mash, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+  - id: FER
+    title: Fermentation and CO2 scrubbing
+    class: ReactingChemicals
+    ports:
+      - {id: mash, direction: in}
+      - {id: water, direction: in}
+      - {id: beer, direction: out}
+      - {id: scrub, direction: out}
+      - {id: vent, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: DIS
+    title: Distillation and molecular-sieve dehydration
+    class: Distilling
+    ports:
+      - {id: beer, direction: in}
+      - {id: scrub, direction: in}
+      - {id: product, direction: out}
+      - {id: stillage, direction: out}
+      - {id: strip, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: cond, direction: out, kind: energy}
+  - id: COP
+    title: Stillage separation, evaporation and DDGS drying
+    class: Drying
+    ports:
+      - {id: stillage, direction: in}
+      - {id: ng, direction: in}
+      - {id: air, direction: in}
+      - {id: backset, direction: out}
+      - {id: cond, direction: out}
+      - {id: ddgs, direction: out}
+      - {id: stack, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: heat, direction: in, kind: energy}
+
+steps:
+  # ---- GRN
+  - id: X101
+    block: GRN
+    title: Grain cleaning (scalper and screens)
+    class: SplittingMaterial
+    split: {trash: 0.003}
+    links: [{target: equipment, ref: X-101}]
+    ports:
+      - {id: in, direction: in, delegates: corn}
+      - {id: trash, direction: out, delegates: trash}
+      - {id: out, direction: out}
+  - id: Z101
+    block: GRN
+    title: Hammer mills
+    class: TransportingMaterial
+    links: [{target: equipment, ref: Z-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: meal}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # ---- CNV
+  - id: M201
+    block: CNV
+    title: Slurry tank (meal with evaporator condensate and stripper bottoms)
+    class: Mixing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: meal, direction: in, delegates: meal}
+      - {id: cond, direction: in, delegates: cond}
+      - {id: strip, direction: in, delegates: strip}
+      - {id: out, direction: out}
+  - id: R201
+    block: CNV
+    title: Liquefaction tank (88 C, alpha-amylase) and steam heating
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: M202
+    block: CNV
+    title: Backset addition
+    class: Mixing
+    ports:
+      - {id: liq, direction: in}
+      - {id: backset, direction: in, delegates: backset}
+      - {id: out, direction: out}
+  - id: R202
+    block: CNV
+    title: Cooker (110 C, 20 min) and continuous saccharification tank (60 C, 6 h, glucoamylase)
+    class: ReactingChemicals
+    reactor: conversion
+    reactions: [HYD]
+    links: [{target: equipment, ref: R-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: mash}
+      - {id: steam, direction: in, kind: energy, delegates: steam2}
+  # ---- FER
+  - id: R301
+    block: FER
+    title: Four continuous cascade fermentors (32-34 C, 46 h in total)
+    class: ReactingChemicals
+    reactor: conversion
+    reactions: [FERM, GLYC]
+    energy_port: cw
+    links: [{target: equipment, ref: R-301}]
+    ports:
+      - {id: in, direction: in, delegates: mash}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V301
+    block: FER
+    title: Beer well and degasser (fermentor off-gas and the beer's dissolved CO2)
+    class: SeparatingByPhaseSeparation
+    recovery:
+      outlets:
+        gas: {CO2B: 1.0, ETOH: 0.024, H2O: 0.00225}
+      provenance: assumed
+      source: "all CO2 to the off-gas (SRC-1 p. 7: the whole beer is degassed); the gas saturated with the beer's ethanol and water vapour at 307 K, about 2.3 and 5.1 kPa partial pressure, ASSUMED (D-006)"
+    links: [{target: equipment, ref: V-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: beer, direction: out, delegates: beer}
+  - id: A301
+    block: FER
+    title: CO2 scrubber (water, ethanol recovered to the beer)
+    class: Absorbing
+    recovery:
+      outlets:
+        vent: {CO2B: 1.0, ETOH: 0.01, H2O: 0.04}
+      provenance: assumed
+      source: "99 % of the vented ethanol recovered (SRC-2 p. 46, the same duty in NREL's lignocellulosic design); the vent leaves saturated with water, about 4 % of the water in, ASSUMED (D-006)"
+    links: [{target: equipment, ref: A-301}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: liq, direction: out, delegates: scrub}
+  # ---- DIS
+  - id: M401
+    block: DIS
+    title: Beer and scrubber liquor to the beer column
+    class: Mixing
+    ports:
+      - {id: beer, direction: in, delegates: beer}
+      - {id: scrub, direction: in, delegates: scrub}
+      - {id: out, direction: out}
+  - id: C401
+    block: DIS
+    title: Beer column (whole stillage below 0.1 wt% ethanol)
+    class: Distilling
+    recovery:
+      outlets:
+        ovhd: {ETOH: 0.995, H2O: 0.1215}
+      provenance: assumed
+      source: "the overhead vapour at about 45 wt% ethanol and the whole stillage below 0.1 wt% (SRC-1 p. 7); shares ASSUMED for these (D-007)"
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: ovhd, direction: out}
+      - {id: btm, direction: out, delegates: stillage}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C402
+    block: DIS
+    title: Rectifier and stripper (to 91 wt% ethanol)
+    class: Distilling
+    recovery:
+      outlets:
+        top: {ETOH: 0.9993, H2O: 0.0960}
+      provenance: assumed
+      source: "the rectifier's vapour at about 91 wt% ethanol, the stripper's bottoms below 0.1 wt% (SRC-1 p. 7); shares ASSUMED for these (D-007)"
+    links: [{target: equipment, ref: C-402}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: regen, direction: in}
+      - {id: top, direction: out}
+      - {id: btm, direction: out, delegates: strip}
+      - {id: cond, direction: out, kind: energy, delegates: cond}
+  - id: D401
+    block: DIS
+    title: Molecular sieve dehydration (two beds, vapour phase, one regenerating)
+    class: Adsorbing
+    recovery:
+      outlets:
+        prod: {ETOH: 0.756, H2O: 0.035}
+      provenance: assumed
+      source: "96.5 % of the water adsorbed and the regenerate about 72 wt% ethanol (as SRC-2 p. 46: 95 % and 72 wt%), giving about 99.5 wt% ethanol (SRC-2 p. 46; SRC-1 p. 7: more than 99 wt%); ASSUMED (D-007)"
+    links: [{target: equipment, ref: D-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out}
+      - {id: regen, direction: out}
+  - id: E402
+    block: DIS
+    title: Product condenser and cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # ---- COP
+  - id: S501
+    block: COP
+    title: Decanter centrifuges (wet cake 35 wt% solids)
+    class: SeparatingMechanically
+    recovery:
+      outlets:
+        cake: {NFS: 0.95, STARCH: 0.95, H2O: 0.113, NFD: 0.113, GLC: 0.113, GLY: 0.113, HAC: 0.113, ETOH: 0.113}
+      provenance: assumed
+      source: "95 % of the suspended solids to the cake, the liquid split alike for all its solutes, ASSUMED so the wet cake is about 35 wt% solids (SRC-1 p. 7, D-008)"
+    links: [{target: equipment, ref: S-501}]
+    ports:
+      - {id: in, direction: in, delegates: stillage}
+      - {id: cake, direction: out}
+      - {id: thin, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: X502
+    block: COP
+    title: Thin stillage split (backset to the mash, the rest to the evaporator)
+    class: SplittingMaterial
+    ports:
+      - {id: in, direction: in}
+      - {id: backset, direction: out, delegates: backset}
+      - {id: evap, direction: out}
+  - id: E501
+    block: COP
+    title: Multiple-effect evaporator (syrup 55 wt% solids)
+    class: Evaporating
+    recovery:
+      outlets:
+        cond: {H2O: 0.955, ETOH: 1.0, HAC: 0.5}
+      provenance: assumed
+      source: "the water's share ASSUMED so the syrup is about 55 wt% solids (SRC-1 p. 7); the ethanol all and half the acetic acid to the condensate, ASSUMED (D-008)"
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: syrup, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: M601
+    block: COP
+    title: Wet cake and syrup mixer
+    class: Mixing
+    ports:
+      - {id: cake, direction: in}
+      - {id: syrup, direction: in}
+      - {id: out, direction: out}
+  - id: R601
+    block: COP
+    title: Dryer burner (natural gas)
+    class: ReactingChemicals
+    reactor: conversion
+    reactions: [COMB]
+    energy_port: heat
+    links: [{target: equipment, ref: D-601}]
+    ports:
+      - {id: ng, direction: in, delegates: ng}
+      - {id: air, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: heat, direction: out, kind: energy}
+  - id: D601
+    block: COP
+    title: Rotary dryer (DDGS at 9 wt% moisture)
+    class: Drying
+    dryer:
+      volatiles: [H2O, ETOH, HAC]
+      residual_moisture: {value: 0.09, basis: mass_fraction, provenance: given, source: "SRC-1 p. 7 and Table 2: DDG at 9 wt% moisture"}
+      temperature: 373.15
+      outlets: {product: prod, vapour: vap}
+    links: [{target: equipment, ref: D-601}]
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out, delegates: ddgs}
+      - {id: vap, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: M602
+    block: COP
+    title: Dryer exhaust (flue gas with the evaporated water)
+    class: Mixing
+    ports:
+      - {id: vap, direction: in}
+      - {id: flue, direction: in}
+      - {id: out, direction: out, delegates: stack}
+
+streams:
+  - id: S1
+    title: Shelled corn
+    from: CORN.out
+    to: X101.in
+    template: corn
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "ambient, D-002"}
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric, D-002"}
+        flow: {value: 28150.0, basis: mass, provenance: given, source: "SRC-1 Table 3: 633 dry short tons a day (x 907.185 kg / 24 h = 23 927.5 kg/h dry) at 15 wt% moisture (SRC-1 p. 2, Table 1), D-002"}
+        composition: {basis: mass_fraction, values: {H2O: 0.15, STARCH: 0.595, NFS: 0.153, NFD: 0.102}, provenance: given, source: "SRC-1 p. 2: on a dry basis 70 % starch, 18 % suspended and 12 % dissolved non-fermentables; 15 wt% moisture"}
+  - id: S2
+    title: Grain-cleaning trash
+    from: X101.trash
+    to: TRASH.in
+    template: corn
+    state:
+      design:
+        composition: {basis: mass_fraction, values: {H2O: 0.15, STARCH: 0.595, NFS: 0.153, NFD: 0.102}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S1', fingerprint: 43f8dc5e2f25a0e8}
+        flow: {value: 84.45, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter X101 from S1', fingerprint: 3d05aba4b33dc65c}
+  - id: S3
+    title: Cleaned corn
+    from: X101.out
+    to: Z101.in
+    template: corn
+    state:
+      design:
+        composition: {basis: mass_fraction, values: {H2O: 0.15, STARCH: 0.595, NFS: 0.153, NFD: 0.102}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S1', fingerprint: 43f8dc5e2f25a0e8}
+        flow: {value: 28065.5, provenance: calculated, source: 'cheme process propagate: splitter X101 from S1 S2', fingerprint: 330486c094d86977}
+  - id: S4
+    title: Corn meal
+    from: Z101.out
+    to: M201.meal
+    template: corn
+    state:
+      design:
+        composition: {basis: mass_fraction, values: {H2O: 0.15, STARCH: 0.595, NFS: 0.153, NFD: 0.102}, provenance: calculated, source: 'cheme process propagate: pass-through Z101 from S3', fingerprint: c49595600a3ae01d}
+        flow: {value: 28065.5, provenance: calculated, source: 'cheme process propagate: pass-through Z101 from S3', fingerprint: c49595600a3ae01d}
+  - id: S5
+    title: Slurry
+    from: M201.out
+    to: R201.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.961703, STARCH: 0.0264444, NFS: 0.00679999, NFD: 0.00453333, GLC: 0.0, ETOH: 0.000222281, GLY: 0.0, HAC: 0.000297435, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S4 S20 S27', fingerprint: 7c727669f6995452}
+        flow: {value: 91439.4, provenance: calculated, source: 'cheme process propagate: mixer M201 from S4 S20 S27', fingerprint: cd5af82772a4763b}
+  - id: S6
+    title: Liquefied mash
+    from: R201.out
+    to: M202.liq
+    template: mash
+    state:
+      design:
+        temperature: {value: 361.15, provenance: given, source: "SRC-1 p. 6: liquefaction at 88 C"}
+        flow: {value: 91439.4, provenance: calculated, source: 'cheme process propagate: pass-through R201 from S5', fingerprint: 3b7f0529262b8378}
+        composition: {basis: mole_fraction, values: {H2O: 0.961703, STARCH: 0.0264444, NFS: 0.00679999, NFD: 0.00453333, GLC: 0.0, ETOH: 0.000222281, GLY: 0.0, HAC: 0.000297435, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through R201 from S5', fingerprint: 3b7f0529262b8378}
+  - id: S7
+    title: Mash with backset
+    from: M202.out
+    to: R202.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.967208, STARCH: 0.0217034, NFS: 0.00564154, NFD: 0.00460797, GLC: 8.22788e-05, ETOH: 0.000222412, GLY: 0.000154415, HAC: 0.000379539, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S6 S25', fingerprint: 8ef65661c7e44dc5}
+        flow: {value: 107576.0, provenance: calculated, source: 'cheme process propagate: mixer M202 from S6 S25', fingerprint: 75dc298eebbff520}
+  - id: S8
+    title: Saccharified mash, cooled
+    from: R202.out
+    to: R301.in
+    template: mash
+    state:
+      design:
+        temperature: {value: 305.15, provenance: given, source: "SRC-1 p. 7: cooled to 32 C before fermentation"}
+        flow: {value: 107576.0, provenance: calculated, source: 'cheme process propagate: reactor R202 from S7', fingerprint: d4c16699e66cbf04}
+        composition: {basis: mole_fraction, values: {H2O: 0.966488, STARCH: 0.0002218, NFS: 0.00576542, NFD: 0.00470915, GLC: 0.0220423, ETOH: 0.000227296, GLY: 0.000157806, HAC: 0.000387873, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R202 from S7', fingerprint: 1ce2d4c4074dfcbf}
+  - id: S9
+    title: Fermented beer with CO2
+    from: R301.out
+    to: V301.in
+    template: mash
+    state:
+      design:
+        temperature: {value: 305.15, provenance: given, source: "SRC-1 p. 7: below 34 C in the fermentors; 32 C ASSUMED"}
+        flow: {value: 107576.0, provenance: calculated, source: 'cheme process propagate: reactor R301 from S8', fingerprint: 9aab9ddb962dfb25}
+        composition: {basis: mole_fraction, values: {H2O: 0.908192, STARCH: 0.000208493, NFS: 0.00541952, NFD: 0.00442662, GLC: 0.000410253, ETOH: 0.0399005, GLY: 0.000769934, HAC: 0.0006754, CO2B: 0.0399976}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S8', fingerprint: 5c36b5433a912638}
+  - id: S10
+    title: Fermentor off-gas and degasser vapours
+    from: V301.gas
+    to: A301.gas
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.0475232, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.0222707, GLY: 0.0, HAC: 0.0, CO2B: 0.930206}, provenance: calculated, source: 'cheme process propagate: separator V301 from S9', fingerprint: 9264dd52f2e74523}
+        flow: {value: 9096.01, provenance: calculated, source: 'cheme process propagate: separator V301 from S9', fingerprint: 9264dd52f2e74523}
+  - id: S11
+    title: Degassed whole beer
+    from: V301.beer
+    to: M401.beer
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.946862, STARCH: 0.000217861, NFS: 0.00566302, NFD: 0.00462551, GLC: 0.000428686, ETOH: 0.0406926, GLY: 0.000804527, HAC: 0.000705746, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S9', fingerprint: 9264dd52f2e74523}
+        flow: {value: 98480.0, provenance: calculated, source: 'cheme process propagate: separator V301 from S9', fingerprint: 9264dd52f2e74523}
+  - id: S12
+    title: Scrubber make-up water
+    from: WATER.out
+    to: A301.water
+    template: water
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-006"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: water}
+        flow: {value: 9476.03, provenance: calculated, source: 'cheme process propagate: spec beer (S11 ETOH mass fraction 0.09)', fingerprint: 2fa5f38070e790ae}
+  - id: S13
+    title: Scrubbed CO2 to atmosphere
+    from: A301.vent
+    to: VENT.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.0978773, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.000215932, GLY: 0.0, HAC: 0.0, CO2B: 0.901907}, provenance: calculated, source: 'cheme process propagate: separator A301 from S10 S12', fingerprint: c430419162500e78}
+        flow: {value: 9084.69, provenance: calculated, source: 'cheme process propagate: separator A301 from S10 S12', fingerprint: c430419162500e78}
+  - id: S14
+    title: Scrubber liquor (ethanol recovered)
+    from: A301.liq
+    to: M401.scrub
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.990982, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.00901829, GLY: 0.0, HAC: 0.0, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator A301 from S10 S12', fingerprint: c430419162500e78}
+        flow: {value: 9487.35, provenance: calculated, source: 'cheme process propagate: separator A301 from S10 S12', fingerprint: c430419162500e78}
+  - id: S15
+    title: Beer to the beer column
+    from: M401.out
+    to: C401.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.951229, STARCH: 0.000196298, NFS: 0.00510252, NFD: 0.0041677, GLC: 0.000386257, ETOH: 0.0375576, GLY: 0.000724899, HAC: 0.000635895, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S11 S14', fingerprint: 6ca12b6be95ab6a3}
+        flow: {value: 107967.0, provenance: calculated, source: 'cheme process propagate: mixer M401 from S11 S14', fingerprint: 6e7d6a2d5fb64fff}
+  - id: S16
+    title: Beer column overhead vapour
+    from: C401.ovhd
+    to: C402.feed
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.755664, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.244336, GLY: 0.0, HAC: 0.0, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S15', fingerprint: 33982b69f5dcfc08}
+        flow: {value: 19958.6, provenance: calculated, source: 'cheme process propagate: separator C401 from S15', fingerprint: 33982b69f5dcfc08}
+  - id: S17
+    title: Whole stillage
+    from: C401.btm
+    to: S501.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.98654, STARCH: 0.000231741, NFS: 0.00602383, NFD: 0.00492022, GLC: 0.000455999, ETOH: 0.000221695, GLY: 0.000855786, HAC: 0.000750712, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S15', fingerprint: 33982b69f5dcfc08}
+        flow: {value: 88008.4, provenance: calculated, source: 'cheme process propagate: separator C401 from S15', fingerprint: 33982b69f5dcfc08}
+  - id: S18
+    title: Sieve regenerate (condensed)
+    from: D401.regen
+    to: C402.regen
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.494758, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.505242, GLY: 0.0, HAC: 0.0, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle D401 from S19 (tear, broyden)', fingerprint: 04fe8d7bff5a8138}
+        flow: {value: 4028.33, provenance: calculated, source: 'cheme process propagate: recycle D401 from S19 (tear, broyden)', fingerprint: 04fe8d7bff5a8138}
+  - id: S19
+    title: Rectifier overhead vapour (about 91 wt%)
+    from: C402.top
+    to: D401.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.198463, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.801537, GLY: 0.0, HAC: 0.0, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C402 from S16 S18', fingerprint: b0d5870ec0ad9f90}
+        flow: {value: 13094.0, provenance: calculated, source: 'cheme process propagate: separator C402 from S16 S18', fingerprint: b0d5870ec0ad9f90}
+  - id: S20
+    title: Stripper bottoms to the slurry
+    from: C402.btm
+    to: M201.strip
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.9997, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.000300344, GLY: 0.0, HAC: 0.0, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C402 from S16 S18 (tear, broyden)', fingerprint: 04fe8d7bff5a8138}
+        flow: {value: 10893.0, provenance: calculated, source: 'cheme process propagate: recycle C402 from S16 S18 (tear, broyden)', fingerprint: 04fe8d7bff5a8138}
+  - id: S21
+    title: Dehydrated ethanol vapour
+    from: D401.prod
+    to: E402.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.0113332, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.988667, GLY: 0.0, HAC: 0.0, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D401 from S19', fingerprint: 56f6b0de2463fea5}
+        flow: {value: 9065.67, provenance: calculated, source: 'cheme process propagate: separator D401 from S19', fingerprint: 56f6b0de2463fea5}
+  - id: S22
+    title: Anhydrous ethanol
+    from: E402.out
+    to: ETOH.in
+    template: mash
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "D-009"}
+        pressure: {value: 101.325, provenance: assumed, source: "atmospheric storage"}
+        flow: {value: 9065.67, provenance: calculated, source: 'cheme process propagate: pass-through E402 from S21', fingerprint: 15944a209d6d1819}
+        composition: {basis: mole_fraction, values: {H2O: 0.0113332, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.988667, GLY: 0.0, HAC: 0.0, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E402 from S21', fingerprint: 15944a209d6d1819}
+  - id: S23
+    title: Wet cake
+    from: S501.cake
+    to: M601.cake
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.942852, STARCH: 0.00186199, NFS: 0.0484002, NFD: 0.00470233, GLC: 0.000435806, ETOH: 0.000211878, GLY: 0.000817889, HAC: 0.000717468, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator S501 from S17', fingerprint: e4b587e0014f4af0}
+        flow: {value: 13718.3, provenance: calculated, source: 'cheme process propagate: separator S501 from S17', fingerprint: e4b587e0014f4af0}
+  - id: S24
+    title: Thin stillage
+    from: S501.thin
+    to: X502.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.992398, STARCH: 1.31408e-05, NFS: 0.000341578, NFD: 0.00494944, GLC: 0.000458707, ETOH: 0.000223011, GLY: 0.000860868, HAC: 0.00075517, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator S501 from S17', fingerprint: e4b587e0014f4af0}
+        flow: {value: 74290.1, provenance: calculated, source: 'cheme process propagate: separator S501 from S17', fingerprint: e4b587e0014f4af0}
+  - id: S25
+    title: Backset
+    from: X502.backset
+    to: M202.backset
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.992398, STARCH: 1.31408e-05, NFS: 0.000341579, NFD: 0.00494944, GLC: 0.000458707, ETOH: 0.000223011, GLY: 0.000860867, HAC: 0.000755169, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X502 from S24 (tear, broyden)', fingerprint: 04fe8d7bff5a8138}
+        flow: {value: 16136.4, provenance: calculated, source: 'cheme process propagate: recycle X502 from S24 (tear, broyden)', fingerprint: 04fe8d7bff5a8138}
+  - id: S26
+    title: Thin stillage to the evaporator
+    from: X502.evap
+    to: E501.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.992398, STARCH: 1.31408e-05, NFS: 0.000341578, NFD: 0.00494944, GLC: 0.000458707, ETOH: 0.000223011, GLY: 0.000860868, HAC: 0.00075517, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X502 from S24', fingerprint: c005dad09c1e75ff}
+        flow: {value: 58153.8, provenance: calculated, source: 'cheme process propagate: splitter X502 from S24 S25', fingerprint: 5404f9b3bf402b7d}
+  - id: S27
+    title: Evaporator condensate to the slurry
+    from: E501.cond
+    to: M201.cond
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.999367, STARCH: 0.0, NFS: 0.0, NFD: 0.0, GLC: 0.0, ETOH: 0.000235159, GLY: 0.0, HAC: 0.000398153, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle E501 from S26 (tear, broyden)', fingerprint: 04fe8d7bff5a8138}
+        flow: {value: 52480.9, provenance: calculated, source: 'cheme process propagate: recycle E501 from S26 (tear, broyden)', fingerprint: 04fe8d7bff5a8138}
+  - id: S28
+    title: Syrup
+    from: E501.syrup
+    to: M601.syrup
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.864471, STARCH: 0.000254375, NFS: 0.00661214, NFD: 0.0958094, GLC: 0.00887948, ETOH: 0.0, GLY: 0.0166644, HAC: 0.00730915, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E501 from S26', fingerprint: 9b992c56abd22c0d}
+        flow: {value: 5672.93, provenance: calculated, source: 'cheme process propagate: separator E501 from S26', fingerprint: 9b992c56abd22c0d}
+  - id: S29
+    title: Wet distillers' grains with solubles
+    from: M601.out
+    to: D601.in
+    template: mash
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.924691, STARCH: 0.0014895, NFS: 0.0387179, NFD: 0.0258119, GLC: 0.00239222, ETOH: 0.000162786, GLY: 0.00448954, HAC: 0.00224477, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M601 from S23 S28', fingerprint: baf1cdcb760d5c52}
+        flow: {value: 19391.2, provenance: calculated, source: 'cheme process propagate: mixer M601 from S23 S28', fingerprint: f13b1e365460ea28}
+  - id: S30
+    title: DDGS
+    from: D601.prod
+    to: DDGS.in
+    template: mash
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "after the cooling conveyor, D-008"}
+        flow: {value: 8680.76, provenance: calculated, source: 'cheme process propagate: dryer D601 from S29', fingerprint: 995f0cf7b713c20b}
+        composition: {basis: mole_fraction, values: {H2O: 0.462483, STARCH: 0.0109578, NFS: 0.284837, NFD: 0.189891, GLC: 0.0175989, ETOH: 8.14173e-05, GLY: 0.0330283, HAC: 0.00112272, CO2B: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D601 from S29', fingerprint: 995f0cf7b713c20b}
+  - id: S31
+    title: Dryer vapour
+    from: D601.vap
+    to: M602.vap
+    template: exhaust
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.997403, ETOH: 0.000175587, HAC: 0.00242129}, provenance: calculated, source: 'cheme process propagate: dryer D601 from S29', fingerprint: 995f0cf7b713c20b}
+        flow: {value: 10710.4, provenance: calculated, source: 'cheme process propagate: dryer D601 from S29', fingerprint: 995f0cf7b713c20b}
+  - id: S32
+    title: Natural gas
+    from: NG.out
+    to: R601.ng
+    template: fuel
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: D-009}
+        flow: {value: 779.7, basis: mass, provenance: given, source: "SRC-1 Table 8: $0.038 of natural gas per gal of fuel ethanol at $2.95 per 1000 ft3 = 12.88 ft3/gal; x 3156.6 gal/h (25 MMgal/a over 7920 h) = 40 661 ft3/h at 60 F and 1 atm = 48.60 kmol/h, as methane (D-009)"}
+        composition: {basis: mole_fraction, values: {CH4: 1.0}, provenance: assumed, source: "natural gas as methane, D-009"}
+  - id: S33
+    title: Combustion air
+    from: AIR.out
+    to: R601.air
+    template: fuel
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: D-009}
+        flow: {value: 14724, basis: mass, provenance: assumed, source: "10 % excess oxygen over the methane's 97.20 kmol/h: 106.92 kmol/h O2 in 510.4 kmol/h of air (molar mass 28.849), D-009"}
+        composition: {basis: mole_fraction, values: {O2: 0.2095, N2: 0.7905}, provenance: assumed, source: "dry air, argon counted with the nitrogen"}
+  - id: S34
+    title: Flue gas
+    from: R601.out
+    to: M602.flue
+    template: fuel
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "the burner's heat counted to the dryer down to 298.15 K (its lower heating value); the exhaust's own heat loss is in the dryer's balance, D-008"}
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0173975, N2: 0.721771, CO2: 0.0869439, H2O: 0.173888}, provenance: calculated, source: 'cheme process propagate: reactor R601 from S32 S33', fingerprint: 7f69c8b90a25dfc4}
+        flow: {value: 15503.7, provenance: calculated, source: 'cheme process propagate: reactor R601 from S32 S33', fingerprint: f09096d78eeb9c4d}
+  - id: S35
+    title: Dryer exhaust
+    from: M602.out
+    to: STACK.in
+    template: exhaust
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.00845641, N2: 0.350832, CO2: 0.0422609, H2O: 0.597116, ETOH: 9.02393e-05, HAC: 0.00124437}, provenance: calculated, source: 'cheme process propagate: mixer M602 from S31 S34', fingerprint: 93f8628f86d5caf3}
+        flow: {value: 26214.1, provenance: calculated, source: 'cheme process propagate: mixer M602 from S31 S34', fingerprint: 2fb03aa1c90a273e}
+  # ---- energy
+  - id: Q1
+    title: Steam to liquefaction and cooking
+    kind: energy
+    from: LPS.r201
+    to: R201.steam
+    state:
+      design:
+        duty: {value: 2091, provenance: assumed, source: "52.5 % of the cooking steam (the liquefaction's 28 K rise from about 60 C against the cooker's 22 K on 15 % more mass, ASSUMED) of 25 % (ASSUMED) of SRC-1's steam: $0.085/gal at $4.50 per 1000 lb (Table 8) = 18.89 lb/gal fuel ethanol x 3156.6 gal/h = 27 045 kg/h x 2120.2 kJ/kg (latent heat at 450 kPa(a)) = 15 928 kW in all (D-009)"}
+  - id: Q1B
+    title: Steam to the jet cooker
+    kind: energy
+    from: LPS.r202
+    to: R202.steam
+    state:
+      design:
+        duty: {value: 1891, provenance: assumed, source: "the other 47.5 % of the cooking steam (Q1, D-009)"}
+  - id: Q2
+    title: Steam to distillation, evaporation and the sieve's superheater
+    kind: energy
+    from: LPS.c401
+    to: C401.steam
+    state:
+      design:
+        duty: {value: 11946, provenance: assumed, source: "the other 75 % of SRC-1's 15 928 kW of steam; SRC-1 p. 24: distillation is the main steam user (D-009)"}
+  - id: Q3
+    title: Power to grain handling and the hammer mills
+    kind: energy
+    from: POWER.z101
+    to: Z101.power
+    state:
+      design:
+        duty: {value: 167.2, provenance: given, source: "SRC-1 p. 24: 8 % of the plant's 2090 kW (D-009)"}
+  - id: Q4
+    title: Power to the fermentation pumps and the off-gas compressor
+    kind: energy
+    from: POWER.r301
+    to: R301.power
+    state:
+      design:
+        duty: {value: 146.3, provenance: given, source: "SRC-1 p. 24: 7 % of 2090 kW (D-009)"}
+  - id: Q5
+    title: Power to solids separation, evaporation and drying
+    kind: energy
+    from: POWER.s501
+    to: S501.power
+    state:
+      design:
+        duty: {value: 1107.7, provenance: given, source: "SRC-1 p. 24: 53 % of 2090 kW (D-009)"}
+  - id: Q6
+    title: Power to the rest of the plant (distillation, conversion, utilities)
+    kind: energy
+    from: POWER.c401
+    to: C401.power
+    state:
+      design:
+        duty: {value: 668.8, provenance: given, source: "SRC-1 p. 24: the remaining 32 % of 2090 kW (D-009)"}
+  - id: Q7
+    title: Fermentation heat to cooling water
+    kind: energy
+    from: R301.cw
+    to: CW.r301
+    state:
+      design:
+        duty: {value: 1917, provenance: assumed, source: "heats of reaction at the cascade's extents: FERM 97.29 kmol/h x 70 008 kJ/kmol plus GLYC 1.536 kmol/h x 58 933 kJ/kmol (process/reactions.yaml), in and out at 305 K; the agitation and the glucose's heat of solution left out; core has no heat capacities for the lumped corn components (L-1), so given by hand, D-005"}
+  - id: Q8
+    title: Product condenser and cooler
+    kind: energy
+    from: E402.cw
+    to: CW.e402
+    state:
+      design:
+        duty: {value: 2160, provenance: assumed, source: "latent heat of the product vapour, 9 028 kg/h x 849.8 kJ/kg (ethanol at its boiling point, thermo 0.6.1) plus its water, cooled to 308 K; D-009"}
+  - id: Q9
+    title: Burner heat to the dryer
+    kind: energy
+    from: R601.heat
+    to: D601.heat
+    state:
+      design:
+        duty: {value: 10835, provenance: assumed, source: "the natural gas's lower heating value: 48.60 kmol/h x 802 584 kJ/kmol (COMB, process/reactions.yaml), D-008"}
+
+  - id: Q10
+    title: Rectifier overhead condensed in the evaporator (heat inside the plant, not quantified)
+    kind: energy
+    from: C402.cond
+    to: E501.heat
+
+layout: {bfd: {}, pfd: {}}
