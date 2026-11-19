@@ -3,10 +3,13 @@
 # those by hand.
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-011): every exchange of the
-# continuous plant per kg of acrylonitrile from the balanced flowsheet. Propylene, ammonia and
-# sulfuric acid link to their library producers and the LP steam to the shared steam-heat entry
-# (lca/mappings.yaml); the other backgrounds are gaps with the activity each should connect to,
-# never zero, and no values from licensed databases.
+# continuous plant per kg of acrylonitrile from the balanced flowsheet. In the Atlas build
+# (build_lci.py) propylene, ammonia and sulfuric acid link to their library producers and the LP
+# steam to the shared steam-heat entry (lca/mappings.yaml), and electricity, cooling water and
+# wastewater through process.yaml's chemistry slugs; natural gas, the quench liquor, the exported
+# HP steam and the catalyst make-up are gaps there. In this folder's own LCI (`cheme assess lca`)
+# every background is a gap with the activity it should connect to, never zero, and no values
+# from licensed databases.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -57,17 +60,17 @@ flows:
     source: "flowsheet stream S32 (D-008)"
   # utilities
   - key: feed:POWER
-    missing: "not mapped yet (D-011); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
-    source: "flowsheet energy streams Q1 (air compressor, scripts/utilities.py), Q2 (absorber water chiller) and Q3 (pumps), D-009"
+    missing: "not linked in this folder's LCI; the Atlas build links it through process.yaml's chemistry slug electricity (lci/mappings.yaml, D-011); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams Q1 (air compressor) and Q2 (absorber water chiller), both scripts/utilities.py, and Q3 (pumps), D-009"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: LP steam 700 kPa(a) of the site, per kWh of condensing heat"
-    source: "flowsheet energy stream Q7, the reboilers of all columns as one lump scaled from Li et al. (2025), D-009"
-  - key: product:STEAM
-    missing: "linked as heat from steam (lca/mappings.yaml, D-011): exported HP steam (4100 kPa(a)) is a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. processes/utility-steam-ng-boiler, per kWh) and a decision of the LCA practitioner. It is gross: the plant's own LP steam (Q7) is a separate input"
+    source: "flowsheet energy stream Q7, the reboilers of all columns as one lump: the hot utility of Li et al. (2025) less its fired feed preheat, scaled (scripts/utilities.py, D-009)"
+  - key: product:HPS
+    missing: "not linked, on purpose, here and in the Atlas build (D-011): exported HP steam (4100 kPa(a)) is a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. processes/utility-steam-ng-boiler, per kWh) and a decision of the LCA practitioner. It is gross: the plant's own LP steam (Q7) is a separate input"
     source: "flowsheet energy streams Q4 (reactor coils, calculated by cheme), Q5 (effluent boiler, scripts/utilities.py) and Q6 (thermal oxidiser boiler, calculated by cheme), D-009"
   - key: product:CW
-    missing: "not mapped yet (D-011); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy stream Q8, the coolers and condensers of the plant as one lump scaled from Li et al. (2025), D-009"
+    missing: "not linked in this folder's LCI; the Atlas build links it through process.yaml's chemistry slug cooling-water (lci/mappings.yaml, D-011); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy stream Q8, the coolers and condensers of the plant as one lump scaled from Li et al. (2025) plus the chiller's condenser (scripts/utilities.py, D-009)"
   # wastes
   - key: product:LIQ
     treatment: {kind: waste, route: "quench liquor (about 28 wt% ammonium sulfate with acrylic acid and organics): ammonium sulfate recovery by crystallisation with the organics incinerated, or treatment; EPA-450/4-84-007a (p. 18) reports deep-well disposal in older US plants (D-005)"}
@@ -75,7 +78,7 @@ flows:
     source: "flowsheet stream S10 (D-005)"
   - key: product:WW
     treatment: {kind: waste, route: "biological treatment of the net process water (traces of acrylonitrile and acetonitrile) at the site's treatment plant (D-007)"}
-    missing: "not mapped yet (D-011); connect to: treatment of industrial wastewater in a biological plant (processes/utility-wwtp), per kg"
+    missing: "not linked in this folder's LCI; the Atlas build links it through process.yaml's chemistry slug wastewater (lci/mappings.yaml, D-011); connect to: treatment of industrial wastewater in a biological plant (processes/utility-wwtp), per kg"
     source: "flowsheet stream S24 (D-007)"
   # stack emissions
   - {key: product:STACK, emission: true, source: "thermal oxidiser flue gas to the stack, stream S34 (D-008)"}
@@ -108,10 +111,10 @@ consumables:
     missing: "no background chosen and no open consumption figure found (D-011): production of a silica-supported multicomponent bismuth molybdate catalyst"
     source: "ASSUMED order of magnitude (D-011): 0.5 kg per t of acrylonitrile x 120 000 t/a; fluid beds lose fines through the cyclones to the quench (EPA-450/4-84-007a p. 18: spent catalyst fines in the quench wastewater); to be sourced"
 emission_exclusions:
-  - {id: startup-vent, method: storage-tank, equipment: [R-101, C-101], reason: "Start-up venting of the reactor effluent before it leaves the explosive range: EPA-450/4-84-007a (p. 20) reports up to 4500 kg/h of acrylonitrile from one reactor for about four one-hour start-ups a year; not in the steady-state balance (D-008)."}
-  - {id: column-vents, method: storage-tank, equipment: [C-201, C-202, C-301, C-302], reason: "Column purge vents to a flare (EPA-450/4-84-007a p. 20) are not estimated; the lumped columns carry no non-condensables (D-007)."}
-  - {id: oxidiser-nox, method: storage-tank, equipment: [H-401], reason: "The thermal oxidiser's NOx (fuel nitrogen of the HCN, nitriles and ammonia traces it burns, and thermal NOx) is not estimated: the model sends that nitrogen to N2 (D-008, L-5); EPA-450/4-84-007a (p. 20) names the NOx of burning nitrile-rich streams as the reason start-up gas is not incinerated."}
-  - {id: storage-breathing, method: storage-tank, equipment: [C-302], reason: "Breathing of the crude, run-down and product tanks (water scrubbers or floating roofs, EPA-450/4-84-007a p. 21) is not estimated (D-008)."}
+  - {id: startup-vent, method: non-routine, equipment: [C-102], reason: "Start-up venting: until the reactor effluent leaves the explosive range it is vented at the absorber vent (EPA-450/4-84-007a p. 19 and Table 6 p. 22: Vent B at start-up), up to 4500 kg/h of acrylonitrile from one reactor for about four one-hour start-ups a year (p. 20); not in the steady-state balance (D-011)."}
+  - {id: column-vents, method: flare, equipment: [C-201, C-202, C-301, C-302], reason: "Column purge vents to a flare (EPA-450/4-84-007a p. 20) are not estimated; the lumped columns carry no non-condensables (D-007, D-011)."}
+  - {id: oxidiser-nox, method: combustion, equipment: [H-401], reason: "The thermal oxidiser's NOx (fuel nitrogen of the HCN, nitriles and ammonia traces it burns, and thermal NOx) is not estimated: the model sends that nitrogen to N2 (D-008, L-5); EPA-450/4-84-007a (p. 20) names the NOx of burning nitrile-rich streams as the reason start-up gas is not incinerated."}
+  - {id: storage-breathing, method: storage-tank, reason: "Breathing of the crude, run-down and product tanks (water scrubbers or floating roofs, EPA-450/4-84-007a p. 21) is not estimated; the tanks are not in the equipment list (product storage is outside the boundary, D-001; D-011)."}
 dataset:
   version: 0.1.0
   classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals

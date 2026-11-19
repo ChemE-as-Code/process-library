@@ -4,11 +4,16 @@
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
 # Linked here: propylene, ammonia and sulfuric acid to their library producers, and the LP steam
-# counted as heat delivered (kWh). The rest stays a reported gap (DESIGN.md D-011).
+# counted as heat delivered (kWh). Electricity, the cooling water and the wastewater link in the
+# Atlas build through process.yaml's chemistry slugs (electricity, cooling-water, wastewater) and
+# the shared lci/mappings.yaml. The exported HP steam (product:HPS) has no override on purpose: a
+# positive technosphere exchange is a consumption, so `use: steam-heat` would book the export as
+# steam bought in; it stays a reported gap until its credit or allocation is decided. Natural
+# gas, the quench liquor, the catalyst make-up and the uncharacterised emissions are gaps too
+# (DESIGN.md D-011).
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:C3": {dataset: {path: processes/propylene-pdh-1/lca/datasets/propylene-propane-dehydrogenation.yaml, product: "product:propylene"}, source: "the Atlas producer propylene-pdh-1, polymer-grade propylene; the ammoxidation takes chemical or refinery grade (EPA-450/4-84-007a p. 16: 90+ % purity), which the purer grade meets; kg for kg (D-003)"}
   "feed:AMM": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, liquid ammonia, vaporised at the battery limit (D-003)"}
   "feed:ACID": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, the grade this feed names, counted by mass of the acid (D-005)"}
   "feed:LPS": {use: steam-heat, source: "LP steam 700 kPa(a) to the column reboilers (Q7, one lump), counted as heat delivered (kWh), D-009"}
-  "product:STEAM": {use: steam-heat, source: "HP steam 4100 kPa(a) exported from the reactor coils, the effluent boiler and the oxidiser boiler, counted as the heat it delivers (kWh) as formaldehyde-1 counts its exported steam; a co-product whose credit or allocation is still open (D-011)"}

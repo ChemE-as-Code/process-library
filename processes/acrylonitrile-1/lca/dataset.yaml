@@ -20,27 +20,29 @@ technology: Fluid-bed ammoxidation of propylene over a multicomponent bismuth mo
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:startup-vent
-  title: storage-tank emissions of R-101, C-101
+  title: non-routine emissions of C-102
   direction: output
-  reason: 'Start-up venting of the reactor effluent before it leaves the explosive range: EPA-450/4-84-007a
-    (p. 20) reports up to 4500 kg/h of acrylonitrile from one reactor for about four one-hour start-ups
-    a year; not in the steady-state balance (D-008).'
+  reason: 'Start-up venting: until the reactor effluent leaves the explosive range it is vented at the
+    absorber vent (EPA-450/4-84-007a p. 19 and Table 6 p. 22: Vent B at start-up), up to 4500 kg/h of
+    acrylonitrile from one reactor for about four one-hour start-ups a year (p. 20); not in the steady-state
+    balance (D-011).'
 - key: emission-excluded:column-vents
-  title: storage-tank emissions of C-201, C-202, C-301, C-302
+  title: flare emissions of C-201, C-202, C-301, C-302
   direction: output
   reason: Column purge vents to a flare (EPA-450/4-84-007a p. 20) are not estimated; the lumped columns
-    carry no non-condensables (D-007).
+    carry no non-condensables (D-007, D-011).
 - key: emission-excluded:oxidiser-nox
-  title: storage-tank emissions of H-401
+  title: combustion emissions of H-401
   direction: output
   reason: 'The thermal oxidiser''s NOx (fuel nitrogen of the HCN, nitriles and ammonia traces it burns,
     and thermal NOx) is not estimated: the model sends that nitrogen to N2 (D-008, L-5); EPA-450/4-84-007a
     (p. 20) names the NOx of burning nitrile-rich streams as the reason start-up gas is not incinerated.'
 - key: emission-excluded:storage-breathing
-  title: storage-tank emissions of C-302
+  title: storage-tank emissions of the plant
   direction: output
   reason: Breathing of the crude, run-down and product tanks (water scrubbers or floating roofs, EPA-450/4-84-007a
-    p. 21) is not estimated (D-008).
+    p. 21) is not estimated; the tanks are not in the equipment list (product storage is outside the boundary,
+    D-001; D-011).
 uuid: df4a80e2-def0-5733-ad62-1058be5a1930
 version: 0.1.0
 geography:
@@ -207,18 +209,19 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 4703.5
+  amount: 6556.8
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 (air compressor, scripts/utilities.py), Q2 (absorber water chiller)
+    source: flowsheet energy streams Q1 (air compressor) and Q2 (absorber water chiller), both scripts/utilities.py,
       and Q3 (pumps), D-009
-    missing: 'not mapped yet (D-011); connect to: electricity, medium voltage, grid mix of the (undecided)
-      site country'
+    missing: 'not linked in this folder''s LCI; the Atlas build links it through process.yaml''s chemistry
+      slug electricity (lci/mappings.yaml, D-011); connect to: electricity, medium voltage, grid mix of
+      the (undecided) site country'
   streams:
   - Q1
   - Q2
   - Q3
-  source: flowsheet energy streams Q1 (air compressor, scripts/utilities.py), Q2 (absorber water chiller)
+  source: flowsheet energy streams Q1 (air compressor) and Q2 (absorber water chiller), both scripts/utilities.py,
     and Q3 (pumps), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
@@ -230,17 +233,17 @@ exchanges:
 - key: feed:LPS
   title: LP steam to the column reboilers (lump)
   type: input
-  amount: 50309.0
+  amount: 33279.5
   unit: kWh
   link:
-    source: flowsheet energy stream Q7, the reboilers of all columns as one lump scaled from Li et al.
-      (2025), D-009
+    source: 'flowsheet energy stream Q7, the reboilers of all columns as one lump: the hot utility of
+      Li et al. (2025) less its fired feed preheat, scaled (scripts/utilities.py, D-009)'
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: LP steam 700 kPa(a) of the site,
       per kWh of condensing heat'
   streams:
   - Q7
-  source: flowsheet energy stream Q7, the reboilers of all columns as one lump scaled from Li et al. (2025),
-    D-009
+  source: 'flowsheet energy stream Q7, the reboilers of all columns as one lump: the hot utility of Li
+    et al. (2025) less its fired feed preheat, scaled (scripts/utilities.py, D-009)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -378,8 +381,9 @@ exchanges:
   provenance: calculated
   link:
     source: flowsheet stream S24 (D-007)
-    missing: 'not mapped yet (D-011); connect to: treatment of industrial wastewater in a biological plant
-      (processes/utility-wwtp), per kg'
+    missing: 'not linked in this folder''s LCI; the Atlas build links it through process.yaml''s chemistry
+      slug wastewater (lci/mappings.yaml, D-011); connect to: treatment of industrial wastewater in a
+      biological plant (processes/utility-wwtp), per kg'
   streams:
   - S24
   source: flowsheet stream S24 (D-007)
@@ -442,7 +446,7 @@ exchanges:
       CO2: CO2
       CH4: CH4
     source: stream table (S34)
-- key: product:STEAM
+- key: product:HPS
   title: HP steam raised (reactor coils, effluent boiler, oxidiser boiler)
   type: output
   amount: 71000.44
@@ -450,8 +454,8 @@ exchanges:
   link:
     source: flowsheet energy streams Q4 (reactor coils, calculated by cheme), Q5 (effluent boiler, scripts/utilities.py)
       and Q6 (thermal oxidiser boiler, calculated by cheme), D-009
-    missing: 'linked as heat from steam (lca/mappings.yaml, D-011): exported HP steam (4100 kPa(a)) is
-      a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. processes/utility-steam-ng-boiler,
+    missing: 'not linked, on purpose, here and in the Atlas build (D-011): exported HP steam (4100 kPa(a))
+      is a co-product; its credit or allocation needs the avoided steam of the receiving site (e.g. processes/utility-steam-ng-boiler,
       per kWh) and a decision of the LCA practitioner. It is gross: the plant''s own LP steam (Q7) is
       a separate input'
   streams:
@@ -469,21 +473,22 @@ exchanges:
     temperature: 251.85
     pressure: 41.0
     level: HP
-    source: utility of STEAM in process/flowsheet.yaml
+    source: utility of HPS in process/flowsheet.yaml
 - key: product:CW
   title: Cooling water return (all coolers and condensers, lump)
   type: output
-  amount: 41310.0
+  amount: 54982.4
   unit: kWh
   link:
     source: flowsheet energy stream Q8, the coolers and condensers of the plant as one lump scaled from
-      Li et al. (2025), D-009
-    missing: 'not mapped yet (D-011); connect to: heat rejected to a recirculating cooling-water system
-      with cooling tower (processes/utility-cooling-tower), per kWh removed'
+      Li et al. (2025) plus the chiller's condenser (scripts/utilities.py, D-009)
+    missing: 'not linked in this folder''s LCI; the Atlas build links it through process.yaml''s chemistry
+      slug cooling-water (lci/mappings.yaml, D-011); connect to: heat rejected to a recirculating cooling-water
+      system with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
   - Q8
   source: flowsheet energy stream Q8, the coolers and condensers of the plant as one lump scaled from
-    Li et al. (2025), D-009
+    Li et al. (2025) plus the chiller's condenser (scripts/utilities.py, D-009)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -930,8 +935,8 @@ provenance:
   plant: Acrylonitrile (SOHIO propylene ammoxidation), 15 t/h
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:6b5738c452bf7dd700f4c6738dde19fa7bc5e61327393e2ac08be33208a36807
-    lca/lca.yaml: sha256:77bfa8cfe8de8bca7ecf95530ad9ea80db47cc4d1820974511736a7c28d3a59e
-    process.yaml: sha256:0b092ff699e9390d8d3fea5f3afad81dfbe97727490e590edcc93aa71a71f76f
-    process/flowsheet.yaml: sha256:6525e9bf761d2d9ffbc2b0a5c6e0a0bd970314dfdedfc7004a508880b6452c8f
+    equipment/equipment-list.yaml: sha256:7a20183f7308810cb7b52fa4ec96a55eb56510a2f16221fa96b7713333e4cd29
+    lca/lca.yaml: sha256:ae7bab6c7fc333bd3a2382e1692c6118461a3b78cc4640f2bf35018d4d5697a5
+    process.yaml: sha256:f5dccc1a2f70ad8615c5493900a1cfcef9c3ff0b5a7a4418da9e802d1edd5f90
+    process/flowsheet.yaml: sha256:044f39ee4fbc7d151b20eb8840c5375c585b2522d393ce11b415c3b802669377
     process/materials.yaml: sha256:dc41c31b024ba0f100282068884a20fc020951aa78ba6ba21e5fc6b3c0c5430a

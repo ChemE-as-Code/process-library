@@ -31,16 +31,23 @@ Headline numbers and their caveats:
   with the recycle converged (core ADRs 0060, 0070).
 - The quench, absorber and columns are component separators with ASSUMED splits: no property
   package covers the nitrile/water system (L-1). Product 99.75 wt%, overall recovery 99.5 %.
-- Reaction heat 56.8 MW (cheme, ideal gas), within 9 % of the open design of Li, Dimian and Kiss
-  (2025). HP steam raised 4.73 kWh per kg; LP steam 3.35 kWh per kg and cooling water are lumps
-  scaled from that design (D-009); power 0.31 kWh per kg.
+- Reactor duty 56.8 MW (cheme, ideal gas), net of heating the feed in the bed. With the feed at
+  the reactor temperature the reaction heat is 913 MJ per kmol acrylonitrile, 13-16 % above the
+  open design of Li, Dimian and Kiss (2025), mostly from the ASSUMED burning of the surplus
+  ammonia; without it the two agree (D-004). HP steam raised 4.73 kWh per kg; LP steam
+  2.22 kWh per kg (that design's hot utility less its fired feed preheat) and cooling water
+  3.67 kWh per kg are lumps scaled from it (D-009); power 0.44 kWh per kg, with the absorber
+  water chiller sized on this design's water rate.
 - Co-products per kg: HCN 0.036 kg, acetonitrile 0.039 kg, quench liquor 0.24 kg (about 28 wt%
   ammonium sulfate). Fossil CO2 0.46 kg/kg (reactor and oxidiser). The preliminary LCI allocates
   by mass (93.0 % to acrylonitrile, D-011).
-- Hazards: acrylonitrile and HCN are toxic and flammable; the reactor feed is a flammable
+- Hazards: acrylonitrile and HCN are toxic and flammable; liquid HCN self-polymerises unless
+  acid-stabilised and acrylonitrile polymerises explosively with strong alkali, and neither
+  stabiliser is modelled or screened (D-007); the reactor feed is a flammable
   propylene/ammonia/air mixture and start-up passes through the explosive range (EPA-450/4-84-007a);
-  the fluid bed's adiabatic rise for the whole feed is about 2150 K, so its cooling coils and trips
-  carry its safety. No HAZOP yet.
+  cheme's screening bound for the fluid bed, complete combustion of the propylene over the whole
+  feed's heat capacity, is about 2150 K (the ammoxidation alone about 1270 K), so its cooling
+  coils and trips carry its safety. No HAZOP yet.
 
 | path | what |
 |---|---|
@@ -49,7 +56,7 @@ Headline numbers and their caveats:
 | `process/materials.yaml`, `process/flowsheet.yaml`, `process/reactions.yaml`, `process/catalysts.yaml` | components with their ideal-gas data, blocks, steps, streams, specs and reactions: the source of the generated BFD and PFD (`process/*.xml`, `cheme process build`) |
 | `equipment/equipment-list.yaml` | the equipment of the PFD with concept design data |
 | `lca/` | the preliminary gate-to-gate LCI (`lca/lca.yaml`, `lca/mappings.yaml`; the rest written by `cheme assess lca --write`) |
-| `scripts/utilities.py` | the effluent boiler's duty and the air compressor's power, which core does not calculate (D-009) |
+| `scripts/utilities.py` | the effluent boiler's duty, the air compressor's and the chiller's power, and the LP steam and cooling-water lumps, which core does not calculate (D-009) |
 | `checks/checks.yaml` | engineering-step gates |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
 | `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
@@ -70,7 +77,7 @@ Headline numbers and their caveats:
 cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process propagate --fill  # the specs, the separators, the recycle and the conversion duties
-cheme run scripts/utilities.py  # E-101's duty and K-101's power (then update Q1, Q5)
+cheme run scripts/utilities.py  # E-101's duty, K-101's and the chiller's power, the lumps (then update Q1, Q2, Q5, Q7, Q8)
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
 cheme assess lca --write        # the preliminary LCI
