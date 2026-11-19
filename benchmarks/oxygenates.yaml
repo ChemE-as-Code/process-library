@@ -46,6 +46,12 @@
 # The selectivity reference is a patent (Sumitomo Chemical) that the dataset does not use: the dataset's
 # by-product rate is from another applicant's patent (Nippon Oil, US 4,180,688, Example 4). The selectivity
 # examples are laboratory tests, not plant data. No energy KPI has an open reference.
+#
+# acrylic-acid-1 (#475): the propylene reference is the reactors' yield in two Mitsubishi patents'
+# examples. It is not independent of the dataset, which takes its yields from US 4 873 368 A's
+# Example 5, and it leaves out the losses of the separation (the dataset's whole-plant figure sits
+# inside it). The steam KPIs record no_open_reference (searched 2026-11-19, DESIGN.md source
+# register and D-012).
 schema: cheme-as-code/benchmarks/v1
 family: oxygenates
 
@@ -398,6 +404,30 @@ kpis:
     unit: kg/kg
     no_open_reference: "No open source with a plant's tert-butanol use per kg of potassium tert-butoxide found (searched 2026-11-06, the sources named under kotbu-specific-potassium; US 4 577 045 A says the alcohol is recycled almost completely, without a figure). The stoichiometric floor is 0.6606 kg/kg; the losses to the vent, the purge and the sieve's regeneration are this design's ASSUMED values (potassium-tert-butoxide-1, DESIGN.md D-006, D-007)."
 
+  acrylic-acid-specific-propylene:
+    title: Propylene consumption per kg of acrylic acid (two-stage propylene oxidation)
+    unit: kg/kg
+    references:
+      - id: mitsubishi-patents-aa-yield
+        range: [0.665, 0.699]
+        basis: unallocated
+        note: "Propylene fed per kg of acrylic acid formed in the reactors, from the acrylic acid yields on propylene of the two patents' examples: 87.8 % (US 4 873 368 A, Example 5) and 83.5 to 85.5 % (US 4 365 087 A, Example 8, day 1 and day 60, with off-gas recycle); 42.080 / 72.063 kg/kmol divided by the yield. Laboratory multitubular reactors with four tubes; the yields of the reaction only, no losses in absorption or distillation. Not independent of acrylic-acid-1, which takes its yields from US 4 873 368 A, Example 5."
+        conditions: {technology: "two-stage vapour-phase oxidation of propylene with air and steam over Mo-Bi and Mo-V (or Sb-Ni-Mo-V) oxides, 1.0 kg/cm2 gauge, 265 to 310 C; laboratory tubes", region: JP, year: 1989}
+        source:
+          citation: "Kadowaki, K.; Sarumaru, K.; Shibano, T. (Mitsubishi Petrochemical) (1989) Process for producing acrylic acid. US Patent 4,873,368 A; and (1982) Production of acrylic acid. US Patent 4,365,087 A"
+          url: https://patents.google.com/patent/US4873368A/en
+          locator: "US 4 873 368 A, Table 2 (Example 5); US 4 365 087 A, Example 8, Table 8"
+          kind: other
+          accessed: "2026-11-19"
+  acrylic-acid-specific-lp-steam:
+    title: Steam heat to the purification columns per kg of acrylic acid
+    unit: kWh/kg
+    no_open_reference: "No open source with a plant's steam use per kg of acrylic acid found (searched 2026-11-19: Google Patents US 4 873 368 A, US 4 365 087 A and US 5 910 607 A read, which give laboratory column rates but no plant steam; the Arkema data sheet; Wikipedia; the EU LVOC BREF 2017 has no acrylic acid chapter; no IEA or open LCA report with an acrylic acid steam figure found). The dataset's value is scripts/aa_balance.py's reboiler duties (DESIGN.md D-008 to D-010)."
+  acrylic-acid-specific-hp-steam-export:
+    title: HP steam heat exported per kg of acrylic acid
+    unit: kWh/kg
+    no_open_reference: "No open source with the steam an acrylic acid plant exports per kg found (searched 2026-11-19, as for acrylic-acid-specific-lp-steam; the patents read cool the reactors with a molten nitrate salt and give no steam figure). The dataset's value is the two reactors' heat of reaction from the ideal-gas formation data (DESIGN.md D-005, D-006)."
+
 datasets:
   - process: terephthalic-acid-1
     dataset: pta-px-air-oxidation
@@ -516,3 +546,13 @@ datasets:
     kpis:
       kotbu-specific-potassium: {expression: feed:K / product:KOTBU, per: product:KOTBU}
       kotbu-specific-tert-butanol: {expression: feed:TBAF / product:KOTBU, per: product:KOTBU}
+  - process: acrylic-acid-1
+    dataset: acrylic-acid-by-two-stage-propylene-oxidation-12.5-t-h-glacial-acrylic-acid
+    conditions: {technology: "two-stage propylene oxidation with air and steam in salt-cooled multitubular reactors raising HP steam, water quench absorption, azeotropic dehydration with toluene, acetic acid and glacial acid vacuum columns; continuous, 100 kt/a", basis: "concept balance, US 4 873 368 A's yields and US 5 910 607 A's compositions, ASSUMED splits; duties from pure-component data (DESIGN.md D-004 to D-010)"}
+    kpis:
+      acrylic-acid-specific-propylene:
+        expression: feed:C3 * 0.994762 / product:PRODUCT
+        per: product:PRODUCT
+        reference: mitsubishi-patents-aa-yield
+      acrylic-acid-specific-lp-steam: {expression: feed:LPS / product:PRODUCT, per: product:PRODUCT}
+      acrylic-acid-specific-hp-steam-export: {expression: product:STMX / product:PRODUCT, per: product:PRODUCT}

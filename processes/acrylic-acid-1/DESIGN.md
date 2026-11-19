@@ -22,10 +22,10 @@ PubChem pages, the packages' values).
 |---|---|---|---|---|
 | SRC-1 | US 4 873 368 A, K. Kadowaki, K. Sarumaru, T. Shibano (Mitsubishi Petrochemical), priority JP 1979-11-19, granted 1989-10-10: Process for producing acrylic acid, https://patents.google.com/patent/US4873368A/en | two-stage vapour-phase oxidation of propylene with air and steam: first stage over a Mo-Bi multicomponent oxide in shell-and-tube reactors (tubes 15 to 40 mm, 2 to 8 m) at 280 to 350 C, 0.4 to 1.5 kg/cm2 gauge, propylene 7 to 15 %, O2/propylene 1.17 to 1.66, steam/propylene at most 4; a cooling zone after the catalyst bed brings the gas to at most 280 C (preferably 260 C) to stop acrolein oxidising by itself; air and steam added before the second stage (Mo-V oxide, 220 to 320 C, totals O2/propylene 1.75 to 2.5, steam/propylene 1 to 5); the outlet cooled to 100 to 180 C and contacted with cold inhibited water to an aqueous acid, then extraction or azeotropic distillation. Example 2 (Table 1): 12 % propylene, 10 % steam, 78 % air, 310 C: conversion 98.5 %, acrolein 80.2 %, acrylic acid 11.7 %. Example 5 (Table 2): after that first stage, totals 7.5 % propylene, 15 % steam, 77.5 % air, 265 C: conversion 98.6 %, acrolein 0.4 %, acrylic acid 87.8 %. Table 3: acrolein gas burns by itself in an empty tube at 300 to 320 C (1.1 to 4.6 % lost), not below 280 C | read (Google Patents); patent, facts only | D-001, D-004, D-005, D-006, D-007 |
 | SRC-2 | US 4 365 087 A, same inventors (Mitsubishi Petrochemical), priority JP 1979-01-30, granted 1982-12-21: Production of acrylic acid, https://patents.google.com/patent/US4365087A/en | the same two stages; 20 to 70 % of the second stage's off-gas recycled as diluent between the stages; the outlet gas cooled to about 50 to 5 C and the acids condensed with an inhibitor; acrolein stripped from the aqueous acid and recycled; Example 8: propylene conversion 97.9 to 98.4 %, acrolein conversion 99.0 to 99.2 %, acrylic acid yield 83.5 to 85.5 % over 60 days with off-gas recycle | read (Google Patents); patent, facts only | D-001 (recycle rejected), D-007 |
-| SRC-3 | US 5 910 607 A, Y. Sakakura, M. Yamagishi, H. Hosaka (Mitsubishi Chemical), priority JP 1994-08-04, granted 1999-06-08: Process for producing acrylic acid, https://patents.google.com/patent/US5910607A/en | the reactor gas scrubbed with water to a crude of 40 to 80 wt% acrylic acid, 1 to 5 wt% acetic acid; azeotropic dehydration with an entrainer boiling at 80 to 130 C (toluene, heptane, MIBK, isopropyl acetate...), 100 to 300 mmHg top, 5 to 20 theoretical plates, bottoms at most 100 C with at most 0.5 wt% water and 5 to 30 wt% entrainer against polymer; the aqueous phase back to the scrubber; acetic acid column at 50 to 200 mmHg; hydroquinone and phenothiazine fed at the top (800 and 500 ppm in the bottoms) and air at the bottom; product with at most 0.1 wt% each of acetic acid and water (claim 18). Example 1: 55 wt% acrylic acid, 1.5 wt% acetic acid feed, toluene, 180 mmHg, top 49 C, bottoms 90 C, 830 ml/h of toluene reflux on 280 g/h of feed; bottoms 2.3 % acetic acid, 0.5 % water, 7 % toluene; aqueous phase 0.2 % acetic acid, 0.1 % acrylic acid | read (Google Patents); patent, facts only | D-001, D-005, D-007, D-008 |
-| SRC-4 | Arkema, Acrylic acid (AA) data sheet, BU/V8/05.23, https://www.arkema.com/files/live/sites/shared_arkema/files/downloads/products-documentations/acrylicmonomers/data-sheet-aa-v8.pdf | specification: purity at least 99.5 %, water at most 1000 ppm, dimer at most 2000 ppm, MEHQ 180 to 220 ppm; standard inhibition 200 ppm MEHQ; storage at 15 to 25 C under air (at least 5 vol% oxygen activates the inhibitor); dimer forms at about 100 ppm a day at room temperature; local overheating above 25 C risks exothermic polymerisation; boiling point 141 C, freezing point 13 C, liquid heat capacity 2.05 kJ/(kg K), latent heat 634 kJ/kg, heat of polymerisation 1077 kJ/kg, flash point 48.5 C | read (manufacturer literature; text extracted from the PDF) | D-002, D-009, D-010, D-013 |
+| SRC-3 | US 5 910 607 A, Y. Sakakura, M. Yamagishi, H. Hosaka (Mitsubishi Chemical), priority JP 1994-08-04, granted 1999-06-08: Process for producing acrylic acid, https://patents.google.com/patent/US5910607A/en | the reactor gas scrubbed with water to a crude of 40 to 80 wt% acrylic acid, 1 to 5 wt% acetic acid; azeotropic dehydration with an entrainer boiling at 80 to 130 C (toluene, heptane, MIBK, isopropyl acetate...), 100 to 300 mmHg top, 5 to 20 theoretical plates, bottoms at most 100 C with at most 0.5 wt% water and 5 to 30 wt% entrainer against polymer; the aqueous phase back to the scrubber; acetic acid column at 50 to 200 mmHg; hydroquinone and phenothiazine fed at the top (800 and 500 ppm in the bottoms) and air at the bottom; product with at most 0.1 wt% each of acetic acid and water (claim 18). claim 13: entrainer refluxed at 1 to 10 times the weight of the water fed. Example 1: 55 wt% acrylic acid, 1.5 wt% acetic acid feed at 280 g/h, toluene, 180 mmHg, operated continuously for 7 h, top 49 C, bottoms 90 C (170.5 g/h); 'the amount of the entrainer phase returned to the top of the column as reflux was 830 ml', with no time basis (every other rate of the example is per hour); bottoms 2.3 % acetic acid, 0.5 % water, 7 % toluene; aqueous phase 0.2 % acetic acid, 0.1 % acrylic acid | read (Google Patents); patent, facts only | D-001, D-005, D-007, D-008 |
+| SRC-4 | Arkema, Acrylic acid (AA) data sheet, BU/V8/05.23, https://www.arkema.com/files/live/sites/shared_arkema/files/downloads/products-documentations/acrylicmonomers/data-sheet-aa-v8.pdf | specification: purity at least 99.5 %, water at most 1000 ppm, dimer at most 2000 ppm, MEHQ 180 to 220 ppm; standard inhibition 200 ppm MEHQ; storage at 15 to 25 C under air (at least 5 vol% oxygen activates the inhibitor); dimer forms at about 100 ppm a day at room temperature; local overheating above 25 C risks exothermic polymerisation; crystallised acid is thawed by tempered water of at most 35 C circulated through coils, the acid kept mixed; boiling point 141 C, freezing point 13 C, liquid heat capacity 2.05 kJ/(kg K), latent heat 634 kJ/kg, heat of polymerisation 1077 kJ/kg, flash point 48.5 C | read (manufacturer literature; text extracted from the PDF) | D-002, D-009, D-010, D-013 |
 | SRC-5 | Wikipedia, Acrylic acid, https://en.wikipedia.org/wiki/Acrylic_acid | made by two-step oxidation of propylene through acrolein; more than a million tonnes a year (citing Ullmann's); flammable, corrosive; explosive limits 2.4 to 8.02 % | read; CC BY-SA, facts only | D-001, D-013 |
-| SRC-6 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment): ideal-gas formation enthalpies, entropies and heat capacities as `cheme chemistry thermo` prints them (ATcT, API TDB, WebBook, CRC, Yaws; heat capacities fitted to TRCIG and HEOS); boiling points (HEOS, CRC tables); vapour pressures, liquid heat capacities and heats of vaporisation of water, toluene and acetic acid (thermo's default methods); IAPWS-95 for steam | values in materials.yaml and the scripts | open-source packages queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037). The underlying printed works were not read | materials, reactions, D-005, D-010, D-012 |
+| SRC-6 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (Caleb Bell, MIT licence; the versions core pins), through `cheme chemistry thermo` and `thermo.Chemical` in the scripts: ideal-gas formation enthalpies, entropies and heat capacities as `cheme chemistry thermo` prints them (ATCT_G, API_TDB_G, WEBBOOK, CRC, YAWS; heat capacities fitted to TRCIG and HEOS); liquid formation enthalpies (chemicals `Hfl`: acrylic acid -383.80 kJ/mol from CRC, acetic acid -483.58, water -285.83 and toluene 12.36 kJ/mol from ATCT_L), against which the liquids are referenced; boiling points (HEOS, CRC tables). thermo's default methods, per component: water and toluene liquid heat capacity, heat of vaporisation and density by HEOS_FIT (fits to CoolProp's reference equations of state; toluene 862.2 kg/m3 at 298.15 K), water's vapour pressure IAPWS; acrylic acid's vapour pressure DIPPR_PERRY_8E (15 kPa at 361.4 K; 8 and 10 kPa at 347.0 and 352.0 K) and liquid heat capacity ZABRANSKY_SPLINE_C (141.7 kJ/(kmol K) at 330 K); acetic acid's vapour pressure WAGNER_MCGARRY (McGarry 1983), heat of vaporisation DIPPR_PERRY_8E (23.4 kJ/mol at 298 K) and liquid heat capacity VDI_TABULAR (136.5 kJ/(kmol K) at 330 K); the relative volatility of acetic to acrylic acid from these vapour pressures (2.50 at 361.4 K); IAPWS-95 for steam; propylene's flammability limits in air, LFL 2.0 % and UFL 11.1 % at ambient conditions (`chemicals.safety`, from IEC 60079-20-1 (2010) and NFPA 497 (2008)) | values in materials.yaml, the scripts and their printout | open-source packages queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037). The underlying works were not read here: DIPPR_PERRY_8E is Perry's Chemical Engineers' Handbook, 8th ed., drawing on DIPPR 801; VDI_TABULAR the VDI Heat Atlas; ZABRANSKY_SPLINE_C Zabransky et al.'s evaluated liquid heat capacities; WAGNER_MCGARRY McGarry 1983 (Ind. Eng. Chem. Process Des. Dev.); CRC the CRC Handbook of Chemistry and Physics; ATCT the Active Thermochemical Tables; the IEC and NFPA standards | materials, reactions, D-005, D-007 to D-010, D-012, D-013 |
 | SRC-7 | PubChem CIDs 6581 (acrylic acid), 7847 (acrolein), 785 (hydroquinone), 9015 (4-methoxyphenol), PUG REST | formula, InChIKey, CAS and ChEBI cross-references | read | registry |
 | SRC-8 | processes/propylene-pdh-1, btx-1, utility-steam-ng-boiler, cumene-1, methanol-1 (this library) | propylene; toluene; process steam; the exergy method for exported steam and Szargut's element exergies as methanol-1's script cites them | library, internal | D-003, D-012 |
 
@@ -105,7 +105,7 @@ Decision: first stage at 310 C (salt) with the outlet after the cooling zone at 
 at most 280 C, preferably 260 C); second stage at 538.15 K (265 C, Example 5); 220 kPa(a) at the
 first stage's inlet to 170 kPa(a) at the second's outlet (SRC-1: 1.0 kg/cm2 gauge in the
 examples, ASSUMED profile). The salt of both reactors raises saturated HP steam at 2500 kPa(a)
-(497.1 K, ASSUMED level, 36 to 41 K below the salt) for export: 35.2 MW, 2.82 kWh per kg of
+(497.1 K, ASSUMED level: 86 K below the first stage's salt, 41 K below the second's and 36 K below the first stage's gas outlet after the cooling zone) for export: 35.2 MW, 2.82 kWh per kg of
 product. K-101 compresses the air from 101.3 to 230 kPa(a) at an isentropic efficiency of 0.80
 and a motor efficiency of 0.95 (ASSUMED): 1751 kW, outlet 395.9 K. Mixers are adiabatic (script).
 
@@ -116,7 +116,7 @@ acid and 97 % of the acetic acid to the bottoms (ASSUMED), the off-gas saturated
 313.15 K and 130 kPa(a) (SRC-2 cools to 5 to 50 C), the bottoms 55 wt% acrylic acid at 333.15 K
 (SRC-3, Example 1's feed). The process water for 55 wt% is only 644 kg/h: the reaction water and
 the process steam give nearly all of it, as SRC-1 says a low steam ratio gives a concentrated
-acid. The absorber's heat (12.2 MW) goes to cooling water in a pump-around (script).
+acid. The absorber's heat (12.0 MW) goes to cooling water in a pump-around (script).
 Rejected: stripping and recycling the acrolein (SRC-2): it is 0.4 % of the propylene and goes to
 the oxidiser; returning the dehydration column's aqueous phase to the absorber (SRC-3): see D-008.
 
@@ -132,8 +132,19 @@ the toluene (0.18 wt% acetic and 0.09 wt% acrylic acid in it, the source's 0.2 a
 top 99.5 % of the toluene, all water, 10 % of the acetic acid; side 0.5 % toluene, 88 % acetic
 acid, 0.8 % acrylic acid. The toluene make-up (9.97 kg/h) holds 7 wt% toluene in C-401's
 bottoms; hydroquinone (11.4 kg/h) gives 800 ppm there (SRC-3). C-401's reboiler: the source's
-toluene reflux, 2.57 kg per kg of feed, and the aqueous distillate condensed at 322 K (13.3 MW);
-C-402 at an ASSUMED reflux ratio of 3 (0.56 MW).
+toluene reflux, 2.56 kg per kg of feed (830 ml at thermo's 0.862 kg/l on 280 g/h), and the
+aqueous distillate condensed at 322 K (13.4 MW). SRC-3's Example 1 gives the 830 ml without a
+time basis; it is read per hour (ASSUMED): the example states its other rates per hour, and per
+hour the reflux is about 5.9 kg of toluene per kg of water fed, inside claim 13's 1 to 10, while
+830 ml spread over the 7 h run would be about 0.84 kg/kg, below it.
+C-402's boil-up is set by its hardest split (it was a reflux ratio of 3 on the overhead before
+review): about 98 % of the acetic acid fed has to be stripped out of the acrylic acid below the
+feed (2.5 wt% in S18, 0.056 wt% in S23). With the acetic acid dilute, the stripping factor
+alpha V'/L' (L' = V' + B) has to exceed 1, so V' > B/(alpha - 1) = 117 kmol/h at alpha 2.50
+(acetic to acrylic acid, thermo vapour pressures at the bottoms' 361.4 K, Raoult; an associating
+acetic acid vapour would lower it, SRC-6). The boil-up is 1.25 times that minimum (ASSUMED),
+147 kmol/h of acrylic acid at 634 kJ/kg: 1.86 MW, about 15 stripping stages by the Kremser
+equation, an implied reflux ratio of about 13 on the overhead; condenser 1.91 MW.
 Rejected: returning the aqueous phase to T-301 (SRC-3) and recovering the acetic acid: the water
 of the reaction has to leave somewhere; with this concept's splits all of it leaves as
 wastewater, the acetic acid by incineration. Both are options for the next stage.
@@ -144,17 +155,24 @@ Decision: C-404 distils the glacial acid at 8 kPa(a) (ASSUMED; top 347.0 K, bott
 10 kPa(a), thermo vapour pressure), reflux ratio 1 (ASSUMED), 98.5 % of the acrylic acid overhead
 and 1.5 % with the hydroquinone to the heavy ends (standing for the dimer and the bleed,
 ASSUMED). The distillate is subcooled to 303.15 K and dosed with 200 ppm MEHQ (SRC-4).
-Duties with acrylic acid's latent heat of 634 kJ/kg (SRC-4; thermo's value, about 391 kJ/kg,
-counts the vapour as associated): 4.4 MW.
+Duties with acrylic acid's latent heat of 634 kJ/kg (SRC-4; preferred to thermo's
+DIPPR_PERRY_8E value, 389 to 392 kJ/kg at 322 to 361 K, which is far below it; the cause was
+not investigated): reboiler 4.3 MW, condenser and subcooler 4.7 MW (the distillate subcooled from 347
+to 303 K).
 
 ## D-010 Utilities and the balance script (2026-11-19)
 Decision: `scripts/aa_balance.py` runs the plant on the same ratios and splits as the flowsheet,
 scales it to the product and gives: the feeds, the mixers' and the oxidiser's temperatures, the
 compressor's power and the duties of E-301, T-301 and the three columns (ideal gas from the
-materials' data; liquids by thermo's heat capacities and heats of vaporisation; no heats of
-mixing or solution). The reboilers take LP steam at 450 kPa(a) (421.1 K, at least 58 K above the
-bottoms): 18.3 MW, 1.46 kWh per kg. Condensers and coolers reject 33.0 MW to cooling water at
-298/308 K. Power: K-101 only in the flowsheet; pumps and vacuum systems about 500 kW, ASSUMED, in
+materials' data; a liquid at 298.15 K below its gas by chemicals' Hfg - Hfl, the same formation
+basis as the ideal-gas data, then thermo's liquid heat capacities; the condensers' latent heats
+from thermo, acrylic acid's from SRC-4; no heats of mixing or solution). The reboilers take LP
+steam at 450 kPa(a) (421.1 K, at least 58 K above the bottoms): 19.6 MW, 1.57 kWh per kg.
+Condensers and coolers reject 34.4 MW to cooling water at 298/308 K. (Review of PR #527: the
+script first divided thermo's liquid heat capacity, already in kJ/(kmol K), by 1000 and so
+dropped the liquids' sensible heat, and referenced the acids' liquids by latent heats that do
+not match the monomer gas data; both corrected, T-301 12.2 to 12.0 MW, C-404's condenser 4.4 to
+4.7 MW.) Power: K-101 only in the flowsheet; pumps and vacuum systems about 500 kW, ASSUMED, in
 the LCA cut-off. The flowsheet cites these values; the library's balance checker re-runs the
 script (ADR 0027). Heat recovery from E-301 into boiler feed water is an open option.
 
@@ -173,6 +191,7 @@ steam is not offered to other entries as an Atlas steam producer (no inventory_k
 process.yaml, as cumene-1).
 Gaps (a gap, never 0): hydroquinone, MEHQ, process water, electricity, cooling water, the
 wastewater and the two liquid wastes to incineration (no library producer or treatment chosen).
+Process air is free (a resource without burden, as in every library entry with an air feed).
 The flue gas is an emission with its CO2 (fossil) and organic slips. Allocation: the exported HP
 steam is a co-product, allocated by exergy (library rule for exported steam, as cumene-1 and
 methanol-1): 19 647 kJ/kg for the acid and 1373.4 kJ per kWh of steam (scripts/
@@ -182,15 +201,21 @@ the steam's heat like the acid's heating value).
 
 ## D-013 Hazards to carry into the next stage (2026-11-19)
 Decision: recorded, not designed at concept:
-- The first-stage feed (12 % propylene with air and steam, O2/propylene 1.36) lies inside
-  propylene's flammable range: mixing point, ratio and oxygen trips, flame arrestors and the
-  reactors' relief need the next stage's HAZOP.
+- The first-stage feed (12 % propylene, 16.4 % O2, 10 % steam; O2/propylene 1.36) is above
+  propylene's upper flammable limit in air at ambient conditions (LFL 2.0 %, UFL 11.1 %, SRC-6),
+  and the oxygen-lean, steam-diluted mixture narrows the range further; but the limits widen at
+  the mixer's 381 K and 220 kPa(a) and at the reactor's 583 K, so the feed may lie at or inside
+  the range there, and the injection point passes through it whatever the bulk composition
+  (screening judgement, ASSUMED; no limits at temperature and pressure were read). The
+  flammability limits at operating conditions, the oxygen margin, the mixing point, ratio and
+  oxygen trips, flame arrestors and the reactors' relief are for the next stage's HAZOP.
 - Acrolein (up to 18 wt% between the stages) is very toxic and burns by itself above 280 C
   (SRC-1, Table 3): the cooling zone and the short hot line between the stages.
 - Acrylic acid polymerises with 1077 kJ/kg (SRC-4): with its liquid heat capacity of 2.05
   kJ/(kg K) the adiabatic rise of a full polymerisation would exceed 500 K. The columns run under
   vacuum below 100 C with hydroquinone and air, the product is stabilised with MEHQ under air and
-  kept at 15 to 25 C and never thawed with steam (SRC-4). Dimer forms in storage.
+  kept at 15 to 25 C, thawed only with tempered water of at most 35 C (SRC-4; steam is
+  therefore excluded, our inference). Dimer forms in storage.
 - Salt-cooled reactors: a salt-to-water leak in the steam generators; the reactors' runaway on a
   loss of salt flow.
 - Toluene, propylene and acrylic acid (flash point 48.5 C) are flammable; area classification at

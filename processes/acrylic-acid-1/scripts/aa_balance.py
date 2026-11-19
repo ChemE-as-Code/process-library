@@ -20,9 +20,11 @@ What it does, on the ratios and splits of DESIGN.md (sources there):
   reactors' duties, which this script only prints as a cross-check;
 - temperatures of the adiabatic mixers and of the adiabatic catalytic oxidiser, the air
   compressor's power, and the duties of the gas cooler, the quench absorber and the three
-  columns (ideal gas from the ideal_gas data of process/materials.yaml; liquids with thermo's
-  liquid heat capacities and heats of vaporisation, acrylic acid's latent heat from the Arkema
-  data sheet; no heats of mixing, D-010).
+  columns (ideal gas from the ideal_gas data of process/materials.yaml; liquids at 298.15 K on
+  the same formation basis, chemicals' liquid against gas formation enthalpies, then thermo's
+  liquid heat capacities; latent heats in the condensers from thermo, acrylic acid's from the
+  Arkema data sheet; C-402's boil-up from the stripping of acetic acid, D-008; no heats of
+  mixing, D-010).
 """
 from __future__ import annotations
 
@@ -32,6 +34,7 @@ import os
 from pathlib import Path
 
 import yaml
+from chemicals import Hfg, Hfl
 from chemicals.iapws import iapws95_Tsat
 from thermo import Chemical
 
@@ -70,6 +73,7 @@ C402_TOP = {"TOL": 0.995, "H2O": 1.0, "HAC": 0.10, "AA": 0.002}
 C402_SIDE = {"TOL": 0.005, "HAC": 0.88, "AA": 0.008}
 C404_TOP = {"AA": 0.985, "HAC": 1.0, "H2O": 1.0, "TOL": 1.0}
 X401_CONV = 0.99                  # D-011, ASSUMED
+C402_BOILUP_FACTOR = 1.25         # D-008, ASSUMED: C-402's boil-up over its stripping minimum
 
 COMPS = ["C3H6", "C3H8", "O2", "N2", "H2O", "CO2", "ACR", "AA", "HAC", "TOL", "HQ", "MEHQ"]
 CAS = {"H2O": "7732-18-5", "AA": "79-10-7", "HAC": "64-19-7", "TOL": "108-88-3", "HQ": "123-31-9",
@@ -115,7 +119,7 @@ def h_gas(s, t):
 
 
 def cpl(c, t):
-    return Chemical(CAS[c], T=t).Cplm / 1000.0  # kJ/(kmol K)
+    return Chemical(CAS[c], T=t).Cplm  # J/(mol K) = kJ/(kmol K)
 
 
 def hvap(c, t):
@@ -124,9 +128,20 @@ def hvap(c, t):
     return Chemical(CAS[c], T=t).Hvapm  # J/mol = kJ/kmol
 
 
+def dh_cond(c):
+    """Gas less liquid formation enthalpy at 298.15 K (chemicals Hfg - Hfl), J/mol = kJ/kmol.
+
+    The reactors' ideal-gas data are the monomer gas's formation enthalpies (chemicals' Hfg, the
+    values of materials.yaml), so the liquid at 298.15 K sits below them by Hfg - Hfl on the same
+    basis. A latent heat of an associating vapour (thermo's for acetic acid) or a manufacturer's
+    figure (acrylic acid) would not match that basis (DESIGN.md D-010)."""
+    return Hfg(CAS[c]) - Hfl(CAS[c])
+
+
 def h_liq(s, t):
-    """Liquid enthalpy on the ideal-gas reference: gas at 298.15 K less the heat of vaporisation
-    at 298.15 K plus the liquid's sensible heat (no heat of mixing); HQ and MEHQ by liquid Cp."""
+    """Liquid enthalpy on the ideal-gas reference: gas at 298.15 K less the gas-to-liquid
+    formation difference at 298.15 K plus the liquid's sensible heat (no heat of mixing); HQ and
+    MEHQ neglected (traces)."""
     h = 0.0
     for c, v in s.items():
         if not v:
@@ -134,7 +149,7 @@ def h_liq(s, t):
         if c in ("HQ", "MEHQ"):
             h += v * 0.0  # trace solids: sensible heat neglected (below 1 kW)
             continue
-        h += v * (h_ig(c, T0) - hvap(c, T0) + cpl(c, 0.5 * (t + T0)) * (t - T0))
+        h += v * (h_ig(c, T0) - dh_cond(c) + cpl(c, 0.5 * (t + T0)) * (t - T0))
     return h
 
 
@@ -304,7 +319,10 @@ def main():
             lo = mid
     t30 = 0.5 * (lo + hi)
     # dehydration column C401 (D-008): 24.0 kPa top (180 mmHg), top 322.15 K, bottoms 363.15 K;
-    # toluene reflux 2.57 kg per kg of feed (Example 1: 830 ml/h toluene, 0.867 kg/l, on 280 g/h)
+    # toluene reflux 2.56 kg per kg of feed: US 5 910 607 A, Example 1, states 830 ml of entrainer
+    # phase refluxed on 280 g/h of feed with no time basis; read per hour (ASSUMED, D-008: the
+    # example's other rates are per hour, and claim 13's 1 to 10 kg of entrainer per kg of water
+    # fed holds per hour, not over the 7 h run); density thermo's at 298.15 K (0.862 kg/l)
     T17, T18, T16, T19, T21 = 322.15, 363.15, 298.15, 298.15, 313.15
     m15 = mass(b["s15"])
     rho_tol = Chemical(CAS["TOL"], T=T0).rhol / 1000.0
@@ -314,9 +332,9 @@ def main():
     sens_in = h_liq(b["s15"], T15) + h_liq(b["s16"], T16) + h_liq(b["s19"], T19) + h_liq(b["s21"], T21)
     sens_out = h_liq(s17, T17) + h_liq(b["s18"], T18)
     q_c401_reb = q_c401_cond + (sens_out - sens_in) / 3600.0
-    # acetic acid column C402 (D-008): 13.3 kPa top (100 mmHg), reflux ratio 3 on the top product,
-    # top product subcooled to 313.15 K, side draw 333.15 K, bottoms at acrylic acid's boiling
-    # point at 15 kPa(a)
+    # acetic acid column C402 (D-008): 13.3 kPa top (100 mmHg), top product subcooled to 313.15 K,
+    # side draw 333.15 K (liquid), bottoms at acrylic acid's boiling point at 15 kPa(a); the boil-up
+    # is set by stripping the dilute acetic acid out of the acrylic acid below the feed
     lo, hi = 300.0, 450.0
     aa = Chemical(CAS["AA"])
     for _ in range(80):
@@ -328,8 +346,21 @@ def main():
     T23 = 0.5 * (lo + hi)
     T22 = 333.15
     s21, s22, s23 = b["s21"], b["s22"], b["s23"]
-    q_c402_cond = 4.0 * sum(s21[c] * hvap(c, T21) for c in ("H2O", "HAC", "AA", "TOL") if s21[c]) / 3600.0
-    q_c402_reb = q_c402_cond + (h_liq(s21, T21) + h_liq(s22, T22) + h_liq(s23, T23) - h_liq(b["s18"], T18)) / 3600.0
+    # stripping section: L' = V' + B; the stripping factor alpha V'/L' must exceed 1, so
+    # V' > B / (alpha - 1), alpha = Psat(HAC)/Psat(AA) at the bottoms (thermo, Raoult, no vapour
+    # association: an associating acetic acid vapour lowers alpha); V' = 1.25 x the minimum, ASSUMED
+    hac = Chemical(CAS["HAC"])
+    alpha_c402 = hac.VaporPressure(T23) / aa.VaporPressure(T23)
+    n_b = sum(s23.values())
+    v_min_c402 = n_b / (alpha_c402 - 1.0)
+    v_c402 = C402_BOILUP_FACTOR * v_min_c402
+    strip_s = alpha_c402 * v_c402 / (v_c402 + n_b)
+    phi = s23["HAC"] / b["s18"]["HAC"]               # acetic acid fed left in the bottoms
+    n_strip = math.log(1.0 + (strip_s - 1.0) / phi) / math.log(strip_s) - 1.0   # Kremser
+    q_c402_reb = v_c402 * H_VAP_AA / 3600.0          # the boil-up is acrylic acid
+    q_c402_cond = q_c402_reb + (h_liq(b["s18"], T18) - h_liq(s21, T21) - h_liq(s22, T22) - h_liq(s23, T23)) / 3600.0
+    lam_d = sum(s21[c] * hvap(c, T21) for c in ("H2O", "HAC", "AA", "TOL") if s21[c]) / sum(s21.values())
+    r_c402 = q_c402_cond * 3600.0 / lam_d / sum(s21.values()) - 1.0   # implied reflux ratio
     # product column C404 (D-009): 8 kPa(a) top, reflux ratio 1, distillate subcooled to
     # 303.15 K; bottoms at acrylic acid's boiling point at 10 kPa(a)
     def tsat_aa(p):
@@ -360,6 +391,9 @@ def main():
     print(f"P K101 {p_k101:.1f} kW; R101 {q_r101:.1f} kW; R201 {q_r201:.1f} kW (cross-check of core's duties)")
     print(f"E301 {q_e301:.1f}; T301 {q_t301:.1f}; C401 reb {q_c401_reb:.1f} cond {q_c401_cond:.1f}; "
           f"C402 reb {q_c402_reb:.1f} cond {q_c402_cond:.1f}; C404 reb {q_c404_reb:.1f} cond {q_c404_cond:.1f} kW")
+    print(f"C402: alpha(HAC/AA) {alpha_c402:.3f} at {T23:.2f} K, B {n_b:.2f} kmol/h, V'min {v_min_c402:.2f}, V' {v_c402:.2f} kmol/h, "
+          f"stripping factor {strip_s:.3f}, acetic acid left in the bottoms {phi * 100:.2f} %, Kremser stripping stages {n_strip:.1f}, "
+          f"implied reflux ratio {r_c402:.2f}; C401 toluene reflux {reflux_tol * MW['TOL'] / m15:.3f} kg/kg feed (density {rho_tol:.4f} kg/l)")
     aa_kg = mass(b["s27"])
     print(f"per kg product: propylene {mass(b['c3']) / aa_kg:.4f} kg, steam {(mass(b['stm1']) + mass(b['stm2'])) / aa_kg:.4f} kg, "
           f"export {(q_r101 + q_r201) / aa_kg:.4f} kWh, LPS {(q_c401_reb + q_c402_reb + q_c404_reb) / aa_kg:.4f} kWh")

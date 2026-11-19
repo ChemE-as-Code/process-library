@@ -13,7 +13,7 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 A continuous plant for 100 kt/a of glacial acrylic acid by two-stage catalytic oxidation of
 propylene with air and steam. Propylene (from `propylene-pdh-1`) is oxidised to acrolein over a
 Mo-Bi mixed oxide at 583 K in a multitubular reactor cooled by molten salt, whose after-cooling
-zone keeps the gas below 260 C; secondary air and steam are added and the acrolein is oxidised to
+zone brings the gas to 260 C (533 K; the patent requires at most 280 C); secondary air and steam are added and the acrolein is oxidised to
 acrylic acid over a Mo-V oxide at 538 K. Feed ratios, temperatures, conversions and yields follow
 the examples of US 4 873 368 A (Mitsubishi Petrochemical). The salt raises HP steam for export.
 The gas is cooled and quenched in inhibited water to a 55 wt% aqueous acid; the off-gas goes to a
@@ -32,11 +32,15 @@ Headline numbers and their caveats:
 - 0.686 kg of propylene feed per kg of product; 85.6 % of the propylene fed ends as product (the
   reactors 87.8 %, US 4 873 368 A, Example 5; the rest lost in the side draw, the heavy ends and
   the off-gas, D-005, D-008, D-009). The by-products are lumped as CO2 and acetic acid.
-- The reactors release 35.2 MW (2.82 kWh per kg), raised as HP steam; the columns take 18.3 MW of
-  LP steam (1.46 kWh per kg), most of it the dehydration column at the source's toluene reflux
-  (D-008, D-010). Duties rest on ideal-gas and pure-liquid data without heats of mixing.
+- The reactors release 35.2 MW (2.82 kWh per kg), raised as HP steam; the columns take 19.6 MW of
+  LP steam (1.57 kWh per kg), most of it the dehydration column at the source's toluene reflux
+  (read per hour, ASSUMED), and the acetic acid column's boil-up is set by stripping the acetic
+  acid out of the acrylic acid (D-008, D-010). Duties rest on ideal-gas and pure-liquid data
+  without heats of mixing.
 - The separator splits are ASSUMED to meet the compositions US 5 910 607 A states (D-007, D-008).
-- Hazards: the feed lies in propylene's flammable range, acrolein is very toxic, acrylic acid
+- Hazards: the reactor feed is above propylene's upper flammable limit in air at ambient
+  conditions but may be flammable hot and under pressure, and the mixing point passes through
+  the range (screening judgement, ASSUMED); acrolein is very toxic, acrylic acid
   polymerises violently (1077 kJ/kg, Arkema data sheet) without inhibitor and oxygen (D-013).
 - Preliminary gate-to-gate LCI, the export steam allocated by exergy (acrylic acid 83.6 %);
   propylene linked to propylene-pdh-1, toluene to btx-1, most other backgrounds gaps (D-012).
@@ -75,10 +79,8 @@ cheme validate                  # after every change
 cheme check                     # engineering-step gates (--write only at sign-off)
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
-cheme process propagate --fill  # the semi-batches, the stills, the recycles and their duties from the feeds
-cheme run scripts/balance.py    # the feeds, the absorber, the other temperatures and duties (then propagate again)
-cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year, vessel, jacket, vent (--svg)
-cheme process reactor-hazards   # thermal screening of the two semi-batches
-cheme process stills            # the strip and the rectification: cuts, purity, recovery, boil-up time, duties
+cheme process propagate --fill  # the reactors, the separators, the toluene recycle and the reactor duties from the feeds
+cheme run scripts/aa_balance.py # the feeds for 100 kt/a, the mixer and oxidiser temperatures, the compressor, absorber and column duties
+cheme run scripts/allocation_exergy.py  # the exergies of the LCA allocation (rerun when S27 changes)
 cheme assess lca --write        # the preliminary LCI
 ```
