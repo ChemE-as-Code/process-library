@@ -60,11 +60,14 @@ UNNAMED_REGISTRY_FLOWS = {
     "p-toluenesulfonyl-chloride-1/consumable:nitrogen": "nitrogen",
     "p-toluenesulfonyl-chloride-1/consumable:rinse-water": "water",
     "plastic-pyrolysis-1/feed:O2": "air",  # combustion oxygen from ambient air
+    "power-generation-1/consumable:scr-dilution-water": "water",  # the water of the 19 wt% aqueous ammonia
     "propylene-pdh-1/input:alumina": "aluminium-oxide",  # activated alumina adsorbent
     "propylene-pdh-1/input:dmds": "dimethyl-disulfide",
     "sodium-cyanide-1/consumable:bfw-export": "water",  # boiler feed water leaving as exported steam
     "sodium-cyanide-1/consumable:bfw-makeup": "water",
     "sodium-cyanide-1/consumable:phosphate-makeup": "phosphoric-acid",
+    "titanium-dioxide-1/consumable:scouring-salt": "sodium-chloride",  # rock salt
+    "titanium-dioxide-1/consumable:scouring-sand": "silicon-dioxide",  # silica sand
     "utility-flare/feed:O2": "air",  # combustion oxygen from ambient air
     "utility-wwtp/feed:O2": "air",  # oxygen of the aeration air
     "waste-incineration-1/feed:activated-carbon": "activated-carbon",
@@ -132,6 +135,7 @@ NO_REGISTRY_IDENTITY = {
     "styrene-1/consumable:inhibitor": "a phenolic polymerisation inhibitor, compound not named in the dataset",
     "terephthalic-acid-1/input:cobalt-catalyst": "cobalt catalyst, compound not named in the dataset",
     "terephthalic-acid-1/input:manganese-catalyst": "manganese catalyst, compound not named in the dataset",
+    "titanium-dioxide-1/consumable:still-oil": "a mineral oil of no fixed composition",
     "utility-instrument-air/feed:moisture": "the water vapour of the intake air, part of air",
     "utility-wwtp/feed:nitrogen": CONSUMER_STREAM,
     "utility-wwtp/feed:organics": CONSUMER_STREAM,
