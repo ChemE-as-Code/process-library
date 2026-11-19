@@ -3,12 +3,16 @@
 # (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
 # exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
 #
-# Linked here: the three raw materials to their Atlas producers, and the imported LP steam
-# counted as heat delivered (kWh). The other backgrounds stay gaps (lca/lca.yaml names the
-# activity each should connect to; DESIGN.md D-010).
+# Linked here: the three raw materials to their Atlas producers, the imported LP steam counted
+# as heat delivered (kWh) and the wash water to deionised water. Electricity, cooling water and
+# the effluent are linked by the shared lci/mappings.yaml (its electricity, cooling-water and
+# wastewater proxies). The purge stays a gap, as do the vent's zero acetic acid and vinyl acetate
+# (no biosphere identity); lca/lca.yaml names the activity each should connect to (DESIGN.md
+# D-010).
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:ETH": {dataset: {path: processes/ethylene-1/lca/dataset.yaml, product: "product:ETHYLENE"}, source: "the Atlas producer ethylene-1, polymer-grade ethylene (>= 99.95 mol%), the grade this feed takes (D-003)"}
   "feed:OXY": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GOXP"}, source: "the Atlas producer asu-1, GOX (99.7 mol% O2); its 31 bar(a) is let down to the loop's 12 bar(a) (D-003)"}
   "feed:ACF": {dataset: {path: processes/acetic-acid-1/lca/dataset.yaml, product: "product:HAC"}, source: "the Atlas producer acetic-acid-1, glacial acetic acid by methanol carbonylation (691 ppm water), the grade this feed takes (D-003)"}
+  "feed:DMW": {use: water, source: "demineralised wash water of the slip-gas scrubber C-104 by mass: the shared entry is water, deionised (D-006)"}
   "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to C-201's reboiler (Q9), net of the steam R-101 raises for the plant's other users, counted as heat delivered (kWh), D-008"}

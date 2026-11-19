@@ -12,6 +12,10 @@ README.md, process.yaml, lca/ and the benchmarks are checked against them:
 - the separators' outlets close on their inlets per component, and C-101's organic phase lies
   inside US 8 410 307 B2's composition;
 - R-101's heat covers the steam users but Q9, and Q1 is what is left after Q2, Q7 and Q11;
+  DESIGN.md's duty table matches every energy stream;
+- the script's vapour is the ideal-gas monomer of the formation enthalpies, every adiabatic
+  mixer closes its energy balance, the scrubbed gas holds the acid of the lean scrub acid,
+  C-101 takes off its aqueous phase and C-202's bottoms are drier than its side draw;
 - every heat stream reaches the LCI, the feeds are linked to their library producers, and the
   benchmark range follows from the patent's selectivities;
 - the process is public with CC-BY-4.0 and requires cheme-as-code 1.12.
@@ -19,7 +23,7 @@ README.md, process.yaml, lca/ and the benchmarks are checked against them:
 
 from __future__ import annotations
 
-import math
+import importlib.util
 from pathlib import Path
 
 import pytest
@@ -27,7 +31,6 @@ import yaml
 
 KIT = Path(__file__).resolve().parents[1]
 PROCESS = KIT / "processes" / "vinyl-acetate-1"
-R = 8.314462618
 
 
 def _load(rel: str) -> dict:
@@ -110,23 +113,23 @@ def test_the_stated_consumptions_and_the_product(streams, comps):
     assert vam_kg * 8000 / 1000 == pytest.approx(200_000, rel=1e-4)
     per = {s: streams[s]["flow"]["value"] / product for s in ("S1", "S4", "S7")}
     assert per["S1"] == pytest.approx(0.370, abs=5e-4)
-    assert per["S4"] == pytest.approx(0.701, abs=5e-4)
+    assert per["S4"] == pytest.approx(0.703, abs=5e-4)
     assert per["S7"] == pytest.approx(0.299, abs=5e-4)
     kg = _kg(streams["S33"], comps)
     assert kg["VAM"] / sum(kg.values()) == pytest.approx(0.9999, abs=5e-5)
-    assert kg["H2O"] / sum(kg.values()) * 1e6 == pytest.approx(95, abs=1)
+    assert kg["H2O"] / sum(kg.values()) * 1e6 == pytest.approx(90, abs=1)
     assert kg["H2O"] / sum(kg.values()) * 1e6 <= 100  # US 8 410 307 B2: <= 100 ppm water
     co2 = _kg(streams["S21"], comps)["CO2"] / product
-    assert co2 == pytest.approx(0.099, abs=5e-4)
+    assert co2 == pytest.approx(0.0995, abs=5e-5)
     eth_in = _kmol(streams["S1"], comps)["C2H4"]
     vam_out = _kmol(streams["S33"], comps)["VAM"]
-    assert vam_out / eth_in == pytest.approx(0.882, abs=5e-4)
+    assert vam_out / eth_in == pytest.approx(0.881, abs=5e-4)
     text = _text("process.yaml") + _text("README.md")
-    for stated in ("0.370 kg", "0.701 kg", "0.299 kg", "0.099 kg", "88.2 %", "99.99 wt%"):
+    for stated in ("0.370 kg", "0.703 kg", "0.299 kg", "0.0995 kg", "88.1 %", "99.99 wt%"):
         assert stated in text
 
 
-@pytest.mark.parametrize("node", ["C101", "C102", "A101", "C201", "C202"])
+@pytest.mark.parametrize("node", ["C101", "C102", "C104", "A101", "C201", "C202"])
 def test_separators_close_per_component(sheet, streams, comps, node):
     ins = [s["id"] for s in sheet["streams"] if s.get("to", "").startswith(node + ".") and s.get("kind") != "energy"]
     outs = [s["id"] for s in sheet["streams"] if s.get("from", "").startswith(node + ".") and s.get("kind") != "energy"]
@@ -156,11 +159,68 @@ def test_reactor_steam_and_the_import(streams):
     r101 = q1 + q2 + q7 + q11
     assert r101 == pytest.approx(23697, rel=2e-3)
     assert q9 > 0
-    assert q9 == pytest.approx(3031.9, abs=1)
-    assert "23.7 MW" in _text("README.md") and "3.03 MW" in _text("README.md")
+    assert q9 == pytest.approx(6182.2, abs=1)
+    assert "23.7 MW" in _text("README.md") and "6.18 MW" in _text("README.md")
     design = _text("DESIGN.md")
-    for sid in ("Q1", "Q2", "Q5", "Q9", "Q10", "Q11", "Q12"):
+    for sid in [f"Q{i}" for i in range(1, 14)] + ["P1"]:
         assert f"| {sid} | {_duty(streams, sid):.1f} |" in design, sid
+
+
+def _balance_module():
+    spec = importlib.util.spec_from_file_location("va1_balance", PROCESS / "scripts" / "balance.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_vapour_is_the_ideal_gas_monomer_of_the_formation_enthalpies(comps):
+    """The script's heats of vaporization are Hf(gas) - Hf(liquid) of chemicals 1.5.2 (CRC for
+    acetic acid and vinyl acetate, ATcT for water), on the gas values of materials.yaml: not the
+    heat of vaporization to acetic acid's associated vapour (23.4 kJ/mol)."""
+    hvap = _balance_module().HVAP_298
+    hf_liquid = {"ACOH": -484300.0, "VAM": -349200.0, "H2O": -285825.0}
+    for c, hl in hf_liquid.items():
+        assert hvap[c] == pytest.approx(comps[c]["ideal_gas"]["dHf_298"] - hl, abs=1.0), c
+
+
+@pytest.mark.parametrize("out, ins", [
+    ("S3", ("S1", "S2")), ("S8", ("S6", "S7")), ("S24", ("S22", "S23")),
+    ("S25", ("S14", "S17", "S31", "S37")), ("S29", ("S13", "S26")), ("S34", ("S38", "S27", "S30")),
+])
+def test_the_mixers_close_their_energy_balance(sheet, out, ins):
+    """Every mixer is adiabatic (no energy port): its outlet's temperature in the flowsheet gives
+    the inlets' enthalpy on the script's basis, within 5 kW."""
+    bal = _balance_module()
+    comps = {c["id"]: c for c in _load("process/materials.yaml")["components"]}
+    streams = {s["id"]: s for s in sheet["streams"] if s.get("kind") != "energy"}
+
+    def h(sid):
+        st = streams[sid]["state"]["design"]
+        phase = st.get("phase", {}).get("value", "vapor")
+        return bal.enthalpy(bal.kmol(streams[sid], comps), st["temperature"]["value"], phase, comps)
+
+    assert h(out) == pytest.approx(sum(h(s) for s in ins), abs=5.0)
+
+
+def test_the_scrubbed_gas_holds_the_acid_of_the_lean_scrub_acid(streams, comps):
+    """C-102's gas leaves near equilibrium with the lean acid S15 (0.43 mol% at 313 K by Dortmund
+    UNIFAC, DESIGN.md D-005), not below it; C-104 then washes 99 % of the slip's acid to C-201."""
+    gas = _kmol(streams["S16"], comps)
+    assert gas["ACOH"] / sum(gas.values()) == pytest.approx(0.0041, abs=1e-4)
+    slip, washed = _kmol(streams["S20"], comps), _kmol(streams["S36"], comps)
+    assert washed["ACOH"] / slip["ACOH"] == pytest.approx(0.01, rel=1e-3)
+
+
+def test_c101_takes_off_its_aqueous_phase_and_c202_is_driest_at_the_bottom(sheet, streams, comps):
+    """SRC-2's claim 1 step c: C-101's decanter's aqueous phase S38 is taken off (to the effluent);
+    C-202's bottoms S31 lie below the side draw S32 and are drier than it (D-005, D-007)."""
+    s38 = next(s for s in sheet["streams"] if s["id"] == "S38")
+    assert s38["from"] == "C101.aq" and s38["to"].startswith("M203.")
+    aq = _kmol(streams["S38"], comps)
+    assert aq["H2O"] / sum(aq.values()) > 0.98
+    x31, x32 = _kmol(streams["S31"], comps), _kmol(streams["S32"], comps)
+    assert x31["H2O"] / sum(x31.values()) < x32["H2O"] / sum(x32.values())
+    assert streams["S32"]["temperature"]["value"] == pytest.approx(361.3, abs=0.1)
 
 
 def test_every_heat_stream_reaches_the_lci(sheet):
@@ -197,7 +257,7 @@ def test_the_benchmark_range_follows_from_the_selectivities():
 
 def test_the_balance_script_cites_every_value_it_gives(sheet):
     cited = [s["id"] for s in sheet["streams"] if "scripts/balance.py" in str(s.get("state", ""))]
-    assert {"Q2", "Q3", "Q9", "Q13", "P1", "S2", "S8"} <= set(cited)
+    assert {"Q2", "Q3", "Q9", "Q13", "P1", "S2", "S3", "S8", "S24", "S25", "S29", "S34", "S37"} <= set(cited)
     q1 = next(s for s in sheet["streams"] if s["id"] == "Q1")
     assert q1["state"]["design"]["duty"]["provenance"] == "calculated"
 
@@ -209,11 +269,10 @@ def test_published_public_with_cc_by():
 
 def test_requires_core_1_12():
     assert _load("plant.yaml")["requires"] == "cheme-as-code>=1.12"
-    assert not math.isnan(R)
 
 
 def test_recycle_acid_inside_the_sources_range(streams, comps):
     kg = _kg(streams["S28"], comps)
     acid = kg["ACOH"] / sum(kg.values())
     assert 0.70 <= acid <= 0.95  # US 6 420 595 B1: 70-95 % acetic acid in water
-    assert acid == pytest.approx(0.929, abs=5e-4)
+    assert acid == pytest.approx(0.933, abs=5e-4)

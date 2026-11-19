@@ -30,8 +30,8 @@ description: |
   the reactor feed of the source. The cycle gas, the recycle acid and the dewatering column's
   bottoms are tear streams, and the separators are component splits (`recovery:`, ASSUMED).
   R-101's heat, 23.7 MW from the ideal-gas data (core ADR 0059), raises LP steam at 450 kPa(a)
-  for the saturator, the CO2 regenerator and both columns; only 3.03 MW more steam is imported.
-  Per kg of vinyl acetate: 0.370 kg ethylene, 0.701 kg acetic acid, 0.299 kg oxygen, 0.099 kg
+  for the saturator, the CO2 regenerator and both columns; 6.18 MW more steam is imported.
+  Per kg of vinyl acetate: 0.370 kg ethylene, 0.703 kg acetic acid, 0.299 kg oxygen, 0.0995 kg
   CO2 vented. See DESIGN.md for every assumption.
 families: [oxygenates]
 keywords: [vinyl acetate, VAM, vinyl acetate monomer, acetoxylation, ethylene, acetic acid, oxygen, palladium, gold, potassium acetate, fixed bed, multitubular reactor, boiling water, cycle gas, recycle gas, CO2 removal, hot potassium carbonate, purge, acetic acid scrubber, azeotropic distillation, dewatering column, design specification, recycle]
@@ -48,40 +48,45 @@ validation:
   status: unreviewed
   notes: >-
     Concept continuous PFD with closed mass, component and element balances (cheme validate,
-    cheme process streams: 3 blocks and 20 steps within tolerance). cheme process propagate
+    cheme process streams: 3 blocks and 21 steps within tolerance). cheme process propagate
     solves the feeds with four design specifications (200 kt/a of vinyl acetate; 65 mol%
     ethylene, 12.3 mol% acetic acid and 8.6 mol% oxygen in the reactor feed, from US 8 765 995
-    B2 Table 2; the ethylene held by the CO2 slip split, 0.340) together with three tear streams
+    B2 Table 2; the ethylene held by the CO2 slip split, 0.337) together with three tear streams
     (the cycle gas S2, the recycle acid S28, the dewatering column's bottoms S31), the
     conversion reactor R101 (9.61 % and 0.95 % of the inlet ethylene, from the same table's
-    space-time yield, GHSV and selectivity; the GHSV's normal conditions ASSUMED) and five
+    space-time yield, GHSV and selectivity; the GHSV's normal conditions ASSUMED) and six
     component separators with ASSUMED splits inside the compositions US 8 410 307 B2 and
-    US 6 420 595 B1 state. Propagate writes R101's duty on the elements basis from the
+    US 6 420 595 B1 state, the phase-equilibrium bounds checked with thermo's Dortmund UNIFAC
+    and vapour pressures. Propagate writes R101's duty on the elements basis from the
     ideal-gas data (chemicals 1.5.2 and a fit to thermo 0.6.1, which reproduce the source's
     heats of reaction, -176.6 and -1323 kJ/mol). scripts/balance.py gives every other duty and
     power on an ideal-gas and constant-liquid-heat-capacity basis (no property package of core
-    covers these liquids), the mixed reactor feed's and the compressor's temperatures; the
-    column duties rest on ASSUMED boil-ups. Preliminary gate-to-gate LCI with the ethylene,
-    acetic acid and oxygen linked to ethylene-1, acetic-acid-1 and asu-1 and the steam counted
-    as heat; electricity, cooling water, the purge's oxidation and the effluent's treatment are
-    gaps. No thermal screening by core applies to a cooled fixed bed without kinetics; the
+    covers these liquids), its heats of vaporization taken to the same ideal-gas monomer, and
+    the mixers' and the compressor's outlet temperatures; the column duties rest on ASSUMED
+    boil-ups. Preliminary gate-to-gate LCI; in the Atlas build the ethylene, acetic acid and
+    oxygen are linked to ethylene-1, acetic-acid-1 and asu-1, the steam counted as heat, the
+    wash water as deionised water, and electricity, cooling water and the effluent's treatment
+    through the shared proxies; the purge's oxidation and the vent's zero acetic acid and vinyl
+    acetate are the gaps. The catalyst's replacement is an open input (no open rate); the
+    carbonate's K2CO3 make-up and the inhibitor are cut off with their amounts. No thermal screening by core applies to a cooled fixed bed without kinetics; the
     oxygen and flammability reasoning is in DESIGN.md D-009. cheme maturity reaches no level
     (assumed splits); the claim `maturity: concept` is the lowest value of the schema, not an
     evidenced level. Not reviewed. Needs cheme-as-code 1.12.0.
 chemistry:
   inputs:
-    - {chemical: ethylene, role: feedstock, inventory_key: "feed:ETH", note: "Polymer-grade ethylene (ethylene-1), 0.370 kg/kg; 88.2 % of it ends in the product (91.0 % selectivity, the purge and the CO2 vent)"}
-    - {chemical: acetic-acid, role: feedstock, inventory_key: "feed:ACF", note: "Glacial acetic acid (acetic-acid-1), 0.701 kg/kg, 99.5 % of it to the product"}
+    - {chemical: ethylene, role: feedstock, inventory_key: "feed:ETH", note: "Polymer-grade ethylene (ethylene-1), 0.370 kg/kg; 88.1 % of it ends in the product (91.0 % selectivity, the purge and the CO2 vent)"}
+    - {chemical: acetic-acid, role: feedstock, inventory_key: "feed:ACF", note: "Glacial acetic acid (acetic-acid-1), 0.703 kg/kg, 99.3 % of it to the product"}
+    - {chemical: water, role: utility, inventory_key: "feed:DMW", note: "Demineralised wash water of the slip-gas scrubber C-104, 0.022 kg/kg, to the effluent through C-201"}
     - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "GOX 99.7 mol% (asu-1), 0.299 kg/kg"}
   outputs:
-    - {chemical: vinyl-acetate, role: main-product, inventory_key: "product:VAMP", note: "Vinyl acetate monomer, modelled 99.99 wt% with 95 ppm(wt) water, to inhibited storage"}
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:CO2V", note: "CO2 of the carbonate regenerator to atmosphere, 0.099 kg/kg, with 1.0 g/kg of co-absorbed ethylene"}
-    - {chemical: ethylene, role: waste, inventory_key: "product:PURGE", note: "Cycle-gas purge to the thermal oxidiser, 13.0 g/kg (70 wt% ethylene)"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Aqueous effluent to biological treatment, 0.256 kg/kg with 1.5 wt% vinyl acetate and 0.19 wt% acetic acid"}
+    - {chemical: vinyl-acetate, role: main-product, inventory_key: "product:VAMP", note: "Vinyl acetate monomer, modelled 99.99 wt% with 90 ppm(wt) water, to inhibited storage"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:CO2V", note: "CO2 of the carbonate regenerator to atmosphere, 0.0995 kg/kg, with 1.0 g/kg of co-absorbed ethylene"}
+    - {chemical: ethylene, role: waste, inventory_key: "product:PURGE", note: "Cycle-gas purge to the thermal oxidiser, 13.1 g/kg (70 wt% ethylene)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Aqueous effluent to biological treatment, 0.280 kg/kg with 1.5 wt% vinyl acetate and 0.65 wt% acetic acid"}
   utilities:
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.121 kWh/kg of LP steam 450 kPa(a) imported for C-201's reboiler; R-101's steam (0.948 kWh/kg) covers the rest of the plant's 1.07 kWh/kg"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.247 kWh/kg of LP steam 450 kPa(a) imported for C-201's reboiler; R-101's steam (0.948 kWh/kg) covers the rest of the plant's 1.20 kWh/kg"}
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.045 kWh/kg: cycle-gas compressor, carbonate and distillation pumps"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.34 kWh/kg removed by cooling water: C-101's condenser, the columns' condensers, the coolers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.38 kWh/kg removed by cooling water: C-101's condenser, the columns' condensers, the coolers"}
 basis:
   capacity: "200 kt/a vinyl acetate (25 t/h in 8000 h), ASSUMED normalisation basis (DESIGN.md D-002)"
   operating_hours_per_year: 8000
@@ -90,7 +95,7 @@ references:
   - {title: "Dafinger, W.; Holl, P.; Rudolf, G.; Schoenleben, M. (Wacker Chemie AG, priority 2009) US 8 765 995 B2: Process and apparatus for preparing vinyl acetate monomer (multitubular fixed-bed reactor with boiling-water cooling; 130-200 C, 1-30 bar; conversions per pass; heats of reaction; pilot tubes with feed composition, GHSV, space-time yield and selectivities in Tables 1 to 4)", url: "https://patents.google.com/patent/US8765995B2/en"}
   - {title: "Guenaltay, M.; Dafinger, W.; Holl, P. (Wacker Chemie AG, priority 2010) US 8 410 307 B2: Method for producing vinyl acetate (work-up: preliminary dewatering column at cycle-gas pressure, acetic acid cycle-gas scrubber, azeotropic column, dewatering column with the pure VAM side draw; 8-12 bar(a); compositions of the organic phases and the product)", url: "https://patents.google.com/patent/US8410307B2/en"}
   - {title: "Millennium Petrochemicals (priority 2001) US 6 420 595 B1: Process control for vinyl acetate manufacture (ethylene in excess, at least 60 mol% in the reaction section; the acid tower; CO2 removal by potassium carbonate on a slip stream of the recycle gas, removing almost half of its CO2; inerts purge)", url: "https://patents.google.com/patent/US6420595B1/en"}
-  - {title: "Bell, C. et al.: chemicals 1.5.2 and thermo 0.6.1 (MIT): ideal-gas formation enthalpies (ATcT, CRC), entropies, Poling et al. heat capacities, CRC heats of vaporization, liquid heat capacities; single values with the package named (library ADR 0037)", url: "https://github.com/CalebBell/chemicals"}
+  - {title: "Bell, C. et al.: chemicals 1.5.2 and thermo 0.6.1 (MIT): ideal-gas and liquid formation enthalpies (ATcT, CRC), entropies (CRC, Yaws), Poling et al. heat capacities, liquid heat capacities, vapour pressures, Dortmund UNIFAC; single values with the package named (library ADR 0037)", url: "https://github.com/CalebBell/chemicals"}
 lca:
   source: auto
 maintainers:

@@ -3,16 +3,19 @@
 # conventional atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa.
 #
 # Property sources (DESIGN.md source register SRC-5):
-# - ideal_gas: dHf_298 and S_298 as the `chemicals` 1.5.2 package gives them (ATcT for the light
-#   gases and water, the CRC Handbook's standard-state table for acetic acid and vinyl acetate),
-#   cp_R the Poling et al. (5th ed.) polynomials packaged there; vinyl acetate has no Poling
-#   polynomial: its cp_R is a cubic fitted by us (298 to 700 K, within 0.2 %) to thermo 0.6.1's
-#   TRCIG ideal-gas heat capacity (the TRC tables as thermo packages them), ASSUMED. Single
-#   facts with the package named, not open data (library ADR 0037); no table copied.
-# - normal boiling points and the heats of vaporization at the boiling point that
-#   scripts/balance.py uses (vinyl acetate 34.6, acetic acid 23.7, water 40.65 kJ/mol): the CRC
-#   Handbook values as packaged in `chemicals` 1.5.2 (CRC_organic_data, Hvap_data_CRC); light
-#   gases from the HEOS reference equations packaged there.
+# - ideal_gas: dHf_298 as the `chemicals` 1.5.2 package gives it (ATcT for the light gases and
+#   water, the CRC Handbook's standard-state table for acetic acid and vinyl acetate); S_298 the
+#   CRC Handbook's values packaged there, but for vinyl acetate, whose only packaged S_298 is
+#   Yaws's; cp_R the Poling et al. (5th ed.) polynomials packaged there; vinyl acetate has no
+#   Poling polynomial: its cp_R is a cubic fitted by us (298 to 700 K, within 0.2 %) to thermo
+#   0.6.1's TRCIG ideal-gas heat capacity (the TRC tables as thermo packages them), ASSUMED.
+#   Single facts with the package named, not open data (library ADR 0037); no table copied.
+# - normal boiling points: the CRC Handbook values as packaged in `chemicals` 1.5.2
+#   (CRC_organic_data); light gases from the HEOS reference equations packaged there. The heats
+#   of vaporization at 298.15 K that scripts/balance.py uses (acetic acid 52.1, vinyl acetate
+#   34.8, water 44.0 kJ/mol) are the differences of the same package's liquid and ideal-gas
+#   formation enthalpies from one source each (CRC, CRC, ATcT), so the vapour is the ideal-gas
+#   monomer of the dHf_298 below.
 # - The ideal-gas formation enthalpies give the heat of the acetoxylation at 298.15 K,
 #   -314.4 - 241.822 - 52.56 + 432.2 = -176.6 kJ/mol, and of the ethylene combustion -1323.2
 #   kJ/mol, the two values US 8 765 995 B2 states (SRC-1, -176 and -1324 kJ/mol): R101's duty,

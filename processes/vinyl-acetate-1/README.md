@@ -14,25 +14,32 @@ A continuous plant for vinyl acetate monomer by gas-phase acetoxylation of ethyl
 Wacker's patents US 8 765 995 B2 and US 8 410 307 B2: ethylene, acetic acid and oxygen react
 over a palladium-gold catalyst with potassium acetate in a multitubular fixed bed R-101 cooled
 by boiling water, C2H4 + CH3COOH + 0.5 O2 -> CH2=CHOOCCH3 + H2O, while part of the ethylene
-burns to CO2. The effluent is condensed in a preliminary dewatering column at loop pressure; the
-cycle gas is scrubbed with recycle acetic acid, 0.3 % of it purged, a third of it freed of CO2
-on hot potassium carbonate, and recompressed. An azeotropic column with a decanter and a
-dewatering column with the product side draw give 99.99 wt% vinyl acetate and the recycle acid.
+burns to CO2. The effluent is condensed and decanted in a preliminary dewatering column at loop
+pressure; the cycle gas is scrubbed with recycle acetic acid, 0.3 % of it purged, a third of it
+washed with water and freed of CO2 on hot potassium carbonate, and recompressed. An azeotropic
+column with a decanter and a dewatering column with the product side draw give 99.99 wt% vinyl
+acetate and the recycle acid.
 
 `cheme process propagate` solves the whole material balance: four design specifications
 (`specs:`, core ADR 0070) set the ethylene, oxygen and acid feeds and the CO2 slip for 200 kt/a
 and the source's reactor feed (65 mol% ethylene, 12.3 mol% acetic acid, 8.6 mol% oxygen),
-together with three tear streams (ADR 0060), the conversion reactor and five component
+together with three tear streams (ADR 0060), the conversion reactor and six component
 separators (`recovery:`). It writes R-101's heat from the ideal-gas data (ADR 0059): 23.7 MW,
-raised as LP steam that covers all but 3.03 MW of the plant's steam. Needs cheme-as-code 1.12.0.
+raised as LP steam that covers all but 6.18 MW of the plant's steam. Needs cheme-as-code 1.12.0.
 DESIGN.md lists the core features used and the core limits hit.
 
 Headline numbers and their caveats:
-- Per kg of vinyl acetate: 0.370 kg ethylene, 0.701 kg acetic acid, 0.299 kg oxygen;
-  0.099 kg CO2 vented, 13 g of purge gas to the thermal oxidiser, 0.256 kg aqueous effluent.
+- Per kg of vinyl acetate: 0.370 kg ethylene, 0.703 kg acetic acid, 0.299 kg oxygen, 0.022 kg
+  wash water; 0.0995 kg CO2 vented, 13 g of purge gas to the thermal oxidiser, 0.280 kg aqueous
+  effluent; 0.247 kWh of imported LP steam, 1.38 kWh to cooling water, 0.045 kWh of electricity.
 - The conversions per pass (9.61 % of the ethylene to vinyl acetate, 0.95 % burnt) come from the
   space-time yield, space velocity and 91.0 % selectivity of the patent's pilot tubes (D-004);
-  88.2 % of the ethylene ends in the product once the purge and the CO2 vent are counted.
+  88.1 % of the ethylene ends in the product once the purge and the CO2 vent are counted.
+- Every vapour is the ideal-gas monomer of the formation enthalpies R-101's duty uses: the heats
+  of vaporization are the differences of the packaged liquid and gas formation enthalpies
+  (D-008). Acetic acid's association in the vapour is left out (L-2).
+- The LCI leaves the catalyst's replacement as an open gap (no open rate) and cuts off the
+  carbonate's K2CO3 make-up and the product's inhibitor with their amounts (D-010).
 - The separators' splits, the purge and the columns' boil-ups are ASSUMED (D-005 to D-008); no
   property package of core covers these liquids, so every duty but R-101's comes from
   `scripts/balance.py` on an ideal-gas and constant-heat-capacity basis (L-1, L-2).
@@ -49,7 +56,7 @@ Headline numbers and their caveats:
 | `lca/` | the preliminary gate-to-gate LCI (`lca/lca.yaml`, `lca/mappings.yaml`; the rest written by `cheme assess lca --write`) |
 | `checks/checks.yaml` | engineering-step gates |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
-| `scripts/balance.py` | the duties and powers core does not calculate, and two temperatures (D-008) |
+| `scripts/balance.py` | the duties and powers core does not calculate, the mixers' and the compressor's outlet temperatures (D-008) |
 | `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works

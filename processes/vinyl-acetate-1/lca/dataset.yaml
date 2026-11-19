@@ -16,11 +16,25 @@ technology: Gas-phase acetoxylation of ethylene at 1000 kPa(a) and 423-438 K in 
   (Pd/Au with potassium acetate) cooled by boiling water raising LP steam at 450 kPa(a); reactor feed
   65 mol% ethylene, 12.3 mol% acetic acid, 8.6 mol% oxygen (US 8 765 995 B2 Table 2); effluent condensed
   in a preliminary dewatering column at loop pressure, cycle gas scrubbed with recycle acetic acid, 0.3
-  % purged to a thermal oxidiser, a third of it through a hot potassium carbonate CO2 removal, recompressed;
-  crude separated in an azeotropic column with decanter (recycle acid at the bottom) and a dewatering
-  column with the pure VAM side draw (US 8 410 307 B2); 200 kt/a in 8000 h
+  % purged to a thermal oxidiser, a third of it washed with water and passed through a hot potassium carbonate
+  CO2 removal, recompressed; crude separated in an azeotropic column with decanter (recycle acid at the
+  bottom) and a dewatering column with the pure VAM side draw (US 8 410 307 B2); 200 kt/a in 8000 h
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
+- key: cutoff:carbonate-make-up
+  title: K2CO3 make-up of the hot carbonate CO2 removal
+  amount: 3.375
+  reason: 'the carbonate consumed by the acid that passes the water wash C-104 (0.049 kmol/h, half a mole
+    of K2CO3 per mole of acid: 3.4 kg/h, 0.14 g/kg), leaving as potassium acetate with the bleed; 0.01
+    % of the input mass'
+  cas: 584-08-7
+  source: D-006; the acid from flowsheet stream S36
+- key: cutoff:inhibitor
+  title: Polymerisation inhibitor of the vinyl acetate product
+  amount: 0.5
+  reason: 'the product is stored inhibited (D-002, D-009); the inhibitor is not modelled: ASSUMED order
+    of 20 ppm by weight of the 200 kt/a, 0.0015 % of the input mass'
+  source: D-002, ASSUMED
 - key: emission-excluded:fugitive-losses
   title: equipment-leaks emissions of the plant
   direction: output
@@ -32,10 +46,12 @@ cutoff:
   reason: The breathing of the crude and product vinyl acetate tanks (nitrogen-blanketed, vented to the
     thermal oxidiser, ASSUMED) is not estimated (D-010).
 - key: emission-excluded:carbonate-bleed
-  title: storage-tank emissions of C-103
+  title: effluent emissions of C-103
   direction: output
-  reason: The bleed that keeps the potassium acetate of the carbonate solution below 4 wt% (US 6 420 595
-    B1) and the catalyst's potassium acetate make-up are not quantified at the concept stage (D-006, D-010).
+  reason: 'The liquid bleed that keeps the potassium acetate of the carbonate solution below 4 wt% (US
+    6 420 595 B1): about 38 t/a of potassium acetate from the 0.12 g/kg of acid the water wash leaves
+    in the slip (D-006), with its solution water; its organic load is not estimated at the concept stage
+    (D-006, D-010).'
 uuid: 05f92bf2-f64a-594d-93b0-c6f80f562924
 version: 0.1.0
 geography:
@@ -47,7 +63,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 200020000.0
+  amount: 200017600.0
   unit: kg/a
   source: product:VAMP per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -61,7 +77,7 @@ exchanges:
 - key: feed:ETH
   title: Ethylene (polymer grade, ethylene-1)
   type: input
-  amount: 9245.52
+  amount: 9248.11
   unit: kg
   link:
     source: flowsheet stream S1, 0.370 kg/kg (D-003, D-004)
@@ -84,7 +100,7 @@ exchanges:
 - key: feed:OXY
   title: Oxygen (GOX, asu-1)
   type: input
-  amount: 7476.2
+  amount: 7478.43
   unit: kg
   link:
     source: flowsheet stream S7, 0.299 kg/kg (D-003, D-004)
@@ -107,14 +123,14 @@ exchanges:
 - key: feed:ACF
   title: Acetic acid (glacial, acetic-acid-1)
   type: input
-  amount: 17530.1
+  amount: 17571.4
   unit: kg
   link:
-    source: flowsheet stream S4, 0.701 kg/kg (D-003, D-004)
+    source: flowsheet stream S4, 0.703 kg/kg (D-003, D-004)
     missing: 'linked to processes/acetic-acid-1 (lca/mappings.yaml): glacial acetic acid by methanol carbonylation'
   streams:
   - S4
-  source: flowsheet stream S4, 0.701 kg/kg (D-003, D-004)
+  source: flowsheet stream S4, 0.703 kg/kg (D-003, D-004)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -127,21 +143,45 @@ exchanges:
       H2O: H2O
       ACOH: C2H4O2
     source: stream table (S4)
+- key: feed:DMW
+  title: Demineralised wash water for the slip-gas scrubber C-104
+  type: input
+  amount: 540.0
+  unit: kg
+  link:
+    source: flowsheet stream S35, the wash water of the slip-gas scrubber C-104, 0.0216 kg/kg (540 kg/h
+      ASSUMED, D-006)
+    missing: 'linked in the Atlas LCI to deionised water (lca/mappings.yaml); connect to: demineralised
+      water from the site''s water treatment, per kg'
+  streams:
+  - S35
+  source: flowsheet stream S35, the wash water of the slip-gas scrubber C-104, 0.0216 kg/kg (540 kg/h
+    ASSUMED, D-006)
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      H2O: 1.0
+    formulas:
+      H2O: H2O
+    source: stream table (S35)
 - key: feed:LPS
   title: LP steam import 450 kPa(a)
   type: input
-  amount: 3031.9
+  amount: 6182.2
   unit: kWh
   link:
     source: 'flowsheet energy stream Q9: the part of C-201''s reboiler that R-101''s steam does not cover,
-      0.121 kWh/kg; R-101''s 23.7 MW cover T-101, the CO2 regenerator, C-202 and the rest of C-201 (D-008)'
+      0.247 kWh/kg; R-101''s 23.7 MW cover T-101, the CO2 regenerator, C-202 and the rest of C-201 (D-008)'
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
   streams:
   - Q9
   source: 'flowsheet energy stream Q9: the part of C-201''s reboiler that R-101''s steam does not cover,
-    0.121 kWh/kg; R-101''s 23.7 MW cover T-101, the CO2 regenerator, C-202 and the rest of C-201 (D-008)'
+    0.247 kWh/kg; R-101''s 23.7 MW cover T-101, the CO2 regenerator, C-202 and the rest of C-201 (D-008)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -155,13 +195,13 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 1120.3
+  amount: 1134.2
   unit: kWh
   link:
     source: flowsheet energy streams P1 (K-101), P2 (A-101's solution pumps) and P3 (the distillation
       pumps), 0.045 kWh/kg (D-008)
-    missing: 'not mapped yet (D-010); connect to: electricity, medium voltage, grid mix of the (undecided)
-      site country'
+    missing: 'linked in the Atlas LCI by the shared mapping (market for electricity, medium voltage),
+      D-010; connect to: electricity, medium voltage, grid mix of the (undecided) site country'
   streams:
   - P1
   - P2
@@ -178,7 +218,7 @@ exchanges:
 - key: product:VAMP
   title: Vinyl acetate monomer to storage
   type: product
-  amount: 25002.5
+  amount: 25002.2
   unit: kg
   provenance: calculated
   streams:
@@ -191,13 +231,13 @@ exchanges:
     phase: liquid
     pressure: 3.0
     temperature: 30.0
-    purity: 0.999547
+    purity: 0.999569
     basis: mole
     component: VAM
   composition:
     fractions:
-      VAM: 0.999905161
-      H2O: 9.4839e-05
+      VAM: 0.999909733
+      H2O: 9.0267e-05
     formulas:
       VAM: C4H6O2
       H2O: H2O
@@ -205,13 +245,13 @@ exchanges:
 - key: product:PURGE
   title: Cycle-gas purge to the thermal oxidiser
   type: output
-  amount: 324.168
+  amount: 327.009
   unit: kg
   provenance: calculated
   link:
     source: flowsheet stream S18, 0.013 kg/kg (D-006)
-    missing: 'not mapped yet (D-010); connect to: thermal oxidation (or flaring) of a hydrocarbon vent
-      gas, with the CO2 of its ethylene, per kg (processes/utility-flare)'
+    missing: 'not mapped (an Atlas gap, D-010); connect to: thermal oxidation (or flaring) of a hydrocarbon
+      vent gas, with the CO2 of its ethylene, per kg (processes/utility-flare)'
   streams:
   - S18
   source: flowsheet stream S18, 0.013 kg/kg (D-006)
@@ -225,14 +265,14 @@ exchanges:
       site's thermal oxidiser
   composition:
     fractions:
-      C2H4: 0.70438534
-      C2H6: 0.013734706
-      O2: 0.050084907
-      AR: 0.077564668
-      CO2: 0.151085536
-      H2O: 0.002181277
-      ACOH: 0.000672637
-      VAM: 0.00029093
+      C2H4: 0.698472056
+      C2H6: 0.013629282
+      O2: 0.049664774
+      AR: 0.076970127
+      CO2: 0.150884115
+      H2O: 0.002022833
+      ACOH: 0.008068327
+      VAM: 0.000288486
     formulas:
       C2H4: C2H4
       C2H6: C2H6
@@ -246,7 +286,7 @@ exchanges:
 - key: product:CO2V
   title: CO2 vent of the carbonate regenerator
   type: output
-  amount: 2518.38
+  amount: 2518.51
   unit: kg
   provenance: calculated
   streams:
@@ -258,11 +298,11 @@ exchanges:
   basic_uncertainty: 1.05
   composition:
     fractions:
-      C2H4: 0.010233093
-      C2H6: 0.000199533
-      O2: 0.000727616
-      AR: 0.001126833
-      CO2: 0.987712924
+      C2H4: 0.01016164
+      C2H6: 0.000198284
+      O2: 0.00072254
+      AR: 0.001119787
+      CO2: 0.987797749
     formulas:
       C2H4: C2H4
       C2H6: C2H6
@@ -273,29 +313,31 @@ exchanges:
 - key: product:WW
   title: Aqueous effluent to biological treatment
   type: output
-  amount: 6406.94
+  amount: 6990.05
   unit: kg
   provenance: calculated
   link:
-    source: flowsheet stream S34, 0.256 kg/kg (D-007)
-    missing: 'not mapped yet (D-010); connect to: treatment of industrial waste water in a biological
-      plant, per kg, with its organic load (processes/utility-wwtp)'
+    source: flowsheet stream S34, 0.280 kg/kg (D-005, D-007)
+    missing: 'linked in the Atlas LCI by the shared mapping (wastewater to treatment per kg, a unit proxy),
+      D-010; connect to: treatment of industrial waste water in a biological plant, per kg, with its organic
+      load (processes/utility-wwtp)'
   streams:
   - S34
-  source: flowsheet stream S34, 0.256 kg/kg (D-007)
+  source: flowsheet stream S34, 0.280 kg/kg (D-005, D-007)
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   treatment:
     kind: waste
-    route: biological treatment of the aqueous effluent (water with 1.5 wt% vinyl acetate and 0.19 wt%
-      acetic acid); a stripper recovering the vinyl acetate is a next-stage option (D-007)
+    route: 'biological treatment of the aqueous effluent (the water phases of C-101 and C-201 and C-202''s
+      top: water with 1.5 wt% vinyl acetate and 0.65 wt% acetic acid); a stripper recovering the vinyl
+      acetate is a next-stage option (D-007)'
   composition:
     fractions:
-      VAM: 0.014981932
-      H2O: 0.983135203
-      ACOH: 0.001882865
+      VAM: 0.014808731
+      H2O: 0.9786655
+      ACOH: 0.006525769
     formulas:
       VAM: C4H6O2
       H2O: H2O
@@ -304,14 +346,15 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 33557.9
+  amount: 34421.3
   unit: kWh
   link:
     source: 'flowsheet energy streams Q4, Q5, Q6, Q8, Q10, Q12 and Q13: effluent trim cooler, C-101''s
       condenser, the scrubber with its acid cooler, the regenerator''s condenser, the column condensers
-      and the product cooler, 1.34 kWh/kg (D-008)'
-    missing: 'not mapped yet (D-010); connect to: heat rejected to a recirculating cooling-water system
-      with cooling tower (processes/utility-cooling-tower), per kWh removed'
+      and the product cooler, 1.38 kWh/kg (D-008)'
+    missing: 'linked in the Atlas LCI by the shared mapping (cooling water service per kWh rejected, a
+      screening proxy), D-010; connect to: heat rejected to a recirculating cooling-water system with
+      cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
   - Q4
   - Q5
@@ -322,7 +365,7 @@ exchanges:
   - Q13
   source: 'flowsheet energy streams Q4, Q5, Q6, Q8, Q10, Q12 and Q13: effluent trim cooler, C-101''s condenser,
     the scrubber with its acid cooler, the regenerator''s condenser, the column condensers and the product
-    cooler, 1.34 kWh/kg (D-008)'
+    cooler, 1.38 kWh/kg (D-008)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -340,11 +383,17 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 'template component, zero in the vent: the carbonate keeps the acid as potassium acetate (D-006)'
+    source: 'template component, zero in the vent: the regenerator''s split (A101) sends no acid to the
+      vent; the water wash C-104 takes 99 % of the slip''s acid to C-201, and the 0.12 g/kg left passes
+      back to the loop with the treated gas (in a plant the carbonate takes it up as potassium acetate,
+      see the cut-off carbonate-make-up), D-006'
   cas: 64-19-7
   streams:
   - S21
-  source: 'template component, zero in the vent: the carbonate keeps the acid as potassium acetate (D-006)'
+  source: 'template component, zero in the vent: the regenerator''s split (A101) sends no acid to the
+    vent; the water wash C-104 takes 99 % of the slip''s acid to C-201, and the 0.12 g/kg left passes
+    back to the loop with the treated gas (in a plant the carbonate takes it up as potassium acetate,
+    see the cut-off carbonate-make-up), D-006'
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -358,7 +407,7 @@ exchanges:
 - key: emission:AR
   title: AR to the environment
   type: emission
-  amount: 2.837794243837557
+  amount: 2.8201952191778816
   unit: kg
   provenance: calculated
   free: true
@@ -379,7 +428,7 @@ exchanges:
 - key: emission:C2H4
   title: C2H4 to the environment
   type: emission
-  amount: 25.770816922543272
+  amount: 25.5921907045482
   unit: kg
   provenance: calculated
   link:
@@ -405,7 +454,7 @@ exchanges:
 - key: emission:C2H6
   title: C2H6 to the environment
   type: emission
-  amount: 0.5025007355957578
+  amount: 0.49938102993743505
   unit: kg
   provenance: calculated
   link:
@@ -429,13 +478,13 @@ exchanges:
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 2487.4364739788607
+  amount: 2487.778508863655
   unit: kg
   provenance: calculated
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: CO2 of the burnt fossil ethylene in R-101, desorbed in the carbonate regenerator, 0.099 kg/kg
+    source: CO2 of the burnt fossil ethylene in R-101, desorbed in the carbonate regenerator, 0.0995 kg/kg
       (D-006)
   cas: 124-38-9
   flow:
@@ -449,7 +498,7 @@ exchanges:
     unit: kg
   streams:
   - S21
-  source: CO2 of the burnt fossil ethylene in R-101, desorbed in the carbonate regenerator, 0.099 kg/kg
+  source: CO2 of the burnt fossil ethylene in R-101, desorbed in the carbonate regenerator, 0.0995 kg/kg
     (D-006)
   pedigree:
     scores: [3, 4, 1, 3, 3]
@@ -485,7 +534,7 @@ exchanges:
 - key: emission:O2
   title: O2 to the environment
   type: emission
-  amount: 1.8324141191626708
+  amount: 1.8197241826815984
   unit: kg
   provenance: calculated
   free: true
@@ -512,13 +561,15 @@ exchanges:
   link:
     elementary:
       subcompartment: non-urban-high-stack
-    source: 'template component, zero in the vent: the scrubbed cycle gas keeps 0.03 mol% and the carbonate
-      takes it up (D-006)'
+    source: 'template component, zero in the vent: the scrubbed cycle gas keeps 0.01 mol% vinyl acetate,
+      which passes the carbonate with the treated gas back to the loop (A101''s split sends none to the
+      vent), D-006'
   cas: 108-05-4
   streams:
   - S21
-  source: 'template component, zero in the vent: the scrubbed cycle gas keeps 0.03 mol% and the carbonate
-    takes it up (D-006)'
+  source: 'template component, zero in the vent: the scrubbed cycle gas keeps 0.01 mol% vinyl acetate,
+    which passes the carbonate with the treated gas back to the loop (A101''s split sends none to the
+    vent), D-006'
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -535,8 +586,8 @@ provenance:
   plant: Vinyl acetate monomer by gas-phase acetoxylation of ethylene (200 kt/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:c1b222b688d33af5fdb602dc2caab9a4bebd7ea6947394ac3f4767e9420b2c29
-    lca/lca.yaml: sha256:c2527e931b94193fd860872c4d3eb1e1fff7ebf046440677d547f33af2d42159
-    process.yaml: sha256:52b4a6adbd7bed348374cd172744f1f1355487e96bd579d8f3441c3f8ea65c91
-    process/flowsheet.yaml: sha256:084ed79dcccbb6b4ca0546dafac188be303e7308260ffb87b82e6eecf48b7f8a
-    process/materials.yaml: sha256:5055aba8674317371dbcb5790120a9cdfdcedd4eae475380f181c3e77deef7dc
+    equipment/equipment-list.yaml: sha256:cb207c69c4aa2352f9f564a9574398a8b1ebdf97c93c2b44c1ad7bb657b4bdbd
+    lca/lca.yaml: sha256:40ee9780a242ae319660ad29739bd4ac4a39b3f5fa13af41c88cae4acc318509
+    process.yaml: sha256:0a207ebaeb163d22312376b6ebf687c6a94418f0be774d6c7f32e89edca86eb1
+    process/flowsheet.yaml: sha256:3d226b633f26cb89f8906a2d4859a18c098a8ac3ea23c325b847e97a5d1f7dc0
+    process/materials.yaml: sha256:554b246e015b1fb1aaad6b47263484494b65a3b41a158f4f6e7a740bfa2c2879
