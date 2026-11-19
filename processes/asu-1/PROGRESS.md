@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-19 | lca/scenarios/*.json | `cheme assess lca-scenarios --write` on core v1.13.0 (b97a833): only the recorded core version changes from 1.12 to 1.13 in the three records, all calculation values and input fingerprints unchanged | core pin bump to v1.13.0: `lca-scenarios --check` (the validate job's "LCA scenario records current") failed |
 | 2026-11-18 | lca/scenarios/*.json | regenerated all three scenario records with core merge `0e85885`; only the recorded core version changes from 1.11 to 1.12, with all calculation values and input fingerprints unchanged | library CI pin after core#254; earlier records preserved before regeneration |
 | 2026-11-11 | checks/checks.yaml | the four P-04 offpage-not-on-edge accepts (core 1.11.0) marked temporary, pointing to process-library#430 (route the CW/CWR stubs to the sheet edge by hand, the owner's decision) | pin bump #421 |
 | 2026-11-05 | lca/manifest.json | Checked on the library's new core pin v1.7.0 (main PR #375, merged into drawing/plant-followups): layout model, lifting study, cable schedule, take-off, estimate, equipment cost and TEA current, BFD/PFD and LCA scenarios as main regenerated them; only the LCA manifest's generator version 1.5 -> 1.7 rewritten (results unchanged). Validate 0 errors, gates as on 1.5.0 | core pin v1.7.0 |

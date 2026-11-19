@@ -719,7 +719,12 @@ Core 1.7.0 refuses the 1.8 fields and 1.8.0 the 1.9 ones (`tears`, `energy_port`
   solvent, and the wash liquor is aqueous methanol.
 - L-9: **the gas dose has no ideal-gas data** (no `ideal_gas` for methyl nitrite in chemicals'
   ATcT set), so the warming of the gas that passes through R-102 is left out (a note; well under
-  0.05 kW); since core 1.9.0 the absorbed part's warming is in Q2 (0.48 kW, D-012).
+  0.05 kW); since core 1.9.0 the absorbed part's warming is in Q2 (0.48 kW, D-012). Core 1.13.0
+  reports this gap: `cheme.process-reactor` (warning) on R102, the gas MEONO of the dose S7
+  passing to the vent without `ideal_gas` data, its warming left out of the duty, the peak
+  cooling duty and the adiabatic balance. It is accepted in `checks/checks.yaml` with this
+  reason (validate then reports it as info). Closing it needs sourced ideal-gas data for methyl
+  nitrite (a heat capacity and an enthalpy of formation) in `process/materials.yaml`.
 - L-10 (resolved for the MTT in core 1.9.0, ADR 0058): **the default MTT can be a dissolved
   gas's boiling point** (methyl nitrite 261 K in R-102), below the process temperature; a hand
   `hazard.mtt` fixed it up to 1.8.0. The default now leaves the dosed and vented gases out and
@@ -727,9 +732,14 @@ Core 1.7.0 refuses the 1.8 fields and 1.8.0 the 1.9 ones (`tears`, `energy_port`
   failure can release is screened since core 1.12.0 (`dissolved_release`, ADR 0069: 0.330 kmol
   of methyl nitrite in R-102, D-018); its rate is not (no Henry constant). Still open: the products are not MTT candidates (ADR 0058), so in R-102 the default
   finds methanol only in the recycled mother liquor of the charge, not in what AZ forms (D-011).
-- L-11: **two coupled vessels.** R-101 makes the dose of R-102; the recipe aligns them with
-  `start.after`, but nothing checks that the two dosing times are equal or that the generator's
-  gas rate profile is the absorber's dose profile (both constant here by construction).
+- L-11 (resolved in core 1.13.0, ADR 0073): **two coupled vessels.** R-101 makes the dose of
+  R-102; the recipe aligns them with `start.after`, but nothing checked that the two dosing
+  times are equal or that the generator's gas rate profile is the absorber's dose profile (both
+  constant here by construction). Core 1.13.0 checks both: `cheme.process-coupled-dosing`
+  (info) finds that the share of the gas R101 has given off and the share R102 has dosed differ
+  by 0.00665 at most (at 10 h, the end of the dosing), and the recipe would warn
+  (`cheme.recipe-coupling`) if R-102's dose did not start in the batch's timeline with R-101's
+  dosing; it does not.
 - L-12 (resolved): `requires: cheme-as-code>=1.8` could not be written before the release (core
   main reported 1.7.0); core 1.8.0 is released and pinned, and plant.yaml requires it (now 1.9).
 - L-13: **the blocked-vent pressure is not screened.** The gas release at the MTSR is compared

@@ -166,9 +166,10 @@ fuel (0.005 kg per kg propylene, 75 kg/h) and combustion air (2.0 mol per mol pr
 destruction of every combustible (ASSUMED; SRC-3: 98 % or more, with supplemental fuel because
 97+ % of the gas is not combustible). The firebox and its boiler are one conversion step whose
 outlet is the stack at 473 K: cheme calculates the heat to steam, 4.06 MW. cheme's screening
-(`cheme process reactor-hazards`) gives 156 K for its largest single reaction (propylene burnt);
-the sum of its seven per-reaction rises, our estimate of the whole charge burning at once, is
-313 K from 298 K. Either way the off-gas's own CO and propylene do not reach an oxidation
+(`cheme process reactor-hazards`, core 1.13.0) gives 152 K for its largest single reaction
+(propylene burnt); the sum of its seven per-reaction rises, our estimate of the whole charge
+burning at once, is 306 K from 298 K. (Core 1.12.0 gave 156 K and 313 K: 1.13.0 screens the
+step at its outlet's 473 K instead of the feed's 298 K.) Either way the off-gas's own CO and propylene do not reach an oxidation
 temperature without preheat, so the fuel figure presumes a recuperative preheat of the off-gas
 to about 800 K (ASSUMED, not modelled; with no preheat the
 support fuel would be about an order of magnitude larger). Fuel nitrogen goes to N2 in the model:

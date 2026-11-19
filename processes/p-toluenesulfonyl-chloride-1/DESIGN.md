@@ -123,7 +123,8 @@ kJ/h), 799 MJ a batch (x 13.85 h) released at the dose's rate over the 4 h: 7990
 the model now takes it (D-015).
 Vessels (fill 0.8, H/D 1.2 enamelled, 1.0 for the Nutsche, ASSUMED): R-101 4 m3, given and not
 sized (core sizes it from R101's model alone, 2.04 m3, while R102's second acid portion adds
-1.16 m3 in the same vessel: 3.11 m3 of reaction mass, 78 % of 4 m3; L-1); Q-101 20 m3 (14.95 m3
+1.16 m3 in the same vessel: 3.20 m3 just after that charge, 80.04 % of 4 m3 and just over the
+fill fraction, then 3.11 m3 of reaction mass (S8), 78 %, once R102 has converted it; L-1); Q-101 20 m3 (14.95 m3
 of slurry, 75 %); F-101 20 m3 (sized by the slurry it takes in, D 2.94 m; its plate the filter
 area); DR-101 4 m3 (2.06 m3 of wet cake, 52 %), heated area 15 m2 (jacket and shaft of a paddle
 dryer, ASSUMED).
@@ -742,6 +743,10 @@ decided in D-017. Tried on scratch copies and not adopted: `hazard.mtt_from: bub
 `vapour.henry`, `heat_of_absorption` (ADR 0071); design specifications (ADR 0070) and the
 batch still's phases and cut conditions (ADR 0068): no recycle, no still.
 
+On core 1.13.0 (the library's pin b97a833) `propagate --check`, `recipe`, `reactors`,
+`reactor-hazards` and `crystallizers` give the same numbers as on 1.12.0; the one new finding is
+`cheme.recipe-vessel` at R-101 (R102's intake against the given vessel, ADR 0073; L-1).
+
 Core 1.10.0 part:
 
 | feature | where | ADR |
@@ -775,12 +780,21 @@ nothing is dosed as a gas; `hazard.reactions` (D-014); recycle `tears:` (ADR 006
 
 ## Core limits hit (for core issues)
 
-- L-1: a recipe vessel over `units` holding a batch step is sized from that step's model alone.
-  R102, a conversion step after R101 in the same vessel, adds the second acid portion (1.16 m3
-  a batch), so the sized 3.15 m3 would have held 3.11 m3 at 99 %. R-101's volume is given (4 m3)
-  and the check passes against R101's 2.04 m3 only. Core should size a `units` vessel from the
-  largest content of any of its steps (as it already does for a dryer's vessel), and check the
-  jacket against every step's duty.
+- L-1 (partly resolved in core 1.13.0, ADR 0073): a recipe vessel over `units` holding a batch
+  step is sized from that step's model alone. R102, a conversion step after R101 in the same
+  vessel, adds the second acid portion (1.16 m3 a batch), so the sized 3.15 m3 would have held
+  3.11 m3 of reaction mass at 99 %, and less than the 3.20 m3 just after the charge. R-101's
+  volume is given (4 m3). Core 1.13.0 checks what such a step takes in against a given vessel:
+  R102 takes in 3.202 m3 per batch (S6 and S7 by their components' liquid molar volumes, before
+  its conversion takes the mass to S8's 3.11 m3), 80.04 % of the 4 m3, just over its ASSUMED
+  fill fraction 0.8. `cheme validate` and `cheme process recipe` therefore report
+  `cheme.recipe-vessel` (warning) at CHLOROSULFONATE, and `process recipe` exits 1. Left open,
+  not silenced: the 4 m3 and the 0.8 are ASSUMED (D-003), and neither is changed to clear 2 L.
+  `vessel.size_from: steps` (ADR 0073) would size the vessel from every step's content
+  (4.0025 m3), and a larger standard vessel or a smaller batch would change the jacket's area,
+  the heat-up and cool-down times and so R-101's cycle, the plant's bottleneck. That choice
+  belongs to the next revision of D-003. Still open in core: the jacket is checked against the
+  batch step's duty only, not R102's.
 - L-2 (resolved in core 1.10.0): the semi-batch counted no heat of dilution or mixing of a dosed
   liquid: the H2SO4 and the sulfonic acids dosed into the quench heel release about 58 MJ per
   hour of flows (30 % of the quench's heat), which was missing from the model's duty, the jacket
@@ -848,6 +862,9 @@ nothing is dosed as a gas; `hazard.reactions` (D-014); recycle `tears:` (ADR 006
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
 ## Open inputs
+R-101's size: the given 4 m3 is 80.04 % full just after the second acid portion, over the
+ASSUMED fill fraction 0.8 (`cheme.recipe-vessel`, L-1); a vendor's standard enamelled size and
+its usable fill decide it.
 Kinetics, heats of reaction and the gas release rate (calorimetry), TD24 of the reaction mass and
 the product; the gas release rate of a runaway and R-101's emergency relief (D-014; the
 measurements and what each gates are listed in D-017); the HCl held up in R-101's hot acid (the

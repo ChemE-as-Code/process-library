@@ -234,10 +234,12 @@ oxidiser and the stack and needs an off-gas fan.
   inventory and leak detection belong to basic engineering.
 - PA dust and melt: combustible dust in flaking and bagging (outside), burns from the 433-523 K
   melt; the product tanks are blanketed with dry nitrogen against fire and hydrolysis (SRC-1).
-- `cheme process reactor-hazards` (core 1.12.0) screens both conversion steps with the whole
-  feed as accumulation: R101 dT_ad 2269.2 K and MTSR 2702.3 K with OX_CO2 governing (PA_FORM
-  alone 578.7 K and 1011.8 K); X301 dT_ad 95.6 K and MTSR 428.7 K (CO_OX, the largest single
-  reaction; all five together give the flowsheet's 161 K). MTT, TD24 and the
+- `cheme process reactor-hazards` (core 1.13.0) screens both conversion steps: R101 with the
+  whole feed as accumulation, dT_ad 2269.2 K and MTSR 2702.3 K with OX_CO2 governing (PA_FORM
+  alone 578.7 K and 1011.8 K); X301 with its outlet's unconverted reactants (5 %) at the
+  outlet's 494.1 K, dT_ad 93.2 K and MTSR 498.8 K (CO_OX, the largest single reaction; core
+  1.12.0 took the whole feed at the inlet's 333.15 K: 95.6 K and 428.7 K; all five together
+  give the flowsheet's 161 K). MTT, TD24 and the
   class stay open (info findings cheme.reactor-hazard-missing on R101 and X301). Read for a
   cooled gas-phase bed: the numbers say that the reactor gas holds far more reaction heat than
   it can take up (the total combustion of 80 g/Nm3 o-xylene would heat it by the 2269 K above), so
