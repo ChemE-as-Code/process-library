@@ -33,6 +33,12 @@
 # Example 3, bounds the dataset's yield from above (DESIGN.md D-002) and is a laboratory figure,
 # so it is not bound as a range. The stoichiometric floors are 0.614 kg tert-butyl chloride and
 # 0.856 kg dichlorodimethylsilane per kg TBSCl; they are limits, not ranges of real plants.
+# Sodium chlorate (sodium-chlorate-1, #512): the BREF LVIC-S 2007, Table 7.79 and Table 7.80, gives
+# the specific salt, process water and electricity of European plants; the dataset takes its
+# current efficiency and operating ranges from the same BREF. Salt and water follow from its own
+# balance. Electricity does only in part: the cells' power follows from the balance, but the
+# auxiliaries (0.30 of the 5.196 kWh/kg) are the midpoint of the BREF's own 100-500 kWh/t, so
+# that part of the electricity check is not independent of the dataset.
 schema: cheme-as-code/benchmarks/v1
 family: inorganic-chemicals
 
@@ -216,6 +222,51 @@ kpis:
           accessed: "2026-11-19"
         note: >-
           The minimum and maximum of the five EU chloride sites in 1999, per t of finished pigment (slightly more than TiO2); the dataset counts per kg of raw TiO2 before finishing. The dataset aims its ASSUMED excesses at these site averages (titanium-dioxide-1 DESIGN.md D-012), so the range checks plausibility, not an independent prediction.
+  naclo3-specific-salt:
+    title: Salt (NaCl) consumption per kg of sodium chlorate
+    unit: kg/kg
+    references:
+      - id: bref-lvics-2007-naclo3-salt
+        range: [0.55, 0.58]
+        basis: unallocated
+        note: "550-580 kg per t of sodium chlorate produced, against 549 kg in theory; higher with less pure salt."
+        conditions: {technology: "electrolysis of NaCl brine in chlorate cells with crystallisation, European plants", region: EU, year: 2004}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic-s_bref_0907.pdf
+          locator: "Section 7.13.3.1, Table 7.79"
+          kind: government
+          accessed: "2026-11-19"
+  naclo3-specific-electricity:
+    title: Electricity (AC) per kg of sodium chlorate
+    unit: kWh/kg
+    references:
+      - id: bref-lvics-2007-naclo3-electricity
+        range: [5.0, 6.0]
+        basis: unallocated
+        note: "5000-6000 AC kWh per t in total, typical use, depending on the current density: 4700-5200 for the electrolysis and 100-500 for other equipment. Not fully independent of the dataset, whose auxiliary power (0.30 kWh/kg) is the midpoint of the 100-500 kWh/t; without it the dataset's 4.90 kWh/kg would be below this range."
+        conditions: {technology: "electrolysis of NaCl brine in chlorate cells at 1.0-3.0 kA/m2 and 2.6-3.6 V, European plants", region: EU, year: 2004}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic-s_bref_0907.pdf
+          locator: "Section 7.13.3, Tables 7.79 and 7.80"
+          kind: government
+          accessed: "2026-11-19"
+  naclo3-specific-water:
+    title: Process water per kg of sodium chlorate
+    unit: kg/kg
+    references:
+      - id: bref-lvics-2007-naclo3-water
+        range: [0.4, 2.7]
+        basis: unallocated
+        note: "0.4-2.7 m3 of demineralised water or condensate per t of sodium chlorate (taken as 1 t per m3)."
+        conditions: {technology: "electrolysis of NaCl brine in chlorate cells with crystallisation, European plants", region: EU, year: 2004}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic-s_bref_0907.pdf
+          locator: "Section 7.13.3.1, Table 7.79"
+          kind: government
+          accessed: "2026-11-19"
 
 datasets:
   - process: phosphorus-tribromide-1
@@ -265,3 +316,14 @@ datasets:
       tio2-specific-coke: {expression: feed:COKE / product:TIO2P, per: product:TIO2P, reference: lvic-s-2007-table-3-10}
       tio2-specific-chlorine: {expression: feed:CL2 / product:TIO2P, per: product:TIO2P, reference: lvic-s-2007-table-3-9}
       tio2-specific-oxygen: {expression: feed:OXY / product:TIO2P, per: product:TIO2P, reference: lvic-s-2007-table-3-13}
+  - process: sodium-chlorate-1
+    dataset: sodium-chlorate-by-electrolysis-of-brine-in-undivided-cells-crystallisation-and-drying-6250-kg-h
+    conditions: {technology: "NaCl brine electrolysed in undivided cells with dichromate at 70 C, 2.5 kA/m2 and 3.0 V, reaction tanks, vacuum crystallizer heated by the cells' heat, centrifuge, fluidised-bed dryer, mother liquor recycled", basis: "concept balance, the BREF's current efficiency and ranges, ASSUMED voltage, crystallizer yield and liquor density (DESIGN.md D-005 to D-009)"}
+    kpis:
+      naclo3-specific-salt:
+        expression: feed:SALT / product:NACLO3P
+        per: product:NACLO3P
+        reference: bref-lvics-2007-naclo3-salt
+        out_of_range_reason: "The product stream is the dried crystal with its cake liquor's salts (99.6 wt% NaClO3, 0.28 wt% NaCl), so the salt per kg of product, 0.5499, lies 0.01 % under the BREF's 0.55 per kg of chlorate; per kg of NaClO3 in the product it is 0.552. The model's salt is pure NaCl with no losses but the product's and the bleed's chloride (D-005, L-3)."
+      naclo3-specific-electricity: {expression: feed:POWER / product:NACLO3P, per: product:NACLO3P, reference: bref-lvics-2007-naclo3-electricity}
+      naclo3-specific-water: {expression: feed:PW / product:NACLO3P, per: product:NACLO3P, reference: bref-lvics-2007-naclo3-water}

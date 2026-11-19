@@ -132,6 +132,7 @@ NO_REGISTRY_IDENTITY = {
     "propylene-pdh-1/input:catalyst": CATALYST,
     "propylene-pdh-1/input:phosphate": "a phosphate, compound not named in the dataset",
     "pvc-1/feed:STOPF": "the short-stop, a hindered-phenol antioxidant as a 30 wt% aqueous dispersion, compound not named in the dataset",
+    "sodium-chlorate-1/consumable:sodium-dichromate": "sodium dichromate, Na2Cr2O7: the registry's atomic weights have no chromium, so it cannot carry the entry yet (the LCI keeps it a gap)",
     "sodium-cyanide-1/consumable:hcn-stabiliser": "an acid stabiliser, compound not named in the dataset",
     "sodium-cyanide-1/consumable:pt-rh-gauze": CATALYST,
     "styrene-1/consumable:catalyst": CATALYST,

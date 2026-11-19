@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 128 public process folders: 88 engineering projects (a `plant.yaml` with a process
+The table lists 129 public process folders: 89 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -141,6 +141,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`silicon-carbide-1`](processes/silicon-carbide-1/) | Silicon carbide by the Acheson process (5000 kg/h crude SiC, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`soda-ash-1`](processes/soda-ash-1/) | Soda ash by the Solvay ammonia-soda process (1000 t/d light ash, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`sodium-azide-1`](processes/sodium-azide-1/) | Sodium azide by the hydrazine / methyl nitrite route: semi-batch absorption with gas vents, batch still, precipitation from the reaction liquor, filter-dryer and mother-liquor recycle (670 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
+| [`sodium-chlorate-1`](processes/sodium-chlorate-1/) | Sodium chlorate by electrolysis of brine in undivided cells with dichromate, reaction tanks, vacuum crystallisation heated by the cells' heat, centrifuging and drying, hydrogen a co-product (50 000 t/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, electrochemical cell, LCI dataset) |
 | [`sodium-cyanide-1`](processes/sodium-cyanide-1/) | Solid sodium cyanide from Andrussow HCN (6.25 t/h, 50 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`sodium-nitrite-1`](processes/sodium-nitrite-1/) | Sodium nitrite from ammonia oxidation and soda absorption (with sodium nitrate by inversion) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`styrene-1`](processes/styrene-1/) | Styrene by adiabatic dehydrogenation of ethylbenzene (300 kt/a, concept) | concept (DWSIM cross-check with an unqualified property package; not reviewed) | yes (BFD/PFD, flowsheet, simulation, LCI dataset) |
