@@ -273,10 +273,11 @@ def _hazard() -> dict:
 
 
 def test_vent_capacity_basis_and_sensitivity_are_recorded():
-    """D-006, D-011: the vent's 200 m3/h (ASSUMED) about twice the normal wet peak, its basis in
-    the node's source, the rate sensitivity recorded as a design finding; no TD24 estimated."""
+    """D-006, D-011, D-015: the vent's 400 m3/h (ASSUMED; 200 m3/h before D-015) covers every
+    accumulation up to the content's boiling point, its basis in the node's source, the rate
+    sensitivity recorded as a design finding; no TD24 estimated."""
     hazard = _hazard()
-    assert hazard["vent_capacity"] == 200 and hazard["provenance"] == "assumed"
+    assert hazard["vent_capacity"] == 400 and hazard["provenance"] == "assumed"
     assert "td24" not in hazard and "mtt" not in hazard
     # the normal peak before the vent condenser, from the recipe's rate past it
     past = 0.3817  # mol/s, cheme process recipe
@@ -321,7 +322,13 @@ def test_core_screens_the_reactor():
     gas = entry.gas_release
     assert gas["per_batch"] and gas["rate_m3_h"] == pytest.approx(133.4, abs=0.1)
     assert gas["noncondensable_m3_h"] == pytest.approx(38.36, abs=0.01)
-    assert gas["capacity_ratio"] == pytest.approx(0.67, abs=0.005)
+    assert gas["capacity_ratio"] == pytest.approx(133.4 / 400, abs=0.0005)
+    # core 1.12.0 (ADR 0069, D-015): the largest release over the batch, at 0.458 h, is above the
+    # one at the end of the dosing that D-011 took as the largest
+    over = gas["largest_over_batch"]
+    assert over["rate_m3_h"] == pytest.approx(179.2, abs=0.05)
+    assert over["time_s"] / 3600 == pytest.approx(0.458, abs=0.001)
+    assert over["rate_m3_h"] / 400 == pytest.approx(0.448, abs=0.0005)
     assert not [f for f in report.findings if f.level in ("warning", "error")]
     # the largest non-condensable release over the batch is at core's worst moment
     process, _ = load(PROCESS)
@@ -370,10 +377,11 @@ def test_downstream_links_this_product():
     assert "feed:K" not in mine  # potassium metal stays a gap (D-012)
 
 
-def test_requires_core_1_10_and_is_public():
-    assert _yaml("plant.yaml")["requires"] == "cheme-as-code>=1.10"
+def test_requires_core_1_12_and_is_public():
+    """tert-butanol's melting_point (D-016) needs core 1.12.0."""
+    assert _yaml("plant.yaml")["requires"] == "cheme-as-code>=1.12"
     assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}
-    assert "Needs cheme-as-code 1.10.0" in _text("README.md")
+    assert "Needs cheme-as-code 1.12.0" in _text("README.md")
 
 
 FREEZING_TBA = 298.3  # K, tert-butanol's fusion point (NIST WebBook, SRC-9)
@@ -407,14 +415,25 @@ def test_no_tert_butanol_condenser_on_coolant_below_its_freezing_point(model):
     tw, site = utilities["Tempered water"], utilities["Cooling water"]
     assert tw["supply_K"] == supply and tw["return_K"] == cw["utility"]["return_temperature"]["value"]
     assert site["supply_K"] < FREEZING_TBA and "exchanger only" in site["use"]
-    for duty in ("vent condenser E-104", "the still's condenser", "E-201", "E-202", "the sieve's condensers", "R-101's jacket"):
+    for duty in ("the still's condenser", "E-201", "E-202", "the sieve's condensers"):
         assert duty in tw["use"], duty
-    # the equipment list puts each tert-butanol condenser and R-101's jacket on the loop
+    # D-016: R-101's jacket and its vent condenser E-104 on their own hydrocarbon loop (U-302),
+    # at the same 303/313 K, no water in the metal's vessel
+    htf = utilities["R-101 heat-transfer fluid"]
+    assert (htf["supply_K"], htf["return_K"]) == (tw["supply_K"], tw["return_K"])
+    for duty in ("vent condenser E-104", "R-101's jacket"):
+        assert duty in htf["use"], duty
+    assert "E-104" not in tw["use"] and "every cooling duty of the plant but R-101's (D-016)" in tw["use"]
+    # the equipment list puts each tert-butanol condenser and R-101's jacket on a 303/313 K loop
     equipment = {e["tag"]: e for e in _yaml("equipment/equipment-list.yaml")["equipment"]}
-    for tag in ("E-104", "E-201", "E-202", "C-101", "R-101", "A-001"):
+    for tag in ("E-201", "E-202", "C-101", "A-001"):
         notes = equipment[tag]["notes"]
         assert "tempered water 303/313 K" in notes and "on cooling water" not in notes.lower(), tag
-    assert "U-301" in equipment
+    for tag in ("E-104", "R-101"):
+        notes = equipment[tag]["notes"]
+        assert "U-302's hydrocarbon heat-transfer fluid at 303/313 K" in notes, tag
+        assert "tempered water" not in notes and "on cooling water" not in notes.lower(), tag
+    assert "U-301" in equipment and "U-302" in equipment
     # the hazard review covers the frozen vent condenser, its trips and the relief for it
     design = _text("DESIGN.md")
     assert "**A blocked vent: frozen E-104.**" in design
