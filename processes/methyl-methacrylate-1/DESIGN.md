@@ -312,8 +312,9 @@ recycle tears with Wegstein, design specifications with followers, BFD/PFD gener
 - L-3: no column model with sourced vapour-liquid equilibria for MMA/methanol/water/acetone
   (a heteroazeotropic system), so the purification is a recovery separator.
 - L-4: `cheme process build` writes the mole fractions of the PFD's stream table to six
-  significant figures, so S13's sum is 0.9999989 and pyDEXPI warns
-  (`pydexpi_composition_fractions`); the calculated values in flowsheet.yaml sum to 1.
+  significant figures, so a stream's sum can fall short of 1 by about 1e-6 and pyDEXPI then
+  warns (`pydexpi_composition_fractions`; S13 did in the first build, no stream does in the
+  current one); the calculated values in flowsheet.yaml sum to 1.
 
 ## Open inputs
 

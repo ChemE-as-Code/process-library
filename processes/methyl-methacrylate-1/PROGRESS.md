@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-19 | lca/dataset.yaml, lca/manifest.json, DESIGN.md L-4 | LCA outputs rewritten after the last lca.yaml wording edit (ACH residue); L-4 says no stream now triggers the pyDEXPI sum warning | `cheme assess lca --check` current; `cheme validate` 0 warnings |
 | 2026-11-19 | library: REFERENCE.md | the folder counts corrected to the table (109 public folders, 69 engineering projects) and the missing wwtp-a2o row added | review of PR #525: the count was stale on main and the PR had only added one |
 | 2026-11-19 | README.md, process.yaml | the `cheme init` licence and skills text replaced by the library's (data CC BY 4.0, skills and scripts AGPL, public; skills not in git); SRC-1's assignee is Röhm GmbH (not Evonik) in process.yaml, DESIGN.md and reactions.yaml | review of PR #525 |
 | 2026-11-19 | DESIGN.md (register, SRC-5, D-004, D-011), scripts/mma_balance.py, process/flowsheet.yaml | SRC-5 names each value's method and underlying work (ATCT, CRC, YAWS, WEBBOOK, IAPWS-95, TRCIG/HEOS_FIT), not read, and the register no longer calls package values open data (ADR 0037); D-004 says ACH's gas value is Yaws'; CO in S8 added to the hazards; the flowsheet header names R-202 as the item lumped into R201 | review of PR #525 |
