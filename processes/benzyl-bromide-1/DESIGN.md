@@ -580,9 +580,14 @@ Decision: R-101's off-gas system (the vapour line to E-102, E-102, E-103 and A-1
 tail scrubber) is sized for 90 m3/h of gas with its vapour at the vessel's pressure,
 `hazard.vent_capacity: 90`, ASSUMED: 1.2 x the largest gas release of a cooling failure over the
 batch with the assumed rate law and the content's vapour (1.2 x 72.80 = 87.4 m3/h), rounded up
-to the next 5 m3/h. The release at the worst-accumulation moment's MTSR is then 0.66 of it
-(`cheme.reactor-hazard-vent`, info), the largest over the batch 0.81, the normal peak at the
-vessel 0.77. A first sizing of 75 m3/h took 1.2 x the worst-accumulation moment's 59.57 m3/h as
+to the next 5 m3/h. The release at the worst-accumulation moment's MTSR is then 0.66 of it, the
+largest over the batch 0.81, the normal peak at the vessel 0.77. Since core 1.12.0 the screening
+gives its own largest release over the batch (`gas_release.largest_over_batch`, core ADR 0069),
+and `cheme.reactor-hazard-vent` (info) quotes it: 66.27 m3/h 0.782 h into the dosing (its MTSR
+363.8 K, 0.322 mol/s of HBr, a vapour share of 0.516), 0.74 of the capacity (0.66 up to core
+1.11.0). It is below the 72.80 m3/h above because core caps each moment's vapour at what the
+reactions' heat there can evaporate (`heat_limited`), which the per-moment sweep of this entry's
+test does not; the capacity stays on the larger, uncapped figure. A first sizing of 75 m3/h took 1.2 x the worst-accumulation moment's 59.57 m3/h as
 the largest; it left 1.09 over the normal peak and 1.03 over the release 0.38 h into the
 dosing, so it is not kept. E-102 condenses about 14 kW at the normal peak (8.78 kW year average,
 11.8 kW over the 5.24 h of gas).
