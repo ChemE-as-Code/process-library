@@ -1,0 +1,76 @@
+# Reactions of bisphenol-a-1. Schema: `cheme schema process-reactions`. Liquid phase throughout.
+# Conversions are design inputs (DESIGN.md D-005, D-008, D-009): a conversion model, not kinetics.
+# In the condensation reactor R101 every reaction converts its share of the acetone fed (parallel,
+# as core's conversion model applies them to the inlet), the shares adding up to US 4 391 997 A's
+# 69 % acetone conversion and splitting it as that patent's Table I, example 3 (60/70/80 C):
+# 95.40 wt% p,p-, 3.80 wt% o,p-bisphenol A and 0.80 wt% others in the products, which per mole
+# of acetone are 94.868 % to p,p-, 3.779 % to o,p- and 1.354 % to the by-product lump (two
+# acetone per chroman). The heats of reaction are on the liquid basis at 298.15 K (D-006).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # --- R101: condensation over the promoted sulfonated resin ------------------------------------
+  - id: BPA_FORM
+    title: "p,p'-Bisphenol A from phenol and acetone"
+    equation: 2 C6H6O + C3H6O -> C15H16O2 + H2O
+    stoichiometry: {PHENOL: -2.0, ACETONE: -1.0, BPA: 1.0, H2O: 1.0}
+    phase: liquid
+    reversible: false
+    conversion:
+      key: ACETONE
+      value: 0.654587
+      provenance: assumed
+      source: >-
+        D-005: 69 % of the acetone converted (US 4 391 997 A, examples: about 69 % at a phenol to
+        acetone ratio of 10.7 and WHSV 7.3) times 94.868 % of it to p,p-bisphenol A (Table I,
+        example 3: 95.40 wt% of the products), applied to this plant's feed at a ratio of 10
+        (ASSUMED transfer of the laboratory result)
+    heat_of_reaction:
+      value: -72000.0
+      provenance: assumed
+      source: >-
+        D-006: from formation enthalpies at 298.15 K in chemicals 1.5.2 (single values, library ADR
+        0037): bisphenol A solid -368.6 kJ/mol (Hfs, CRC) plus its heat of fusion 26.84 kJ/mol
+        (Joback estimate) = -341.76 kJ/mol as liquid; phenol solid -165.1 (CRC) plus fusion 11.51
+        (CRC) = -153.59 kJ/mol as liquid; acetone liquid -248.4 (CRC); water liquid -285.825
+        (ATcT); -341.76 - 285.825 - 2(-153.59) - (-248.4) = -72.0 kJ/mol. The fusion enthalpies
+        are taken at 298.15 K (no correction); an ESTIMATE
+    catalyst: "sulfonated polystyrene-divinylbenzene resin (strong-acid cation exchanger), about 10 % of the acid sites modified with 2-mercaptoethylamine as the promoter (US 4 391 997 A)"
+    sources:
+      - "US 4 391 997 A (General Electric, 1983): ascending-temperature staged resin reactors, Table I"
+      - "US 5 723 688 A (Dow, 1998): phenol:acetone 2:1-45:1 (preferred 4:1-14:1), 45-85 C, promoted sulfonated resin"
+  - id: OPBPA_FORM
+    title: "o,p'-Bisphenol A (isomer by-product)"
+    equation: 2 C6H6O + C3H6O -> C15H16O2 + H2O
+    stoichiometry: {PHENOL: -2.0, ACETONE: -1.0, OPBPA: 1.0, H2O: 1.0}
+    phase: liquid
+    reversible: false
+    conversion: {key: ACETONE, value: 0.026074, provenance: assumed, source: "D-005: 69 % x 3.779 % (US 4 391 997 A, Table I, example 3: 3.80 wt% o,p-isomer)"}
+    heat_of_reaction: {value: -69640.0, provenance: assumed, source: "D-006: BPA_FORM's -72.0 kJ/mol less the gas-phase formation enthalpy difference of the two isomers in chemicals 1.5.2 (o,p -243.24 kJ/mol Joback, p,p -245.6 kJ/mol YAWS), 2.36 kJ/mol; ASSUMED the same on the liquid basis"}
+  - id: DIANIN_FORM
+    title: "By-products (chroman lump) from two phenol and two acetone"
+    equation: 2 C6H6O + 2 C3H6O -> C18H20O2 + 2 H2O
+    stoichiometry: {PHENOL: -2.0, ACETONE: -2.0, DIANIN: 1.0, H2O: 2.0}
+    phase: liquid
+    reversible: false
+    conversion: {key: ACETONE, value: 0.009339, provenance: assumed, source: "D-005: 69 % x 1.354 % of the acetone (US 4 391 997 A, Table I, example 3: 0.80 wt% others, carried as the chroman, two acetone each)"}
+    heat_of_reaction: {value: -144000.0, provenance: assumed, source: "D-006: ASSUMED twice BPA_FORM's heat (two condensations); no liquid formation enthalpy of the chroman in chemicals 1.5.2"}
+  # --- R301: isomerisation of the recycled mother liquor -----------------------------------------
+  - id: ISOM
+    title: "o,p'- to p,p'-bisphenol A over the resin"
+    equation: C15H16O2 -> C15H16O2
+    stoichiometry: {OPBPA: -1.0, BPA: 1.0}
+    phase: liquid
+    reversible: false
+    conversion: {key: OPBPA, value: 0.30, provenance: assumed, source: "D-008: ASSUMED 30 % of the o,p-isomer fed; US 4 391 997 A describes the ion-exchange isomerisation of the mother liquor (its stream 28) without a conversion"}
+    heat_of_reaction: {value: -2360.0, provenance: assumed, source: "D-006: the gas-phase formation enthalpy difference of the isomers in chemicals 1.5.2 (above), ASSUMED on the liquid basis"}
+  # --- M301: melting of the adduct crystals ------------------------------------------------------
+  - id: ADDUCT_MELT
+    title: "Adduct crystals melted into bisphenol A and phenol"
+    kind: phase-change
+    equation: C21H22O3 -> C15H16O2 + C6H6O
+    stoichiometry: {ADDUCT: -1.0, BPA: 1.0, PHENOL: 1.0}
+    phase: mixed
+    reversible: false
+    conversion: {key: ADDUCT, value: 1.0, provenance: assumed, source: "D-009: the washed adduct is melted completely before the phenol is stripped (US 5 723 688 A)"}
+    heat_of_reaction: {value: 35610.0, provenance: assumed, source: "D-007: US 6 960 697 B2, example 1: 0.4 million kcal/h heat of fusion for 15 161 kg/h of adduct, 1 674 720 kJ/h / 15 161 kg/h = 110.46 kJ/kg x 322.397 kg/kmol = 35.61 kJ/mol, read as the adduct's heat of fusion (dissociation into the liquid); a simulated figure, ASSUMED"}
