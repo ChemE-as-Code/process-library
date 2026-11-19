@@ -1,0 +1,58 @@
+# Markets of ammonia: what a consumer of anhydrous liquid ammonia links to in the Atlas LCI
+# database (code market:ammonia:RER). Schema: schemas/markets.schema.json; rules: docs/markets.md.
+#
+# ammonia-1 is the only Atlas producer, so the production mix has one supplier and stands for
+# the Atlas's own technology (natural-gas steam reforming, Haber-Bosch loop), not for the
+# region's actual production. A consumer whose ammonia input names the registry slug `ammonia`
+# (through process.yaml inventory_key) and no plant links here by default (prefer_atlas); the
+# consumers that pin ammonia-1 in their lca/mappings.yaml (link.dataset) keep that pin.
+#
+# Every number has a status and a source. The distance is an ASSUMED screening placeholder: no
+# open source with the delivery distance of merchant ammonia in Europe was read for this market.
+# Replace it with a cited value when one is found, and change its status.
+schema: cheme-as-code/markets/v1
+
+markets:
+  - product: ammonia
+    region: RER
+    layer: production-mix
+    title: Anhydrous liquid ammonia delivered by road tanker
+    consumption:
+      equals_production: true
+      reason: >-
+        No trade data is packaged (the terms of UN Comtrade and CEPII BACI are not yet checked
+        for redistribution under CC BY 4.0), so the consumption mix is taken equal to the
+        production mix.
+    suppliers:
+      - process: ammonia-1
+        technology: steam-reforming
+        production_volume:
+          value: 499774
+          unit: t/a
+          status: calculated
+          source: >-
+            ammonia-1 LCI dataset (processes/ammonia-1/lca/dataset.yaml): product:NH3 62471.8 kg
+            per hour of operation, times 8000 h/a (process.yaml basis.operating_hours_per_year),
+            rounded to the tonne.
+    distribution:
+      - mode: road-tanker
+        use: lorry
+        distance:
+          value: 100
+          unit: km
+          status: assumed
+          source: >-
+            ASSUMED one-way distance from the ammonia plant to the consumer by road tanker, the
+            same round screening placeholder as the merchant oxygen and nitrogen markets
+            (markets/oxygen.yaml): no open source with the delivery distance of merchant ammonia
+            in Europe was read. Ammonia also travels by rail, ship and pipeline, and a consumer on
+            the producer's site takes it over the fence; each would change this leg.
+        note: >-
+          A generic lorry: the background has no pressurised or refrigerated ammonia tanker
+          activity. Its ton kilometres carry the background's average load factor, which covers
+          the empty return.
+    losses: []
+    excluded:
+      - "Losses on the way (vapour vented or flared on loading, transfer and tanker venting): not estimated, as no open source with a value per delivery was read; none is counted, rather than an invented fraction."
+      - "The customer's storage, its vaporiser and the refrigeration or pressurisation of the stored ammonia: the consumer's own system."
+      - "The producer's refrigerated storage: ammonia-1's product leaves the plant dataset at the battery limit (stream S60)."

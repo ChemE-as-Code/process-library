@@ -1,0 +1,13 @@
+# ammonia-cracking-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Linked here: the ammonia to its Atlas producer ammonia-1 (directly, as acrylonitrile-1 and
+# caprolactam-1 link it; pinned although markets/ammonia.yaml now exists, DESIGN.md D-010). Electricity and
+# cooling water are linked by the shared lci/mappings.yaml (its electricity and cooling-water
+# proxies). The zero hydrogen and ammonia of the flue gas are elementary flows; the burner NOx is
+# an open exclusion in lca/lca.yaml.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:NH3": {dataset: {path: processes/ammonia-1/lca/dataset.yaml, product: "product:NH3"}, source: "the Atlas producer ammonia-1, anhydrous liquid ammonia (refrigerated at its battery limit; this feed is taken pressurised at 1500 kPa(a) and 293 K; the pumping from 110 kPa(a), about 49 kW electric, and the warming from 240 K, 4.10 MW, are counted by neither entry), kg for kg (D-003)"}
