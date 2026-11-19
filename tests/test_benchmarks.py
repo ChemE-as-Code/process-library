@@ -383,7 +383,7 @@ def test_report_sorts_and_counts() -> None:
     assert report["summary"] == {"kpis": 3, "by_status": {"inside": 2, "outside": 1}, "processes": {"a": {"inside": 2}, "b": {"outside": 1}}}
 
 
-# --- named constants (ADR 0040, #272) ---------------------------------------------------------
+# --- named constants (ADR 0041, #272) ---------------------------------------------------------
 
 LHV = {"ng-lhv": (50.0, "MJ/kg"), "steam": (3.0, "MJ/kg")}
 ENERGY = {"feed:NG": (2.0, "kg"), "feed:POWER": (10.0, "kWh"), "product:STEAM": (4.0, "kg"), "product:NH3": (1.0, "kg")}
@@ -425,6 +425,17 @@ def test_without_core_adding_different_units_names_core(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "chemeascode.foundation.units", None)  # import raises ImportError
     with pytest.raises(bm.ExpressionError, match="adds MJ and kWh, which needs core's foundation.units"):
         bm.compute("feed:NG * const:ng-lhv + feed:POWER", ENERGY, LHV)
+
+
+@pytest.mark.parametrize("first", ["ea", "tkm"])
+def test_adding_to_a_unit_without_pint_spelling_is_an_expression_error(first: str) -> None:
+    # ea and tkm have no Pint spelling: a sum that starts with one fails cleanly in either
+    # order, so the KPI is left unchecked instead of aborting the build
+    amounts = {"product:A": (1.0, first), "product:B": (1.0, "kg")}
+    with pytest.raises(bm.ExpressionError, match=f"adds {first} and kg"):
+        bm.compute("product:A + product:B", amounts)
+    with pytest.raises(bm.ExpressionError, match=f"adds kg and {first}"):
+        bm.compute("product:B + product:A", amounts)
 
 
 def _ng_constant(d: dict, **change) -> None:

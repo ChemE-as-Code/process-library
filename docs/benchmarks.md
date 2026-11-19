@@ -79,7 +79,7 @@ datasets:
 - **Constants.** A number in an expression has no unit. A quantity the dataset does not carry,
   such as a fuel's heating value or a steam enthalpy, is a named constant of the binding, with
   its value, unit, provenance and source, and the expression uses it as `const:<name>`
-  ([ADR 0040](adr/0040-benchmark-constants-with-units-and-sources.md)):
+  ([ADR 0041](adr/0041-benchmark-constants-with-units-and-sources.md)):
 
   ```yaml
       constants:

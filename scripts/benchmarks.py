@@ -6,7 +6,7 @@ KPIs, each with a unit and either reference ranges (a range, the conditions it h
 source) or a recorded ``no_open_reference``, and the datasets they apply to, each KPI as an
 expression over the dataset's exchanges (``feed:POWER / product:GOXP``) and the binding's named
 constants (``feed:NG * const:ng-lhv / product:NH3``: a heating value or enthalpy with its unit and
-source, ADR 0040). Rules in docs/benchmarks.md.
+source, ADR 0041). Rules in docs/benchmarks.md.
 
 - :func:`load` reads and checks the registry: schema, the family against the taxonomy, every
   binding naming a KPI and a reference that exist, every expression readable;
@@ -196,6 +196,8 @@ def compute(expression: str, amounts: dict[str, tuple[float, str]] | None = None
 def _factor(units: dict[str, int], target: dict[str, int], message: str) -> float:
     """The factor that turns a value in *units* into *target* (both linear units), through
     core; raise ExpressionError with *message* when they do not convert or core is missing."""
+    if any(u not in UNIT_SPELLING for u in (*units, *target)):  # ea, tkm: no Pint spelling
+        raise ExpressionError(message)
     try:
         factor = convert(1.0, units, unit_text(target, UNIT_SPELLING) if target else "dimensionless")
     except ExpressionError as failure:

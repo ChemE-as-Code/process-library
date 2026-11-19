@@ -1,4 +1,4 @@
-# 0040. A benchmark binding may name constants with a unit and a source
+# 0041. A benchmark binding may name constants with a unit and a source
 
 - **Status:** Proposed, 2026-11-19
 - **Deciders:** the owner, as the library's maintainer (drafted by an agent session for issue #272)
