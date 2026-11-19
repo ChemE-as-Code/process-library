@@ -648,9 +648,10 @@ def test_vacuum_still_main_cut_purity_and_recovery(model):
     assert "No column" in _text("DESIGN.md")
 
 
-def test_requires_core_1_10_and_records_the_change():
+def test_requires_core_1_12_and_records_the_change():
+    """Modelled on core 1.10.0 (D-015); R101's hazard.potential network needs 1.12.0 (D-016)."""
     plant = _yaml("plant.yaml")
-    assert plant["requires"] == "cheme-as-code>=1.10"
+    assert plant["requires"] == "cheme-as-code>=1.12"
     design = _text("DESIGN.md")
     assert "## D-015 Core 1.10.0" in design and "Core 1.10.0 part" in design
     for limit in ("L-9 (as benzyl-chloroformate-1 L-10): **resolved by core 1.10.0**", "L-12: **resolved by core 1.10.0**"):
@@ -663,7 +664,7 @@ def test_requires_core_1_10_and_records_the_change():
     ):
         assert limit in design, limit
     assert "L-14: **resolved" not in design
-    assert "Needs cheme-as-code 1.10.0" in _text("README.md") and "Needs cheme-as-code 1.10.0" in _text("process.yaml")
+    assert "Needs cheme-as-code 1.12.0" in _text("README.md") and "Needs cheme-as-code\n    1.12.0" in _text("process.yaml")
     assert "core 1.10.0" in _text("PROGRESS.md")
 
 
