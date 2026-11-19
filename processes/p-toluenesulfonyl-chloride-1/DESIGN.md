@@ -660,8 +660,9 @@ files are unchanged by this decision; the entry still needs only cheme-as-code 1
   latent heat and vapour pressure are not sourced (L-5). Q101's bubble point, 375.0 K, is above
   water's 373.12 K. Core's default, the lowest normal boiling point in the liquid (toluene for
   R101, water for Q101), is lower in both and stays.
-- **Q101's dissolved HCl (`dissolved_release`, `cheme.reactor-hazard-dissolved`, info) is not
-  a cooling-failure release.** Core reports up to 11.76 kmol (428.7 kg) of HCl held in the
+- **Q101's dissolved HCl (`dissolved_release`, `cheme.reactor-hazard-dissolved`, info): likely
+  not a cooling-failure release, but not yet shown; whether T-201 needs a caustic reserve for it
+  stays open** (restated after the review of PR #505). Core reports up to 11.76 kmol (428.7 kg) of HCl held in the
   quench liquor at 4.02 h, a batch, boiling at 188.2 K below the MTSR (298.2 K): the 90 % of
   the HCl formed that D-006 keeps dissolved (ASSUMED). It would far exceed the scrubber's normal
   excess of caustic, about 1.0 kmol a batch (S28's 1.3741 kmol/h of NaOH against S27's 1.3018
@@ -671,15 +672,23 @@ files are unchanged by this decision; the entry still needs only cheme-as-code 1
   hydrochloric acid is 1.95 kPa and over 20 wt% 1.40 kPa, below pure water's 2.34 kPa, and 10
   wt% acid boils at 103 C (Wikipedia, Hydrochloric acid, physical properties table, its vapour
   pressures from the International Critical Tables, read 2026-11-19, SRC-12; water's 2.339 kPa
-  at 293.15 K from CoolProp's IAPWS water, SRC-11). A warming of 10 K to the MTSR, about 75 K
-  below the liquor's boiling, therefore releases a small share of the dissolved HCl, and a
-  boiling liquor below the azeotrope gives off mostly water. Decision: no caustic reserve in
-  T-201 for the quench's dissolved inventory as a cooling-failure measure; the screened Q101
-  release keeps the ASSUMED 10 % vented share, which is the conservative side of this. Left
-  open: the HCl partial pressure over the real liquor (about 10.6 wt% H2SO4, 2.6 wt% HCl, 3.6
-  wt% NH4HSO4, 288 to 298 K), since the sulfuric acid raises the HCl's volatility by an amount
-  not read here; the dosing point, where the 100 % acid mass meets the heel, and the same
-  inventory's fate in the waste acid (D-010).
+  at 293.15 K from CoolProp's IAPWS water, SRC-11). These are total vapour pressures of the
+  binary HCl-water system, mostly water's: they bound the HCl's partial pressure over 10 to 20
+  wt% acid at 20 C from above and show a water-rich vapour below the azeotrope, but they do not
+  give the HCl partial pressure, and none is read here. They indicate that a warming of 10 K to
+  the MTSR, about 75 K below the liquor's boiling, releases a small share of the dissolved HCl,
+  and that a boiling liquor below the azeotrope gives off mostly water; for the binary acid, not
+  the real liquor. The real liquor holds about 10.6 wt% H2SO4 (with 2.6 wt% HCl and 3.6 wt%
+  NH4HSO4), and the sulfuric acid raises the HCl's volatility by an amount not read here.
+  Not decided: a caustic reserve in T-201 for the quench's dissolved inventory as a
+  cooling-failure measure. None is added to the model or the equipment list until the
+  measurement below gives the HCl partial pressure over the real liquor at 288 to 298 K: if the
+  HCl a cooling failure drives out of Q-101 (that partial pressure carried out by Q-101's vent
+  gas, or the share desorbed as the liquor warms 10 K) can exceed the scrubber's normal excess of
+  about 1.0 kmol a batch, T-201 needs a reserve (or a larger caustic charge) for it; if not, no
+  reserve. The screened Q101 release keeps the ASSUMED 10 % vented share. Also left open: the
+  dosing point, where the 100 % acid mass meets the heel, and the same inventory's fate in the
+  waste acid (D-010).
 - **The other new features have nothing to act on here.** No consecutive pair among the counted
   reactions (R101's SALT, SULP and SULO consume the feeds; R102's chlorination is a conversion
   step; Q101's TSHP and TSHO hydrolyse the dosed sulfonyl chlorides, not a product of HYD), so
@@ -710,8 +719,10 @@ files are unchanged by this decision; the entry still needs only cheme-as-code 1
     the dried product (DSC, then ARC): it gates the criticality class (none is stated) and
     whether the MTSR range of the scan (up to 420 K at k/100) reaches a decomposition.
   - The HCl held up in the hot acid in R-101 (D-005) and the HCl partial pressure over the
-    quench liquor (above): laboratory solubility or VLE data; the first gates the accumulation
-    measure of the interlocks, the second the dissolved-release decision.
+    quench liquor (above; about 10.6 wt% H2SO4, 2.6 wt% HCl, 3.6 wt% NH4HSO4, 288 to 298 K):
+    laboratory solubility or VLE data; the first gates the accumulation measure of the
+    interlocks, the second whether T-201 needs a caustic reserve for Q-101's 11.76 kmol of
+    dissolved HCl against its normal excess of about 1.0 kmol a batch (not decided until then).
   - Vendor data: the salt feeder's and the toluene pump's maximum delivery (their rate limits).
   - Human sign-off: the interlocks' set points, their SIL and their reliability (HAZOP, LOPA);
     the relief design; this decision's review (AGENTS.md: reviewed and merged by a human).
