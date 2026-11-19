@@ -15,10 +15,10 @@ boundary: gate-to-gate foreground of the plant
 technology: 'Two-stage catalytic CO2 methanation on nickel after the STORE&GO Falkenhagen demonstration:
   dry electrolytic hydrogen compressed to 1.53 MPa(a), CO2 let down from a 15.3 MPa dense-phase pipeline,
   mixed 4:1, preheated to 523 K, an oil-cooled honeycomb reactor at 623 K (92 % conversion), cooling to
-  283 K with water knock-out, an electric preheater and an oil-cooled fixed-bed polishing reactor at 513
-  K to equilibrium (99.81 % hydrogen conversion overall), cooling and knock-out, two adsorption dryers
-  and an injection compressor to 5.0 MPa(a); the reaction heat rejected through the thermal oil cooler
-  at a site without a heat user'
+  283 K with water knock-out (the condensate degassed in an atmospheric tank), an electric preheater and
+  an oil-cooled fixed-bed polishing reactor at 513 K to equilibrium (99.77 % hydrogen conversion overall),
+  cooling and knock-out, two adsorption dryers and an injection compressor to 5.0 MPa(a); the reaction
+  heat rejected through the thermal oil cooler at a site without a heat user'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:start-up-flaring
@@ -49,7 +49,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 290138.39999999997
+  amount: 289023.19999999995
   unit: kg/a
   source: product:SNG per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -63,7 +63,7 @@ exchanges:
 - key: feed:H2
   title: Hydrogen from the electrolysis plant (dry, 120 kPa(a))
   type: input
-  amount: 18.152
+  amount: 18.152172
   unit: kg
   link:
     source: flowsheet stream S1 (D-002, D-003)
@@ -91,7 +91,7 @@ exchanges:
 - key: feed:CO2
   title: CO2 from the dense-phase pipeline (15.3 MPa, carbon-capture-1)
   type: input
-  amount: 99.092
+  amount: 99.091173
   unit: kg
   link:
     source: flowsheet stream S3 (D-003)
@@ -109,6 +109,7 @@ exchanges:
     biogenic_fraction: 0.0
     source: 'carbon-capture-1: the CO2 stripper vent of a natural-gas ammonia plant, fossil carbon (its
       process.yaml)'
+  co2_source: fossil-point-source
   composition:
     fractions:
       CO2: 0.999795264
@@ -120,13 +121,14 @@ exchanges:
 - key: feed:POWER
   title: Electric power (AC, grid)
   type: input
-  amount: 46.08
+  amount: 46.85
   unit: kWh
   link:
     factor: desnz-ghg-2026:electricity-gb
-    source: 'flowsheet energy streams W1 (hydrogen compressor), W2 (balance of plant), W3 (electric preheater)
-      and W4 (injection compressor): the methanation unit''s 41 kW measured at this load (STORE&GO D5.9
-      Table 4-1) and 0.1 kWh/Nm3 for the injection (Table 4-2), D-006, D-008'
+    source: 'flowsheet energy streams W1 (hydrogen compressor), W2 (chiller, fans and pumps), W3 (electric
+      preheater) and W4 (injection compressor): computed part by part in scripts/balance.py with ASSUMED
+      efficiencies (41.8 kW for the methanation unit, against STORE&GO D5.9''s 41 kW measured as built,
+      Table 4-1) and 0.1 kWh/Nm3 for the injection (D5.9 Table 4-2), D-006, D-008'
     proxy: UK grid electricity (DESNZ 2026) for the undecided site's grid (DE assumed); the Atlas build
       links the library's shared entry `electricity` (medium voltage, site country) instead (lca/mappings.yaml)
   streams:
@@ -134,9 +136,10 @@ exchanges:
   - W3
   - W2
   - W4
-  source: 'flowsheet energy streams W1 (hydrogen compressor), W2 (balance of plant), W3 (electric preheater)
-    and W4 (injection compressor): the methanation unit''s 41 kW measured at this load (STORE&GO D5.9
-    Table 4-1) and 0.1 kWh/Nm3 for the injection (Table 4-2), D-006, D-008'
+  source: 'flowsheet energy streams W1 (hydrogen compressor), W2 (chiller, fans and pumps), W3 (electric
+    preheater) and W4 (injection compressor): computed part by part in scripts/balance.py with ASSUMED
+    efficiencies (41.8 kW for the methanation unit, against STORE&GO D5.9''s 41 kW measured as built,
+    Table 4-1) and 0.1 kWh/Nm3 for the injection (D5.9 Table 4-2), D-006, D-008'
   pedigree:
     scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -147,7 +150,7 @@ exchanges:
 - key: product:SNG
   title: Synthetic natural gas, 99 mol% CH4, dry, 5000 kPa(a), to the transport grid
   type: product
-  amount: 36.2673
+  amount: 36.1279
   unit: kg
   provenance: calculated
   streams:
@@ -159,18 +162,18 @@ exchanges:
   state:
     pressure: 50.0
     temperature: 40.0
-    purity: 0.990631
+    purity: 0.989917
     basis: mole
     component: CH4
   carbon:
-    total: 0.745496113
+    total: 0.746711048
     biogenic_fraction: 0.0
     source: composition and formulas
   composition:
     fractions:
-      H2: 0.000943087
-      CO2: 0.005198601
-      CH4: 0.993858312
+      H2: 0.001170801
+      CO2: 0.002286553
+      CH4: 0.996542646
     formulas:
       H2: H2
       CO2: CO2
@@ -179,7 +182,7 @@ exchanges:
 - key: product:COND
   title: Process condensate (reaction water) to treatment
   type: output
-  amount: 80.9767
+  amount: 80.9408
   unit: kg
   provenance: calculated
   link:
@@ -197,19 +200,46 @@ exchanges:
     source: composition and formulas
   treatment:
     kind: waste
-    route: process condensate (the reaction water, with traces of dissolved CO2) to the site's wastewater
-      treatment; its reuse as electrolyser feed water after polishing is an option not taken in this case
-      (D-007)
+    route: process condensate (the reaction water, degassed in the condensate tank; its dissolved gases
+      are counted in product:VENT) to the site's wastewater treatment; its reuse as electrolyser feed
+      water after polishing is an option not taken in this case (D-007)
   composition:
     fractions:
       H2O: 1.0
     formulas:
       H2O: H2O
     source: stream table (S15)
-- key: product:AMBIENT
-  title: Heat rejected to air and cooling water (intercoolers, product coolers, thermal oil cooler)
+- key: product:VENT
+  title: Gases released from the condensate at the condensate tank (CO2, CH4, H2), to atmosphere
   type: output
-  amount: 189.0
+  amount: 0.174177
+  unit: kg
+  provenance: calculated
+  streams:
+  - S20
+  source: 'released to the environment: counted by its emission:* exchanges'
+  pedigree:
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.05
+  carbon:
+    total: 0.342252776
+    source: composition and formulas
+  composition:
+    fractions:
+      H2: 0.000467812
+      CO2: 0.853534453
+      CH4: 0.145997735
+    formulas:
+      H2: H2
+      CO2: CO2
+      CH4: CH4
+    source: stream table (S20)
+- key: product:AMBIENT
+  title: Heat rejected to air and cooling water (intercoolers and aftercoolers, product coolers, thermal
+    oil cooler)
+  type: output
+  amount: 193.07
   unit: kWh
   free: true
   streams:
@@ -217,9 +247,10 @@ exchanges:
   - Q4
   - Q6
   - Q8
-  source: 'heat rejected to air and cooling water by the intercoolers (Q0), the product coolers (Q4, Q6)
-    and the thermal oil cooler (Q8), D-007, D-009: no burden; Q8 is the heat a user at about 180 C could
-    take (D-009)'
+  - Q9
+  source: 'heat rejected to air and cooling water by the hydrogen compressor''s coolers (Q0), the product
+    coolers (Q4, Q6), the thermal oil cooler (Q8) and the injection compressor''s coolers (Q9), D-006
+    to D-009: no burden; Q8 is the heat a user at about 180 C could take (D-009)'
   pedigree:
     scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -227,14 +258,166 @@ exchanges:
   carrier:
     kind: cold
     source: utility of AMBIENT in process/flowsheet.yaml
+- key: emission:CH4
+  title: CH4 to the environment
+  type: emission
+  amount: 0.02542944741531606
+  unit: kg
+  provenance: calculated
+  link:
+    elementary: {}
+    source: methane made from that CO2, dissolved in the condensate, S20 (D-007, D-011)
+  cas: 74-82-8
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: 0795345f-c7ae-410c-ad25-1845784c75f5
+    name: Methane, fossil
+    categories:
+    - air
+    unit: kg
+  streams:
+  - S20
+  source: methane made from that CO2, dissolved in the condensate, S20 (D-007, D-011)
+  pedigree:
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.5
+  carbon:
+    total: 0.748675435
+    source: formula
+  composition:
+    fractions:
+      CH4: 1.0
+    formulas:
+      CH4: CH4
+    source: stream table (S20)
+- key: emission:CO
+  title: CO to the environment
+  type: emission
+  amount: 0.0
+  unit: kg
+  provenance: calculated
+  link:
+    elementary: {}
+    source: a component of the vent's template, zero in it (the flowsheet carries no CO, L-2)
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  streams:
+  - S20
+  source: a component of the vent's template, zero in it (the flowsheet carries no CO, L-2)
+  pedigree:
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 5.0
+  carbon:
+    total: 0.428811139
+    source: formula
+  composition:
+    fractions:
+      CO: 1.0
+    formulas:
+      CO: CO
+    source: stream table (S20)
+- key: emission:CO2
+  title: CO2 to the environment
+  type: emission
+  amount: 0.14866607044156113
+  unit: kg
+  provenance: calculated
+  link:
+    elementary: {}
+    source: CO2 of the feed (carbon-capture-1's, fossil) dissolved in the condensate, S20 (D-007, D-011)
+  cas: 124-38-9
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: 349b29d1-3e58-4c66-98b9-9d1a076efd2e
+    name: Carbon dioxide, fossil
+    categories:
+    - air
+    unit: kg
+  streams:
+  - S20
+  source: CO2 of the feed (carbon-capture-1's, fossil) dissolved in the condensate, S20 (D-007, D-011)
+  pedigree:
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.05
+  carbon:
+    total: 0.272921448
+    source: formula
+  composition:
+    fractions:
+      CO2: 1.0
+    formulas:
+      CO2: CO2
+    source: stream table (S20)
+- key: emission:H2
+  title: H2 to the environment
+  type: emission
+  amount: 8.148214312281146e-05
+  unit: kg
+  provenance: calculated
+  link:
+    elementary: {}
+    source: hydrogen dissolved in the condensate, S20 (D-007)
+  cas: 1333-74-0
+  streams:
+  - S20
+  source: hydrogen dissolved in the condensate, S20 (D-007)
+  pedigree:
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.5
+  carbon:
+    total: 0.0
+    source: formula
+  composition:
+    fractions:
+      H2: 1.0
+    formulas:
+      H2: H2
+    source: stream table (S20)
+- key: emission:H2O
+  title: H2O to the environment
+  type: emission
+  amount: 0.0
+  unit: kg
+  provenance: calculated
+  free: true
+  cas: 7732-18-5
+  streams:
+  - S20
+  source: a component of the vent's template, zero in it (S20)
+  pedigree:
+    scores: [3, 4, 1, 1, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.5
+  carbon:
+    total: 0.0
+    source: formula
+  composition:
+    fractions:
+      H2O: 1.0
+    formulas:
+      H2O: H2O
+    source: stream table (S20)
 allocation: {}
 provenance:
   generator: cheme assess lca
   plant: e-Methane by two-stage CO2 methanation of electrolytic hydrogen (200 Nm3/h H2, 50.8 Nm3/h SNG)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:3dbff38db7cde0d3043f6d1e55735e8c28036395c52354608832e1779674d197
-    lca/lca.yaml: sha256:036a4394f13aedf9d7b2db91f2c9b58cdc715ff51780aa5ed661f8e18920bdc6
-    process.yaml: sha256:01cdb95ed9a15c5d3d4e104c94c6c4d392f7dd4a886a9a32909d68252ccd7f53
-    process/flowsheet.yaml: sha256:6198a5c11f92c4f85f0c28cfc937291495b680f998636bafa76d8cf4bf72b1ae
-    process/materials.yaml: sha256:0d5f1d6c2e722ccd73c8c1c9e6ffc469550a40d347a6d7c1e1a990a53ed5e57a
+    equipment/equipment-list.yaml: sha256:3d72cc600ea63a16b92a35fdbf8110abf099485cb9b69442015f9479b8bd28ff
+    lca/lca.yaml: sha256:e72651c67d33a196b1ec056615e1e1a92c884dbbe01bef330ef9ae5f6a9a54f7
+    process.yaml: sha256:1f33a1b8792d24cf783756ce8485ae137ec6bfbeb6b7fe23bacfb9f5dd08ac20
+    process/flowsheet.yaml: sha256:64d8a9262b5b4fdf9ab345f20ab4ccf10d095ba8bdac16bbea51d729ae336fb8
+    process/materials.yaml: sha256:8ff923eec49dbfe560fcdb1b82cb7c79bf056e7fb37575141986281e06fd38ac

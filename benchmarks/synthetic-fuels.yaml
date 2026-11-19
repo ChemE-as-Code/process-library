@@ -93,9 +93,9 @@ kpis:
     unit: kWh/t
     references:
       - id: storego-d59-2020-falkenhagen-power
-        range: [1121, 1402]
+        range: [1266, 1266]
         basis: unallocated
-        note: "Our derivation from the source's 0.8 kWh (methanation unit) and 0.1 kWh (injection) per m3 (STP) of SNG at the measured point, 0.9 kWh/m3, over e-methane-1's SNG density of 0.7134 kg/m3 (36.267 kg/h in 50.84 Nm3/h, 99.06 mol% CH4): 1262 kWh/t. The source rounds each figure to 0.1 kWh/m3, so the range is the rounding interval of the sum, 0.8 to 1.0 kWh/m3 (1121 to 1402 kWh/t), not a spread of plants. Not independent: e-methane-1 takes the 41 kW measured and the 0.1 kWh/m3 from this source; the check covers its arithmetic."
+        note: "Our derivation from the source's 0.8 kWh (methanation unit) and 0.1 kWh (injection) per m3 (STP) of SNG at the measured point, 0.9 kWh/m3, over e-methane-1's SNG density of 0.7110 kg/m3 (36.128 kg/h in 50.82 Nm3/h, 98.99 mol% CH4): 1266 kWh/t. One value, each figure rounded by the source to 0.1 kWh/m3, recorded as a zero-width range and not widened. The plant measured had the mixed feed compressed (section 2.1); the source gives 0.7 kWh/m3 for the methanation unit with a changed compressor configuration (section 4.1.2). Not independent: e-methane-1 takes the 0.1 kWh/m3 for injection from this source."
         conditions: {technology: "STORE&GO Falkenhagen as above; hydrogen and CO2 compressed to 14 bar in the methanation unit, injection into a transport grid above 45 bar", capacity: "200 Nm3/h H2", region: DE, year: 2019}
         source:
           citation: "Moers, F., Schlautmann, R., Gorre, J., Leonhard, R. (2020) D5.9 Final report on evaluation of technologies and processes. STORE&GO (EU Horizon 2020, grant 691797), DVGW, public deliverable"
@@ -129,13 +129,14 @@ datasets:
         out_of_range_reason: "The dataset's source delivers H2 at the plant pressure (no H2 compressor) and has no CO2 separator or PSA: its large recycle (total recycle about 5 times the fresh feed, section 4.3) is only recompressed across the 0.3 MPa loop pressure drop (sections 3 and 4.1). Zang et al. compress H2 from 20 bar and run a glycol CO2 recycle and a PSA. The dataset's value is also recovered from a rounded efficiency (lca dataset, feed:electricity)."
   - process: e-methane-1
     dataset: e-methane-by-two-stage-co2-methanation-of-electrolytic-hydrogen-200-nm3-h-h2-50.8-nm3-h-sng
-    conditions: {technology: "two-stage catalytic CO2 methanation (honeycomb reactor 92 %, fixed-bed polishing at equilibrium, 513 K), 1.5 MPa, adsorption drying, injection at 5.0 MPa; H2 dry at 120 kPa(a) compressed in the plant, CO2 let down from a dense-phase pipeline", basis: "concept design at STORE&GO Falkenhagen's 200 Nm3/h H2 point"}
+    conditions: {technology: "two-stage catalytic CO2 methanation (honeycomb reactor 92 %, fixed-bed polishing at equilibrium, 513 K), 1.5 MPa, adsorption drying, injection at 5.0 MPa; H2 dry at 120 kPa(a) compressed in the plant, CO2 let down from a dense-phase pipeline; the condensate degassed to air", basis: "concept design at STORE&GO Falkenhagen's 200 Nm3/h H2 point"}
     kpis:
       sng-specific-h2:
-        # the SNG's methane: 99.06 mol% CH4, 0.99387 kg CH4 per kg SNG (flowsheet stream S18)
-        expression: feed:H2 / (0.99387 * product:SNG)
+        # the SNG's methane: 98.99 mol% CH4, 0.99654 kg CH4 per kg SNG (flowsheet stream S18)
+        expression: feed:H2 / (0.99654 * product:SNG)
         reference: storego-d59-2020-falkenhagen-h2
       sng-specific-electricity:
         expression: feed:POWER / product:SNG
         per: product:SNG
         reference: storego-d59-2020-falkenhagen-power
+        out_of_range_reason: "The dataset computes its electricity part by part (e-methane-1 DESIGN.md D-006) with an ASSUMED compressor efficiency of 0.70 from 120 kPa(a) and an ASSUMED chiller COP and fan and pump power: 0.92 kWh/Nm3 against the source's 0.9 measured, 2 % above it; the source's figure is for the mixed feed compressed, and its 0.7 kWh/m3 for a changed compressor configuration is not reached under the dataset's assumptions."
