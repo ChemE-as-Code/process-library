@@ -17,6 +17,8 @@ converges the two recycles at declared tear streams (ADR 0060, D-006), the batch
 their duties (ADR 0059, D-012), and the screening takes the MTT of what boils and gives the gas
 release at the MTSR against a stated vent capacity (ADR 0058, D-011, D-017). The folder uses all
 three, so it requires 1.9 (see "Core features used").
+Rechecked (2026-11-19) on core **1.12.0** (0e85885) for #427: no input changed. The screening's
+largest release over the batch and its dissolved release feed the blocked-vent decisions of D-018.
 
 ## Source register
 
@@ -429,7 +431,10 @@ study of the next stage:
   of off-gas (`process recipe`). The vents are taken as 50 and 60 m3/h, and the gas a cooling
   failure releases at the MTSR is within them (29.4 and 6.3 m3/h); but with a vent blocked both
   vessels pressurise, so the acid dosing trips on either reactor's pressure and each reactor gets
-  a relief device to the thermal oxidiser (D-017).
+  a relief device to the thermal oxidiser (D-017). Core 1.12.0 adds R-101's largest release over
+  the batch (44.6 m3/h, the dosing itself) and R-102's dissolved methyl nitrite (0.330 kmol). The
+  trip at 50 kPa(g), the relief set points (R-101 70 kPa(g), below where methyl nitrite condenses
+  on the chilled wall; R-102 1.0 MPa(g)) and the design pressures, 1.0 MPa(g), are D-018.
 - **Thermal**: dry NaN3 decomposes at high temperature to sodium and nitrogen; no TD24 of the
   liquors or the solid was found and none is estimated (D-011). The still's residue (about 44 wt%
   NaN3 at the end, crystals once it precipitates), a concentrated azide / hydrazine caustic liquor, reaches about 360 K at
@@ -501,6 +506,136 @@ capacity (50 m3/h for R-101, 60 m3/h for R-102), the vessels' design pressure se
 dissolved methyl nitrite (1.98 % of the dose at the end of the dosing, about 0.33 kmol, at most
 about 8.6 m3 at 318.9 K) desorbing on a cooling failure (core#178 item 5, L-10), toxic and to the
 same vent.
+Amended 2026-11-19 by D-018: core 1.12.0's largest release over the batch, the dissolved release
+now screened, and the trip set point, relief set points, relieving rates and design pressures
+decided for the blocked vents.
+
+## D-018 Blocked vents on core 1.12.0: trip, relief and design pressure of R-101 and R-102 (2026-11-19)
+Issue process-library#427 (D-017 row). Rechecked on core **1.12.0** (0e85885; ADR 0069, 0071)
+with `cheme process reactor-hazards --json` and `cheme process recipe`; no input of the
+flowsheet changed.
+
+**What core 1.12.0 screens now** (per batch of the recipe, 101.3 kPa(a)):
+- Largest gas release over the batch (ADR 0069): R101 0.000507 kmol/s of methyl nitrite, 44.63
+  m3/h at 4.01 h (298.2 K), 0.893 times the 50 m3/h vent capacity (0.59 at the MTSR, D-017):
+  the normal dosing rate itself sets R-101's vent and its relief, not the cooling failure.
+  R102 6.34 m3/h of N2O and NH3 at 10 h (318.9 K), 0.106 times 60 m3/h, the same as at the MTSR.
+  Both `cheme.reactor-hazard-vent` info, within the vents.
+- Dissolved release (ADR 0069, `cheme.reactor-hazard-dissolved`, info): R-102 holds up to
+  0.330 kmol (20.1 kg) of dissolved methyl nitrite at the end of the dosing (10 h), boiling at
+  261.1 K, below the MTSR of 318.9 K: a cooling failure can desorb all of it, 8.64 m3 at 318.9 K
+  and 101.3 kPa(a). This was D-017's unscreened item (L-10); it is now a model result. With S14
+  open it passes the 60 m3/h vent if it desorbs over 8.6 min or longer; how fast it desorbs is not
+  known (no Henry constant of methyl nitrite in the caustic liquor, open). R-101 holds no dosed
+  gas (its methyl nitrite leaves as it forms; the dissolved share is not modelled, L-2).
+- Accumulation of each dosed reactant: R101 sulfuric acid 0.00963 at 10 h, 0.00881 of it still
+  able to react; R102 methyl nitrite 0.0198 (the single dosed reactant; unchanged).
+- Consecutive reactions (`hazard.potential: network`): none. AZ and SIDE compete for the
+  methyl nitrite (parallel, D-005); core reports no consecutive pair, so the MTSR stays AZ's.
+- `hazard.mtt_from: bubble-point`, tried on a scratch copy and **not adopted**: it needs
+  vapour data of sulfuric acid (R-101) and hydrazine (R-102) that the entry has from no read
+  source, and where it solved (R101 after NTG) it gives 374.9 K, 37 K above the default MTT
+  (methanol's 337.6 K). Raoult's law also leaves out the salting-out of methanol by the sulfate
+  and caustic liquors, which raises methanol's volatility (D-007, L-3), so an ideal bubble point
+  errs high, on the unsafe side. The default MTT stays (D-011).
+- Head space and inert sweep (ADR 0071): not used. Core holds the vessel at its stream pressure
+  (ADR 0071, option 3), so a head space does not give a blocked-vent pressure, and no sweep flows
+  during the dosing (D-017). Condenser freezing (`cheme.process-condenser-freezing`): R-101 and
+  R-102 have no vent condenser; the still's condensers are typed energy streams (Q4, Q5), not a
+  `condenser_port`, so core does not check them. Not a finding here.
+- Still not screened (REFERENCE.md, "The pressure of a blocked vent is not screened"; ADR 0069's
+  limits): a blocked vent's pressure, relief, two-phase flow and level swell. The cases below are
+  by hand from core's numbers (L-13).
+
+**Blocked-vent cases.** Ideal gas, the head space at the end of the dosing, the smallest: R-101
+6.3 m3 less 4.544 m3 is 1.756 m3, R-102 8 m3 less 5.712 m3 is 2.288 m3 (`cheme process
+recipe`). No gas dissolves (NH3 does dissolve in the liquor, so this is an upper bound):
+
+| case | gas (source) | rise |
+|---|---|---|
+| A. R-101, S7 blocked, acid still dosed | methyl nitrite 0.000507 kmol/s at 298.2 K (largest over the batch) | 0.715 kPa/s |
+| B. R-101, S7 blocked, acid tripped | NTG on the accumulated acid, 0.1607 kmol at 298.6 K | 227 kPa |
+| C. R-102, S14 blocked, absorbing, acid still dosed | off-gas 8.75e-5 kmol/s at 313.15 K (recipe peak) | 0.100 kPa/s |
+| D. as C, R-102 not absorbing as well (two failures) | plus R-101's methyl nitrite, 0.000594 kmol/s | 0.676 kPa/s |
+| E. R-102, S14 blocked, acid tripped, dissolved methyl nitrite desorbs | 0.330 kmol at 318.9 K | 382 kPa |
+| F. R-102, S14 blocked, acid tripped, all of it by SIDE (core's `formed_kmol`) | 0.660 kmol N2O and NH3 at 318.9 K | 765 kPa |
+
+Case F is core's bound. With the declared kinetics SIDE takes about 5 % of the methyl nitrite
+(0.834 kmol N2O against 16.7 kmol absorbed per batch), so most of the accumulated dose forms
+azide and no gas. Case E is the likelier worst.
+
+**Methyl nitrite condenses in a blocked R-101.** R-101's head space is close to pure methyl
+nitrite during the dosing: the nitrogen blanket is displaced early and no sweep flows (D-017).
+Its vapour pressure: thermo 0.6.1's `VaporPressure` for CAS 624-91-9 uses the LANDOLT Antoine set
+(Landolt-Börnstein as packaged, not read; valid 218-273 K), which gives 101.3 kPa at 255.6 K,
+against the 261.15 K normal boiling point in materials.yaml (CRC, SRC-5). Taken with Landolt's
+slope (B 2487.3 K, C -5.697 K) through 261.15 K at 101.3 kPa (ASSUMED, an extrapolation above
+273 K): 186 kPa(a) at 278.15 K (the jacket's chilled-water supply, the coldest wall), 219 kPa(a)
+at 283.15 K, 347 kPa(a) at 298.15 K. Landolt's set unshifted gives 231 kPa(a) at 278.15 K. So
+case B, about 125 + 227 = 352 kPa(a) in the closed head space, would put liquid methyl nitrite
+on the jacketed wall before the vessel reached it. That liquid is toxic and flammable, and can
+decompose explosively (D-015). Case B therefore decides R-101's relief set pressure, not its
+design pressure.
+
+Decisions (ASSUMED values; the P&ID, the HAZOP and the relief study confirm or change them):
+1. **Pressure trip of the acid dosing**: high pressure in R-101 or in R-102 closes the acid
+   valve and stops the acid dosing pump of R-101. The trip joins the trips D-011 names on R-102's
+   temperature, agitator and off-gas methyl nitrite. Set point 50 kPa(g) on both. R-101 runs at
+   about 24 kPa(g), R-102's pressure plus the sparger's submergence: about 1.75 m of liquor
+   (5.712 m3 in D 2.04 m), about 19 kPa at a density of about 1.1 t/m3 ASSUMED, plus the flame
+   arrester and line losses, not yet known. In case A R-101 reaches the set point about 37 s after
+   the blockage, and its relief set point about 65 s after it. The trip must therefore act within
+   tens of seconds. In case C R-101 sits about 20 kPa above R-102 and trips first, about 8 min
+   after the blockage. Its reliability (SIL) is not set here: LOPA or the HAZOP.
+2. **R-101 relief device** to the thermal oxidiser, set at 70 kPa(g) (171 kPa(a)). That is
+   below the 186 kPa(a) at which methyl nitrite condenses on the 278 K wall, so a blocked S7 vents
+   the gas rather than condensing it. Required relieving rate: case A with the trip failed,
+   0.000507 kmol/s (1.82 kmol/h, 111 kg/h of methyl nitrite), gas only: the MTSR of 298.6 K is
+   39 K below the MTT and no reaction mass boils. The 50 m3/h vent capacity at 101.3 kPa(a) is
+   2.04 kmol/h. With the trip acting (case B) this relief still lifts, venting about 0.15 kmol
+   (9 kg) of methyl nitrite to the same destination as the normal gas. The narrow margin (171
+   against 186 kPa(a)) holds only with the coolant at 278 K or warmer. A colder supply, or a cold
+   S7 line, needs a lower set point or a tempered jacket. Open.
+3. **R-102 relief device** to the thermal oxidiser through a catch pot. The catch pot is there
+   because liquor carried over from R-102 holds azide, which must not reach the oxidiser or
+   metal parts (D-015). The relief is set at the design pressure, 1.0 MPa(g). Required relieving
+   rate: the 60 m3/h vent capacity at 313.15 K, 2.33 kmol/h. That covers case D, R-102 not
+   absorbing with the trip failed (51 m3/h, D-017), and the 6.34 m3/h released at the MTSR. Gas
+   only with the declared kinetics: MTSR 318.9 K, below the MTT. With k/10 the MTSR of 352.9 K
+   is above it (D-011), and the content would boil: a two-phase (DIERS) case that only the lab
+   data below can size.
+4. **Design pressure 1.0 MPa(g) for R-102** (`design_pressure_barg: 10` in the equipment list).
+   After the trip at 50 kPa(g), R-102 must hold the blocked-vent cases without the relief
+   lifting: case F reaches about 0.82 MPa(g) (151 + 765 kPa(a)), case E about 0.43 MPa(g). That
+   keeps the toxic gases (methyl nitrite, NH3) in the vessel and out of the relief path for the
+   single failure. Rejected: a lower rating with the relief lifting on case E or F (a toxic
+   discharge on every blocked S14), and a rating for R-101's methyl nitrite going to R-102 as
+   well. R-101's relief caps R-101 at 171 kPa(a), so R-101 cannot push gas into R-102 once R-102
+   is above about 150 kPa(a).
+5. **Design pressure 1.0 MPa(g) for R-101 too**, one rating for the coupled pair. A leaking
+   non-return device on S7 would otherwise expose R-101 to R-102's case F pressure (0.82 MPa(g))
+   before R-101's relief acts. The relief study may lower it once that case is settled.
+
+**Open (needs data or sign-off; none of it is estimated here):**
+- Lab, reaction calorimetry with gas measurement (RC1 with a gas-flow meter, or a closed-cell
+  adiabatic test such as ARC or VSP2) on R-102's content at the end of the dosing with about 2 %
+  methyl nitrite accumulated, from 313 K through 340 K. It must give the non-condensable gas
+  formed per kmol of accumulated methyl nitrite, which decides between cases E and F and with
+  them the 1.0 MPa(g). It must also give the self-heat and gas rates at the relief set pressure,
+  which decide between a gas-only and a two-phase relief of R-102, and the relief's area. The
+  same data close D-011's kinetics and its k/10 case.
+- Lab: the Henry constant (or the solubility) of methyl nitrite in the caustic hydrazine liquor
+  from 313 to 320 K. It gives how fast case E desorbs, and whether S14's 60 m3/h passes it.
+- Lab or a read source: methyl nitrite's vapour pressure at 273-300 K. It replaces the
+  extrapolated 186 kPa(a) at 278 K and confirms R-101's 70 kPa(g) relief set point.
+- Design data: the off-gas line and the thermal oxidiser's back pressure, the flame arrester's
+  and the non-return device's pressure drop. They give R-101's normal pressure and the margin to
+  the 50 kPa(g) trip.
+- Relief study (human sign-off): device type (bursting disc, valve or both), sizes, the fire case
+  (not screened), the catch pot and the relief header.
+- HAZOP and LOPA (human sign-off): the trip's SIL and response time, and whether the double
+  failure D is credible. The C&E entry and the instrument tags follow with the P&ID.
+- Vendor: the vessels' rating, 1.0 MPa(g) in glass-lined or stainless steel at 6.3 and 8 m3.
 
 ## Core features used (core 1.8.0 and 1.9.0)
 
@@ -518,6 +653,7 @@ same vent.
 | `tears: [{stream, initial}]`, `convergence:` (1.9.0) | 0060 | S11 and S3: the two recycles converged by Wegstein's method, S3's flow held as a charge ratio (D-006) |
 | model duties on energy streams, `energy_port:` (1.9.0) | 0059 | Q1, Q2, Q3 (ST101 `energy_port: steam`) and Q6 written by propagate (D-012) |
 | default MTT of what boils, `gas_release`, `hazard.vent_capacity` (1.9.0) | 0058 | R101, R102: the MTT of methanol without `hazard.mtt` (in R-102 from the recycled methanol in the charge); the gas release at the MTSR against 50 and 60 m3/h (D-011, D-017) |
+| largest gas release over the batch, `dissolved_release`, `accumulations` (1.12.0, results only, no new input) | 0069 | R101's vent and relief rate (44.63 m3/h, 0.89 of 50 m3/h); R-102's dissolved methyl nitrite (0.330 kmol) as a blocked-vent case (D-018); `mtt_from: bubble-point` tried and not adopted (D-018) |
 
 Core 1.7.0 refuses the 1.8 fields and 1.8.0 the 1.9 ones (`tears`, `energy_port`,
 `hazard.vent_capacity`), so `plant.yaml` requires `cheme-as-code>=1.9`, the library's pin.
@@ -562,9 +698,9 @@ Core 1.7.0 refuses the 1.8 fields and 1.8.0 the 1.9 ones (`tears`, `energy_port`
 - L-10 (resolved for the MTT in core 1.9.0, ADR 0058): **the default MTT can be a dissolved
   gas's boiling point** (methyl nitrite 261 K in R-102), below the process temperature; a hand
   `hazard.mtt` fixed it up to 1.8.0. The default now leaves the dosed and vented gases out and
-  gives methanol's 337.63 K, and the hand value is removed (D-011). Still open: the gas release
-  of an accumulated, dissolved dose on a cooling failure (desorption) is not screened (core#178
-  item 5; D-017); and the products are not MTT candidates (ADR 0058), so in R-102 the default
+  gives methanol's 337.63 K, and the hand value is removed (D-011). The dissolved dose a cooling
+  failure can release is screened since core 1.12.0 (`dissolved_release`, ADR 0069: 0.330 kmol
+  of methyl nitrite in R-102, D-018); its rate is not (no Henry constant). Still open: the products are not MTT candidates (ADR 0058), so in R-102 the default
   finds methanol only in the recycled mother liquor of the charge, not in what AZ forms (D-011).
 - L-11: **two coupled vessels.** R-101 makes the dose of R-102; the recipe aligns them with
   `start.after`, but nothing checks that the two dosing times are equal or that the generator's
@@ -574,6 +710,12 @@ Core 1.7.0 refuses the 1.8 fields and 1.8.0 the 1.9 ones (`tears`, `energy_port`
 - L-13: **the blocked-vent pressure is not screened.** The gas release at the MTSR is compared
   with the vent's capacity (ADR 0058), but there is no head-space or relief model, so the
   pressure a blocked vent builds up in R-101 and R-102 is estimated by hand (ideal gas, D-017).
+  Still open on core 1.12.0: the largest release over the batch and the dissolved release (ADR
+  0069) give the gas, and the head space of ADR 0071 holds the vessel at its stream pressure. The
+  pressure, a relief set point or a condensing gas in a closed head space are not modelled, so
+  D-018's cases A to F are by hand. A candidate for a core issue: a closed head space's pressure
+  over time from the vent's gas rate, the dissolved release and the gas's vapour pressure at the
+  wall, against a set point.
 
 ## Method and dependency table
 
@@ -587,7 +729,7 @@ Core 1.7.0 refuses the 1.8 fields and 1.8.0 the 1.9 ones (`tears`, `energy_port`
 | recycles | done in cheme (tears S11 and S3, Wegstein); the fresh feeds' charge ratios ASSUMED | D-006 |
 | batch recipe, cycle time, basis check, vessels, jackets, filter and drying times | done in cheme | D-003, D-010 |
 | duties | done in cheme for R-101, R-102, the still's boil-up and the crystallizer; the condensers and the dryer typed from core's reports | D-012, L-7 |
-| vents: gas release at the MTSR against the vent capacity | done in cheme, capacities ASSUMED; the blocked-vent pressure by hand | D-017, L-13 |
+| vents: gas release at the MTSR and over the batch against the vent capacity, dissolved release | done in cheme (1.12.0), capacities ASSUMED; the blocked-vent pressure, trip and relief set points and design pressures by hand, ASSUMED | D-017, D-018, L-13 |
 | per-batch exchanges (nitrogen) | done in cheme, amount ASSUMED | D-013 |
 | LCI inventory | done, feeds linked, utilities and treatments gaps | D-013 |
 
@@ -599,5 +741,8 @@ pressure and the boiling point of the concentrated liquor (about 360 K estimated
 TD24; the hydrazine in the recovered methanol (its limit, D-015); filtration and drying data of
 the cake; the purge from impurity build-up; the jackets' U; the product specification; the fate
 of N2O in the thermal oxidiser; the azide-destruction step (hydrazine oxidised first, D-015); the
-vent lines' and relief devices' sizing and the vessels' design pressure (D-017); a TEA
+vent lines' and relief devices' sizing (the set points, relieving rates and design pressures
+are decided, ASSUMED, in D-018). D-018 lists the gas formed per kmol of accumulated methyl nitrite
+and the self-heat and gas rates at the relief pressure (calorimetry), the Henry constant and the
+vapour pressure of methyl nitrite, the back pressures, and the relief study and LOPA sign-offs. A TEA
 (`operation.batch: {recipe: true}`).
