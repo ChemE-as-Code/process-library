@@ -1,0 +1,51 @@
+# The reactions of power-generation-1 (DESIGN.md D-004, D-005). Schema `cheme schema
+# process-reactions`. The gas turbines' dry low-NOx combustors burn the pipeline gas completely
+# in the compressed air (12.0 mol% O2 left in the exhaust, NETL Case B31A stream 3). Heats of
+# reaction in kJ/kmol per extent as written, water as vapour, from the ideal-gas formation
+# enthalpies at 298.15 K in process/materials.yaml (ATcT via the chemicals package):
+# CH4 -74.534, C2H6 -83.780, C3H8 -104.390, n-C4H10 -125.850, CO2 -393.474, H2O(g) -241.822 kJ/mol.
+# CO (about 1 ppmv), unburnt methane, NOx and N2O are not in the balance: they are counted in the
+# LCA by emission factors (lca/lca.yaml, D-011).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CH4_OX
+    title: Combustion of methane
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1.0, O2: -2.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-004: complete combustion; NETL Case B31A stream 3 (Exhibit 5-8) carries no hydrocarbon and 1 ppmv CO (section 5.2.4.1)"}
+    heat_of_reaction:
+      value: -802584.0
+      provenance: calculated
+      source: "-393474 - 2 x 241822 + 74534 kJ/kmol: formation enthalpies of process/materials.yaml (ATcT via chemicals)"
+  - id: C2H6_OX
+    title: Combustion of ethane
+    equation: C2H6 + 3.5 O2 -> 2 CO2 + 3 H2O
+    stoichiometry: {C2H6: -1.0, O2: -3.5, CO2: 2.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: C2H6, value: 1.0, provenance: assumed, source: "D-004: complete combustion, as CH4_OX"}
+    heat_of_reaction:
+      value: -1428634.0
+      provenance: calculated
+      source: "2 x -393474 + 3 x -241822 + 83780 kJ/kmol: formation enthalpies of process/materials.yaml"
+  - id: C3H8_OX
+    title: Combustion of propane
+    equation: C3H8 + 5 O2 -> 3 CO2 + 4 H2O
+    stoichiometry: {C3H8: -1.0, O2: -5.0, CO2: 3.0, H2O: 4.0}
+    reversible: false
+    conversion: {key: C3H8, value: 1.0, provenance: assumed, source: "D-004: complete combustion, as CH4_OX"}
+    heat_of_reaction:
+      value: -2043320.0
+      provenance: calculated
+      source: "3 x -393474 + 4 x -241822 + 104390 kJ/kmol: formation enthalpies of process/materials.yaml"
+  - id: C4H10_OX
+    title: Combustion of n-butane
+    equation: C4H10 + 6.5 O2 -> 4 CO2 + 5 H2O
+    stoichiometry: {C4H10: -1.0, O2: -6.5, CO2: 4.0, H2O: 5.0}
+    reversible: false
+    conversion: {key: C4H10, value: 1.0, provenance: assumed, source: "D-004: complete combustion, as CH4_OX"}
+    heat_of_reaction:
+      value: -2657156.0
+      provenance: calculated
+      source: "4 x -393474 + 5 x -241822 + 125850 kJ/kmol: formation enthalpies of process/materials.yaml"

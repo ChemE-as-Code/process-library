@@ -1,0 +1,86 @@
+# Reactions of the methanol-to-olefins unit. Schema: `cheme schema process-reactions`.
+#
+# Reactor R101 is a lumped yield model, NOT kinetics (DESIGN.md D-005): one formation reaction
+# per product from methanol, each balanced in its elements, whose extents follow from the
+# step's `selectivity:` (flowsheet.yaml): the per-pass methanol conversion and the yield
+# structure of a UOP MTO fluidised bed on SAPO-34 (US 7 138 557 B2, Table 1, SRC-1), read as
+# shares of the methanol's carbon. Paraffins take the hydrogen that coke, dienes, CO and CO2
+# formation release; the hydrogen left over leaves with the product gas. Lumps: 1-butene for
+# the butylenes, 1,3-butadiene for the dienes, 1-pentene for C5+, carbon for the coke (D-005).
+#
+# DME_HYD (step R100) is a modelling device: the dimethyl ether recycled from the oxygenate
+# stripper is counted as the two methanol molecules it is made of before R101, i.e. recycled
+# DME is ASSUMED to give the same yields per carbon as methanol (D-006). REGEN burns the coke
+# in the regenerator R201 (complete combustion ASSUMED, D-007). CAUSTIC removes the CO2 in the
+# caustic tower T310 (D-009).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: MTO_C2H4
+    equation: 2 CH3OH -> C2H4 + 2 H2O
+    stoichiometry: {MEOH: -2, C2H4: 1, H2O: 2}
+    heat_of_reaction: {value: -29684.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+    sources: ["https://patents.google.com/patent/US7138557B2/en"]
+  - id: MTO_C3H6
+    equation: 3 CH3OH -> C3H6 + 3 H2O
+    stoichiometry: {MEOH: -3, C3H6: 1, H2O: 3}
+    heat_of_reaction: {value: -102996.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+    sources: ["https://patents.google.com/patent/US7138557B2/en"]
+  - id: MTO_C4H8
+    equation: 4 CH3OH -> C4H8 + 4 H2O
+    stoichiometry: {MEOH: -4, C4H8: 1, H2O: 4}
+    heat_of_reaction: {value: -164518.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+    sources: ["https://patents.google.com/patent/US7138557B2/en"]
+  - id: MTO_C5H10
+    equation: 5 CH3OH -> C5H10 + 5 H2O
+    stoichiometry: {MEOH: -5, C5H10: 1, H2O: 5}
+    heat_of_reaction: {value: -226710.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: MTO_C4H6
+    equation: 4 CH3OH -> C4H6 + 4 H2O + H2
+    stoichiometry: {MEOH: -4, C4H6: 1, H2O: 4, H2: 1}
+    heat_of_reaction: {value: -54488.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: MTO_CH4
+    equation: CH3OH + H2 -> CH4 + H2O
+    stoichiometry: {MEOH: -1, H2: -1, CH4: 1, H2O: 1}
+    heat_of_reaction: {value: -115656.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: MTO_C2H6
+    equation: 2 CH3OH + H2 -> C2H6 + 2 H2O
+    stoichiometry: {MEOH: -2, H2: -1, C2H6: 1, H2O: 2}
+    heat_of_reaction: {value: -166024.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: MTO_C3H8
+    equation: 3 CH3OH + H2 -> C3H8 + 3 H2O
+    stoichiometry: {MEOH: -3, H2: -1, C3H8: 1, H2O: 3}
+    heat_of_reaction: {value: -227756.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: MTO_C4H10
+    equation: 4 CH3OH + H2 -> C4H10 + 4 H2O
+    stoichiometry: {MEOH: -4, H2: -1, C4H10: 1, H2O: 4}
+    heat_of_reaction: {value: -290338.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: MTO_COKE
+    equation: CH3OH -> C + H2O + H2
+    stoichiometry: {MEOH: -1, COKE: 1, H2O: 1, H2: 1}
+    heat_of_reaction: {value: -41122.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6); coke taken as graphite (0 kJ/mol), ASSUMED (D-005)"}
+  - id: MTO_DME
+    equation: 2 CH3OH -> CH3OCH3 + H2O
+    stoichiometry: {MEOH: -2, DME: 1, H2O: 1}
+    heat_of_reaction: {value: -24442.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: MTO_CO
+    equation: CH3OH -> CO + 2 H2
+    stoichiometry: {MEOH: -1, CO: 1, H2: 2}
+    heat_of_reaction: {value: 90175.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: MTO_CO2
+    equation: CH3OH + H2O -> CO2 + 3 H2
+    stoichiometry: {MEOH: -1, H2O: -1, CO2: 1, H2: 3}
+    heat_of_reaction: {value: 49048.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6)"}
+  - id: DME_HYD
+    equation: CH3OCH3 + H2O -> 2 CH3OH
+    stoichiometry: {DME: -1, H2O: -1, MEOH: 2}
+    conversion: {key: DME, value: 1.0, provenance: assumed, source: "D-006: the recycled DME counted as methanol equivalents (modelling device for its conversion in R101)"}
+  - id: REGEN
+    equation: C + O2 -> CO2
+    stoichiometry: {COKE: -1, O2: -1, CO2: 1}
+    heat_of_reaction: {value: -393474.0, temperature: 298.15, provenance: given, source: "sum of the ideal-gas formation enthalpies at 298.15 K of materials.yaml (chemicals 1.5.2, SRC-6); coke taken as graphite (0 kJ/mol), ASSUMED (D-005)"}
+    conversion: {key: COKE, value: 1.0, provenance: assumed, source: "D-007: the coke burnt off completely (full combustion, no CO; US 6 166 282 A: regeneration to below 1 wt% carbon is possible), ASSUMED"}
+  - id: CAUSTIC
+    equation: CO2 + 2 NaOH -> Na2CO3 + H2O
+    stoichiometry: {CO2: -1, NAOH: -2, NA2CO3: 1, H2O: 1}
+    conversion: {key: CO2, value: 0.9999, provenance: assumed, source: "D-009: CO2 removed to a polymer-grade residue in the caustic tower, ASSUMED"}

@@ -1,0 +1,52 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Salicylic acid by the one-stage Kolbe-Schmitt carboxylation of dry sodium phenoxide, a batch
+# plant, issue ChemE-as-Code/process-library#507. Values marked ASSUMED are engineering choices
+# of this concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried salicylic acid crystals to packing at the battery limit
+  salicylic_acid_t_per_year: 1000      # ASSUMED (D-002): about one aspirin train's feed (acetylsalicylic-acid-1, in progress)
+  operating_hours_per_year: 7920        # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batches: "from the recipe (process/recipe.yaml, D-003); the kneader-reactor R-102 is the bottleneck"
+feeds:
+  - name: Phenol (acetone-1, molten)
+    source_of_values: ASSUMED (D-004)
+    composition: "phenol 100 % (impurities not modelled)"
+    conditions: {temperature_K: 343.15, pressure_kPa_a: 101.325}
+  - name: Caustic soda 50 wt% (chlor-alkali-1)
+    source_of_values: "US 4 376 867 A (25 to 55 % NaOH; Example I 40 %), ASSUMED 50 % as delivered (D-004)"
+    composition: "NaOH 50 wt% in water"
+  - name: Carbon dioxide (carbon-capture-1, let down from dense phase)
+    source_of_values: ASSUMED (D-004)
+    composition: "CO2 99.95 mol% (its water not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 700}
+  - name: Sulfuric acid 98.5 wt% (sulfuric-acid-1)
+    source_of_values: ASSUMED (D-004, D-007)
+  - name: Process water (dissolution, about 9 kg per kg of sodium salicylate, and the cake wash)
+    source_of_values: "US 4 376 867 A background (8 to 10 t per t), ASSUMED 9 (D-007)"
+products:
+  - name: Salicylic acid
+    purity: "the model's product is 99.7 wt% salicylic acid with sodium sulfate, phenol and water traces (D-008); the source states 99.5 % for the conventional work-up; colour, ash, 4-hydroxybenzoic acid and phenol limits of a pharmacopoeia grade not modelled (ASSUMED)"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 101.325, battery_limit: packing (bags or big bags; not in the boundary)}
+  - name: Sodium sulfate liquor to wastewater treatment
+    note: "the mother liquor after the second crop with the wash filtrate and the condensates, after phenol recovery: about 4.5 wt% sodium sulfate, dissolved salicylic acid, 4-hydroxybenzoic acid and the phenol not recovered (D-008, D-010)"
+  - name: CO2 vented
+    note: "the CO2 dosed but not taken up: the kneader's head space, about 0.48 kmol a batch at 500 kPa(a), let down after the hold (D-005)"
+utilities:
+  - {name: Electric power, use: "agitators, the kneader's drive, vacuum pumps, centrifuge, phenol recovery pumps (D-009)"}
+  - {name: HP steam, pressure_kPa_a: 4100, use: "the kneader's hot-oil circuit for drying the phenoxide to 463 K (D-009)", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the acidifier's dissolution water to 328 K, the product dryer, the phenol recovery (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the neutraliser, the kneader's hot-oil cooler during the carboxylation and the cool-down to 373 K, the condensers E-102 and E-202", note: ASSUMED}
+  - {name: Chilled water, supply_K: 278.15, return_K: 283.15, use: "the second-crop crystalliser at 298 K", note: "ASSUMED; from a refrigeration unit outside the boundary"}
+site:
+  location: ASSUMED generic fine-chemicals site with phenol, caustic, sulfuric acid and CO2 supply, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: the one-stage Kolbe-Schmitt carboxylation of dry sodium phenoxide at 463 K of US 4 376 867 A, Example I (D-001)."
+  - "Charge: 23.2 mol phenol per 23.0 mol NaOH (Example I), the recovered phenol counted in it; CO2 dosed over 5 h, 1 h hold at about 5 bar (Example I): the 0.890 mol per mol NaOH that reacts in Example I and the 0.020 mol that fills R-102's head space at an ASSUMED 500 kPa(a), let down to the vent after the hold (D-004, D-005)."
+  - "ASSUMED fast effective rate laws and heats of reaction (no open kinetics or calorimetry): NEUT -30, CARB and PARA -50 kJ/mol, the acidifications -60 kJ per mol of sulfuric acid (D-005, D-007)."
+  - "Solubility of salicylic acid in water at 0 to 100 C from Wikipedia's infobox, g/L taken as kg per kg of water, no salting-out by sodium sulfate (ASSUMED): first crop at 328 K, second crop at 298 K recycled (D-007)."
+  - "ASSUMED centrifuge 99.5 % solid recovery, 0.15 kg liquor per kg cake; nutsche 99 %, 0.3 kg/kg; wash 2.0 kg water per kg caustic; drying to 0.2 wt% (D-008)."
+  - "ASSUMED phenol recovery of 95 % from the collected liquors (solvent extraction and stripping, not modelled), LP steam 2 kWh per kg phenol recovered (D-008, D-009)."
+  - "All flows are year averages of the recipe (D-003); duties from core's models and scripts/balance.py (the condensers, the kneader's cool-down), the phenol recovery's steam and the drives' power concept estimates (D-009); accuracy +/-30 % not demonstrated."

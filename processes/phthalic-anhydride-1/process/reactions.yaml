@@ -1,0 +1,83 @@
+# Reactions of phthalic-anhydride-1. Schema: `cheme schema process-reactions`. Heats of reaction
+# from the ideal-gas formation enthalpies of materials.yaml at 298.15 K (gas basis). Conversions
+# are design inputs (DESIGN.md D-005, D-009): a conversion model, not kinetics. In the reactor
+# R101 every reaction converts its share of the o-xylene fed (parallel, as core's conversion
+# model applies them to the inlet), the shares adding up to the 99.9 % overall conversion.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  # --- R101: o-xylene oxidation over V2O5/TiO2 ------------------------------------------------
+  - id: PA_FORM
+    equation: C8H10 + 3 O2 -> C8H4O3 + 3 H2O
+    stoichiometry: {OX: -1.0, O2: -3.0, PA: 1.0, H2O: 3.0}
+    reversible: false
+    conversion:
+      key: OX
+      value: 0.790
+      provenance: assumed
+      source: >-
+        D-005: 79.0 mol% of the o-xylene to phthalic anhydride, 1.102 kg/kg; EP 0 574 855 A2
+        (background) gives about 78 % selectivity at virtually complete conversion, Jara et al.
+        2005 (section 4) 1.10 kg/kg with a graded bed, US 4 036 783 A 113.5 wt% in a laboratory
+        tube; ASSUMED within that range
+    heat_of_reaction: {value: -1115966.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}
+    catalyst: V2O5/TiO2 (anatase) coated rings with Cs, Sb, P promoters, in layers of graded activity
+    sources:
+      - "US EPA AP-42, 5th ed., section 6.5 Phthalic anhydride (1983, reformatted 1995): V2O5 catalyst, 340-385 C, molten-salt cooled tubular reactors"
+      - "EP 0 574 855 A2 (Air Products, 1993), background: 78 % selectivity, about 3.5 % maleic anhydride"
+      - "Jara, Garea, Irabien (2005), ESCAPE-15, MS-087: by-products and 1.10 kg PA per kg o-xylene"
+  - id: MA_FORM
+    equation: C8H10 + 7.5 O2 -> C4H2O3 + 4 CO2 + 4 H2O
+    stoichiometry: {OX: -1.0, O2: -7.5, MA: 1.0, CO2: 4.0, H2O: 4.0}
+    reversible: false
+    conversion: {key: OX, value: 0.035, provenance: assumed, source: "D-005: 3.5 % of the o-xylene to maleic anhydride, EP 0 574 855 A2 (background: about 3.5 % maleic anhydride), read as mol% of the feed (ASSUMED reading)"}
+    heat_of_reaction: {value: -2958584.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}
+  - id: BA_FORM
+    equation: C8H10 + 3 O2 -> C7H6O2 + CO2 + 2 H2O
+    stoichiometry: {OX: -1.0, O2: -3.0, BA: 1.0, CO2: 1.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: OX, value: 0.005, provenance: assumed, source: "D-005: 0.5 % to benzoic acid, ASSUMED; Jara et al. 2005 (section 2) and AP-42 6.5 (Table 6.5-1 notes) name benzoic acid among the by-products, US 3 965 126 A finds 1-1.5 wt% of it in the off-gas wash; no share was found"}
+    heat_of_reaction: {value: -1190218.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}
+  - id: OX_CO2
+    equation: C8H10 + 10.5 O2 -> 8 CO2 + 5 H2O
+    stoichiometry: {OX: -1.0, O2: -10.5, CO2: 8.0, H2O: 5.0}
+    reversible: false
+    conversion: {key: OX, value: 0.094, provenance: assumed, source: "D-005: the rest of the 99.9 % conversion after PA, MA, BA and the CO share"}
+    heat_of_reaction: {value: -4376002.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}
+  - id: OX_CO
+    equation: C8H10 + 6.5 O2 -> 8 CO + 5 H2O
+    stoichiometry: {OX: -1.0, O2: -6.5, CO: 8.0, H2O: 5.0}
+    reversible: false
+    conversion: {key: OX, value: 0.075, provenance: assumed, source: "D-005: set so that the switch-condenser off-gas carries 150 kg CO per t of product, AP-42 6.5 Table 6.5-1's uncontrolled main-process factor (151 kg/Mg)"}
+    heat_of_reaction: {value: -2112410.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}
+  # --- X301: recuperative thermal oxidiser on the switch-condenser off-gas -------------------
+  - id: CO_OX
+    equation: CO + 1/2 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    reversible: false
+    conversion: {key: CO, value: 0.95, provenance: assumed, source: "D-009: AP-42 6.5 (6.5.2): a thermal incinerator alone destroys about 95 % for o-xylene-based plants (Table 6.5-1: CO 151 to 8 kg/Mg)"}
+    heat_of_reaction: {value: -282949.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (ATcT), 298.15 K"}
+  - id: PA_OX
+    equation: C8H4O3 + 7.5 O2 -> 8 CO2 + 2 H2O
+    stoichiometry: {PA: -1.0, O2: -7.5, CO2: 8.0, H2O: 2.0}
+    reversible: false
+    conversion: {key: PA, value: 0.95, provenance: assumed, source: "D-009: AP-42 6.5, about 95 % (particulate 69 to 4 kg/Mg)"}
+    heat_of_reaction: {value: -3260036.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}
+  - id: MA_OX
+    equation: C4H2O3 + 3 O2 -> 4 CO2 + H2O
+    stoichiometry: {MA: -1.0, O2: -3.0, CO2: 4.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: MA, value: 0.95, provenance: assumed, source: "D-009: AP-42 6.5, about 95 %"}
+    heat_of_reaction: {value: -1417418.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}
+  - id: BA_OX
+    equation: C7H6O2 + 7.5 O2 -> 7 CO2 + 3 H2O
+    stoichiometry: {BA: -1.0, O2: -7.5, CO2: 7.0, H2O: 3.0}
+    reversible: false
+    conversion: {key: BA, value: 0.95, provenance: assumed, source: "D-009: AP-42 6.5, about 95 %"}
+    heat_of_reaction: {value: -3185784.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}
+  - id: OX_OX
+    equation: C8H10 + 10.5 O2 -> 8 CO2 + 5 H2O
+    stoichiometry: {OX: -1.0, O2: -10.5, CO2: 8.0, H2O: 5.0}
+    reversible: false
+    conversion: {key: OX, value: 0.95, provenance: assumed, source: "D-009: AP-42 6.5, about 95 %"}
+    heat_of_reaction: {value: -4376002.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml (CRC, ATcT), 298.15 K"}

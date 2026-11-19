@@ -1,0 +1,57 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Natural-gas combined cycle power plant, issue ChemE-as-Code/process-library#469. The design
+# point is NETL's Case B31A (SRC-1: Cost and Performance Baseline for Fossil Energy Plants
+# Volume 1, Revision 4a, DOE/NETL-2023/4320, 2022), cited by exhibit; values marked ASSUMED are
+# choices of this concept study. Every decision is in DESIGN.md.
+capacity:
+  basis: "net electricity delivered to the 345 kV grid, generation less the plant's own use (D-001, D-002)"
+  net_power_MW: 725.8                 # this model (Q11); SRC-1 Exhibit 5-9: 727 MWe
+  gross_power_MW: 739.4               # Q1 + Q3; SRC-1 Exhibit 5-9: 740 MWe (477 gas turbines + 263 steam turbine)
+  configuration: "2x1: two F-class gas turbine generators, two HRSGs, one steam turbine generator (SRC-1 section 5.2.2)"
+  operating_hours_per_year: 7446      # SRC-1 capacity factor 85 % (Exhibit 5-19) x 8760 h, taken as full-load hours: ASSUMED (D-002)
+  load: "base load at ISO conditions; part load, start-ups and ambient variation not modelled (ASSUMED, D-002)"
+feeds:
+  - name: Natural gas
+    terminal: NG
+    source_of_values: "SRC-1 Exhibit 2-6 (composition, heating values) and Exhibit 5-8 stream 2"
+    composition_mol_percent: {CH4: 93.1, C2H6: 3.2, C3H8: 0.7, n-C4H10: 0.4, CO2: 1.0, N2: 1.6}
+    heating_value_kJ_per_kg: {LHV: 47201, HHV: 52295}
+    conditions: {pressure_kPa_a: 2964.7, temperature_K: 300.15}
+    note: "Pipeline gas at the turbine fuel skids without a booster or let-down (SRC-1 section 5.1.1); the methanethiol odorant (mole fraction 5.75e-6, 1.0 kg/h of sulfur) is left out of the balance and its SO2 counted in the LCA (D-004, D-011)."
+  - name: Ambient air
+    terminal: AIR
+    source_of_values: "SRC-1 Exhibit 2-2 (ISO ambient) and Exhibit 5-8 stream 1"
+    conditions: {pressure_kPa_a: 101.4, temperature_K: 288.15, relative_humidity_percent: 60}
+  - name: Demineralised water
+    terminal: DMW
+    source_of_values: "SRC-1 Exhibits 5-14 and 5-15: condenser make-up 2,804 lb/h, made on site from raw water by RO and electro-deionisation (SRC-1 p. 572); here a boundary feed (D-008)"
+  - name: Raw water
+    terminal: RW
+    source_of_values: "SRC-1 Exhibit 5-14: cooling tower make-up, half municipal and half ground water (Exhibit 5-6)"
+products:
+  - name: Electricity, high voltage
+    terminal: ELEC
+    delivery: {voltage_kV: 345, battery_limit: "the high-voltage side of the step-up transformers (SRC-1 Exhibit 5-6)"}
+  - name: Stack gas
+    terminal: STACK
+    items: "flue gas at 83 degC from two 46 m stacks; NOx about 1.8 ppmvd at 15 % O2 after DLN burners and SCR, CO about 1 ppmv (SRC-1 section 5.2.4.1), counted in the LCA (D-011)"
+  - {name: Deaerator vent, terminal: VENT}
+  - {name: Cooling tower evaporation and drift, terminal: EVAP}
+  - {name: Cooling tower blowdown, terminal: BLOWDOWN, items: "treated for chloride and metals and discharged (SRC-1 Exhibit 5-6); treatment outside the boundary (D-009)"}
+utilities:
+  - {name: Electric power, use: "own use from the plant's generation: pumps, fans, turbine auxiliaries, transformer losses (SRC-1 Exhibit 5-10)", note: "inside the boundary: the export is net (D-010)"}
+  - {name: Cooling water, use: "condenser", note: "the plant's own wet cooling tower, inside the boundary (D-009); cooling water 16 degC to 27 degC (SRC-1 Exhibit 5-5)"}
+  - {name: Aqueous ammonia 19 wt%, use: "SCR", note: "3.45 short tons a day (SRC-1 Exhibit 5-19), an LCA consumable, not a flowsheet stream (D-011)"}
+site:
+  location: "ASSUMED generic site; SRC-1's is a greenfield site in the midwestern United States at sea level (Exhibit 2-1)"
+  design_ambient_K: 288.15            # ISO, SRC-1 Exhibit 2-2
+  wet_bulb_K: 283.95                  # SRC-1 Exhibit 2-2 (10.8 degC)
+  atmospheric_pressure_kPa: 101.3     # SRC-1 Exhibit 2-2 (0.101 MPa)
+assumptions:
+  - "D-001 boundary: natural gas at the fuel skids, air, raw and demineralised water to net electricity at 345 kV; inside: gas turbines, HRSGs with SCR, steam turbine, condenser, cooling tower, transformers; outside: the gas pipeline and metering, water treatment, blowdown treatment"
+  - "D-002 one operating point, NETL Case B31A at ISO ambient and base load; 7446 full-load hours a year ASSUMED from the 85 % capacity factor"
+  - "D-004 complete combustion of the hydrocarbons; CO, unburnt methane, NOx, N2O and SO2 counted in the LCA by factors, not in the balance"
+  - "D-005 the gas turbines' power from core's conversion-step energy balance on ideal-gas data, less the generator loss at NETL's 98.5 % efficiency"
+  - "D-007 the steam turbine's power from NETL's stream enthalpies; generator efficiency 98.7 % (NETL)"
+  - "D-009 cooling tower water from NETL's water balance at 999.1 kg/m3, ASSUMED; dissolved solids not modelled"
+  - "Construction, maintenance, start-up fuel and decommissioning are outside the preliminary LCI (D-011)"

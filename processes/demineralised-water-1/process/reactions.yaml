@@ -1,0 +1,22 @@
+# The reactions of demineralised-water-1 (DESIGN.md D-006). Schema `cheme schema
+# process-reactions`. Heat of reaction in kJ/kmol per extent as written.
+#
+# One lumped reaction: the regenerants' acid and caustic end as sodium chloride and water. Part
+# of it happens on the resin (the salt the bed took up is released while the acid and the
+# caustic regenerate it, and the two regenerants' stoichiometric shares neutralise each other in
+# effect), the rest in the neutralisation pit (the excess acid and caustic, with the trim acid);
+# the year-average mass balance is the same, so the flowsheet lumps it into R301 (D-006).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: NEUT
+    title: Neutralisation of the regenerants (hydrochloric acid and caustic soda)
+    equation: HCl + NaOH -> NaCl + H2O
+    stoichiometry: {HCl: -1.0, NaOH: -1.0, NaCl: 1.0, H2O: 1.0}
+    reversible: false
+    conversion: {key: NaOH, value: 1.0, provenance: assumed, source: "D-006: a strong acid and a strong base react completely; the trim acid leaves the acid 0.1 % in excess of the caustic (SRC-5), so NaOH is the limiting reactant"}
+    heat_of_reaction:
+      value: -55815.0
+      provenance: given
+      source: "CODATA Key Values for Thermodynamics (Cox, Wagman and Medvedev 1989), https://www.codata.info/resources/databases/key1.html: dHf H2O(l) -285.830, OH-(aq) -230.015, H+(aq) 0 kJ/mol; H+ + OH- -> H2O(l) for a fully dissociated acid and base (Na+ and Cl- are spectators)"
+    sources: ["https://www.codata.info/resources/databases/key1.html", "https://dardel.info/IX/processes/neutralisation.html"]

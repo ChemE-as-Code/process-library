@@ -25,7 +25,7 @@ sizes of R-101, V-201 and C-301, R-101's jacket check, the vent's load per batch
 flowsheet's year-average flows come from (`cheme process recipe`, `cheme process
 reactor-hazards`, `cheme process stills`). What core cannot calculate, the wash's phase split,
 the scrubbed vent's split and the heats the models leave out, is in `scripts/balance.py` under
-the library's balance-output contract. Needs cheme-as-code 1.10.0. DESIGN.md lists the core
+the library's balance-output contract. Needs cheme-as-code 1.12.0 (D-016; modelled on 1.10.0, D-015). DESIGN.md lists the core
 features used (D-015 what core 1.10.0 changed) and the core limits hit.
 
 Three headline numbers carry caveats. The modelled yield is 89.4 % on the alkoxide, below the
@@ -36,7 +36,10 @@ MTSR (279.5 K) lies far below the decomposition limit (333.15 K); the risk is th
 phosgene, which a cooling failure strips into the CO2 it releases (0.11 kg/h at the design rate).
 At a hundred times slower rates 36.1 % of the phosgene accumulates, the gas a cooling failure
 releases, with its vapour, exceeds the vent's 50 m3/h and carries about 5.5 kg/h of phosgene to
-the scrubber (a design finding, DESIGN.md D-011, D-014).
+the scrubber (a design finding, DESIGN.md D-011, D-014). On cheme-as-code 1.12.0, with the two
+reactions counted as a network, that slow case gives 67.4 m3/h and 7.7 kg/h of phosgene; the
+content's bubble point stays far above every MTSR, so the phosgene is stripped, never boiled.
+Boc2O's decomposition in the vacuum still needs a measured rate (DESIGN.md D-016).
 
 | path | what |
 |---|---|

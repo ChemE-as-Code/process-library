@@ -713,10 +713,11 @@ def test_published_public_with_cc_by():
     assert manifest["publication"] == {"status": "public", "license": "CC-BY-4.0"}
 
 
-def test_requires_core_1_10():
-    assert _load("plant.yaml")["requires"] == "cheme-as-code>=1.10"
+def test_requires_core_1_12():
+    """Modelled on core 1.10.0 (D-016); the components' melting_point needs 1.12.0 (D-017)."""
+    assert _load("plant.yaml")["requires"] == "cheme-as-code>=1.12"
     assert "still.column" in (PROCESS / "plant.yaml").read_text(encoding="utf-8")  # the comment says why
-    assert "Needs cheme-as-code 1.10.0" in _text("README.md") and "Needs cheme-as-code 1.10.0" in _text("process.yaml")
+    assert "Needs cheme-as-code 1.12.0" in _text("README.md") and "Needs cheme-as-code 1.12.0" in _text("process.yaml")
     design = (PROCESS / "DESIGN.md").read_text(encoding="utf-8")
     assert "## Core features used (core 1.9.0 and 1.10.0)" in design and "\nCore 1.10.0 (D-016):\n" in design
     assert "## D-016 Core 1.10.0" in design
