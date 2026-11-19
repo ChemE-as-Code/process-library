@@ -99,7 +99,7 @@ kpis:
         source: &pradhan-2009
           citation: "Pradhan, A.; Shrestha, D. (2009) Life Cycle Analysis of Soybean Biodiesel Production. ASABE Annual International Meeting, Reno, Paper No. 096669 (meeting paper)"
           url: https://biodieseleducation.org/Literature/Journal/2009_Anup_Life_Cycle_Analysis_.pdf
-          locator: "p. 10, Table 4 (biodiesel conversion inputs); p. 8 (the plant model)"
+          locator: "p. 10, Table 4 (biodiesel conversion inputs); p. 9 (the plant model)"
           kind: other
           accessed: "2026-11-19"
   biodiesel-specific-fuel:
@@ -109,7 +109,7 @@ kpis:
       - id: pradhan-2009-natural-gas
         range: [0.3145, 0.3145]
         basis: unallocated
-        note: "Our conversion of the plant model's 3,550 Btu of natural gas and steam per gallon of biodiesel (unadjusted column; the model raises its steam in an 80 % efficient boiler, p. 8) at 0.8739 kg/L: 0.3145 kWh/kg of fuel energy, 0.252 kWh/kg as steam heat. One modelled plant, recorded as a zero-width range."
+        note: "Our conversion of the plant model's 3,550 Btu of natural gas and steam per gallon of biodiesel (unadjusted column; the model raises its steam in an 80 % efficient boiler, p. 9) at 0.8739 kg/L: 0.3145 kWh/kg of fuel energy, 0.252 kWh/kg as steam heat. One modelled plant, recorded as a zero-width range."
         conditions: {technology: "as pradhan-2009-electricity; heat for the reaction, methanol recovery and drying", region: US, year: 2009}
         source: *pradhan-2009
   biodiesel-crude-glycerol:
@@ -145,25 +145,25 @@ datasets:
         out_of_range_reason: "The dataset counts fired heat absorbed; the expression divides by its source's 80 % furnace efficiency to compare fuel energy. 679 kWh/t is a pinch target with feed-effluent heat exchange (Arvidsson and Lundin 2011, section 4.2.2), 4 to 7 % below Haro et al.; the two models also differ in reactor temperature, pressure and steam dilution. Both are on an HHV basis (Arvidsson and Lundin's 15.9 MW is the 18.7 MW furnace duty at 80 % less the 7.5 MW HHV of the fired by-products)."
   - process: biodiesel-1
     dataset: biodiesel-fame-from-soybean-oil-by-base-catalysed-transesterification-32-420-t-a
-    conditions: {technology: "two CSTRs at 333 K with glycerol decanters, 6:1 methanol, sodium methoxide 0.25 wt% of the oil, ester methanol flash, one acid water wash, vacuum dryer, glycerol neutraliser and methanol column, no heat integration", basis: "concept balance on Van Gerpen et al. (2004) ratios and conditions, ASSUMED conversions and separator recoveries, hand duties for the separations (DESIGN.md D-005 to D-009)"}
+    conditions: {technology: "two CSTRs at 333 K with glycerol decanters, 6:1 methanol, sodium methoxide 0.25 wt% of the oil, ester methanol flash (one stage), one acid water wash, vacuum dryer, glycerol neutraliser and vacuum methanol column on MP steam, no heat integration", basis: "concept balance on Van Gerpen et al. (2004) ratios and conditions, ASSUMED conversions and separator recoveries, hand duties for the separations (DESIGN.md D-005 to D-009)"}
     kpis:
       biodiesel-specific-methanol:
         expression: (feed:MEOHF + 0.75 * feed:CATF) / product:BD
         per: product:BD
         reference: nrel-2004-methanol-stoichiometric
-        out_of_range_reason: "0.1081 against the stoichiometric 0.1080 kg/kg, 0.1 % above it: the dataset converts 99.7 % of the oil (0.1088 consumed per kg of product, whose 0.30 wt% unreacted glycerides count as product mass), gets 0.0015 back from the neutralised methoxide and loses 0.0008 to the wastewater and the crude glycerol (DESIGN.md D-005, D-006); the reference assumes full conversion and no losses."
+        out_of_range_reason: "0.1118 against the stoichiometric 0.1080 kg/kg, 3.5 % above it: the dataset converts 99.7 % of the oil (0.1088 consumed per kg of product, whose 0.30 wt% unreacted glycerides count as product mass), gets 0.0015 back from the neutralised methoxide and loses 0.0046, mostly the methanol that one flash stage leaves in the esters and the wash sends to the wastewater (DESIGN.md D-005, D-007, L-7); the reference assumes full conversion and no losses."
       biodiesel-specific-electricity:
         expression: feed:POWER / product:BD
         per: product:BD
         reference: pradhan-2009-electricity
-        out_of_range_reason: "The dataset's 0.017 kWh/kg is an ASSUMED estimate of agitators, pumps and vacuum pumps (D-009), less than half the plant model's figure, which also counts centrifuges for the phase separation (the dataset decants by gravity), lighting and buildings; an estimate to be replaced by a motor list."
+        out_of_range_reason: "The dataset's 0.018 kWh/kg is an ASSUMED estimate of agitators, pumps and vacuum pumps (D-009), less than half the plant model's figure, which also counts centrifuges for the phase separation (the dataset decants by gravity), lighting and buildings; an estimate to be replaced by a motor list."
       biodiesel-specific-fuel:
-        expression: feed:LPS / 0.8 / product:BD
+        expression: (feed:LPS + feed:MPS) / 0.8 / product:BD
         per: product:BD
         reference: pradhan-2009-natural-gas
-        out_of_range_reason: "The dataset counts steam heat delivered; the expression divides by the plant model's 80 % boiler efficiency to compare fuel energy. 0.167 kWh/kg is about half of the model's 0.3145: the dataset's separation duties are hand estimates at reflux 1 and without losses (D-009, L-4), and it heats no oil storage or tracing; neither plant is heat integrated."
+        out_of_range_reason: "The dataset counts LP and MP steam heat delivered (the wash water warmed from 298 K included); the expression divides by the plant model's 80 % boiler efficiency to compare fuel energy. 0.195 kWh/kg is about 62 % of the model's 0.3145: the dataset's separation duties are hand estimates at reflux 1 and without heat losses (D-009, L-4), and it heats no oil storage or tracing. Whether the model plant recovers heat is not stated in the source read (Pradhan and Shrestha 2009 describe its inputs, pp. 9-10); the dataset recovers none apart from the hot esters warming the wash water (L-6)."
       biodiesel-crude-glycerol:
         expression: product:CGLY / product:BD
         per: product:BD
         reference: pradhan-2009-crude-glycerin
-        out_of_range_reason: "The dataset's crude glycerol, 0.120 kg/kg, holds 86.6 wt% glycerol and its methanol stripped (D-008), against the model's crude of about 80 %: on the glycerol it carries, 0.104 kg/kg, it equals the model's 0.098 to 0.108 at 80 %, and the stoichiometric 0.104 of NREL/SR-510-36244 p. 4."
+        out_of_range_reason: "The dataset's crude glycerol, 0.120 kg/kg, holds 86.8 wt% glycerol and its methanol stripped (D-008), against the model's crude of about 80 %: on the glycerol it carries, 0.104 kg/kg, it equals the model's 0.098 to 0.108 at 80 %, and the stoichiometric 0.104 of NREL/SR-510-36244 p. 4."
