@@ -1,0 +1,96 @@
+# Goal and scope of the biogas-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit those
+# by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant
+# per kg of biomethane, from the flowsheet's design case. The substrates are wastes and a
+# manure: they enter burden-free under the cut-off system model. The digestate leaves as a
+# by-product to land application, burden-free under cut-off (no allocation). The plant's own
+# emissions (the membrane's methane slip, the biogenic CO2 of the off-gas and the boiler) are
+# characterised directly; the electricity is linked to the shared library entry by
+# lca/mappings.yaml for the Atlas build, and screened here with the packaged open UK factor
+# (a proxy geography, D-012).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of biomethane from the anaerobic digestion of
+  cattle slurry and hygienised biowastes (FNR model plant VII) with three-stage membrane
+  upgrading, at the concept stage: which substrates, utilities and emissions the plant exchanges
+  per kg of grid-quality biomethane, as the foreground for a later cradle-to-gate study, with a
+  screening carbon footprint of the plant's own emissions and of its purchased electricity from
+  cradle to gate (a gate-to-gate foreground with cradle-to-gate electricity).
+functional_unit: {product: BIOMETHANE, amount: 1, unit: kg, source: "1 kg of biomethane, 98.0 mol% CH4 (0.947 kg CH4 per kg), 1550 kPa(a), at the battery limit to the grid injection station, stream S19 (D-006, D-012); 47.4 MJ LHV per kg (1158.0 kW LHV for 87.99 kg/h)"}
+# The boundary key stays cradle-to-gate so that the purchased electricity remains an open link
+# instead of being mapped free (the schema's gate-to-gate maps every feed free).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: DE
+technology: "Agricultural biogas plant next to a livestock farm: cattle slurry with hygienised catering waste, grease trap waste and biowaste (22 100 t/a) mixed in an intake pit, warmed to 313.15 K and digested in two stirred concrete digesters (3400 m3 gross, 51 d), the biogas chilled to 283.15 K to remove its water, desulphurised on activated carbon, compressed to 1600 kPa(a) and upgraded in three membrane stages to 98 mol% CH4 at 99.5 % methane recovery; 11.1 % of the biogas fired in a hot-water boiler for the digesters; the digestate stored six months under a gas-tight cover and spread on farmland"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # substrates: wastes and manure, burden-free under cut-off
+  - {key: feed:SLURRY, free: true, source: "cattle slurry, stream S1: a residue of livestock farming that the farm would otherwise store and spread; burden-free input under the cut-off system model (docs/system-model.md), D-012"}
+  - {key: feed:CATER, free: true, source: "catering waste, stream S2: a waste, hygienised by the supplier; its collection and hygienisation are outside the boundary and belong to the waste producer under cut-off, D-012"}
+  - {key: feed:GREASE, free: true, source: "grease trap waste, stream S3: a waste, hygienised by the supplier; burden-free under cut-off, D-012"}
+  - {key: feed:BIOW, free: true, source: "source-separated biowaste, stream S4: a waste, hygienised by the supplier; burden-free under cut-off, D-012"}
+  - {key: feed:AIR, free: true, source: "ambient combustion air of the boiler, stream S13: a resource without burden"}
+  # utilities
+  - key: feed:POWER
+    factor: desnz-ghg-2026:electricity-gb
+    proxy: "UK grid electricity (DESNZ 2026) for the undecided site's grid (DE assumed); the Atlas build links the library's shared entry `electricity` (medium voltage, site country) instead (lca/mappings.yaml)"
+    source: "flowsheet energy streams W1 (digester agitators and pumps, FNR Table 8.4), W2 (the membrane unit at 0.25 kWh/Nm3 raw biogas, SGC Rapport 2013:270 section 2.3.3) and W3 (the gas chiller's refrigeration unit, ASSUMED COP 3.0), D-007, D-009"
+  - {key: product:AMBIENT, free: true, source: "heat rejected to the ambient air by the gas chiller (Q3) and by the after-coolers and the compressor's oil cooler (Q2), D-007: no burden"}
+  # outputs
+  - key: product:DIGESTATE
+    treatment: {kind: recyclable, route: "whole digestate stored six months under a gas-tight cover and spread on farmland as an organic fertiliser, its nutrients re-used in place of mineral fertiliser (D-010)"}
+    missing: "burden-free under cut-off: the output of a biowaste treatment re-used as a fertiliser (D-010, D-012); under a crediting system model it would displace mineral N, P and K fertiliser, which the model does not represent (no nitrogen in the lumped components, L-3); its spreading and field emissions (ammonia, nitrous oxide) belong to the receiving farm"
+    source: "flowsheet stream S10 (D-010)"
+  - {key: product:OFFGAS, emission: true, source: "stream S20: the membrane unit's permeate to atmosphere: biogenic CO2, 0.5 % of the methane (SGC Rapport 2013:270 section 3.3) and the water vapour (D-006)"}
+  - {key: product:FLUE, emission: true, source: "stream S14: the boiler's flue gas to atmosphere (D-008)"}
+  - key: emission:CH4
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: biogenic}
+    source: "the membrane unit's methane slip, 0.5 % of the methane fed to it (SGC Rapport 2013:270, section 3.3: design iii), vented without post-oxidation (D-006); carbon of the substrates, biogenic"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: biogenic}
+    source: "the CO2 separated by the membranes and the boiler's combustion CO2; carbon of the substrates, biogenic (D-012)"
+  - {key: emission:H2O, free: true, source: "water vapour of the off-gas and the flue gas"}
+  - {key: emission:N2, free: true, source: "nitrogen of the combustion air returned to the atmosphere"}
+  - {key: emission:O2, free: true, source: "excess oxygen of the combustion air returned to the atmosphere"}
+  # The lumped solids are carried at zero flow through the gas streams (both templates hold
+  # every component); nothing of them is emitted.
+  - {key: emission:CARB, free: true, source: "0 kg: no digestible carbohydrate leaves with the off-gas or the flue gas (template component at zero flow)"}
+  - {key: emission:LIPID, free: true, source: "0 kg: no fat leaves with the gases (template component at zero flow)"}
+  - {key: emission:RVS, free: true, source: "0 kg: no volatile solids leave with the gases (template component at zero flow)"}
+  - {key: emission:ASH, free: true, source: "0 kg: no ash leaves with the gases (template component at zero flow)"}
+
+# Carbon by origin (D-012): all carbon of the substrates is biogenic (manure, food and garden
+# wastes); the plant takes in no fossil carbon. Their carbon content is not computed for the
+# lumped feeds, so it is declared here as biogenic.
+carbon_accounting:
+  trace_emissions: false
+  source: "D-012: the substrates' carbon is biogenic; the declared origin of each elementary flow is the physical one"
+  content:
+    feed:SLURRY: {biogenic_fraction: 1.0, source: "cattle slurry: carbon of the fodder, taken up from the atmosphere (D-012)"}
+    feed:CATER: {biogenic_fraction: 1.0, source: "catering waste: food, biogenic carbon (D-012)"}
+    feed:GREASE: {biogenic_fraction: 1.0, source: "grease trap waste: food fats, biogenic carbon (D-012)"}
+    feed:BIOW: {biogenic_fraction: 1.0, source: "biowaste: food and garden waste, biogenic carbon (D-012)"}
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (FNR Guide to Biogas, Table 8.4); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: intake-pit, method: storage-tank, equipment: [T-101], reason: "The covered intake pit is vented to the biogas system; its ammonia and odour emissions are not estimated (no nitrogen in the model, L-3)."}
+  - {id: digester-leaks, method: storage-tank, equipment: [R-101, R-102, T-201], reason: "Methane leaking from the digesters' and the store's membrane roofs, their over-pressure valves and the emergency flare is not estimated: no open measured rate was read for this concept (D-011, L-4). Its size is not bounded: a leak equal to the membranes' slip (4.76 g CH4 per kg of biomethane) would add 0.13 kg CO2-eq per kg, 40 % of the screening result, so the result is a lower bound (D-012)."}
+  - {id: hydrogen-sulphide, method: storage-tank, equipment: [A-301], reason: "H2S and its sulphur are not in the balance (no sulphur in the lumped substrates, L-3); the spent activated carbon is a waste not inventoried (D-007)."}
+  - {id: boiler-pollutants, method: combustion, equipment: [B-101], reason: "CO, NOx and unburnt methane of the hot-water boiler are not estimated; complete combustion ASSUMED (D-008). Each 1 % of the boiler's methane left unburnt would add 1.2 g CH4, 0.03 kg CO2-eq, per kg of biomethane (D-012)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "3520"}   # ISIC Rev.4 3520 Manufacture of gas; distribution of gaseous fuels through mains
+  modelling: {principle: attributional}
+  geography: {description: "Generic agricultural biogas site in Germany next to a livestock farm, with a gas-grid connection, not chosen (DE); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #462, unreviewed"
