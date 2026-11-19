@@ -24,7 +24,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Continuous plant: cyclohexanone oximated counter-currently at 363 K with hydroxylammonium sulfate solution (hydroxylamine-1) and ammonia to pH 5; the oxime melt (4.6 wt% water) rearranged in oleum (32 wt% SO3, 1.17 kg/kg) in a circulating loop at 388 K, yield 98.9 %; the mixture neutralised with gaseous ammonia in a 40 wt% ammonium sulfate solution; the crude lactam extracted with benzene, back-extracted into water, evaporated (three effects) and distilled under vacuum; ammonium sulfate crystallised from the combined solutions (three effects), centrifuged and dried; 100.1 kt/a caprolactam and 248 kt/a ammonium sulfate at 8000 h/a"
+technology: "Continuous plant: cyclohexanone oximated counter-currently at 363 K with hydroxylammonium sulfate solution (hydroxylamine-1) and ammonia to pH 5; the oxime melt (4.6 wt% water) rearranged in oleum (32 wt% SO3, 1.17 kg/kg) in a circulating loop at 388 K, yield 98.9 %; the mixture neutralised with liquid ammonia injected into a 40 wt% ammonium sulfate solution; the crude lactam extracted with benzene, back-extracted into water, evaporated (three effects) and distilled under vacuum; ammonium sulfate crystallised from the combined solutions (three effects), centrifuged and dried; 100.1 kt/a caprolactam and 248 kt/a ammonium sulfate at 8000 h/a"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 allocation:
@@ -32,7 +32,7 @@ allocation:
   # relative prices per kg (caprolactam 1, ammonium sulfate crystals 0.07).
   method: shares
   coproducts: [PROD, ASP]
-  # S24 12516.1 x 1 and S29 31011.4 x 0.07 kg/h give 12516.1 and 2170.8
+  # S24 12516.6 x 1 and S29 31012.7 x 0.07 kg/h give 12516.6 and 2170.9
   shares: {PROD: 0.8522, ASP: 0.1478}
   source: >-
     D-012 (agent proposal, for the LCA practitioner to confirm): the plant makes 2.48 kg of
@@ -46,7 +46,7 @@ allocation:
   deviation: >-
     The shares rest on an ASSUMED relative price, not sourced ones. The conservative bound is all
     burdens to the caprolactam (share 1); mass allocation, which the rule would give only below
-    a price ratio of 5, would leave the caprolactam 28.8 % of the burdens (12516.1 of 43527.5
+    a price ratio of 5, would leave the caprolactam 28.8 % of the burdens (12516.6 of 43529.3
     kg/h). Sourced prices replace the ratio.
 flows:
   # raw materials
@@ -74,13 +74,14 @@ flows:
     source: "flowsheet energy streams P1 to P6 (ASSUMED estimates, D-009, D-010)"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 500 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q4 (lactam evaporator) and Q8 (ammonium sulfate crystalliser), D-009, D-010"
+    source: "flowsheet energy streams Q4 (lactam evaporator), Q8 (ammonium sulfate crystalliser) and Q13 (the salt dryer's air heater), D-009, D-010, D-013"
   - key: feed:MPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1500 kPa(a), per kWh of condensing heat"
     source: "flowsheet energy stream Q6 (lactam column reboiler), D-009"
   - key: product:CW
     missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q1 to Q3 (core's conversion-step duties of R101, R201 and R301) and Q5, Q7, Q9 (condensers, ASSUMED), D-008 to D-010"
+    source: "flowsheet energy streams Q1 to Q3 (core's conversion-step duties of R101, R201 and R301; Q1 an upper bound, D-008), Q5, Q7, Q9 (condensers and product coolers) and Q10 to Q12 (the melt, crude lactam and back-extraction coolers), the last six from scripts/energy_balance.py (D-009, D-010, D-013)"
+  - {key: product:AMBIENT, free: true, source: "Q14: the salt dryer's heat leaving with its exhaust air (scripts/energy_balance.py, D-010); warm air leaves without a burden and is not an emission of any impact category used here, as hydrogen-chloride-1's furnace loss"}
   # wastes
   - key: product:PURGE
     treatment: {kind: waste, route: "the mother-liquor purge (ammonium, hydroxylammonium and nitrate salts, lactam) to biological treatment with nitrification and denitrification, as the LVOC BREF describes for this production (D-010)"}

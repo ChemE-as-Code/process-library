@@ -12,7 +12,9 @@ checks what the folder states by hand:
 - the rearrangement's 98.9 % yield and the free SO3 inside 1 to 14 wt% (D-006);
 - the ammonium sulfate per kg from the rearrangement's acid lies in US 3,852,273's 1.7 to 1.9;
 - the numbers per kg in process.yaml, README.md and DESIGN.md follow from the streams;
-- the hand duties carry their arithmetic, the reactors' duties are core's (ADR 0059);
+- the latent duties carry their arithmetic, the reactors' duties are core's (ADR 0059), and every
+  non-reacting step closes its energy balance on the materials' heat capacities (D-013), the
+  oximation's duty stated as an upper bound (D-008);
 - the economic shares follow from the flows at the stated relative price;
 - the LCI's utilities per kg are the sums of the flowsheet's duties;
 - the process is public with CC-BY-4.0 (ADR 0036), and its sources have register rows.
@@ -150,14 +152,51 @@ def test_feeds_per_kg_in_the_texts(model):
         assert text in _text("DESIGN.md")
 
 
-def test_hand_duties_follow_their_arithmetic(model):
-    assert _duty(model, "Q4") == pytest.approx(32221 * 2257 / 3 / 3600, rel=2e-3)
-    assert _duty(model, "Q8") == pytest.approx(51567 * 2257 / 3 / 3600, rel=2e-3)
-    evaporated = _kg(model, "S19")["H2O"]
-    assert evaporated == pytest.approx(32221, rel=2e-3)
-    assert _flow(model, "S31") == pytest.approx(51567, rel=2e-3)
-    lactam = _kg(model, "S24")["CPL"] / model[0]["CPL"]["molar_mass"]
-    assert _duty(model, "Q6") == pytest.approx(2 * lactam * 62.3e3 / 3600 + 80, rel=2e-3)
+def test_latent_duties_follow_their_arithmetic(model):
+    # one effect's vapour of three at 2256.4 kJ/kg (D-009, D-010, SRC-10)
+    assert _duty(model, "Q5") == pytest.approx(_flow(model, "S19") * 2256.4 / 3 / 3600, rel=1e-4)
+    assert _duty(model, "Q8") == pytest.approx(_flow(model, "S31") * 2256.4 / 3 / 3600, rel=1e-4)
+    lactam = (_kg(model, "S24")["CPL"] + _kg(model, "S25")["CPL"]) / model[0]["CPL"]["molar_mass"]
+    water = _kg(model, "S23")["H2O"]
+    assert _duty(model, "Q6") == pytest.approx(2 * lactam * 62.3e3 / 3600 + water * 2256.4 / 3600, rel=1e-4)
+
+
+# Energy streams per step: (in, out); power counts as heat in (D-013).
+_ENERGY = {
+    "D101": (["S04"], ["S05", "S06"], [], ["Q10"]),
+    "D301": (["S10"], ["S11", "S12"], [], ["Q11"]),
+    "C401": (["S11", "S15"], ["S16", "S17"], ["P4"], []),
+    "C402": (["S16", "S20"], ["S21", "S14"], [], ["Q12"]),
+    "M401": (["S13", "S14"], ["S15"], [], []),
+    "M402": (["S18", "S19"], ["S20"], [], []),
+    "M502": (["S22", "S25", "S26"], ["S27"], [], []),
+    "M601": (["S12", "S17"], ["S28"], [], []),
+    "E501": (["S21"], ["S19", "S22", "S23"], ["Q4"], ["Q5"]),
+    "C501": (["S23"], ["S24", "S25", "S26"], ["Q6", "P5"], ["Q7"]),
+    "EV601": (["S28"], ["S29", "S30", "S31"], ["Q8", "Q13", "P6"], ["Q9", "Q14"]),
+    "X601": (["S31"], ["S32", "S33"], [], []),
+}
+
+
+def _sensible(model, sid: str) -> float:
+    """kW above 298.15 K with the materials' constant liquid heat capacities (core's basis)."""
+    materials = model[0]
+    kmol = {k: kg / materials[k]["molar_mass"] for k, kg in _kg(model, sid).items()}
+    cp = sum(n * materials[k]["liquid_heat_capacity"] for k, n in kmol.items()) / 3600
+    return cp * (_state(model, sid)["temperature"]["value"] - 298.15)
+
+
+@pytest.mark.parametrize("step", sorted(_ENERGY))
+def test_non_reacting_steps_close_their_energy_balance(model, step):
+    ins, outs, q_in, q_out = _ENERGY[step]
+    imbalance = (sum(_sensible(model, s) for s in ins) + sum(_duty(model, q) for q in q_in)
+                 - sum(_sensible(model, s) for s in outs) - sum(_duty(model, q) for q in q_out))
+    assert abs(imbalance) <= 6.0, f"{step}: {imbalance:.1f} kW not counted"
+
+
+def test_q1_is_stated_as_an_upper_bound():
+    for rel in ("DESIGN.md", "README.md", "process.yaml"):
+        assert "upper bound" in _text(rel)
 
 
 def test_reactor_duties_are_cores(model):
@@ -179,9 +218,8 @@ def test_economic_shares_follow_the_flows(model):
 def test_lci_utilities_are_the_flowsheets_duties(model):
     rows = {r["key"]: r for r in csv.DictReader((PROCESS / "lca/inventory.csv").open(encoding="utf-8"))}
     assert float(rows["feed:POWER"]["plant"]) == pytest.approx(sum(_duty(model, f"P{i}") for i in range(1, 7)), rel=1e-4)
-    assert float(rows["feed:LPS"]["plant"]) == pytest.approx(_duty(model, "Q4") + _duty(model, "Q8"), rel=1e-4)
-    assert float(rows["product:CW"]["plant"]) == pytest.approx(
-        sum(_duty(model, q) for q in ("Q1", "Q2", "Q3", "Q5", "Q7", "Q9")), rel=1e-4)
+    assert float(rows["feed:LPS"]["plant"]) == pytest.approx(sum(_duty(model, q) for q in _LPS), rel=1e-4)
+    assert float(rows["product:CW"]["plant"]) == pytest.approx(sum(_duty(model, q) for q in _CW), rel=1e-4)
 
 
 def test_mappings_link_library_producers():
@@ -202,10 +240,14 @@ def test_public_and_sources_registered():
     assert "open data" not in design.replace("not open data", "")
 
 
+_LPS = ("Q4", "Q8", "Q13")
+_CW = ("Q1", "Q2", "Q3", "Q5", "Q7", "Q9", "Q10", "Q11", "Q12")
+
+
 def test_utilities_per_kg_in_the_texts(model):
     product = _flow(model, "S24")
-    lps = (_duty(model, "Q4") + _duty(model, "Q8")) / product
-    cw = sum(_duty(model, q) for q in ("Q1", "Q2", "Q3", "Q5", "Q7", "Q9")) / product
+    lps = sum(_duty(model, q) for q in _LPS) / product
+    cw = sum(_duty(model, q) for q in _CW) / product
     power = sum(_duty(model, f"P{i}") for i in range(1, 7)) / product
     for value in (lps, cw, power):
         assert f"{value:.3f}" in _text("process.yaml")

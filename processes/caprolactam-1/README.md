@@ -15,7 +15,8 @@ A continuous plant for caprolactam, the monomer of polyamide 6, by the conventio
 sulfate solution of the library's `hydroxylamine-1` (its whole output), ammonia neutralising the
 acid: (NH3OH)2SO4 + 2 C6H10O + 2 NH3 -> 2 C6H11NO + (NH4)2SO4 + 2 H2O. The oxime melt is
 rearranged in oleum (32 wt% SO3, 1.17 kg per kg) in a circulating loop at 388 K, the Beckmann
-rearrangement giving caprolactam at 98.9 % yield. The acid mixture and ammonia go into a
+rearrangement giving caprolactam at an ASSUMED 98.9 % yield (transferred from a staged DSM
+experiment). The acid mixture and liquid ammonia go into a
 circulating ammonium sulfate solution: the crude lactam separates, is extracted with benzene,
 back-extracted into water, evaporated and distilled under vacuum. The neutraliser's solution, the
 oximation liquor and the raffinate give ammonium sulfate crystals, whose condensate dilutes the
@@ -24,7 +25,9 @@ rearrangement on a zeolite (D-001).
 
 The three reactors are cheme-as-code conversion steps whose duties core computes from formation
 enthalpies (ADR 0059); the separators are specified splits; the benzene, back-extraction water
-and condensate recycles converge at tear streams (ADR 0060). Needs cheme-as-code 1.12.0.
+and condensate recycles converge at tear streams (ADR 0060), with the feeds and the condensate
+split set by design specifications (ADR 0070); a balance script closes the energy balance of
+every other step. Needs cheme-as-code 1.12.0.
 DESIGN.md lists the sources (SRC-1 to SRC-14), the core features used and the core limits hit.
 
 Headline numbers and their caveats (per kg of caprolactam, 100.1 kt/a at 8000 h/a):
@@ -32,10 +35,12 @@ Headline numbers and their caveats (per kg of caprolactam, 100.1 kt/a at 8000 h/
   0.640 kg ammonia, 1.267 kg oleum, 1.8 g benzene make-up.
 - Co-product: 2.478 kg ammonium sulfate crystals. 1.82 kg/kg is formed from the rearrangement's
   acid, inside the 1.7 to 1.9 an open patent states; the rest comes from the oximation.
-- Heat: 3.5, 5.8 and 12.0 MW released in the oximation, the rearrangement and the neutraliser,
-  calculated without the heats of solution in oleum and water (their split between the
-  rearrangement and the neutraliser is not reliable, their sum is). The evaporators and the
-  column take 1.71 kWh of steam; three effects, the recoveries and all power are ASSUMED.
+- Heat: 5.8 and 12.0 MW released in the rearrangement and the neutraliser, calculated without the
+  heats of solution in oleum and water (their split is not reliable, their sum is). The
+  oximation's 3.5 MW is only an upper bound: no formation enthalpy of hydroxylammonium sulfate
+  was found, and the heat left out could take it to about zero. The evaporators, the dryer and
+  the column take 1.84 kWh of steam and the plant rejects 3.79 kWh to cooling water; three
+  effects, the recoveries, the dryer and all power are ASSUMED.
 - The LCI is preliminary: economic allocation at an ASSUMED relative price (85.2 % to the
   caprolactam); cyclohexanone and oleum have no library producer and are gaps.
 - Hazards for the next stage (not assessed here): oleum and SO3, the strongly exothermic

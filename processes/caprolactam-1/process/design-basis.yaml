@@ -6,14 +6,14 @@
 schema: cheme/design_basis/v1
 capacity:
   basis: distilled caprolactam to storage (stream S24)
-  caprolactam_t_per_a: 100129          # = 12516.1 kg/h x 8000 h; set by hydroxylamine-1's whole output (D-002)
+  caprolactam_t_per_a: 100133          # = 12516.6 kg/h x 8000 h; set by hydroxylamine-1's whole output (D-002)
   operating_hours_per_year: 8000       # ASSUMED (D-002), as hydroxylamine-1
-  caprolactam_kg_per_h: 12516.1
-  ammonium_sulfate_kg_per_h: 31011.4   # crystals, stream S29
+  caprolactam_kg_per_h: 12516.6
+  ammonium_sulfate_kg_per_h: 31012.7   # crystals, stream S29
   turndown_percent: 50                 # ASSUMED, not checked
 feeds:
   - name: Cyclohexanone (boundary feed)
-    source_of_values: "ASSUMED pure (D-003); no library process makes it; 0.5 % above the hydroxylamine, the excess leaving with the oxime melt at 0.6 wt% (US 4,031,139)"
+    source_of_values: "ASSUMED pure (D-003); no library process makes it; 0.73 % above the hydroxylamine, set by a design specification so that the excess leaves with the oxime melt at 0.6 wt% (US 4,031,139, D-004)"
     consumption: "0.897 kg/kg caprolactam (stream S01)"
   - name: Hydroxylammonium sulfate solution 25.4 wt% (hydroxylamine-1)
     source_of_values: "hydroxylamine-1's product S24 as that entry gives it: 25.4 wt% (NH3OH)2SO4, 1.86 wt% (NH4)2SO4, 1.30 wt% H2SO4, 0.26 wt% HNO3 (D-003)"
@@ -39,8 +39,8 @@ products:
   - name: Mother-liquor purge (to treatment), organic residues (to incineration), surplus process condensate (to the site's water system)
 utilities:
   - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-009)"}
-  - {name: LP steam, pressure_kPa_a: 500, saturation_K: 425.0, use: "lactam evaporator, ammonium sulfate crystalliser", note: "ASSUMED level, three effects (D-009, D-010)"}
-  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: "lactam vacuum column reboiler", note: "ASSUMED level (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 500, saturation_K: 425.0, use: "lactam evaporator, ammonium sulfate crystalliser and its dryer", note: "ASSUMED level, three effects (D-009, D-010); saturation from the pressure, chemicals 1.5.2 IAPWS-95 (iapws95_Tsat, SRC-10)"}
+  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: "lactam vacuum column reboiler", note: "ASSUMED level (D-009); saturation from the pressure, chemicals 1.5.2 IAPWS-95 (iapws95_Tsat, SRC-10)"}
   - {name: Electric power, use: "agitators, circulation pumps, extraction columns, vacuum system, centrifuges, dryer fans", note: "ASSUMED estimates (D-009, D-010)"}
 site:
   location: ASSUMED generic site, not chosen; beside hydroxylamine-1 and an oleum supply
@@ -48,9 +48,10 @@ site:
   atmospheric_pressure_kPa: 101.325   # ASSUMED
 assumptions:
   - "Oximation: counter-current at 363 K (US 4,031,139), ammonia to pH 4.5 to 5.8 (US 4,931,592), hydroxylamine converted completely, the melt with 4.6 wt% water and 0.6 wt% cyclohexanone (US 4,031,139 Example) (D-004)."
-  - "Rearrangement: oleum 32 wt% SO3 at 1.17 kg per kg melt, 388 K (US 4,804,754 Example); yield 98.9 % (US 7,339,056 B2 Comparative Experiment A, an oxime with 4.7 wt% water); the loss represented as hydrolysis to cyclohexanone, ASSUMED (D-006)."
-  - "Neutralisation: ammonia to pH 4 to 5 into the ammonium sulfate solution (US 4,804,754); 353 K ASSUMED; crude lactam 30 wt% water (US 4,804,754), 1.5 wt% salt ASSUMED; solution 40 wt% ammonium sulfate (US 4,804,754 Example: 40 to 43 %) (D-007)."
+  - "Rearrangement: oleum 32 wt% SO3 at 1.17 kg per kg melt, 388 K (US 4,804,754 Example); yield 98.9 % ASSUMED transferable from US 7,339,056 B2 Comparative Experiment A (an oxime with 4.7 wt% water, but three stages with 25 wt% SO3 oleum); the loss represented as hydrolysis to cyclohexanone, ASSUMED (D-006)."
+  - "Neutralisation: ammonia to pH 4 to 5 into the ammonium sulfate solution (US 4,804,754), injected as liquid where the patent passes in gas (ASSUMED, D-007); 353 K ASSUMED; crude lactam 30 wt% water (US 4,804,754), 1.5 wt% salt ASSUMED; solution 40 wt% ammonium sulfate (US 4,804,754 Example: 40 to 43 %) (D-007)."
   - "Extraction: benzene extract 22 wt% lactam, 99.6 % extracted; back-extraction to 28 wt% lactam, 99.9 % (US 6,448,395 B1) (D-008)."
   - "Purification: evaporation to 99 wt%, vacuum distillation with 99.0 % of the lactam as product (ASSUMED); ion exchange and hydrogenation not modelled (D-009)."
-  - "Ammonium sulfate: 98 % crystallised, 2 % with the impurities in a purge (ASSUMED); three-effect evaporation (ASSUMED) (D-010)."
+  - "Ammonium sulfate: 98 % crystallised, 2 % with the impurities in a purge (ASSUMED); three-effect evaporation (ASSUMED); the dryer 3 wt% cake moisture at 60 % efficiency (ASSUMED) (D-010)."
+  - "Energy: every non-reacting step closes on the materials' constant heat capacities (scripts/energy_balance.py), with the coolers E-101, E-302 and E-402 the stream temperatures imply (D-013)."
   - "All flows are concept estimates from core's conversion steps and component separators; duties of the evaporators and the column and all power are ASSUMED estimates; accuracy not stated, roughly +/-30 %."

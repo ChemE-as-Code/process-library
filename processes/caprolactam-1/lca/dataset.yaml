@@ -15,10 +15,10 @@ boundary: gate-to-gate foreground of the plant
 technology: 'Continuous plant: cyclohexanone oximated counter-currently at 363 K with hydroxylammonium
   sulfate solution (hydroxylamine-1) and ammonia to pH 5; the oxime melt (4.6 wt% water) rearranged in
   oleum (32 wt% SO3, 1.17 kg/kg) in a circulating loop at 388 K, yield 98.9 %; the mixture neutralised
-  with gaseous ammonia in a 40 wt% ammonium sulfate solution; the crude lactam extracted with benzene,
-  back-extracted into water, evaporated (three effects) and distilled under vacuum; ammonium sulfate crystallised
-  from the combined solutions (three effects), centrifuged and dried; 100.1 kt/a caprolactam and 248 kt/a
-  ammonium sulfate at 8000 h/a'
+  with liquid ammonia injected into a 40 wt% ammonium sulfate solution; the crude lactam extracted with
+  benzene, back-extracted into water, evaporated (three effects) and distilled under vacuum; ammonium
+  sulfate crystallised from the combined solutions (three effects), centrifuged and dried; 100.1 kt/a
+  caprolactam and 248 kt/a ammonium sulfate at 8000 h/a'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:tank-vents
@@ -48,7 +48,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 100128800.0
+  amount: 100132800.0
   unit: kg/a
   source: product:PROD per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -70,7 +70,7 @@ exchanges:
 - key: feed:CHNF
   title: Cyclohexanone (boundary feed; no library process)
   type: input
-  amount: 11223.82
+  amount: 11224.5
   unit: kg
   link:
     source: flowsheet stream S01 (D-003, D-004)
@@ -124,7 +124,7 @@ exchanges:
 - key: feed:NH3F
   title: Liquid ammonia (ammonia-1)
   type: input
-  amount: 8008.2
+  amount: 8008.87
   unit: kg
   link:
     source: flowsheet streams S03 and S09 (D-004, D-007)
@@ -146,8 +146,9 @@ exchanges:
 - key: feed:OLEF
   title: Oleum 32 wt% SO3 (boundary feed; no library process)
   type: input
-  amount: 15856.01
+  amount: 15856.6
   unit: kg
+  provenance: calculated
   link:
     source: flowsheet stream S07 (D-006)
     missing: 'not mapped yet (D-012); no library process makes oleum: processes/sulfuric-acid-1 absorbs
@@ -158,8 +159,8 @@ exchanges:
   - S07
   source: flowsheet stream S07 (D-006)
   pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   composition:
     fractions:
@@ -239,19 +240,20 @@ exchanges:
 - key: feed:LPS
   title: LP steam 500 kPa(a) (evaporators)
   type: input
-  amount: 17510.0
+  amount: 19059.9
   unit: kWh
   link:
-    source: flowsheet energy streams Q4 (lactam evaporator) and Q8 (ammonium sulfate crystalliser), D-009,
-      D-010
+    source: flowsheet energy streams Q4 (lactam evaporator), Q8 (ammonium sulfate crystalliser) and Q13
+      (the salt dryer's air heater), D-009, D-010, D-013
     missing: 'linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry,
       500 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh
       of condensing heat'
   streams:
   - Q4
   - Q8
-  source: flowsheet energy streams Q4 (lactam evaporator) and Q8 (ammonium sulfate crystalliser), D-009,
-    D-010
+  - Q13
+  source: flowsheet energy streams Q4 (lactam evaporator), Q8 (ammonium sulfate crystalliser) and Q13
+    (the salt dryer's air heater), D-009, D-010, D-013
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -265,7 +267,7 @@ exchanges:
 - key: feed:MPS
   title: MP steam 1500 kPa(a) (lactam column reboiler)
   type: input
-  amount: 3910.0
+  amount: 3920.1
   unit: kWh
   link:
     source: flowsheet energy stream Q6 (lactam column reboiler), D-009
@@ -287,7 +289,7 @@ exchanges:
 - key: product:PROD
   title: Caprolactam to storage
   type: product
-  amount: 12516.1
+  amount: 12516.6
   unit: kg
   provenance: calculated
   streams:
@@ -311,7 +313,7 @@ exchanges:
 - key: product:ASP
   title: Ammonium sulfate crystals to storage (co-product)
   type: product
-  amount: 31011.4
+  amount: 31012.7
   unit: kg
   provenance: calculated
   streams:
@@ -335,7 +337,7 @@ exchanges:
 - key: product:PURGE
   title: Mother-liquor purge to treatment
   type: output
-  amount: 1808.23
+  amount: 1808.29
   unit: kg
   provenance: calculated
   link:
@@ -356,12 +358,12 @@ exchanges:
       (D-010)
   composition:
     fractions:
-      CPL: 0.035133916
-      HAS: 0.05668136
-      AS: 0.350002791
-      AN: 0.067689934
-      NH3: 0.000553919
-      H2O: 0.48993808
+      CPL: 0.035134246
+      HAS: 0.05668022
+      AS: 0.350007024
+      AN: 0.067689315
+      NH3: 0.000545181
+      H2O: 0.489944015
     formulas:
       CPL: C6H11NO
       HAS: H8N2O6S
@@ -373,7 +375,7 @@ exchanges:
 - key: product:ORGW
   title: Organic residues to incineration (cyclohexanone, benzene, lactam)
   type: output
-  amount: 480.613
+  amount: 480.667
   unit: kg
   provenance: calculated
   link:
@@ -393,10 +395,10 @@ exchanges:
       incinerator (D-009)
   composition:
     fractions:
-      CPL: 0.263051049
-      CHN: 0.42421309
-      H2O: 0.266271391
-      BZ: 0.04646447
+      CPL: 0.263029684
+      CHN: 0.424280211
+      H2O: 0.266233896
+      BZ: 0.046456209
     formulas:
       CPL: C6H11NO
       CHN: C6H10O
@@ -406,7 +408,7 @@ exchanges:
 - key: product:COND
   title: Surplus process condensate to the site's water system
   type: output
-  amount: 26105.2
+  amount: 26105.3
   unit: kg
   provenance: calculated
   link:
@@ -433,11 +435,13 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 42665.45
+  amount: 47449.51999999999
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 to Q3 (core's conversion-step duties of R101, R201 and R301) and
-      Q5, Q7, Q9 (condensers, ASSUMED), D-008 to D-010
+    source: flowsheet energy streams Q1 to Q3 (core's conversion-step duties of R101, R201 and R301; Q1
+      an upper bound, D-008), Q5, Q7, Q9 (condensers and product coolers) and Q10 to Q12 (the melt, crude
+      lactam and back-extraction coolers), the last six from scripts/energy_balance.py (D-009, D-010,
+      D-013)
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
@@ -447,8 +451,12 @@ exchanges:
   - Q5
   - Q7
   - Q9
-  source: flowsheet energy streams Q1 to Q3 (core's conversion-step duties of R101, R201 and R301) and
-    Q5, Q7, Q9 (condensers, ASSUMED), D-008 to D-010
+  - Q10
+  - Q11
+  - Q12
+  source: flowsheet energy streams Q1 to Q3 (core's conversion-step duties of R101, R201 and R301; Q1
+    an upper bound, D-008), Q5, Q7, Q9 (condensers and product coolers) and Q10 to Q12 (the melt, crude
+    lactam and back-extraction coolers), the last six from scripts/energy_balance.py (D-009, D-010, D-013)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -457,6 +465,21 @@ exchanges:
     kind: cold
     temperature: 25.0
     source: utility of CW in process/flowsheet.yaml
+- key: product:AMBIENT
+  title: Heat leaving with the salt dryer's exhaust air to the ambient
+  type: output
+  amount: 1002.0
+  unit: kWh
+  free: true
+  streams:
+  - Q14
+  source: 'Q14: the salt dryer''s heat leaving with its exhaust air (scripts/energy_balance.py, D-010);
+    warm air leaves without a burden and is not an emission of any impact category used here, as hydrogen-chloride-1''s
+    furnace loss'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
 allocation:
   method: shares
   coproducts:
@@ -474,15 +497,15 @@ allocation:
     stage: the relative price 1 : 0.07 is ASSUMED.'
   deviation: The shares rest on an ASSUMED relative price, not sourced ones. The conservative bound is
     all burdens to the caprolactam (share 1); mass allocation, which the rule would give only below a
-    price ratio of 5, would leave the caprolactam 28.8 % of the burdens (12516.1 of 43527.5 kg/h). Sourced
+    price ratio of 5, would leave the caprolactam 28.8 % of the burdens (12516.6 of 43529.3 kg/h). Sourced
     prices replace the ratio.
 provenance:
   generator: cheme assess lca
   plant: Caprolactam from cyclohexanone oxime by Beckmann rearrangement in oleum (100 kt/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:aa9eddc7b29457468939f6bc7fe71fabbe181a04f86518357aa38e8c34adae5d
-    lca/lca.yaml: sha256:eb83365dea9780880362f7eec9b52567cd153bc3a7e465b8e4ad6a8726ee3ced
-    process.yaml: sha256:5d2e1c42ecd3441e51857aee99636827b34d80e7688d67e0ab13d3f4d374cd50
-    process/flowsheet.yaml: sha256:38720bc08665f113b964dbb0aa24266cda0a494d62d49619af454fc176e45136
-    process/materials.yaml: sha256:bdb15c855c10549e2a208199f2f547e1d2cc6c16869df9b9af980e9e48a08567
+    equipment/equipment-list.yaml: sha256:d360b2b9c5c738f466ccfe51f0ab79d7be492021547bf8cf28b1421d4dcaf101
+    lca/lca.yaml: sha256:323eebb229d674af7fb4f51099cef9b2ebc02bdcc7d3e0729e4f2889336a5fd1
+    process.yaml: sha256:1f72ac124bef30e907227297cd4c1938aa17103a90db090a0a20d88e591c143c
+    process/flowsheet.yaml: sha256:844f63ca6a7e6f815924385c3c5b70fb08f1c3f20ed415fe05f04e8a5f39ba56
+    process/materials.yaml: sha256:e6fec9d665a6fbb59fd74e9797609c99875c0570dc15829c9744932025ef2e4b
