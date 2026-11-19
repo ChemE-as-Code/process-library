@@ -34,6 +34,13 @@
 # The dust reference is a US emission limit, not plant data: any compliant dryer is inside it. The
 # dataset's dust factor (AP-42 Table 8.4-1) comes from a 1990 compliance test against this limit, so
 # the two are separate documents but not independent measurements of one plant population.
+#
+# potassium-chloride-1:
+# The ore per t is the one figure of the Brazil Potash S-K 1300 summary (2024) that the dataset does
+# not share: the dataset takes the ore grade (27.3 %) and the recovery (90.8 %) from the same
+# summary, so it checks the plant balance, not an independent plant. The electricity reference is
+# the open study the dataset borrows its value from (a carnallite plant, another route), so it is a
+# record of that borrowing, not a check.
 schema: cheme-as-code/benchmarks/v1
 family: fertilizers
 
@@ -204,6 +211,36 @@ kpis:
       state an installed electrical load in kVA. That is not consumption, so they were not used. The
       dataset's value is an ASSUMED analogue, the midpoint of the solid AN range of LVIC-AAF BREF Table 9.3
       (25 to 60 kWh/t), not a check.
+  kcl-specific-ore:
+    title: Sylvinite ore per kg of potassium chloride product
+    unit: kg/kg
+    references:
+      - id: brazil-potash-2024-ore
+        range: [3.85, 3.85]
+        basis: unallocated
+        note: "8.32 Mt/a of ore at 27.3 % KCl for 2.16 Mt/a of 95 % KCl product on average in the full-production years (8.32 / 2.16 = 3.85), at a 90.8 % KCl recovery; hot leach and vacuum cooling crystallisation."
+        conditions: {technology: "hot leaching of sylvinite at about 90 C, seven-stage vacuum cooling crystallisation, Autazes project design", region: BR, year: 2024}
+        source:
+          citation: "Brazil Potash Corp. (2024) S-K 1300 Technical Report Summary, Autazes Potash Project, exhibit 96.1 to Form F-1, SEC EDGAR"
+          url: https://www.sec.gov/Archives/edgar/data/1472326/000119312524203710/d303049dex961.htm
+          locator: "Executive summary, sections 1.9 and 1.10"
+          kind: other
+          accessed: "2026-11-19"
+  kcl-specific-electricity:
+    title: Electricity per kg of potassium chloride
+    unit: kWh/kg
+    references:
+      - id: farahani-2024-kcl-electricity
+        range: [0.1875, 0.1875]
+        basis: unallocated
+        note: "312.5 kWh per t K2O for a KCl plant at 60 % K2O, 0.1875 kWh per kg KCl; carnallite from brine pools, flotation and decomposition (Khur, Iran, 50 kt/a), not a hot-leach plant."
+        conditions: {technology: "carnallite flotation and decomposition, Khur, Iran", region: IR, year: 2024}
+        source:
+          citation: "Shahvarooghi Farahani, S.; Zamanifard, H.; Taki, M. (2024) Assessing the energy load and environmental footprint of potash fertilizer production in Iran. PLoS ONE 19(11): e0313129"
+          url: https://doi.org/10.1371/journal.pone.0313129
+          locator: "Table 3, KCl column"
+          kind: peer-reviewed
+          accessed: "2026-11-19"
   as-specific-steam-heat:
     title: Steam, as heat delivered, per t of ammonium sulfate
     unit: kWh/t
@@ -270,3 +307,13 @@ datasets:
       as-dryer-dust: {expression: emission:PM / product:ammonium-sulfate, per: product:ammonium-sulfate, reference: us-nsps-1980-as-dryer}
       as-specific-electricity: {expression: feed:electricity / product:ammonium-sulfate, per: product:ammonium-sulfate}
       as-specific-steam-heat: {expression: feed:steam / product:ammonium-sulfate, per: product:ammonium-sulfate}
+  - process: potassium-chloride-1
+    dataset: potassium-chloride-by-hot-leaching-of-sylvinite-and-vacuum-cooling-crystallisation-150-t-h
+    conditions: {technology: "hot leaching of crushed sylvinite (27.3 wt% KCl) at 363 K, seven-stage vacuum cooling crystallisation to 318 K, centrifuge, gas-fired dryer, mother liquor reheated by the stages' vapour and LP steam", basis: "concept balance, the Brazil Potash summary's grade and recovery, ASSUMED brine KCl, crystallizer yield and electricity (DESIGN.md D-003 to D-008)"}
+    kpis:
+      kcl-specific-ore:
+        expression: feed:ORE / product:KCLP
+        per: product:KCLP
+        reference: brazil-potash-2024-ore
+        out_of_range_reason: "The dataset's product is 99.06 wt% KCl, the reference's 95 %: per kg of KCl contained the reference needs 8.32 / (2.16 x 0.95) = 4.05 kg of ore and the dataset 3.996 / 0.9906 = 4.03, at the same grade and recovery (D-003, D-005)."
+      kcl-specific-electricity: {expression: feed:POWER / product:KCLP, per: product:KCLP, reference: farahani-2024-kcl-electricity}
