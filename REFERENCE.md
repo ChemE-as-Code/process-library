@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 130 public process folders: 90 engineering projects (a `plant.yaml` with a process
+The table lists 131 public process folders: 91 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -102,6 +102,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`iron-steel-1`](processes/iron-steel-1/) | Crude steel by the integrated blast furnace and BOF route (Iron and Steel BREF data, IPCC carbon balance) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`isobutene-1`](processes/isobutene-1/) | Isobutene by MTBE cracking (50 kt/a, gas-phase cleavage) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`kraft-pulp-1`](processes/kraft-pulp-1/) | Bleached softwood kraft pulp with chemical recovery (1000 ADt/d market pulp, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`lactic-acid-1`](processes/lactic-acid-1/) | Lactic acid by batch fermentation of glucose with lime in 16 fermenters, acidulation with sulfuric acid to gypsum, four-effect evaporation and purification through ethyl lactate (reactive distillation with ethanol, ester column, hydrolysis), 88 wt% product (100 000 t/a, batch fermentation, continuous downstream) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`lime-1`](processes/lime-1/) | Quicklime by calcination of limestone in a natural-gas-fired parallel flow regenerative kiln (CLM BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`lng-terminal-1`](processes/lng-terminal-1/) | LNG export marine terminal (2 x 225,000 m3 tanks, 2 berths, 28 MTPA; LNG Canada reference) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, 8 P&IDs, 3D layout, HAZOP draft; agent reviews only, no stage signed off, #362) |
 | [`maleic-anhydride-1`](processes/maleic-anhydride-1/) | Maleic anhydride by n-butane oxidation over VPO in a molten-salt cooled fixed bed with HP steam raising, dibutyl phthalate absorption, vacuum stripping and vacuum distillation, off-gas oxidiser with waste-heat boiler (25 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |

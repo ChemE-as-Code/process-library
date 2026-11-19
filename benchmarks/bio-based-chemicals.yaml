@@ -1,4 +1,4 @@
-# Benchmarks of bio-based chemicals: bio-ethylene by ethanol dehydration and biodiesel by transesterification. Schema:
+# Benchmarks of bio-based chemicals: bio-ethylene by ethanol dehydration, biodiesel by transesterification and lactic acid by fermentation. Schema:
 # schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
 # source, in our own form.
 #
@@ -123,6 +123,32 @@ kpis:
         conditions: {technology: "as pradhan-2009-electricity; crude glycerin of about 80 % purity", region: US, year: 2009}
         source: *pradhan-2009
 
+  lactic-acid-specific-glucose:
+    title: Glucose (fermentable sugar) per kg of lactic acid (as 100 %)
+    unit: kg/kg
+    references:
+      - id: biosteam-lactic-yield
+        range: [1.3158, 1.3158]
+        basis: unallocated
+        note: "Our inverse of the BioSTEAM lactic model's yield, 0.76 g of lactic acid per g of sugar fermented (1 / 0.76 = 1.3158 kg/kg): the fermentation alone, before the losses of the recovery; recorded as a zero-width range."
+        conditions: {technology: "lactic acid bacteria at 50 C with lime neutralisation, titer 130 g/L, lignocellulosic sugars (the model's maximum titer of its collected data)", region: generic, year: 2021}
+        source: &biosteam-lactic
+          citation: "Li, Y.; Bhagwat, S. S.; Cortes-Pena, Y. R. et al., BioSTEAM lactic biorefinery, Bioindustrial-Park repository (MIT licence), the model of Li et al. (2021) ACS Sustainable Chem. Eng. 9, 1341-1351"
+          url: https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/biorefineries/lactic
+          locator: "_units.py, class CoFermentation (target_yield 0.76, the reaction Glucose -> 2 LacticAcid at 0.76); README.rst, the system's streams lime and lactic_acid"
+          kind: other
+          accessed: "2026-11-19"
+  lactic-acid-specific-lime:
+    title: Lime (as CaO) per kg of lactic acid (as 100 %)
+    unit: kg/kg
+    references:
+      - id: biosteam-lactic-lime
+        range: [0.5909, 0.5909]
+        basis: unallocated
+        note: "Our ratio of the BioSTEAM lactic model's printed system streams: 243 kmol/h of Ca(OH)2 (as CaO, 243 x 56.077 = 13 627 kg/h) for 256 kmol/h of lactic acid in its product (23 060 kg/h): 0.5909 kg/kg. One modelled plant, recorded as a zero-width range; its lime also neutralises the acetic and succinic acids of a lignocellulosic broth and is dosed 10 % over the acids."
+        conditions: {technology: "as biosteam-lactic-yield; lime to the fermenter on pH, the gypsum route", region: generic, year: 2021}
+        source: *biosteam-lactic
+
 datasets:
   - process: bio-ethylene-1
     dataset: bio-ethylene-ethanol-dehydration
@@ -167,3 +193,17 @@ datasets:
         per: product:BD
         reference: pradhan-2009-crude-glycerin
         out_of_range_reason: "The dataset's crude glycerol, 0.120 kg/kg, holds 86.8 wt% glycerol and its methanol stripped (D-008), against the model's crude of about 80 %: on the glycerol it carries, 0.104 kg/kg, it equals the model's 0.098 to 0.108 at 80 %, and the stoichiometric 0.104 of NREL/SR-510-36244 p. 4."
+  - process: lactic-acid-1
+    dataset: lactic-acid-by-fermentation-of-glucose-100-000-t-a
+    conditions: {technology: "glucose syrup fermented in batches at 323 K with lime (0.76 to lactic acid, 130 g/L), gypsum route with 93 % sulfuric acid, four-effect evaporation, esterification with ethanol by reactive distillation, ester column, hydrolysis, 88 wt% product", basis: "concept balance on the BioSTEAM lactic model's conversions and splits, ASSUMED recoveries and esterification conversion, hand duties for the separations (DESIGN.md D-005 to D-009)"}
+    kpis:
+      lactic-acid-specific-glucose:
+        expression: 0.70 * feed:GLCF / (0.8810 * product:LAP)
+        per: product:LAP
+        reference: biosteam-lactic-yield
+        out_of_range_reason: "1.405 against the model's fermentation yield 1.316 kg/kg: the dataset counts the glucose per kg of lactic acid in the product, after the 8 % lost in the recovery (the gypsum cake's liquid 3.8 %, the ester column's residue 2.4 %, the hydrolysis purge, the evaporator and the cell mass cake, DESIGN.md D-008); the fermentation itself takes the model's 0.76 (D-005). 0.8810 is the product's lactic acid mass fraction."
+      lactic-acid-specific-lime:
+        expression: feed:LIMEF / (0.8810 * product:LAP)
+        per: product:LAP
+        reference: biosteam-lactic-lime
+        out_of_range_reason: "0.423 against the model's 0.591 kg/kg: the dataset's glucose broth makes less acetic acid per kg of lactic acid and no succinic acid (D-004), and the model's lime stream may also serve other parts of its lignocellulosic plant; the same 10 % excess on the acids (D-006). Both are ratios on the acids neutralised, not measured plant data."
