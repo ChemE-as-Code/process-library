@@ -1,0 +1,110 @@
+# Process Atlas manifest of ibuprofen-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: ibuprofen-1
+title: Ibuprofen by the BHC route, HF acylation, hydrogenation and Pd carbonylation (3500 t/a)
+summary: >-
+  A batch plant on the BHC (Boots-Hoechst-Celanese) three-step catalytic route: isobutylbenzene
+  acetylated in anhydrous HF (HF recovered), the ketone hydrogenated over Raney nickel, the
+  alcohol carbonylated with CO over palladium; washed, vacuum-distilled and crystallised from
+  hexane. Concept stage, 3977 kg per batch every 9.0 h, thermal screening of the acylation,
+  preliminary gate-to-gate LCI.
+description: |
+  Isobutylbenzene (IBB) is charged with anhydrous HF (49.5 mol per mol of the IBB in the batch)
+  into a Hastelloy autoclave and acetic anhydride (2 mol per mol, with the recycled IBB and
+  anhydride) is dosed at 353 K: C10H14 + C4H6O3 -> C12H16O + C2H4O2, 85 % conversion and 81 %
+  selectivity to 4-isobutylacetophenone (IBAP) as in US 4 981 995 A Example 1. The HF is stripped
+  and recycled (0.1 % lost), the acetic acid is cut as a co-product, the IBB and anhydride
+  recycled and the by-products (lumped as isomers) sent to incineration. The crude IBAP is
+  hydrogenated neat over Raney nickel at 343 K to 1-(4-isobutylphenyl)ethanol (IBPE; Example 3A:
+  >99 % conversion, 98 % selectivity), and IBPE is carbonylated with CO in 0.75 mol of aqueous HCl
+  per mol over a Pd(II) triphenylphosphine catalyst at 403 K and 16.6 MPa (Example 100: 99 %
+  conversion, 96.6 % ibuprofen, 1.0 % of the linear acid 3-IPPA). The acid phase is decanted and
+  recycled. The crude melt is washed with water, vacuum-distilled in a packed column (the cut at
+  130 to 134 C and 0.3 to 0.7 mm Hg, US 5 151 551 A Example 2), crystallised from hexane at
+  278 K (25 wt% feed), filtered and vacuum-dried at 323 K. The product is 99.56 wt% ibuprofen;
+  67.0 % of the isobutylbenzene becomes product.
+
+  The flowsheet is calculated by cheme-as-code (core 1.13.0): a semi-batch acylation from
+  ASSUMED rate laws calibrated to the patent's example, conversion steps for the hydrogenation
+  and the carbonylation, component separators with ASSUMED recoveries, a crystalliser with an
+  ASSUMED 80 % yield, a filter and a dryer, five recycles converged at their tears and eight
+  design specifications that set the feeds (capacity, ratios, make-ups). The recipe gives a
+  9.0 h cycle (HF stripping and the vacuum distillation the bottlenecks, 880 batches a year) and
+  sizes R-101 (80 m3) and D-401. Thermal screening of the acylation: dT_ad 5.5 K, MTSR 357.7 K
+  against an MTT of 373.15 K (HF's vapour pressure at R-101's ASSUMED relief set pressure). See
+  DESIGN.md for every assumption.
+families: [oxygenates]
+keywords: [ibuprofen, BHC process, Boots-Hoechst-Celanese, green chemistry, isobutylbenzene, 4-isobutylacetophenone, Friedel-Crafts acylation, hydrogen fluoride, acetic anhydride, hydrogenation, Raney nickel, carbonylation, palladium, carbon monoxide, vacuum distillation, crystallisation, hexane, batch, semi-batch, thermal screening, pharmaceuticals, active pharmaceutical ingredient]
+facets:
+  feedstock_basis: [fossil, electricity, water]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation, crystallization, filtration, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, acylation kinetics,
+# heats of reaction, the separations' recoveries and the crystallisation yield are assumed;
+# ratios, temperatures, pressures, conversions and selectivities from the patents' examples.
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate 0
+    errors, cheme process propagate --check clean; five recycles converged at S7, S9, S22, S36
+    and S34 with eight design specifications). The semi-batch R101 (ASSUMED rate laws calibrated
+    to US 4 981 995 A Example 1), the conversion steps R201 and R301 (Examples 3A and 100), the
+    separators (ASSUMED recoveries), the crystalliser CR401 (ASSUMED 80 % yield), the filter
+    F401 and the dryer D401 are calculated by cheme process propagate, which writes the duties
+    of R101, R201, R301 and CR401; the separators' and the dryer's duties are hand arithmetic
+    (D-009). The recipe's year-average rate agrees with the flowsheet (no cheme.recipe-basis
+    finding); it sizes R-101 (80 m3) and D-401 (16 m3). Thermal screening (cheme process
+    reactor-hazards): R101 dT_ad 5.5 K, accumulation 0.86, MTSR 357.7 K against an MTT of
+    373.15 K; no criticality class without a TD24; the hydrogenation and the carbonylation are
+    conversion steps without a screening (L-2). Preliminary gate-to-gate LCI with economic
+    allocation to the acetic acid co-product (ASSUMED prices); in the Atlas build the acetic
+    anhydride, the hydrogen and the hydrochloric acid are linked to acetic-anhydride-1,
+    hydrogen-1 and hydrogen-chloride-1, the steam, water, electricity, cooling water and
+    wastewater to their shared backgrounds; isobutylbenzene, HF, CO, hexane, the brine, the
+    catalysts and the wastes' treatment are gaps. cheme maturity reaches no level; the claim
+    `maturity: concept` is the lowest value of the schema. Not reviewed. Needs cheme-as-code
+    1.13.0.
+chemistry:
+  inputs:
+    - {chemical: isobutylbenzene, role: feedstock, inventory_key: "feed:IBBF", note: "Isobutylbenzene (no library process), 0.967 kg/kg ibuprofen"}
+    - {chemical: acetic-anhydride, role: feedstock, inventory_key: "feed:AC2OF", note: "Acetic anhydride 99.5 wt% (acetic-anhydride-1), 0.763 kg/kg"}
+    - {chemical: hydrogen-fluoride, role: feedstock, inventory_key: "feed:HFF", note: "Anhydrous HF make-up, 8.4 g/kg; 8.4 kg circulate per kg (catalyst and solvent, >99.9 % recovered)"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2F", note: "Hydrogen (hydrogen-1), 12.3 g/kg, 5 % above its use"}
+    - {chemical: carbon-monoxide, role: feedstock, inventory_key: "feed:COF", note: "Carbon monoxide (no library process exports it), 0.166 kg/kg, 10 % above its use"}
+    - {chemical: hydrogen-chloride, role: feedstock, inventory_key: "feed:HCLF", note: "Hydrochloric acid 33 wt% (hydrogen-chloride-1), 0.0586 kg/kg, the make-up of the recycled acid phase"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WASHW", note: "Process water for the melt washes, 3.63 kg/kg"}
+    - {chemical: n-hexane, role: feedstock, inventory_key: "feed:HEXF", note: "n-Hexane make-up of the crystallisation, 6.0 g/kg"}
+    - {chemical: triphenylphosphine, role: feedstock, inventory_key: "consumable:triphenylphosphine", note: "Ligand of the Pd catalyst, 4.75 kg per batch (1.2 g/kg), ASSUMED not recovered (D-010)"}
+  outputs:
+    - {chemical: ibuprofen, role: main-product, inventory_key: "product:IBU", note: "Dried ibuprofen, 99.56 wt% (model), one crystallisation from hexane, to packing"}
+    - {chemical: acetic-acid, role: co-product, inventory_key: "product:HOAC", note: "Acetic acid 95.6 wt% (4.4 wt% anhydride), 0.456 kg/kg, to acetic acid recovery; economic allocation with ASSUMED prices (D-010)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Acid purge and wash water, 3.62 kg/kg, 0.53 wt% HCl, to neutralisation and biological treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.210 kWh/kg: agitators, pumps, the CO compressor, vacuum pumps, filter and dryer (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "3.34 kWh/kg of MP steam 1100 kPa(a): R-101's heat-up, the reboilers of C-101, C-102, C-401 and C-402, the dryer"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.53 kWh/kg removed by cooling water: the reactors' heat and the condensers of C-102, C-401 and C-402"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "1.63 kWh/kg removed by brine at 263 K: C-101's HF condenser, the crystallisation and the dryer's condenser"}
+basis:
+  capacity: "3500 t/a dried ibuprofen: 880 batches/a of 3977.01 kg in 7920 h on a dedicated train (441.89 kg/h year average), ASSUMED (DESIGN.md D-002, D-003)"
+  operating_hours_per_year: 7920
+  location: generic fine-chemicals site with HF handling, hydrogen and CO supply and a biological wastewater treatment (not chosen)
+references:
+  - {title: "Elango, V.; Murphy, M. A.; Smith, B. L.; Davenport, K. G.; Mott, G. N.; Moss, G. L. (Hoechst Celanese, 1991) US 4 981 995 A: Method for producing ibuprofen (acylation of isobutylbenzene in HF, Example 1; hydrogenation, Examples 2, 3, 3A; carbonylation, Examples 49, 50, 100, 106)", url: "https://patents.google.com/patent/US4981995A/en"}
+  - {title: "Hoechst Celanese (1992) US 5 151 551 A: Method for purification of ibuprofen comprising mixtures (water washes, vacuum distillation and crystallisation from hexane or heptane, Examples 1 to 3)", url: "https://patents.google.com/patent/US5151551A/en"}
+  - {title: "US EPA (1997) Presidential Green Chemistry Challenge, Greener Synthetic Pathways Award: BHC Company, an efficient process for the manufacture of ibuprofen (Bishop, TX, 7.7 Mlb/a since 1992; three catalytic steps; HF recovered at more than 99.9 %)", url: "https://19january2021snapshot.epa.gov/greenchemistry/presidential-green-chemistry-challenge-1997-greener-synthetic-pathways-award_.html"}
+  - {title: "thermo 0.6.1 and chemicals 1.5.2 (Caleb Bell and contributors, MIT): liquid volumes, heat capacities, vaporisation enthalpies, formation enthalpies and HF's vapour pressure, each with its method (package values, library ADR 0037)", url: "https://github.com/CalebBell/thermo"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/ibuprofen-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

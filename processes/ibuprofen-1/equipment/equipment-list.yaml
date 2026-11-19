@@ -1,0 +1,27 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes per batch from the recipe (process/recipe.yaml, D-003: 3977 kg every 9.0 h) and the
+# flowsheet's year averages; design pressures, temperatures and materials are not set yet
+# (basic engineering); the materials named are usual choices, to be confirmed. All values ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: T-101, type: Tank, service: "Anhydrous HF storage (chilled, under nitrogen)", notes: "Holds the HF inventory of one batch, about 33 t (3703 kg/h x 9.0 h) and the make-up; carbon steel for anhydrous HF, chilled below 293 K (D-011)."}
+  - {tag: V-101, type: Vessel, service: "Acetic anhydride and recycled IBB dosing vessel on load cells", notes: "7.6 t a batch (841.6 kg/h x 9.0 h), about 8 m3; dosed over 1.5 h by a flow controller interlocked with R-101's temperature and agitator (D-005, D-011)."}
+  - {tag: R-101, type: StirredTankReactor, service: "Acylator: IBB in anhydrous HF at 353 K and 800 kPa(a), anhydride dosed", notes: "47.2 m3 of batch in 80 m3 (the recipe's preferred size, 59 % full, D 4.08 m), Hastelloy C or Monel (SRC-1: Hastelloy C autoclave); MP steam for the heat-up (Q2), cooling water for the reaction (Q1); relief set ASSUMED 950 kPa(g); the HF ratio of SRC-1 Example 1 makes it large (L-3, D-004)."}
+  - {tag: C-101, type: Column, service: "HF stripper: HF overhead, condensed on brine, back to T-101", notes: "Reboiler 618 kW, condenser 625 kW year average (Q3, Q4); HF-resistant alloy (D-007, D-009)."}
+  - {tag: C-102, type: Column, service: "Acid and recycle columns (two, lumped): acetic acid, IBB/anhydride recycle, crude IBAP, residue", notes: "Reboilers 223 kW (Q5), condensers 223 kW (Q6) year average; stainless steel (D-007)."}
+  - {tag: R-201, type: StirredTankReactor, service: "Hydrogenator: neat IBAP over Raney nickel at 343 K and 790 kPa(a)", notes: "4.2 t of IBAP a batch (458 kg/h x 9.0 h), about 6 m3 working (hand estimate, L-2); gas-inducing agitator; cooling water for the heat of hydrogenation 51 kW year average (Q7); stainless steel (D-005)."}
+  - {tag: F-201, type: Filter, service: "Raney nickel filter (catalyst back to R-201 under water)", notes: "Pyrophoric catalyst kept wet; losses replaced per batch (lca/lca.yaml consumable, D-010)."}
+  - {tag: R-301, type: StirredTankReactor, service: "Carbonylation autoclave: IBPE, aqueous HCl, Pd catalyst, CO at 16.6 MPa and 403 K", notes: "6.1 t of charge a batch (677 kg/h x 9.0 h), about 7 m3 working (hand estimate, L-2); Hastelloy C for hot HCl under pressure; CO compressor; cooling water 77 kW year average (Q9) (D-005, D-011)."}
+  - {tag: V-301, type: Vessel, service: "Let-down and decanter: CO vented, aqueous acid separated", notes: "Glass-lined or Hastelloy (D-007)."}
+  - {tag: T-301, type: Tank, service: "Aqueous acid recycle tank (nine tenths back to R-301)", notes: "1.7 t a batch; glass-lined or rubber-lined steel (D-007)."}
+  - {tag: V-401, type: Vessel, service: "Wash vessel: two water washes of the crude melt at 353 K", notes: "14.4 t of water a batch (1605 kg/h x 9.0 h); glass-lined (D-007)."}
+  - {tag: C-401, type: Column, service: "Packed vacuum column (structured packing), ibuprofen cut at 403 to 407 K and 40 to 90 Pa", notes: "SRC-2 Example 2: a packed column at 0.3 to 0.7 mm Hg; reboiler 134 kW, condensers 114 kW year average (Q10, Q11); stainless steel (D-008)."}
+  - {tag: CR-401, type: StirredTankReactor, service: "Cooling crystalliser: the cut in hexane at 333 K cooled to 278 K", notes: "19.5 t of solution a batch (2164 kg/h x 9.0 h), about 30 m3 working; brine 83 kW year average (Q12); stainless steel, nitrogen-inerted (hexane) (D-008, D-011)."}
+  - {tag: F-401, type: Filter, service: "Cold nutsche filter at 278 K", notes: "99.5 % of the crystals, 0.3 kg of liquor per kg of cake (D-008)."}
+  - {tag: D-401, type: Dryer, service: "Agitated vacuum dryer at 323 K", notes: "7.8 m3 of wet cake a batch in 16 m3 (the recipe's preferred size, D 2.73 m), 17.2 m2 heated; 35 kW of MP steam year average (Q13) (D-009)."}
+  - {tag: E-401, type: HeatExchanger, service: "Dryer vacuum condenser (hexane) on brine", notes: "14 kW year average (Q14) (D-009)."}
+  - {tag: C-402, type: Column, service: "Hexane recovery still (mother liquor)", notes: "Reboiler 228 kW, condenser 201 kW year average (Q15, Q16) (D-008)."}
+  - {tag: T-402, type: Tank, service: "Hexane tank (recovered and condensed hexane)", notes: "14.6 t a batch (1621 kg/h x 9.0 h); nitrogen-blanketed (D-011)."}
+  - {tag: T-403, type: Tank, service: "Mother liquor residue tank (seven tenths back to the dissolver)", notes: "(D-008)."}
+  - {tag: T-404, type: Tank, service: "Organic residues to incineration", notes: "2.0 t a batch (226 kg/h x 9.0 h) (D-008)."}

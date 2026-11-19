@@ -1,0 +1,111 @@
+# Reactions of ibuprofen-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The BHC (Boots-Hoechst-Celanese) three-step route of US 4 981 995 A (Hoechst Celanese, 1991;
+# DESIGN.md SRC-1, D-001):
+# 1. ACYL, ACYL_ISO: Friedel-Crafts acetylation of isobutylbenzene with acetic anhydride in
+#    anhydrous HF (catalyst and solvent), Example 1: 80 C, 3 h, 85 % conversion, 81 %
+#    selectivity to 4-isobutylacetophenone (IBAP). The other 19 % is not identified in the
+#    source; it is lumped as ISO (isomers, ASSUMED, D-005).
+# 2. HYD, HYD_OVER: hydrogenation of IBAP to 1-(4-isobutylphenyl)ethanol (IBPE) over Raney
+#    nickel without solvent, Example 3A: 70 C, about 3 h, >99 % conversion, 98 % to IBPE and
+#    1.5 % to the over-reduced 1-(4-isobutylphenyl)ethane (IBPET).
+# 3. CARBO, CARBO_LIN, ETHER: carbonylation of IBPE with CO in aqueous HCl over a Pd(II)
+#    triphenylphosphine catalyst, Example 100 (no solvent, 26 % HCl): 130 C, 2400 psig, 2 h 35
+#    min, 99 % conversion; selectivities 96.6 % ibuprofen, 1.0 % 3-IPPA (the linear acid),
+#    0.0 % isobutylstyrene and 0.8 % heavy ends; the 1.6 % the example does not account for is
+#    put on the heavy ends here (ASSUMED, D-005), represented as the ether of two IBPE.
+#
+# Only ACYL and ACYL_ISO carry rate laws: R101 is a semi-batch (core's model) so that `cheme
+# process reactor-hazards` screens the dosing. They are ASSUMED (no open kinetics found),
+# calibrated so that a batch of SRC-1 Example 1's charge reaches its 85 % conversion in its 3 h
+# at 353.15 K (second order, k = 1.74e-4 m3/(kmol s) in all, split 0.81/0.19 between the two),
+# with an ASSUMED activation energy of 60 kJ/mol (D-005). The hydrogenation and the
+# carbonylation are conversion steps with the examples' conversions and selectivities (D-005,
+# L-2): HYD and HYD_OVER as conversions of the IBAP fed; CARBO,
+# CARBO_LIN and ETHER as R301's selectivities.
+#
+# Heats of reaction (D-005), liquid phase at 298.15 K, from chemicals 1.5.2 (Hfl, Hfg) and
+# thermo 0.6.1 (Hvap at 298.15 K, MORGAN_KOBAYASHI, an estimation method) where a liquid value
+# is missing:
+# - ACYL: isobutylbenzene(l) -69.80, acetic anhydride(l) -624.40, acetic acid(l) -483.58 kJ/mol
+#   (chemicals Hfl); IBAP(l) = Hfg -183.81 less Hvap 46.73 = -230.54 kJ/mol: -19.92 kJ/mol.
+#   The heat of the ketone's complexation by HF is not counted (L-3);
+# - HYD: the analogue acetophenone(l) -142.50 (Hfl) -> 1-phenylethanol(l) (Hfg -129.43 less
+#   Hvap 73.37 = -202.80): -60.30 kJ/mol;
+# - HYD_OVER: the analogue acetophenone(l) + 2 H2 -> ethylbenzene(l) -12.30 + water(l) -285.825:
+#   -155.63 kJ/mol;
+# - CARBO, CARBO_LIN: the analogue 1-phenylethanol(l) -202.80 + CO(g) -110.525 ->
+#   2-phenylpropionic acid(l) (Hfg -348.11 less Hvap 90.80 = -438.91): -125.59 kJ/mol;
+# - ETHER: not known, taken as 0 (ASSUMED; 1.2 % of the IBPE).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ACYL
+    title: Acetylation of isobutylbenzene to 4-isobutylacetophenone (HF)
+    equation: C10H14 + C4H6O3 -> C12H16O + C2H4O2
+    stoichiometry: {IBB: -1, AC2O: -1, IBAP: 1, HOAC: 1}
+    phase: liquid
+    heat_of_reaction: {value: -19918, provenance: assumed, source: "chemicals 1.5.2 Hfl of isobutylbenzene, acetic anhydride and acetic acid; IBAP's liquid value from chemicals Hfg -183.81 kJ/mol less thermo 0.6.1 Hvap(298.15 K) 46.73 kJ/mol (MORGAN_KOBAYASHI, an estimation): (-230.54 - 483.58) - (-69.80 - 624.40) kJ/mol; the HF complexation of the ketone not counted (D-005, L-3)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      k: {A: 1.058e5, Ea: 60000}
+      orders: {IBB: 1, AC2O: 1}
+      temperature_range: [278.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED (D-005): second order, calibrated so that a batch of US 4 981 995 A Example 1 (1.9 mol IBB, 3.8 mol Ac2O in 1877 g HF, about 2.66 L) reaches 85 % conversion in 3 h at 353.15 K: k(total) 1.74e-4 m3/(kmol s), 0.81 of it to IBAP; Ea 60 kJ/mol ASSUMED"
+    sources: ["US 4 981 995 A, Example 1: 80 C, 3 h, 85 % conversion of isobutylbenzene, 81 % selectivity to IBAP"]
+  - id: ACYL_ISO
+    title: Acetylation to by-products (isomers, lump ISO)
+    equation: C10H14 + C4H6O3 -> C12H16O + C2H4O2
+    stoichiometry: {IBB: -1, AC2O: -1, ISO: 1, HOAC: 1}
+    phase: liquid
+    heat_of_reaction: {value: -19918, provenance: assumed, source: "taken as ACYL's (isomers, D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      k: {A: 2.482e4, Ea: 60000}
+      orders: {IBB: 1, AC2O: 1}
+      temperature_range: [278.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED (D-005): 0.19 of ACYL's calibrated k, the 19 % of the converted isobutylbenzene US 4 981 995 A Example 1 does not give as IBAP"
+    sources: ["US 4 981 995 A, Example 1 (selectivity 81 %; the rest not identified)"]
+  - id: HYD
+    title: Hydrogenation of IBAP to 1-(4-isobutylphenyl)ethanol (Raney nickel)
+    equation: C12H16O + H2 -> C12H18O
+    stoichiometry: {IBAP: -1, H2: -1, IBPE: 1}
+    phase: liquid
+    heat_of_reaction: {value: -60297, provenance: assumed, source: "ASSUMED analogue acetophenone(l) + H2 -> 1-phenylethanol(l): chemicals 1.5.2 Hfl(acetophenone) -142.50 kJ/mol, 1-phenylethanol Hfg -129.43 less thermo 0.6.1 Hvap(298.15 K) 73.37 kJ/mol (D-005)"}
+    conversion: {key: IBAP, value: 0.975, provenance: assumed, source: "SRC-1 Example 3A: 0.995 conversion (>99 %) x 0.98 selectivity to IBPE = 0.975 of the IBAP fed (D-005)"}
+    sources: ["US 4 981 995 A, Example 3A: neat IBAP, Raney nickel 10 wt%, 70 C, about 3 h, >99 % conversion, 98 % selectivity to IBPE"]
+  - id: HYD_OVER
+    title: Over-reduction of IBAP to 1-(4-isobutylphenyl)ethane
+    equation: C12H16O + 2 H2 -> C12H18 + H2O
+    stoichiometry: {IBAP: -1, H2: -2, IBPET: 1, H2O: 1}
+    phase: liquid
+    heat_of_reaction: {value: -155625, provenance: assumed, source: "ASSUMED analogue acetophenone(l) + 2 H2 -> ethylbenzene(l) + water(l): chemicals 1.5.2 Hfl -142.50, -12.30 and -285.825 kJ/mol (D-005)"}
+    conversion: {key: IBAP, value: 0.0199, provenance: assumed, source: "0.995 x 0.02 of the IBAP fed (SRC-1 Example 3A: 1.5 % to IBPET, the 0.5 % not accounted for put on it too, D-005); each conversion is of the key's inlet flow"}
+    sources: ["US 4 981 995 A, Example 3A: 1.5 % selectivity to 1-(4'-isobutylphenyl)ethane"]
+  - id: CARBO
+    title: Carbonylation of IBPE to ibuprofen (Pd, aqueous HCl)
+    equation: C12H18O + CO -> C13H18O2
+    stoichiometry: {IBPE: -1, CO: -1, IBU: 1}
+    phase: liquid
+    heat_of_reaction: {value: -125588, provenance: assumed, source: "ASSUMED analogue 1-phenylethanol(l) + CO(g) -> 2-phenylpropionic acid(l): chemicals 1.5.2 Hfg -129.43, -110.525 and -348.11 kJ/mol, the liquids' less thermo 0.6.1 Hvap(298.15 K) 73.37 and 90.80 kJ/mol (D-005)"}
+    sources: ["US 4 981 995 A, Example 100: 130 C, 2400 psig CO, 26 % HCl, no solvent, 2 h 35 min, 99 % conversion, 96.6 % ibuprofen"]
+  - id: CARBO_LIN
+    title: Carbonylation of IBPE to 3-(4-isobutylphenyl)propionic acid (3-IPPA)
+    equation: C12H18O + CO -> C13H18O2
+    stoichiometry: {IBPE: -1, CO: -1, IPPA: 1}
+    phase: liquid
+    heat_of_reaction: {value: -125588, provenance: assumed, source: "taken as CARBO's (an isomer, D-005)"}
+    sources: ["US 4 981 995 A, Example 100: 1.0 % 3-IPPA"]
+  - id: ETHER
+    title: Heavy ends (lump HE, taken as the ether of two IBPE)
+    equation: 2 C12H18O -> C24H34O + H2O
+    stoichiometry: {IBPE: -2, HE: 1, H2O: 1}
+    phase: liquid
+    heat_of_reaction: {value: 0, provenance: assumed, source: "ASSUMED 0: the heavy ends are not identified (D-005)"}
+    sources: ["US 4 981 995 A, Example 100: 0.8 % heavy ends; with the 1.6 % unaccounted, 2.4 % of the IBPE (ASSUMED, D-005)"]
