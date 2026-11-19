@@ -4,8 +4,9 @@
 # Formaldehyde by methanol oxidation over iron molybdate (Formox type), 20 t/h of 50 wt%
 # formalin (D-001, D-002). Where the values come from:
 # - boundary conditions, temperatures and pressures: design basis and decisions, ASSUMED;
-# - the reactor R101 outlet: cheme (conversion reactor from the sourced per-pass conversion and
-#   selectivities, D-004); the ECS R301 outlet: cheme (assumed conversions, D-008);
+# - the reactor R101 outlet: cheme (conversion reactor from the per-pass conversion and
+#   selectivities that scripts/formox_balance.py derives from the sourced plant targets and an
+#   ASSUMED DME make, so assumed, D-004); the ECS R301 outlet: cheme (assumed conversions, D-008);
 # - mixers, blower, exchanger sides and the recycle splitter: `cheme process propagate --fill`;
 # - the absorber C201 outlets (off-gas, formalin), the process water, the air rate, the split
 #   fraction, all temperatures that need a liquid enthalpy and every duty: the independent
@@ -37,7 +38,7 @@ feeds:
 products:
   - {id: FORMALIN, title: Formalin 50 wt% to storage, category: product, ports: [{id: in, direction: in}]}
   - {id: STACK, title: ECS outlet to stack (atmosphere), category: emission, ports: [{id: in, direction: in}]}
-  - id: STEAM
+  - id: MPS
     title: MP steam export 1500 kPa(a) (hot-oil steam generator and ECS steam generator)
     category: utility
     utility:
@@ -354,8 +355,8 @@ streams:
         composition: {basis: mole_fraction, values: {HCHO: 0.375573, CH3OH: 0.001977, H2O: 0.622450}, provenance: assumed, source: "scripts/formox_balance.py: 50.0 wt% HCHO, 0.28 wt% CH3OH (D-002, D-004)"}
   - {id: Q1, title: K-101 blower motor power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 1609.9, provenance: assumed, source: "scripts/formox_balance.py, eta 0.75, motor 0.95 (D-007)"}}}}
   - {id: Q2, title: "Absorber pump-around, water and product pumps power", kind: energy, from: POWER.c201, to: C201.power, state: {design: {duty: {value: 80.0, provenance: assumed, source: "D-007: ASSUMED lump, three pump-arounds of about 200 m3/h at 30 m plus feed and product pumps"}}}}
-  - {id: Q3, title: R-101 reaction heat to steam (hot oil), kind: energy, from: R101.heat, to: STEAM.r101, state: {design: {duty: {value: 10143.7, provenance: assumed, source: "scripts/formox_balance.py, ideal-gas enthalpies 399 -> 553 K (D-006)"}}}}
-  - {id: Q4, title: ECS heat to steam, kind: energy, from: R301.heat, to: STEAM.r301, state: {design: {duty: {value: 1081.8, provenance: assumed, source: "scripts/formox_balance.py, stack 423 K (D-008)"}}}}
+  - {id: Q3, title: R-101 reaction heat to steam (hot oil), kind: energy, from: R101.heat, to: MPS.r101, state: {design: {duty: {value: 10143.7, provenance: assumed, source: "scripts/formox_balance.py, ideal-gas enthalpies 399 -> 553 K (D-006)"}}}}
+  - {id: Q4, title: ECS heat to steam, kind: energy, from: R301.heat, to: MPS.r301, state: {design: {duty: {value: 1081.8, provenance: assumed, source: "scripts/formox_balance.py, stack 423 K (D-008)"}}}}
   - {id: Q5, title: C-201 absorber cooling, kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 13099.2, provenance: assumed, source: "scripts/formox_balance.py, heat of solution of HCHO ASSUMED (D-006)"}}}}
   - {id: Q6, title: E-101 duty (reaction gas to process gas), kind: energy, from: E101H.heat, to: E101C.heat, state: {design: {duty: {value: 5750.4, provenance: assumed, source: "scripts/formox_balance.py, ideal-gas enthalpies, methanol liquid at 298 K (D-006)"}}}}
 layout: {bfd: {}, pfd: {}}

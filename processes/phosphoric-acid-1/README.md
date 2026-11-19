@@ -42,7 +42,7 @@ Three closing terms, all ASSUMED and labelled: the fluoride left after the acid,
 
 ## Linking
 
-The product has the registry slug `phosphoric-acid`, counted as merchant-grade acid (not 100 % H3PO4). `feed:sulfuric-acid` is pinned to `sulfuric-acid-1` in `lca/mappings.yaml`. Steam is the shared background entry by mass (`atlas: false`), as in `cumene-1`. Phosphate rock and the four phosphogypsum outputs are reported mapping gaps: the shared vocabulary has no entry for them, and none is guessed.
+The product has the registry slug `phosphoric-acid`, counted as merchant-grade acid (not 100 % H3PO4). `feed:sulfuric-acid` is pinned to `sulfuric-acid-1` in `lca/mappings.yaml`. Steam is the shared background entry by mass (`atlas: false`), as in `glycerol-1`. Phosphate rock and the four phosphogypsum outputs are reported mapping gaps: the shared vocabulary has no entry for them, and none is guessed.
 
 ## Not counted yet (TODO)
 
