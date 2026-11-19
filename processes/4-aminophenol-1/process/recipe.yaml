@@ -1,0 +1,88 @@
+# The batch recipe of 4-aminophenol-1 (schema cheme/recipe/v1, `cheme process recipe`, DESIGN.md
+# D-003). One batch makes the dried 4-aminophenol of stream S26; the flowsheet's rates are the
+# year averages: the batch x the batches a year / 7920 h. The hydrogen dose takes its time from
+# R101's semi-batch model, R-101's cool-down to 333 K from its jacket (temperatures:), the
+# strip and the aniline distillation theirs from the batch stills ST101 (R-102's boil-up,
+# 390 kW) and ST102 (R-103's, 600 kW), the drying from D101's drying rate; the stills'
+# heat-ups, the neutralisation and K-101's cool-down are timed by hand in scripts/balance.py
+# (core times no still's heat-up with constant volatilities and sizes no crystalliser, L-4,
+# L-5); every other duration is ASSUMED (D-003). R-101 keeps the nitrobenzene heel with the
+# catalyst between batches (V101). R-101's, R-102's, R-103's and D-101's vessels are sized from
+# one batch's content (core ADRs 0052, 0057).
+# `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: 4-Aminophenol by batch hydrogenation of nitrobenzene in dilute sulfuric acid
+batch_size: {value: 1209.4, unit: kg, stream: S26, provenance: assumed, source: "one batch of dried 4-aminophenol: 1000 t/a over the batches the bottleneck's cycle allows (D-002, D-003)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: HYDROGENATE
+    units: [M101, R101, V101]
+    title: Charge on the heel, dose hydrogen at 358 K, settle and decant the aqueous layer (R-101)
+    vessel:
+      fill_fraction: 0.75
+      aspect_ratio: 1.2
+      jacket: {u: 300, coolant_temperature: 303.30, heating_temperature: 393.15, provenance: assumed, source: "glass-lined steel, U 300 W/(m2 K) ASSUMED; cooling water enters the jacket at 298.15 K and leaves at 308.15 K (design basis, D-009), so the mass at 358.15 K sees a log-mean driving force of (60 - 50) / ln(60/50) = 54.85 K: core takes the coolant temperature as constant, so the equivalent 358.15 - 54.85 = 303.30 K is entered; heating on a hot-water loop at 393.15 K from LP steam"}
+      metal_heat_capacity: 8000
+      provenance: assumed
+      source: "a gas-inducing glass-lined stirred vessel filled to 75 % for the gas hold-up (D-003); its metal, about 16 t of glass-lined steel for 25 m3 with the jacket, agitator and nozzles, at 0.5 kJ/(kg K) = 8000 kJ/K, ASSUMED (no vessel mass sourced, D-009); the cool-down to 333 K before the settling is timed on the jacket (cool) and its heat is Q10"
+    operations:
+      - {id: charge, kind: charge, title: "Water, recycled distillates, 98 % acid (its heat of dilution warms the charge) and fresh nitrobenzene onto the heel, under nitrogen (M101)", duration: {value: 1.5, provenance: assumed, source: "D-003; SRC-2 adds the acid over minutes in the laboratory, the plant's dilution heat sets the rate"}}
+      - {id: dose, kind: dose, title: Dose hydrogen at 358 K and about 104 kPa(a) (R101), from: R101}
+      - {id: purge, kind: other, title: "Stop the hydrogen and purge the head space with nitrogen", duration: {value: 0.25, provenance: assumed, source: "D-003; SRC-2: hydrogen off, nitrogen purge"}}
+      - {id: cool, kind: cool, title: "Cool to 333 K on the jacket (Q10)", temperatures: [358.15, 333.15]}
+      - {id: settle, kind: hold, title: "Settle (V101)", duration: {value: 0.5, provenance: assumed, source: "D-003; SRC-2: phases separated below 60 C"}}
+      - {id: decant, kind: transfer, title: "Decant the aqueous layer to R-102, the nitrobenzene layer with the catalyst stays", duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: STRIP
+    units: [ST101, N101]
+    title: Strip and neutralise with ammonia (R-102)
+    vessel:
+      fill_fraction: 0.75
+      aspect_ratio: 1.2
+      metal_heat_capacity: 7500
+      provenance: assumed
+      source: "a glass-lined still pot with a jacket on LP steam and a vapour line to its condenser E-102, filled to at most 75 % for the boiling liquid's freeboard (D-003, D-007); its metal, about 15 t for 25 m3 at 0.5 kJ/(kg K), ASSUMED (D-009)"
+    operations:
+      - {id: receive, kind: charge, title: Receive the aqueous layer from R-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: "Heat the liquor and R-102's metal from 333 K to the boil (Q11)", duration: {value: 1.8, provenance: assumed, source: "scripts/balance.py: Q11 a batch, about 700 kWh, at the boil-up's 390 kW (core times no still's heat-up with constant volatilities, L-4; D-007)"}}
+      - {id: strip, kind: distil, title: Strip 15 % of the liquor with the dissolved nitrobenzene (ST101), from: ST101}
+      - {id: neutralise, kind: dose, title: "Dose ammonia to pH about 6 (N101; the model neutralises all of the acid here, L-3)", duration: {value: 2.1, provenance: assumed, source: "scripts/balance.py: Q4 and Q17 a batch, about 1000 kWh, on R-102's jacket on cooling water, U 300 W/(m2 K) x 25 m2 x 65 K = 487 kW (D-003, D-007)"}}
+      - {id: transfer, kind: transfer, title: Transfer to R-103, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: ANILINE
+    units: [ST102, V102]
+    title: Distil the aniline, carbon-treat and filter hot (R-103)
+    vessel:
+      fill_fraction: 0.75
+      aspect_ratio: 1.2
+      metal_heat_capacity: 7500
+      provenance: assumed
+      source: "as R-102, with its condenser E-104 and an internal heating coil (D-003, D-007, D-009)"
+    operations:
+      - {id: receive, kind: charge, title: Receive the neutralised liquor, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: "Heat the liquor and R-103's metal from 363 K to the boil (Q13)", duration: {value: 0.4, provenance: assumed, source: "scripts/balance.py: R-103's share of Q13 a batch, about 215 kWh (the liquor, its metal and the water fed from 363 K, the water preheated in E-105), at the boil-up's 600 kW (L-4; D-007)"}}
+      - {id: distil, kind: distil, title: "Distil the aniline with water to V-102, process water fed at constant level (ST102)", from: ST102}
+      - {id: carbon, kind: hold, title: "Activated carbon at 371 K, the liquor still at pH about 6", duration: {value: 0.5, provenance: assumed, source: "D-003; SRC-1: 5 min at 98 to 100 C in the laboratory"}}
+      - {id: filter, kind: transfer, title: Filter hot through F-101 to K-101, duration: {value: 0.8, provenance: assumed, source: "D-003: about 12.5 m3 through a candle filter at about 16 m3/h"}}
+  - id: CRYSTALLISE
+    units: [CR101]
+    title: Bring to pH 7.2, cool to 283 K and crystallise (K-101)
+    operations:
+      - {id: receive, kind: charge, title: "Receive the hot filtrate, the rest of the ammonia to pH 7.2 (SRC-1)", duration: {value: 0.8, provenance: assumed, source: "D-003: as F-101's filtration"}}
+      - {id: cool, kind: cool, title: Cool to 283 K under nitrogen on chilled water (CR101), duration: {value: 5.0, provenance: assumed, source: "scripts/balance.py: Q7 and Q16 (135.5 kW year average) x 9.578 h = 1298 kWh a batch, the liquor and K-101's metal from 371 to 283 K on chilled water at 278 K through about 32 m2 of jacket and coil at U 300 W/(m2 K): 4.5 h, taken as 5 h, a mean of 260 kW (core sizes no crystallizer vessel, L-5; D-003)"}}
+      - {id: hold, kind: hold, title: Crystallisation hold at 283 K, duration: {value: 1.0, provenance: assumed, source: "D-003; SRC-2: stirred 1 h at 5 to 10 C"}}
+      - {id: transfer, kind: transfer, title: "Slurry to C-101", duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: ISOLATE
+    units: [W101]
+    title: Centrifuge, wash with cold water, spin dry (C-101)
+    operations:
+      - {id: spin, kind: other, title: Load and spin off the mother liquor, duration: {value: 2.0, provenance: assumed, source: "D-003: about three loads of a vertical peeler centrifuge a batch"}}
+      - {id: wash, kind: other, title: Wash the cake with cold water and spin dry (W101), duration: {value: 1.5, provenance: assumed, source: D-003}}
+      - {id: discharge, kind: transfer, title: Peel the cake into D-101, duration: {value: 0.5, provenance: assumed, source: D-003}}
+  - id: DRY
+    units: [D101]
+    title: Vacuum drying at 333 K under nitrogen (D-101)
+    vessel: {fill_fraction: 0.6, aspect_ratio: 1.0, provenance: assumed, source: "a conical vacuum dryer filled to 60 % (D-009)"}
+    operations:
+      - {id: receive, kind: charge, title: Receive the wet cake, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dry, kind: dry, title: Vacuum drying at 333 K (D101), from: D101}
+      - {id: discharge, kind: transfer, title: "Cool, break the vacuum with nitrogen, discharge to packing", duration: {value: 1.0, provenance: assumed, source: D-003}}

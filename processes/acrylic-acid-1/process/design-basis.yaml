@@ -1,0 +1,52 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Acrylic acid by two-stage propylene oxidation, issue ChemE-as-Code/process-library#475. Values
+# marked ASSUMED are engineering choices of this concept study, not licensor data; every decision
+# is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: glacial acrylic acid (at least 99.5 wt%, 200 ppm MEHQ) to storage
+  acrylic_acid_kg_per_h: 12500           # ASSUMED (D-002)
+  acrylic_acid_t_per_year: 100000        # 12 500 kg/h x 8000 h
+  operating_hours_per_year: 8000         # ASSUMED (D-002)
+  turndown_percent: 60                   # ASSUMED, not checked
+feeds:
+  - name: Chemical-grade propylene (propylene-pdh-1), vapour at the battery limit
+    source_of_values: ASSUMED (D-003)
+    composition: "C3H6 99.5 mol%, C3H8 0.5 mol%; sulfur, dienes and acetylenes to the catalyst supplier's limits (open input)"
+    conditions: {temperature_K: 313.15, pressure_kPa_a: 1000}
+  - name: Process air (compressed on site)
+    composition_dry_mol_percent: {N2: 79.05, O2: 20.95}   # argon and CO2 lumped into N2
+  - name: Process steam 1100 kPa(a), saturated (site boiler, utility-steam-ng-boiler)
+    source_of_values: "US 4 873 368 A, Examples 2 and 5: 0.83 mol steam per mol propylene to the first stage, 2.0 in both (D-004)"
+  - name: Process water (quench absorber), hydroquinone (process inhibitor), toluene (entrainer make-up), MEHQ (product stabiliser)
+    source_of_values: "US 5 910 607 A, Arkema acrylic acid data sheet, ASSUMED where stated (D-007 to D-009)"
+products:
+  - name: Glacial acrylic acid
+    purity: "model 99.92 wt% acrylic acid, 0.057 wt% acetic acid, 200 ppm MEHQ, no water or toluene; specification 99.5 wt% minimum, water 1000 ppm maximum, MEHQ 180 to 220 ppm (Arkema data sheet), acetic acid and water each at most 0.1 wt% (US 5 910 607 A, claim 18)"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 300, battery_limit: "storage under air (oxygen activates the MEHQ), 15 to 25 C (Arkema data sheet); tank farm outside the boundary"}
+  - name: HP steam export
+    note: "2500 kPa(a) saturated steam raised by the reactors' salt coolers, to the site header (D-006); a co-product of the LCI (exergy allocation, D-012)"
+  - name: Wastewater
+    note: "the aqueous phase of the dehydration column (0.18 wt% acetic acid, 0.09 wt% acrylic acid, toluene traces) to biological treatment (D-008)"
+  - name: Liquid wastes to incineration
+    note: "the acetic acid side draw of C-402 and the heavy ends of C-404 (D-008, D-009)"
+  - name: Oxidiser flue gas
+    note: "the absorber off-gas after the catalytic oxidiser: N2, O2, CO2, water, 1 % of the organics (D-011)"
+utilities:
+  - {name: Electric power, use: "process air compressor K-101 (pumps and fans: allowance in the LCA cut-off, D-010)"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "gas cooler E-301, quench absorber cooler, the three columns' condensers", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 450, use: "the three columns' reboilers (bottoms 352 to 363 K)", note: ASSUMED}
+  - {name: HP steam (export), pressure_kPa_a: 2500, use: "raised in the salt coolers of R-101 and R-201", note: ASSUMED}
+site:
+  location: ASSUMED generic petrochemical site with a propylene supply, a steam header, wastewater treatment and an incinerator, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED capacity 100 kt/a in 8000 h (D-002)."
+  - "First stage as US 4 873 368 A, Example 2: 12 % propylene, 10 % steam, 78 % air, 310 C, propylene conversion 98.5 %, acrolein 80.2 %, acrylic acid 11.7 %; the rest of the converted propylene ASSUMED burnt to CO2 (D-005)."
+  - "Second stage as Example 5: secondary air and steam to 7.5 % propylene, 15 % steam, 77.5 % air on the original feed, 265 C, overall 87.8 % acrylic acid and 0.4 % acrolein; acetic acid from the crude's ratio of US 5 910 607 A, Example 1 (D-005)."
+  - "ASSUMED pressures 220 kPa(a) at the first-stage inlet to 130 kPa(a) at the absorber top (US 4 873 368 A: 1.0 kg/cm2 gauge) (D-006)."
+  - "ASSUMED quench absorber: off-gas saturated at 313.15 K, 99.8 % of the acrylic acid absorbed, 55 wt% acrylic acid in the bottoms (D-007)."
+  - "Azeotropic dehydration with toluene at 180 mmHg after US 5 910 607 A, Example 1; acetic acid column and glacial acid column with ASSUMED splits and reflux ratios (D-008, D-009)."
+  - "ASSUMED catalytic oxidiser of the off-gas: 99 % of the organics, recuperative, net adiabatic, no support fuel in the design case (D-011)."
+  - "All flows, temperatures and duties are concept estimates (scripts/aa_balance.py, propagate); accuracy +/-30 % not demonstrated."

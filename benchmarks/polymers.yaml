@@ -1,4 +1,4 @@
-# Benchmarks of polymers: for now PET. Schema: schemas/benchmarks.schema.json; rules:
+# Benchmarks of polymers: PET, general-purpose polystyrene (GPPS) and suspension PVC. Schema: schemas/benchmarks.schema.json; rules:
 # docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
 #
 # How independent these are:
@@ -6,7 +6,11 @@
 #   whatever the plants reported. Its 0.873 t/t is above the range: see out_of_range_reason.
 # - The glycol feed adds the BREF's effluent COD and air emissions to the stoichiometry, so it shares
 #   a source with its range. It is inside, as is NAPCOR's 0.345 t/t.
-# A total energy KPI is not bound: the natural gas is in kg, and an expression cannot add kg to kWh
+# - The GPPS styrene (polystyrene-1) follows from the flowsheet's purge (set by an ASSUMED 7 wt%
+#   ethylbenzene in the reactor feed) and devolatilisation recoveries, not from the BREF; only the
+#   vent's 86 g/t is set to the BREF's VOC level, a 0.01 % effect. Its process water and nitrogen
+#   are the BREF's figures by construction and so are not bound.
+# A PET total energy KPI is not bound: the natural gas is in kg, and an expression cannot add kg to kWh
 # (docs/benchmarks.md). By hand, the dataset's 230 kWh/t of electricity (828 MJ) and 42.0 kg/t of
 # natural gas at an LHV of 50.01 MJ/kg (2100 MJ) give about 2930 MJ/t for melt phase and SSP together.
 # The POL BREF gives 2087 to 4500 MJ/t for the continuous TPA melt phase (Table 10.4) and 903 to
@@ -62,6 +66,62 @@ kpis:
           locator: Table 1, p. 16, and Table 13, p. 52
           kind: iea
           accessed: "2026-11-05"
+  gpps-specific-styrene:
+    title: Styrene per t of general-purpose polystyrene
+    unit: t/t
+    references:
+      - id: bref-pol-gpps-styrene
+        range: [0.985, 1.02]
+        basis: unallocated
+        note: "Table 4.10 gives two values for styrene, 0.985 and 1.020 t/t, in the columns 'average top 50 %', 'European average' and 'maximum value' without saying which two (our reading: the top-50 % average and the maximum, since Table 13.6 gives 0.985 t/t as the BAT-associated level). The source's GPPS carries mineral oil (0.02 t/t, up to 0.06) and additives (0.005 t/t) in its product mass; a product without them needs about 2 % more styrene per t."
+        conditions: {technology: "GPPS plants in Europe, the variety of continuous technologies used (APME data, 2002)", region: EU, year: 2002}
+        source: &bref-pol-gpps
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: "Table 4.10, p. 84 (section 4.3.1), and Table 13.6, p. 263"
+          kind: bref
+          accessed: "2026-11-19"
+  gpps-specific-energy:
+    title: Total energy (fuel and power) per t of general-purpose polystyrene
+    unit: GJ/t
+    references:
+      - id: bref-pol-gpps-energy
+        range: [1.08, 1.8]
+        basis: unallocated
+        note: "Table 4.10's two values for total energy (1.08 and 1.80 GJ/t), read like its styrene row as the top-50 % average and the maximum; Table 13.6 gives 1.08 GJ/t as the BAT-associated level. The source does not say how it adds fuel and electricity (final or primary energy)."
+        conditions: {technology: "GPPS plants in Europe, the variety of continuous technologies used (APME data, 2002)", region: EU, year: 2002}
+        source: *bref-pol-gpps
+
+  pvc-specific-electricity:
+    title: Electricity per t of suspension PVC
+    unit: kWh/t
+    references:
+      - id: bref-pol-spvc-electricity
+        range: [194.4, 305.6]
+        basis: unallocated
+        note: "Typical electrical energy of S-PVC processes, 0.7 to 1.1 GJ/t (1999 data), converted at 3.6 MJ/kWh. The next section, 5.3.4 (Table 5.10, on the same page), gives one example S-PVC plant at 139 kWh/t for 2003, without off-site and utilities, below the range."
+        conditions: {technology: "suspension PVC, batch polymerisation, stripping and drying", region: EU, year: 1999}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: section 5.3.3, Table 5.9, p. 103
+          kind: bref
+          accessed: "2026-11-19"
+  pvc-specific-wastewater:
+    title: Process wastewater per t of suspension PVC
+    unit: t/t
+    references:
+      - id: bref-pol-spvc-wastewater
+        range: [1.0, 4.0]
+        basis: unallocated
+        note: "Wastewater of German S-PVC plants, 1 to 4 m3/t, as Germany reported it, taken at 1 t/m3. Not independent of the dataset's water, which takes the charge's ratio from a patent and the cake's moisture as ASSUMED."
+        conditions: {technology: "suspension PVC", region: DE}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf
+          locator: section 5.3.2.1, p. 102
+          kind: bref
+          accessed: "2026-11-19"
 
 datasets:
   - process: pet-1
@@ -79,3 +139,23 @@ datasets:
         per: product:pet
         reference: iea-2009-pet-electricity
         out_of_range_reason: "The dataset's 230 kWh/t is NAPCOR's figure for US bottle-grade plants of 2015 (melt phase with SSP, some MTR), 4 % above the IEA's Western European average, which is itself the best-practice value plus 20 % (Table 13, footnote 1) rather than plant data."
+  - process: polystyrene-1
+    dataset: general-purpose-polystyrene-by-continuous-bulk-polymerisation-100-kt-a-concept
+    conditions: {technology: "continuous bulk polymerisation initiated by heat (stirred prepolymeriser and tower reactors), two-stage vacuum devolatilisation, underwater pelletising; no mineral oil or additives in the product", basis: concept flowsheet (core propagate with an independent balance script)}
+    kpis:
+      gpps-specific-styrene: {expression: feed:SM / product:PELLETS, per: product:PELLETS, reference: bref-pol-gpps-styrene}
+      gpps-specific-energy:
+        expression: (feed:POWER + feed:HOTOIL) / product:PELLETS
+        per: product:PELLETS
+        reference: bref-pol-gpps-energy
+        out_of_range_reason: "D-012 in processes/polystyrene-1/DESIGN.md: the dataset counts the process line's electricity (660 kW) and the heat the hot oil delivers to E-101 (1044 kW), 0.49 GJ/t, below the BREF's lowest total of 1.08 GJ/t. Not counted: the hot-oil heater's losses (in its background), the cooling-water and chilled-water pumps and fans (in the cooling-water utility's background), the reactors' heat at start-up, tank, silo and line tracing, HVAC, nitrogen and buildings, and the BREF does not say how it adds fuel and power; the concept's powers are ASSUMED (D-009)."
+  - process: pvc-1
+    dataset: polyvinyl-chloride-by-batch-suspension-polymerisation-of-vinyl-chloride-with-vcm-recovery-steam-stripping-centrifuge-and-fluid-bed-drying
+    conditions: {technology: "suspension polymerisation in four 130 m3 batch autoclaves at 330 K to 90 % conversion, VCM recovery, continuous steam stripping, decanter centrifuge, fluid-bed dryer on LP steam", basis: "concept balance, the charge of US 6 825 288 B2, Example 1, ASSUMED rate, splits, cake moisture and dryer efficiency (DESIGN.md D-004 to D-009)"}
+    kpis:
+      pvc-specific-electricity:
+        expression: feed:POWER / product:PVCP
+        per: product:PVCP
+        reference: bref-pol-spvc-electricity
+        out_of_range_reason: "The dataset's 139 kWh/t is the BREF's own example plant (Table 5.10), which leaves out off-site and utilities; the refrigeration of the chilled water (0.44 kWh of heat per kg) is a separate exchange, product:CHW, whose electricity a chiller at a COP of 4 to 5 would add (about 90 to 110 kWh/t), bringing the total into the range (D-008)."
+      pvc-specific-wastewater: {expression: product:WW / product:PVCP, per: product:PVCP, reference: bref-pol-spvc-wastewater}

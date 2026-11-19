@@ -1,0 +1,673 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Acrylic acid by two-stage catalytic oxidation of propylene with air and steam (acrolein over a
+# Mo-Bi oxide, then acrylic acid over a Mo-V oxide, multitubular reactors cooled by molten salt
+# that raises steam), quench absorption in water, azeotropic dehydration with toluene, acetic
+# acid removal and vacuum distillation of the glacial acid with hydroquinone in the columns and
+# MEHQ in the product (DESIGN.md D-001). Where the values come from:
+# - feeds, temperatures, pressures, selectivities and separator splits: the design basis and
+#   decisions D-002 to D-011, from US 4 873 368 A, US 4 365 087 A and US 5 910 607 A where they
+#   state them, otherwise ASSUMED;
+# - the feed flows, the mixers' and the oxidiser's temperatures, the compressor's power and the
+#   duties of the gas cooler, the absorber and the columns: scripts/aa_balance.py (D-010),
+#   given here as `assumed` with the script as source;
+# - every other flow and composition, and the two reactors' duties: `cheme process propagate
+#   --fill` (conversion reactors with selectivities, the air splitter, the mixers and the
+#   component separators with `recovery:`; the toluene recycle S21 torn and converged).
+schema: cheme/process/v1
+kind: flowsheet
+title: Acrylic acid by two-stage propylene oxidation (12.5 t/h glacial acrylic acid)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 12 500 kg/h glacial acrylic acid with 200 ppm MEHQ, 100 kt/a in 8000 h (D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# The toluene recycle (D-008): S21 is torn and converged by propagate (core ADR 0060); the guess
+# is scripts/aa_balance.py's converged stream.
+tears:
+  - stream: S21
+    initial: {flow: 1080.749, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.02820, AA: 0.02370, HAC: 0.03294, TOL: 0.91516}}
+convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 1.0e-5, rel: 1.0e-8}}
+
+feeds:
+  - {id: C3, title: Chemical-grade propylene (propylene-pdh-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Process air, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: STM
+    title: Process steam 1100 kPa(a) (site boiler)
+    category: raw_material
+    ports: [{id: r101, direction: out}, {id: r201, direction: out}]
+  - {id: PW, title: Process water to the quench absorber, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HQ, title: Hydroquinone (process inhibitor), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: TOL, title: Toluene make-up (entrainer), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEHQ, title: 4-Methoxyphenol (product stabiliser), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: k101, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam 450 kPa(a) to the reboilers
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis (D-010), ASSUMED"}
+      supply_temperature: {value: 421.05, provenance: given, source: "saturation at 450 kPa(a), IAPWS-95 (chemicals 1.5.2 iapws95_Tsat)"}
+      min_approach: {value: 10, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: c401, direction: out, kind: energy}
+      - {id: c402, direction: out, kind: energy}
+      - {id: c404, direction: out, kind: energy}
+products:
+  - {id: PRODUCT, title: Glacial acrylic acid (200 ppm MEHQ) to storage, category: product, ports: [{id: in, direction: in}]}
+  - id: STMX
+    title: HP steam export 2500 kPa(a), raised by the reactors' salt coolers
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 2500, provenance: assumed, source: "design basis (D-006), ASSUMED"}
+      supply_temperature: {value: 497.10, provenance: given, source: "saturation at 2500 kPa(a), IAPWS-95 (chemicals 1.5.2 iapws95_Tsat)"}
+      min_approach: {value: 10, provenance: assumed, source: "design basis"}
+    ports: [{id: r101, direction: in, kind: energy}, {id: r201, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis"}
+      min_approach: {value: 5, provenance: assumed, source: "design basis"}
+    ports:
+      - {id: e301, direction: in, kind: energy}
+      - {id: t301, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+      - {id: c402, direction: in, kind: energy}
+      - {id: c404, direction: in, kind: energy}
+  - {id: WW, title: Aqueous phase of the dehydration column to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: ACW, title: "Acetic acid side draw (liquid, with acrylic acid and toluene) to incineration", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: HEAVY, title: "Heavy ends (liquid acrylic acid with hydroquinone) to incineration", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Oxidiser flue gas to stack, category: off_gas, ports: [{id: in, direction: in}]}
+
+blocks:
+  - id: OX1
+    title: First-stage oxidation (propylene to acrolein)
+    class: ReactingChemicals
+    ports:
+      - {id: c3, direction: in}
+      - {id: air, direction: in}
+      - {id: steam, direction: in}
+      - {id: out, direction: out}
+      - {id: air2, direction: out}
+      - {id: stmx, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: OX2
+    title: Second-stage oxidation (acrolein to acrylic acid)
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: air2, direction: in}
+      - {id: steam, direction: in}
+      - {id: out, direction: out}
+      - {id: stmx, direction: out, kind: energy}
+  - id: QUENCH
+    title: Gas cooling and quench absorption in water
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: offgas, direction: out}
+      - {id: crude, direction: out}
+      - {id: cw_e301, direction: out, kind: energy}
+      - {id: cw_t301, direction: out, kind: energy}
+  - id: OXID
+    title: Catalytic oxidation of the off-gas
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: PUR
+    title: Dehydration, acetic acid removal and glacial acid distillation
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: crude, direction: in}
+      - {id: hq, direction: in}
+      - {id: tol, direction: in}
+      - {id: mehq, direction: in}
+      - {id: product, direction: out}
+      - {id: water, direction: out}
+      - {id: acw, direction: out}
+      - {id: heavy, direction: out}
+      - {id: lps_c401, direction: in, kind: energy}
+      - {id: cw_c401, direction: out, kind: energy}
+      - {id: lps_c402, direction: in, kind: energy}
+      - {id: cw_c402, direction: out, kind: energy}
+      - {id: lps_c404, direction: in, kind: energy}
+      - {id: cw_c404, direction: out, kind: energy}
+
+steps:
+  # --- OX1 -------------------------------------------------------------------------------------
+  - id: K101
+    block: OX1
+    title: Process air compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: SP101
+    block: OX1
+    title: Primary and secondary air split
+    class: SplittingMaterial
+    split:
+      primary: 0.629032258
+    ports:
+      - {id: in, direction: in}
+      - {id: primary, direction: out}
+      - {id: secondary, direction: out, delegates: air2}
+  - id: M101
+    block: OX1
+    title: First-stage feed mixer
+    class: Mixing
+    symbol: STATIC_MIXER_SHAPE
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: c3, direction: in, delegates: c3}
+      - {id: air, direction: in}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: out, direction: out}
+  - id: R101
+    block: OX1
+    title: First-stage reactor (multitubular, Mo-Bi oxide, salt-cooled, with an after-cooling zone)
+    class: ReactingChemicals
+    reactions: [R1, R2, R3]
+    reactor: conversion
+    selectivity:
+      key: C3H6
+      conversion: 0.985
+      products: {ACR: 0.814213198, AA: 0.118781726, CO2: 0.201015228}
+      provenance: assumed
+      source: "US 4 873 368 A, Example 2 (Table 1): propylene conversion 98.5 %, acrolein yield 80.2 %, acrylic acid yield 11.7 % at 310 C, 12 % propylene, 10 % steam, 78 % air; the rest of the propylene converted (6.6 %) lumped as burnt to CO2 and water (D-005, ASSUMED split)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: stmx}
+  # --- OX2 -------------------------------------------------------------------------------------
+  - id: M201
+    block: OX2
+    title: Second-stage feed mixer (secondary air and steam)
+    class: Mixing
+    symbol: STATIC_MIXER_SHAPE
+    links: [{target: equipment, ref: M-201}]
+    ports:
+      - {id: gas, direction: in, delegates: in}
+      - {id: air, direction: in, delegates: air2}
+      - {id: steam, direction: in, delegates: steam}
+      - {id: out, direction: out}
+  - id: R201
+    block: OX2
+    title: Second-stage reactor (multitubular, Mo-V oxide, salt-cooled)
+    class: ReactingChemicals
+    reactions: [R4, R5, R6]
+    reactor: conversion
+    # Parallel conversions of the acrolein on the reactions (reactions.yaml), the same extents as
+    # a selectivity spec (key ACR, conversion 0.995012469, AA 0.953634085, HAC 0.036008502, CO2
+    # 0.067080740 per kmol converted): core 1.12.0's validator loses the reactions of a second
+    # selectivity step in one flowsheet (DESIGN.md L-4).
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: stmx}
+  # --- QUENCH ----------------------------------------------------------------------------------
+  - id: E301
+    block: QUENCH
+    title: Reaction gas cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: in, direction: in, delegates: gas}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: cw_e301}
+  - id: T301
+    block: QUENCH
+    title: Quench absorber (water, inhibited)
+    class: Absorbing
+    recovery:
+      outlets:
+        gas: {N2: 1.0, O2: 1.0, CO2: 1.0, C3H6: 1.0, C3H8: 1.0, ACR: 1.0, AA: 0.002, HAC: 0.03, H2O: 0.16166089}
+      provenance: assumed
+      source: "D-007: inerts, propylene, propane and acrolein to the off-gas, 99.8 % of the acrylic acid and 97 % of the acetic acid absorbed (ASSUMED); water: saturation of the off-gas at 313.15 K and 130 kPa(a), the fraction from scripts/aa_balance.py"
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: gas_in, direction: in}
+      - {id: liq_in, direction: in, delegates: water}
+      - {id: gas, direction: out, delegates: offgas}
+      - {id: liquid, direction: out, delegates: crude}
+      - {id: q, direction: out, kind: energy, delegates: cw_t301}
+  # --- OXID ------------------------------------------------------------------------------------
+  - id: X401
+    block: OXID
+    title: Catalytic oxidiser (recuperative, net adiabatic)
+    class: ReactingChemicals
+    reactions: [OX_C3H6, OX_C3H8, OX_ACR, OX_AA, OX_HAC]
+    reactor: conversion
+    links: [{target: equipment, ref: X-401}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out, delegates: out}
+  # --- PUR -------------------------------------------------------------------------------------
+  - id: C401
+    block: PUR
+    title: Azeotropic dehydration column (toluene, 24 kPa(a))
+    class: Distilling
+    recovery:
+      outlets:
+        water: {H2O: 0.997, HAC: 0.05, AA: 0.0007, TOL: 0.005}
+      provenance: assumed
+      source: "D-008: US 5 910 607 A, Example 1: aqueous phase with 0.2 wt% acetic acid and 0.1 wt% acrylic acid, bottoms with at most 0.5 wt% water; fractions ASSUMED to give these (0.18, 0.09 and 0.21 wt%), toluene in the aqueous phase ASSUMED 0.5 % of the inlet"
+    links: [{target: equipment, ref: C-401}, {target: equipment, ref: E-401}, {target: equipment, ref: E-402}, {target: equipment, ref: V-401}]
+    ports:
+      - {id: feed, direction: in, delegates: crude}
+      - {id: hq, direction: in, delegates: hq}
+      - {id: tol, direction: in, delegates: tol}
+      - {id: recycle, direction: in}
+      - {id: water, direction: out, delegates: water}
+      - {id: bottoms, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: lps_c401}
+      - {id: cond, direction: out, kind: energy, delegates: cw_c401}
+  - id: C402
+    block: PUR
+    title: Acetic acid and toluene column (13.3 kPa(a), side draw)
+    class: Distilling
+    recovery:
+      outlets:
+        top: {TOL: 0.995, H2O: 1.0, HAC: 0.10, AA: 0.002}
+        side: {TOL: 0.005, HAC: 0.88, AA: 0.008}
+      provenance: assumed
+      source: "D-008: toluene and water overhead back to C-401, the acetic acid as a side draw to incineration, 2 % of it left in the acrylic acid for the product's 0.1 wt% limit (US 5 910 607 A, claim 18); fractions ASSUMED"
+    links: [{target: equipment, ref: C-402}, {target: equipment, ref: E-403}, {target: equipment, ref: E-404}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: side, direction: out, delegates: acw}
+      - {id: bottoms, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: lps_c402}
+      - {id: cond, direction: out, kind: energy, delegates: cw_c402}
+  - id: C404
+    block: PUR
+    title: Glacial acrylic acid column (8 kPa(a))
+    class: Distilling
+    recovery:
+      outlets:
+        top: {AA: 0.985, HAC: 1.0, H2O: 1.0, TOL: 1.0}
+      provenance: assumed
+      source: "D-009: 1.5 % of the acrylic acid leaves with the hydroquinone in the heavy ends (standing for the dimer and the bleed), ASSUMED"
+    links: [{target: equipment, ref: C-404}, {target: equipment, ref: E-405}, {target: equipment, ref: E-406}]
+    ports:
+      - {id: feed, direction: in}
+      - {id: top, direction: out}
+      - {id: bottoms, direction: out, delegates: heavy}
+      - {id: reb, direction: in, kind: energy, delegates: lps_c404}
+      - {id: cond, direction: out, kind: energy, delegates: cw_c404}
+  - id: M405
+    block: PUR
+    title: MEHQ dosing into the product
+    class: Mixing
+    links: [{target: equipment, ref: M-405}]
+    ports:
+      - {id: aa, direction: in}
+      - {id: mehq, direction: in, delegates: mehq}
+      - {id: out, direction: out, delegates: product}
+
+streams:
+  # --- feeds and first stage -------------------------------------------------------------------
+  - id: S1
+    title: Propylene feed
+    from: C3.out
+    to: M101.c3
+    template: propylene
+    state:
+      design:
+        pressure: {value: 1000.0, provenance: assumed, source: "battery limit (D-003), let down to the mixer"}
+        temperature: {value: 313.15, provenance: assumed, source: "scripts/aa_balance.py: battery limit, vapour (D-003)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 8569.565, basis: mass, provenance: assumed, source: "scripts/aa_balance.py: propylene for 12 500 kg/h product (D-002)"}
+        composition: {basis: mole_fraction, values: {C3H6: 0.995, C3H8: 0.005}, provenance: assumed, source: "D-003: chemical grade, 0.5 mol% propane, ASSUMED"}
+  - id: S2
+    title: Process air
+    from: AIR.out
+    to: K101.in
+    template: air
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "ambient"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 60389.202, basis: mass, provenance: assumed, source: "scripts/aa_balance.py: 10.33 mol air per mol propylene in both stages (US 4 873 368 A, Example 5; D-004)"}
+        composition: {basis: mole_fraction, values: {N2: 0.7905, O2: 0.2095}, provenance: assumed, source: "dry air, argon and CO2 lumped into N2 (D-004)"}
+  - id: S3
+    title: Compressed air
+    from: K101.out
+    to: SP101.in
+    template: air
+    state:
+      design:
+        pressure: {value: 230.0, provenance: assumed, source: "D-006: compressor discharge"}
+        temperature: {value: 395.87, provenance: assumed, source: "scripts/aa_balance.py: isentropic efficiency 0.80 (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 60389.202, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S2', fingerprint: 43d7c4b6f20884a1}
+        composition: {basis: mole_fraction, values: {N2: 0.7905, O2: 0.2095}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S2', fingerprint: 43d7c4b6f20884a1}
+  - id: S4
+    title: Process steam to the first stage
+    from: STM.r101
+    to: M101.steam
+    template: steam
+    state:
+      design:
+        pressure: {value: 1100.0, provenance: assumed, source: "site MP steam header (D-004), let down to the mixer"}
+        temperature: {value: 457.21, provenance: assumed, source: "scripts/aa_balance.py: saturated at 1100 kPa(a)"}
+        phase: {value: vapor, provenance: assumed, source: "steam"}
+        flow: {value: 3041.271, basis: mass, provenance: assumed, source: "scripts/aa_balance.py: 0.833 mol steam per mol propylene (US 4 873 368 A, Example 2; D-004)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "steam"}
+  - id: S7
+    title: Primary air
+    from: SP101.primary
+    to: M101.air
+    template: air
+    state:
+      design:
+        pressure: {value: 225.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 395.87, provenance: assumed, source: "scripts/aa_balance.py: compressor outlet"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 37986.8, basis: mass, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S3', fingerprint: 62fc992ade500408}
+        composition: {basis: mole_fraction, values: {N2: 0.7905, O2: 0.2095}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S3', fingerprint: a40b7e347c8106fd}
+  - id: S5
+    title: First-stage feed gas
+    from: M101.out
+    to: R101.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 220.0, provenance: assumed, source: "D-006: US 4 873 368 A runs at 1.0 kg/cm2 gauge"}
+        temperature: {value: 381.34, provenance: assumed, source: "scripts/aa_balance.py: adiabatic mixing (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 49597.6, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S4 S7', fingerprint: 608365fea4b68e0f}
+        composition: {basis: mole_fraction, values: {C3H6: 0.119928, C3H8: 0.000602651, H2O: 0.0999396, N2: 0.616219, O2: 0.163312}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S4 S7', fingerprint: 3a3662e64dd2bfa8}
+  - id: S6
+    title: First-stage outlet (acrolein gas, after the cooling zone)
+    from: R101.out
+    to: M201.gas
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 533.15, provenance: assumed, source: "D-006: after-cooling zone outlet 260 C (US 4 873 368 A: at most 280 C, preferably 260 C)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 49597.6, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 997a04693610d6fe}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00180444, C3H8: 0.000604499, O2: 0.0104958, N2: 0.618109, H2O: 0.234616, CO2: 0.0238186, ACR: 0.0964772, AA: 0.0140746, HAC: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: d2a86665804556fe}
+  # --- second stage ----------------------------------------------------------------------------
+  - id: S8
+    title: Secondary air
+    from: SP101.secondary
+    to: M201.air
+    template: air
+    state:
+      design:
+        pressure: {value: 225.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 395.87, provenance: assumed, source: "scripts/aa_balance.py: compressor outlet"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 22402.4, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S3 S7', fingerprint: 21852310866760c1}
+        composition: {basis: mole_fraction, values: {N2: 0.7905, O2: 0.2095}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S3', fingerprint: a40b7e347c8106fd}
+  - id: S9
+    title: Process steam to the second stage
+    from: STM.r201
+    to: M201.steam
+    template: steam
+    state:
+      design:
+        pressure: {value: 1100.0, provenance: assumed, source: "site MP steam header (D-004)"}
+        temperature: {value: 457.21, provenance: assumed, source: "scripts/aa_balance.py: saturated at 1100 kPa(a)"}
+        phase: {value: vapor, provenance: assumed, source: "steam"}
+        flow: {value: 4257.78, basis: mass, provenance: assumed, source: "scripts/aa_balance.py: 1.167 mol steam per mol propylene, to 2.0 in both stages (US 4 873 368 A, Example 5; D-004)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "steam"}
+  - id: S10
+    title: Second-stage feed gas
+    from: M201.out
+    to: R201.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 195.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 494.68, provenance: assumed, source: "scripts/aa_balance.py: adiabatic mixing (D-006)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 76257.8, provenance: calculated, source: 'cheme process propagate: mixer M201 from S6 S8 S9', fingerprint: c0262626518aee16}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00112674, C3H8: 0.000377464, O2: 0.0668775, N2: 0.61358, H2O: 0.234134, CO2: 0.0148729, ACR: 0.0602427, AA: 0.00878852, HAC: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S6 S8 S9', fingerprint: d6414be936f90f17}
+  - id: S11
+    title: Second-stage outlet (acrylic acid gas)
+    from: R201.out
+    to: E301.in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 170.0, provenance: assumed, source: "D-006"}
+        temperature: {value: 538.15, provenance: assumed, source: "D-006: salt bath 265 C (US 4 873 368 A, Example 5)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 76257.8, provenance: calculated, source: 'cheme process propagate: reactor R201 from S10', fingerprint: e1c026b48bcecf2f}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00116081, C3H8: 0.000388878, O2: 0.0338798, N2: 0.632133, H2O: 0.242493, CO2: 0.0194652, ACR: 0.000309548, AA: 0.0679457, HAC: 0.0022237}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S10', fingerprint: 04d644192ca5e074}
+  # --- quench ----------------------------------------------------------------------------------
+  - id: S12
+    title: Cooled reaction gas
+    from: E301.out
+    to: T301.gas_in
+    template: process_gas
+    state:
+      design:
+        pressure: {value: 165.0, provenance: assumed, source: "D-007"}
+        temperature: {value: 443.15, provenance: assumed, source: "D-007: 170 C (US 4 873 368 A: 100 to 180 C before the quench)"}
+        phase: {value: vapor, provenance: assumed, source: "above its dew point"}
+        flow: {value: 76257.8, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S11', fingerprint: 10750f3060a8acb5}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00116081, C3H8: 0.000388878, O2: 0.0338798, N2: 0.632133, H2O: 0.242493, CO2: 0.0194652, ACR: 0.000309548, AA: 0.0679457, HAC: 0.0022237}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S11', fingerprint: 10750f3060a8acb5}
+  - id: S13
+    title: Process water to the absorber top
+    from: PW.out
+    to: T301.liq_in
+    template: water
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "site water header"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 644.084, basis: mass, provenance: assumed, source: "scripts/aa_balance.py: water for 55 wt% acrylic acid in the bottoms (D-007)"}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
+  - id: S14
+    title: Absorber off-gas
+    from: T301.gas
+    to: X401.in
+    template: offgas
+    state:
+      design:
+        pressure: {value: 130.0, provenance: assumed, source: "D-007"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007: absorber top 40 C (US 4 365 087 A: cooled to 5 to 50 C)"}
+        phase: {value: vapor, provenance: assumed, source: "gas, saturated with water"}
+        flow: {value: 53643.6, provenance: calculated, source: 'cheme process propagate: separator T301 from S12 S13', fingerprint: cb4c01de07fec32e}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00159244, C3H8: 0.000533477, O2: 0.0464776, N2: 0.867184, H2O: 0.0568071, CO2: 0.0267031, ACR: 0.00042465, AA: 0.000186421, HAC: 9.15166e-05}, provenance: calculated, source: 'cheme process propagate: separator T301 from S12 S13', fingerprint: cb4c01de07fec32e}
+  - id: S15
+    title: Crude aqueous acrylic acid
+    from: T301.liquid
+    to: C401.feed
+    template: aqueous_aa
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: "D-007"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-007: absorber bottoms 60 C, ASSUMED"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 23258.3, provenance: calculated, source: 'cheme process propagate: separator T301 from S12 S13', fingerprint: cb4c01de07fec32e}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.754251, CO2: 0.0, ACR: 0.0, AA: 0.238173, HAC: 0.00757615}, provenance: calculated, source: 'cheme process propagate: separator T301 from S12 S13', fingerprint: cb4c01de07fec32e}
+  - id: S30
+    title: Oxidiser flue gas
+    from: X401.out
+    to: STACK.in
+    template: flue
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: "D-011"}
+        temperature: {value: 482.72, provenance: assumed, source: "scripts/aa_balance.py: adiabatic outlet of the recuperative oxidiser (D-011)"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 53643.6, provenance: calculated, source: 'cheme process propagate: reactor X401 from S14', fingerprint: 0bb05910c536d0d8}
+        composition: {basis: mole_fraction, values: {C3H6: 1.58958e-05, C3H8: 5.32517e-06, O2: 0.0344742, N2: 0.865624, H2O: 0.0649233, CO2: 0.0349502, ACR: 4.23886e-06, AA: 1.86086e-06, HAC: 9.1352e-07}, provenance: calculated, source: 'cheme process propagate: reactor X401 from S14', fingerprint: 307d57641032e8ef}
+  # --- purification ----------------------------------------------------------------------------
+  - id: S16
+    title: Hydroquinone to the dehydration column
+    from: HQ.out
+    to: C401.hq
+    template: inhibitor
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "dosing pump"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "dosed as a solution, modelled as the pure inhibitor (D-008)"}
+        flow: {value: 11.36, basis: mass, provenance: assumed, source: "scripts/aa_balance.py: 800 ppm in the bottoms (US 5 910 607 A; D-008)"}
+        composition: {basis: mole_fraction, values: {HQ: 1.0}, provenance: assumed, source: "hydroquinone"}
+  - id: S19
+    title: Toluene make-up
+    from: TOL.out
+    to: C401.tol
+    template: toluene
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "tank pump"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 9.965, basis: mass, provenance: assumed, source: "scripts/aa_balance.py: make-up for 7 wt% toluene in C-401's bottoms (US 5 910 607 A, Example 1; D-008)"}
+        composition: {basis: mole_fraction, values: {TOL: 1.0}, provenance: assumed, source: "toluene"}
+  - id: S21
+    title: Toluene recycle (C-402 overhead)
+    from: C402.top
+    to: C401.recycle
+    template: organic
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "reflux pump"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: condensate subcooled"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 1080.72, provenance: calculated, source: 'cheme process propagate: recycle C402 from S18 (tear, wegstein)', fingerprint: 52164a4071a374fd}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.126478, CO2: 0.0, ACR: 0.0, AA: 0.0265804, HAC: 0.0443196, TOL: 0.802622, HQ: 0.0, MEHQ: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C402 from S18 (tear, wegstein)', fingerprint: 52164a4071a374fd}
+  - id: S17
+    title: Aqueous phase to wastewater
+    from: C401.water
+    to: WW.in
+    template: wastewater
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "pump"}
+        temperature: {value: 322.15, provenance: assumed, source: "D-008: decanter at the top temperature 49 C (US 5 910 607 A, Example 1)"}
+        phase: {value: liquid, provenance: assumed, source: "water"}
+        flow: {value: 10159.8, provenance: calculated, source: 'cheme process propagate: separator C401 from S15 S16 S19 S21', fingerprint: 9b97f5b3f0987835}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.999128, CO2: 0.0, ACR: 0.0, AA: 0.000221291, HAC: 0.000554466, TOL: 9.63531e-05, HQ: 0.0, MEHQ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S15 S16 S19 S21', fingerprint: 9b97f5b3f0987835}
+  - id: S18
+    title: Dehydrated acrylic acid with toluene
+    from: C401.bottoms
+    to: C402.feed
+    template: organic
+    state:
+      design:
+        pressure: {value: 26.0, provenance: assumed, source: "D-008: 180 mmHg top plus the column's pressure drop"}
+        temperature: {value: 363.15, provenance: assumed, source: "D-008: bottoms 90 C (US 5 910 607 A, Example 1)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 14200.5, provenance: calculated, source: 'cheme process propagate: separator C401 from S15 S16 S19 S21', fingerprint: 9b97f5b3f0987835}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.00861907, CO2: 0.0, ACR: 0.0, AA: 0.905682, HAC: 0.0302024, TOL: 0.0549708, HQ: 0.000525695, MEHQ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S15 S16 S19 S21', fingerprint: 9b97f5b3f0987835}
+  - id: S22
+    title: Acetic acid side draw to incineration
+    from: C402.side
+    to: ACW.in
+    template: organic
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "pump"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 420.674, provenance: calculated, source: 'cheme process propagate: separator C402 from S18', fingerprint: 798c8b1b06afe363}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.0, CO2: 0.0, ACR: 0.0, AA: 0.212487, HAC: 0.779453, TOL: 0.00806061, HQ: 0.0, MEHQ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C402 from S18', fingerprint: 798c8b1b06afe363}
+  - id: S23
+    title: Crude glacial acrylic acid
+    from: C402.bottoms
+    to: C404.feed
+    template: organic
+    state:
+      design:
+        pressure: {value: 15.0, provenance: assumed, source: "D-008"}
+        temperature: {value: 361.39, provenance: assumed, source: "scripts/aa_balance.py: acrylic acid boils at 15 kPa(a) (thermo vapour pressure)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 12699.1, provenance: calculated, source: 'cheme process propagate: separator C402 from S18', fingerprint: 798c8b1b06afe363}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.0, CO2: 0.0, ACR: 0.0, AA: 0.998742, HAC: 0.000672843, TOL: 0.0, HQ: 0.000585566, MEHQ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C402 from S18', fingerprint: 798c8b1b06afe363}
+  - id: S24
+    title: Glacial acrylic acid distillate
+    from: C404.top
+    to: M405.aa
+    template: product
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "product pump"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-009: condensate subcooled to 30 C"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 12497.5, provenance: calculated, source: 'cheme process propagate: separator C404 from S23', fingerprint: 30cbea5d012020f6}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.0, CO2: 0.0, ACR: 0.0, AA: 0.999317, HAC: 0.000683482, TOL: 0.0, HQ: 0.0, MEHQ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C404 from S23', fingerprint: 30cbea5d012020f6}
+  - id: S25
+    title: Heavy ends to incineration
+    from: C404.bottoms
+    to: HEAVY.in
+    template: heavies
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "pump"}
+        temperature: {value: 351.99, provenance: assumed, source: "scripts/aa_balance.py: acrylic acid boils at 10 kPa(a)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 201.569, provenance: calculated, source: 'cheme process propagate: separator C404 from S23', fingerprint: 30cbea5d012020f6}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.0, CO2: 0.0, ACR: 0.0, AA: 0.962383, HAC: 0.0, TOL: 0.0, HQ: 0.0376166, MEHQ: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C404 from S23', fingerprint: 30cbea5d012020f6}
+  - id: S26
+    title: MEHQ to the product
+    from: MEHQ.out
+    to: M405.mehq
+    template: mehq
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "dosing pump"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "dosed as a solution in product, modelled as pure MEHQ (D-009)"}
+        flow: {value: 2.5, basis: mass, provenance: assumed, source: "scripts/aa_balance.py: 200 ppm MEHQ (Arkema data sheet; D-009)"}
+        composition: {basis: mole_fraction, values: {MEHQ: 1.0}, provenance: assumed, source: "4-methoxyphenol"}
+  - id: S27
+    title: Glacial acrylic acid product
+    from: M405.out
+    to: PRODUCT.in
+    template: product
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "to storage"}
+        temperature: {value: 303.15, provenance: assumed, source: "D-009"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 12500.0, provenance: calculated, source: 'cheme process propagate: mixer M405 from S24 S26', fingerprint: ce1ae7d8f70876df}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, O2: 0.0, N2: 0.0, H2O: 0.0, CO2: 0.0, ACR: 0.0, AA: 0.999201, HAC: 0.000683402, TOL: 0.0, HQ: 0.0, MEHQ: 0.000116096}, provenance: calculated, source: 'cheme process propagate: mixer M405 from S24 S26', fingerprint: 16be892c9df16095}
+  # --- energy ----------------------------------------------------------------------------------
+  - {id: Q1, title: Air compressor power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 1751.1, provenance: assumed, source: "scripts/aa_balance.py: 101.3 to 230 kPa(a), isentropic 0.80, motor 0.95 (D-006)"}}}}
+  - {id: Q2, title: First-stage reaction heat to the salt and HP steam, kind: energy, from: R101.q, to: STMX.r101, state: {design: {duty: {value: 23744.8, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S5 S6', fingerprint: b9f0f3824ceb8182}}}}
+  - {id: Q3, title: Second-stage reaction heat to the salt and HP steam, kind: energy, from: R201.q, to: STMX.r201, state: {design: {duty: {value: 11455.2, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S10 S11', fingerprint: 450667b6a05aa2b0}}}}
+  - {id: Q4, title: Reaction gas cooler duty, kind: energy, from: E301.q, to: CW.e301, state: {design: {duty: {value: 2578.4, provenance: assumed, source: "scripts/aa_balance.py: ideal gas 538 to 443 K (D-007)"}}}}
+  - {id: Q5, title: Quench absorber pump-around cooler duty, kind: energy, from: T301.q, to: CW.t301, state: {design: {duty: {value: 11968.2, provenance: assumed, source: "scripts/aa_balance.py: energy balance of the absorber, condensation of water, acrylic and acetic acid, liquids on the gas formation basis (D-007, D-010)"}}}}
+  - {id: Q6, title: Dehydration column reboiler, kind: energy, from: LPS.c401, to: C401.reb, state: {design: {duty: {value: 13414.6, provenance: assumed, source: "scripts/aa_balance.py: toluene reflux 2.56 kg per kg feed (US 5 910 607 A, Example 1, its 830 ml read per hour, ASSUMED) and the aqueous distillate (D-008)"}}}}
+  - {id: Q7, title: Dehydration column condenser, kind: energy, from: C401.cond, to: CW.c401, state: {design: {duty: {value: 13295.2, provenance: assumed, source: "scripts/aa_balance.py (D-008)"}}}}
+  - {id: Q8, title: Acetic acid column reboiler, kind: energy, from: LPS.c402, to: C402.reb, state: {design: {duty: {value: 1860.1, provenance: assumed, source: "scripts/aa_balance.py: boil-up 1.25 x the minimum to strip the acetic acid from the acrylic acid, ASSUMED (D-008)"}}}}
+  - {id: Q9, title: Acetic acid column condenser, kind: energy, from: C402.cond, to: CW.c402, state: {design: {duty: {value: 1909.4, provenance: assumed, source: "scripts/aa_balance.py (D-008)"}}}}
+  - {id: Q10, title: Glacial acid column reboiler, kind: energy, from: LPS.c404, to: C404.reb, state: {design: {duty: {value: 4299.2, provenance: assumed, source: "scripts/aa_balance.py: reflux ratio 1, ASSUMED; acrylic acid latent heat 634 kJ/kg (Arkema data sheet) (D-009)"}}}}
+  - {id: Q11, title: Glacial acid column condenser and subcooler, kind: energy, from: C404.cond, to: CW.c404, state: {design: {duty: {value: 4698.7, provenance: assumed, source: "scripts/aa_balance.py (D-009)"}}}}
+layout: {bfd: {}, pfd: {}}

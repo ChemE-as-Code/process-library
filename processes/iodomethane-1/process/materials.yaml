@@ -31,6 +31,10 @@
 # above its normal boiling point; the script takes NIST's 218 to 315.6 K fit for the vent
 # condenser at 278 K); iodine's fit (Stull, 311.9 to 456 K) spans the solid's sublimation and the
 # liquid; phosphorus, phosphorous acid and the sodium salts are non-volatile.
+# Melting points (core 1.12.0's freezing check of the condensers, `cheme.process-condenser-freezing`,
+# ADR 0071; DESIGN.md D-017), K: methanol 175.65, iodomethane 207.15, iodine 386.85, water 273.15,
+# phosphorous acid 347.55, the CRC Handbook tables packaged in `chemicals` 1.5.2
+# (`chemicals.phase_change.Tm`, methods CRC_ORG and CRC_INORG; SRC-4), not the printed handbook.
 # The wash salts (D-008) need no liquid data in core: they appear only in the conversion step W101
 # and the specified splits; their heat capacities are ASSUMED orders for the script's mixing
 # temperatures.
@@ -43,6 +47,7 @@ components:
     cas: 67-56-1
     molar_mass: 32.042
     normal_boiling_point: 337.8
+    melting_point: 175.65
     liquid_molar_volume: 0.04130
     liquid_heat_capacity: 81.1
     heat_of_vaporization: 35210
@@ -53,6 +58,7 @@ components:
     cas: 74-88-4
     molar_mass: 141.939
     normal_boiling_point: 315.7
+    melting_point: 207.15
     liquid_molar_volume: 0.06353
     liquid_heat_capacity: 126.0
     heat_of_vaporization: 28410
@@ -63,18 +69,20 @@ components:
     cas: 7553-56-2
     molar_mass: 253.808
     normal_boiling_point: 457.55
+    melting_point: 386.85
     liquid_molar_volume: 0.05145
     liquid_heat_capacity: 54.4
     heat_of_vaporization: 62400
     vapour_pressure: {a: 3.36429, b: 1039.159, c: -146.589, temperature_range: [311.9, 456.0], provenance: given, source: "NIST WebBook (C7553562), coefficients calculated by NIST from Stull (1947); heat_of_vaporization: the heat of sublimation of the solid at 298 K, CRC via chemicals 1.5.2 (62.4 kJ/mol), ASSUMED for the dissolved iodine"}
   - {id: P, name: Phosphorus (red), formula: P, cas: 7723-14-0, molar_mass: 30.974, phase: solid, liquid_molar_volume: 0.013237, liquid_heat_capacity: 23.8}
-  - {id: H3PO3, name: Phosphorous acid (phosphonic acid), formula: H3O3P, cas: 13598-36-2, molar_mass: 81.996, liquid_molar_volume: 0.04969, liquid_heat_capacity: 110.0}
+  - {id: H3PO3, name: Phosphorous acid (phosphonic acid), formula: H3O3P, cas: 13598-36-2, molar_mass: 81.996, melting_point: 347.55, liquid_molar_volume: 0.04969, liquid_heat_capacity: 110.0}
   - id: H2O
     name: Water
     formula: H2O
     cas: 7732-18-5
     molar_mass: 18.015
     normal_boiling_point: 373.12
+    melting_point: 273.15
     liquid_molar_volume: 0.01818
     liquid_heat_capacity: 75.3
     heat_of_vaporization: 40660

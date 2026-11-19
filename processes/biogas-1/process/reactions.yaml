@@ -1,0 +1,35 @@
+# Reactions of the biogas plant (DESIGN.md D-004, D-007). Schema: `cheme schema process-reactions`.
+#
+# AD_CARB and AD_LIP are LUMPED BOOKKEEPING REACTIONS over the model components of
+# materials.yaml: Buswell's overall stoichiometry of complete anaerobic degradation of an organic
+# CnHaOb to methane and carbon dioxide,
+#   CnHaOb + (n - a/4 - b/2) H2O -> (n/2 + a/8 - b/4) CH4 + (n/2 - a/8 + b/4) CO2,
+# applied to the two digestible lumps. They are not mechanisms (hydrolysis, acidogenesis,
+# acetogenesis, methanogenesis) and carry no kinetics. Their conversion is complete because the
+# lumps are defined as the digestible part of each substrate that gives its standard biogas yield
+# and methane content (D-004); the VS not converted are the inert lump RVS. The cell mass that
+# the microorganisms grow and the CO2 that stays dissolved in the digestate are not represented
+# (L-3). No heat of reaction: the digestion releases very little heat (FNR Guide, section
+# 5.1.3), and the digesters' heat is a heating duty (D-008).
+# COMB burns the biogas in the hot-water boiler B-101 (D-008).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: AD_CARB
+    title: Anaerobic digestion of the digestible carbohydrate (Buswell)
+    equation: "CARB + H2O -> 3 CH4 + 3 CO2"
+    stoichiometry: {CARB: -1, H2O: -1, CH4: 3, CO2: 3}
+    phase: mixed
+    conversion: {key: CARB, value: 1.0, provenance: assumed, source: "D-004: CARB is defined as the digestible carbohydrate that the standard yield converts"}
+  - id: AD_LIP
+    title: Anaerobic digestion of the digestible fat (Buswell, as triolein)
+    equation: "LIPID + 28 H2O -> 40 CH4 + 17 CO2"
+    stoichiometry: {LIPID: -1, H2O: -28, CH4: 40, CO2: 17}
+    phase: mixed
+    conversion: {key: LIPID, value: 1.0, provenance: assumed, source: "D-004: LIPID is defined as the digestible fat that the standard yield converts"}
+  - id: COMB
+    title: Combustion of the biogas methane in the hot-water boiler
+    equation: "CH4 + 2 O2 -> CO2 + 2 H2O"
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    phase: vapor
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-008: complete combustion with 15 % excess air; CO and unburnt methane of the boiler not represented"}

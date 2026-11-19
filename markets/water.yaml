@@ -1,0 +1,44 @@
+# Markets of water. Schema: schemas/markets.schema.json; rules: docs/markets.md.
+#
+# Demineralised water is a site utility: it is used on the site that makes it, piped from the
+# demineralised water plant's header to the consumers, and not traded. A consumer's input of
+# `water` (the registry substance, which lci/mappings.yaml's shared `water` entry already reads
+# as deionised water) or of water/demineralised links this market by default (prefer_atlas);
+# its supplier is processes/demineralised-water-1.
+schema: cheme-as-code/markets/v1
+
+markets:
+  - product: water/demineralised
+    region: GLO
+    layer: production-mix
+    title: Demineralised water by site pipeline
+    consumption:
+      equals_production: true
+      reason: >-
+        Demineralised water is made and used on one site and not traded (no trade data exists
+        for it), so consumption equals production.
+    suppliers:
+      - process: demineralised-water-1
+        technology: reverse osmosis and mixed-bed ion exchange
+        production_volume:
+          value: 400000
+          unit: t/a
+          status: calculated
+          source: >-
+            demineralised-water-1 LCI dataset (processes/demineralised-water-1/lca/dataset.yaml):
+            product:DEMIN 50 000 kg per hour of operation, times 8000 h/a (process.yaml
+            basis.operating_hours_per_year).
+    distribution:
+      - mode: pipeline
+        distance:
+          value: 1
+          unit: km
+          status: assumed
+          source: >-
+            ASSUMED on-site header from the demineralised water plant to its consumers, run on
+            the plant's delivery pressure (5 bar(a), its forwarding pump P-201 is in the plant
+            dataset); no recompression.
+    losses: []
+    excluded:
+      - "The site's header and the consumers' storage tanks: infrastructure, and the consumer's own system."
+      - "Leakage from the header: not estimated (no open source found); a stainless steel header loses little."

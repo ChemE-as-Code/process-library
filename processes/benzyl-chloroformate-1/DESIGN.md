@@ -12,8 +12,12 @@ on 2026-11-06, when the library's pin went to it: the model's duties of R101 and
 and the semi-batch screening's reactions, MTSR profile and gas release against the vent's
 capacity (ADR 0058) are used. Moved to core 1.10.0 (c55e9c7) on 2026-11-06: the absorbed
 phosgene's heat of solution is the dose's `heat_of_solution` with the heats of reaction on the
-dissolved basis (ADR 0063), replacing the hand stream Q2A (D-015), so the entry needs 1.10
-(plant.yaml `requires`; see "Core features used").
+dissolved basis (ADR 0063), replacing the hand stream Q2A (D-015). Moved to core 1.12.0
+(0e85885, with QSDsan) on 2026-11-19 for the review of process-library#427: R101's MTT is the
+content's bubble point with its dissolved phosgene (by hand; core's bubble point, ADR 0069,
+leaves the phosgene out) and its counted reactions a network (ADR 0069), and the screening's
+gas release over the batch, the reactive accumulation and the dissolved phosgene are recorded
+(D-016), so the entry needs 1.12 (plant.yaml `requires`; see "Core features used").
 
 ## Source register
 
@@ -31,6 +35,7 @@ of the document).
 | SRC-6 | processes/phosgene-1, chlor-alkali-1, asu-1 (this library); Hughes, Rossi, Lennon (2023) React. Chem. Eng. 8, 3150, doi:10.1039/D3RE00354J (CC BY 3.0), section 2.1.1, as cited by phosgene-1 | liquid phosgene at 253 K, 340 kPa(a); caustic soda 50 wt%; gaseous nitrogen; phosgene destroyed in caustic to carbonate and chloride | library, internal; open paper | D-004, D-007, LCI links |
 | SRC-7 | Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH, doi:10.1002/9783527621606 | accumulation, MTSR and criticality classes of a semi-batch (method, implemented in core ADRs 0050, 0054) | method reference, no data taken | D-011 |
 | SRC-8 | Ullmann's Encyclopedia of Industrial Chemistry, Chloroformic Esters, doi:10.1002/14356007.a06_559.pub3; Phosgene, doi:10.1002/14356007.a19_411.pub2 | - | not read (licensed); named by the issue's literature note | route reference leads only |
+| SRC-10 | Etchells, J., Wilday, J. (1998) Workbook for chemical reactor relief system sizing, HSE Contract Research Report 136/1998, ISBN 0 7176 1389 5, http://www.iomosaic.com/diersweb/docs/crr98136a.pdf (via the DIERS references page) | - | located 2026-11-19, not read (scanned pages, no text layer could be read here) | named for the relief sizing (D-016); no value taken |
 | SRC-9 | Org. Synth. Coll. Vol. 3, p. 167 (benzyl chloroformate); Hough and Priddle, J. Chem. Soc. 1961, doi:10.1039/JR9610003178; US6919471 Ex. 8-9 (triphosgene in toluene) | - | not read (access blocked, or a search snippet only) | not used |
 
 Searched and not found openly (2026-11-05): kinetics or reaction calorimetry of the
@@ -233,7 +238,7 @@ Decision: enamelled (glass-lined) steel for R-101 and the phosgene and wet-HCl l
 names for this service; the scrubber in plastic-lined steel or FRP. Not designed further.
 Reason: wet HCl and chloroformates corrode steel and stainless steel.
 
-## D-011 Thermal screening and the kinetic sensitivity (2026-11-05, core 1.9.0 and 1.10.0 2026-11-06)
+## D-011 Thermal screening and the kinetic sensitivity (2026-11-05, core 1.9.0 and 1.10.0 2026-11-06; MTT and MTSR amended by D-016, core 1.12.0, 2026-11-19)
 Result (`cheme process reactor-hazards`, core ADRs 0050, 0054, 0058, 0063): adiabatic
 temperature rise 494.0 K: this is the heat of the side reaction CLBN on the dissolved basis
 (114.2 kJ/mol) on all the alcohol, 391.4 K, as core takes the largest counted reaction run to
@@ -256,6 +261,11 @@ about 302 K at 8 h and to 278.3 K at the end of the dosing, where the accumulate
 the excess with no alcohol left. The vent's peak gas rate in normal operation is 0.216 mmol/(s
 m3) at 0.46 h; the gas a cooling failure releases is compared with the vent in D-014
 (`cheme.reactor-hazard-vent`, a warning and a finding).
+- **Superseded on core 1.12.0 (D-016):** the MTT is now the content's bubble point at 50 kPa(a)
+  with its dissolved phosgene, 404.7 K (`hazard.mtt`, by hand), and the MTSR the counted
+  reactions' as a network, 361.4 K (`hazard.potential: network`): at the assumed rates the
+  content does not boil at a cooling failure, so `cheme.reactor-hazard-mtsr` is gone; at k/4 and
+  slower it does (D-016); the figures below are the 1.10.0 record.
 - The MTT stays set by hand (`hazard.mtt` 280.65 K). Core 1.9.0's default no longer takes the
   dissolved HCl's 188 K (vent components and the dosed gas are left out, ADR 0058), but what it
   then takes is benzyl alcohol's normal boiling point, 478.4 K (a scratch copy without
@@ -292,7 +302,13 @@ equal; the MTSR on 1.9.0 in brackets):
 | k/10 | 0.230 (end of dosing) | 366.2 K (384.9) | 280.65 K | none (no TD24) | 4.6 h | 18.65 h | 425 |
 | k/100 | 0.521 (end of dosing) | 519.8 K (571.2) | 280.65 K | none (no TD24) | 67.0 h | 81.07 h | 98 |
 
-Interpretation: at every rate the MTSR is above the MTT, so a cooling failure during the dosing
+On core 1.12.0 (D-016, the network, scratch copies): k/10 MTSR 389.6 K, gas release 9721 m3/h
+(56.2 times the vent); k/100 MTSR 523.1 K, 1.889e5 m3/h. Against the content's bubble point with
+its dissolved phosgene (D-016, corrected after the review of PR #505) the content boils at a
+cooling failure at k/4 and slower: at k/10 the worst moment's content boils at 346.4 K, 43 K
+below its MTSR. Core's bubble point without the phosgene (422.9 K at k/10, 418.3 K at k/100)
+had shown boiling only at k/100.
+Interpretation (1.10.0, with the hand MTT; D-016 for the bubble point): at every rate the MTSR is above the MTT, so a cooling failure during the dosing
 boils phosgene off whatever the kinetics: the dosing must stop on high temperature, low cooling
 or agitator failure (interlock), the reflux condenser and the scrubber must take the phosgene
 then released, and the vessel's relief goes to the scrubber, not to air (D-014). With k/10 and
@@ -343,6 +359,12 @@ on a multipurpose phosgenation plant: there the burden per kg is higher, and thi
 bound for it.
 
 ## D-014 Gas release at a cooling failure against the vent: a design finding (2026-11-06, core 1.10.0 the same day)
+**Core 1.12.0 (D-016, 2026-11-19):** with the reactions as a network the release at the MTSR,
+also the largest over the batch, is 3823 m3/h at 361.4 K, 22.1 times the vent; 4519 m3/h, 26.1
+times, with the phosgene vapour, the relief's screening basis now. A blocked vent reaches
+megapascals with or without CARB, so the emergency relief is needed whatever calorimetry
+shows; the interlock, the relief and the calorimetry are settled or stated there. The figures
+below are the 1.10.0 record.
 Decision: R101 `hazard.vent_capacity` 173 m3/h, ASSUMED. That is the suction volume of the
 vacuum pump K-201, about 173 m3/h at 20 kPa(a) and 278 K (1.5 kmol/h, D-006). The pump is the
 only path the gas has out of R-101 at its 50 kPa(a): the vent S6 goes through it to the scrubber
@@ -463,7 +485,177 @@ Not adopted (core 1.10.0 features that do not fit this step, with the reason):
   over 20 K), so the batch has nothing to heat up; folding E101 into R101 would change the
   flowsheet for a 0.71 kW stream.
 
-## Core features used (core 1.10.0)
+## D-016 Core 1.12.0: the bubble-point MTT, the reactions as a network, and what a cooling failure releases (2026-11-19)
+Review of process-library#427 (the row: MTSR above the MTT, the cooling failure boiling the
+content; the gas release 18.6 times the vent; a dosing interlock, a DIERS-sized relief to a
+catch tank and scrubber and calorimetry of CARB's rate needed). Rerun on core 1.12.0 (0e85885,
+ADR 0069, 0071).
+Decision (R101 `hazard`, `process/flowsheet.yaml`):
+- **The MTT is the bubble point of the worst moment's content with its dissolved phosgene,
+  404.7 K** (`hazard.mtt: 404.7`, by hand, ASSUMED ideal solution; amended after the review of
+  PR #505, which found the first version of this decision had taken core's 419.7 K, the less
+  conservative figure). It replaces the hand `mtt: 280.65`. Core's `mtt_from: bubble-point`
+  gives the content's bubble point at the vessel's 50 kPa(a) by Raoult's law, 419.7 K at the
+  worst moment (4.2 h; 587.5 K once the counted reactions ran their course), but leaves phosgene,
+  HCl and CO2 out as gases held in solution. The dissolved phosgene does exert its partial
+  pressure, and lowers the worst moment's bubble point by 15 K: a scratch calculation over the
+  model's content at every step of R101's run (core's semibatch content, Raoult's law at
+  50 kPa(a), phosgene's vapour pressure from thermo's Wagner-McGarry correlation, SRC-4, the
+  benzyl compounds' as core's mtt_from takes them, HCl and CO2 counted in the liquid but not
+  boiling) gives 404.7 K at the worst moment (phosgene mole fraction 0.0078). The lower figure is
+  the MTT, so the criticality class is not overstated (below). `mtt_from` is therefore not used.
+  Benzyl alcohol, benzyl chloroformate and benzyl chloride keep their `heat_of_vaporization` at
+  the normal boiling point (48.56, 46.16, 41.38 kJ/mol, thermo via `cheme chemistry props
+  --source Thermo`, SRC-4), the vapour pressures of that calculation (Clausius-Clapeyron from
+  it); nothing else uses them (they are non-volatile in T101; propagate rewrote only Q4's
+  fingerprint, its duty unchanged).
+- `potential: network`: CARB runs on PHOSG's product, so the counted reactions are taken
+  together. **MTSR 361.4 K** at 4.2 h (357.1 K with CARB alone, the 1.10.0 figure); dT_ad stays
+  494.0 K (the network's 391.4 K is CLBN's on all the alcohol, which of the competing reactions
+  takes it, plus the heat of solution, 102.6 K).
+Reason, the MTT: phosgene's normal boiling point (D-011) is a pure-component figure at
+101.3 kPa. At the vessel's 50 kPa(a) pure phosgene boils at 263.2 K (core), below T_p, so by that
+basis the content would boil at T_p already, which it does not: the phosgene is dissolved and
+exerts its partial pressure only. Scratch calculation (not committed: the model's content at
+every one of the semibatch model's steps of R101's run, 260 at the assumed rates, Raoult's law
+over an ideal solution, ASSUMED as in D-015, phosgene's vapour pressure by thermo's
+Wagner-McGarry correlation, the benzyl compounds' by Clausius-Clapeyron from their heat of
+vaporization as core takes them, and HCl and CO2 counted in the liquid but not boiling; the
+first version of this decision used thermo's vapour pressures for every component and found
+406.4 K at the worst moment): with its dissolved phosgene the content boils at 404.7 K at the
+worst moment (phosgene mole fraction 0.0078; 419.7 K without it) and at 312.1 K at the end of
+the dosing, its lowest (mole fraction 0.166; the MTSR then 278.3 K). At every step the network's
+MTSR stays below the content's bubble point then, by 33.8 K at the least (the end of the
+dosing) and 43.3 K at the worst moment. A cooling failure at 50 kPa(a) therefore does not boil
+the content at the assumed rates: it forms gas, and that gas strips the dissolved phosgene.
+**That holds at half the assumed rates, not at a quarter.** The same calculation on scratch
+copies with every rate constant divided (corrected after the review of PR #505; the first
+version compared k/10 with core's bubble point, which leaves the phosgene out):
+
+| rates | MTSR at the worst moment | bubble point with phosgene then (without) | steps where the MTSR reaches the bubble point | largest excess |
+|---|---|---|---|---|
+| k (assumed) | 361.4 K (4.2 h) | 404.7 K (419.7 K) | 0 of 260 | none (margin 33.8 K) |
+| k/2 | 365.1 K (4.2 h) | 392.9 K (420.2 K) | 0 of 172 | none (margin 23.4 K, 8.3 h) |
+| k/4 | 371.4 K (4.2 h) | 375.0 K (421.0 K) | 3 of 143 (8.1 to 8.3 h) | 4.9 K (8.3 h, phosgene 0.095) |
+| k/10 | 389.6 K (4.4 h) | 346.4 K (422.9 K) | 52 of 108 (from 2.9 h) | 49.7 K (8.2 h, MTSR 367.3 K, bubble point 317.6 K, phosgene 0.140) |
+
+So at k/4 and slower a cooling failure boils the content: the accumulated phosgene, and with it
+the benzyl compounds' vapour, boil off at the vessel's pressure on top of the gas the reactions
+form. At k/10 that holds for most of the dosing and at the worst moment itself (MTSR 389.6 K
+against 346.4 K). Whether the content boils is a question of the kinetics, which calorimetry
+answers (below). The MTT is the phosgene-inclusive figure, 404.7 K, not core's 419.7 K. With
+the MTT above the MTSR at the assumed rates, the warning `cheme.reactor-hazard-mtsr` is gone:
+not silenced, the boiling it stood for does not happen at those rates; it would at k/4 and
+slower, which the relief study has to take as a two-phase, boiling case until calorimetry
+excludes those rates. The hazard it stood for is carried by `cheme.reactor-hazard-vent` (warning, kept) and
+`cheme.reactor-hazard-dissolved` (info, new), below. At the assumed rates the content cannot
+hold its temperature by boiling below the MTSR (no tempering): the relief study has to treat
+R-101 as a gas-generating, untempered system, and at k/4 and slower as a hybrid one (gas
+formed and the phosgene-rich content boiling), unless calorimetry shows otherwise.
+Reason, the network: every reaction is counted on purpose (D-011); the network is that choice's
+upper bound, and a cooling failure mid-dosing runs PHOSG (or CLBN) on the accumulated phosgene
+and CARB on the product together.
+Results (`cheme process reactor-hazards`, core 1.12.0):
+- accumulation of the phosgene: 0.173 at the end of the dosing, of it at most **0.0439** able to
+  react (at 8.23 h): the deliberate excess is not reactive (L-1's item resolved);
+- the largest gas release over the batch is the release at the MTSR, **3823 m3/h** at 4.2 h
+  (0.01767 kmol/s, 361.4 K, 50 kPa(a)), **22.1 times the vent capacity** (3219 m3/h and 18.6 times
+  on 1.10.0, D-014; the rise is the network's 4.3 K): `cheme.reactor-hazard-vent` stands;
+- gases held in the liquid (`dissolved_release`): phosgene up to 2.171 kmol, **214.7 kg per
+  batch** at the end of the dosing, and HCl 0.52 kmol (18.96 kg);
+- with the phosgene vapour (scratch copy: `vent.vapour: {components: [COCL2]}`, phosgene's
+  Antoine constants fitted to thermo's vapour pressure from 250 to 420 K, within 1.1 %, SRC-4;
+  not adopted, for D-015's reason): **4519 m3/h** at 361.5 K, 26.1 times the vent, the vapour
+  0.163 of it (non-condensables 3782 m3/h), not limited by the reactions' heat; the gas strips
+  phosgene at up to 0.0034 kmol/s (1212 kg/h) then, so the phosgene a release carries is bounded
+  by what the liquid holds, not by time;
+- without CARB (scratch copy, `reactions: [PHOSG, CLBN]`): 195.3 m3/h at 306.5 K and 8.23 h,
+  1.13 times the vent (as on 1.10.0); 230.1 m3/h, 1.33 times, with the phosgene vapour.
+Blocked vent (hand arithmetic from the model's content, ideal gas; core screens no
+blocked-vent pressure, ADR 0069): R-101 (2.5 m3) holds 1.274 m3 of liquid at 4.2 h and 1.487 m3
+at 8.23 h, so its head space is 1.226 and 1.013 m3. The release at the MTSR raises it 43 kPa/s
+(52 kPa/s at 8.23 h), from 50 kPa(a) to atmospheric in about 1.2 s. CARB's 4.891 kmol of HCl run
+to completion would give 12.0 MPa in 1.226 m3 at 361.4 K. Without CARB, the reactive phosgene at
+8.23 h (0.551 kmol) forms 0.52 kmol of vented HCl by PHOSG or 1.07 kmol of HCl and CO2 by CLBN:
+1.3 to 2.7 MPa in 1.013 m3 at 306.5 K. Whatever calorimetry shows of CARB, a blocked or failed
+vent overpressures R-101 by megapascals: **the emergency relief is needed in any case**;
+CARB's rate sets its size, not its need.
+What this settles of the #427 row, and what stays open:
+- **Dosing interlock: required, a premise of the screening.** The MTSR is the cooling
+  failure's with the dosing stopped (core ADR 0050, 0058), so the phosgene dosing must stop on a
+  high temperature in R-101, low brine flow or a high brine temperature, agitator stop, high
+  pressure in R-101 and K-201 stopped (the vent lost). What it cannot do, by the model: the
+  reactive phosgene at the worst moment is small (0.0066 of the dose); the MTSR is set by CARB
+  between the product and the alcohol left, both present by design mid-dosing, and the
+  phosgene left at the end (214.7 kg) is the deliberate excess. Neither is reduced by the
+  interlock. Open (human sign-off): its trip set points, response time, SIL from a LOPA, and
+  the HAZOP; none is invented here.
+- **Emergency relief: required** (the blocked vent above), to a catch tank and then the
+  scrubber T-201 or an emergency phosgene absorber, never to air. Screening basis: 4519 m3/h
+  at 361.5 K and 50 kPa(a) with the phosgene vapour (replacing D-014's about 3790 m3/h). Per
+  event the catch tank and absorber must take up to 214.7 kg of phosgene (the end of the
+  dosing), up to 178 kg of HCl from CARB (4.891 kmol) and 19 kg dissolved, and, if the relief
+  discharges two-phase, up to the whole liquid (1.63 m3 at the end of the dosing): an upper
+  bound, not a sizing. Open: the DIERS sizing itself, which needs the vessel's design pressure
+  and the relief's set pressure (R-101 is specified as 2.5 m3 enamelled steel only; vendor
+  data), the measured gas generation rate (below) and the two-phase flow; the absorber's
+  design against the phosgene load. The DIERS workbook (HSE CRR 136/1998, Etchells and Wilday)
+  was located (SRC-10) but its scanned pages could not be read here: no value of it is used.
+- **Calorimetry (lab data), each with the decision it gates:**
+  1. CARB: heat flow and gas flow of a mixture like the content at 4.2 h (benzyl alcohol 5.20,
+     benzyl chloroformate 5.15, HCl 0.26 kmol per batch: about 1:1 by mole with 2.5 mol%
+     HCl), isothermal at several temperatures from 278 to 360 K, or one adiabatic run from 278
+     K: its rate law, activation energy and heat (now -30.5 kJ/mol and 40 kJ/mol, ASSUMED).
+     It gates whether CARB stays counted, hence the relief's basis (3823 to 4519 m3/h with it,
+     195 to 230 m3/h without), not whether a relief is needed.
+  2. Reaction calorimetry of the phosgenation with gas dosing (heat and gas flow, the phosgene
+     accumulated): PHOSG's and CLBN's rates. It gates whether a cooling failure boils the
+     content (with its dissolved phosgene it does at k/4 and slower, k/10 and k/100 included,
+     not at k or k/2), and so whether the relief is sized for a gas-only or a hybrid, boiling
+     case; also the cycle (D-011) and the accumulation. What decides it: whether the measured
+     rates of PHOSG and CLBN at 278 K are above or below about a quarter of the assumed ones.
+  3. A closed-cell adiabatic test (temperature and pressure, non-condensable gas) of the masses
+     at 4.2 h and 8.23 h: the relief's sizing rate and its two-phase behaviour.
+  4. DSC or ARC of the crude (mid-dosing and at the end) and of the product: the TD24. It gates
+     the criticality class: core gives class 5 with a TD24 of 350 K, class 2 with 400 K and
+     class 1 above 404.7 K (core's `criticality`), the bounds being the MTSR 361.4 K and the MTT 404.7 K (with
+     core's 419.7 K a TD24 between 404.7 and 419.7 K would have read class 1 instead of 2).
+  The phosgene's solubility in the crude (the ideal solution of the bubble point and D-015) and
+  the dispersion of a phosgene release stay open with them.
+Not adopted (core 1.12.0 features, with the reason):
+- `vent.vapour` (ADR 0062, now heat-limited over the batch, ADR 0069): D-015's reason holds;
+  used on a scratch copy for the relief basis above.
+- `vent.inerts` and `vent.head_space` (ADR 0071): R-101 runs evacuated to 50 kPa(a) by K-201,
+  the nitrogen only purging and breaking the vacuum before and after; there is no pad to model,
+  and core screens no blocked-vent pressure with a head space either (hence the hand arithmetic).
+- `cheme.process-condenser-freezing` (ADR 0071): nothing to check. R101 has no vent condenser
+  (`vent.vapour` not adopted) and T101 no condenser (its gas goes to K-201), so no
+  `melting_point` is added. A phosgene condenser cold enough to return phosgene (below about
+  238 K, D-015) would freeze benzyl alcohol (258.15 K) and benzyl chloroformate (253.15 K) out of
+  the vapour (melting points of chemicals 1.5.2, `chemicals.Tm`, SRC-4): open for basic
+  engineering with that condenser, as is the jacket's brine at 248 K against benzyl alcohol's
+  258 K (D-009).
+- Still phases, cut conditions and heat-up time (ADR 0068): T101 degasses at constant
+  volatility at the reaction temperature, with no solid phase and no heat-up.
+- Design specifications (ADR 0070): no recycle, and the recipe closes on the flowsheet's rate
+  within 1 % (D-003).
+
+## Core features used (core 1.12.0)
+
+- Core 1.12.0, ADR 0069: R101's `hazard.potential: network` (the MTSR 361.4 K);
+  `hazard.mtt_from: bubble-point` tried (419.7 K, with the benzyl compounds'
+  `heat_of_vaporization`) and not adopted, as it leaves the dissolved phosgene out (the MTT
+  404.7 K by hand instead, D-016);
+  the reactive accumulation (0.0439), the largest gas release over the batch (3823 m3/h, 22.1
+  times the vent) and the gases held in the liquid (`dissolved_release`, 214.7 kg of phosgene,
+  `cheme.reactor-hazard-dissolved`) (D-016).
+- Not used (D-016): `vent.vapour` (again only on a scratch copy, the relief's basis 4519
+  m3/h), `vent.inerts`, `vent.head_space`, `vent.heat_of_absorption`, `vapour.henry`,
+  `melting_point` and `cheme.process-condenser-freezing` (ADR 0071), the still's
+  `separate_phase`, cut pressure and boil-up, `heat_up_time` (ADR 0068), design specifications
+  and `recovery:` (ADR 0070).
+
+From core 1.10.0:
 
 - Core 1.10.0, ADR 0063: R101's dose S4 `heat_of_solution` (phosgene, -24.8 kJ/mol, ASSUMED)
   with the heats of PHOSG, CARB and CLBN on the dissolved basis: the semi-batch's duty on Q2
@@ -508,9 +700,11 @@ From core 1.8.0:
 
 ## Core limits hit (to become core issues)
 
-Status on core 1.10.0 (2026-11-06): L-10 is resolved; L-1, L-2, L-3, L-4 and L-8 are partly
-resolved (each says what is left; L-3 and L-4 further in core 1.10.0, ADR 0062, not adopted
-here, D-015); L-5 to L-7 and L-9 stand.
+Status on core 1.12.0 (2026-11-19): L-10 is resolved; L-1, L-2, L-3, L-4, L-5 and L-8 are
+partly resolved (each says what is left; L-2 keeps the dissolved phosgene's share of the bubble
+point, review of PR #505; L-1 to L-3 further in core 1.12.0, ADR 0069, D-016; L-4
+and L-5 in ADR 0071, not adopted here); L-6, L-7 and L-9 stand. (On core 1.10.0: L-10 resolved;
+L-1, L-2, L-3, L-4 and L-8 partly, L-3 and L-4 further by ADR 0062, not adopted, D-015.)
 
 - L-1: the adiabatic rise and the MTSR take the largest potential of any one counted reaction
   run to completion (the MTSR at each moment). The side reactions set both: the adiabatic rise
@@ -525,6 +719,10 @@ here, D-015); L-5 to L-7 and L-9 stand.
   completion alone, never at its own rate, so a slow side reaction is either counted whole or
   not at all. The accumulation also counts a deliberate excess of the dosed reagent (0.173 at the
   end) although nothing is left to react with it (ADR 0058 known limitation).
+  **Further resolved in core 1.12.0** (ADR 0069, D-016): the share of the accumulation that can
+  still react (0.0439 at 8.23 h) and the counted reactions as a network (`hazard.potential:
+  network`, adopted: CARB on PHOSG's product, MTSR 361.4 K). Still open: no reaction at its own
+  rate in the potential (the network is an upper bound).
 - L-2: on 1.8.0 the default MTT was the lowest normal boiling point of the liquid's components,
   so a dissolved gas that is partly vented (HCl at 5 %, 188 K) made it meaningless, and it
   ignored the vessel's pressure (50 kPa(a) here). **Resolved in core 1.9.0** (ADR 0058) for
@@ -534,6 +732,13 @@ here, D-015); L-5 to L-7 and L-9 stand.
   alcohol's 478.4 K (at its normal boiling point, as the alcohol has no
   `heat_of_vaporization` in materials.yaml). A dissolved toxic gas that boils off has no MTT of
   its own.
+  **Partly resolved in core 1.12.0** (ADR 0069, D-016): `hazard.mtt_from: bubble-point` gives
+  the content's bubble point at 50 kPa(a), 419.7 K (with the benzyl compounds'
+  `heat_of_vaporization`), and `dissolved_release` the phosgene held in the liquid. Left: the
+  bubble point leaves the dissolved phosgene out (a dosed gas boiling below T_p at the vessel's
+  pressure); with it, by hand, 404.7 K at the worst moment, which is the MTT (`hazard.mtt`), and
+  at k/4 and slower below the MTSR. A candidate for a core issue: a bubble point that counts a
+  dissolved gas's partial pressure.
 - L-3: on 1.8.0 the screening had no gas-generation term. **Partly resolved in core 1.9.0**
   (ADR 0058): the gas release at the MTSR is compared with `hazard.vent_capacity` (D-014). Still
   open: the rate takes the worst moment's content whole at the MTSR (a loose bound in time,
@@ -547,6 +752,12 @@ here, D-015); L-5 to L-7 and L-9 stand.
   content does not boil (D-014, D-015). Still open: the rate bound, the blocked-vent pressure,
   and a toxic-release term for the phosgene itself (its mass and dispersion, not only its share
   of the volume).
+  **Further resolved in core 1.12.0** (ADR 0069, D-016): the largest release over the batch
+  (here the release at the MTSR, 3823 m3/h), the vapour bounded by the reactions' heat, the boil-up
+  of a boiling content, and the phosgene held in the liquid in kg per batch (214.7 kg) with what a
+  release strips (1212 kg/h with the vapour, scratch copy). Still open: the blocked-vent pressure
+  (by hand in D-016: megapascals), the release along the cooling failure's path, and the
+  phosgene's dispersion.
 - L-4: `vent.fraction` and `dosing.absorbed` are fixed shares: no solubility or Henry's law, so
   the reduced pressure, which SRC-1 shows is what drives the conversion, has no effect in the
   model; no headspace or reflux condenser (the phosgene that evaporates and is returned).
@@ -556,9 +767,14 @@ here, D-015); L-5 to L-7 and L-9 stand.
   the crude, and the vapour of the dissolved phosgene would count again what `absorbed`
   already passes. Still open: a dosed gas's uptake is a fixed share (no Henry for a dose), and
   the head space is not modelled.
+  **Partly resolved in core 1.12.0** (ADR 0071): a head space padded by inerts, an inert sweep
+  and Henry degassing; not adopted (D-016: R-101 runs evacuated, no pad). Still open: no pressure
+  balance (the vessel stays at its stream pressure) and a dosed gas's uptake a fixed share.
 - L-5: the still has no inert stripping gas (a nitrogen sparge) and no Henry-law volatility for a
   dissolved gas: constant relative volatilities stand in. It writes the non-volatile components
   at 0 into the distillate's composition, so the off-gas template must list them.
+  **Partly resolved in core 1.12.0** (ADR 0071): a vented batch's inert sweep strips a
+  dissolved gas (Raoult or Henry); the still itself still has no sparge, so T101 stays as it is.
 - L-6: the recipe reports the semi-batch's vent per batch but not the still's distillate that
   goes to the same scrubber: the scrubber's load per batch (662 kg) is added by hand from two
   reports. A per-batch off-gas total by destination (or for a named downstream step) would close
@@ -599,7 +815,8 @@ here, D-015); L-5 to L-7 and L-9 stand.
 | batch recipe, cycle time, basis check | done in cheme | D-003, `cheme process recipe` |
 | vessel sizing, jacket check | done in cheme | D-003, core ADR 0052 |
 | duties | R101 (Q2, with the phosgene's heat of solution, core ADR 0063) and T101 (Q4) done in cheme (models' year averages, core ADR 0059); Q1, Q3, Q5, power hand arithmetic, ASSUMED | D-009, D-015, L-8 |
-| gas release at a cooling failure against the vent | done in cheme (screening bound; with the phosgene vapour on a scratch copy, core ADR 0062); vent capacity ASSUMED; relief not designed | D-014, D-015, core ADR 0058, 0062 |
+| gas release at a cooling failure against the vent | done in cheme (screening bound, the largest over the batch, the network; with the phosgene vapour on a scratch copy, core ADR 0062, 0069); vent capacity ASSUMED; blocked-vent pressure by hand; relief required, not sized | D-014, D-015, D-016, core ADR 0058, 0062, 0069 |
+| MTT | by hand (scratch calculation over the model's content): the bubble point at 50 kPa(a) with the dissolved phosgene (Raoult, ideal), 404.7 K; core's bubble point without it, 419.7 K, recorded and not used | D-016, core ADR 0069 |
 | per-batch exchanges (nitrogen) | done in cheme, amounts ASSUMED | D-012, core ADR 0053 |
 | LCI inventory | done, most backgrounds unmapped; benzyl alcohol, phosgene, caustic and nitrogen linked to library entries | D-012 |
 
@@ -608,6 +825,10 @@ Kinetics and heat flow with gas dosing (calorimetry), the TD24 of the crude and 
 the solubility of phosgene and HCl in the reaction mass at 50 kPa(a); the plant yield (D-008);
 the product specification (assay, free phosgene, HCl, benzyl chloride, colour, stabiliser); the
 reflux condenser and the phosgene recovery (D-007); the HCl recovery; the vent and relief
-design against the gas release of a cooling failure (D-014: 18.6 times the vacuum pump's
-capacity by the screening, 21.9 times with the phosgene vapour, D-015); the dosing interlock; the phosgene the vent carries off and a vent
+design against the gas release of a cooling failure (D-016 on core 1.12.0: 22.1 times the vacuum
+pump's capacity by the screening, 26.1 times, 4519 m3/h, with the phosgene vapour; required in
+any case by the blocked vent; DIERS sizing needs the vessel's design and set pressure and a
+closed-cell adiabatic test); the dosing interlock's set points and SIL (LOPA, D-016); the
+calorimetry of CARB, of the phosgenation and the TD24, each with the decision it gates (D-016);
+the catch tank and absorber for up to 214.7 kg of phosgene per event; the phosgene the vent carries off and a vent
 condenser cold enough to return it (D-015); the vessel's metal (D-015); a TEA (`operation.batch: {recipe: true}`).

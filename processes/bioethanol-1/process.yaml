@@ -1,0 +1,100 @@
+# Process Atlas manifest of bioethanol-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: bioethanol-1
+title: Fuel ethanol from corn by dry grind (continuous fermentation, molecular sieves, DDGS; 71 300 t/a)
+summary: >-
+  A dry-grind corn ethanol plant on the basis of the USDA-ARS/NREL dry-mill model: milling,
+  enzymatic liquefaction and saccharification, four continuous cascade fermentors, beer column
+  and rectifier to 91 wt%, molecular-sieve dehydration to 99.5 wt%, stillage to DDGS. Concept
+  stage, closed balances with four converged recycles, preliminary gate-to-gate LCI.
+description: |
+  633 dry short tons of corn a day (28.15 t/h at 15 wt% moisture) are cleaned and hammer-milled,
+  slurried with hot evaporator condensate and stripper bottoms, liquefied at 88 C with
+  alpha-amylase, mixed with backset (15 % of the mash), cooked at 110 C and saccharified at
+  60 C with glucoamylase (99 % of the starch to glucose, ASSUMED). Yeast ferments the glucose in
+  four continuous cascade fermentors (46 h, 32-34 C) to a beer of 9.0 wt% ethanol; 94.2 % of the
+  glucose goes to ethanol (calibrated to the source's 8959 kg/h of pure ethanol, 113.7 gal per
+  dry ton) and 3 % to glycerol and acetate. The CO2 is water-scrubbed (99 % of its ethanol back) and vented. The beer column
+  takes the ethanol to a 45 wt% vapour, the rectifier to 91 wt%, and vapour-phase molecular
+  sieves to 99.55 wt% (9.00 t/h, 71 300 t/a in 7920 h). The whole stillage goes to decanters
+  (wet cake 35 wt% solids); the thin stillage is partly backset and the rest evaporated to a
+  55 wt% syrup; wet cake and syrup are dried with natural gas to DDGS at 9 wt% moisture
+  (0.98 kg per kg of ethanol). The plant discharges no liquid: its water leaves with the dryer's
+  exhaust, so the scrubber's make-up (9.3 t/h, the source's 8.9 t/h) closes the water balance.
+
+  The flowsheet is solved by cheme-as-code's propagation: conversion reactors, component
+  separators with ASSUMED recoveries chosen for the source's stated compositions, a dryer to a
+  residual moisture, the backset, condensate, stripper-bottoms and sieve-regenerate recycles
+  converged at four tears, and two design specifications (the beer's 9 wt% and the 15 %
+  backset). Steam, natural gas, cooling water and power are the source's stated rates, split
+  between the users by ASSUMED shares; core has no property package for corn
+  mash or ethanol-water, so no separation is rigorous (DESIGN.md L-1). See DESIGN.md for every
+  assumption.
+families: [bioethanol]
+keywords: [bioethanol, fuel ethanol, corn, maize, dry grind, dry mill, starch, alpha-amylase, glucoamylase, liquefaction, saccharification, yeast fermentation, continuous fermentation, beer column, rectifier, molecular sieve, anhydrous ethanol, stillage, backset, evaporator, DDGS, biogenic CO2]
+facets:
+  feedstock_basis: [biogenic, fossil, electricity]
+  product_classes: [fuels, chemicals]
+  unit_operations: [reaction, distillation, adsorption, evaporation, drying, separation, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. The conversions are calibrated or
+# ASSUMED, the separators specified recoveries and the utilities the source's totals split by
+# ASSUMED shares (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: 5 blocks and 21 steps within tolerance). Every stream is calculated by cheme process
+    propagate from the corn feed, the natural gas and the air (given or ASSUMED): the conversion
+    reactors (starch hydrolysis 0.99, fermentation 0.9416 calibrated to SRC-1's 8959 kg/h of pure
+    ethanol, by-products 0.03, combustion 1), component separators with ASSUMED recoveries
+    chosen for SRC-1's 45 and 91 wt% ethanol, 35 wt% wet cake and 55 wt% syrup, the dryer model
+    to SRC-1's 9 wt% moisture, four recycles converged at the tears S25, S27, S20, S18 and two
+    design specifications (9 wt% ethanol in the beer by the scrubber's make-up water; 15 %
+    backset). The model's yield is 113.67 gal per dry short ton at 68 F (SRC-1's appendix:
+    113.68; p. 2: 114) and its DDGS 4.2 % below SRC-1's 9205 kg/h (yeast and the minor chemicals
+    not in the balance). Steam (27 681 kg/h of 150 psi steam, 15.34 MW), natural gas (9.28 MW LHV)
+    and cooling-tower water (12.08 MW at an ASSUMED 10 K range) are the rates of SRC-1's appendix,
+    the power (2090 kW) is SRC-1's with its area shares; the steam's split between the users, the
+    fermentation's heat and the product condenser are ASSUMED or by hand (no property package
+    covers corn mash or ethanol-water). Preliminary gate-to-gate LCI with mass allocation between ethanol and DDGS
+    (the WBCSD rule on SRC-1's income split), biogenic and fossil CO2 kept apart, SRC-1's caustic,
+    acid, lime, urea, enzymes and yeast as consumables; the corn, the enzymes, the yeast and the
+    trash are gaps. Not reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: corn-grain, role: feedstock, inventory_key: "feed:CORN", note: "Shelled corn at 15 wt% moisture, 3.128 kg/kg ethanol (no library process; gap)"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas (as methane) to the DDGS dryer, 0.074 kg/kg"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WATER", note: "Make-up water to the CO2 scrubber, 1.030 kg/kg: the zero-discharge plant's water balance (SRC-1: 8910 kg/h)"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the dryer's burner"}
+  outputs:
+    - {chemical: ethanol, role: main-product, inventory_key: "product:ETOH", note: "Anhydrous ethanol, 99.55 wt% (the rest water), undenatured, to storage; fuel grade after denaturing outside the boundary"}
+    - {chemical: ddgs, role: co-product, inventory_key: "product:DDGS", note: "DDGS at 9 wt% moisture, 0.980 kg/kg; mass allocation, 49.5 % of the burdens (DESIGN.md D-012)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "Biogenic fermentation CO2, 0.959 kg/kg, water-scrubbed and vented"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Dryer exhaust: fossil CO2 from the natural gas (0.204 kg/kg) with the water evaporated from the DDGS"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.232 kWh/kg: SRC-1's 2090 kW (grain handling, fermentation, solids separation, evaporation and drying, the rest)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "1.704 kWh/kg of MP steam 150 psig (1135.5 kPa(a)): liquefaction, cooking, distillation, evaporation, the sieve's superheater (SRC-1's 27 681 kg/h)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.554 kWh/kg removed by cooling water: the fermentors, the product condenser and the rest of SRC-1's cooling-tower water (column and evaporator condensers, coolers)"}
+basis:
+  capacity: "71 300 t/a anhydrous ethanol (9.00 t/h) from 633 dry short tons of corn a day, SRC-1's 25 million US gal/a of fuel ethanol less its 5 vol% denaturant (DESIGN.md D-002)"
+  operating_hours_per_year: 7920
+  location: generic US corn-belt site (SRC-1 assumed Minnesota), not chosen
+references:
+  - {title: "McAloon, A.; Taylor, F.; Yee, W.; Ibsen, K.; Wooley, R. (2000) Determining the Cost of Producing Ethanol from Corn Starch and Lignocellulosic Feedstocks. NREL/TP-580-28893, National Renewable Energy Laboratory and USDA-ARS (the dry-mill process description pp. 6-7, corn composition and yields pp. 2-3, Tables 2, 3 and 8, power shares p. 24, the appendix operating-cost sheet PDF p. 41)", url: "https://docs.nlr.gov/docs/fy01osti/28893.pdf"}
+  - {title: "Humbird, D. et al. (2011) Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol. NREL/TP-5100-47764 (beer column, rectifier, molecular sieve and vent scrubber design basis, section 3.5.2, pp. 45-46)", url: "https://docs.nlr.gov/docs/fy11osti/47764.pdf"}
+  - {title: "Wikipedia, Glucose (standard enthalpy of formation of the solid, infobox; read 2026-11-19)", url: "https://en.wikipedia.org/wiki/Glucose"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/bioethanol-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
