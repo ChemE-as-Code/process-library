@@ -28,13 +28,14 @@ says how to add a process.
 
 ## Processes
 
-The table lists 126 public process folders: 86 engineering projects (a `plant.yaml` with a process
+The table lists 127 public process folders: 87 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
 
 | id | process | design maturity | engineering project |
 |---|---|---|---|
+| [`4-aminophenol-1`](processes/4-aminophenol-1/) | 4-Aminophenol by semi-batch Pt/C hydrogenation of nitrobenzene in dilute sulfuric acid with the Bamberger rearrangement, stopped at 88 % on a recycled nitrobenzene/catalyst heel, strip, ammonia neutralisation, aniline still, one crop crystallised, centrifuge and vacuum dryer (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`acetaldehyde-1`](processes/acetaldehyde-1/) | Acetaldehyde by the one-stage Wacker oxidation of ethylene (100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`acetic-acid-1`](processes/acetic-acid-1/) | Acetic acid by low-water iridium methanol carbonylation (60 t/h glacial acid, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`acetic-anhydride-1`](processes/acetic-anhydride-1/) | Acetic anhydride by the ketene route (acetic acid cracking, 50 kt/a, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
