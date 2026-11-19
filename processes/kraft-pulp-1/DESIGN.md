@@ -248,6 +248,20 @@ credit; conservative for the pulp), stated as `allocation.deviation` in lca.yaml
 system model cutoff. Local
 mapping overrides in lca/mappings.yaml only (H2SO4, landfill; process water kept out of the
 deionised-water entry).
+Revised 2026-11-19 (process water): keeping feed:FW out of the deionised-water entry was never
+in effect. Its override said `atlas: false`, which only stops the link to an Atlas producer; the
+LCI build still linked the exchange by its slug `water` to the shared entry, the background
+deionised water, while this record, lca.yaml and mappings.yaml called it a gap. The library has
+no override that keeps an exchange with a mapped slug unlinked, nor a process-water entry, so
+feed:FW now links the shared `water` entry on purpose, as a stated conservative proxy
+(deionisation is more treatment than surface water filtered and treated at the mill needs), and
+without `atlas: false`, so that `prefer_atlas` takes the Atlas market of water/demineralised
+(processes/demineralised-water-1) as for the other library consumers of process water
+(bioethanol-1, which fixed the same pattern in PR #500, polystyrene-1, sodium-chlorate-1). The
+folder LCA (`cheme assess lca`) keeps it declared missing, as every other background here.
+Rejected: keeping a gap (needs a new override field or registry slug, a shared change with its
+own ADR); `use: water` with `atlas: false` (it would refuse the library's own demineralised
+water for no stated reason).
 Rejected: mass or economic allocation (no price; electricity has no mass); energy and exergy
 (no declared energy content or sourced exergy of the pulp in this run); substitution (the
 first choice of this study, 2026-10-28, changed after the PR's CI: the library's LCI export
