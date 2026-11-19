@@ -14,11 +14,11 @@ year: 2026
 boundary: gate-to-gate foreground of the plant
 technology: 'Batch plant: molten phenol neutralised with 50 wt% caustic soda dosed over 1 h at 343 K;
   the phenoxide solution dried to a powder in a kneader-reactor at ambient pressure, then at 4 kPa(a)
-  to 463 K; CO2 dosed into the dry phenoxide at 463 K over 5 h and held 1 h (one-stage Kolbe-Schmitt carboxylation),
-  the CO2 not taken up vented; the crude sodium salicylate taken up in about 9 kg of water per kg and
-  acidified with sulfuric acid at 328 K, the first crop centrifuged, washed and vacuum-dried at 333 K,
-  a second crop at 298 K returned to the next acidification, the phenol recovered from the liquors (95
-  %, specified); 2796.53 kg per batch, 357.6 batches a year on a dedicated train'
+  to 463 K; CO2 dosed into the dry phenoxide at 463 K over 5 h and held 1 h at about 5 bar (one-stage
+  Kolbe-Schmitt carboxylation), the head space''s CO2 vented; the crude cooled to 373 K and taken up in
+  about 9 kg of water per kg and acidified with sulfuric acid at 328 K, the first crop centrifuged, washed
+  and vacuum-dried at 333 K, a second crop at 298 K returned to the next acidification, the phenol recovered
+  from the liquors (95 %, specified); 2865.51 kg per batch, 349.0 batches a year on a dedicated train'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:phenol-vents
@@ -54,7 +54,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 999995.04
+  amount: 1000002.9600000001
   unit: kg/a
   source: product:SA per hour x operation.hours_per_year (7920 h/a)
 classification:
@@ -90,7 +90,7 @@ exchanges:
 - key: feed:NAOHF
   title: Caustic soda 50 wt% (chlor-alkali-1)
   type: input
-  amount: 85.2318
+  amount: 85.2322
   unit: kg
   provenance: calculated
   link:
@@ -115,7 +115,7 @@ exchanges:
 - key: feed:CO2F
   title: Carbon dioxide (carbon-capture-1, let down)
   type: input
-  amount: 50.9686
+  amount: 42.6391
   unit: kg
   link:
     source: flowsheet stream S7 (D-004, D-005)
@@ -137,7 +137,7 @@ exchanges:
 - key: feed:DW
   title: Process water (dissolution)
   type: input
-  amount: 1360.3
+  amount: 1360.31
   unit: kg
   provenance: calculated
   link:
@@ -160,7 +160,7 @@ exchanges:
 - key: feed:ACIDF
   title: Sulfuric acid 98.5 wt% (sulfuric-acid-1)
   type: input
-  amount: 54.1034
+  amount: 54.1037
   unit: kg
   provenance: calculated
   link:
@@ -234,7 +234,7 @@ exchanges:
 - key: feed:HPS
   title: HP steam 4100 kPa(a) (to the kneader's hot-oil circuit)
   type: input
-  amount: 81.0878
+  amount: 83.2503
   unit: kWh
   link:
     source: flowsheet energy stream Q2 (the kneader's hot-oil circuit, D101's dryer model), D-006, D-009
@@ -257,7 +257,7 @@ exchanges:
 - key: feed:LPS
   title: LP steam 350 kPa(a)
   type: input
-  amount: 71.4643
+  amount: 76.431
   unit: kWh
   link:
     source: flowsheet energy streams Q4 (the acidifier, core's conversion duty), Q6 (the product dryer,
@@ -284,7 +284,7 @@ exchanges:
 - key: product:SA
   title: Salicylic acid crystals to packing
   type: product
-  amount: 126.262
+  amount: 126.263
   unit: kg
   provenance: calculated
   streams:
@@ -303,10 +303,10 @@ exchanges:
     fractions:
       H2O: 0.001998489
       PHOH: 1.516e-06
-      H2SO4: 1.0705e-05
-      NA2SO4: 0.000775053
+      H2SO4: 1.0704e-05
+      NA2SO4: 0.000775057
       SA: 0.000367673
-      SA_S: 0.996841327
+      SA_S: 0.996841324
       HBA: 5.238e-06
     formulas:
       H2O: H2O
@@ -320,7 +320,7 @@ exchanges:
 - key: product:VENT
   title: CO2 not taken up (vented from the kneader)
   type: output
-  amount: 9.25692
+  amount: 0.9274
   unit: kg
   provenance: calculated
   streams:
@@ -339,7 +339,7 @@ exchanges:
 - key: product:WW
   title: Sodium sulfate liquor after phenol recovery, to wastewater treatment
   type: output
-  amount: 1675.34
+  amount: 1675.36
   unit: kg
   provenance: calculated
   link:
@@ -361,13 +361,13 @@ exchanges:
       the sulfate as dissolved salt (D-010)'
   composition:
     fractions:
-      H2O: 0.950928182
-      PHOH: 0.000356537
-      H2SO4: 0.000623004
-      NA2SO4: 0.045107194
+      H2O: 0.950928214
+      PHOH: 0.000356572
+      H2SO4: 0.000622936
+      NA2SO4: 0.045107196
       SA: 0.002239854
-      SA_S: 0.000440378
-      HBA: 0.000304851
+      SA_S: 0.000440379
+      HBA: 0.00030485
     formulas:
       H2O: H2O
       PHOH: C6H6O
@@ -380,22 +380,28 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 17.04635
+  amount: 85.07368
   unit: kWh
-  provenance: calculated
   link:
     source: flowsheet energy streams Q1 (the neutraliser) and Q3 (the carboxylation through the hot-oil
-      loop), from core's semi-batch models, D-009
+      loop), from core's semi-batch models, and Q8 (the kneader's vapour condenser E-102), Q9 (the crude
+      and the kneader cooled to 373 K) and Q10 (the product dryer's vacuum condenser E-202), scripts/balance.py,
+      D-009
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
   - Q1
   - Q3
+  - Q8
+  - Q9
+  - Q10
   source: flowsheet energy streams Q1 (the neutraliser) and Q3 (the carboxylation through the hot-oil
-    loop), from core's semi-batch models, D-009
+    loop), from core's semi-batch models, and Q8 (the kneader's vapour condenser E-102), Q9 (the crude
+    and the kneader cooled to 373 K) and Q10 (the product dryer's vacuum condenser E-202), scripts/balance.py,
+    D-009
   pedigree:
-    scores: [3, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (calculated, design maturity concept)
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carrier:
     kind: cold
@@ -404,7 +410,7 @@ exchanges:
 - key: product:CHW
   title: Chilled water return (278 K)
   type: output
-  amount: 48.2573
+  amount: 48.2577
   unit: kWh
   provenance: calculated
   link:
@@ -425,7 +431,7 @@ exchanges:
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 9.25692
+  amount: 0.9274
   unit: kg
   provenance: calculated
   link:
@@ -458,12 +464,12 @@ exchanges:
 - key: consumable:rinse-water
   title: Rinse water of R-201, C-201 and V-202 between batches
   type: input
-  amount: 67.72423267554073
+  amount: 66.09375690604064
   unit: kg
   link:
     source: 3 rinses per batch x 0.5 m3, ASSUMED (D-003, D-012)
     missing: 'not mapped yet (D-012); connect to: process water from the site water treatment'
-  source: 3 rinses per batch x 0.5 m3, ASSUMED (D-003, D-012); 1500 kg per batch x 357.584 batches in
+  source: 3 rinses per batch x 0.5 m3, ASSUMED (D-003, D-012); 1500 kg per batch x 348.975 batches in
     7920 h (process/recipe.yaml, case design, bottleneck KNEAD)
   pedigree:
     scores: [4, 4, 1, 3, 3]
@@ -473,7 +479,7 @@ exchanges:
   title: 'Disposal: Rinse water of R-201, C-201 and V-202 between batches (site wastewater treatment with
     the sodium sulfate liquor (D-010))'
   type: output
-  amount: 67.72423267554073
+  amount: 66.09375690604064
   unit: kg
   link:
     source: rinses to the wastewater treatment with the liquor (D-012)
@@ -495,8 +501,8 @@ provenance:
   plant: Salicylic acid by batch Kolbe-Schmitt carboxylation of dry sodium phenoxide (1000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:8a329e74e9ab444a66d03c5e1983b2cf95ff9013aa393ad1a2b3bab1761c80bf
-    lca/lca.yaml: sha256:bfba1287832cd0db012cdec9856e3804aa11dca5c1e14fc7641f6fe4ef084e00
-    process.yaml: sha256:72358b3bafcbcf707c651066e55cc064f13d8ea7f1f8902035fba00ddef666ac
-    process/flowsheet.yaml: sha256:3f51fc7fe6aba850d92e70d1b45e13154bed8d75c8a6ffc855858dfd51790b63
-    process/materials.yaml: sha256:2909a115fadc6fcc0541c07ef0cd4845f4fd39f03b7c1cbaa0edad77890bf851
+    equipment/equipment-list.yaml: sha256:bec27a203fe15035e812aaa3cd8d567d099148c45e3d5a86bc14fd6c2e868cde
+    lca/lca.yaml: sha256:8e0554f7a09a31bc27d9e0859dc5e09f8f324f2f583c6935621fc058bd9a31dd
+    process.yaml: sha256:5c349bbd18aafc64f9392606e2b53d94e973babaaeb991e3e794da0cb0d20276
+    process/flowsheet.yaml: sha256:e1c9c4a24db421f50e081d271ab851e91187d166ed6f360535da275d1704fe2d
+    process/materials.yaml: sha256:ef31a561f7239cc50bede3f8e4e13635433dadb25f42276d11d938b8a21fd3f3

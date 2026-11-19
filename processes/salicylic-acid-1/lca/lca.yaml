@@ -26,7 +26,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Batch plant: molten phenol neutralised with 50 wt% caustic soda dosed over 1 h at 343 K; the phenoxide solution dried to a powder in a kneader-reactor at ambient pressure, then at 4 kPa(a) to 463 K; CO2 dosed into the dry phenoxide at 463 K over 5 h and held 1 h (one-stage Kolbe-Schmitt carboxylation), the CO2 not taken up vented; the crude sodium salicylate taken up in about 9 kg of water per kg and acidified with sulfuric acid at 328 K, the first crop centrifuged, washed and vacuum-dried at 333 K, a second crop at 298 K returned to the next acidification, the phenol recovered from the liquors (95 %, specified); 2796.53 kg per batch, 357.6 batches a year on a dedicated train"
+technology: "Batch plant: molten phenol neutralised with 50 wt% caustic soda dosed over 1 h at 343 K; the phenoxide solution dried to a powder in a kneader-reactor at ambient pressure, then at 4 kPa(a) to 463 K; CO2 dosed into the dry phenoxide at 463 K over 5 h and held 1 h at about 5 bar (one-stage Kolbe-Schmitt carboxylation), the head space's CO2 vented; the crude cooled to 373 K and taken up in about 9 kg of water per kg and acidified with sulfuric acid at 328 K, the first crop centrifuged, washed and vacuum-dried at 333 K, a second crop at 298 K returned to the next acidification, the phenol recovered from the liquors (95 %, specified); 2865.51 kg per batch, 349.0 batches a year on a dedicated train"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 flows:
@@ -61,7 +61,7 @@ flows:
     source: "flowsheet energy streams Q4 (the acidifier, core's conversion duty), Q6 (the product dryer, D201's dryer model) and Q7 (the phenol recovery, ASSUMED), D-009"
   - key: product:CW
     missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q1 (the neutraliser) and Q3 (the carboxylation through the hot-oil loop), from core's semi-batch models, D-009"
+    source: "flowsheet energy streams Q1 (the neutraliser) and Q3 (the carboxylation through the hot-oil loop), from core's semi-batch models, and Q8 (the kneader's vapour condenser E-102), Q9 (the crude and the kneader cooled to 373 K) and Q10 (the product dryer's vacuum condenser E-202), scripts/balance.py, D-009"
   - key: product:CHW
     missing: "not mapped yet (D-012); connect to: refrigeration at 278 K (chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
     source: "flowsheet energy stream Q5 (the second-crop crystalliser, core's crystallizer duty), D-009"
@@ -70,7 +70,7 @@ flows:
     treatment: {kind: waste, route: "site wastewater treatment of an acidic sodium sulfate liquor: neutralisation, biological treatment of the dissolved salicylic acid, 4-hydroxybenzoic acid and the phenol not recovered, discharge of the sulfate as dissolved salt (D-010)"}
     missing: "not mapped yet (D-012); connect to: treatment of a saline process effluent with sodium sulfate and dissolved aromatic acids and phenol in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
     source: "flowsheet stream S27 (D-008, D-010)"
-  - {key: product:VENT, emission: true, source: "S8: the CO2 dosed but not taken up, vented from the kneader's head space after the hold (D-005)"}
+  - {key: product:VENT, emission: true, source: "S8: the CO2 dosed but not taken up, the head space's about 0.48 kmol a batch at 500 kPa(a), let down to the vent after the hold (D-005, D-010)"}
   - {key: emission:CO2, elementary: {compartment: air, origin: fossil}, source: "S8, D-005: carbon dioxide to air; the CO2 of carbon-capture-1 is captured from a fossil point source, so its release is counted as fossil"}
 # What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
 # ADR 0053): the water rinses of R-201, C-201 and V-202 between batches, converted with the

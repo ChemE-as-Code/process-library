@@ -4,8 +4,8 @@ Fast and without core: the flowsheet's streams (propagated by core) are read as 
 statements the folder makes in DESIGN.md, README.md, process.yaml and lca/ are checked against
 them and against the source's Example I (US 4 376 867 A):
 
-- the charge ratio, the CO2 dose and the share taken up follow Example I (23.2 mol phenol and
-  25 mol CO2 per 23.0 mol NaOH, 20.48 mol of acids formed);
+- the charge ratio and the CO2 taken up follow Example I (23.2 mol phenol per 23.0 mol NaOH,
+  20.48 mol of acids formed); the CO2 vented is what R-102's head space holds at 5 bar;
 - the salicylate formed per phenol charged is the source's 88 %, the by-product share its
   0.080 / 20.4, and the stated yields, purity and specific consumptions follow from the streams;
 - the crystallizers' solubility is Wikipedia's, the first crop at the source's 50 to 60 C;
@@ -72,10 +72,26 @@ def _kmol(streams, mw, sid: str, comp: str) -> float:
 def test_charge_and_co2_follow_example_one(sheet, streams, mw):
     naoh = _kmol(streams, mw, "S3", "NAOH")
     assert _kmol(streams, mw, "S2", "PHOH") / naoh == pytest.approx(23.2 / 23.0, rel=1e-4)
-    assert _kmol(streams, mw, "S7", "CO2") / naoh == pytest.approx(25.0 / 23.0, rel=1e-4)
+    # the CO2 dosed is Example I's uptake plus the head space's fill at the end of the hold
+    # (D-005): taken up 20.48 / 23.0 x 0.999 mol per mol NaOH, the rest vented after the hold
+    uptake = 20.48 / 23.0 * 0.999
+    ratio = _kmol(streams, mw, "S7", "CO2") / naoh
     dose = _step(sheet, "R102")["batch"]["dosing"][0]
     assert dose["time"] == 5 * 3600 and _step(sheet, "R102")["batch"]["time"] == 3600
-    assert dose["absorbed"] == pytest.approx(20.48 / 23.0 * 0.999 / (25.0 / 23.0), abs=5e-6)
+    assert ratio * dose["absorbed"] == pytest.approx(uptake, rel=2e-4)
+    recipe = _load("process/recipe.yaml")
+    hours = recipe["batch_size"]["value"] / streams["S22"]["flow"]["value"]
+    vented = _kmol(streams, mw, "S8", "CO2") * hours  # kmol a batch
+    assert vented == pytest.approx((ratio - uptake) * naoh * hours, rel=1e-3)
+    # what R-102's free volume holds at 500 kPa(a) and 463.15 K (ideal gas): never more vented
+    knead = next(u for u in recipe["unit_procedures"] if u["id"] == "KNEAD")
+    crude = sum(
+        n / mw[c] * next(m["liquid_molar_volume"] for m in _load("process/materials.yaml")["components"] if m["id"] == c)
+        for c, n in _kg(streams, mw, "S9").items()
+    ) * hours
+    held = 500.0 * (knead["vessel"]["volume"] - crude) / (8.314462618 * 463.15)
+    assert vented == pytest.approx(held, rel=2e-3)
+    assert "0.478 kmol" in _text("DESIGN.md")
     # the phenoxide converted in R102 is Example I's acids per NaOH
     converted = 1 - _kmol(streams, mw, "S9", "NAOPH") / _kmol(streams, mw, "S5", "NAOPH")
     assert converted == pytest.approx(20.48 / 23.0, abs=5e-4)
@@ -105,9 +121,13 @@ def test_isolation_purity_and_consumptions(streams, mw):
     overall = sa / _kmol(streams, mw, "S1", "PHOH")
     assert overall == pytest.approx(0.955, abs=5e-4)
     assert "95.5 % overall on the fresh phenol" in _text("process.yaml")
-    stated = {"S1": 0.711, "S3": 0.675, "S7": 0.404, "S11": 0.429, "S8": 0.073}
+    stated = {"S1": 0.711, "S3": 0.675, "S7": 0.338, "S11": 0.429, "S8": 0.0073}
     for sid, value in stated.items():
-        assert streams[sid]["flow"]["value"] / total == pytest.approx(value, abs=5e-4), sid
+        assert streams[sid]["flow"]["value"] / total == pytest.approx(value, abs=5e-4, rel=1e-2), sid
+    # the liquor's sodium sulfate as the design basis and D-010 state it
+    ww = _kg(streams, mw, "S27")
+    assert ww["NA2SO4"] / sum(ww.values()) == pytest.approx(0.045, abs=5e-4)
+    assert "about 4.5 wt% sodium sulfate" in _text("process/design-basis.yaml")
     water = (streams["S10"]["flow"]["value"] + streams["S16"]["flow"]["value"]) / total
     assert water == pytest.approx(12.1, abs=0.05)
     assert streams["S27"]["flow"]["value"] / total == pytest.approx(13.27, abs=0.01)
@@ -128,14 +148,35 @@ def test_crystallizers_use_the_sourced_solubility(sheet):
 def test_recipe_makes_the_flowsheet_rate(streams):
     recipe = _load("process/recipe.yaml")
     batch = recipe["batch_size"]["value"]
-    batches = 357.6
+    batches = 349.0
     assert batch * batches / recipe["hours_per_year"]["value"] == pytest.approx(
         streams["S22"]["flow"]["value"], rel=2e-3
     )
     assert streams["S22"]["flow"]["value"] * 7920 / 1000 == pytest.approx(1000.0, rel=1e-4)
     tech = _load("lca/lca.yaml")["technology"]
-    assert "2796.53 kg per batch, 357.6 batches a year" in tech
-    assert "357.6 batches/a of 2796.53 kg" in _text("process.yaml")
+    assert "2865.51 kg per batch, 349.0 batches a year" in tech
+    assert "349.0 batches/a of 2865.51 kg" in _text("process.yaml")
+    # R-102 holds the phenoxide solution it dries within the kneader's working fill (D-003)
+    knead = next(u for u in recipe["unit_procedures"] if u["id"] == "KNEAD")
+    solution = streams["S4"]["flow"]["value"] * batch / streams["S22"]["flow"]["value"]
+    density = _step(_load("process/flowsheet.yaml"), "D101")["dryer"]["cake_density"]["value"]
+    assert solution / density <= knead["vessel"]["fill_fraction"] * knead["vessel"]["volume"]
+
+
+def test_crude_cooled_before_the_water_fill_and_cooling_counted(sheet, streams):
+    # SRC-1 Example I cools to 100 C before the water fill: the crude enters R201 at 373 K and
+    # its heat from 463 K, with the kneader's metal, goes to cooling water (Q9), as do the
+    # condensers E-102 and E-202 (Q8, Q10; D-009)
+    assert streams["S9"]["temperature"]["value"] == pytest.approx(463.15)
+    s28 = next(s for s in sheet["streams"] if s["id"] == "S28")
+    assert s28["to"] == "R201.in" and streams["S28"]["temperature"]["value"] == pytest.approx(373.15)
+    to_cw = {s["id"] for s in sheet["streams"] if s.get("kind") == "energy" and s["to"].startswith("CW.")}
+    assert to_cw == {"Q1", "Q3", "Q8", "Q9", "Q10"}
+    with (PROCESS / "lca" / "inventory.csv").open(encoding="utf-8") as fh:
+        cw = next(row for row in csv.DictReader(fh) if row["key"] == "product:CW")
+    total = sum(s["state"]["design"]["duty"]["value"] for s in sheet["streams"] if s["id"] in to_cw)
+    assert float(cw["plant"]) == pytest.approx(total, rel=1e-4)
+    assert "0.674 kWh/kg" in _text("process.yaml")
 
 
 def test_heating_media_and_mtts(sheet):

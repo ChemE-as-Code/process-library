@@ -7,8 +7,8 @@ title: Salicylic acid by batch Kolbe-Schmitt carboxylation of dry sodium phenoxi
 summary: >-
   Phenol is neutralised with caustic soda, dried to sodium phenoxide in a kneader-reactor and
   carboxylated with CO2 at 463 K in one stage; the salicylate is acidified with sulfuric acid and
-  crystallised in two crops, the phenol recovered. Concept stage, 2796.5 kg per batch every
-  22.15 h, thermal screening, preliminary gate-to-gate LCI.
+  crystallised in two crops, the phenol recovered. Concept stage, 2865.5 kg per batch every
+  22.7 h, thermal screening, preliminary gate-to-gate LCI.
 description: |
   Molten phenol (fresh, with the phenol recovered from the liquors) is neutralised with 50 wt%
   caustic soda dosed over 1 h at 343 K, 23.2 mol of phenol per 23.0 mol of NaOH. The phenoxide
@@ -31,7 +31,7 @@ description: |
   (ADR 0056), a component separator for the phenol recovery and two design specifications that
   size the caustic for 1000 t/a and the fresh phenol for the source's charge ratio (ADR 0070),
   the second-crop and phenol recycles converged at two tears (ADR 0060) and the batch recipe
-  (ADRs 0051, 0052, 0057): the kneader-reactor is the bottleneck (cycle 22.15 h, 357.6 batches a
+  (ADRs 0051, 0052, 0057): the kneader-reactor is the bottleneck (cycle 22.7 h, 349.0 batches a
   year), the recipe sizes the neutraliser, the kneader and the product dryer. The kinetics and
   every heat of reaction are ASSUMED. The thermal screening gives MTSRs of 343.4 K (neutraliser,
   MTT 373.15 K) and 464.4 K (carboxylation, MTT 493.15 K ASSUMED): the gas-dosed carboxylation
@@ -39,7 +39,7 @@ description: |
 families: [oxygenates]
 keywords: [salicylic acid, 2-hydroxybenzoic acid, Kolbe-Schmitt, carboxylation, CO2 utilisation, sodium phenoxide, sodium phenolate, phenol, caustic soda, sodium salicylate, sulfuric acid, acidification, crystallisation, second crop, centrifuge, vacuum drying, kneader-reactor, mixer-kneader, phenol recovery, semi-batch, batch, gas dosing, thermal screening, aspirin intermediate, fine chemicals]
 facets:
-  feedstock_basis: [fossil, mineral, atmospheric]
+  feedstock_basis: [fossil, mineral]
   product_classes: [chemicals]
   unit_operations: [reaction, drying, crystallization, filtration, extraction]
   region: generic
@@ -51,7 +51,7 @@ validation:
   status: unreviewed
   notes: >-
     Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
-    process streams: 5 blocks and 14 steps within tolerance; the second-crop and phenol recycles
+    process streams: 5 blocks and 17 steps within tolerance; the second-crop and phenol recycles
     converged at the tears S19 and S20). The feeds are sized by two design specifications: the
     caustic for 1000 t/a of dried product, with the CO2, the dissolution water, the acid and the
     wash water following it at fixed ratios, and the fresh phenol for US 4 376 867 A Example I's
@@ -59,14 +59,18 @@ validation:
     D201, the conversion step R201, the crystallizers CR201, CR202 and W201, the filters and the
     phenol recovery are calculated by cheme process propagate, which writes the semi-batches',
     the acidifier's and the second crop's duties (Q1, Q3, Q4, Q5); the dryers' duties Q2 and Q6
-    are core's dryer model as reported by cheme process crystallizers (core does not write them).
-    The CO2 taken up is calibrated to Example I (20.48 mol of acids from 23.0 mol of NaOH), the
-    by-product share to its 4-hydroxybenzoic and 4-hydroxyisophthalic acids. The recipe's rate
-    agrees with the flowsheet (no cheme.recipe-basis finding); it sizes R-101 (5 m3), R-102 (5 m3)
-    and D-201 (8 m3); R-201 (40 m3) is sized by hand. Thermal screening (cheme process
+    are core's dryer model as reported by cheme process crystallizers (core does not write them);
+    the condensers' and the kneader's cool-down duties (Q8 to Q10) come from scripts/balance.py
+    (checked by scripts/check_balance_scripts.py). The CO2 taken up is calibrated to Example I
+    (20.48 mol of acids from 23.0 mol of NaOH), the dose is that uptake plus the head space's
+    fill at 500 kPa(a), the by-product share is Example I's 4-hydroxybenzoic and
+    4-hydroxyisophthalic acids. The recipe's rate agrees with the flowsheet (no
+    cheme.recipe-basis finding); it sizes R-101 (5 m3) and D-201 (8 m3); R-102 (6.3 m3, from the
+    solution it dries) and R-201 (40 m3) are sized by hand. Thermal screening (cheme process
     reactor-hazards): R101 dT_ad 70.4 K, accumulation 0.30 %, MTSR 343.4 K against an MTT of
     373.15 K; R102 dT_ad 229.4 K, accumulation 0.51 %, MTSR 464.4 K against an ASSUMED MTT of
-    493.15 K; no gas forms at a cooling failure; no criticality class without a TD24.
+    493.15 K; no gas forms at a cooling failure at the MTSR, below the 473 K where salicylic acid
+    begins to decarboxylate (a decomposition case awaits a TD24); no criticality class.
     Preliminary gate-to-gate LCI: the phenol linked to acetone-1, the caustic to chlor-alkali-1,
     the CO2 to carbon-capture-1, the acid to sulfuric-acid-1, the steam as heat; water, power,
     cooling and wastewater are gaps. cheme maturity reaches no level (assumed kinetics, heats
@@ -76,29 +80,29 @@ chemistry:
   inputs:
     - {chemical: phenol, role: feedstock, inventory_key: "feed:PHF", note: "Fresh phenol (acetone-1), 0.711 kg/kg salicylic acid; 0.090 kg/kg more recovered from the liquors and recycled"}
     - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOHF", note: "Caustic soda 50 wt% (chlor-alkali-1), 0.675 kg/kg, counted by mass of the solution"}
-    - {chemical: carbon-dioxide, role: reactant, inventory_key: "feed:CO2F", note: "CO2 (carbon-capture-1, let down), 0.404 kg/kg, 25/23 mol per mol NaOH dosed; 0.073 kg/kg not taken up and vented"}
+    - {chemical: carbon-dioxide, role: reactant, inventory_key: "feed:CO2F", note: "CO2 (carbon-capture-1, let down), 0.338 kg/kg, 0.909 mol per mol NaOH dosed (Example I's uptake and the head space's fill at 5 bar); 0.0073 kg/kg not taken up and vented"}
     - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:ACIDF", note: "Sulfuric acid 98.5 wt% (sulfuric-acid-1), 0.429 kg/kg, 2 % above the sodium"}
     - {chemical: water, role: feedstock, inventory_key: "feed:DW", note: "Process water to dissolve the crude, 10.77 kg/kg (9 kg per kg sodium salicylate), and 1.35 kg/kg for the cake wash (feed:WASHW)"}
-    - {chemical: water, role: feedstock, inventory_key: "consumable:rinse-water", note: "Rinse water of R-201, C-201 and V-202 between batches, 1.5 t per batch (ASSUMED), 0.536 kg/kg, to the wastewater treatment"}
+    - {chemical: water, role: feedstock, inventory_key: "consumable:rinse-water", note: "Rinse water of R-201, C-201 and V-202 between batches, 1.5 t per batch (ASSUMED), 0.523 kg/kg, to the wastewater treatment"}
   outputs:
     - {chemical: salicylic-acid, role: main-product, inventory_key: "product:SA", note: "Dried salicylic acid, modelled 99.7 wt% with 0.08 wt% sodium sulfate and 0.2 wt% water, to packing; the feed of aspirin (acetylsalicylic-acid-1, in progress)"}
     - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Sodium sulfate liquor after phenol recovery, 13.27 kg/kg with 4.5 wt% sodium sulfate, dissolved salicylic and hydroxybenzoic acids and 0.04 wt% phenol"}
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "CO2 not taken up, vented from the kneader's head space, 0.073 kg/kg"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:VENT", note: "CO2 not taken up, the kneader's head space let down after the hold, 0.0073 kg/kg"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.277 kWh/kg: agitators, the kneader's drive and vacuum pump, centrifuge, product dryer, phenol recovery pumps (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "0.642 kWh/kg of HP steam 4100 kPa(a) to the kneader's hot-oil circuit (core's dryer model)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.566 kWh/kg of LP steam 350 kPa(a): the acidifier (core's conversion duty), the product dryer (core's dryer model), the phenol recovery (ASSUMED)"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.135 kWh/kg removed: the neutraliser and the carboxylation (core's semi-batch models)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "0.659 kWh/kg of HP steam 4100 kPa(a) to the kneader's hot-oil circuit (core's dryer model)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.605 kWh/kg of LP steam 350 kPa(a): the acidifier (core's conversion duty), the product dryer (core's dryer model), the phenol recovery (ASSUMED)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.674 kWh/kg removed: the neutraliser and the carboxylation (core's semi-batch models), the condensers E-102 and E-202 and the kneader's cool-down to 373 K (scripts/balance.py)"}
     - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.382 kWh/kg removed at 278 K: the second crop (core's crystallizer)"}
 basis:
-  capacity: "1000 t/a dried salicylic acid: 357.6 batches/a of 2796.53 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  capacity: "1000 t/a dried salicylic acid: 349.0 batches/a of 2865.51 kg in 7920 h on a dedicated train (126.26 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920
   location: generic fine-chemicals site with phenol, caustic soda, sulfuric acid and CO2 supply (not chosen)
 references:
   - {title: "Jansen, G.; Wolff, P. (1983) US 4 376 867 A: Chemical process (one-stage Kolbe-Schmitt carboxylation of dried sodium phenolate above 175 C in a mixer-kneader; Example I: 23.2 mol phenol, 23.0 mol NaOH as a 40 % solution, dried to 190 C at 30 mm Hg, CO2 at 5 mol/h, 5 bar after 5 h held 1 h, 20.4 mol salicylic acid, 88 % on phenol; background: the conventional two-stage process and its acidification work-up with a second crop)", url: "https://patents.google.com/patent/US4376867A/en"}
   - {title: "Mohammad, O.; Onwudili, J. A.; Yuan, Q. (2024) Potential Large-Scale CO2 Utilisation for Salicylic Acid Production via a Suspension-Based Kolbe-Schmitt Reaction in Toluene. Molecules 29(11), 2527 (CC BY 4.0; the suspension variant, rejected in D-001)", doi: 10.3390/molecules29112527}
   - {title: "Wikipedia, Salicylic acid (solubility in water at 0 to 100 C, melting point, sublimation, decarboxylation at 200 to 230 C, production by the Kolbe-Schmitt reaction and acidification with sulfuric acid, hazards)", url: "https://en.wikipedia.org/wiki/Salicylic_acid"}
-  - {title: "The chemicals 1.5.2 and thermo 0.6.1 Python packages (CRC Handbook tables as packaged: formation enthalpies, densities, melting and boiling points; liquid densities and heat capacities, latent heats; IAPWS-95 saturation)", url: "https://github.com/CalebBell/chemicals"}
+  - {title: "The chemicals 1.5.2 and thermo 0.6.1 Python packages, open-source packages queried for single values (facts only, the underlying works not read; library ADR 0037): chemicals' CRC Handbook tables (formation enthalpies, densities, melting and boiling points, heat capacities), its ATcT formation enthalpy and Poling et al. (5th ed.) ideal-gas heat capacity of CO2, IAPWS-95 saturation; thermo's DIPPR_PERRY_8E method (Perry's Chemical Engineers' Handbook, 8th ed., drawing on DIPPR 801) for phenol's liquid density and latent heats, HEOS_FIT (IAPWS-95 fit) for water's latent heats, CRC_INORG_L_CONST (CRC Handbook) for sulfuric acid's density", url: "https://github.com/CalebBell/chemicals"}
   - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
 lca:
   source: auto

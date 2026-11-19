@@ -15,22 +15,23 @@ carboxylation of US 4 376 867 A (Example I): molten phenol is neutralised with 5
 soda dosed into it (R-101, `reactor: semibatch`, core ADR 0050), the sodium phenoxide solution
 is dried to a powder in a kneader-reactor at ambient pressure and then at 4 kPa(a) to 463 K
 (core's dryer, ADR 0057), and CO2 is dosed into the dry powder at 463 K over 5 h and held 1 h
-(a semi-batch with a dosed gas, the share not taken up vented, ADR 0054):
+(a semi-batch with a dosed gas, the share not taken up vented, ADR 0054; the dose is what the
+source takes up plus the head space's fill at 5 bar):
 PhONa + CO2 -> sodium salicylate, with 0.4 % of 4-hydroxybenzoic and 4-hydroxyisophthalic acid.
-The crude is taken up in about 9 kg of water per kg and acidified with sulfuric acid at 328 K;
+The crude is cooled to 373 K in the kneader, taken up in about 9 kg of water per kg and acidified with sulfuric acid at 328 K;
 the first crop is centrifuged, washed and vacuum-dried at 333 K (below the 76 C where salicylic
 acid sublimes), the mother liquor cooled to 298 K for a second crop that goes back to the next
 acidification (core's crystallizer with the solubility of salicylic acid in water, ADR 0056),
 and the phenol in the liquors is recovered for the next charge. Two design specifications size
 the caustic for 1000 t/a and the fresh phenol for the source's charge ratio, and the two
-recycles converge at tears (core ADRs 0060, 0070). `process/recipe.yaml` gives the cycle (22.15
-h, the kneader the bottleneck), 357.6 batches a year of 2796.53 kg and the vessels; `cheme
+recycles converge at tears (core ADRs 0060, 0070). `process/recipe.yaml` gives the cycle (22.7
+h, the kneader the bottleneck), 349.0 batches a year of 2865.51 kg and the vessels; `cheme
 process reactor-hazards` screens both semi-batches. Needs cheme-as-code 1.12.0. DESIGN.md
 lists the core features used and the core limits hit.
 
 Headline numbers and their caveats:
 - Per kg of product: 0.711 kg of fresh phenol (0.681 stoichiometric; 95.5 % overall), 0.675 kg
-  of 50 wt% caustic, 0.404 kg of CO2 (0.073 kg of it vented), 0.429 kg of sulfuric acid, 12.1 kg
+  of 50 wt% caustic, 0.338 kg of CO2 (0.0073 kg of it vented), 0.429 kg of sulfuric acid, 12.1 kg
   of water, 13.3 kg of sodium sulfate liquor to treatment.
 - The salicylate formed per batch is 87.8 % of the phenol charged, the source's 88 % (the CO2
   taken up is calibrated to it); 96.6 % of it is isolated in two crops, against the source's
@@ -59,7 +60,7 @@ Headline numbers and their caveats:
 | `reviews/` | review records |
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
-| `scripts/` | generator scripts (none needed: core calculates the balance) |
+| `scripts/` | `balance.py`: the duties of the condensers and the kneader's cool-down and the CO2 dose's head-space share, which no core model gives (library ADR 0027) |
 | `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
