@@ -1,0 +1,21 @@
+# sodium-chlorate-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, a `dataset` (an Atlas producer), `atlas: false`, or a
+# `properties_reason`.
+#
+# Linked here (DESIGN.md D-011): the salt to the shared sodium-chloride entry, the process water to
+# the shared water entry, the LP steam as heat delivered (kWh); the consumables to their library
+# producers: caustic soda to chlor-alkali-1, hydrochloric acid to hydrogen-chloride-1, soda ash to
+# soda-ash-1, hydrogen peroxide to hydrogen-peroxide-1, nitrogen to asu-1. Electricity, the
+# dichromate and the bleed's treatment stay gaps (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:SALT": {use: sodium-chloride, source: "solid salt (vacuum or rock salt) dissolved in the mother liquor, counted 1:1 as sodium chloride (D-005)"}
+  "feed:PW": {use: water, chemical: water, source: "demineralised process water to the salt dissolver (D-005)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the dryer's air heater (Q6, core's dryer model), counted as heat delivered (kWh), D-009"}
+  "consumable:sodium-hydroxide": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it"}
+  "consumable:hydrochloric-acid": {dataset: {path: processes/hydrogen-chloride-1/lca/dataset.yaml, product: "product:HCLACID"}, source: "the Atlas producer hydrogen-chloride-1, hydrochloric acid 33 wt%, per kg of acid as this exchange counts it"}
+  "consumable:sodium-carbonate": {dataset: {path: processes/soda-ash-1/lca/dataset.yaml, product: "product:SODA"}, source: "the Atlas producer soda-ash-1, light soda ash, kg for kg"}
+  "consumable:hydrogen-peroxide": {dataset: {path: processes/hydrogen-peroxide-1/lca/dataset.yaml, product: "product:PROD"}, source: "the Atlas producer hydrogen-peroxide-1, hydrogen peroxide 50 wt%, per kg of solution as this exchange counts it"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the purges need only a few hundred kPa"}
