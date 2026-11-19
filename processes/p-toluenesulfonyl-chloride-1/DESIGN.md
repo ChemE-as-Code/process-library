@@ -38,6 +38,8 @@ the locator is the part of the document).
 | SRC-10 | Harding, V. J. (1921) J. Chem. Soc., Trans. 119, 1261: the sulphonation of toluene with chlorosulphonic acid | - | not read (title and metadata only; named by SRC-1 as giving a favourable p:o ratio at higher temperature) | lead only |
 | SRC-11 | Property data of core's environment and the NIST WebBook: the `chemicals` 1.5.2 package (open-source, MIT; the version core pins; its packaged CRC Handbook tables: `chemicals.miscdata.CRC_inorganic_data` and `CRC_organic_data` for densities and boiling points, `chemicals.heat_capacity.CRC_standard_data` for heat capacities; `chemicals.phase_change.Tb`), CoolProp's IAPWS water (saturation, latent heat, viscosity, heat capacity), and the NIST Chemistry WebBook, SRD 69 (https://webbook.nist.gov: toluene and NH4Cl condensed-phase data, toluene and HCl phase-change data) | per component in `process/materials.yaml`; the dryer's latent heats (D-008); LP steam saturation; the wash filtrates' viscosity (D-007) | open-source packages queried and WebBook pages read (2026-11-05); single values, facts only; not open data (library ADR 0037). The CRC values come from the tables packaged in `chemicals`, not from the printed handbook (the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here) | materials, D-007, D-008, D-009 |
 | SRC-12 | Wikipedia, Hydrochloric acid, https://en.wikipedia.org/wiki/Hydrochloric_acid | physical properties table by concentration: total vapour pressure of the solution at 20 C, 1.95 kPa at 10 wt% and 1.40 kPa at 20 wt% HCl (values the article takes from the International Critical Tables), boiling point 103 C at 10 wt%; the azeotrope at 20.2 wt% HCl and 108.6 C | read 2026-11-19; CC BY-SA, facts only (the International Critical Tables not read) | D-017 (Q101's dissolved HCl) |
+| SRC-13 | Pfaudler, DIN BE Reactors: A solid design which can take a lot (product brochure, undated), the copy held by the ToxicDocs archive, https://cdn.toxicdocs.org/6w/6w5no2KXL29O4y5NvyoOJ4Ea9/6w5no2KXL29O4y5NvyoOJ4Ea9.pdf | p. 3: the BE series to DIN 28136, from 1600 l rated capacity; p. 5: the nominal reactor sizes to DIN 28136-1 (1600, 2500, 4000, 6300, 8000, 10000, 12500, 16000, 20000, 25000 l); p. 8, BE 4000 specifications: nominal volume 4000 l, overall capacity 5390 l, jacket capacity 605 l, heat exchange surface 13.23 m2, main dimension d1 1800 mm (BE 6300: 6300 l, 8190 l, 18.02 m2, d1 2200 mm) | read 2026-11-19 (text extracted from the PDF); vendor document, facts only | D-018 (R-101) |
+| SRC-14 | 3V Tech, Datasheet: Glass lined reactor - BE, capacity from 1.000 L to 6.300 L (2024), https://3v-tech.com/wp-content/uploads/2023/04/3V-Tech_Glass-Lined-Reactor-–-BE_240315.pdf | p. 1: type BE to DIN 28136, dimensions to DIN 28136; p. 2, type BE 4.000: vessel capacity 5425 l, jacket capacity 550 l, jacketed area 13.2 m2, d1 1800 mm (BE 6.300: 8820 l, 18 m2, d1 2000 mm) | read 2026-11-19 (text extracted from the PDF); vendor document, facts only | D-018 (cross-check of SRC-13) |
 
 Searched and not found openly (2026-11-05): kinetics or reaction calorimetry of the
 chlorosulfonation of toluene, a sourced formation enthalpy of liquid chlorosulfonic acid or a
@@ -89,42 +91,47 @@ intermediate (tosylates, sulfonamides), larger than NBS (500 t/a) but still a ba
 LCI is per kg and does not depend on the scale; the batch size does (D-003).
 
 ## D-003 Batch basis, recipe and vessels (2026-11-05)
-Decision: one batch makes 1748.95 kg of dried p-TsCl (stream S24); the recipe
+Revised by D-018 (2026-11-19): R-101 is a standard DIN 28136 BE 4000 vessel (5.39 m3 overall,
+filled at most to its nominal 4 m3), so its heat-up is shorter and the batch 0.05 % smaller;
+the numbers below are those of the revision.
+Decision: one batch makes 1748.15 kg of dried p-TsCl (stream S24); the recipe
 (`process/recipe.yaml`) has four unit procedures:
 - CHLOROSULFONATE on R-101, one vessel over E101, R101 and R102 (`units`, core ADR 0057):
-  nitrogen purge 0.25 h, first acid charge 0.5 h, heat 298 -> 338 K 0.21 h (from the jacket),
+  nitrogen purge 0.25 h, first acid charge 0.5 h, heat 298 -> 338 K 0.20 h (from the jacket),
   dose 7.0 h (salt 1 h, then toluene 6 h) and post-reaction 0.07 h to 0.99 conversion of the
   toluene (both from R101's model), cool 338 -> 308 K 0.65 h (jacket), second acid portion
   0.17 h and hold 1 h (SRC-1), transfer 4 h (the mass dosed into Q-101, as long as Q101's
-  dosing): 13.85 h;
+  dosing): 13.85 h (13.845 h);
 - QUENCH on Q-101 over E102, Q101 and CR101: dose 4 h and post-reaction 0.02 h (Q101's model),
   precipitation hold 1 h, slurry transfer 1 h, rinse 0.5 h, next heel 0.5 h, heel cooled
   298 -> 288 K 0.53 h (jacket): 7.55 h;
 - FILTER on F-101 over F101, W101, F102, W102 and F103: filtrations 5.59 h, 1.34 h and 1.39 h
   (Ruth, from the filters' filtration data), two reslurry washes 0.5 h each, discharge 0.5 h,
-  rinse 0.5 h: 10.33 h;
+  rinse 0.5 h: 10.32 h;
 - DRY on DR-101: receive 0.5 h, dry 11.50 h (D101's drying rate on 15 m2), discharge 0.5 h:
   12.50 h.
-R-101 is the bottleneck: cycle 13.85 h, 571.8 batches in 7920 h; one batch takes 36.7 h from
+R-101 is the bottleneck: cycle 13.85 h, 572.0 batches in 7920 h; one batch takes 36.7 h from
 the purge to the dryer's discharge. The flowsheet's flows are the recipe's year averages:
-1748.95 kg x 571.8 / 7920 h = 126.26 kg/h of S24 (no `cheme.recipe-basis` finding). The batch
+1748.15 kg x 572.0 / 7920 h = 126.26 kg/h of S24 (no `cheme.recipe-basis` finding). The batch
 size was found by fixed-point iteration (the heating and cooling times depend on the vessel, so
 on the batch: lesson L-6).
 Dosing times: the patent's 2-3 h of toluene is a laboratory figure. At plant scale the jacket
 sets it: with 2.5 h R101's peak duty was 1.7 times what R-101's jacket removes at the charge, so
-the salt is added over 1 h and the toluene over 6 h; the jacket (U 300 W/(m2 K) enamelled, 4.92
-m2 wetted at the charge, cooling water at 298 K) removes 59.0 kW against the model's peak 50.3
-kW. The quench is dosed over 4 h on brine at 258 K: the jacket (23.4 m2 at the charge) removes
-210 kW against the model's peak of 190.5 kW (`cheme process recipe`, core 1.10.0): the model's
+the salt is added over 1 h and the toluene over 6 h; the jacket (U 300 W/(m2 K) enamelled, 5.11
+m2 wetted at the charge, cooling water at 298 K) removes 61.4 kW against the model's peak 50.3
+kW (4.92 m2 and 59.0 kW in the 4 m3 vessel before D-018). The quench is dosed over 4 h on
+brine at 258 K: the jacket (23.4 m2 at the charge) removes 210 kW against the model's peak of
+190.4 kW (190.5 kW before D-018's 0.05 % smaller batch; `cheme process recipe`): the model's
 135 kW without it (the reactions and the dose S8 cooled from 308 to 288 K, about 8 kW of it the
 dose's sensible heat) and the dosed acids' heat of solution, 16.03 kW as a year average (57694
 kJ/h), 799 MJ a batch (x 13.85 h) released at the dose's rate over the 4 h: 799000 kJ / 14400 s
 = 55.5 kW. Until core 1.10.0 that share was added to the model's 135 kW by hand (D-009, D-014);
 the model now takes it (D-015).
-Vessels (fill 0.8, H/D 1.2 enamelled, 1.0 for the Nutsche, ASSUMED): R-101 4 m3, given and not
-sized (core sizes it from R101's model alone, 2.04 m3, while R102's second acid portion adds
-1.16 m3 in the same vessel: 3.20 m3 just after that charge, 80.04 % of 4 m3 and just over the
-fill fraction, then 3.11 m3 of reaction mass (S8), 78 %, once R102 has converted it; L-1); Q-101 20 m3 (14.95 m3
+Vessels (fill 0.8, H/D 1.2 enamelled, 1.0 for the Nutsche, ASSUMED): R-101 a standard DIN 28136
+BE 4000, given and not sized (D-018: 5.39 m3 overall, filled at most to its nominal 4 m3, H/D
+1.18 for its 1.8 m diameter; R101's model holds 2.04 m3, and R102's second acid portion adds
+1.16 m3 in the same vessel: 3.20 m3 just after that charge, 80 % of the nominal volume, then
+3.11 m3 of reaction mass (S8) once R102 has converted it; L-1); Q-101 20 m3 (14.95 m3
 of slurry, 75 %); F-101 20 m3 (sized by the slurry it takes in, D 2.94 m; its plate the filter
 area); DR-101 4 m3 (2.06 m3 of wet cake, 52 %), heated area 15 m2 (jacket and shaft of a paddle
 dryer, ASSUMED).
@@ -406,9 +413,10 @@ sulfuric-acid-1's SO3 is internal to it and a stoichiometric proxy would leave o
 handling (CONTRIBUTING, "Gaps": a correct gap rather than a doubtful link). Ammonium chloride is
 a gap as well. (Superseded for the chlorosulfonic acid by D-016: linked through the library's
 estimate proxy, marked as an estimate.)
-Per batch, not in the flowsheet (core ADR 0053, library ADR 0035): nitrogen 175 kg (about 140
-Nm3: R-101's purge, F-101 pressed for three filtrations, DR-101's vacuum broken twice; ASSUMED),
-0.100 kg per kg; rinses of Q-101 and F-101, 2 x 1 m3 (ASSUMED), 1.14 kg per kg, to the
+Per batch, not in the flowsheet (core ADR 0053, library ADR 0035): nitrogen 180 kg (about 144
+Nm3: R-101's purge with 3 volumes of its 5.39 m3, F-101 pressed for three filtrations, DR-101's
+vacuum broken twice; ASSUMED), 0.103 kg per kg (175 kg, 140 Nm3 and 0.100 kg per kg with the
+4 m3 R-101 before D-018); rinses of Q-101 and F-101, 2 x 1 m3 (ASSUMED), 1.14 kg per kg, to the
 wastewater treatment. R-101 is not rinsed: it is kept dry.
 Per kg p-TsCl: chlorosulfonic acid 2.32 kg, toluene 0.612 kg, ammonium chloride 0.160 kg,
 caustic soda 50 wt% 0.871 kg, water 12.66 kg (plus 1.14 kg of rinses), electricity 0.193 kWh,
@@ -420,8 +428,8 @@ strips from R-101 (core 1.10.0's vent vapour on a scratch copy: about 0.29 g per
 the dryer's vacuum vent (emission_exclusions).
 
 ## D-013 Dedicated train (2026-11-05)
-Decision: R-101, Q-101, F-101, DR-101 and T-201 make only p-TsCl, batch after batch: 571.8
-batches in 7920 h on a dedicated train (ASSUMED, library ADR 0035).
+Decision: R-101, Q-101, F-101, DR-101 and T-201 make only p-TsCl, batch after batch: 572.0
+batches in 7920 h (571.8 before D-018) on a dedicated train (ASSUMED, library ADR 0035).
 Reason: one product per process folder (library ADR 0002); a share of a multipurpose train
 cannot be checked without the other products' campaigns.
 Out of scope, so not LCI gaps: the changeover cleaning between campaigns of other products, the
@@ -732,6 +740,61 @@ engineering decision can; the margin at the design rates is a feed-rate question
 limit settles, the interlocks' limits follow from the model's scan, and the relief and the
 class need measurements that no model here replaces.
 
+## D-018 R-101 a standard DIN 28136 BE 4000 vessel (2026-11-19)
+Decision (revises D-003's R-101): R-101 is a glass-lined stirred vessel of the standard DIN 28136
+type BE 4000, its volume in the recipe that vessel's and not a sized one:
+- `volume: 5.39` m3, the overall capacity of the BE 4000 (5390 l, SRC-13; SRC-14 gives 5425 l
+  for the same size, 0.6 % more);
+- `fill_fraction: 0.7421`, its nominal volume over that, 4000 / 5390 (ASSUMED: the nominal volume
+  is taken as the most the vessel is filled; neither catalogue defines it, and DIN 28136-1, a
+  paid standard, was not read);
+- `aspect_ratio: 1.18`, the straight cylinder of 5.39 m3 with both catalogues' inner diameter
+  d1 1800 mm (4 x 5.39 / (pi x 1.8^3) = 1.177; core's vessel then has D 1.798 m).
+Result (`cheme process recipe`, core 1.13.0): R102 takes in 3.20 m3 just after the second acid
+portion, the batch's largest content, 80 % of the nominal volume and 59 % of the overall
+capacity; R101's model holds 2.04 m3. No `cheme.recipe-vessel`, and `process recipe` exits 0.
+What follows from the larger diameter:
+- the jacket: 5.11 m2 wetted at the charge (4.92 m2 in the 4 m3 vessel) removes 61.4 kW against
+  R101's peak 50.3 kW (59.0 kW before); both catalogues give about 13.2 m2 for the whole jacket,
+  core takes the smaller area wetted at the charge;
+- the jacket times: heat-up 298 -> 338 K 0.205 h (0.213 h: the first acid charge wets 4 % more
+  area in the wider vessel), cool-down 338 -> 308 K 0.653 h (0.651 h: the 2.04 m3 after the
+  dosing wets slightly less); R-101's cycle 13.8516 -> 13.8453 h, 23 s shorter, and it stays the
+  bottleneck (Q-101 55 %, F-101 75 %, DR-101 90 % utilised);
+- the batch size, re-iterated as in D-003 (lesson L-6, batch = 126.263 kg/h x cycle): 1748.95 ->
+  1748.15 kg, 571.8 -> 572.0 batches a year. The flowsheet's year averages do not change, except
+  the dryer's Q6, 40.8382 -> 40.8392 kW (DR-101's vessel heated once a batch, more batches);
+- each per-batch amount 0.05 % smaller: Q-101's jacket peak 190.4 kW (190.5), R101's gas release
+  at the MTSR 60.25 m3/h (60.28), Q101's dissolved HCl 11.75 kmol, 428.5 kg (11.76 kmol, 428.7
+  kg); the largest releases over the batch (145.5 and 14.07 m3/h), the MTSRs and the MTTs do not
+  change. D-011, D-014, D-015 and D-017 keep the values of their dates; none of their findings
+  moves;
+- the nitrogen per batch: R-101 purged with 3 volumes of 5.39 m3 (16.2 Nm3, 12 Nm3 before), so
+  about 144 Nm3 and 180 kg a batch, 0.103 kg per kg (D-012);
+- unchanged: R-101's agitator P1 (3 kW, about 0.75 kW per m3 of the nominal 4 m3), the
+  reactors' models and the hazards' screening otherwise; no cost estimate exists yet (TEA open).
+Reason: core 1.13.0's `cheme.recipe-vessel` showed that the given 4 m3 was 80.04 % full at the
+ASSUMED 0.8 just after R102's second acid portion (L-1). The 4 m3 of the first design is the
+BE 4000's size name: catalogues list the size by its nominal volume, and the vessel holds 5.39 m3
+overall. A standard size from an open catalogue keeps the vessel one that can be bought, and its
+volume, diameter and jacket are read, not assumed.
+Rejected:
+- `vessel.size_from: steps` (core ADR 0073): 4.0025 m3 at the ASSUMED 0.8, or the R10 5 m3 when
+  rounded; no catalogue lists either as an enamelled vessel, and the 0.8 is a rule of thumb;
+- the next standard size, BE 6300 (6300 l nominal, 8190 l overall, 18.02 m2, SRC-13): R102's
+  3.20 m3 fits the BE 4000 with 0.8 m3 to spare; the larger vessel would take the first acid
+  charge (1.16 m3) at a lower level and change nothing that limits the batch;
+- a smaller batch in a 4 m3 vessel: R-101 is the bottleneck at 100 % use, so a smaller batch
+  needs a shorter cycle for the same 1000 t/a, which its jacket-limited 7 h of dosing does not
+  give; it would need a second train.
+Assumes: the nominal volume as the most the vessel is filled; core's straight cylinder with a flat
+bottom for the wetted area (the real vessel has a dished bottom, so the area at the charge
+differs somewhat); U 300 W/(m2 K) as in D-003; the vessel's metal still out of the jacket times
+(the catalogues' total weights include jacket and drive, D-015).
+Open: the vendor's usable volume and the jacket's height, for the area R102's 3.20 m3 wets
+(basic engineering); Q-101 (20 m3), F-101 (20 m3) and DR-101 (4 m3) stay sized by core's R10
+rounding at the ASSUMED fill and are not matched to a catalogue (no finding on them).
+
 ## Core features used (cheme-as-code 1.10.0)
 
 Screened on core 1.12.0 as well (the library's pin 0e85885, D-017), with no change to the model
@@ -744,8 +807,9 @@ decided in D-017. Tried on scratch copies and not adopted: `hazard.mtt_from: bub
 batch still's phases and cut conditions (ADR 0068): no recycle, no still.
 
 On core 1.13.0 (the library's pin b97a833) `propagate --check`, `recipe`, `reactors`,
-`reactor-hazards` and `crystallizers` give the same numbers as on 1.12.0; the one new finding is
-`cheme.recipe-vessel` at R-101 (R102's intake against the given vessel, ADR 0073; L-1).
+`reactor-hazards` and `crystallizers` give the same numbers as on 1.12.0; the one new finding was
+`cheme.recipe-vessel` at R-101 (R102's intake against the given vessel, ADR 0073; L-1), resolved
+by D-018 (a standard BE 4000 vessel).
 
 Core 1.10.0 part:
 
@@ -780,7 +844,7 @@ nothing is dosed as a gas; `hazard.reactions` (D-014); recycle `tears:` (ADR 006
 
 ## Core limits hit (for core issues)
 
-- L-1 (partly resolved in core 1.13.0, ADR 0073): a recipe vessel over `units` holding a batch
+- L-1 (partly resolved in core 1.13.0, ADR 0073; the entry's finding resolved by D-018): a recipe vessel over `units` holding a batch
   step is sized from that step's model alone. R102, a conversion step after R101 in the same
   vessel, adds the second acid portion (1.16 m3 a batch), so the sized 3.15 m3 would have held
   3.11 m3 of reaction mass at 99 %, and less than the 3.20 m3 just after the charge. R-101's
@@ -788,13 +852,11 @@ nothing is dosed as a gas; `hazard.reactions` (D-014); recycle `tears:` (ADR 006
   R102 takes in 3.202 m3 per batch (S6 and S7 by their components' liquid molar volumes, before
   its conversion takes the mass to S8's 3.11 m3), 80.04 % of the 4 m3, just over its ASSUMED
   fill fraction 0.8. `cheme validate` and `cheme process recipe` therefore report
-  `cheme.recipe-vessel` (warning) at CHLOROSULFONATE, and `process recipe` exits 1. Left open,
-  not silenced: the 4 m3 and the 0.8 are ASSUMED (D-003), and neither is changed to clear 2 L.
-  `vessel.size_from: steps` (ADR 0073) would size the vessel from every step's content
-  (4.0025 m3), and a larger standard vessel or a smaller batch would change the jacket's area,
-  the heat-up and cool-down times and so R-101's cycle, the plant's bottleneck. That choice
-  belongs to the next revision of D-003. Still open in core: the jacket is checked against the
-  batch step's duty only, not R102's.
+  `cheme.recipe-vessel` (warning) at CHLOROSULFONATE, and `process recipe` exited 1. Resolved
+  by D-018 as a design decision, not by moving an ASSUMED number: R-101 is a standard DIN 28136
+  BE 4000 (5.39 m3 overall, filled at most to its nominal 4 m3, SRC-13, SRC-14), which R102's
+  3.20 m3 fills to 80 % of its nominal volume. Still open in core: the jacket is checked against
+  the batch step's duty only, not R102's.
 - L-2 (resolved in core 1.10.0): the semi-batch counted no heat of dilution or mixing of a dosed
   liquid: the H2SO4 and the sulfonic acids dosed into the quench heel release about 58 MJ per
   hour of flows (30 % of the quench's heat), which was missing from the model's duty, the jacket
@@ -862,9 +924,8 @@ nothing is dosed as a gas; `hazard.reactions` (D-014); recycle `tears:` (ADR 006
 | LCI inventory | done, most backgrounds unmapped | D-012 |
 
 ## Open inputs
-R-101's size: the given 4 m3 is 80.04 % full just after the second acid portion, over the
-ASSUMED fill fraction 0.8 (`cheme.recipe-vessel`, L-1); a vendor's standard enamelled size and
-its usable fill decide it.
+R-101 (D-018): the vendor's own usable volume of the BE 4000 and its jacket's height; Q-101,
+F-101 and DR-101 matched to catalogue sizes.
 Kinetics, heats of reaction and the gas release rate (calorimetry), TD24 of the reaction mass and
 the product; the gas release rate of a runaway and R-101's emergency relief (D-014; the
 measurements and what each gates are listed in D-017); the HCl held up in R-101's hot acid (the

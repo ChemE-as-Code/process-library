@@ -26,11 +26,14 @@ hand (DESIGN.md D-004, D-007, D-009):
 - the property sources cited in the materials and the flowsheet have a register row;
 - the recipe's batch size times its batches per year gives the flowsheet's product rate, the
   1000 t/a of the design basis;
+- R-101 is a standard DIN 28136 BE 4000 from an open catalogue (D-018): its overall capacity,
+  nominal volume and diameter, and with core R102's intake within it (no `cheme.recipe-vessel`);
 - the process is public with CC-BY-4.0, every library entry is (ADR 0036).
 """
 
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
 
@@ -181,18 +184,18 @@ def _text(rel: str) -> str:
 def test_quench_jacket_peak_with_the_dilution_heat(model):
     """D-003, D-015: the dose's heat of solution released over Q101's 4 h dosing (the 55.5 kW of
     the hand margin of 1.9.0) on top of the model's 135 kW without it (the reactions and the dose
-    S8 cooled from 308 to 288 K): 190.5 kW, which the recipe's jacket check now takes from the
-    model, against the 210 kW the brine jacket removes."""
+    S8 cooled from 308 to 288 K): 190.4 kW (190.5 before D-018's 0.05 % smaller batch), which the
+    recipe's jacket check takes from the model, against the 210 kW the brine jacket removes."""
     recipe = _yaml("process/recipe.yaml")
     dosing_s = _q101_dose()["time"]
     batches = 126.263 * recipe["hours_per_year"]["value"] / recipe["batch_size"]["value"]
     cycle_h = recipe["hours_per_year"]["value"] / batches
     peak = _dilution_kW(model) * 3600 * cycle_h / dosing_s
     assert peak == pytest.approx(55.5, abs=0.1)
-    assert 135 + peak == pytest.approx(190.5, abs=0.2)
+    assert 135 + peak == pytest.approx(190.4, abs=0.2)
     for rel in ("DESIGN.md", "equipment/equipment-list.yaml"):
         text = " ".join(_text(rel).split())
-        assert "190.5 kW" in text and "210" in text, rel
+        assert "190.4 kW" in text and "210" in text, rel
         assert "189 kW" not in text and "54 kW" not in text, rel
         assert "plus about 55.5 kW" not in text, rel  # no longer a hand margin
     pytest.importorskip("chemeascode")
@@ -200,17 +203,46 @@ def test_quench_jacket_peak_with_the_dilution_heat(model):
 
     result = recipe_report(PROCESS)
     vessel = next(v for v in result.vessels if v.procedure == "QUENCH")
-    assert vessel.peak_duty == pytest.approx(190.5, abs=0.1)
+    assert vessel.peak_duty == pytest.approx(190.4, abs=0.1)
     assert vessel.removable == pytest.approx(210.3, abs=0.1)
     assert vessel.peak_duty < vessel.removable
-    # core 1.13.0 (ADR 0073): R102's intake fills the given 4 m3 just over its ASSUMED 0.8, a
-    # warning left open, not silenced (DESIGN.md L-1); nothing else may warn
-    found = [f for f in result.findings if f.level in ("warning", "error")]
-    assert [(f.level, f.rule, f.ids) for f in found] == [
-        ("warning", "cheme.recipe-vessel", ["CHLOROSULFONATE", "R102"])
-    ]
-    assert "takes in 3.202 m3" in found[0].message and "80.04%" in found[0].message
-    assert "80.04 %" in _text("DESIGN.md") and "3.202 m3" in _text("process/recipe.yaml")
+    # core 1.13.0 (ADR 0073) checks R102's intake against R-101's given vessel: the DIN BE 4000 of
+    # D-018 holds it within its nominal volume, so nothing warns and `process recipe` exits 0
+    assert not [f for f in result.findings if f.level in ("warning", "error")]
+
+
+def test_r101_is_a_standard_be_4000():
+    """D-018: R-101 is a DIN 28136 BE 4000 (SRC-13): 5.39 m3 overall, filled at most to its
+    nominal 4 m3, the straight cylinder of the catalogue's 1.8 m diameter; R102's 3.20 m3 just
+    after the second acid portion is 80 % of the nominal volume, and the jacket wetted at the
+    charge still removes R101's peak."""
+    recipe = _yaml("process/recipe.yaml")
+    vessel = next(u for u in recipe["unit_procedures"] if u["id"] == "CHLOROSULFONATE")["vessel"]
+    assert vessel["volume"] == 5.39
+    assert vessel["fill_fraction"] == pytest.approx(4.0 / 5.39, abs=1e-4)
+    diameter = (4 * vessel["volume"] / (math.pi * vessel["aspect_ratio"])) ** (1 / 3)
+    assert diameter == pytest.approx(1.8, abs=0.005)
+    assert "size_from" not in vessel  # a catalogue vessel, not a sized one
+    design = _text("DESIGN.md")
+    for src in ("| SRC-13 |", "| SRC-14 |", "## D-018 "):
+        assert src in design, src
+    assert "SRC-13" in vessel["source"] and "ASSUMED" in vessel["source"]
+    pytest.importorskip("chemeascode")
+    from chemeascode.domains.process.recipe import recipe_report
+
+    result = recipe_report(PROCESS)
+    r101 = next(v for v in result.vessels if v.procedure == "CHLOROSULFONATE")
+    assert r101.volume == 5.39 and not r101.rounded
+    assert r101.diameter == pytest.approx(1.798, abs=0.001)
+    assert r101.jacket_area == pytest.approx(5.11, abs=0.01)
+    assert r101.removable == pytest.approx(61.4, abs=0.05) and r101.peak_duty < r101.removable
+    assert result.bottleneck == "CHLOROSULFONATE"
+    assert result.cycle_time == pytest.approx(13.845, abs=0.001)
+    # R102's intake (S6 and S7 by liquid molar volumes, 3.202 m3 at the 1748.95 kg batch of the
+    # first design) against the nominal volume: 80 %, under the fill fraction
+    intake = 3.202 * recipe["batch_size"]["value"] / 1748.95
+    assert intake / vessel["volume"] < vessel["fill_fraction"]
+    assert intake / 4.0 == pytest.approx(0.80, abs=0.005)
 
 
 def test_every_energy_flow_reaches_the_brine(model):
@@ -353,7 +385,8 @@ def test_core_screens_the_gas_release_against_the_vent():
     report = screen(PROCESS)
     entries = {e.node: e for e in report.entries}
     # core's value at its worst moment, the highest MTSR (D-011)
-    for node, release, mtsr, mtt in (("R101", 60.28, 343.59, 383.75), ("Q101", 11.79, 298.18, 373.12)):
+    # R101's 60.28 m3/h before D-018's 0.05 % smaller batch
+    for node, release, mtsr, mtt in (("R101", 60.25, 343.59, 383.75), ("Q101", 11.79, 298.18, 373.12)):
         entry = entries[node]
         gas = entry.gas_release
         assert gas["per_batch"] and gas["rate_m3_h"] == pytest.approx(release, abs=0.01), node
@@ -396,11 +429,11 @@ def test_requires_core_1_10():
 
 
 def test_sources_name_the_right_equipment(model):
-    """P1 names R-101's given 4 m3 (recipe.yaml), not the 3.15 m3 core would have sized; the
-    product is cooled in DR-101, the step S24 leaves (D-008)."""
+    """P1 names R-101's nominal 4 m3 (a BE 4000, D-018), not the 3.15 m3 core would have sized;
+    the product is cooled in DR-101, the step S24 leaves (D-008)."""
     recipe = _yaml("process/recipe.yaml")
     r101 = next(u for u in recipe["unit_procedures"] if u["id"] == "CHLOROSULFONATE")
-    assert r101["vessel"]["volume"] == 4.0
+    assert r101["vessel"]["volume"] * r101["vessel"]["fill_fraction"] == pytest.approx(4.0, abs=0.001)
     p1 = model[1]["P1"]["state"]["design"]["duty"]["source"]
     assert "4 m3" in p1 and "3.15" not in p1
     s24 = model[1]["S24"]
@@ -453,7 +486,7 @@ def test_recipe_basis_gives_1000_t_per_year(model):
     rate = model[1]["S24"]["state"]["design"]["flow"]["value"]
     assert rate * recipe["hours_per_year"]["value"] / 1000 == pytest.approx(1000, rel=0.001)
     batches = rate * recipe["hours_per_year"]["value"] / recipe["batch_size"]["value"]
-    assert batches == pytest.approx(571.8, abs=0.1)  # D-003
+    assert batches == pytest.approx(572.0, abs=0.1)  # D-003, D-018
 
 
 def test_published_public_with_cc_by():
