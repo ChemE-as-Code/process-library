@@ -1,0 +1,854 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Salicylic acid by the one-stage Kolbe-Schmitt carboxylation of dry sodium phenoxide
+# (US 4 376 867 A, Example I; DESIGN.md D-001), a batch plant: molten phenol (fresh and
+# recovered) is neutralised with 50 wt% caustic soda dosed into it (R101, a semi-batch), the
+# phenoxide solution is dried to a powder in a kneader-reactor at 463 K and 4 kPa(a) (D101,
+# core's dryer), CO2 is dosed into the dry powder at 463 K over 5 h and held 1 h (R102, a
+# semi-batch with the gas not taken up passing to a vent: the head space's CO2, let down after the
+# hold), the crude is cooled to 373 K in the kneader (E103), the crude sodium salicylate is taken
+# up in about 9 kg of water per kg and acidified with sulfuric acid at 328 K (R201), the first
+# crop crystallises at 328 K (CR201), is centrifuged (F201), washed with water on the centrifuge
+# (W201, F203) and vacuum-dried at 333 K (D201); the mother liquor is cooled to 298 K for a
+# second crop (CR202, F202) that goes back to the next acidification. The liquors and the
+# condensates are collected (M301) and their phenol recovered (X301) for the next charge.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - ratios and conditions: US 4 376 867 A (SRC-1) and the design basis, else ASSUMED (D-002 to
+#   D-009);
+# - the feeds: two design specifications (core ADR 0070): the caustic S3 for 1000 t/a of dried
+#   product, with the CO2, the dissolution water, the acid and the wash water following it at
+#   fixed ratios, and the fresh phenol S1 for the charge's 23.2 mol of phenol per 23.0 mol of
+#   NaOH (Example I);
+# - R101, R102: cheme's semi-batch models (the rate laws of NEUT, CARB and PARA, D-005); D101,
+#   D201: core's dryer; R201: a conversion step; CR201, CR202, W201: core's crystallizer with
+#   the liquor's other solutes as spectators and the water solubility of salicylic acid
+#   (SRC-3); F201 to F203: specified filters; X301: a component separator (core ADR 0070); M101,
+#   M301: mixers; the second crop S19 and the recovered phenol S20 converged at two tears (core
+#   ADR 0060): all calculated by `cheme process propagate --fill`, with the duties the models
+#   give (core ADRs 0059, 0063);
+# - the phenol recovery's steam Q7 and the drives' power: ASSUMED year averages (D-009);
+# - the duties of the condensers E-102 and E-202 and of the kneader's cool-down E103 (Q8 to
+#   Q10), the CO2 dose's head-space share: scripts/balance.py (library ADR 0027, D-005, D-009).
+schema: cheme/process/v1
+kind: flowsheet
+title: Salicylic acid by batch Kolbe-Schmitt carboxylation of dry sodium phenoxide (1000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 1000 t/a dried salicylic acid, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# Two recycles (core ADR 0060): the second crop S19 back to the acidifier and the recovered
+# phenol S20 back to the phenol charge (D-007, D-008).
+tears:
+  - stream: S19
+    initial: {flow: 14.0, unit: kg/h, basis: mass_fraction, composition: {SA_S: 0.75, H2O: 0.23, NA2SO4: 0.02}}
+  - stream: S20
+    initial: {flow: 11.0, unit: kg/h, basis: mass_fraction, composition: {PHOH: 1.0}}
+convergence: {method: wegstein, max_iterations: 500, tolerance: {abs: 1.0e-6, rel: 1.0e-8}}
+specs:
+  - id: rate
+    vary:
+      stream: S3
+      initial: 85.0
+      with: {S7: 0.50027, S10: 15.96, S11: 0.63478, S16: 2.0}
+    target: {stream: S22, quantity: annual, value: 1000, unit: t}
+    provenance: assumed
+    source: "1000 t/a of dried salicylic acid, ASSUMED (D-002); per kg of 50 wt% caustic: CO2 0.50027 kg (0.90932 mol per mol NaOH: the 0.88954 mol taken up in Example I, 20.48 mol of acids from 23.0 mol of NaOH, and the 0.01978 mol that fills R-102's free volume of about 3.68 m3 at 500 kPa(a) and 463.15 K at the end of the hold, 0.478 kmol a batch of 24.18 kmol NaOH, ASSUMED; scripts/balance.py), dissolution water 15.96 kg (9 kg per kg of the sodium salicylate formed, the middle of SRC-1's 8 to 10 t per t), sulfuric acid 98.5 wt% 0.63478 kg (0.51 mol per mol of sodium, 2 % excess), wash water 2.0 kg (about 1.4 kg per kg of first-crop crystals) (D-004, D-007)"
+  - id: phenol
+    vary: {stream: S1, initial: 90.0}
+    target: {stream: S2, component: PHOH, quantity: ratio, basis: mole, per: {stream: S3, component: NAOH}, value: 1.008696}
+    provenance: given
+    source: "US 4 376 867 A, Example I: 23.2 mol phenol per 23.0 mol NaOH (0.87 % excess; the patent prefers 1 to 10 %); the recovered phenol S20 counts in the charge (D-004)"
+
+feeds:
+  - {id: PHF, title: Phenol (acetone-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOHF, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CO2F, title: "Carbon dioxide (carbon-capture-1, let down)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DW, title: Process water (dissolution), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACIDF, title: Sulfuric acid 98.5 wt% (sulfuric-acid-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: WASHW, title: Process water (cake wash), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: r102, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: f201, direction: out, kind: energy}
+      - {id: d201, direction: out, kind: energy}
+      - {id: x301, direction: out, kind: energy}
+  - id: HPS
+    title: HP steam 4100 kPa(a) (to the kneader's hot-oil circuit)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 4100, provenance: assumed, source: "design basis (D-009): the HP steam sulfuric-acid-1 raises"}
+      supply_temperature: {value: 525.0, provenance: given, source: "saturation at 4100 kPa(a), IAPWS-95 (chemicals 1.5.2 iapws95_Tsat: 524.97 K)"}
+      min_approach: {value: 20, provenance: assumed, source: "D-009: through a hot-oil circuit"}
+    ports:
+      - {id: d101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-95 (chemicals 1.5.2 iapws95_Tsat: 412.01 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r201, direction: out, kind: energy}
+      - {id: d201, direction: out, kind: energy}
+      - {id: x301, direction: out, kind: energy}
+products:
+  - {id: SA, title: Salicylic acid crystals to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: CO2 not taken up (vented from the kneader), category: emission, ports: [{id: in, direction: in}]}
+  - {id: WW, title: "Sodium sulfate liquor after phenol recovery, to wastewater treatment", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r102, direction: in, kind: energy}
+      - {id: e102, direction: in, kind: energy}
+      - {id: e103, direction: in, kind: energy}
+      - {id: e202, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return (278 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 278.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 283.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: cr202, direction: in, kind: energy}
+
+blocks:
+  - id: PHENOX
+    title: Phenoxide preparation
+    class: ReactingChemicals
+    ports:
+      - {id: phenol, direction: in}
+      - {id: rec, direction: in}
+      - {id: naoh, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: CARBOX
+    title: Drying and carboxylation (kneader-reactor)
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: co2, direction: in}
+      - {id: out, direction: out}
+      - {id: vap, direction: out}
+      - {id: vent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: q_cond, direction: out, kind: energy}
+      - {id: q_cool, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ACID
+    title: Dissolution, acidification and crystallisation
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: in}
+      - {id: acid, direction: in}
+      - {id: crop, direction: out}
+      - {id: ml, direction: out}
+      - {id: q, direction: in, kind: energy}
+      - {id: qc, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: power_c, direction: in, kind: energy}
+  - id: ISOL
+    title: Washing and drying
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: product, direction: out}
+      - {id: wf, direction: out}
+      - {id: vap, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q_cond, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: RECOV
+    title: Liquor collection and phenol recovery
+    class: Separating
+    ports:
+      - {id: ml, direction: in}
+      - {id: wf, direction: in}
+      - {id: vap1, direction: in}
+      - {id: vap2, direction: in}
+      - {id: phenol, direction: out}
+      - {id: ww, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: PHENOX
+    title: Phenol charge (fresh and recovered, molten at 343 K)
+    class: Mixing
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: phenol, direction: in, delegates: phenol}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: R101
+    block: PHENOX
+    title: Neutraliser (caustic dosed into the molten phenol at 343 K)
+    class: ReactingChemicals
+    reactions: [NEUT]
+    reactor: semibatch
+    energy_port: q
+    batch:
+      dosing: [{stream: S3, time: 3600}]
+      target: {key: NAOH, conversion: 0.999}
+      heat: isothermal
+      provenance: assumed
+      source: "50 wt% caustic dosed at a constant rate over 1 h into the molten phenol at 343.15 K and held to 0.999 conversion of the NaOH (SRC-1: NaOH as a 25 to 55 % solution; the dosing time and temperature ASSUMED, D-005)"
+    hazard:
+      mtt: 373.15
+      provenance: assumed
+      source: "MTT: the normal boiling point of water, a lower bound of the bubble point of the phenoxide solution (the dissolved salts raise it, phenol boils at 454.95 K); R-101 is vented to atmosphere through its condenser, so the mass boils there (D-011)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: D101
+    block: CARBOX
+    title: Drying the phenoxide to a powder (atmospheric, then 4 kPa(a) to 463 K)
+    class: Drying
+    dryer:
+      volatiles: [H2O, PHOH]
+      residual_moisture: {value: 0.002, basis: mass_fraction, provenance: assumed, source: "0.2 wt% water and phenol left in the dry phenoxide (D-006): SRC-1 dries at ambient pressure, then at 30 mm Hg to 190 C, and shows that incomplete drying lowers the conversion (Example 3, run 3-5: 60 %)"}
+      temperature: 463.15
+      energy:
+        heat_capacity: 3.0
+        latent_heat: {H2O: 2256.4, PHOH: 486.6}
+        vessel_heat_capacity: 6300
+        efficiency: 0.8
+        port: steam
+        provenance: assumed
+        source: "the phenoxide solution about 3.0 kJ/(kg K), ASSUMED; latent heats: water at 373.15 K, where most of it boils off at ambient pressure (thermo 0.6.1, method HEOS_FIT, 2256.4 kJ/kg), phenol at 463.15 K (thermo 0.6.1, method DIPPR_PERRY_8E, 486.6 kJ/kg; SRC-5); the 6.3 m3 kneader's metal, about 12.6 t of steel (2 t per m3) at 0.5 kJ/(kg K), heated each batch, ASSUMED; 80 % efficiency (D-006, D-009)"
+      drying_rate: {value: 10.0, provenance: assumed, source: "ASSUMED mean evaporation of a jacketed kneader-dryer with self-cleaning blades: a wall flux of about 6 kW/m2 over 2256 kJ/kg, the solution boiling at first, the powder at the end (D-006)"}
+      cake_density: {value: 1300, provenance: assumed, source: "ASSUMED, no open density of sodium phenoxide solutions read: the phenoxide solution as charged, S4, about 66 wt% sodium phenoxide, 33 wt% water and 0.5 wt% phenol; it sizes R-102 by hand from the solution (D-003, D-006)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: product, direction: out}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: E102
+    block: CARBOX
+    title: Vapour condenser of the kneader (water and phenol from the drying, cooling water)
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: vap}
+      - {id: q, direction: out, kind: energy, delegates: q_cond}
+  - id: R102
+    block: CARBOX
+    title: Carboxylation (CO2 dosed into the dry phenoxide at 463 K, then 1 h at about 5 bar)
+    class: ReactingChemicals
+    reactions: [CARB, PARA]
+    reactor: semibatch
+    energy_port: q
+    batch:
+      dosing:
+        - stream: S7
+          time: 18000
+          absorbed: 0.97825
+      time: 3600
+      heat: isothermal
+      vent: {stream: S8, components: [CO2]}
+      provenance: assumed
+      source: "SRC-1 Example I: CO2 at a constant rate over 5 h into the dry phenoxide at 463.15 K (190 C, the final drying temperature; Example 3's 190 to 195 C), taken up at once, the pressure rising to 5 bar at the end, then held 1 h; dosed: what reacts in Example I (20.48 mol of acids from 23.0 mol, 0.999 of the NaOH as phenoxide: 0.88954 mol per mol of NaOH) and what fills the head space at the end (0.01978 mol per mol, ASSUMED 500 kPa(a) in R-102's free volume, scripts/balance.py), so 0.97825 of the dose is taken up; the rest is the head space's CO2, let down to the vent after the hold (the model sends it to the vent through the dosing, L-2; D-005)"
+    hazard:
+      mtt: 493.15
+      vent_capacity: 100.0
+      provenance: assumed
+      source: "MTT ASSUMED at 220 C, the upper end of SRC-1's preferred range (claim 2): above it SRC-1 Example 3 run 3-7 (237 to 243 C) loses conversion to phenol's vapour pressure, and salicylic acid decarboxylates slowly to phenol and CO2 at 200 to 230 C (Wikipedia); the dry powder does not boil (sodium phenoxide melts at 657.15 K, CRC via chemicals 1.5.2), so no boiling point bounds it; vent capacity 100 m3/h ASSUMED for the head-space vent line, against the head space let down after the hold (about 0.48 kmol of CO2 in 0.25 h, about 73 m3/h at 463 K and 101.325 kPa(a), scripts/balance.py) and no gas formed at a cooling failure at the MTSR, below the decarboxylation range (D-011)"
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: co2, direction: in, delegates: co2}
+      - {id: out, direction: out}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E103
+    block: CARBOX
+    title: Crude cooled to 373 K in the kneader (hot-oil loop to cooling water)
+    class: Cooling
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: q_cool}
+  - id: R201
+    block: ACID
+    title: Dissolution in water and acidification with sulfuric acid at 328 K
+    class: ReactingChemicals
+    reactions: [ACS, ACP, ACH, ACN]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: crop, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: CR201
+    block: ACID
+    title: First crop (salicylic acid crystallises at 328 K)
+    class: Crystallizing
+    crystallizer:
+      solute: SA
+      solvent: H2O
+      crystal: SA_S
+      basis: solubility
+      temperature: 328.15
+      solubility:
+        unit: kg/kg_solvent
+        points: [[273.15, 0.00124], [298.15, 0.00248], [313.15, 0.00414], [348.15, 0.01741], [373.15, 0.07779]]
+        provenance: given
+        source: "Wikipedia, Salicylic acid (infobox): 1.24, 2.48, 4.14, 17.41 and 77.79 g/L of water at 0, 25, 40, 75 and 100 C, taken here as kg per kg of water (dilute solutions; ASSUMED) (SRC-3); interpolated linearly by core, 0.00983 at 328.15 K (D-007)"
+        salting_out:
+          coefficients: {NA2SO4: 0.0, H2SO4: 0.0, PHOH: 0.0, HBA: 0.0, CO2: 0.0, NAOPH: 0.0, NASAL: 0.0, NA4HB: 0.0, NAOH: 0.0}
+          provenance: assumed
+          source: "no open salting-out data of salicylic acid by sodium sulfate or phenol read; no correction taken, the pure-water solubility in the mother liquor (D-007, L-4)"
+      spectators: [NA2SO4, H2SO4, PHOH, HBA, CO2, NAOPH, NASAL, NA4HB, NAOH]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: F201
+    block: ACID
+    title: Centrifuging the first crop
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.995
+      cake_liquid: {value: 0.15, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "a peeler centrifuge (SRC-1: recovered by centrifugation), 99.5 % of the crystals to the cake, spun to 0.15 kg of liquor per kg (D-008)"
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out, delegates: crop}
+      - {id: filtrate, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power_c}
+  - id: CR202
+    block: ACID
+    title: Second crop (the mother liquor cooled to 298 K)
+    class: Crystallizing
+    crystallizer:
+      solute: SA
+      solvent: H2O
+      crystal: SA_S
+      basis: solubility
+      temperature: 298.15
+      solubility:
+        unit: kg/kg_solvent
+        points: [[273.15, 0.00124], [298.15, 0.00248], [313.15, 0.00414], [348.15, 0.01741], [373.15, 0.07779]]
+        provenance: given
+        source: "as CR201 (SRC-3, D-007)"
+        salting_out:
+          coefficients: {NA2SO4: 0.0, H2SO4: 0.0, PHOH: 0.0, HBA: 0.0, CO2: 0.0, NAOPH: 0.0, NASAL: 0.0, NA4HB: 0.0, NAOH: 0.0}
+          provenance: assumed
+          source: "as CR201 (D-007, L-4)"
+      energy: {heat_capacity: 4.0, heat_of_crystallization: 0.0, provenance: assumed, source: "the dilute sodium sulfate liquor about 4.0 kJ/(kg K), ASSUMED; the heat of crystallisation not counted (no open value; the crop is about 1 % of the liquor, D-009)"}
+      spectators: [NA2SO4, H2SO4, PHOH, HBA, CO2, NAOPH, NASAL, NA4HB, NAOH]
+      outlets: {slurry: out}
+    energy_port: q
+    links: [{target: equipment, ref: V-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: qc}
+  - id: F202
+    block: ACID
+    title: Filtering the second crop (back to the next acidification)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.99
+      cake_liquid: {value: 0.3, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "a nutsche filter, 99 % of the fine second crop to the cake, 0.3 kg of liquor per kg (D-008)"
+    links: [{target: equipment, ref: F-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out, delegates: ml}
+  - id: W201
+    block: ISOL
+    title: Cake wash with water on the centrifuge (salicylic acid dissolves to saturation)
+    class: Crystallizing
+    crystallizer:
+      solute: SA
+      solvent: H2O
+      crystal: SA_S
+      basis: solubility
+      temperature: 298.15
+      solubility:
+        unit: kg/kg_solvent
+        points: [[273.15, 0.00124], [298.15, 0.00248], [313.15, 0.00414], [348.15, 0.01741], [373.15, 0.07779]]
+        provenance: given
+        source: "as CR201 (SRC-3, D-007)"
+        salting_out:
+          coefficients: {NA2SO4: 0.0, H2SO4: 0.0, PHOH: 0.0, HBA: 0.0, CO2: 0.0, NAOPH: 0.0, NASAL: 0.0, NA4HB: 0.0, NAOH: 0.0}
+          provenance: assumed
+          source: "as CR201 (D-007, L-4)"
+      spectators: [NA2SO4, H2SO4, PHOH, HBA, CO2, NAOPH, NASAL, NA4HB, NAOH]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: cake, direction: in, delegates: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: out, direction: out}
+  - id: F203
+    block: ISOL
+    title: Spinning the washed cake
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.995
+      cake_liquid: {value: 0.15, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F201 (D-008)"
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out, delegates: wf}
+  - id: D201
+    block: ISOL
+    title: Vacuum drying at 333 K
+    class: Drying
+    dryer:
+      volatiles: [H2O, PHOH, CO2]
+      residual_moisture: {value: 0.002, basis: mass_fraction, provenance: assumed, source: "0.2 wt% volatiles in the dried product (D-008)"}
+      temperature: 333.15
+      energy:
+        heat_capacity: 1.3
+        latent_heat: {H2O: 2357.7, PHOH: 588.2, CO2: 300.0}
+        vessel_heat_capacity: 2000
+        efficiency: 0.7
+        port: steam
+        provenance: assumed
+        source: "wet cake 1.3 kJ/(kg K), ASSUMED; latent heats at 333.15 K: water 2357.7 (thermo 0.6.1, method HEOS_FIT) and phenol 588.2 kJ/kg (thermo 0.6.1, method DIPPR_PERRY_8E; SRC-5); CO2, a trace, 300 kJ/kg ASSUMED; the dryer's metal, about 4 t of steel at 0.5 kJ/(kg K), heated from 298 K each batch, ASSUMED; 70 % efficiency (D-008, D-009). Dried at 333 K because salicylic acid sublimes from 76 C (Wikipedia)"
+      drying_rate: {value: 4.0, provenance: assumed, source: "ASSUMED mean rate of a jacketed conical vacuum dryer: a wall flux of about 2.6 kW/m2 over 2358 kJ/kg (D-008)"}
+      cake_density: {value: 800, provenance: assumed, source: "ASSUMED bulk density of the wet cake: crystals of 1443 kg/m3 (CRC via chemicals 1.5.2) with 0.15 kg of liquor per kg and about 45 % voids (D-008)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: D-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E202
+    block: ISOL
+    title: Vacuum condenser of the product dryer (cooling water)
+    class: Cooling
+    links: [{target: equipment, ref: E-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: vap}
+      - {id: q, direction: out, kind: energy, delegates: q_cond}
+  - id: M301
+    block: RECOV
+    title: Liquor and condensate collection
+    class: Mixing
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: ml, direction: in, delegates: ml}
+      - {id: wf, direction: in, delegates: wf}
+      - {id: vap1, direction: in, delegates: vap1}
+      - {id: vap2, direction: in, delegates: vap2}
+      - {id: out, direction: out}
+  - id: X301
+    block: RECOV
+    title: Phenol recovery from the acid liquor (extraction and solvent stripping, specified)
+    class: Separating
+    recovery:
+      outlets: {phenol: {PHOH: 0.95}}
+      provenance: assumed
+      source: "ASSUMED 95 % of the phenol recovered from the acid liquor and the condensates by solvent extraction and stripping, returned as phenol (SRC-1: the unreacted phenol is fully recyclable; SRC-2: phenol can be recovered by distillation or water extraction; the plant's recovery not stated by any source read; D-008)"
+    links: [{target: equipment, ref: X-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: phenol, direction: out, delegates: phenol}
+      - {id: ww, direction: out, delegates: ww}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  - id: S1
+    title: Fresh phenol (molten)
+    from: PHF.out
+    to: M101.phenol
+    template: liquor
+    state:
+      design:
+        temperature: {value: 343.15, provenance: assumed, source: "molten phenol from heated storage (phenol melts at 314.04 K, CRC via chemicals 1.5.2; D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {PHOH: 1.0}, provenance: assumed, source: "phenol of acetone-1 (product phenol), impurities not modelled (D-004)"}
+        flow: {value: 89.7978, provenance: calculated, source: 'cheme process propagate: spec phenol (S2 PHOH per S3 NAOH (mole) 1.0087)', fingerprint: 828ccd28fcba285e}
+  - id: S20
+    title: Recovered phenol
+    from: X301.phenol
+    to: M101.rec
+    template: liquor
+    state:
+      design:
+        temperature: {value: 343.15, provenance: assumed, source: "to the heated phenol tank (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 11.3499, provenance: calculated, source: 'cheme process propagate: recycle X301 from S26 (tear, broyden)', fingerprint: 6f247ff2a9ca767f}
+        composition: {basis: mole_fraction, values: {H2O: 0.0, PHOH: 1.0, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.0, NA2SO4: 0.0, SA: 0.0, SA_S: 0.0, HBA: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X301 from S26 (tear, broyden)', fingerprint: 6f247ff2a9ca767f}
+  - id: S2
+    title: Phenol charge
+    from: M101.out
+    to: R101.charge
+    template: liquor
+    state:
+      design:
+        temperature: {value: 343.15, provenance: assumed, source: "both phenols at 343.15 K (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 101.148, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S20', fingerprint: f790bb364399e216}
+        composition: {basis: mole_fraction, values: {H2O: 0.0, PHOH: 1.0, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.0, NA2SO4: 0.0, SA: 0.0, SA_S: 0.0, HBA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S20', fingerprint: 4b11ec8e20023ac2}
+  - id: S3
+    title: Caustic soda 50 wt% (dosed)
+    from: NAOHF.out
+    to: R101.naoh
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: given, source: "membrane-cell caustic soda 50 wt% (chlor-alkali-1); SRC-1 allows 25 to 55 % (Example I: 40 %; D-004)"}
+        flow: {value: 85.2322, provenance: calculated, source: 'cheme process propagate: spec rate (S22 t/a 1000)', fingerprint: 828ccd28fcba285e}
+  - id: S4
+    title: Sodium phenoxide solution
+    from: R101.out
+    to: D101.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.761239, PHOH: 0.0022934, NAOH: 0.000236468, NAOPH: 0.236231, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.0, NA2SO4: 0.0, SA: 0.0, SA_S: 0.0, HBA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 9079bdc487a671a1}
+        flow: {value: 186.38, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: fbd07fb4489e4a8f}
+        temperature: {value: 343.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 9079bdc487a671a1}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S3', fingerprint: 9079bdc487a671a1}
+  - id: S5
+    title: Dry sodium phenoxide (powder, 463 K)
+    from: D101.product
+    to: R102.charge
+    template: liquor
+    state:
+      design:
+        temperature: {value: 463.15, provenance: given, source: "SRC-1 Example I: the drying ends at 190 C, the carboxylation's temperature (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "the drying ends at 30 mm Hg (4.0 kPa, SRC-1 Example I); the vacuum is broken with the first CO2 and the model holds the powder at 101.325 kPa(a) through the dosing (in SRC-1 below atmospheric for the first half, 5 bar at the end; core's semi-batch has one pressure, L-2; D-005)"}
+        flow: {value: 123.864, provenance: calculated, source: 'cheme process propagate: dryer D101 from S4', fingerprint: 2f286dc3be525d4b}
+        composition: {basis: mole_fraction, values: {H2O: 0.0125462, PHOH: 3.77982e-05, NAOH: 0.000987418, NAOPH: 0.986429, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.0, NA2SO4: 0.0, SA: 0.0, SA_S: 0.0, HBA: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S4', fingerprint: 2f286dc3be525d4b}
+  - id: S6
+    title: Drying vapour (to E-102)
+    from: D101.vapour
+    to: E102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 373.15, provenance: assumed, source: "most of the water boils off at ambient pressure near 373 K; the last of it under vacuum is superheated towards 463 K, not counted (D-006, D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "the drying at ambient pressure, design basis (the vacuum stage at 4 kPa(a), D-006)"}
+        flow: {value: 62.5164, provenance: calculated, source: 'cheme process propagate: dryer D101 from S4', fingerprint: 2f286dc3be525d4b}
+        composition: {basis: mole_fraction, values: {H2O: 0.996996, PHOH: 0.00300367}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S4', fingerprint: 2f286dc3be525d4b}
+  - id: S7
+    title: Carbon dioxide (dosed)
+    from: CO2F.out
+    to: R102.co2
+    template: gas
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "let down from the dense-phase supply and warmed to ambient (D-004)"}
+        pressure: {value: 700, provenance: assumed, source: "above the 5 bar at the end of the dosing (SRC-1; D-004)"}
+        composition: {basis: mass_fraction, values: {CO2: 1.0}, provenance: assumed, source: "99.95 mol% CO2 of carbon-capture-1, its water not modelled (D-004)"}
+        flow: {value: 42.6391, provenance: calculated, source: 'cheme process propagate: spec rate (0.50027 x S3)', fingerprint: 828ccd28fcba285e}
+  - id: S8
+    title: CO2 vented from the head space after the hold
+    from: R102.vent
+    to: VENT.in
+    template: gas
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CO2: 1.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S7', fingerprint: f21dc6e4bdc1882c}
+        flow: {value: 0.9274, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S7', fingerprint: f21dc6e4bdc1882c}
+        temperature: {value: 463.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S7', fingerprint: f21dc6e4bdc1882c}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S7', fingerprint: f21dc6e4bdc1882c}
+  - id: S9
+    title: Crude sodium salicylate (powder, 463 K)
+    from: R102.out
+    to: E103.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.0125462, PHOH: 3.77982e-05, NAOH: 0.000987418, NAOPH: 0.108074, CO2: 0.0, NASAL: 0.874923, NA4HB: 0.00343119, H2SO4: 0.0, NA2SO4: 0.0, SA: 0.0, SA_S: 0.0, HBA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S7', fingerprint: f21dc6e4bdc1882c}
+        flow: {value: 165.576, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S7', fingerprint: f21dc6e4bdc1882c}
+        temperature: {value: 463.15, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S7', fingerprint: f21dc6e4bdc1882c}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5 S7', fingerprint: f21dc6e4bdc1882c}
+  - id: S10
+    title: Dissolution water
+    from: DW.out
+    to: R201.water
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+        flow: {value: 1360.31, provenance: calculated, source: 'cheme process propagate: spec rate (15.96 x S3)', fingerprint: 828ccd28fcba285e}
+  - id: S11
+    title: Sulfuric acid 98.5 wt%
+    from: ACIDF.out
+    to: R201.acid
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.985, H2O: 0.015}, provenance: given, source: "sulfuric acid 98.5 wt% (sulfuric-acid-1)"}
+        flow: {value: 54.1037, provenance: calculated, source: 'cheme process propagate: spec rate (0.63478 x S3)', fingerprint: 828ccd28fcba285e}
+  - id: S19
+    title: Second crop (wet, back to the acidification)
+    from: F202.cake
+    to: R201.crop
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 13.5533, provenance: calculated, source: 'cheme process propagate: recycle F202 from S24 (tear, broyden)', fingerprint: 6f247ff2a9ca767f}
+        composition: {basis: mole_fraction, values: {H2O: 0.678834, PHOH: 0.00104793, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 9.57304e-05, NA2SO4: 0.00478558, SA: 0.000219577, SA_S: 0.314984, HBA: 3.3259e-05}, provenance: calculated, source: 'cheme process propagate: recycle F202 from S24 (tear, broyden)', fingerprint: 6f247ff2a9ca767f}
+  - id: S12
+    title: Acidified liquor (328 K)
+    from: R201.out
+    to: CR201.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 328.15, provenance: given, source: "SRC-1 background: acidified at 50 to 60 C (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1593.54, provenance: calculated, source: 'cheme process propagate: reactor R201 from S10 S11 S19 S28', fingerprint: 8efd50295602c716}
+        composition: {basis: mole_fraction, values: {H2O: 0.978237, PHOH: 0.00151014, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.000137932, NA2SO4: 0.00689628, SA: 0.0121957, SA_S: 0.000974995, HBA: 4.79281e-05}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S10 S11 S19 S28', fingerprint: 16662912e9502f06}
+  - id: S13
+    title: First-crop slurry
+    from: CR201.out
+    to: F201.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {SA: 0.00125384, H2O: 0.978237, SA_S: 0.0119169, NA2SO4: 0.00689628, H2SO4: 0.000137932, PHOH: 0.00151014, HBA: 4.79281e-05, CO2: 0.0, NAOPH: 0.0, NASAL: 0.0, NA4HB: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: crystallizer CR201 from S12', fingerprint: 0d5b88b43b69ef81}
+        flow: {value: 1593.54, provenance: calculated, source: 'cheme process propagate: crystallizer CR201 from S12', fingerprint: 0d5b88b43b69ef81}
+  - id: S14
+    title: First-crop cake
+    from: F201.cake
+    to: W201.cake
+    template: liquor
+    state:
+      design:
+        temperature: {value: 328.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 145.808, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S13', fingerprint: 4b6de3efc8c39fb7}
+        composition: {basis: mole_fraction, values: {SA_S: 0.480544, H2O: 0.51428, PHOH: 0.000793912, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 7.25137e-05, NA2SO4: 0.00362552, SA: 0.00065917, HBA: 2.51968e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S13', fingerprint: 4b6de3efc8c39fb7}
+  - id: S15
+    title: First mother liquor
+    from: F201.filtrate
+    to: CR202.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 328.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1447.73, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S13', fingerprint: 4b6de3efc8c39fb7}
+        composition: {basis: mole_fraction, values: {H2O: 0.989975, PHOH: 0.00152826, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.000139587, NA2SO4: 0.00697903, SA: 0.00126888, SA_S: 6.10919e-05, HBA: 4.85032e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F201 from S13', fingerprint: 4b6de3efc8c39fb7}
+  - id: S16
+    title: Wash water
+    from: WASHW.out
+    to: W201.wash
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+        flow: {value: 170.464, provenance: calculated, source: 'cheme process propagate: spec rate (2 x S3)', fingerprint: 828ccd28fcba285e}
+  - id: S17
+    title: Washed cake with the wash liquor
+    from: W201.out
+    to: F203.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {SA: 0.000297072, H2O: 0.918414, SA_S: 0.08053, NA2SO4: 0.000608974, H2SO4: 1.218e-05, PHOH: 0.000133352, HBA: 4.23228e-06, CO2: 0.0, NAOPH: 0.0, NASAL: 0.0, NA4HB: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: crystallizer W201 from S14 S16', fingerprint: 10d9c13b8b314a29}
+        flow: {value: 316.272, provenance: calculated, source: 'cheme process propagate: crystallizer W201 from S14 S16', fingerprint: 10d9c13b8b314a29}
+  - id: S18
+    title: Washed cake
+    from: F203.cake
+    to: D201.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 144.744, provenance: calculated, source: 'cheme process propagate: solid-separation F203 from S17', fingerprint: f4c95e64cd325243}
+        composition: {basis: mole_fraction, values: {SA_S: 0.466942, H2O: 0.532446, PHOH: 7.73101e-05, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 7.06129e-06, NA2SO4: 0.000353049, SA: 0.000172226, HBA: 2.45364e-06}, provenance: calculated, source: 'cheme process propagate: solid-separation F203 from S17', fingerprint: f4c95e64cd325243}
+  - id: S21
+    title: Wash filtrate
+    from: F203.filtrate
+    to: M301.wf
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 171.528, provenance: calculated, source: 'cheme process propagate: solid-separation F203 from S17', fingerprint: f4c95e64cd325243}
+        composition: {basis: mole_fraction, values: {H2O: 0.998366, PHOH: 0.000144961, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 1.32403e-05, NA2SO4: 0.000661988, SA: 0.000322934, SA_S: 0.000486058, HBA: 4.60072e-06}, provenance: calculated, source: 'cheme process propagate: solid-separation F203 from S17', fingerprint: f4c95e64cd325243}
+  - id: S22
+    title: Dried salicylic acid
+    from: D201.product
+    to: SA.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "cooled in D-201 before discharge (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 126.263, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: 13aea0d085496e9c}
+        composition: {basis: mole_fraction, values: {H2O: 0.0151213, PHOH: 2.19558e-06, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 1.48767e-05, NA2SO4: 0.000743801, SA: 0.000362844, SA_S: 0.98375, HBA: 5.16931e-06}, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: 13aea0d085496e9c}
+  - id: S23
+    title: Product dryer vapour (to the vacuum condenser E-202)
+    from: D201.vapour
+    to: E202.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "the drying temperature (D-008)"}
+        pressure: {value: 10.0, provenance: assumed, source: "the dryer's vacuum, below water's 19.9 kPa vapour pressure at 333.15 K (chemicals 1.5.2 iapws95_Psat), ASSUMED (D-008)"}
+        flow: {value: 18.4808, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: 13aea0d085496e9c}
+        composition: {basis: mole_fraction, values: {H2O: 0.999855, PHOH: 0.000145177, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: dryer D201 from S18', fingerprint: 13aea0d085496e9c}
+  - id: S24
+    title: Second-crop slurry (298 K)
+    from: CR202.out
+    to: F202.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {SA: 0.000320219, H2O: 0.989975, SA_S: 0.00100975, NA2SO4: 0.00697903, H2SO4: 0.000139587, PHOH: 0.00152826, HBA: 4.85032e-05, CO2: 0.0, NAOPH: 0.0, NASAL: 0.0, NA4HB: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: crystallizer CR202 from S15', fingerprint: db71cb2b8eba3f00}
+        flow: {value: 1447.73, provenance: calculated, source: 'cheme process propagate: crystallizer CR202 from S15', fingerprint: db71cb2b8eba3f00}
+  - id: S25
+    title: Mother liquor
+    from: F202.filtrate
+    to: M301.ml
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1434.18, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S24', fingerprint: 5aba6112224a710d}
+        composition: {basis: mole_fraction, values: {H2O: 0.990965, PHOH: 0.00152979, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.000139727, NA2SO4: 0.00698601, SA: 0.000320539, SA_S: 1.01296e-05, HBA: 4.85517e-05}, provenance: calculated, source: 'cheme process propagate: solid-separation F202 from S24', fingerprint: 5aba6112224a710d}
+  - id: S26
+    title: Collected liquors to phenol recovery
+    from: M301.out
+    to: X301.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "the condensates cooled with the liquors, ASSUMED (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1686.71, provenance: calculated, source: 'cheme process propagate: mixer M301 from S21 S25 S29 S30', fingerprint: fe116fbf6279ba9f}
+        composition: {basis: mole_fraction, values: {H2O: 0.992082, PHOH: 0.00142417, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.00011938, NA2SO4: 0.00596873, SA: 0.000304783, SA_S: 5.99236e-05, HBA: 4.14818e-05}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S21 S25 S29 S30', fingerprint: 5e47ea04aa09a4e6}
+  - id: S27
+    title: Liquor to wastewater treatment
+    from: X301.ww
+    to: WW.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1675.36, provenance: calculated, source: 'cheme process propagate: separator X301 from S26', fingerprint: f6ded6c7f247d217}
+        composition: {basis: mole_fraction, values: {H2O: 0.993426, PHOH: 7.13049e-05, NAOH: 0.0, NAOPH: 0.0, CO2: 0.0, NASAL: 0.0, NA4HB: 0.0, H2SO4: 0.000119542, NA2SO4: 0.00597681, SA: 0.000305196, SA_S: 6.00048e-05, HBA: 4.1538e-05}, provenance: calculated, source: 'cheme process propagate: separator X301 from S26', fingerprint: f6ded6c7f247d217}
+  - id: S28
+    title: Crude cooled to 373 K (to the water fill and R-201)
+    from: E103.out
+    to: R201.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 373.15, provenance: given, source: "US 4 376 867 A, Example I: the autoclave cooled to 100 C before it is filled with water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 165.576, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S9', fingerprint: 5fd688f5a2b46500}
+        composition: {basis: mole_fraction, values: {H2O: 0.0125462, PHOH: 3.77982e-05, NAOH: 0.000987418, NAOPH: 0.108074, CO2: 0.0, NASAL: 0.874923, NA4HB: 0.00343119, H2SO4: 0.0, NA2SO4: 0.0, SA: 0.0, SA_S: 0.0, HBA: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E103 from S9', fingerprint: 5fd688f5a2b46500}
+  - id: S29
+    title: Drying condensate (313 K)
+    from: E102.out
+    to: M301.vap1
+    template: liquor
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "condensed in E-102 on cooling water (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "the condensate, design basis"}
+        flow: {value: 62.5164, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S6', fingerprint: a142d9c34cd11679}
+        composition: {basis: mole_fraction, values: {H2O: 0.996996, PHOH: 0.00300367}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S6', fingerprint: a142d9c34cd11679}
+  - id: S30
+    title: Product dryer condensate (303 K)
+    from: E202.out
+    to: M301.vap2
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "condensed in E-202 on cooling water (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "the condensate, design basis"}
+        flow: {value: 18.4808, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S23', fingerprint: 18e9950507b7458f}
+        composition: {basis: mole_fraction, values: {H2O: 0.999855, PHOH: 0.000145177, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S23', fingerprint: 18e9950507b7458f}
+  # energy
+  - {id: Q1, title: Heat of neutralisation to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 5.85108, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S3', fingerprint: 665e183959f112fd}}}}
+  - {id: Q2, title: Kneader heating (drying), kind: energy, from: HPS.d101, to: D101.steam, state: {design: {duty: {value: 83.2503, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the solution to 463 K, the water and phenol evaporated, the kneader's metal heated each batch, 80 % efficiency (core does not write a dryer's duty, L-6; D-006, D-009)"}}}}
+  - {id: Q3, title: Heat of carboxylation to cooling water (hot-oil loop), kind: energy, from: R102.q, to: CW.r102, state: {design: {duty: {value: 11.5165, provenance: calculated, source: 'cheme process propagate: semibatch duty R102 from S5 S7', fingerprint: 7c1f7aa881b282e8}}}}
+  - {id: Q4, title: "Acidifier heating (the dissolution water to 328 K, less the crude's and the acid's heat)", kind: energy, from: LPS.r201, to: R201.q, state: {design: {duty: {value: 32.6127, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S10 S11 S19 S28 S12', fingerprint: 444b96965f4dfdda}}}}
+  - {id: Q5, title: Second-crop cooling to chilled water, kind: energy, from: CR202.q, to: CHW.cr202, state: {design: {duty: {value: 48.2577, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR202 from S15', fingerprint: 19e713283249fb24}}}}
+  - {id: Q6, title: Product dryer heat, kind: energy, from: LPS.d201, to: D201.steam, state: {design: {duty: {value: 21.1183, provenance: assumed, source: "cheme process crystallizers: D201's dryer model, the cake to 333 K, the water and phenol evaporated, D-201's metal heated each batch, 70 % efficiency (core does not write a dryer's duty, L-6; D-008, D-009)"}}}}
+  - {id: Q7, title: Phenol recovery heat (solvent stripping), kind: energy, from: LPS.x301, to: X301.steam, state: {design: {duty: {value: 22.7, provenance: assumed, source: "ASSUMED 2 kWh of steam heat per kg of phenol recovered (the extraction solvent stripped off and the raffinate stripped of solvent), x 11.35 kg/h of S20 (D-008, D-009)"}}}}
+  - {id: Q8, title: Vapour condenser E-102 to cooling water, kind: energy, from: E102.q, to: CW.e102, state: {design: {duty: {value: 43.0301, provenance: assumed, source: "scripts/balance.py: S6's water and phenol condensed at their drying latent heats (D101's) and the condensate cooled to 313.15 K (D-006, D-009)"}}}}
+  - {id: Q9, title: "Crude and kneader cooled from 463 to 373 K (hot-oil loop to cooling water)", kind: energy, from: E103.q, to: CW.e103, state: {design: {duty: {value: 11.9359, provenance: assumed, source: "scripts/balance.py: the crude S9 and R-102's metal (6300 kJ/K, D101's) cooled from 463.15 to 373.15 K before the water fill, over the batch's hours (D-007, D-009)"}}}}
+  - {id: Q10, title: Vacuum condenser E-202 to cooling water, kind: energy, from: E202.q, to: CW.e202, state: {design: {duty: {value: 12.7401, provenance: assumed, source: "scripts/balance.py: S23's water and phenol condensed at D201's latent heats and the condensate cooled to 303.15 K (D-008, D-009)"}}}}
+  - {id: P1, title: Neutraliser agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P2, title: Kneader drive and vacuum pump, kind: energy, from: POWER.r102, to: R102.power, state: {design: {duty: {value: 20.0, provenance: assumed, source: "year average of the kneader's drive and K-101 (D-009)"}}}}
+  - {id: P3, title: Acidifier agitator, kind: energy, from: POWER.r201, to: R201.power, state: {design: {duty: {value: 4.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P4, title: Centrifuge, kind: energy, from: POWER.f201, to: F201.power, state: {design: {duty: {value: 4.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P5, title: Product dryer drive and vacuum pump, kind: energy, from: POWER.d201, to: D201.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P6, title: Phenol recovery pumps, kind: energy, from: POWER.x301, to: X301.power, state: {design: {duty: {value: 2.0, provenance: assumed, source: "year average (D-009)"}}}}

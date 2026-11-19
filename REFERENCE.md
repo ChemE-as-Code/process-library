@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 127 public process folders: 87 engineering projects (a `plant.yaml` with a process
+The table lists 128 public process folders: 88 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -137,6 +137,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`propylene-pdh-1`](processes/propylene-pdh-1/) | Propylene by catalytic propane dehydrogenation (one published Oleflex-type design, net gas burnt on site) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`pvc-1`](processes/pvc-1/) | Polyvinyl chloride by batch suspension polymerisation of vinyl chloride in four autoclaves to the pressure drop, VCM recovery recycled, continuous steam stripping, centrifuge and fluid-bed drying (172 kt/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`refinery-distillation-1`](processes/refinery-distillation-1/) | Crude oil distillation, atmospheric and vacuum units (one crude assay, REF BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI datasets only) |
+| [`salicylic-acid-1`](processes/salicylic-acid-1/) | Salicylic acid by batch Kolbe-Schmitt carboxylation of dry sodium phenoxide with CO2 in a kneader-reactor, acidification with sulfuric acid, two crops, centrifuge, vacuum dryer and phenol recovery (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`silicon-carbide-1`](processes/silicon-carbide-1/) | Silicon carbide by the Acheson process (5000 kg/h crude SiC, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`soda-ash-1`](processes/soda-ash-1/) | Soda ash by the Solvay ammonia-soda process (1000 t/d light ash, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`sodium-azide-1`](processes/sodium-azide-1/) | Sodium azide by the hydrazine / methyl nitrite route: semi-batch absorption with gas vents, batch still, precipitation from the reaction liquor, filter-dryer and mother-liquor recycle (670 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
