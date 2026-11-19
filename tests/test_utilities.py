@@ -171,8 +171,9 @@ def _library(tmp: Path, consumer: dict | None = None, mappings_change=None) -> P
     library = tmp / "library"
     for folder in ("chemicals", "lci", "markets", "taxonomy"):
         # markets/water.yaml is left out: its supplier demineralised-water-1 is not in this
-        # fixture, so the boiler's feedwater stays on the background, as before it existed
-        shutil.copytree(KIT / folder, library / folder, ignore=shutil.ignore_patterns("water.yaml"))
+        # fixture, so the boiler's feedwater stays on the background, as before it existed;
+        # markets/ammonia.yaml likewise (its supplier ammonia-1 is not in the fixture)
+        shutil.copytree(KIT / folder, library / folder, ignore=shutil.ignore_patterns("water.yaml", "ammonia.yaml"))
     for pid in UTILITIES:
         shutil.copytree(KIT / "processes" / pid, library / "processes" / pid)
     (library / "processes" / "asu-1" / "lca").mkdir(parents=True)
