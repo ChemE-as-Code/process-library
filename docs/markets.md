@@ -155,7 +155,9 @@ comparisons (for example cryogenic versus PSA oxygen) without changing the regio
 ## The first markets
 
 The oxygen, nitrogen and argon markets came first (#49); the demineralised water market followed
-with its plant (#470).
+with its plant (#470), and the ammonia market with ammonia-1 as its supplier, so that a consumer
+naming the slug `ammonia` without pinning a plant (nitric-acid-1's feed) links to a market and
+not to the plant gate.
 
 | market | supplier | distribution | losses | status |
 |---|---|---|---|---|
@@ -165,6 +167,7 @@ with its plant (#470).
 | `market:nitrogen/gan-8barg-10ppm:RER` | ASU-1 GAN (105084 t/a, calculated) | pipeline, 5 km, ASSUMED | leakage 0, ASSUMED | exported |
 | `market:argon/lar:RER`, `market:argon/gar:RER` | none: ASU-1 has no argon column | | | planned |
 | `market:water/demineralised:GLO` | demineralised-water-1 (400000 t/a, calculated) | on-site pipeline header, 1 km, ASSUMED (no recompression) | none counted | exported |
+| `market:ammonia:RER` | ammonia-1 (499774 t/a, calculated from the dataset) | road tanker (lorry), 100 km, ASSUMED | none counted (no open source read) | exported |
 
 What is behind the numbers:
 
