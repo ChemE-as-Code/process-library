@@ -75,8 +75,12 @@ itself reports (`cheme process props --coverage`).
 ## D-001 Hydrogen peroxide and ammonia are boundary feeds (2026-10-28)
 Decision: H2O2 (70 wt%) and anhydrous liquid ammonia enter at the battery limit, MEK, acetic
 acid and disodium phosphate are purchased make-ups.
-Reason: issue scope; the library has `hydrogen-peroxide-1` and `ammonia-1` to link later as
-datasets (the H2O2 concentration of that design must be checked against 70 wt%).
+Reason: issue scope; the library has `hydrogen-peroxide-1` and `ammonia-1` as datasets
+(both published). The Atlas build links ammonia-1 (and acetic-acid-1 for the acetic acid
+make-up) since 2026-11-01 (`lca/mappings.yaml`); hydrogen-peroxide-1 is not linked, because it
+delivers 50 wt% H2O2 against the 70 wt% fed here (a concentration step or a conversion is
+needed first, I-07). `cheme assess lca` does not read those Atlas mappings, so the package's own
+inventory still carries all three as gaps.
 Rejected: an integrated H2O2 plant (one site, the anthraquinone loop sharing utilities): its
 own case.
 
@@ -100,7 +104,7 @@ yields "up to about 90 %"; the continuous S2 Ex. 1 implies a higher figure (3 90
 per 1 000 kg/h H2O2 would be ~95 %, if the stream were pure azine, which is not stated). 0.85
 is ASSUMED inside that range. 2-butanol: S1 names the reduction of MEK; the net equation
 (diimine reducing MEK, N2 released) is this study's. The share 0.03 is ASSUMED so that the MEK
-make-up (0.093 kg per kg H2O2) is close to S2 Ex. 1 (0.100). The rest of the H2O2 is counted
+make-up (0.098 kg per kg H2O2 since D-015, 0.093 before it) is close to S2 Ex. 1 (0.100). The rest of the H2O2 is counted
 as decomposed to O2, ASSUMED (no source on the split between decomposition and oxidation of
 NH3 to N2). A sourced range check, not kinetics.
 Rejected: the batch 81 % as the design value (continuous recycle of the working solution and
@@ -213,8 +217,11 @@ Decision (kW, design case; per kg hydrate in brackets):
   vapour S23) in the working solution and the heat of condensing hydrazine with MEK to the
   azine (exothermic if the hydrolysis is endothermic, S7) raise it; neither is quantified. Size
   the cooling with margin until a property package exists (I-02).
-- Condensers equal to the reboilers (C-201, C-301), C-401 1 859 kW, C-402 3 802 kW (includes the
-  feed flash), C-202 537 kW. Power 100 kW (pumps, agitators), ASSUMED hand estimate.
+- C-301 condenser equal to its reboiler. C-201 condenser (Q09) 8 958 kW, equal to the whole
+  regeneration steam (E-201 + C-201), not only the reboiler: it lumps the overhead condenser and
+  the cooling of the regenerated working solution S20 from the 453 K base to the 323 K reactor
+  temperature (about 2.2 MW at 3.4 kJ/(kg K), ASSUMED), which no other duty counts. C-401
+  1 859 kW, C-402 3 802 kW (includes the feed flash), C-202 537 kW. Power 100 kW (pumps, agitators), ASSUMED hand estimate.
 Totals: MP steam 12 416 kW (6.21 kWh/kg), LP steam 3 984 kW (1.99 kWh/kg), cooling water
 18 891 kW (9.45 kWh/kg), power 0.05 kWh/kg. Steam at 2.2 MJ/kg corresponds to about 13 kg
 steam per kg hydrate, 55 % of it the regeneration: a single patent example, the largest
@@ -290,16 +297,20 @@ H2O2 stabiliser, resin/adsorbent consumption (S2), catalyst none (homogeneous).
   bottom directly (S9 Ex. 1-2) against 30 % here, which would roughly halve the water C-402
   evaporates (about 4.7 to about 2.4 t/h); compare once the columns can be simulated.
 - I-06 2-butanol: bleed vs dehydrogenation to MEK (D-006).
-- I-07 Choose the backgrounds (lca/lca.yaml `missing:` texts) with the LCA practitioner; link
-  hydrogen-peroxide-1 and ammonia-1 datasets.
+- I-07 Choose the backgrounds (lca/lca.yaml `missing:` texts) with the LCA practitioner. The
+  Atlas build links ammonia-1 and acetic-acid-1 (`lca/mappings.yaml`, 2026-11-01); still open:
+  hydrogen-peroxide-1 (published, but 50 wt% against the 70 wt% fed here, D-001) and every other
+  background. `cheme assess lca` keeps all of them as gaps (it does not read the Atlas mappings).
 - I-08 cheme 0.8.0 finding for core: `chemeascode/domains/process/model.py` (reactor checks,
   about line 988) reassigns the name `declared` (the reactions-by-id dict) to a list inside the
   selectivity check, so every reactor step after the first one with a `selectivity:` sees no
   reactions ("the key ... is a reactant of none of its reactions"). Worked around: R401 uses
   per-reaction conversions.
-- I-09 Registry entries missing in `chemicals/chemicals.yaml` (consolidated library PR):
-  hydrazine (with a `hydrazine/hydrate-64` grade), hydrogen-peroxide (70 wt% grade), ammonia,
-  methyl-ethyl-ketone, acetic-acid, 2-butanol, sodium-phosphate (disodium hydrogen phosphate),
-  acetamide; LCI vocabulary entries `hydrogen-peroxide`, `methyl-ethyl-ketone`, `acetic-acid`,
-  `sodium-phosphate`, solvent and hazardous-waste incineration.
+- I-09 Registry and vocabulary entries. Done (issue #251, 2026-10-31): `hydrazine`,
+  `hydrogen-peroxide`, `ammonia`, `butanone` (MEK), `acetic-acid` and
+  `disodium-hydrogen-phosphate` are in `chemicals/chemicals.yaml` and named under chemistry in
+  process.yaml; the hydrate and the 70 wt% peroxide are flows of those substances that state
+  their concentration (no grade). Still missing: registry entries 2-butanol and acetamide; LCI
+  vocabulary (`lci/mappings.yaml`) entries for hydrogen peroxide, MEK, acetic acid, disodium
+  phosphate, and solvent and hazardous-waste incineration.
 - I-10 Benchmark: the LCI reproduces no published inventory by design; compare once reviewed.

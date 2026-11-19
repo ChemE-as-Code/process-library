@@ -43,8 +43,9 @@ system_boundary:
   - 'TODO heat recovered from the reaction: no credit in the cut-off model, so the steam is gross'
   - storage and handling emissions (carboxylic acids, odour)
   - 'heat of the residue burned on site (about 255 kg/t): not credited against the fuel or steam, which are
-    taken as the energy bought in (ASSUMED); NOx, CO and the cobalt and chromium compounds that AP-42 6.2.2 finds
-    in its flue gas are not counted'
+    taken as the energy bought in (ASSUMED); the cobalt and chromium compounds that AP-42 6.2.3 finds in its flue
+    gas, with the normal products of combustion, are not counted, nor the NOx and CO that we take such a flue
+    gas to hold (our reading; AP-42 does not name them)'
   - the phenol hydrogenation and borate-promoted routes to KA, and thermal destruction or recycle of N2O
   - infrastructure
   cutoff: none applied; the excluded flows are not quantified
@@ -319,13 +320,15 @@ exchanges:
     are not counted (system_boundary.excluded)'
   pedigree:
     scores:
+    - 3
     - 4
-    - 4
-    - 5
     - 4
     - 3
-    reason: 'from the yield ranges of US EPA (1991, after Kirk-Othmer 1978) with ASSUMED by-product models:
-      reliability 4, completeness 4, temporal 5 (over 30 years old), geographical 4, technological 3'
+    - 3
+    reason: 'from the IPCC 2006 default N2O generation factor (Table 3.4, expert judgement on plant data of the
+      1990s), which sets about 99 % of the nitrogen, and the AP-42 (1995) NOx factors (Table 6.2-2, ratings D
+      and E) for the rest, by stoichiometry; no yield enters: reliability 3, completeness 4, temporal 4,
+      geographical 3, technological 3'
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 1.106
@@ -519,17 +522,21 @@ exchanges:
     (data/elementary-flows.yaml: ecoinvent elementary exchanges 3.9 via bw2io 0.9.17, BSD-3-Clause)'
   pedigree:
     scores:
-    - 3
+    - 4
     - 4
     - 5
     - 4
     - 3
-    reason: 'AP-42 (1995) factors from two to three US plants, ratings D and E: reliability 3, completeness
-      4, temporal 5, geographical 4, technological 3'
+    reason: 'about 90 % (558 kg) is the carbon residual of the US EPA (1991, after Kirk-Othmer 1978) KA yield,
+      burned on site as off-gas and residue under an ASSUMED fate; the rest (62.6 kg) is AP-42 (1995) factors
+      from two to three US plants, ratings D and E: reliability 4, completeness 4, temporal 5 (over 30 years
+      old), geographical 4, technological 3'
   basic_uncertainty: 1.05
   uncertainty:
     gsd2: 2.0
-    source: 'ASSUMED: factors of rating D and E from few plants'
+    source: 'ASSUMED: set by the on-site combustion of the off-gas and residue, which AP-42 6.2.3 gives only
+      as possible (about 90 % of the amount), and by the factors of rating D and E; the yields at the ends of
+      their ranges alone give 533 to 717 kg/t (gsd2 1.16)'
 - key: emission:H2O
   title: Water vapour from burning the KA-section off-gas and residue
   type: emission

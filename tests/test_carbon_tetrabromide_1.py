@@ -227,6 +227,17 @@ def test_shared_benchmarks_keep_both_entries():
     assert datasets["carbon-tetrabromide-1"] == _yaml("lca/dataset.yaml")["id"]
 
 
+def test_requires_core_1_12_for_the_network_potential(fs):
+    """Issue #427 (D-015): M101's ``hazard.potential: network`` is a core 1.12.0 field (ADR 0069),
+    which an older core rejects, so plant.yaml requires 1.12 and the README says so."""
+    assert _node(fs, "M101")["hazard"]["potential"] == "network"
+    assert _yaml("plant.yaml")["requires"] == "cheme-as-code>=1.12"
+    assert "M101's hazard.potential: network needs" in (PROCESS / "plant.yaml").read_text(encoding="utf-8")  # the comment says why
+    readme = " ".join((PROCESS / "README.md").read_text(encoding="utf-8").split())
+    assert "Needs cheme-as-code 1.12.0 (M101's `hazard.potential: network`, D-011)" in readme
+    assert "`requires: cheme-as-code>=1.12` (was 1.8)" in (PROCESS / "PROGRESS.md").read_text(encoding="utf-8")
+
+
 def test_published_with_cc_by():
     """Public by default (ADR 0036): the entry is published under CC-BY-4.0."""
     assert _yaml("process.yaml")["publication"] == {"status": "public", "license": "CC-BY-4.0"}

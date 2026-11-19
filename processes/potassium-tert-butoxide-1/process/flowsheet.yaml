@@ -32,9 +32,12 @@
 #   Q12 and P4 come from scripts/makeup_drying.py; the other duties (Q1, Q7, Q8, Q9, Q13, Q14)
 #   are hand arithmetic from the stream table, given as ASSUMED with the arithmetic in the
 #   source (D-009).
-# - every cooling duty goes to CW, the tempered-water loop at 303/313 K (itself cooled by the
-#   site's cooling water 298/308 K): tert-butanol freezes at 298.3 K, and a condenser's wall
-#   runs close to its coolant (D-006, D-009, D-011).
+# - every cooling duty goes to CW, a closed loop at 303/313 K (itself cooled by the site's
+#   cooling water 298/308 K): tert-butanol freezes at 298.3 K, and a condenser's wall runs close
+#   to its coolant (D-006, D-009, D-011). R-101's jacket and its vent condenser E-104 (Q2, Q3)
+#   are on their own closed loop of a saturated-hydrocarbon heat-transfer fluid at the same
+#   303/313 K, no water near the metal; the other duties on tempered water (D-016). Both loops
+#   end in the site's cooling water at the same temperatures, so CW stands for both.
 schema: cheme/process/v1
 kind: flowsheet
 title: Potassium tert-butoxide from potassium and dry tert-butanol by semi-batch, alcohol strip and vacuum drying
@@ -105,7 +108,7 @@ products:
     category: utility
     utility:
       kind: cooling_water
-      supply_temperature: {value: 303.15, provenance: assumed, source: "design basis (D-009): the tempered-water loop, its supply held at 303.15 K, about 5 K above tert-butanol's freezing point (298.3 K, NIST WebBook), so that no condenser wall in tert-butanol service runs below it; the loop is cooled by the site's cooling water 298/308 K (D-006, D-011)"}
+      supply_temperature: {value: 303.15, provenance: assumed, source: "design basis (D-009, D-016): the tempered-water loop and R-101's hydrocarbon loop, each supply held at 303.15 K, about 5 K above tert-butanol's freezing point (298.3 K, NIST WebBook), so that no condenser wall in tert-butanol service runs below it; the loop is cooled by the site's cooling water 298/308 K (D-006, D-011)"}
       return_temperature: {value: 313.15, provenance: assumed, source: "design basis (D-009)"}
       min_approach: {value: 5, provenance: assumed, source: "D-009"}
     ports:
@@ -240,13 +243,13 @@ steps:
         stream: S11
         components: [H2]
         vapour: {components: [TBA], source: "D-006: the hydrogen leaves the liquid saturated with tert-butanol at 348.15 K and 101.3 kPa(a) (Raoult, an ideal liquid, materials.yaml's NIST Antoine line; the dissolved alkoxide counted in the liquid, L-2); water is under 0.02 mol% of the charge and reacts first, and is left out"}
-        condenser: {temperature: 308.15, returns: vessel, energy_port: qv, provenance: assumed, source: "R-101's vent condenser E-104 on tempered water 303/313 K (counter-current), the gas out at 308.15 K, 5 K above the water's supply: the gas, 90 mol% hydrogen, has a low film coefficient, so the tube wall at the gas outlet runs close to the coolant's 303.15 K, and the coolant, not only the gas, stays above tert-butanol's freezing point (298.3 K, NIST WebBook); on the site's cooling water at 298 K the condensate could freeze on the tubes and block R-101's vent (D-006, D-011); the condensate runs back into R-101"}
+        condenser: {temperature: 308.15, returns: vessel, energy_port: qv, provenance: assumed, source: "R-101's vent condenser E-104 on R-101's closed hydrocarbon heat-transfer loop at 303/313 K (D-016; no water in a condenser whose condensate runs into the metal's vessel; counter-current), the gas out at 308.15 K, 5 K above the water's supply: the gas, 90 mol% hydrogen, has a low film coefficient, so the tube wall at the gas outlet runs close to the coolant's 303.15 K, and the coolant, not only the gas, stays above tert-butanol's freezing point (298.3 K, NIST WebBook); on the site's cooling water at 298 K the condensate could freeze on the tubes and block R-101's vent (D-006, D-011); the condensate runs back into R-101"}
       provenance: assumed
       source: "molten potassium dosed at a constant rate over 3 h into the alcohol at 348 K (D-003, D-005), then the post-reaction to 0.99999 conversion of the potassium (no free metal may reach the still, D-011); the hydrogen leaves as it forms (D-006)"
     hazard:
-      vent_capacity: 200
+      vent_capacity: 400
       provenance: assumed
-      source: "R-101's vent line to its vent condenser E-104 sized for about twice the recipe's normal peak, ASSUMED: no vent sizing yet (no P&ID); the recipe gives 0.3817 mol/s past E-104 at 308.15 K (34.75 m3/h, cheme process recipe), of it 0.3428 mol/s of hydrogen (tert-butanol's 10.18 % saturation share at 308.15 K taken out), which in R-101 at the end of the dosing carries its 0.656 vapour share (cheme process reactors): 0.997 mol/s, 102.5 m3/h at 348.15 K before the condenser, rounded up to 200 m3/h at R-101's 101 kPa(a); against a cooling failure's gas release with the liquid's vapour (core 1.10.0, no condenser credited): 133.4 m3/h at core's worst moment, the end of the dosing, which is also the largest over the batch (core's vent_gas_rate over the cooling profile: 38.36 m3/h of hydrogen, the non-condensables), 0.67 of it; at k/10 and k/100 the content boils at the MTSR (D-011). The MTT is core's default, tert-butanol's normal boiling point, the vented hydrogen left out. No TD24 (never estimated)"
+      source: "R-101's vent path (the line from R-101, E-104's gas side, the line to the flare header) sized for 400 m3/h at R-101's 101 kPa(a) and up to 356 K, ASSUMED design value set from core 1.12.0's screening (D-015; no hydraulic design yet, no P&ID): the largest gas release over the batch at a cooling failure (each moment's content at its own MTSR, with the liquid's vapour, at most what the reactions' heat evaporates; E-104 not credited, its coolant shares R-101's loop) is 179.2 m3/h at 0.458 h at the design rate (0.448 of it; at the worst moment, the end of the dosing, 133.4 m3/h, which core 1.10.0 took as the largest), and 387.4 m3/h on a scratch copy at k/4, accumulation 12.3 %, MTSR 356.0 K, just above the MTT: the vent covers every accumulation up to the 11.3 % limit, where the MTSR reaches the MTT (the MTSR rises 0.643 K per % accumulated in every case run, D-015), and up to about 13.5 %, but not beyond (k/5, 15.4 %: 418.6 m3/h, 1.05 times, the content still below its Raoult bubble point of 358.6 K), so it rests on the dosing's trip holding the accumulated potassium below 11.3 % (its setpoint, uncertainty and reliability open); from k/7 on the content boils (boil-up 371.1 m3/h of vapour at its bubble point, 0.93 times 400, with the hydrogen on top 482.3 m3/h, 1.21 times) and the emergency relief takes it (calorimetry, open). Was 200 m3/h (about twice the normal peak of 102.5 m3/h before E-104, D-006), which core 1.12.0 shows is exceeded from k/1.5 (211.1 m3/h). The MTT is core's default, tert-butanol's normal boiling point, the vented hydrogen left out; the content's bubble point (358.6 K, Raoult with the alkoxide as an ideal solute) is not taken (D-015). No TD24 (never estimated)"
     energy_port: q
     links: [{target: equipment, ref: R-101}]
     ports:
@@ -481,10 +484,10 @@ streams:
     template: process
     state:
       design:
-        composition: {basis: mole_fraction, values: {K: 1.16926e-06, TBA: 0.883074, KOTBU: 0.116394, KOH: 0.000530321, H2O: 0.0, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
-        flow: {value: 755.326, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
-        temperature: {value: 348.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
+        composition: {basis: mole_fraction, values: {K: 1.16926e-06, TBA: 0.883074, KOTBU: 0.116394, KOH: 0.000530321, H2O: 0.0, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 6280d1631bfe557f}
+        flow: {value: 755.326, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 6280d1631bfe557f}
+        temperature: {value: 348.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 6280d1631bfe557f}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 6280d1631bfe557f}
   - id: S11
     title: R-101 vent (hydrogen with tert-butanol vapour, past the vent condenser)
     from: R101.gas
@@ -492,10 +495,10 @@ streams:
     template: offgas
     state:
       design:
-        composition: {basis: mole_fraction, values: {H2: 0.89817, TBA: 0.10183}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
-        flow: {value: 5.85782, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
-        temperature: {value: 308.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 53817e868ab3383c}
+        composition: {basis: mole_fraction, values: {H2: 0.89817, TBA: 0.10183}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 6280d1631bfe557f}
+        flow: {value: 5.85782, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 6280d1631bfe557f}
+        temperature: {value: 308.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 6280d1631bfe557f}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S2 S9', fingerprint: 6280d1631bfe557f}
   - id: S12
     title: Still distillate (recovered tert-butanol)
     from: ST101.top
@@ -615,8 +618,8 @@ streams:
       design:
         temperature: {value: 318.15, provenance: assumed, source: "as S24"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
-        flow: {value: 625.352, provenance: calculated, source: 'cheme process propagate: recycle SP202 from S24 (tear, wegstein)', fingerprint: 527297048a8dcafa}
-        composition: {basis: mole_fraction, values: {K: 0.0, TBA: 1.0, KOTBU: 0.0, KOH: 0.0, H2O: 0.0, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP202 from S24 (tear, wegstein)', fingerprint: 527297048a8dcafa}
+        flow: {value: 625.352, provenance: calculated, source: 'cheme process propagate: recycle SP202 from S24 (tear, wegstein)', fingerprint: fa4181ed3638abf2}
+        composition: {basis: mole_fraction, values: {K: 0.0, TBA: 1.0, KOTBU: 0.0, KOH: 0.0, H2O: 0.0, H2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SP202 from S24 (tear, wegstein)', fingerprint: fa4181ed3638abf2}
   - id: S22
     title: Alcohol purge
     from: SP202.purge
@@ -641,8 +644,8 @@ streams:
         composition: {basis: mole_fraction, values: {H2: 0.887279, TBA: 0.112721, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S11 S20', fingerprint: b163383cbb184696}
   # energy
   - {id: Q1, title: Alcohol charge warming, kind: energy, from: LPS.e101, to: E101.q, state: {design: {duty: {value: 25.57, provenance: assumed, source: "cheme process recipe, REACT's heat operation (D-009): S8 warmed from 316.87 to 348.15 K, 512.3 MJ of content and 93.84 MJ of R-101's metal (3000 kJ/K) a batch, 606.2 MJ, the year average over 1202 batches in 7920 h; the jacket's heat losses not counted"}}}}
-  - {id: Q2, title: Heat of reaction to tempered water (R101's model), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 24.5118, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S9', fingerprint: 20bfedbafff6c97f}}}}
-  - {id: Q3, title: R-101 vent condenser to tempered water (R101's model), kind: energy, from: R101.qv, to: CW.r101v, state: {design: {duty: {value: 17.3794, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S2 S9', fingerprint: d1feb5dfb224d64c}}}}
+  - {id: Q2, title: Heat of reaction to R-101's hydrocarbon cooling loop (R101's model), kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 24.5118, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S2 S9', fingerprint: 84860db0f2053606}}}}
+  - {id: Q3, title: R-101 vent condenser to R-101's hydrocarbon cooling loop (R101's model), kind: energy, from: R101.qv, to: CW.r101v, state: {design: {duty: {value: 17.3794, provenance: calculated, source: 'cheme process propagate: vent condenser duty R101 from S2 S9', fingerprint: cb58eced2d9e1fef}}}}
   - {id: Q4, title: Still reboiler (ST101's model), kind: energy, from: LPS.st101, to: ST101.steam, state: {design: {duty: {value: 90.115, provenance: calculated, source: 'cheme process propagate: still duty ST101 from S10', fingerprint: 8652bb981f9ede78}}}}
   - {id: Q5, title: Still condenser to tempered water (ST101's model), kind: energy, from: ST101.cond, to: CW.st101, state: {design: {duty: {value: 79.9576, provenance: calculated, source: 'cheme process propagate: still condenser duty ST101 from S10', fingerprint: f960a1c824938edc}}}}
   - {id: Q6, title: Dryer heat (MP steam), kind: energy, from: MPS.d101, to: D101.mps, state: {design: {duty: {value: 45.1127, provenance: assumed, source: "cheme process crystallizers (core 1.10.0): D101's dryer model, 45.1127 kW: sensible 27111.5 kJ/h (the paste from 374.25 to 433.15 K), evaporation 66371.1 kJ/h (546.425 kg of tert-butanol a batch at 800 kJ/kg), vessel 36441.9 kJ/h (the dryer's metal reheated each batch: 4075 kJ/K x 58.9 K = 240.0 MJ over the 6.586 h cycle, the 240 MJ Q7 takes out), 80 % efficiency (D-008, D-009); core checks the written duty only to the flowsheet's tolerance (rel 0.002), the library's test to 1e-6"}}}}

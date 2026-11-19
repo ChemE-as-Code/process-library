@@ -68,12 +68,12 @@ products:
   - {id: CBR4P, title: Carbon tetrabromide crystals to packing, category: product, ports: [{id: in, direction: in}]}
   - {id: WW, title: "Mother liquor, wash filtrate and dryer condensate to wastewater treatment", category: wastewater, ports: [{id: in, direction: in}]}
   - id: BRINE
-    title: Chilled brine return (263 K)
+    title: Chilled brine return (260 K)
     category: utility
     utility:
       kind: refrigerant
       supply_temperature: {value: 258.15, provenance: assumed, source: "design basis (D-009)"}
-      return_temperature: {value: 263.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 260.15, provenance: assumed, source: "design basis (D-009, D-015): the jackets' brine flow sized for a 2 K rise at the peak duty, so R-101's jacket keeps a margin over the dosing-controlled heat release; the supply, the coldest wall, unchanged"}
       min_approach: {value: 5, provenance: assumed, source: "D-009"}
     ports:
       - {id: m100, direction: in, kind: energy}
@@ -148,9 +148,10 @@ steps:
       target: {key: BR2, conversion: 0.9999}
       heat: isothermal
       provenance: assumed
-      source: "bromine dosed over 1.7 h (set by M-101's jacket at the mean brine temperature, D-003) into the caustic at 278 K, then the post-reaction to 0.9999 conversion of the bromine (D-005; the patent keeps 0-5 C and stirs 20 min after the addition)"
+      source: "bromine dosed over 1.7 h (set by M-101's jacket at the first issue's 258/263 K brine, D-003; kept with the 2 K brine rise of D-015, which leaves the jacket 21 % above the peak duty, M-101 not being the bottleneck) into the caustic at 278 K, then the post-reaction to 0.9999 conversion of the bromine (D-005; the patent keeps 0-5 C and stirs 20 min after the addition)"
     hazard:
       mtt: 331.9
+      potential: network
       provenance: given
       source: "the normal boiling point of bromine (chemicals 1.5.2's packaged CRC table, SRC-11), the lowest of the liquor's components: M-101 runs at atmospheric pressure with a vent to the caustic scrubber (D-011); the hypobromite's own decomposition has no TD24 (never estimated)"
     links: [{target: equipment, ref: M-101}]
@@ -170,7 +171,7 @@ steps:
       target: {key: NAOBR, conversion: 0.999}
       heat: isothermal
       provenance: assumed
-      source: "acetone dosed over 4.5 h (set by R-101's jacket at the mean brine temperature, D-003) into the hypobromite at 278 K, then the post-reaction to 0.999 conversion of the hypobromite (D-005; the patent keeps 0-5 C and stirs 3-5 h after the addition)"
+      source: "acetone dosed over 4.5 h (R-101's jacket at the mean brine temperature, D-003, D-015: the peak duty is dosing-controlled, 46.6 kW for an instantaneous reaction against 50.6 kW the jacket removes with the 2 K brine rise; the dose rate capped at that and cut back on the temperature) into the hypobromite at 278 K, then the post-reaction to 0.999 conversion of the hypobromite (D-005; the patent keeps 0-5 C and stirs 3-5 h after the addition)"
     hazard:
       mtt: 329.3
       provenance: given
@@ -379,10 +380,10 @@ streams:
     template: liquor
     state:
       design:
-        composition: {basis: mole_fraction, values: {H2O: 0.913215, NAOH: 0.00788842, BR2: 3.94016e-06, NAOBR: 0.0392949, NABR: 0.0394662, NABRO3: 3.42493e-05, ACET: 0.0, TBAB: 9.76727e-05, NAOAC: 0.0, CBR4: 0.0, CBR4_S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 40a128163de648d6}
+        composition: {basis: mole_fraction, values: {H2O: 0.913215, NAOH: 0.00788842, BR2: 3.94016e-06, NAOBR: 0.0392949, NABR: 0.0394662, NABRO3: 3.42493e-05, ACET: 0.0, TBAB: 9.76727e-05, NAOAC: 0.0, CBR4: 0.0, CBR4_S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 8fbd84cec66ae438}
         flow: {value: 313.545, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 0492ccbe3ffd2b61}
-        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 40a128163de648d6}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 40a128163de648d6}
+        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 8fbd84cec66ae438}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor M101 from S4 S5', fingerprint: 8fbd84cec66ae438}
   - id: S7
     title: Acetone (dosed)
     from: ACET.out
@@ -401,10 +402,10 @@ streams:
     template: liquor
     state:
       design:
-        composition: {basis: mole_fraction, values: {H2O: 0.903866, NAOH: 0.0367569, BR2: 3.89982e-06, NAOBR: 3.88926e-05, NABR: 0.039232, NABRO3: 0.000118807, ACET: 0.000587263, TBAB: 9.66728e-05, NAOAC: 0.00964975, CBR4: 0.00964975, CBR4_S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: ac24d10125f9734d}
+        composition: {basis: mole_fraction, values: {H2O: 0.903866, NAOH: 0.0367569, BR2: 3.89982e-06, NAOBR: 3.88926e-05, NABR: 0.039232, NABRO3: 0.000118807, ACET: 0.000587263, TBAB: 9.66728e-05, NAOAC: 0.00964975, CBR4: 0.00964975, CBR4_S: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: 72786f29a6eb3ed3}
         flow: {value: 320.921, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: 5217ca0749291589}
-        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: ac24d10125f9734d}
-        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: ac24d10125f9734d}
+        temperature: {value: 278.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: 72786f29a6eb3ed3}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6 S7', fingerprint: 72786f29a6eb3ed3}
   - id: S9
     title: CBr4 slurry
     from: CR101.out

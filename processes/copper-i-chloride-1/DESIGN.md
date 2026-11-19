@@ -33,6 +33,9 @@ the part of the document).
 | SRC-11 | Ullmann's Encyclopedia of Industrial Chemistry, Copper Compounds (doi:10.1002/14356007.a07_567) | - | not read (licensed); named by the route scouting and by Wikipedia as the source of the industrial routes | lead only, nothing taken |
 | SRC-12 | Fritz, J. J. (1980) Chloride complexes of copper(I) chloride in aqueous solution, J. Phys. Chem. 84, 2241; Kale, Tamhankar and Chaudhari (1979) J. Chem. Eng. Data 24, 110 (CuCl in HCl) | - | not read (paywalled; titles and metadata only) | leads for the solubility (open input, D-006) |
 | SRC-13 | GB1284110A, Norddeutsche Affinerie, 1972 | abstract: copper and chlorine in a CuCl melt, continuous | abstract only | D-001 (rejected route) |
+| SRC-14 | Sander, R. (2023) Compilation of Henry's law constants (version 5.0.0) for water as solvent, Atmos. Chem. Phys. 23, 10901-12440, doi:10.5194/acp-23-10901-2023; its web table https://www.henrys-law.org/henry/casrn/7782-50-5 | the entries for molecular chlorine (Cl2): H^cp at 298.15 K between 5.9e-4 and 6.2e-4 mol/(m3 Pa) for the measured, reviewed and thermodynamic entries (Winkler 1907, Aieta and Roberts 1986, Young 1983, Wagman et al. 1982, Lin and Pehkonen 1998), 7.4e-4 for the oldest (Schoenfeld 1855); d ln H^cp / d(1/T) between 2600 and 3500 K; the notes that several older values are total solubilities (Cl2 plus HOCl) at 101.325 kPa of chlorine, not the intrinsic constant | read 2026-11-19 (the page's text as extracted did not keep the table's rows aligned, so the values are used as the range they span, not attributed one by one); a journal article under CC BY 4.0, facts only | D-014 |
+| SRC-15 | Core's NaCl-H2O electrolyte model, `cheme process electrolyte` (cheme-as-code 1.12.0: Pitzer's model by Cantera 3.2.0 with the parameters of Silvester, L. F., Pitzer, K. S. (1977) J. Phys. Chem. 81, 1822, doi:10.1021/j100534a007; benchmarked range 273.15-373.15 K, up to 6 mol/kg) | run 2026-11-19 at 5.677 mol/kg: water activity 0.7797 and vapour pressure 36.97 kPa at 353.15 K; 0.7837 and 79.48 kPa at 373.15 K (pure water 101.42 kPa) | a model run; the paper itself not read | D-014 |
+| SRC-16 | Wikipedia, Sodium chloride, https://en.wikipedia.org/wiki/Sodium_chloride | section Chemistry, Aqueous solutions: a saturated salt solution boils near 108.7 C; saturated at 26.4 wt% at 20 C | read 2026-11-19; CC BY-SA, facts only | D-014 (a check of the MTT's direction) |
 
 Searched and not found openly (2026-11-05/06): kinetics or calorimetry of the chlorination of
 copper in a brine, a table of CuCl's solubility in NaCl solutions against chloride and
@@ -307,6 +310,10 @@ batch, which the energy rules out at this scale). The yield on copper (77.6 %) i
 without that recovery.
 
 ## D-011 Thermal screening, the rate sensitivity and the hazards of chlorine, of air and of the ethanol (2026-11-06)
+Amended by D-014 (2026-11-19, core 1.12.0): the screening now counts the reaction network
+(`hazard.potential: network`), the MTT is the brine's bubble point (375.8 K, not water's 373.1 K),
+the chlorine's breakthrough is checked against its solubility, and T-201 holds the caustic for a
+whole batch's chlorine. The text below is the screening on core 1.9.0, kept as the record.
 Result (`cheme process reactor-hazards`, core ADRs 0050, 0058):
 - R101: T_p 353.15 K; core's adiabatic rise of the whole batch 36.9 K (CHL run to completion of
   the chlorine; with COMP after it, the net 274.4 kJ/mol of chlorine over the content's heat
@@ -439,7 +446,127 @@ Reason: one product per process folder (library ADR 0002). Out of scope, so not 
 changeover cleaning between campaigns of other products and the idle time of a multipurpose
 train.
 
-## Core features used (cheme-as-code 1.9.0)
+## D-014 Screening on core 1.12.0: the reaction network, the brine's bubble point, the chlorine's solubility and the scrubber's caustic (2026-11-19)
+Issue ChemE-as-Code/process-library#427 (the row of this entry: the chlorine's breakthrough to
+the vent scrubber at slow kinetics; the MTT margin of about 1 K at k/100 once the
+comproportionation's heat counts). Core 1.12.0 (0e85885) screens what D-011 did by hand.
+
+**1. The network counts (`hazard.potential: network` on R101).** Core's MTSR and dT_ad now take
+CHL and COMP together (core ADR 0069: the most heat forward extents of both release from the
+content), so the comproportionation on the CuCl2 the accumulated chlorine forms and on the CuCl2
+already there is in the committed screening, not only in D-011's hand values. `cheme process
+reactor-hazards` (2026-11-19; k/10 and k/100 on scratch copies with both `A` divided, the charge
+held at the design's converged heel and liquor, as in D-011):
+
+| case | accumulation of Cl2 | MTSR, largest single reaction | MTSR, network (core) | MTT (D-014) | margin | Cl2 held at the end of the dosing (core's dissolved release) |
+|---|---|---|---|---|---|---|
+| k (design) | 0.63 % | 354.2 K | 354.4 K | 375.8 K | 21.4 K | 1.03 kg a batch (0.28 g/L) |
+| k/10 | 4.26 % | 357.9 K | 359.8 K | 375.8 K | 16.0 K | 7.00 kg (1.92 g/L) |
+| k/100 | 28.1 % | 363.5 K | 372.1 K | 375.8 K | 3.7 K | 46.2 kg (12.7 g/L) |
+
+dT_ad of the network 46.0 K (45.8 K by hand in D-011; CHL alone 36.9 K). The worst moment is the
+end of the dosing (3 h) in every case. Core's network MTSR equals D-011's hand values to 0.05 K;
+the 372.3 K of the review's second integration (and #427's "about 0.8 K") is not confirmed: on
+water's boiling point the k/100 margin was 1.0 K. The g/L are over R-101's 3.64 m3 at the end of
+the dosing (D-003).
+
+**2. The MTT is the brine's bubble point, 375.8 K (`hazard.mtt`), not water's 373.1 K.** R-101
+holds a 25 wt% NaCl brine (5.68 mol/kg), not water. Raoult's law over the charged brine S7A with
+the salt counted as one dissolved particle and the copper metal left out (a separate phase):
+x_H2O = 18.0 / (18.0 + 1.841) = 0.907, so water's vapour pressure must reach 101.325 / 0.907 =
+111.7 kPa, at 375.87 K (CoolProp's IAPWS-95, SRC-10); 375.8 K rounded down. It is the lowest over
+the batch whatever the rates: the dose and the reactions only add dissolved particles (at the
+end of the dosing 376.6 K at k, 376.3 K at k/100; after the network 376.65 K; the same Raoult
+sums by core's `bubble_point` with the copper left out). Why it is a lower bound of the real
+boiling point: NaCl dissolves as two ions and the brine is far from ideal. Core's NaCl-H2O
+Pitzer model (SRC-15) gives this brine a water activity of 0.784 and a vapour pressure of
+79.5 kPa at 373.15 K (Raoult's 0.907 would give 92.0 kPa), so at water's boiling point the brine
+is 22 kPa short of boiling; the model stops at 373.15 K, so its own boiling point is not taken
+(the activity held at 0.78 would put it near 380 K, consistent with a saturated brine boiling
+near 381.9 K, SRC-16; neither is used). Rejected: core's `hazard.mtt_from: bubble-point`, which
+gives 377.0 K (377.1 K at k/100) because it counts the solid copper in the liquid's mole
+fractions (L-10), 0.4-0.8 K high; and the ASSUMED 8 K of D-011 (no source). Left out, as core's
+default does: the dissolved chlorine and HCl (they degas rather than boil the batch: item 3).
+With MTSR below MTT in every case and no TD24, the classes still possible stay 1, 2 and 5
+(core's `criticality()`; 375.8 K replaces 373.1 K as the boundary of class 1).
+**Bound for the accumulation interlock (D-011's safety requirement):** the network's MTSR
+reaches 375.8 K when the heat held in R-101 (the chlorine not yet reacted and the CuCl2 not yet
+reduced) equals 22.6 K of the content's heat capacity, 49 % of the batch's network potential of
+46.0 K: about 314 MJ a batch (C = 1479 kJ/K per hour of flows x 9.367 h = 13 854 kJ/K). The
+interlock's set point is for basic engineering from calorimetry, with a margin below that bound.
+
+**3. The chlorine's solubility decides the breakthrough.** Core takes the dose up whole (L-3),
+so the chlorine held is the model's. The hot brine can hold at most what is in equilibrium with
+a head space of chlorine and steam at R-101's 101.325 kPa(a): the brine's water vapour pressure
+at 353.15 K is 36.97 kPa (SRC-15), leaving 64.4 kPa of chlorine. Henry's constant of molecular
+chlorine in water (SRC-14): 5.9e-4 to 7.4e-4 mol/(m3 Pa) at 298.15 K and 2600 to 3500 K for its
+temperature dependence, so 0.95e-4 to 1.90e-4 mol/(m3 Pa) at 353.15 K (the van 't Hoff form
+taken to 353 K, ASSUMED). At 64.4 kPa that is 6.1 to 12.2 mol/m3, **0.43 to 0.87 g/L, 1.6 to
+3.2 kg in R-101, 1.0 to 1.9 % of the batch's 164.1 kg of chlorine**. Against item 1:
+- design rates: 0.28 g/L held, in equilibrium with 21 to 42 kPa of chlorine over the liquid:
+  below the most it can hold, so the dose stays dissolved, but the gas R-101 displaces to T-201
+  in normal operation carries chlorine at that partial pressure (T-201's note corrected: not
+  "only nitrogen");
+- k/10 (1.92 g/L, 143 to 286 kPa in equilibrium) and k/100 (12.7 g/L, 0.94 to 1.9 MPa): above
+  it, so the chlorine **breaks through to T-201 during the dosing**, from an accumulation of
+  about 1 to 2 % of the dose, between the design rates and k/10. The rate is at most the feed,
+  54.7 kg/h (22.4 m3/h), T-201's sizing basis (D-011, ASSUMED 30 m3/h), which stands.
+- At k/100 core's MTSR keeps the 46.2 kg dissolved and reacting: an upper bound of the heat.
+  With the chlorine held at most at its solubility (3.2 kg, 0.9 K) the network's MTSR there would
+  be about 360 K (353.15 K + 6.1 K of the CuCl2 held + 0.9 K, by hand from core's moles: 0.1655
+  kmol/h of CuCl2 x 54.3 MJ/kmol / 1479 kJ/K). So at slow rates the hazard moves from heat to the
+  chlorine leaving: the scrubber, not the MTT, is the limit.
+- On a cooling failure the dosing stops; the chlorine held (core's `dissolved_release`: 1.03 kg at
+  the design rates, at most what the brine holds, 3.2 kg, at slower rates) reacts or degasses to
+  T-201.
+The constants are water's, not the brine's: NaCl salts the chlorine out (lower), the chloride's
+trichloride complex holds more (higher); neither is sourced here. The conclusion holds while the
+brine dissolves at least 0.65 times water's lower value (design rates dissolved) and less than
+2.2 times water's upper value (k/10 breaks through). The brine's chlorine solubility is an open
+measurement (below).
+
+**4. T-201's caustic charge holds one batch's chlorine.** The dose cannot put more than 164.1 kg
+of chlorine into R-101 a batch, so a charge of at least 185 kg NaOH (2.314 kmol of chlorine x 2 x
+40.0 kg/kmol, Cl2 + 2 NaOH -> NaCl + NaOCl + H2O) covers every release this screening finds
+(1.03 to 46.2 kg) and a breakthrough of the whole dose, whatever the rates. The margin over it,
+the strength at which the charge is renewed, the scrubber's heat and its hypochlorite's
+handling are ASSUMED open for basic engineering (equipment list, T-201). Not counted in the LCI:
+in normal operation the caustic takes only the chlorine of the displaced gas (D-012's
+exclusions).
+
+**5. Not applicable or not added.**
+- Condenser freezing (`cheme.process-condenser-freezing`, core ADR 0071): R101 has no vent
+  condenser; the only condenser, the dryer's vacuum condenser Q6 on chilled water supplied at
+  280.15 K, condenses water, ethanol and traces of HCl, which melt at 273.15, 159.05 and 203.55 K
+  (chemicals 1.5.2 `Tm`, SRC-10): it cannot freeze. Core's rule does not check a dryer's
+  condenser, so no `melting_point` is added.
+- A head space, inerts and Henry degassing on R101 (core ADR 0071): not added. They degas a
+  dissolved dose only with the gas that leaves and do not cap it at its solubility, so they would
+  not give the breakthrough of item 3 (L-3 stays); the vent stream and the nitrogen pad would
+  change the flowsheet for a release that is computed here by hand.
+- A blocked vent: core does not screen a closed vessel's pressure (core ADR 0069, known
+  limitation). With T-201's fan or circulation lost the dosing trips (D-011); the pressure R-101
+  reaches if the vent line is blocked while chlorine is held is open for the HAZOP and relief
+  sizing.
+- Design specifications (core ADR 0070) could replace the hand-scaled feeds of L-7; not done here
+  (outside #427).
+
+**What stays open (exactly):**
+- *Reaction calorimetry* (heat flow at 353 K with chlorine dosed into the brine over the copper
+  heel, plus the post-reaction): the rates of CHL and COMP and the accumulation of chlorine and of
+  copper(II). It decides which row of item 1 applies, the breakthrough threshold, and the
+  interlock's set point (item 2's bound).
+- *TD24* (DSC or ARC of the end-of-dosing liquor with its copper): decides the class (1, 2 or 5).
+- *The chlorine's solubility in the R-101 brine* (5.7 mol/kg NaCl with CuCl and CuCl2, 323 to
+  363 K, under 0 to 100 kPa of chlorine): decides whether the design rates keep the dose
+  dissolved and from which accumulation the chlorine leaves (item 3).
+- *The brine's boiling point* (an ebulliometer on the R-101 liquor): would let the MTT rise above
+  375.8 K; not needed while the MTSR stays below it.
+- *T-201*: the vendor's sizing for 30 m3/h of chlorine and the caustic charge (item 4).
+- *Human sign-off*: the accumulation interlock, T-201's duty and the blocked-vent case are for
+  the HAZOP team; nothing here is accepted.
+
+## Core features used (cheme-as-code 1.9.0; the screening on 1.12.0)
 
 | feature | where | ADR |
 |---|---|---|
@@ -455,7 +582,12 @@ train.
 | recipe `units:` (one vessel over several steps) | R-101 (M101, E101, R101, E102, SS101), P-101 (CR101, DC101), F-101 (six steps) | 0057 |
 | vessel sizing and jacket check, `heat`/`cool` times from the jacket | R-101, F-101 | 0052 |
 | per-batch LCA consumables | nitrogen, the rinse | 0053 |
-Not used: `batch.vent` and `hazard.vent_capacity` (no reaction forms a gas; D-011); the batch
+| `hazard.potential: network` (core 1.12.0): dT_ad and the MTSR of CHL and COMP together | R101 (D-014) | 0069 |
+| the dissolved release (`cheme.reactor-hazard-dissolved`): the chlorine held at the end of the dosing | R101 (D-014) | 0069 |
+| `cheme process electrolyte` (NaCl-H2O, Pitzer): the brine's water activity, a check of the MTT | D-014 | - |
+Not used: `batch.vent` and `hazard.vent_capacity` (no reaction forms a gas; D-011); a head space,
+inerts and Henry degassing, `hazard.mtt_from: bubble-point` (L-10) and the condenser freezing rule
+(D-014); the batch
 still (no distillation); `hazard.reactions` (every reaction counts, the conservative default);
 `kind: phase-change` (the precipitation is core's crystallizer, not a reaction).
 
@@ -476,14 +608,27 @@ still (no distillation); `hazard.reactions` (every reaction counts, the conserva
   (D-011), so at k/100 core's MTSR is 8.6 K low and 1.0 K short of the MTT. For the core issue: the
   potential should be the network's (the heat released by running every reaction to the end
   state of what is in the vessel), not the largest single reaction's. The direct reaction and the oxidation of copper(I) cannot both be written either: the
-  balance cannot fit linearly dependent reactions (D-005).
+  balance cannot fit linearly dependent reactions (D-005). **Closed in core 1.12.0** (ADR 0069,
+  `hazard.potential: network`, used on R101: 46.0 K and 354.4 / 359.8 / 372.1 K, D-014); the
+  linearly dependent reactions stay.
 - L-3: **a gas dose has no solubility.** `absorbed: 1` takes the chlorine up whatever the
   liquid's chlorine content; there is no gas-liquid equilibrium, so an accumulated dose above
   its solubility (13 g/L at k/100) stays dissolved in the model, and its breakthrough on a cooling
   failure is not screened (ADR 0058's known limit, core#178 item 5). A vent that carries only a
   passing or desorbing gas is not possible either: `batch.vent.components` must be formed by a
   reaction (a warning otherwise), which is why the air route (oxygen in, nitrogen out) was
-  rejected (D-001).
+  rejected (D-001). **Partly closed in core 1.12.0:** the chlorine held is now reported
+  (ADR 0069, `dissolved_release`: 1.03 / 7.00 / 46.2 kg a batch at k, k/10, k/100), and a vent may
+  carry inerts and degas a dissolved gas at Henry's law (ADR 0071). Still open: an absorbed dose is
+  not capped at its solubility, so the breakthrough during the dosing is by hand (D-014).
+- L-10: **the bubble-point MTT counts a solid.** `hazard.mtt_from: bubble-point` takes the mole
+  fractions over the whole content, the `phase: solid` copper metal included (core 1.12.0,
+  `reaction_network.bubble_point`), so it gives 377.0 K where Raoult's law over the liquid alone
+  gives 376.6 K (376.3 K at k/100's worst moment, 375.9 K for the charge). A solid should be left
+  out of the liquid's mole fractions, as `still.separate_phase` does for a batch still. And its
+  Raoult's law has no electrolyte: the brine's water activity is 0.78 by core's own Pitzer model
+  (`cheme process electrolyte`) against Raoult's 0.91, which core does not use for the MTT. The
+  MTT is set by hand (D-014).
 - L-4: **a liquor-measured solubility at one composition.** CR101's and W101's solubilities hold
   at the liquor composition they were evaluated at; core does not check that the solved mother
   liquor (after the recycle) is still there, and its only composition dependence is the
@@ -515,6 +660,8 @@ still (no distillation); `hazard.reactions` (every reaction counts, the conserva
 |---|---|---|
 | mass, component, element balances | done in cheme | cheme validate / process streams / propagate |
 | semi-batch R101: composition, accumulation, MTSR, peak cooling | done in cheme, kinetics ASSUMED | D-005, D-011, `cheme process reactors`, `reactor-hazards` |
+| network MTSR, chlorine held (core 1.12.0) | done in cheme | D-014 |
+| MTT (the brine's bubble point), the chlorine's solubility and breakthrough, T-201's caustic | hand (Raoult with IAPWS water; Henry's law from SRC-14; stoichiometry), checked with core's Pitzer model | D-014, L-3, L-10 |
 | recycles (heel, mother liquor) | done in cheme (tears, Wegstein) | D-004, core ADR 0060 |
 | duty Q2 | done in cheme (the model's duty) | D-009, core ADR 0059 |
 | precipitation and the acid wash | done in cheme: crystallizers with spectators, the solubility ASSUMED from a sourced fit | D-006, D-007, core ADR 0056 |
@@ -526,9 +673,12 @@ still (no distillation); `hazard.reactions` (every reaction counts, the conserva
 | LCI inventory | done, copper and salt unmapped | D-012 |
 
 ## Open inputs
-Kinetics and heats of reaction in the brine (calorimetry), the chlorine's solubility in the hot
-brine and its breakthrough rate, TD24 of the brine, the boiling point of the R-101 liquor (a
-sourced `hazard.mtt`), the dosing's accumulation interlock (D-011); the ethanol's limiting
+Kinetics and heats of reaction in the brine (calorimetry: the rates and the accumulation, which
+decide the breakthrough and the interlock's set point), the chlorine's solubility in the hot
+R-101 brine (water's Henry constant used, D-014), TD24 of the end-of-dosing liquor (the class),
+the measured boiling point of the R-101 liquor (375.8 K is Raoult's lower bound), the dosing's
+accumulation interlock and its set point below 49 % of the network potential, T-201's vendor
+sizing and caustic charge, the blocked-vent pressure (D-011, D-014); the ethanol's limiting
 oxygen concentration, the vacuum exhaust's destination and the hazardous-area classification
 of F-101, its condenser, the vacuum pump and T-105 (D-011); the solubility of CuCl in NaCl solutions
 against chloride and temperature (SRC-12), and so the dilution loss; the heats of solution of the

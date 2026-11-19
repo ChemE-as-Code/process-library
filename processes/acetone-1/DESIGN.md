@@ -42,12 +42,12 @@ furnace that burns the tar. Utilities cross the boundary as energy streams.
 
 | # | source | locator | read | reuse | used for |
 |---|---|---|---|---|---|
-| S1 | EU JRC (2017) LVOC BREF, EUR 28882 EN, [PDF](https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf) | ch. 8 Phenol, pp. 395-411: 8.2.2.1 (oxidation 80-120 C, atmospheric to ~700 kPa, 4-20 h, DMBA/ACP/methanol side products, dry oxidation), 8.2.2.2 (CHP 17-30 % to 65-85 %, vacuum), 8.2.2.3 (sulfuric acid, two-step cleavage, neutralisation), 8.2.2.4 (fixed-bed AMS hydrogenation, excess H2 recycled), 8.3.1.1 (spent air 1 000-1 500 Nm3/t, 35 mg C/Nm3 after adsorbers, methane 100-400 mg/Nm3), 8.3.1.3-4 (vents 10-15 Nm3/t; H2 vent 0.8-1.2 Nm3/t), 8.3.1.6 (fugitive 0.02-0.06 kg/t), 8.3.2.2 (phenol 1-2 % in neutralisation effluent), 8.3.3 (cumene 1.31-1.38 t/t), Table 8.5 (steam 1.9 t/t at 18 bar plus 0.4-0.9 t/t at 5 bar, 190 kWh/t; second data set 6.32 t/t, 326 kWh/t), 8.3.5 (water 1-4 t/t), 8.3.6 (tar 20-200 kg/t, burned or cracked) | full chapter read | EU Commission reuse policy (Decision 2011/833/EU): reuse with attribution; facts only used, nothing copied | conditions, ranges, utilities, emissions |
+| S1 | EU JRC (2017) LVOC BREF, EUR 28882 EN, [PDF](https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf) | ch. 8 Phenol, pp. 395-411: 8.2.2.1 (oxidation 80-120 C, atmospheric to ~700 kPa, 4-20 h, DMBA/ACP/methanol side products, dry oxidation), 8.2.2.2 (CHP 17-30 % to 65-85 %, vacuum), 8.2.2.3 (sulfuric acid, two-step cleavage, neutralisation), 8.2.2.4 (fixed-bed AMS hydrogenation, excess H2 recycled), 8.3.1.1 (spent air 1 000-1 500 Nm3/t, 35 mg C/Nm3 after adsorbers, methane 100-400 mg/Nm3), 8.3.1.3-4 (vents 10-15 Nm3/t; H2 vent 0.8-1.2 Nm3/t), 8.3.1.6 (fugitive 0.02-0.06 kg/t), 8.3.2.2 (phenol 1-2 % in neutralisation effluent), 8.3.3 (cumene 1.31-1.38 t/t), Table 8.5 (steam 1.9 t/t at 18 bar plus 0.4-0.9 t/t at 5 bar, 190 kWh/t; second data set 6.32 t/t, 326 kWh/t), 8.3.5 (total water use 1-4 t/t, including cooling-water make-up; not a waste water volume), 8.3.6 (tar 20-200 kg/t, burned or cracked) | full chapter read | EU Commission reuse policy (Decision 2011/833/EU): reuse with attribution; facts only used, nothing copied | conditions, ranges, utilities, emissions |
 | S2 | Speight (2002) Chemical Process and Design Handbook, Part 2, via skill `tech-petchem-styrene-and-phenol` | table "Phenol: 1.31 t cumene per t phenol, 0.616 t acetone" | skill summary only | fact | cross-check of yields |
-| S3 | US 5,245,090 (1993), Two-stage cleavage of CHP | background and examples (search abstract: oxidation 110-115 C to 20-25 % CHP; cleavage fast, essentially complete, 70-90 C) | abstract/snippet, full text not audited | patent text: facts only | D-004, D-005 support |
-| S4 | The `chemicals` 1.5.2 package of core's environment (open-source, MIT; the version core pins), through `cheme chemistry thermo`: ideal-gas formation enthalpies by its default method per component, that is its packaged CRC Handbook table `heat_capacity.CRC_standard_data` (cumene 4.0, cumene hydroperoxide -78.4, phenol -96.4 kJ/mol; from the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here), its Active Thermochemical Tables 1.112 data (`ATCT_G`: acetone -216.07, CO2 -393.47, water -241.82 kJ/mol) and its NIST WebBook data (`WEBBOOK`: alpha-methylstyrene 118.3 kJ/mol) | per component: process/reactions.yaml, scripts/balance.py, D-014 | package queried; the underlying works not read | open-source package queried; single values, facts only; not open data (library ADR 0037) | reaction heats, LHV |
+| S3 | US 5,245,090 A (1993-09-14; DeCaria and Schutz, Aristech Chemical), Two-stage cleavage of cumene hydroperoxide, [Google Patents](https://patents.google.com/patent/US5245090A/en) | description and claims: cleavage feed from cumene oxidation about 83-89 % CHP; first stage 150-190 F (about 66-88 C; conventional single-stage cleavage 170-190 F at 20-40 meq H+ per litre) with about 25-250 ppm sulfuric acid (claim 12: about 30-50 ppm); "the unreacted CHP quickly decomposes"; a second stage (Pd hydrogenation on an acidic support) gives "essentially complete decomposition of the residual CHP" and hydrogenates AMS to cumene. No oxidation conditions | full page text via fetch (audit 2026-11-19), no column numbers | patent text: facts only | D-005 support; D-007 pointer |
+| S4 | The `chemicals` 1.5.2 package of core's environment (open-source, MIT; the version core pins), through `cheme chemistry thermo`: ideal-gas formation enthalpies by its default method per component, that is its packaged CRC Handbook table `heat_capacity.CRC_standard_data` (cumene 4.0, cumene hydroperoxide -78.4, phenol -96.4 kJ/mol; from the CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here), its Active Thermochemical Tables 1.112 data (`ATCT_G`: acetone -216.07, CO2 -393.47, water -241.82 kJ/mol) and its NIST WebBook data (`WEBBOOK`: alpha-methylstyrene 118.3 kJ/mol) | per component: process/reactions.yaml, scripts/balance.py, D-014 and the LHVs in lca/lca.yaml (allocation comment) | package queried; the underlying works not read | open-source package queried; single values, facts only; not open data (library ADR 0037) | reaction heats, LHV |
 | S6 | US 8,975,444 B2, Cumene oxidation, [Google Patents](https://patents.google.com/patent/US8975444) | Description of Related Art (typical total oxidation selectivity 92-94 %); Detailed Description (CHP at the last oxidiser outlet 22-32 %, preferred 24-28 %; 90-115 C, preferred 95-110 C; 0-10 barg) | page text via fetch, sections located, no column numbers | patent text: facts only | D-003, D-004 |
-| S5 | Ullmann's: Acetone (doi 10.1002/14356007.a01_079.pub4), Phenol (Weber et al.) | not opened (licensed); cited by S1 | not read | - | lead only |
+| S5 | Ullmann's: Acetone (Weber, Pompetzki, Bonmann, Weber 2014, doi 10.1002/14356007.a01_079.pub4), Phenol (Weber, Weber, Kleine-Boymann 2004) | not opened (licensed); cited by S1 | not read | - | lead only |
 
 ## D-001 Cumene is a boundary feed (2026-10-28)
 Decision: no cumene unit in the boundary; pure cumene at 400 kPa(a), 313 K.
@@ -74,11 +74,11 @@ typical 92-94 % (molar, CHP against acetophenone, DMBA and dicumyl peroxide) sta
 the 25 wt% CHP outlet is inside S6's 22-32 % (preferred 24-28 %); the 0.05/0.01 split of the
 rest between DMBA and acetophenone is ASSUMED. The selectivities are chosen so that the overall
 cumene use (1.330 t/t phenol) and tar (47 kg/t) fall inside S1's ranges (1.31-1.38 t/t;
-20-200 kg/t). The CHP level is inside S1's 17-30 % and S3's 20-25 %. A sourced range check,
+20-200 kg/t). The CHP level is inside S1's 17-30 %. A sourced range check,
 not a predictive model; organic acids, formic acid and methyl hydroperoxide are not modelled.
 
 ## D-005 Cleavage model (2026-10-28)
-Decision: CHP fully cleaved (S3: fast and essentially complete); DMBA 75 % dehydrated to AMS,
+Decision: CHP fully cleaved (S3: CHP quickly decomposes, and decomposition is essentially complete after its second stage); DMBA 75 % dehydrated to AMS,
 25 % reacting with phenol to cumylphenol, the surrogate of all heavies (AMS dimers,
 cumylphenols). Two-step cleavage lumped into R301. Acetone recycle for dilution and the water
 added in the second step (S1 8.3.2.2) are not modelled. ASSUMED split.
@@ -91,9 +91,11 @@ would add effluent, S1 8.3.2.2).
 
 ## D-007 Acid, caustic and wash water (2026-10-28)
 Decision: 102 kg/h 98 wt% H2SO4 (about 0.2 wt% of the concentrate), ASSUMED: S1 8.2.2.3
-supports a sulfuric acid catalyst but gives no loading. The 0.01-5 wt% (preferably 0.1-2 %)
-from S3's abstract is a pointer only, because the full text was not audited, so it is not
-the basis of the value. The acid is neutralised with stoichiometric 50 wt% NaOH; 1 000 kg/h wash water keeps
+supports a sulfuric acid catalyst but gives no loading. S3 is a pointer only, not the basis
+of the value: it puts conventional single-stage cleavage at 20-40 meq H+ per litre of reaction
+volume (about 0.1-0.2 wt% H2SO4 at about 1 kg/L, own conversion) and its own first stage at
+about 25-250 ppm sulfuric acid. (An earlier "0.01-5 wt%" attributed to S3 is not in the
+patent; audit 2026-11-19.) The acid is neutralised with stoichiometric 50 wt% NaOH; 1 000 kg/h wash water keeps
 Na2SO4 near 11 wt% in the brine. ASSUMED. Neutralisation with sodium phenate or ion exchange
 resins (S1 8.2.2.3) not modelled; caustic washing of the recycled cumene not modelled.
 
@@ -180,9 +182,11 @@ vents and the oxidiser off-gas methane not in the flowsheet (I-04). Construction
 ## D-016 Aqueous effluent is a lower bound (2026-10-28)
 The modelled aqueous effluent product:WW (brine S16 plus C402 bottoms S21) is 1 603 kg/h,
 which is 64 kg/t phenol or 0.039 kg per kg acetone. Process water in is 40 kg/t. The S1
-register gives "water 1-4 t/t" (8.3.5), 15 to 60 times more. This run did not re-read 8.3.5
-to see whether that figure is water use or waste water volume, so it is not used as a
-value. The missing water is known by stream:
+register gives 1-4 t/t phenol from 8.3.5, but S1 states it as "total water usage ...
+including cooling water make-up": a water use, not a waste water volume, and S1 gives no waste
+water volume per tonne of phenol (8.3.2). It is therefore no like-for-like check on WW (the
+cooling-tower make-up belongs to the utility backgrounds, below) and at most a loose upper
+bracket; it is not used as a value. The missing process water is known by stream:
 - the water and acetone recycle to cleavage (D-005, S1 8.3.2.2);
 - the cumene caustic wash (D-007);
 - the phenol recovery extraction and the aldehyde treatment (I-05);
@@ -193,7 +197,9 @@ value. The missing water is known by stream:
 Decision: no effluent allowance is added. A number without a source would only look
 precise. Instead, the WW quantity is flagged as a lower bound in the `product:WW` source
 in lca/lca.yaml. Once a WW background is mapped, its burden will be understated until
-I-05 adds these streams or a sourced allowance replaces them (I-11).
+I-05 adds these streams or a sourced allowance replaces them (I-11). (Audit 2026-11-19: the
+water-use reading of 8.3.5 replaces this entry's earlier "15 to 60 times more", which compared
+unlike quantities.)
 
 ## Results (generated values are in the files)
 
@@ -221,10 +227,12 @@ I-05 adds these streams or a sourced allowance replaces them (I-11).
 - I-07 Choose the backgrounds (lca/lca.yaml `missing:` texts) and allocation with the LCA
   practitioner.
 - I-08 Benchmark: the LCI reproduces no published inventory by design; compare once reviewed.
-- I-09 Registry entries missing in `chemicals/chemicals.yaml` (consolidated library PR):
-  cumene, acetone, phenol, sulfuric-acid, sodium-hydroxide, alpha-methylstyrene,
-  acetophenone, cumene-hydroperoxide, sodium-sulfate, methanol (and a tar/heavy-residue
-  entry); LCI vocabulary entries `cumene`, `sodium-hydroxide-50`, heavy-residue treatment.
+- I-09 Registry entries still missing in `chemicals/chemicals.yaml` (consolidated library
+  PR): alpha-methylstyrene, acetophenone, cumene-hydroperoxide and a tar/heavy-residue entry
+  (cumene, acetone, phenol, sulfuric-acid, sodium-hydroxide, sodium-sulfate and methanol exist,
+  issue #251); LCI vocabulary entry for heavy-residue thermal treatment (product:TAR). feed:CUM
+  and feed:NAOH50 no longer need vocabulary entries: lca/mappings.yaml links them to cumene-1
+  and chlor-alkali-1.
 - I-10 Library build finding: `scripts/build_lci.py --strict` reports 5 gaps for acetone-1 (as
   intended) and the warning "study allocation 'mass' differs from the dataset's default None":
   core leaves the default `method: mass` out of `lca/dataset.yaml`, and build_lci.py (line
@@ -232,5 +240,6 @@ I-05 adds these streams or a sourced allowance replaces them (I-11).
   is the first mass-allocated process. The other warning (cut-off criteria need core) is the
   same for every process in an environment without core. Worked around in the folder (lca/lca.yaml
   leaves the default method unset); the library fix is still due.
-- I-11 Aqueous effluent (D-016): re-read S1 8.3.5 to see whether its 1-4 t/t is water use
-  or waste water volume, and add the missing effluent streams or a sourced allowance.
+- I-11 Aqueous effluent (D-016): the water-use question is closed (audit 2026-11-19): S1
+  8.3.5's 1-4 t/t is total water use including cooling-water make-up, not a waste water
+  volume. Adding the missing effluent streams or a sourced allowance stays with I-05.

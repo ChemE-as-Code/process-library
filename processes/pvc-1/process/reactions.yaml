@@ -1,0 +1,41 @@
+# Reactions of pvc-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# The route is the suspension polymerisation of vinyl chloride (DESIGN.md D-001): the monomer is
+# dispersed in demineralised water with a suspending agent and polymerises inside its droplets,
+# started by a monomer-soluble initiator, at constant temperature in a stirred, cooled autoclave
+# until the pressure drops (EU Polymers BREF 2007, section 5.2.3; US 6 825 288 B2, Example 1).
+# - POLY (R101): n C2H3Cl -> (C2H3Cl)n, carried per mole of repeat units (VCM -> PVC, the
+#   registry's polymer rule). Initiation, chain transfer and termination are not resolved: their
+#   share of the monomer is far below the balance's tolerance, and the initiator's fragments are
+#   carried as INIT in the resin (materials.yaml, D-004).
+# Rate: no open, complete kinetic parameter set for an industrial recipe was found (searched
+# 2026-11-19); the effective rate law is ASSUMED (D-005): zero order in the monomer, a constant
+# rate per m3 of the suspension, since between about 0.1 % conversion and the pressure drop the
+# monomer phase is pure and the polymer phase stays saturated with monomer, so the phases'
+# compositions do not change (Barkanyi, Lakatos and Nemeth 2012, the three stages of VCM
+# polymerisation); its value is calibrated to the heat removal of US 6 825 288 B2, Example 1,
+# and its activation energy is the overall one of the free-radical scheme, Ep + (Ed - Et)/2,
+# from the rate coefficients Barkanyi, Nemeth and Lakatos (2014) list after Sidiropoulou and
+# Kiparissides (1990) (D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: POLY
+    title: Polymerisation of vinyl chloride to PVC (per mole of repeat units)
+    equation: C2H3Cl -> C2H3Cl
+    stoichiometry: {VCM: -1, PVC: 1}
+    phase: liquid
+    heat_of_reaction: {value: -96226, provenance: given, source: "US 6 825 288 B2 (Shin-Etsu), the polymerisation conversion formula of the detailed description: 368 kcal per kg of vinyl chloride charged; 368 x 4.184 = 1539.7 kJ/kg, x 62.496 kg/kmol = 96.23 kJ/mol (our arithmetic), taken at 330 K (D-005)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # zero order: r = k kmol/(m3 s) of the suspension's volume. k = 4.86e-4 at 330.15 K
+      # (calibrated, D-005); Ea = 8.314 x (3320 + (15460 - 2190) / 2) = 82766 J/mol;
+      # A = 4.86e-4 x exp(82766 / (8.314 x 330.15)) = 6.052e9
+      k: {A: 6.052e+9, Ea: 82766}
+      orders: {VCM: 0}
+      temperature_range: [318.15, 343.15]
+      provenance: assumed
+      source: "ASSUMED effective rate (D-005): constant per m3 of suspension, so that the charge of US 6 825 288 B2, Example 1 (46.3 t of VCM, 56.8 t of water) reaches 90 % conversion in 3.72 h at 330.15 K, the heat of 0.9 x 46.3 t x 1539.7 kJ/kg = 64 160 MJ removed at the mean of the example's two total heat-removal rates, (15 500 + 19 000) / 2 = 17 250 MJ/h (reflux condenser plus jacket and baffle at 35 % and at 80 % conversion, its Table 1); the activation energy from the Arrhenius terms of kd, kp and kt in Barkanyi, Nemeth and Lakatos (2014), Table 1 (after Sidiropoulou and Kiparissides 1990): Ep + (Ed - Et)/2 = 8.314 x (3320 + (15460 - 2190)/2) J/mol. To be replaced by the licensor's or a calorimetric rate."
+    sources: ["US 6 825 288 B2 (Shin-Etsu Chemical, 2004), Example 1 and Table 1: 57.0 C, 90 % conversion at the pressure drop to 0.588 MPa, heat removal 7000 + 8500 MJ/h at 35 % and 5000 + 14 000 MJ/h at 80 % conversion", "Barkanyi, Lakatos and Nemeth (2012) Periodica Polytechnica Chem. Eng. 56(2) 55-64: the three stages of VCM polymerisation, the pressure drop when the monomer phase disappears", "Barkanyi, Nemeth and Lakatos (2014) Chem. Eng. Trans. 39, 1285-1290, Table 1: rate coefficients of the kinetic scheme"]
