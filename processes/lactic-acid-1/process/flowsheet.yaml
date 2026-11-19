@@ -1,0 +1,810 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Lactic acid by batch fermentation of glucose with lime, acidulation with sulfuric acid to
+# gypsum, evaporation and purification through ethyl lactate (D-001). The fermenters run in
+# batches on a dedicated train (process/recipe.yaml, D-003); every rate here is the recipe's
+# year average, and everything downstream of the broth tank runs continuously. Where the values
+# come from:
+# - the glucose syrup S1 is solved by `cheme process propagate` for 100 000 t/a of lactic acid
+#   in the product (D-002); the corn steep liquor, quicklime, slaking water and sulfuric acid
+#   follow the syrup at fixed ratios (D-005 to D-007); the medium water S2 is solved for the
+#   broth's titer of 130 g/L (D-005), the ethanol make-up S17 for 1.5 mol of ethanol per mol of
+#   lactic acid to the esterifier (D-008) and the hydrolysis water's recycle split for 12 mol of
+#   water per mol of ester (D-008), all design specifications (core ADR 0070);
+# - the ethanol recycles S18 and S19 and the hydrolysis recycle S29 are the loops' tear streams;
+# - the reactors' outlets follow the conversions of process/reactions.yaml, the centrifuge,
+#   filter, evaporators and columns their specified recoveries (`recovery:`, D-006 to D-008;
+#   core has no qualified model of these liquids, limit L-1);
+# - temperatures and pressures are design choices, ASSUMED (design basis);
+# - the reactors' duties are written by propagate from the heats of reaction and the heat
+#   capacities of process/materials.yaml, net of the agitators' and pumps' work (D-009); the
+#   evaporators', columns' and cooler's duties are hand estimates, ASSUMED, with their arithmetic
+#   in their sources (D-009, limit L-4).
+schema: cheme/process/v1
+kind: flowsheet
+title: Lactic acid by fermentation of glucose (100 000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 100 000 t/a of lactic acid (as 100 %) in an 88 wt% solution, 8000 h/a, from glucose syrup by batch fermentation with lime, the gypsum route and purification through ethyl lactate", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+tears:
+  - stream: S18
+    initial: {flow: 11000.0, unit: kg/h, basis: mass_fraction, composition: {ETOH: 0.91, H2O: 0.09}}
+  - stream: S19
+    initial: {flow: 1400.0, unit: kg/h, basis: mass_fraction, composition: {ETOH: 0.98, H2O: 0.02}}
+  - stream: S29
+    initial: {flow: 30000.0, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.85, ETLA: 0.15}}
+convergence: {method: wegstein, max_iterations: 300, tolerance: {abs: 1.0e-6, rel: 1.0e-8}}
+
+specs:
+  - id: rate
+    vary: {stream: S1, initial: 25500, with: {S3: 0.04092, S4: 0.21084, S5: 1.18205, S11: 0.40047}}
+    target: {stream: S32, component: LA, quantity: annual, value: 100000, unit: t, hours: 8000}
+    provenance: assumed
+    source: "D-002: 100 000 t/a of lactic acid (as 100 %), the order of SRC-2's scenario I (100 945 t/a recovered, p. 11, Table 4); 8000 h/a ASSUMED. Followers at their ratios per kg of the 70 wt% syrup (D-005 to D-007): corn steep liquor 0.04092 (10 g per litre of broth, SRC-1, at 5.846 L of broth per kg of glucose for the 130 g/L titer at the 0.76 yield), quicklime 0.21084 (CaO for the acids formed and the CSL's lactic acid, 10 % over, SRC-1), slaking water 1.18205 (a 20 wt% Ca(OH)2 slurry, ASSUMED) and sulfuric acid 93 wt% 0.40047 (1.01 mol per mol of the lime's calcium, D-007)"
+  - id: titer
+    vary: {stream: S2, initial: 95000}
+    target: {stream: S8, component: CALA, quantity: fraction, basis: mass, value: 0.14716}
+    provenance: given
+    source: "D-005: the titer 130 g/L of lactic acid (SRC-1 `_units.py`, CoFermentation.target_titer, as lactic acid and its calcium salt), as calcium lactate 130 x 218.218 / 180.156 = 157.5 g/L, at a broth density of 1070 kg/m3 (ASSUMED): 0.14716 kg/kg"
+  - id: ethanol-ratio
+    vary: {stream: S17, initial: 700}
+    target: {stream: S20, component: ETOH, quantity: ratio, per: {stream: S20, component: LA}, basis: mole, value: 1.5}
+    provenance: given
+    source: "D-008: 1.5 mol of ethanol per mol of acid to the esterifier (SRC-1 `_units.py`, Esterification.ethanol2acids), counted on the lactic acid"
+  - id: hydrolysis-water
+    vary: {node: SP401, port: purge, initial: 0.1}
+    target: {stream: S25, component: H2O, quantity: ratio, per: {stream: S25, component: ETLA}, basis: mole, value: 12.0}
+    provenance: given
+    source: "D-008: 12 mol of water per mol of ester to the hydrolysis (SRC-1 `_units.py`, HydrolysisReactor.water2esters); the rest of E-404's condensate purged to the wastewater"
+
+feeds:
+  - {id: GLCF, title: "Glucose syrup 70 wt% (dextrose; no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: PW
+    title: Process water
+    category: raw_material
+    ports: [{id: med, direction: out}, {id: slk, direction: out}]
+  - {id: CSLF, title: "Corn steep liquor (no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: LIMEF, title: "Quicklime (lime-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACIDF, title: "Sulfuric acid 93 wt% (sulfuric-acid-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ETOHF, title: "Ethanol make-up (bioethanol-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: LPS
+    title: LP steam 450 kPa(a) (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 421.1, provenance: assumed, source: "saturation at 450 kPa(a) (thermo 0.6.1, IAPWS), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports:
+      - {id: e401, direction: out, kind: energy}
+      - {id: r401, direction: out, kind: energy}
+      - {id: c402, direction: out, kind: energy}
+      - {id: r402, direction: out, kind: energy}
+      - {id: c403, direction: out, kind: energy}
+      - {id: e404, direction: out, kind: energy}
+  - id: MPS
+    title: MP steam 1000 kPa(a) (condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1000, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 453.0, provenance: assumed, source: "saturation at 1000 kPa(a) (thermo 0.6.1, IAPWS), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports:
+      - {id: c401, direction: out, kind: energy}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: prep, direction: out, kind: energy}
+      - {id: ferm, direction: out, kind: energy}
+      - {id: clar, direction: out, kind: energy}
+      - {id: acid, direction: out, kind: energy}
+      - {id: evap, direction: out, kind: energy}
+      - {id: pur, direction: out, kind: energy}
+products:
+  - {id: LAP, title: "Lactic acid 88 wt% to storage", category: product, ports: [{id: in, direction: in}]}
+  - {id: GYPC, title: "Gypsum filter cake to disposal or use", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: CELL, title: "Cell mass cake to disposal (anaerobic digestion or feed)", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: RES, title: "Ester column residue (sugars, unconverted acid) to anaerobic digestion", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: WW
+    title: Evaporator condensate and hydrolysis-water purge to wastewater treatment
+    category: wastewater
+    ports: [{id: evap, direction: in}, {id: purge, direction: in}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r201, direction: in, kind: energy}
+      - {id: r301, direction: in, kind: energy}
+      - {id: e401, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+      - {id: c402, direction: in, kind: energy}
+      - {id: c403, direction: in, kind: energy}
+      - {id: e404, direction: in, kind: energy}
+      - {id: e405, direction: in, kind: energy}
+
+blocks:
+  - id: PREP
+    title: Medium and milk-of-lime preparation
+    class: Mixing
+    ports:
+      - {id: glc, direction: in}
+      - {id: water, direction: in}
+      - {id: csl, direction: in}
+      - {id: cao, direction: in}
+      - {id: slw, direction: in}
+      - {id: med, direction: out}
+      - {id: lime, direction: out}
+      - {id: q1, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: FERM
+    title: Batch fermentation with lime (fermenters in parallel)
+    class: ReactingChemicals
+    ports:
+      - {id: med, direction: in}
+      - {id: lime, direction: in}
+      - {id: broth, direction: out}
+      - {id: q2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ACID
+    title: Cell mass removal, acidulation and gypsum filtration
+    class: Separating
+    ports:
+      - {id: broth, direction: in}
+      - {id: acid, direction: in}
+      - {id: cells, direction: out}
+      - {id: gyp, direction: out}
+      - {id: crude, direction: out}
+      - {id: q3, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: power2, direction: in, kind: energy}
+  - id: EVAP
+    title: Multiple-effect evaporation
+    class: Evaporating
+    ports:
+      - {id: in, direction: in}
+      - {id: cond, direction: out}
+      - {id: conc, direction: out}
+      - {id: q4, direction: in, kind: energy}
+      - {id: q5, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: PUR
+    title: Purification through ethyl lactate (esterification, ester distillation, hydrolysis, concentration)
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: in, direction: in}
+      - {id: etoh, direction: in}
+      - {id: res, direction: out}
+      - {id: purge, direction: out}
+      - {id: prod, direction: out}
+      - {id: q6, direction: in, kind: energy}
+      - {id: q7, direction: in, kind: energy}
+      - {id: q8, direction: out, kind: energy}
+      - {id: q9, direction: in, kind: energy}
+      - {id: q10, direction: out, kind: energy}
+      - {id: q11, direction: in, kind: energy}
+      - {id: q12, direction: in, kind: energy}
+      - {id: q13, direction: out, kind: energy}
+      - {id: q14, direction: in, kind: energy}
+      - {id: q15, direction: out, kind: energy}
+      - {id: q16, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # medium and lime (D-005, D-006)
+  - id: M101
+    block: PREP
+    title: Medium tank (glucose syrup, water, corn steep liquor)
+    class: Mixing
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: glc, direction: in, delegates: glc}
+      - {id: water, direction: in, delegates: water}
+      - {id: csl, direction: in, delegates: csl}
+      - {id: out, direction: out, delegates: med}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R101
+    block: PREP
+    title: Lime slaker (milk of lime)
+    class: ReactingChemicals
+    reactions: [SLK]
+    energy_port: cw
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: cao, direction: in, delegates: cao}
+      - {id: water, direction: in, delegates: slw}
+      - {id: out, direction: out, delegates: lime}
+      - {id: cw, direction: out, kind: energy, delegates: q1}
+  # batch fermentation (D-003, D-005)
+  - id: R201
+    block: FERM
+    title: Fermenters (batch, in parallel), pH held with milk of lime
+    class: ReactingChemicals
+    reactions: [FLA, FAA, FBIO, NEU]
+    energy_port: cw
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: med, direction: in, delegates: med}
+      - {id: lime, direction: in, delegates: lime}
+      - {id: out, direction: out, delegates: broth}
+      - {id: cw, direction: out, kind: energy, delegates: q2}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # cell mass, acidulation, gypsum (D-006, D-007)
+  - id: S301
+    block: ACID
+    title: Cell mass centrifuge
+    class: SeparatingMechanically
+    links: [{target: equipment, ref: S-301}]
+    recovery:
+      outlets:
+        cake: {BIO: 0.98, NUT: 0.90, H2O: 0.00278, GLC: 0.00278, CALA: 0.00278, CAAC: 0.00278, CAOH: 0.00278}
+      provenance: assumed
+      source: "D-006: 98 % of the cell mass and 90 % of the CSL solids to the cake, ASSUMED; the cake at 35 wt% moisture (SRC-1 `_processes.py`, the cell mass filter's moisture_content 0.35), which takes the same share of every dissolved component and of the fine excess lime, here 0.278 % of the liquid (ASSUMED; the solved cake S9 holds 35 wt% liquid, D-006)"
+    ports:
+      - {id: in, direction: in, delegates: broth}
+      - {id: cake, direction: out, delegates: cells}
+      - {id: liq, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R301
+    block: ACID
+    title: Acidulation tank (sulfuric acid, gypsum precipitation)
+    class: ReactingChemicals
+    reactions: [ACL, ACA, ACH]
+    energy_port: cw
+    links: [{target: equipment, ref: R-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: q3}
+  - id: S302
+    block: ACID
+    title: Gypsum belt filter
+    class: SeparatingMechanically
+    links: [{target: equipment, ref: S-302}]
+    recovery:
+      outlets:
+        cake: {GYP: 0.995, BIO: 1.0, NUT: 1.0, H2O: 0.0385, GLC: 0.0385, LA: 0.0385, AA: 0.0385, H2SO4: 0.0385}
+      provenance: assumed
+      source: "D-007: 99.5 % of the gypsum to the cake (SRC-1 `utils.py` get_splits, the gypsum's split 0.995), the cake at 20 wt% moisture (SRC-1 `_processes.py`, GypsumFilter moisture_content 0.2, and SRC-2 p. 8 via the issue), which takes the same share of every dissolved component, here 3.85 % of the liquid (the solved cake S13 holds 20 wt% liquid, D-007); the cell mass the centrifuge missed stays in the cake; no cake wash (SRC-1 has none)"
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out, delegates: gyp}
+      - {id: liq, direction: out, delegates: crude}
+      - {id: power, direction: in, kind: energy, delegates: power2}
+  # evaporation (D-008)
+  - id: E401
+    block: EVAP
+    title: Multiple-effect evaporator (four effects) with surface condenser
+    class: Evaporating
+    links: [{target: equipment, ref: E-401}]
+    recovery:
+      outlets:
+        vap: {H2O: 0.97, AA: 0.99, LA: 0.005}
+      provenance: assumed
+      source: "D-008: 97 % of the water off, ASSUMED, to about 64 wt% lactic acid (SRC-1 takes its esterifier's feed to about 50 wt% in a flash at 379 K and a light-ends column, `_processes.py` F401, D401; a drier feed is taken here for the reactive distillation); 99 % of the acetic acid off (SRC-1 D401: light key recovery 0.99); 0.5 % of the lactic acid entrained, ASSUMED"
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: vap, direction: out, delegates: cond}
+      - {id: liq, direction: out, delegates: conc}
+      - {id: heat, direction: in, kind: energy, delegates: q4}
+      - {id: cond, direction: out, kind: energy, delegates: q5}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # purification (D-008)
+  - id: M401
+    block: PUR
+    title: Esterifier feed (concentrate, ethanol make-up and recycles)
+    class: Mixing
+    ports:
+      - {id: la, direction: in, delegates: in}
+      - {id: etoh, direction: in, delegates: etoh}
+      - {id: rec1, direction: in}
+      - {id: rec2, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R401
+    block: PUR
+    title: Esterification (reactive distillation on Amberlyst-15)
+    class: ReactingChemicals
+    reactions: [EST]
+    energy_port: heat
+    links: [{target: equipment, ref: R-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: q6}
+  - id: C401
+    block: PUR
+    title: Ester column (vacuum), residue purged
+    class: Distilling
+    links: [{target: equipment, ref: C-401}]
+    recovery:
+      outlets:
+        top: {ETOH: 1.0, H2O: 1.0, ETLA: 0.995, AA: 1.0}
+      provenance: assumed
+      source: "D-008: the ester and everything lighter overhead, 99.5 % of the ethyl lactate (SRC-1 `_processes.py` D403: ethyl lactate recovery 0.995 over lactic acid 0.9995); the unconverted lactic acid, sugar, sulfuric acid and solids to the bottoms, purged (SRC-1 recycles 97 % of these bottoms, not taken here, D-008)"
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: res}
+      - {id: reb, direction: in, kind: energy, delegates: q7}
+      - {id: cond, direction: out, kind: energy, delegates: q8}
+  - id: C402
+    block: PUR
+    title: Ethanol recovery column
+    class: Distilling
+    links: [{target: equipment, ref: C-402}]
+    recovery:
+      outlets:
+        top: {ETOH: 0.99, H2O: 0.06}
+      provenance: assumed
+      source: "D-008: 99 % of the ethanol overhead (SRC-1 `_processes.py` D402, ethanol recovery 0.99) at about 91 wt% ethanol (SRC-1 `_units.py`, Esterification: the D402 recycle is about 91 % ethanol with 8 % water), the water's split chosen for that, ASSUMED; ethyl lactate and acetic acid to the bottoms"
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: q9}
+      - {id: cond, direction: out, kind: energy, delegates: q10}
+  - id: M402
+    block: PUR
+    title: Hydrolysis feed (ester and recycled water)
+    class: Mixing
+    ports:
+      - {id: in1, direction: in}
+      - {id: in2, direction: in}
+      - {id: out, direction: out}
+  - id: R402
+    block: PUR
+    title: Hydrolysis reactor
+    class: ReactingChemicals
+    reactions: [HYD]
+    energy_port: heat
+    links: [{target: equipment, ref: R-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: q11}
+  - id: C403
+    block: PUR
+    title: Ethanol stripper on the hydrolysate
+    class: Distilling
+    links: [{target: equipment, ref: C-403}]
+    recovery:
+      outlets:
+        top: {ETOH: 0.90, H2O: 0.016}
+      provenance: assumed
+      source: "D-008: 90 % of the ethanol overhead (SRC-1 `_processes.py` D404, ethanol recovery 0.90); the water's split set for about 92 wt% ethanol overhead, near C-402's 91 wt% (SRC-1's composition of its ethanol recycle), ASSUMED, instead of SRC-1's 0.9935 of the water to the bottoms, which here would give an overhead of 96.6 wt% ethanol"
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: q12}
+      - {id: cond, direction: out, kind: energy, delegates: q13}
+  - id: E404
+    block: PUR
+    title: Product concentrator (vacuum) with condenser
+    class: Evaporating
+    links: [{target: equipment, ref: E-404}]
+    recovery:
+      outlets:
+        vap: {H2O: 0.9537, ETOH: 1.0, ETLA: 0.98, AA: 0.5}
+      provenance: assumed
+      source: "D-008: water off to an 88 wt% lactic acid (SRC-1 `_processes.py` F402 flashes to 0.88; SRC-2 p. 5, final product 88 % w/w), the water's split chosen for that; all the ethanol and 98 % of the ester off with the water and returned to the hydrolysis, half of the acetic acid, ASSUMED"
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out}
+      - {id: liq, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: q14}
+      - {id: cond, direction: out, kind: energy, delegates: q15}
+  - id: SP401
+    block: PUR
+    title: Hydrolysis water recycle and purge
+    class: SplittingMaterial
+    ports:
+      - {id: in, direction: in}
+      - {id: rec, direction: out}
+      - {id: purge, direction: out, delegates: purge}
+  - id: E405
+    block: PUR
+    title: Product cooler
+    class: Cooling
+    links: [{target: equipment, ref: E-405}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: prod}
+      - {id: cw, direction: out, kind: energy, delegates: q16}
+
+streams:
+  - id: S1
+    title: Glucose syrup 70 wt%
+    from: GLCF.out
+    to: M101.glc
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "design basis: received warm"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        composition: {basis: mass_fraction, values: {GLC: 0.70, H2O: 0.30}, provenance: assumed, source: "D-004: a glucose syrup of 70 wt% dry substance taken as glucose, ASSUMED (the open models ferment lignocellulosic sugars, SRC-1, SRC-2)"}
+        flow: {value: 25083.8, provenance: calculated, source: 'cheme process propagate: spec rate (S32 LA t/a 100000)', fingerprint: aa7df0693ea6fea0}
+  - id: S2
+    title: Medium water
+    from: PW.med
+    to: M101.water
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-005: the medium made up at the fermentation temperature; its sterilisation not modelled (limit L-6)"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-005}
+        flow: {value: 50902.0, provenance: calculated, source: 'cheme process propagate: spec titer (S8 CALA mass fraction 0.14716)', fingerprint: aa7df0693ea6fea0}
+  - id: S3
+    title: Corn steep liquor
+    from: CSLF.out
+    to: M101.csl
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: design basis}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        composition: {basis: mass_fraction, values: {H2O: 0.50, NUT: 0.25, LA: 0.25}, provenance: given, source: "D-005: SRC-1 `_chemicals.py`: CSL modelled as 50 % water, 25 % protein and 25 % lactic acid"}
+        flow: {value: 1026.43, provenance: calculated, source: 'cheme process propagate: spec rate (0.04092 x S1)', fingerprint: aa7df0693ea6fea0}
+  - id: S4
+    title: Quicklime
+    from: LIMEF.out
+    to: R101.cao
+    template: broth
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        pressure: {value: 101.325, provenance: assumed, source: design basis}
+        composition: {basis: mass_fraction, values: {CAO: 1.0}, provenance: assumed, source: "D-006: quicklime from lime-1, taken as pure CaO"}
+        flow: {value: 5288.67, provenance: calculated, source: 'cheme process propagate: spec rate (0.21084 x S1)', fingerprint: aa7df0693ea6fea0}
+  - id: S5
+    title: Slaking water
+    from: PW.slk
+    to: R101.water
+    template: broth
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: D-006}
+        flow: {value: 29650.3, provenance: calculated, source: 'cheme process propagate: spec rate (1.18205 x S1)', fingerprint: aa7df0693ea6fea0}
+  - id: S6
+    title: Medium to the fermenters
+    from: M101.out
+    to: R201.med
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: D-005}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 77012.2, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: c74fd100ae5639f7}
+        composition: {basis: mole_fraction, values: {GLC: 0.0288814, H2O: 0.969514, LA: 0.000844163, CALA: 0.0, AA: 0.0, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.000760405, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3', fingerprint: 4db4b33cc7173c39}
+  - id: S7
+    title: Milk of lime (20 wt%)
+    from: R101.out
+    to: R201.lime
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-006: the slaker cooled to the fermentation temperature"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 34939.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 47d0083aedb4cd02}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.942698, LA: 0.0, CALA: 0.0, AA: 0.0, CAAC: 0.0, CAO: 0.0, CAOH: 0.0573016, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4 S5', fingerprint: 979c507c40203770}
+  - id: S8
+    title: Fermentation broth (calcium lactate)
+    from: R201.out
+    to: S301.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: given, source: "D-005: 50 C (SRC-1 CoFermentation T = 50 + 273.15 K; SRC-2 p. 5, 50 C)"}
+        pressure: {value: 200, provenance: assumed, source: design basis}
+        flow: {value: 111951.0, provenance: calculated, source: 'cheme process propagate: reactor R201 from S6 S7', fingerprint: c7572e2a231784b1}
+        composition: {basis: mole_fraction, values: {GLC: 0.00285652, H2O: 0.975929, LA: 0.0, CALA: 0.0147514, AA: 0.0, CAAC: 0.00199957, CAO: 0.0, CAOH: 0.00167656, BIO: 0.00228522, NUT: 0.000501387, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S6 S7', fingerprint: eb40bd937cf5eea3}
+  - id: S9
+    title: Cell mass cake
+    from: S301.cake
+    to: CELL.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: D-006}
+        pressure: {value: 101.325, provenance: assumed, source: design basis}
+        flow: {value: 884.629, provenance: calculated, source: 'cheme process propagate: separator S301 from S8', fingerprint: 9bb8e990b12498a9}
+        composition: {basis: mole_fraction, values: {GLC: 0.00145362, H2O: 0.496627, LA: 0.0, CALA: 0.00750664, AA: 0.0, CAAC: 0.00101753, CAO: 0.0, CAOH: 0.000853162, BIO: 0.409941, NUT: 0.0826006, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: separator S301 from S8', fingerprint: 9bb8e990b12498a9}
+  - id: S10
+    title: Clarified broth
+    from: S301.liq
+    to: R301.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: D-006}
+        pressure: {value: 200, provenance: assumed, source: design basis}
+        flow: {value: 111066.0, provenance: calculated, source: 'cheme process propagate: separator S301 from S8', fingerprint: 9bb8e990b12498a9}
+        composition: {basis: mole_fraction, values: {GLC: 0.00286423, H2O: 0.978562, LA: 0.0, CALA: 0.0147912, AA: 0.0, CAAC: 0.00200497, CAO: 0.0, CAOH: 0.00168108, BIO: 4.59555e-05, NUT: 5.04141e-05, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: separator S301 from S8', fingerprint: 9bb8e990b12498a9}
+  - id: S11
+    title: Sulfuric acid 93 wt%
+    from: ACIDF.out
+    to: R301.acid
+    template: broth
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.93, H2O: 0.07}, provenance: given, source: "D-007: 93 % sulfuric acid (SRC-1 `_units.py` AcidulationReactor; SRC-2 p. 13, Table 6)"}
+        flow: {value: 10045.3, provenance: calculated, source: 'cheme process propagate: spec rate (0.40047 x S1)', fingerprint: aa7df0693ea6fea0}
+  - id: S12
+    title: Acidulated slurry (lactic acid, gypsum)
+    from: R301.out
+    to: S302.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-007: held at the broth's temperature (limit L-5)"}
+        pressure: {value: 200, provenance: assumed, source: design basis}
+        flow: {value: 121111.0, provenance: calculated, source: 'cheme process propagate: reactor R301 from S10 S11', fingerprint: 62ca0fc0ec12ff79}
+        composition: {basis: mole_fraction, values: {GLC: 0.00284176, H2O: 0.945166, LA: 0.0293504, CALA: 0.0, AA: 0.00397849, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 4.5595e-05, NUT: 5.00187e-05, H2SO4: 0.00023574, GYP: 0.0183323, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S10 S11', fingerprint: da26e07451a06a82}
+  - id: S13
+    title: Gypsum cake (20 wt% moisture)
+    from: S302.cake
+    to: GYPC.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: D-007}
+        pressure: {value: 101.325, provenance: assumed, source: design basis}
+        flow: {value: 20181.6, provenance: calculated, source: 'cheme process propagate: separator S302 from S12', fingerprint: 508694ed1b5c826f}
+        composition: {basis: mole_fraction, values: {GLC: 0.0019493, H2O: 0.648334, LA: 0.0201328, CALA: 0.0, AA: 0.00272903, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.000812357, NUT: 0.000891173, H2SO4: 0.000161705, GYP: 0.32499, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: separator S302 from S12', fingerprint: 508694ed1b5c826f}
+  - id: S14
+    title: Crude lactic acid filtrate
+    from: S302.liq
+    to: E401.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: D-007}
+        pressure: {value: 200, provenance: assumed, source: design basis}
+        flow: {value: 100929.0, provenance: calculated, source: 'cheme process propagate: separator S302 from S12', fingerprint: 508694ed1b5c826f}
+        composition: {basis: mole_fraction, values: {GLC: 0.00289483, H2O: 0.962817, LA: 0.0298985, CALA: 0.0, AA: 0.00405279, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.000240142, GYP: 9.71121e-05, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: separator S302 from S12', fingerprint: 508694ed1b5c826f}
+  - id: S15
+    title: Evaporator condensate
+    from: E401.vap
+    to: WW.evap
+    template: broth
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: the last effect's vapour condensed on cooling water"}
+        pressure: {value: 101.325, provenance: assumed, source: design basis}
+        flow: {value: 82701.4, provenance: calculated, source: 'cheme process propagate: separator E401 from S14', fingerprint: 0196d85be117886c}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.995564, LA: 0.000159358, CALA: 0.0, AA: 0.00427704, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E401 from S14', fingerprint: 0196d85be117886c}
+  - id: S16
+    title: Concentrated crude lactic acid
+    from: E401.liq
+    to: M401.la
+    template: broth
+    state:
+      design:
+        temperature: {value: 353.15, provenance: assumed, source: "D-008: the first effect's concentrate"}
+        pressure: {value: 200, provenance: assumed, source: design basis}
+        flow: {value: 18227.6, provenance: calculated, source: 'cheme process propagate: separator E401 from S14', fingerprint: 0196d85be117886c}
+        composition: {basis: mole_fraction, values: {GLC: 0.0467616, H2O: 0.466586, LA: 0.48055, CALA: 0.0, AA: 0.000654667, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.00387913, GYP: 0.0015687, ETOH: 0.0, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E401 from S14', fingerprint: 0196d85be117886c}
+  - id: S17
+    title: Ethanol make-up
+    from: ETOHF.out
+    to: M401.etoh
+    template: broth
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: design basis}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        composition: {basis: mass_fraction, values: {ETOH: 0.995, H2O: 0.005}, provenance: assumed, source: "D-008: anhydrous fuel ethanol of bioethanol-1 (99.5 wt%), undenatured"}
+        flow: {value: 132.364, provenance: calculated, source: 'cheme process propagate: spec ethanol-ratio (S20 ETOH per S20 LA (mole) 1.5)', fingerprint: aa7df0693ea6fea0}
+  - id: S18
+    title: Recovered ethanol (ethanol column)
+    from: C402.top
+    to: M401.rec1
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-008: condensed and subcooled on cooling water"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 3775.35, provenance: calculated, source: 'cheme process propagate: recycle C402 from S22 (tear, broyden)', fingerprint: b09f8c4725ccabde}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.211781, LA: 0.0, CALA: 0.0, AA: 0.0, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.788219, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C402 from S22 (tear, broyden)', fingerprint: b09f8c4725ccabde}
+  - id: S19
+    title: Recovered ethanol (hydrolysate stripper)
+    from: C403.top
+    to: M401.rec2
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-008: condensed and subcooled on cooling water"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 6966.42, provenance: calculated, source: 'cheme process propagate: recycle C403 from S26 (tear, broyden)', fingerprint: b09f8c4725ccabde}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.182691, LA: 0.0, CALA: 0.0, AA: 0.0, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.817309, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C403 from S26 (tear, broyden)', fingerprint: b09f8c4725ccabde}
+  - id: S20
+    title: Esterifier feed
+    from: M401.out
+    to: R401.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 343.15, provenance: assumed, source: "D-008: mixed feeds"}
+        pressure: {value: 200, provenance: assumed, source: design basis}
+        flow: {value: 29101.7, provenance: calculated, source: 'cheme process propagate: mixer M401 from S16 S17 S18 S19', fingerprint: 8288919da35bb68b}
+        composition: {basis: mole_fraction, values: {GLC: 0.0247269, H2O: 0.336771, LA: 0.254109, CALA: 0.0, AA: 0.000346179, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.00205123, GYP: 0.000829508, ETOH: 0.381167, ETLA: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S16 S17 S18 S19', fingerprint: b91102e94cabdec8}
+  - id: S21
+    title: Esterifier effluent
+    from: R401.out
+    to: C401.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 351.15, provenance: given, source: "D-008: 351.15 K (SRC-1 `_units.py` Esterification, T = 351.15 K)"}
+        pressure: {value: 101.325, provenance: assumed, source: design basis}
+        flow: {value: 29101.7, provenance: calculated, source: 'cheme process propagate: reactor R401 from S20', fingerprint: 60ae0d3d71e3bf17}
+        composition: {basis: mole_fraction, values: {GLC: 0.0247269, H2O: 0.585797, LA: 0.00508218, CALA: 0.0, AA: 0.000346179, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.00205123, GYP: 0.000829507, ETOH: 0.13214, ETLA: 0.249027}, provenance: calculated, source: 'cheme process propagate: reactor R401 from S20', fingerprint: ad291175a5947bcf}
+  - id: S22
+    title: Ester column overhead (ethanol, water, ethyl lactate)
+    from: C401.top
+    to: C402.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-008: condensed at 20 kPa(a) and subcooled"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 26038.5, provenance: calculated, source: 'cheme process propagate: separator C401 from S21', fingerprint: a71996a3f92c87ba}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.606374, LA: 0.0, CALA: 0.0, AA: 0.000358339, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.136782, ETLA: 0.256486}, provenance: calculated, source: 'cheme process propagate: separator C401 from S21', fingerprint: a71996a3f92c87ba}
+  - id: S23
+    title: Ester column residue
+    from: C401.bot
+    to: RES.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 423.15, provenance: assumed, source: "D-008: bottoms at 20 kPa(a), ASSUMED"}
+        pressure: {value: 25, provenance: assumed, source: D-008}
+        flow: {value: 3063.21, provenance: calculated, source: 'cheme process propagate: separator C401 from S21', fingerprint: a71996a3f92c87ba}
+        composition: {basis: mole_fraction, values: {GLC: 0.728656, H2O: 0.0, LA: 0.149762, CALA: 0.0, AA: 0.0, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0604459, GYP: 0.024444, ETOH: 0.0, ETLA: 0.0366918}, provenance: calculated, source: 'cheme process propagate: separator C401 from S21', fingerprint: a71996a3f92c87ba}
+  - id: S24
+    title: Ethyl lactate and water (ethanol column bottoms)
+    from: C402.bot
+    to: M402.in1
+    template: broth
+    state:
+      design:
+        temperature: {value: 373.15, provenance: assumed, source: "D-008: bottoms near the boiling point of the aqueous ester at 1 atm, ASSUMED"}
+        pressure: {value: 150, provenance: assumed, source: design basis}
+        flow: {value: 22263.1, provenance: calculated, source: 'cheme process propagate: separator C402 from S22', fingerprint: 44e6f3b0f3d26231}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.688226, LA: 0.0, CALA: 0.0, AA: 0.00043267, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.00165155, ETLA: 0.30969}, provenance: calculated, source: 'cheme process propagate: separator C402 from S22', fingerprint: 44e6f3b0f3d26231}
+  - id: S25
+    title: Hydrolysis feed
+    from: M402.out
+    to: R402.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 353.15, provenance: assumed, source: D-008}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 58738.0, provenance: calculated, source: 'cheme process propagate: mixer M402 from S24 S29', fingerprint: 4da5cf494095d286}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.916523, LA: 0.0, CALA: 0.0, AA: 0.000167865, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0069325, ETLA: 0.0763766}, provenance: calculated, source: 'cheme process propagate: mixer M402 from S24 S29', fingerprint: 1cd1053e7ae653de}
+  - id: S26
+    title: Hydrolysate
+    from: R402.out
+    to: C403.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 363.15, provenance: assumed, source: "D-008: 363 K, below the boiling of the hydrolysate at the reactor's pressure, ASSUMED (SRC-1 gives 4 h residence, no temperature)"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 58738.0, provenance: calculated, source: 'cheme process propagate: reactor R402 from S25', fingerprint: fbd77af7f45dbcdc}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.855422, LA: 0.0611013, CALA: 0.0, AA: 0.000167865, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0680338, ETLA: 0.0152753}, provenance: calculated, source: 'cheme process propagate: reactor R402 from S25', fingerprint: f9a0cb8f91938255}
+  - id: S27
+    title: Ethanol-free hydrolysate
+    from: C403.bot
+    to: E404.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 373.15, provenance: assumed, source: "D-008: stripper bottoms at 1 atm, ASSUMED"}
+        pressure: {value: 150, provenance: assumed, source: design basis}
+        flow: {value: 51771.6, provenance: calculated, source: 'cheme process propagate: separator C403 from S26', fingerprint: 9c674015b2e4f89f}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.909902, LA: 0.0660495, CALA: 0.0, AA: 0.000181459, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.00735434, ETLA: 0.0165124}, provenance: calculated, source: 'cheme process propagate: separator C403 from S26', fingerprint: 9c674015b2e4f89f}
+  - id: S28
+    title: Concentrator condensate (water, ester, ethanol)
+    from: E404.vap
+    to: SP401.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "D-008: condensed at 20 kPa(a) on cooling water"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 37583.8, provenance: calculated, source: 'cheme process propagate: separator E404 from S27', fingerprint: dc49432690ebefd5}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.973494, LA: 0.0, CALA: 0.0, AA: 0.000101783, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.00825032, ETLA: 0.0181536}, provenance: calculated, source: 'cheme process propagate: separator E404 from S27', fingerprint: dc49432690ebefd5}
+  - id: S29
+    title: Hydrolysis water recycle
+    from: SP401.rec
+    to: M402.in2
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: D-008}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 36474.9, provenance: calculated, source: 'cheme process propagate: recycle SP401 from S28 (tear, broyden)', fingerprint: b09f8c4725ccabde}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.973494, LA: 0.0, CALA: 0.0, AA: 0.000101784, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.00825035, ETLA: 0.0181537}, provenance: calculated, source: 'cheme process propagate: recycle SP401 from S28 (tear, broyden)', fingerprint: b09f8c4725ccabde}
+  - id: S30
+    title: Hydrolysis water purge
+    from: SP401.purge
+    to: WW.purge
+    template: broth
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: D-008}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 1108.98, provenance: calculated, source: 'cheme process propagate: splitter SP401 from S28', fingerprint: 02ce8a72d058c915}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.973494, LA: 0.0, CALA: 0.0, AA: 0.000101783, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.00825032, ETLA: 0.0181536}, provenance: calculated, source: 'cheme process propagate: splitter SP401 from S28', fingerprint: 527619662528acd8}
+  - id: S31
+    title: Lactic acid 88 wt% (hot)
+    from: E404.liq
+    to: E405.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 373.15, provenance: assumed, source: "D-008: concentrator at 20 kPa(a), ASSUMED"}
+        pressure: {value: 150, provenance: assumed, source: design basis}
+        flow: {value: 14187.8, provenance: calculated, source: 'cheme process propagate: separator E404 from S27', fingerprint: dc49432690ebefd5}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.387927, LA: 0.608197, CALA: 0.0, AA: 0.000835455, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0, ETLA: 0.00304099}, provenance: calculated, source: 'cheme process propagate: separator E404 from S27', fingerprint: dc49432690ebefd5}
+  - id: S32
+    title: Lactic acid 88 wt% to storage
+    from: E405.out
+    to: LAP.in
+    template: broth
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "design basis: to storage at 313 K"}
+        pressure: {value: 300, provenance: assumed, source: design basis}
+        flow: {value: 14187.8, provenance: calculated, source: 'cheme process propagate: pass-through E405 from S31', fingerprint: db6133d2c2796a9c}
+        composition: {basis: mole_fraction, values: {GLC: 0.0, H2O: 0.387927, LA: 0.608197, CALA: 0.0, AA: 0.000835455, CAAC: 0.0, CAO: 0.0, CAOH: 0.0, BIO: 0.0, NUT: 0.0, H2SO4: 0.0, GYP: 0.0, ETOH: 0.0, ETLA: 0.00304099}, provenance: calculated, source: 'cheme process propagate: pass-through E405 from S31', fingerprint: db6133d2c2796a9c}
+  # energy
+  - {id: Q1, title: Slaker cooling, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 820.122, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S4 S5 S7', fingerprint: b00ad31a5ca0f11f}}}}
+  - {id: Q2, title: Fermenter cooling, kind: energy, from: R201.cw, to: CW.r201, state: {design: {duty: {value: 7152.95, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S6 S7 S8', fingerprint: e0e7807216a7efa9}}}}
+  - {id: Q3, title: Acidulation cooling, kind: energy, from: R301.cw, to: CW.r301, state: {design: {duty: {value: 237.277, provenance: calculated, source: 'cheme process propagate: conversion duty R301 from S10 S11 S12', fingerprint: 3df8274ff895c0c4}}}}
+  - {id: Q4, title: Evaporator steam (first effect), kind: energy, from: LPS.e401, to: E401.heat, state: {design: {duty: {value: 13750.8, provenance: assumed, source: "D-009 hand estimate: four effects (ASSUMED) evaporate S15's 4542 kmol/h (water, with the acetic and lactic acid counted as water) at 42.25 kJ/mol (water at the effects' mean 338.15 K, thermo 0.6.1 HEOS_FIT): 53315 kW of latent heat over 4 = 13328.7 kW, plus the concentrate S16 heated 323.15 to 353.15 K at 50661 kJ/(h K) = 422.2 kW: 13750.8 kW; no thermocompression, no feed preheat by the condensate (limit L-7)"}}}}
+  - {id: Q5, title: Evaporator surface condenser, kind: energy, from: E401.cond, to: CW.e401, state: {design: {duty: {value: 14532.7, provenance: assumed, source: "D-009 hand estimate, closing the step's balance: Q4 13750.8 kW + the pumps' P5 250 kW less S16's warming 422.2 kW, plus the condensate S15 cooled 323.15 to 313.15 K at 343447 kJ/(h K) = 954.0 kW: 14532.7 kW (the last effect's vapour condensed)"}}}}
+  - {id: Q6, title: Esterifier heating, kind: energy, from: LPS.r401, to: R401.heat, state: {design: {duty: {value: 214.237, provenance: calculated, source: 'cheme process propagate: conversion duty R401 from S20 S21', fingerprint: de418d832be494a3}}}}
+  - {id: Q7, title: Ester column reboiler, kind: energy, from: MPS.c401, to: C401.reb, state: {design: {duty: {value: 12130.9, provenance: assumed, source: "D-009 hand estimate, closing the column's balance: Q8 12456.3 kW plus the residue S23 heated 351.15 to 423.15 K at 11587 kJ/(h K) = 231.7 kW, less the overhead S22 leaving at 323.15 K, 71630 kJ/(h K) x 28 K = 557.1 kW: 12130.9 kW, on MP steam (the residue boils above what LP steam reaches, D-008)"}}}}
+  - {id: Q8, title: Ester column condenser, kind: energy, from: C401.cond, to: CW.c401, state: {design: {duty: {value: 12456.3, provenance: assumed, source: "D-009 hand estimate: at reflux ratio 1 (ASSUMED) twice the overhead S22 condensed at 20 kPa(a): water 332.1 kmol/h at 42.47 and ethanol 74.9 at 40.43 kJ/mol (333.15 K, thermo 0.6.1 HEOS_FIT), ethyl lactate 140.5 at 37.59 kJ/mol (Trouton's rule, 88 J/(mol K) x 427.15 K, ASSUMED; thermo 0.6.1 has none): 2 x 6228.1 = 12456.3 kW"}}}}
+  - {id: Q9, title: Ethanol column reboiler, kind: energy, from: LPS.c402, to: C402.reb, state: {design: {duty: {value: 5078.8, provenance: assumed, source: "D-009 hand estimate, closing the column's balance: Q10 4230.5 kW plus the bottoms S24 heated 323.15 to 373.15 K at 61080 kJ/(h K) = 848.3 kW (the feed S22 and the distillate S18 both at 323.15 K): 5078.8 kW"}}}}
+  - {id: Q10, title: Ethanol column condenser, kind: energy, from: C402.cond, to: CW.c402, state: {design: {duty: {value: 4230.5, provenance: assumed, source: "D-009 hand estimate: at reflux ratio 3 (ASSUMED, a column near the ethanol-water azeotrope) four times the overhead S18 condensed at 351.57 K, water 19.93 kmol/h at 41.65 and ethanol 74.16 at 39.14 kJ/mol (thermo 0.6.1 HEOS_FIT) = 4147.2 kW, the distillate subcooled to 323.15 K at 10550 kJ/(h K) = 83.3 kW: 4230.5 kW"}}}}
+  - {id: Q11, title: Hydrolysis heating, kind: energy, from: LPS.r402, to: R402.heat, state: {design: {duty: {value: 527.879, provenance: calculated, source: 'cheme process propagate: conversion duty R402 from S25 S26', fingerprint: b906975b8345ef99}}}}
+  - {id: Q12, title: Stripper reboiler, kind: energy, from: LPS.c403, to: C403.reb, state: {design: {duty: {value: 6062.0, provenance: assumed, source: "D-009 hand estimate, closing the column's balance: Q13 5767.1 kW plus the bottoms S27 heated 363.15 to 373.15 K at 183404 kJ/(h K) = 509.5 kW, less the distillate S19 leaving at 323.15 K instead of the feed's 363.15 K, 19310 kJ/(h K) x 40 K = 214.6 kW: 6062.0 kW"}}}}
+  - {id: Q13, title: Stripper condenser, kind: energy, from: C403.cond, to: CW.c403, state: {design: {duty: {value: 5767.1, provenance: assumed, source: "D-009 hand estimate: at reflux ratio 2 (ASSUMED) three times the overhead S19 condensed at 351.57 K, water 31.08 kmol/h at 41.65 and ethanol 139.06 at 39.14 kJ/mol (thermo 0.6.1 HEOS_FIT) = 5614.6 kW, the distillate subcooled to 323.15 K at 19310 kJ/(h K) = 152.4 kW: 5767.1 kW"}}}}
+  - {id: Q14, title: Concentrator heater, kind: energy, from: LPS.e404, to: E404.heat, state: {design: {duty: {value: 11020.5, provenance: assumed, source: "D-009 hand estimate: two effects (ASSUMED) evaporate S28, water 1823 kmol/h at 42.47, ethanol 15.5 at 40.43 kJ/mol (333.15 K, thermo 0.6.1 HEOS_FIT) and ethyl lactate 34.0 kmol/h at 37.59 kJ/mol (Trouton, ASSUMED): 22041 kW of latent heat over 2 = 11020.5 kW; the feed S27 and the product S31 both at 373.15 K"}}}}
+  - {id: Q15, title: Concentrator condenser, kind: energy, from: E404.cond, to: CW.e404, state: {design: {duty: {value: 13080.4, provenance: assumed, source: "D-009 hand estimate, closing the step's balance: Q14 11020.5 kW plus the condensate S28 cooled from 373.15 to 323.15 K at 148314 kJ/(h K) = 2059.9 kW: 13080.4 kW (the second effect's vapour condensed at 20 kPa(a) and the condensate subcooled)"}}}}
+  - {id: Q16, title: Product cooler, kind: energy, from: E405.cw, to: CW.e405, state: {design: {duty: {value: 584.8, provenance: assumed, source: "D-009 hand estimate: S31 cooled 373.15 to 313.15 K at 35090 kJ/(h K) = 584.8 kW"}}}}
+  - {id: P1, title: "Medium and lime preparation (agitators, pumps)", kind: energy, from: POWER.prep, to: M101.power, state: {design: {duty: {value: 100, provenance: assumed, source: "D-009: medium, syrup, CSL and milk-of-lime pumps and the medium tank's and slaker's agitators, about 100 kW absorbed, ASSUMED"}}}}
+  - {id: P2, title: Fermenter agitators, kind: energy, from: POWER.ferm, to: R201.power, state: {design: {duty: {value: 1880, provenance: assumed, source: "D-009: agitation at 0.0985 kW per m3 of vessel (SRC-1 `_units.py`, the Reactor default, 0.5 hp per 1000 gal) on the 16 fermenters' 20 656 m3 (16 x 1291 m3, D-010) = 2035 kW while they ferment, 146.07 h of every 158.07 h cycle: 2035 x 146.07 / 158.07 = 1880 kW, the year average"}}}}
+  - {id: P3, title: Cell mass centrifuges, kind: energy, from: POWER.clar, to: S301.power, state: {design: {duty: {value: 300, provenance: assumed, source: "D-009: disc-stack centrifuges on about 105 m3/h of broth, about 300 kW, ASSUMED"}}}}
+  - {id: P4, title: Gypsum filter and vacuum pumps, kind: energy, from: POWER.acid, to: S302.power, state: {design: {duty: {value: 200, provenance: assumed, source: "D-009: belt filter drive, its vacuum pumps and the acidulation tank's agitator, about 200 kW, ASSUMED"}}}}
+  - {id: P5, title: Evaporator pumps and vacuum, kind: energy, from: POWER.evap, to: E401.power, state: {design: {duty: {value: 250, provenance: assumed, source: "D-009: the evaporator's circulation and transfer pumps and the last effect's vacuum pump, about 250 kW, ASSUMED"}}}}
+  - {id: P6, title: Purification pumps and vacuum, kind: energy, from: POWER.pur, to: M401.power, state: {design: {duty: {value: 300, provenance: assumed, source: "D-009: the purification's pumps (feeds, refluxes, recycles) and the vacuum pumps of C-401 and E-404, about 300 kW, ASSUMED; booked on the feed mixer M401 so that no conversion duty carries it"}}}}

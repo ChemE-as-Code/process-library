@@ -1,0 +1,65 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Lactic acid by batch fermentation of glucose with lime, acidulation with sulfuric acid to
+# gypsum, and purification by esterification with ethanol, ester distillation and hydrolysis
+# (DESIGN.md D-001). Lumps (D-004): BIO is the cell mass, carried with the formula CH2O (a
+# glucose equivalent, so that the growth reaction balances; the nitrogen it takes from the
+# nutrients is not carried, limit L-3); NUT is the solids of corn steep liquor (protein and the
+# rest, no formula: a spectator that leaves with the cell mass and the residue). Dissolved salts
+# are carried as neutral salts (calcium lactate, calcium acetate), an inventory basis, not a
+# speciation. Lactic acid is one isomer lump (L-lactic acid, the fermentation product; its
+# optical purity is not modelled).
+#
+# Molar masses from the IUPAC 2021 abridged standard atomic weights applied to the formulas; CAS
+# numbers from PubChem. Normal boiling points from chemicals 1.5.2 `Tb` (single values, facts
+# with their source, library ADR 0037): water 373.12 (method HEOS, CoolProp's reference
+# equation as bundled), ethanol 351.57 (HEOS), acetic acid 391.05 (CRC_ORG, the CRC Handbook
+# table as packaged, not read here), ethyl lactate 427.15 (COMMON_CHEMISTRY, CAS Common
+# Chemistry as packaged, not read here). Lactic acid decomposes before it boils at 1 atm; its
+# boiling point is not used (D-009).
+#
+# liquid_heat_capacity, kJ/(kmol K), used by propagate for the conversion duties (D-009):
+# - water 75.33, ethanol 122.02 at 323.15 K: thermo 0.6.1 method HEOS_FIT (fits to CoolProp's
+#   reference equations of state as bundled by thermo; not read);
+# - acetic acid 135.55 at 323.15 K: thermo 0.6.1 method VDI_TABULAR (the VDI Heat Atlas table as
+#   bundled by thermo, ADR 0037; not read);
+# - sulfuric acid 138.9: thermo 0.6.1 method CRCSTD (the CRC Handbook's standard-state table as
+#   packaged; not read);
+# - CaO 42.10 and Ca(OH)2 87.48 (solids at 298.15 K): thermo 0.6.1 method WEBBOOK_SHOMATE (the
+#   NIST WebBook's Shomate coefficients as packaged; not read); gypsum 195.81 (solid at
+#   298.15 K): thermo 0.6.1 method PERRY151 (Perry's Chemical Engineers' Handbook table 2-151 as
+#   packaged; not read);
+# - thermo 0.6.1 has no heat capacity of lactic acid, ethyl lactate, glucose or the calcium
+#   salts. ASSUMED (D-009): lactic acid and ethyl lactate at acetic acid's 2.257 kJ/(kg K) above
+#   (203.3 and 266.6); glucose, the calcium salts, the cell mass and the CSL solids, which are
+#   dissolved or suspended in water, at water's 4.181 kJ/(kg K) (so the broth's heat capacity is
+#   water's per kg).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: GLC, name: Glucose (dextrose; dissolved), formula: C6H12O6, cas: 50-99-7, molar_mass: 180.156, liquid_heat_capacity: 753.3}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_heat_capacity: 75.33}
+  - {id: LA, name: Lactic acid (L-lactic acid), formula: C3H6O3, cas: 79-33-4, molar_mass: 90.078, liquid_heat_capacity: 203.3}
+  - {id: CALA, name: Calcium lactate (dissolved), formula: C6H10CaO6, cas: 814-80-2, molar_mass: 218.218, liquid_heat_capacity: 912.4}
+  - {id: AA, name: Acetic acid, formula: C2H4O2, cas: 64-19-7, molar_mass: 60.052, normal_boiling_point: 391.05, liquid_heat_capacity: 135.55}
+  - {id: CAAC, name: Calcium acetate (dissolved), formula: C4H6CaO4, cas: 62-54-4, molar_mass: 158.166, liquid_heat_capacity: 661.3}
+  - {id: CAO, name: Calcium oxide (quicklime), formula: CaO, cas: 1305-78-8, molar_mass: 56.077, phase: solid, liquid_heat_capacity: 42.10}
+  - {id: CAOH, name: Calcium hydroxide (hydrated lime), formula: CaH2O2, cas: 1305-62-0, molar_mass: 74.092, phase: solid, liquid_heat_capacity: 87.48}
+  - {id: BIO, name: "Cell mass (lump with the formula CH2O, a glucose equivalent)", formula: CH2O, molar_mass: 30.026, phase: solid, liquid_heat_capacity: 125.5}
+  - {id: NUT, name: "Corn steep liquor solids (protein and other nutrients; lump, no formula)", molar_mass: 100.0, phase: solid, liquid_heat_capacity: 418.1}
+  - {id: H2SO4, name: Sulfuric acid, formula: H2SO4, cas: 7664-93-9, molar_mass: 98.072, liquid_heat_capacity: 138.9}
+  - {id: GYP, name: Gypsum (calcium sulfate dihydrate), formula: CaH4O6S, cas: 10101-41-4, molar_mass: 172.164, phase: solid, liquid_heat_capacity: 195.81}
+  - {id: ETOH, name: Ethanol, formula: C2H6O, cas: 64-17-5, molar_mass: 46.069, normal_boiling_point: 351.57, liquid_heat_capacity: 122.02}
+  - {id: ETLA, name: Ethyl lactate, formula: C5H10O3, cas: 97-64-3, molar_mass: 118.132, normal_boiling_point: 427.15, liquid_heat_capacity: 266.6}
+templates:
+  - id: broth
+    title: Fermentation, acidulation and purification streams
+    components: [GLC, H2O, LA, CALA, AA, CAAC, CAO, CAOH, BIO, NUT, H2SO4, GYP, ETOH, ETLA]
+# property_method is a placeholder: no benchmarked package of core covers the fermentation
+# broth, the calcium salts, the gypsum slurry or lactic acid with its esters and oligomers (limit
+# L-1); `cheme process props --coverage` reports the streams as not covered.
+property_method:
+  adapter: thermo
+  status: placeholder

@@ -1,0 +1,38 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with first sizes from the flowsheet's year-average flows, the recipe and the residence times
+# of DESIGN.md D-010. Design pressures, temperatures and materials are not set yet (basic
+# engineering); the materials named are usual choices for the service, to be confirmed. All
+# values ASSUMED unless a source is named.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: V-101, type: Vessel, service: "Medium tank: glucose syrup, water and corn steep liquor mixed at 323 K",
+     notes: "About 200 m3 (2 h of the 77 t/h medium), stainless steel, agitated; the medium's sterilisation (continuous, steam) is not modelled (limit L-6, D-010)."}
+  - {tag: R-101, type: StirredTankReactor, service: "Lime slaker: quicklime slaked to a 20 wt% milk of lime, cooled to 323 K",
+     notes: "About 40 m3 (1 h of 35 t/h), carbon steel, agitated, with a cooling-water coil (Q1, 820 kW from core's conversion duty, D-006, D-010); milk-of-lime tank and dosing pumps to the fermenters on pH control."}
+  - {tag: R-201, type: StirredTankReactor, service: "Fermenters (16, R-201 A to P), batch, 323 K, pH 5 to 6 held with milk of lime",
+     notes: "16 x about 1291 m3 (1033 m3 of broth per batch at 1070 kg/m3, filled to 80 %, SRC-1's V_wf 0.8), stainless steel 304 (SRC-1's material with neutralisation); cycle 158.07 h each, a batch every 9.88 h (process/recipe.yaml); agitators 0.0985 kW/m3 (SRC-1), cooling-water coils or jackets for Q2 (7.1 MW in all, core's conversion duty including the agitators' work); the seed train is not listed (limit L-3, D-003, D-010)."}
+  - {tag: T-201, type: Tank, service: "Broth hold tank: the batch harvests buffered to the continuous downstream",
+     notes: "About 2500 m3 (one harvest of 1033 m3 plus 12 h of the 105 m3/h downstream feed), stainless steel, agitated to keep the cells and excess lime suspended, kept at 323 K or above (calcium lactate's solubility, D-005, D-010); not a flowsheet step (it changes no composition)."}
+  - {tag: S-301, type: Centrifuge, service: "Cell mass centrifuges (disc-stack), 105 m3/h of broth",
+     notes: "Several machines in parallel, stainless steel; cake at 35 wt% moisture (SRC-1), 0.9 t/h (D-006); power about 300 kW in all (P3, ASSUMED)."}
+  - {tag: R-301, type: StirredTankReactor, service: "Acidulation tank: sulfuric acid 93 wt% added to the clarified broth, gypsum precipitated",
+     notes: "About 150 m3 (1 h residence, SRC-1's tau 1 h, on 113 m3/h), stainless steel 316 (SRC-1) or lined, agitated; cooling coil for Q3 (237 kW, core's conversion duty with the heats of reaction ASSUMED 0, limit L-5, D-007)."}
+  - {tag: S-302, type: Filter, service: "Gypsum belt filter (vacuum), cake at 20 wt% moisture",
+     notes: "16.1 t/h of gypsum, 20.2 t/h of wet cake (SRC-1's moisture 0.2); stainless steel; no cake wash, so 3.9 % of the lactic acid leaves with the cake liquid (D-007); vacuum pumps and drive about 200 kW (P4, ASSUMED)."}
+  - {tag: E-401, type: Evaporator, service: "Four-effect evaporator with surface condenser: 81 t/h of water off the crude acid to about 71 wt% lactic acid",
+     notes: "Falling-film effects in stainless steel 316, the first on LP steam (Q4, 13.7 MW), the last condensed on cooling water (Q5, 14.5 MW), hand estimates (D-009); the acetic acid leaves with the condensate; gypsum scaling as the solution concentrates (D-012)."}
+  - {tag: R-401, type: Column, service: "Esterification by reactive distillation: lactic acid with ethanol on Amberlyst-15 packing at about 351 K",
+     notes: "Catalytic packing with Amberlyst-15 (SRC-1's catalyst), stainless steel 316; 98 % of the lactic acid esterified (ASSUMED, D-008); its separation duty is booked on C-401 (the model splits the column into the conversion R401 and the separation C401); feed heating Q6 (core's conversion duty)."}
+  - {tag: C-401, type: Column, service: "Ester column at 20 kPa(a): ethyl lactate, ethanol and water overhead, the residue (sugar, acid, salts) at the bottom",
+     notes: "Reboiler on MP steam (Q7, 12.1 MW) and condenser on cooling water (Q8, 12.5 MW) at reflux ratio 1 (ASSUMED), hand estimates (D-009); bottoms at about 423 K; residue 3.1 t/h purged (D-008)."}
+  - {tag: C-402, type: Column, service: "Ethanol recovery column at 1 atm: ethanol at about 91 wt% overhead to the esterifier",
+     notes: "Reboiler on LP steam (Q9, 5.1 MW), condenser on cooling water (Q10, 4.2 MW) at reflux ratio 3 (ASSUMED), hand estimates (D-009)."}
+  - {tag: R-402, type: StirredTankReactor, service: "Hydrolysis reactor: ethyl lactate with 12 mol of water per mol at 363 K",
+     notes: "About 260 m3 (4 h residence, SRC-1's tau, on 59 t/h at about 1000 kg/m3, 90 % full), stainless steel 316; 80 % of the ester hydrolysed (SRC-1); heating Q11 (528 kW, core's conversion duty, D-008)."}
+  - {tag: C-403, type: Column, service: "Ethanol stripper on the hydrolysate at 1 atm: ethanol at about 92 wt% overhead to the esterifier",
+     notes: "Reboiler on LP steam (Q12, 6.1 MW), condenser on cooling water (Q13, 5.8 MW) at reflux ratio 2 (ASSUMED), hand estimates (D-009)."}
+  - {tag: E-404, type: Evaporator, service: "Product concentrator, two effects, the last at 20 kPa(a): water, ester and ethanol off to 88 wt% lactic acid",
+     notes: "Stainless steel 316 or better for hot concentrated lactic acid; LP steam Q14 (11.0 MW) and condenser Q15 (13.1 MW), hand estimates (D-009); the condensate returns to the hydrolysis, 2.9 % purged (D-008)."}
+  - {tag: E-405, type: HeatExchanger, service: "Product cooler on cooling water, 373 to 313 K",
+     notes: "585 kW (Q16, hand estimate); stainless steel 316."}

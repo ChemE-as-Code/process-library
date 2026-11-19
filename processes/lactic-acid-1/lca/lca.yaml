@@ -1,0 +1,132 @@
+# Goal and scope of the lactic-acid-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit
+# those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-011): every exchange of the plant
+# with its amount per kg of the 88 wt% product, from the flowsheet's design case (the recipe's
+# year averages), and the fermenters' cleaning per batch (consumables, library ADR 0035). The
+# backgrounds are left unmapped (`missing:` with the activity each should connect to), except
+# where lca/mappings.yaml links a library producer or a shared entry: a gap, never zero, and no
+# values from licensed databases. Glucose syrup and corn steep liquor have no library producer.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of lactic acid (88 wt% solution) made by batch
+  fermentation of glucose with lime, acidulation with sulfuric acid to gypsum and purification
+  through ethyl lactate, at the concept stage: which raw materials, utilities and wastes the plant
+  exchanges per kg of product, as the foreground for a later cradle-to-gate study. No impact
+  results: most backgrounds are not mapped yet (D-011).
+functional_unit: {product: LAP, amount: 1, unit: kg, source: "1 kg of lactic acid solution, 88.1 wt% lactic acid (0.881 kg of lactic acid), at the plant gate to storage, stream S32 (D-002, D-011)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as biodiesel-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch fermentation of a 70 wt% glucose syrup with corn steep liquor at 323 K in 16 fermenters (130 g/L, 0.89 g/(L h), 12 h turnaround), pH held with milk of lime; cell mass centrifuged; calcium lactate acidulated with 93 wt% sulfuric acid, gypsum filtered; four-effect evaporation; esterification with ethanol by reactive distillation on Amberlyst-15, ester distillation at 20 kPa(a), ethanol recovery, hydrolysis with water and concentration to 88 wt%; 100 000 t/a of lactic acid in 8000 h/a"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # raw materials
+  - key: feed:GLCF
+    missing: "not mapped yet (D-011); no library process makes glucose. Connect to: glucose (dextrose) syrup from corn starch by wet milling, enzymatic liquefaction and saccharification, refining and evaporation to 70 wt% dry substance, per kg of syrup"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:CSLF
+    missing: "not mapped yet (D-011); no library process makes corn steep liquor. Connect to: corn steep liquor, the concentrated steep water of corn wet milling (a co-product of starch), per kg"
+    source: "flowsheet stream S3 (D-005)"
+  - key: feed:LIMEF
+    missing: "linked to processes/lime-1 (lca/mappings.yaml): quicklime"
+    source: "flowsheet stream S4 (D-006)"
+  - key: feed:ACIDF
+    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt%, kg for kg of the 93 wt% acid (conservative by 5.6 %)"
+    source: "flowsheet stream S11 (D-007)"
+  - key: feed:ETOHF
+    missing: "linked to processes/bioethanol-1 (lca/mappings.yaml): anhydrous ethanol 99.5 wt%"
+    source: "flowsheet stream S17 (D-008)"
+  - key: feed:PW
+    missing: "not mapped yet (D-011); connect to: process water (softened) from the site water treatment, per kg"
+    source: "flowsheet streams S2 (medium water) and S5 (slaking water), D-005, D-006"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-011); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 to P6 (D-009)"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q4 (evaporator), Q9 (ethanol column), Q12 (stripper), Q14 (concentrator), hand estimates, and Q6 (esterifier) and Q11 (hydrolysis), core's conversion duties (D-009)"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1000 kPa(a), from a natural-gas-fired site boiler, per kWh of condensing heat"
+    source: "flowsheet energy stream Q7 (the ester column's reboiler, hand estimate, D-008, D-009)"
+  - key: product:CW
+    missing: "not mapped yet (D-011); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q1, Q2, Q3, Q5, Q8, Q10, Q13, Q15 and Q16 (D-009)"
+  # wastes
+  - key: product:GYPC
+    treatment: {kind: waste, route: "the gypsum filter cake (20 wt% moisture, with the lactic acid, sugar and acetic acid its liquid holds) to landfill or to use as gypsum (D-007); not credited"}
+    missing: "not mapped yet (D-011); connect to: disposal of gypsum (calcium sulfate dihydrate) in an inert-material or residual-material landfill, per kg of wet cake"
+    source: "flowsheet stream S13 (D-007)"
+  - key: product:CELL
+    treatment: {kind: waste, route: "the cell mass cake (cell mass, CSL solids, 35 wt% moisture) to anaerobic digestion or to animal feed (D-006)"}
+    missing: "not mapped yet (D-011); connect to: anaerobic digestion of a biowaste with a high organic content, per kg of wet cake"
+    source: "flowsheet stream S9 (D-006)"
+  - key: product:RES
+    treatment: {kind: waste, route: "the ester column's residue (residual glucose, unconverted lactic acid, sulfuric acid, fine gypsum) to anaerobic digestion (D-008)"}
+    missing: "not mapped yet (D-011); connect to: anaerobic digestion of a concentrated sugar residue, per kg (a high-strength organic wastewater)"
+    source: "flowsheet stream S23 (D-008)"
+  - key: product:WW
+    treatment: {kind: waste, route: "the evaporator's condensate (about 1.4 wt% acetic acid) and the hydrolysis-water purge (ethyl lactate, ethanol) to the site's biological wastewater treatment (D-008)"}
+    missing: "not mapped yet (D-011); connect to: treatment of wastewater with an organic load in an industrial biological plant, per kg (processes/utility-wwtp)"
+    source: "flowsheet streams S15 and S30 (D-008)"
+# What the fermenters use per batch and the flowsheet does not carry (library ADR 0035, core ADR
+# 0053), converted with the recipe's batches per year (process/recipe.yaml).
+consumables:
+  - id: cip-water
+    title: Rinse water of the fermenters' cleaning in place
+    unit: kg
+    per_batch: 20000
+    source: "20 m3 of rinse water per fermenter cleaned (about 1.5 % of its 1291 m3), ASSUMED (D-003); the cleaning solution itself is recovered and reused, its make-up not estimated"
+    missing: "not mapped yet (D-011); connect to: process water (softened) from the site water treatment, per kg; the rinse goes to the wastewater treatment"
+    disposal:
+      kind: waste
+      route: "the spent rinse water to the site's biological wastewater treatment (D-003)"
+      source: "the rinse leaves as it came, its mass as used (D-003)"
+      missing: "not mapped yet (D-011); connect to: treatment of wastewater with an organic load in an industrial biological plant, per kg (processes/utility-wwtp)"
+  - id: cip-caustic
+    title: Sodium hydroxide make-up of the cleaning in place
+    unit: kg
+    per_batch: 50
+    source: "50 kg of NaOH (as 100 %) lost per fermenter cleaned, ASSUMED (D-003)"
+    missing: "not mapped yet (D-011); connect to: sodium hydroxide, 50 wt% solution, from chlor-alkali electrolysis (processes/chlor-alkali-1), per kg of NaOH"
+    disposal:
+      kind: waste
+      route: "the spent caustic, neutralised, to the site's biological wastewater treatment (D-003)"
+      source: "the caustic lost leaves with the rinse, its mass as used (D-003)"
+      missing: "not mapped yet (D-011); connect to: treatment of wastewater with an organic load in an industrial biological plant, per kg (processes/utility-wwtp)"
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED, the recipe's hours, D-002); 20 a service life ASSUMED"
+carbon_accounting:
+  content:
+    "feed:GLCF":
+      biogenic_fraction: 1.0
+      source: "D-011: glucose from corn starch, all its carbon from the plant"
+    "feed:CSLF":
+      biogenic_fraction: 1.0
+      source: "D-011: corn steep liquor, from corn"
+    "feed:ETOHF":
+      biogenic_fraction: 1.0
+      source: "D-011: fuel ethanol from corn (bioethanol-1)"
+  source: "D-011: the carbon of the product, the cell mass, the residue and the acetic acid comes from the glucose, the corn steep liquor and the bio-ethanol; no fossil carbon enters the process streams"
+emission_exclusions:
+  - {id: ethanol-vents, method: storage-tank, equipment: [R-401, C-401, C-402, C-403, R-402, E-404], reason: "No P&ID yet: the vents of the ethanol-bearing columns, reactors and drums (and the vacuum pumps of C-401 and E-404) carry ethanol vapour; to a vent condenser, not estimated at the concept stage (D-012)."}
+  - {id: lime-and-acid-vents, method: storage-tank, equipment: [R-101, R-301], reason: "The lime slaker gives off steam and lime dust and the acidulation tank holds a hot slurry with traces of acetic acid; vented to a scrubber or dust filter, not estimated at the concept stage (D-012)."}
+  - {id: fermenter-vents, method: storage-tank, equipment: [R-201, T-201], reason: "The fermenters breathe sterile air at filling and harvest; homofermentative lactic acid bacteria give off little gas and the model carries none (D-005, limit L-3); not estimated."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic site beside a corn wet mill or sugar refinery, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #517, unreviewed"

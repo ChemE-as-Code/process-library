@@ -1,0 +1,111 @@
+# Process Atlas manifest of lactic-acid-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: lactic-acid-1
+title: Lactic acid by fermentation of glucose, gypsum route and ethyl lactate purification (100 000 t/a)
+summary: >-
+  Glucose syrup fermented in batches at 50 C with the pH held by milk of lime, the cell mass
+  centrifuged off, the calcium lactate acidulated with sulfuric acid and the gypsum filtered,
+  the crude acid evaporated, esterified with ethanol, the ester distilled and hydrolysed back
+  to lactic acid, concentrated to 88 wt%. Concept stage, 12 500 kg/h of lactic acid,
+  preliminary gate-to-gate LCI.
+description: |
+  A 70 wt% glucose syrup, diluted with water and fed corn steep liquor (10 g/L), is fermented
+  by lactic acid bacteria in 16 batch fermenters at 323 K (50 C), the pH held at 5 to 6 by milk
+  of lime slaked on site from quicklime. Following the open BioSTEAM lactic biorefinery (SRC-1),
+  0.76 of the glucose goes to lactic acid, 0.07 to acetic acid and 0.02 to cell mass, to a titer
+  of 130 g/L at 0.89 g/(L h): 146 h of fermentation and a 12 h turnaround, so a batch is
+  harvested every 9.9 h. The cell mass is centrifuged off, the calcium lactate is acidulated
+  with 93 wt% sulfuric acid (1.01 mol per mol of calcium) and the gypsum is filtered off at
+  20 wt% moisture. A four-effect evaporator takes the crude acid to about 71 wt%. The acid is
+  esterified with ethanol (1.5 mol per mol) by reactive distillation on Amberlyst-15 (98 %,
+  ASSUMED). The ethyl lactate is distilled off the residue of sugars and salts at 20 kPa(a), the
+  ethanol is recovered, and the ester is hydrolysed with 12 mol of water per mol (80 % per pass,
+  SRC-1). The ethanol is stripped and recycled, and the product is concentrated to 88 wt% lactic
+  acid (SRC-2), with the water and the unconverted ester returned to the hydrolysis.
+
+  The flowsheet is solved by cheme-as-code's propagate: the glucose syrup for 100 000 t/a of
+  lactic acid, the medium water for the titer, the ethanol make-up for its ratio and the
+  hydrolysis recycle for its water ratio as design specifications, three recycles converged as
+  tears, the reactors on their conversions and the centrifuge, filter, evaporators and columns
+  as component separators on ASSUMED recoveries. The fermenters' batch cycle is a recipe whose
+  year averages the flowsheet holds. The reactors' duties are core's, the separations' duties
+  hand estimates. Per kg of lactic acid (as 100 %): 1.40 kg of glucose, 0.42 kg of quicklime,
+  0.75 kg of sulfuric acid (as 100 %), 1.61 kg of wet gypsum cake, 3.9 kWh of steam heat and
+  0.24 kWh of power (unallocated); 92 % of the lactic acid formed reaches the product. See
+  DESIGN.md for every assumption.
+families: [bio-based-chemicals]
+keywords: [lactic acid, PLA monomer, fermentation, lactic acid bacteria, glucose, dextrose, calcium lactate, lime, gypsum, acidulation, sulfuric acid, evaporation, esterification, ethyl lactate, reactive distillation, Amberlyst-15, hydrolysis, ethanol recycle, batch fermenter, recipe]
+facets:
+  feedstock_basis: [biogenic, mineral, electricity]
+  product_classes: [chemicals]
+  unit_operations: [fermentation, reaction, centrifugation, filtration, evaporation, distillation, reactive-distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, hours, recoveries of the
+# separations, the esterification conversion, temperatures and pressures and the separations'
+# duties are assumed; the fermentation, acidulation and hydrolysis data from SRC-1 (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD of a batch fermentation train with continuous downstream, with closed mass and
+    component balances (cheme validate clean; cheme process streams: 5 blocks and 17 steps
+    within tolerance; the recycles torn at S18, S19 and S29 converge). The glucose syrup S1, the
+    medium water S2, the ethanol make-up S17 and the hydrolysis purge split are solved by cheme
+    process propagate for four design specifications: 100 000 t/a of lactic acid in S32 in
+    8000 h, calcium lactate 0.14716 kg/kg in the broth S8 (130 g/L at 1070 kg/m3), 1.5 mol of
+    ethanol per mol of lactic acid in S20 and 12 mol of water per mol of ester in S25; CSL,
+    quicklime, slaking water and sulfuric acid follow the syrup at fixed ratios. The batch
+    recipe (16 fermenters, 158.07 h each, a batch every 9.88 h, 809.8 batches/a of 1106 t) holds
+    the flowsheet's year average of S8 (cheme process recipe). Fermentation, acidulation and
+    hydrolysis conversions from SRC-1; esterification 98 % ASSUMED (reactive distillation);
+    centrifuge, filter, evaporators and columns on ASSUMED recoveries (core's component
+    separators), the cakes' moisture from SRC-1. Duties of R101, R201, R301, R401 and R402
+    written by propagate from heats of reaction (some ASSUMED 0) and heat capacities; the
+    evaporators', columns' and cooler's duties are hand estimates closing each step's balance
+    (DESIGN.md D-009). No property package of core covers these liquids; no heat integration.
+    Preliminary gate-to-gate LCI with no allocation (one product); quicklime linked to lime-1,
+    sulfuric acid to sulfuric-acid-1, ethanol to bioethanol-1, LP and MP steam as heat; glucose
+    syrup and corn steep liquor gaps. cheme maturity reaches no level (assumed separations);
+    the claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
+    reviewed. Needs cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: glucose, role: feedstock, inventory_key: "feed:GLCF", note: "Glucose syrup 70 wt% (dextrose from corn starch; no library process, gap), 1.768 kg/kg of product, 1.404 kg of glucose per kg of lactic acid"}
+    - {chemical: corn-steep-liquor, role: feedstock, inventory_key: "feed:CSLF", note: "Corn steep liquor, 10 g per litre of broth (SRC-1), 0.072 kg/kg; no library process, gap"}
+    - {chemical: calcium-oxide, role: feedstock, inventory_key: "feed:LIMEF", note: "Quicklime (lime-1), slaked to milk of lime on site, 0.373 kg/kg: the acids formed plus 10 % (SRC-1)"}
+    - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:ACIDF", note: "Sulfuric acid 93 wt% (sulfuric-acid-1), 0.708 kg/kg, 1.01 mol per mol of the lime's calcium"}
+    - {chemical: ethanol, role: feedstock, inventory_key: "feed:ETOHF", note: "Ethanol make-up (bioethanol-1), 9.3 g/kg: the ethanol that leaves with the hydrolysis purge and the residue"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water for the medium and the lime slaking, 5.67 kg/kg"}
+  outputs:
+    - {chemical: lactic-acid, role: main-product, inventory_key: "product:LAP", note: "Lactic acid 88 wt% solution (modelled 88.1 wt% lactic acid, 0.6 wt% ethyl lactate, 0.1 wt% acetic acid, the rest water), to storage"}
+    - {chemical: gypsum, role: waste, inventory_key: "product:GYPC", note: "Gypsum filter cake at 20 wt% moisture, 1.42 kg/kg, to disposal or use (not credited, D-007)"}
+    - {chemical: cell-mass, role: waste, inventory_key: "product:CELL", note: "Cell mass and CSL solids at 35 wt% moisture, 0.062 kg/kg, to anaerobic digestion"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:RES", note: "Ester column residue (82 wt% residual glucose, unconverted lactic acid, sulfuric acid), 0.216 kg/kg, to anaerobic digestion"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Evaporator condensate (about 1.4 wt% acetic acid) and the hydrolysis-water purge, 5.90 kg/kg, to biological treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.214 kWh/kg: fermenter agitators (SRC-1's 0.0985 kW/m3), centrifuges, filter, pumps, vacuum pumps (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "2.58 kWh/kg of LP steam 450 kPa(a): evaporator, ethanol column, stripper, concentrator (hand estimates), esterifier and hydrolysis (core's conversion duties)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.855 kWh/kg of MP steam 1000 kPa(a): the ester column's reboiler (hand estimate)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "4.15 kWh/kg removed by cooling water: fermenters, slaker, acidulation, condensers, product cooler"}
+basis:
+  capacity: "100 000 t/a of lactic acid (as 100 %) in an 88 wt% solution, 12 500 kg/h in 8000 h/a; the fermentation in 809.8 batches/a of 1106 t of broth in 16 fermenters on a dedicated train (ASSUMED, DESIGN.md D-002, D-003)"
+  operating_hours_per_year: 8000
+  location: generic site beside a corn wet mill or sugar refinery (not chosen)
+references:
+  - {title: "SRC-1: Li, Y.; Bhagwat, S. S.; Cortes-Pena, Y. R. et al., BioSTEAM lactic biorefinery (Bioindustrial-Park, biorefineries/lactic; MIT licence): README.rst, _units.py (CoFermentation, AcidulationReactor, Esterification, HydrolysisReactor), _processes.py (create_separation_process), _chemicals.py, _process_settings.py, utils.py, systems.py; the model of Li et al. 2021, ACS Sustainable Chem. Eng. 9, 1341-1351 (the paper not read here)", url: "https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/biorefineries/lactic"}
+  - {title: "SRC-2: Garrido, R.; Cabeza, L. F.; Falguera, V. (2023) Lactic Acid Production from Cow Manure: Technoeconomic Evaluation and Sensitivity Analysis. Fermentation 9, 901 (CC BY 4.0): process parameters p. 5 (Table 3: 50 C, 92 % recovery, 88 % w/w product), recovery route p. 8, mass balance p. 11 (Table 4), variable costs p. 13 (Table 6)", doi: 10.3390/fermentation9100901}
+  - {title: "Bell, C. et al. thermo 0.6.1 and chemicals 1.5.2 (MIT): heat capacities, formation enthalpies, heats of vaporisation and boiling points of single components (methods named in DESIGN.md SRC-4; library ADR 0037)", url: "https://github.com/CalebBell/thermo"}
+  - {title: "Wikipedia, 'Glucose' (enthalpy of formation -1271 kJ/mol, citing Ponomarev and Migarskaya 1960) and 'Calcium lactate' (solubility), read 2026-11-19 (secondary sources, ASSUMED)", url: "https://en.wikipedia.org/wiki/Glucose"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/lactic-acid-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
