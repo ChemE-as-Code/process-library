@@ -1,0 +1,15 @@
+# polyamide-66-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI links the adipic acid to its library producer, counts the hot oil as heat
+# from natural gas (as polystyrene-1) and the LP steam as heat delivered (kWh), and links the
+# nitrogen to asu-1; the diamine (no library producer), the water, power, cooling and
+# wastewater backgrounds are gaps (DESIGN.md D-012).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:AAF": {dataset: {path: processes/adipic-acid-1/lca/datasets/adipic-acid-ka-nitric-catalytic-n2o-abatement.yaml, product: "product:adipic-acid"}, source: "the Atlas producer adipic-acid-1, adipic acid from cyclohexane via KA oil and nitric acid oxidation with catalytic N2O decomposition (the abated of its two datasets: its README records that German production removed about 86 to 94 % of the N2O in 2001 to 2007, so the unabated one is not current practice there); kg for kg (D-004, D-012)"}
+  "feed:HOTOIL": {use: heat-natural-gas, source: "hot oil from a natural-gas-fired heater, counted as the heat absorbed (kWh), as polystyrene-1 and hda-1 count their fired heat; the background heat activity includes the combustion (EU POL BREF section 9.3.3.4: the diathermic oil heaters' fumes) (D-009)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to the dissolver's jacket (Q2), counted as heat delivered (kWh), D-009"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)), as polystyrene-1 links its blanket nitrogen; the blankets, purges and extrusion need a few bar (D-012)"}

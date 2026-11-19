@@ -1,0 +1,20 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes per batch from the recipe (D-003: 5303.03 kg of pellets every 5.25 h, 1508.6 batches a
+# year) and the models; design pressures, temperatures and materials are not set yet (basic
+# engineering); the materials named are usual choices for hot salt solutions and polyamide melt,
+# to be confirmed (open input). All values ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: T-101, type: Tank, service: "Hexamethylenediamine tank: the diamine kept molten at 333 K under nitrogen",
+     notes: "Heated (the diamine melts at 314.15 K), nitrogen-blanketed (the diamine takes up CO2 and oxygen; SRC-1 keeps the salt under nitrogen), vented through a water scrubber (D-004, D-010); at least one batch's 2.73 t; stainless steel."}
+  - {tag: R-101, type: StirredTankReactor, service: "Salt dissolver: adipic acid slurried in water and warmed to 338 K (M101, E101), molten diamine dosed into it (R101)",
+     notes: "16 m3 (R10 preferred size, 67 % full with 10.8 m3 of salt solution) as the recipe sizes it from R101's semi-batch model (core ADR 0052); jacket on LP steam for the warming (Q2 58.7 kW year average) and on cooling water for the neutralisation (Q1 122.0 kW year average, core's semi-batch model); the diamine dosed over 2 h, interlocked with the temperature and the agitator (D-005, D-011); vented to the scrubber under a nitrogen blanket; stainless steel."}
+  - {tag: T-102, type: Tank, service: "AH salt solution tank (52 wt%, 338 K, nitrogen blanket) between the dissolver and the autoclave",
+     notes: "Not a flowsheet step (it holds the solution without changing it): one to two batches, about 25 m3, heated to keep the salt dissolved, nitrogen-blanketed (SRC-1) (D-003, D-005); stainless steel."}
+  - {tag: R-201, type: StirredTankReactor, service: "Autoclave: concentration to 70 wt% salt at about 383 K (X201), heating to 548 K with the steam bled at 1750 kPa(a) (R201), depressurisation and finishing at atmospheric pressure (X202), extrusion with nitrogen",
+     notes: "16 m3 (R10 preferred size), sized by hand from the 52 wt% charge: about 11.8 t a batch at an ASSUMED 1100 kg/m3 is 10.7 m3, 67 % full at the charge (core sizes no vessel over separators and a conversion step, L-4; D-003); jacket and coils on hot oil 593/573 K: Q3 437.9 kW (concentration), Q4 87.8 kW (heating and polycondensation, core's conversion duty) and Q5 286.8 kW (steam bleed and finishing), year averages (D-009); design pressure above the 1750 kPa(a) bleed (ASSUMED 25 bar(g)), design temperature 573 K (the MTT, D-011); steam bleed through a pressure control valve to E-201; the bottleneck (5.25 h a batch); stainless steel (hot salt solution and melt)."}
+  - {tag: E-201, type: HeatExchanger, service: "Autoclave vapour condenser: the steam of the concentration and of the bleed condensed and cooled to 313 K",
+     notes: "Q6 870.8 kW year average (scripts/balance.py), much higher while the autoclave bleeds; the peak sets the area (open input); condensate to a tank and the wastewater treatment (D-009, D-010); non-condensables to the scrubber; stainless steel."}
+  - {tag: X-301, type: Package, service: "Pelletising line: strand die, water quench bath, strand cutter, centrifugal surface dryer, pneumatic conveying to the silos",
+     notes: "Takes one batch's melt in 0.75 h (about 7.1 t/h while it runs); the quench water's heat, Q7 164.0 kW year average, to cooling water (scripts/balance.py); power 40 kW year average (D-007, D-009); pellets dried under nitrogen in the silos (SRC-1), not modelled (D-007)."}

@@ -1,0 +1,91 @@
+# Components and templates of polyamide-66-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Molar masses in kg/kmol from the IUPAC 2021 abridged standard atomic
+# weights applied to the formula (C 12.011, H 1.008, N 14.007, O 15.999); normal boiling and
+# melting points in K at 101.325 kPa.
+#
+# Property sources (DESIGN.md source register SRC-3 to SRC-5; every package value is a single
+# fact with the package and its method named, library ADR 0037):
+# - water: normal boiling point 373.12 K (chemicals 1.5.2, method HEOS: IAPWS-95), heat of
+#   vaporization 40 650 kJ/kmol at 373.15 K (thermo 0.6.1, method HEOS_FIT, its fit to
+#   IAPWS-95: 40 649.7), liquid heat capacity 75.4 kJ/(kmol K) at 338.15 K (thermo 0.6.1,
+#   HEOS_FIT: 75.44); liquid molar volume from 1000 kg/m3, ASSUMED (the salt solution's warm
+#   water is about 2 % lighter).
+# - hexamethylenediamine (HMDA): normal boiling point 470.15 K (chemicals 1.5.2, method
+#   CRC_ORG, the CRC Handbook's organic table as packaged), melting point 314.15 K (chemicals
+#   1.5.2, method OPEN_NTBKM, the Open Notebook melting point set); liquid heat capacity 256.1
+#   kJ/(kmol K) at 338.15 K (thermo 0.6.1, method DADGOSTAR_SHAW, the Dadgostar-Shaw
+#   estimation from the formula, not a measurement); density 840 kg/m3 (Wikipedia,
+#   Hexamethylenediamine, SRC-4).
+# - adipic acid (AA): melting point 426.15 K (chemicals 1.5.2, OPEN_NTBKM), density 1360
+#   kg/m3 of the crystals (Wikipedia, Adipic acid, SRC-4); heat capacity 175.4 kJ/(kmol K)
+#   (thermo 0.6.1, method LASTOVKA_S, Lastovka's solid estimation at 298.15 K): the acid is a
+#   solid and then dissolves as it is neutralised (D-005).
+# - AH salt (hexamethylenediammonium adipate, AHSALT): no open density or heat capacity of the
+#   salt or its solution was read; its liquid heat capacity is ASSUMED the sum of the acid's
+#   and the diamine's above (431.5 kJ/(kmol K)), its molar volume ASSUMED from 1200 kg/m3 as
+#   dissolved (D-005, D-006).
+# - polyamide 66 (PA66) is written per kmol of its repeat unit C12H22N2O2 (the registry's
+#   polymer rule, docs/registry.md), 226.32 kg/kmol, so that AHSALT -> PA66 + 2 H2O closes
+#   the element balance; the chain's own molar mass does not enter the balance (D-006). Melt
+#   density 1000 kg/m3, the value Nisoli et al. assume for the melt (SRC-2: from Van
+#   Krevelen's amorphous 1.07 g/cm3 and about 10 % expansion on melting); the solid's 1140
+#   kg/m3 (Wikipedia, Nylon 66, SRC-4) is for the pellets. Its melt heat capacity, 2.6 kJ/(kg
+#   K) = 588.4 kJ/(kmol K), is ASSUMED: no open measured value was read (D-006, L-3).
+# - Heat capacities are taken as constant (core uses one value per component).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: AA
+    name: Adipic acid
+    formula: C6H10O4
+    cas: 124-04-9
+    molar_mass: 146.142
+    normal_boiling_point: 610.65
+    melting_point: 426.15
+    liquid_molar_volume: 0.10746
+    liquid_heat_capacity: 175.4
+  - id: HMDA
+    name: Hexamethylenediamine (hexane-1,6-diamine)
+    formula: C6H16N2
+    cas: 124-09-4
+    molar_mass: 116.208
+    normal_boiling_point: 470.15
+    melting_point: 314.15
+    liquid_molar_volume: 0.13834
+    liquid_heat_capacity: 256.1
+  - id: AHSALT
+    name: AH salt (hexamethylenediammonium adipate, nylon salt)
+    formula: C12H26N2O4
+    cas: 3323-53-3
+    molar_mass: 262.350
+    liquid_molar_volume: 0.21863
+    liquid_heat_capacity: 431.5
+  - id: PA66
+    name: Polyamide 66 (per repeat unit C12H22N2O2)
+    formula: C12H22N2O2
+    cas: 32131-17-2
+    molar_mass: 226.320
+    liquid_molar_volume: 0.22632
+    liquid_heat_capacity: 588.4
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    melting_point: 273.15
+    liquid_molar_volume: 0.018015
+    liquid_heat_capacity: 75.4
+    heat_of_vaporization: 40650
+templates:
+  - {id: salt, title: "Adipic acid, hexamethylenediamine, AH salt and water (charge, salt solution)", components: [AA, HMDA, AHSALT, H2O]}
+  - {id: melt, title: "Polyamide 66 melt and pellets (with the salt's unreacted end groups, residual water and diamine)", components: [PA66, AHSALT, AA, HMDA, H2O]}
+  - {id: vapour, title: "Steam from the autoclave and its condensate (water with the diamine stripped; the salt, acid and polymer listed at zero)", components: [H2O, HMDA, AA, AHSALT, PA66]}
+  - {id: hmda, title: Hexamethylenediamine (molten), components: [HMDA]}
+  - {id: acid, title: Adipic acid (crystals), components: [AA]}
+  - {id: water, title: Demineralised water, components: [H2O]}
+# property_method is a placeholder: no benchmarked package of core covers the salt, the polymer
+# or HMDA (`cheme process props --coverage`), so no stream property is calculated (L-3).
+property_method:
+  adapter: thermo
+  status: placeholder

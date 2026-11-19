@@ -1,0 +1,417 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Polyamide 66 by batch melt polycondensation of AH salt in an autoclave (EU POL BREF 2006,
+# section 9.2.2.3; DESIGN.md D-001), a batch plant: adipic acid is slurried in demineralised
+# water (M101) and warmed to 338 K (E101) in the salt dissolver R-101; molten hexamethylenediamine
+# is dosed into it (R101, a semi-batch neutralisation) to a 52 wt% AH salt solution with a small
+# diamine excess. The autoclave R-201 takes one batch of the solution: it first evaporates water
+# to 70 wt% salt at about 383 K (X201), then heats the mass to 548 K at a steam-bleed pressure
+# of 1750 kPa(a) while the salt polycondenses (R201), is depressurised to atmospheric and
+# finished, all water but 0.2 wt% and the free diamine leaving as steam (X202). The melt is
+# extruded as strands, water-quenched and cut to pellets (E301). The autoclave's vapours are
+# condensed (M201, E201) and go to the site wastewater treatment.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - conditions: EU POL BREF section 9.2.2 (SRC-1) and the design basis, else ASSUMED (D-002 to
+#   D-009);
+# - the feeds: one design specification (core ADR 0070): the adipic acid S1 for 8000 t/a of
+#   pellets, the water S2 and the diamine S4 following it at fixed ratios (52 wt% salt, SRC-1;
+#   the diamine's excess the loss to the steam, D-004);
+# - R101: cheme's semi-batch model (the rate law of NEUT, D-005); R201: a conversion step
+#   (POLY, D-006); X201, X202: component separators with a specified split (core ADR 0070);
+#   M101, M201: mixers; E101, E201, E301: pass-through steps; all calculated by `cheme process
+#   propagate --fill`, with the duties core's models give (R101's and R201's, core ADR 0059);
+# - the duties core does not write (E101's warming, the evaporation heats of X201 and X202,
+#   the condenser E-201 and the strand quench E301): scripts/balance.py (library ADR 0027,
+#   D-009); the drives' power: ASSUMED year averages (D-009).
+schema: cheme/process/v1
+kind: flowsheet
+title: Polyamide 66 by batch autoclave polycondensation of AH salt (8000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 8000 t/a polyamide 66 pellets, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+specs:
+  - id: rate
+    vary:
+      stream: S1
+      initial: 650.0
+      with: {S2: 1.652875, S4: 0.799344}
+    target: {stream: S11, quantity: annual, value: 8000, unit: t}
+    provenance: assumed
+    source: "8000 t/a of polyamide 66 pellets, ASSUMED (D-002); per kg of adipic acid: water 1.652875 kg, so that the salt solution S5 holds 52.0 wt% AH salt (SRC-1: 52 to 53 %), and hexamethylenediamine 0.799344 kg, 1.005247 mol per mol of acid: the 0.5247 % excess is the diamine stripped with the steam, 2.69 kg per t of pellets (D-004, D-010)"
+
+feeds:
+  - {id: AAF, title: Adipic acid (adipic-acid-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HMDAF, title: "Hexamethylenediamine, molten (bought in)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DW, title: Demineralised water (salt solution), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: e301, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-95 (chemicals 1.5.2 iapws95_Tsat: 412.01 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+  - id: HOTOIL
+    title: Hot oil 593/573 K (natural-gas-fired heater)
+    category: utility
+    utility:
+      kind: hot_oil
+      level: hot-oil circuit 593/573 K
+      supply_temperature: {value: 593.15, provenance: assumed, source: "D-009: hot oil 320 C supply, 45 K above the mass's final 548.15 K (SRC-1: about 275 C); the heater fired on natural gas (SRC-1, section 9.3.3.4: the diathermic oil heaters' combustion fumes)"}
+      return_temperature: {value: 573.15, provenance: assumed, source: D-009}
+      min_approach: {value: 20, provenance: assumed, source: D-009}
+    ports:
+      - {id: x201, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: x202, direction: out, kind: energy}
+products:
+  - {id: PA66, title: Polyamide 66 pellets to the silos, category: product, ports: [{id: in, direction: in}]}
+  - {id: COND, title: "Process condensate (water with the stripped diamine), to wastewater treatment", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+      - {id: e301, direction: in, kind: energy}
+
+blocks:
+  - id: SALT
+    title: Salt preparation (AH salt solution)
+    class: ReactingChemicals
+    ports:
+      - {id: acid, direction: in}
+      - {id: water, direction: in}
+      - {id: hmda, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: POLY
+    title: Polycondensation (batch autoclave)
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cond, direction: out}
+      - {id: oil1, direction: in, kind: energy}
+      - {id: oil2, direction: in, kind: energy}
+      - {id: oil3, direction: in, kind: energy}
+      - {id: q_cond, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: FINISH
+    title: Extrusion, strand quench and pelletising
+    class: Cooling
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: SALT
+    title: Adipic acid slurried in the water charge (R-101)
+    class: Mixing
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: acid, direction: in, delegates: acid}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+  - id: E101
+    block: SALT
+    title: Slurry warmed to 338 K on the jacket (LP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  - id: R101
+    block: SALT
+    title: Neutraliser (molten diamine dosed into the acid slurry at 338 K)
+    class: ReactingChemicals
+    reactions: [NEUT]
+    reactor: semibatch
+    energy_port: q
+    batch:
+      dosing: [{stream: S4, time: 7200}]
+      target: {key: AA, conversion: 0.99999}
+      heat: isothermal
+      provenance: assumed
+      source: "molten hexamethylenediamine dosed at a constant rate over 2 h into the adipic acid slurry at 338.15 K (SRC-1: the salt solution kept at 65 C) and held until 0.99999 of the acid is neutralised; the dosing time ASSUMED (D-005)"
+    hazard:
+      mtt: 373.15
+      provenance: assumed
+      source: "MTT: the normal boiling point of water, a lower bound of the bubble point of the salt solution (the dissolved salt raises it); R-101 is vented to atmosphere through the salt tank's nitrogen blanket, so the mass boils there (D-011)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: charge, direction: in}
+      - {id: hmda, direction: in, delegates: hmda}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: X201
+    block: POLY
+    title: Concentration to 70 wt% salt in the autoclave (about 383 K)
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets: {vap: {H2O: 0.537072}}
+      provenance: assumed
+      source: "SRC-1 section 9.2.2.3: the autoclave's cycle first evaporates part of the solution's water, e.g. to 70 %; the share of S5's water that leaves the 52 wt% solution for 70.0 wt% salt, the diamine bound as salt kept (ASSUMED); at about 383 K (SRC-1 section 9.2.2.2: the continuous concentrator at about 110 C) (D-006)"
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: vap, direction: out}
+      - {id: out, direction: out}
+      - {id: oil, direction: in, kind: energy, delegates: oil1}
+  - id: R201
+    block: POLY
+    title: Polycondensation (heated to 548 K, steam bled at 1750 kPa(a))
+    class: ReactingChemicals
+    reactions: [POLY]
+    reactor: conversion
+    energy_port: oil
+    hazard:
+      mtt: 573.15
+      provenance: assumed
+      source: "MTT ASSUMED at 300 C, the autoclave's design temperature, 20 K below the hot oil's supply: the water boils off by design at the bleed pressure, so the boiling point bounds nothing here; above it the melt degrades (SRC-2: Steppan's degradation forms ammonia, CO2 and cross-links) (D-011)"
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: oil, direction: in, kind: energy, delegates: oil2}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: X202
+    block: POLY
+    title: Steam bleed, depressurisation and finishing (to 0.2 wt% water)
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets: {vap: {H2O: 0.996926, HMDA: 1.0}}
+      provenance: assumed
+      source: "SRC-1 section 9.2.2.3: the water bled off as steam at constant pressure, the mass depressurised to atmospheric and finished; the share of R201's water that leaves for a melt with 0.2 wt% water (ASSUMED; no open residual water of the batch melt read) and all the free diamine, stripped with the steam (SRC-1 sections 9.2.2.2 and 9.3.3.3: the steam carries diamine) (D-006, D-010)"
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out}
+      - {id: out, direction: out, delegates: out}
+      - {id: oil, direction: in, kind: energy, delegates: oil3}
+  - id: M201
+    block: POLY
+    title: Autoclave vapours collected (concentration and steam bleed)
+    class: Mixing
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: a, direction: in}
+      - {id: b, direction: in}
+      - {id: out, direction: out}
+  - id: E201
+    block: POLY
+    title: Vapour condenser E-201 (to 313 K, cooling water)
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: cond}
+      - {id: q, direction: out, kind: energy, delegates: q_cond}
+  - id: E301
+    block: FINISH
+    title: Strand extrusion, water quench and cutting to pellets (to 323 K)
+    class: Cooling
+    links: [{target: equipment, ref: X-301}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out, delegates: product}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+
+streams:
+  - id: S1
+    title: Adipic acid
+    from: AAF.out
+    to: M101.acid
+    template: acid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "crystals from the bag or silo store (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {AA: 1.0}, provenance: assumed, source: "adipic acid of adipic-acid-1, impurities not modelled (D-004)"}
+        flow: {value: 650.434, provenance: calculated, source: 'cheme process propagate: spec rate (S11 t/a 8000)', fingerprint: a24732da388f95d9}
+  - id: S2
+    title: Demineralised water to the salt dissolver
+    from: DW.out
+    to: M101.water
+    template: water
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "demineralised water (D-004)"}
+        flow: {value: 1075.09, provenance: calculated, source: 'cheme process propagate: spec rate (1.65288 x S1)', fingerprint: a24732da388f95d9}
+  - id: S3
+    title: Acid slurry
+    from: M101.out
+    to: E101.in
+    template: salt
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "both charges at 298.15 K (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1725.52, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 8d5bb2b12cbedabd}
+        composition: {basis: mole_fraction, values: {AA: 0.0694032, H2O: 0.930597}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 18179294fac19525}
+  - id: S3A
+    title: Acid slurry at 338 K
+    from: E101.out
+    to: R101.charge
+    template: salt
+    state:
+      design:
+        temperature: {value: 338.15, provenance: assumed, source: "SRC-1: the salt solution at 65 C (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1725.52, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: c74db3f57acc42f5}
+        composition: {basis: mole_fraction, values: {AA: 0.0694032, H2O: 0.930597}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: c74db3f57acc42f5}
+  - id: S4
+    title: Hexamethylenediamine, molten
+    from: HMDAF.out
+    to: R101.hmda
+    template: hmda
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "molten from heated storage, 19 K above its melting point of 314.15 K (chemicals 1.5.2, OPEN_NTBKM) (D-004)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {HMDA: 1.0}, provenance: assumed, source: "hexamethylenediamine, bought in (D-004)"}
+        flow: {value: 519.921, provenance: calculated, source: 'cheme process propagate: spec rate (0.799344 x S1)', fingerprint: a24732da388f95d9}
+  - id: S5
+    title: AH salt solution (52 wt%) to the autoclave
+    from: R101.out
+    to: X201.in
+    template: salt
+    state:
+      design:
+        temperature: {value: 338.15, provenance: assumed, source: "SRC-1: the salt solution stored at 65 C under nitrogen (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 2245.44, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3A S4', fingerprint: 314e72148dc653b2}
+        composition: {basis: mole_fraction, values: {AA: 6.93779e-07, HMDA: 0.000364917, AHSALT: 0.0693772, H2O: 0.930257}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3A S4', fingerprint: fa5ea4a2f1652596}
+  - id: S6
+    title: Vapour of the concentration
+    from: X201.vap
+    to: M201.a
+    template: vapour
+    state:
+      design:
+        temperature: {value: 383.15, provenance: assumed, source: "SRC-1: about 110 C (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "vented to the condenser (D-006)"}
+        flow: {value: 577.399, provenance: calculated, source: 'cheme process propagate: separator X201 from S5', fingerprint: 235822d86a63f0a3}
+        composition: {basis: mole_fraction, values: {AA: 0.0, HMDA: 0.0, AHSALT: 0.0, H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: separator X201 from S5', fingerprint: 235822d86a63f0a3}
+  - id: S7
+    title: Salt solution concentrated to 70 wt%
+    from: X201.out
+    to: R201.in
+    template: salt
+    state:
+      design:
+        temperature: {value: 383.15, provenance: assumed, source: "SRC-1: about 110 C (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-006"}
+        flow: {value: 1668.04, provenance: calculated, source: 'cheme process propagate: separator X201 from S5', fingerprint: 235822d86a63f0a3}
+        composition: {basis: mole_fraction, values: {AA: 1.38649e-06, HMDA: 0.000729273, AHSALT: 0.138648, H2O: 0.860622}, provenance: calculated, source: 'cheme process propagate: separator X201 from S5', fingerprint: 235822d86a63f0a3}
+  - id: S8
+    title: Polycondensed mass at 548 K (water still in the melt)
+    from: R201.out
+    to: X202.in
+    template: melt
+    state:
+      design:
+        temperature: {value: 548.15, provenance: given, source: "SRC-1 section 9.2.2.3: the mass taken to about 275 C before the depressurisation (D-006)"}
+        pressure: {value: 1750, provenance: assumed, source: "ASSUMED steam-bleed pressure, the continuous tubular reactor's about 18 bar of SRC-1 section 9.2.2.2 (no batch value stated) (D-006)"}
+        flow: {value: 1668.04, provenance: calculated, source: 'cheme process propagate: reactor R201 from S7', fingerprint: 211d777aee9a2716}
+        composition: {basis: mole_fraction, values: {AA: 1.08667e-06, HMDA: 0.000571571, AHSALT: 0.00054333, H2O: 0.890761, PA66: 0.108123}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S7', fingerprint: 36f7888e6479e7b9}
+  - id: S9
+    title: Steam bled and flashed off (with the stripped diamine)
+    from: X202.vap
+    to: M201.b
+    template: vapour
+    state:
+      design:
+        temperature: {value: 548.15, provenance: assumed, source: "at the mass temperature (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "let down through the bleed valve to the condenser (D-006)"}
+        flow: {value: 657.94, provenance: calculated, source: 'cheme process propagate: separator X202 from S8', fingerprint: 7a047eb11fe36cfc}
+        composition: {basis: mole_fraction, values: {PA66: 0.0, AHSALT: 0.0, AA: 0.0, HMDA: 0.00064323, H2O: 0.999357}, provenance: calculated, source: 'cheme process propagate: separator X202 from S8', fingerprint: 7a047eb11fe36cfc}
+  - id: S10
+    title: Finished melt to the extrusion
+    from: X202.out
+    to: E301.in
+    template: melt
+    state:
+      design:
+        temperature: {value: 548.15, provenance: assumed, source: "finished at 275 C (SRC-1), ASSUMED no further rise (D-006)"}
+        pressure: {value: 101.325, provenance: assumed, source: "SRC-1: finished slightly above atmospheric; extruded with nitrogen pressure (D-006)"}
+        flow: {value: 1010.1, provenance: calculated, source: 'cheme process propagate: separator X202 from S8', fingerprint: 7a047eb11fe36cfc}
+        composition: {basis: mole_fraction, values: {PA66: 0.970535, AHSALT: 0.00487704, AA: 9.75418e-06, HMDA: 0.0, H2O: 0.0245786}, provenance: calculated, source: 'cheme process propagate: separator X202 from S8', fingerprint: 7a047eb11fe36cfc}
+  - id: S11
+    title: Polyamide 66 pellets
+    from: E301.out
+    to: PA66.in
+    template: melt
+    state:
+      design:
+        temperature: {value: 323.15, provenance: assumed, source: "pellets after the water quench and surface drying (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1010.1, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S10', fingerprint: ba4873281c698422}
+        composition: {basis: mole_fraction, values: {PA66: 0.970535, AHSALT: 0.00487704, AA: 9.75418e-06, HMDA: 0.0, H2O: 0.0245786}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S10', fingerprint: ba4873281c698422}
+  - id: S12
+    title: Autoclave vapours to the condenser
+    from: M201.out
+    to: E201.in
+    template: vapour
+    state:
+      design:
+        temperature: {value: 548.15, provenance: assumed, source: "the hotter of the two vapours (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "D-009"}
+        flow: {value: 1235.34, provenance: calculated, source: 'cheme process propagate: mixer M201 from S6 S9', fingerprint: 3da626e83a6ba072}
+        composition: {basis: mole_fraction, values: {H2O: 0.999658, HMDA: 0.000342023, AA: 0.0, AHSALT: 0.0, PA66: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S6 S9', fingerprint: 5c55700d28f3e6ab}
+  - id: S13
+    title: Process condensate to wastewater treatment
+    from: E201.out
+    to: COND.in
+    template: vapour
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "condensate cooled to 313.15 K (D-009)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1235.34, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S12', fingerprint: 37675f3d50601f8c}
+        composition: {basis: mole_fraction, values: {H2O: 0.999658, HMDA: 0.000342023, AA: 0.0, AHSALT: 0.0, PA66: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S12', fingerprint: 37675f3d50601f8c}
+  - {id: Q1, title: Heat of neutralisation to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 122.038, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3A S4', fingerprint: a38cc2ca8fca842b}}}}
+  - {id: Q2, title: Slurry warming (jacket on LP steam), kind: energy, from: LPS.e101, to: E101.steam, state: {design: {duty: {value: 58.6703, provenance: assumed, source: "scripts/balance.py: the acid slurry S3 warmed from 298.15 to 338.15 K at the materials' heat capacities, the acid's heat of dissolution not counted (D-005, D-009)"}}}}
+  - {id: Q3, title: Concentration heat (hot oil), kind: energy, from: HOTOIL.x201, to: X201.oil, state: {design: {duty: {value: 437.942, provenance: assumed, source: "scripts/balance.py: the salt solution S5 warmed from 338.15 to 383.15 K and the water of S6 evaporated at 383.15 K (thermo 0.6.1 HEOS_FIT latent heat), the salt's boiling-point rise and the autoclave's steel not counted (D-006, D-009)"}}}}
+  - {id: Q4, title: Heating and polycondensation (hot oil), kind: energy, from: HOTOIL.r201, to: R201.oil, state: {design: {duty: {value: 87.758, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S7 S8', fingerprint: 313597d538d9ee35}}}}
+  - {id: Q5, title: Steam bleed and finishing heat (hot oil), kind: energy, from: HOTOIL.x202, to: X202.oil, state: {design: {duty: {value: 286.802, provenance: assumed, source: "scripts/balance.py: the water and the diamine of S9 evaporated at the mass's 548.15 K (thermo 0.6.1: HEOS_FIT, MORGAN_KOBAYASHI), R201 having heated them as liquid (D-006, D-009)"}}}}
+  - {id: Q6, title: Vapour condenser E-201 to cooling water, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 870.814, provenance: assumed, source: "scripts/balance.py: the vapours S6 (383.15 K) and S9 (548.15 K) condensed at their latent heats and the condensate cooled to 313.15 K (D-009)"}}}}
+  - {id: Q7, title: Strand quench water to cooling water, kind: energy, from: E301.q, to: CW.e301, state: {design: {duty: {value: 163.983, provenance: assumed, source: "scripts/balance.py: the melt S10 cooled from 548.15 to 323.15 K in the strand bath at the materials' heat capacities (PA66 2.6 kJ/(kg K) ASSUMED), its heat of crystallisation not counted (D-007, L-3)"}}}}
+  - {id: P1, title: Dissolver agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: "year average of R-101's agitator (D-009)"}}}}
+  - {id: P2, title: Autoclave agitator and condensate pump, kind: energy, from: POWER.r201, to: R201.power, state: {design: {duty: {value: 15.0, provenance: assumed, source: "year average of R-201's agitator and the condensate pump (D-009)"}}}}
+  - {id: P3, title: "Strand cutter, quench water pump, pellet dryer fan, conveying", kind: energy, from: POWER.e301, to: E301.power, state: {design: {duty: {value: 40.0, provenance: assumed, source: "year average of the pelletising line and the pneumatic conveying to the silos (D-007, D-009)"}}}}
