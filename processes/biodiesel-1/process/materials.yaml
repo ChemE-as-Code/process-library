@@ -1,0 +1,45 @@
+# Components and templates of the process. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Biodiesel (FAME) by base-catalysed transesterification of refined soybean oil (DESIGN.md D-001).
+# Lumps (D-004): the oil is carried as triolein and the esters as methyl oleate, the example
+# molecules of Van Gerpen et al. (2004, NREL/SR-510-36244, p. 4). The unreacted lump TG stands for
+# the tri-, di- and monoglycerides together (their bound glycerol). The catalyst is sodium
+# methoxide as charged; dissolved salts are carried as neutral NaCl and HCl, an inventory basis,
+# not a speciation. No free fatty acids, soaps or phospholipids (refined oil, D-004, limit L-3).
+#
+# Molar masses from the IUPAC 2021 abridged standard atomic weights applied to the formulas; CAS
+# numbers from PubChem. Normal boiling points: methanol and water NIST WebBook (SRD 69); glycerol
+# and methyl oleate thermo 0.6.1 (single values, facts with their source, library ADR 0037).
+#
+# liquid_heat_capacity, kJ/(kmol K), at 333.15 K, used by propagate for the reactor duties (D-009):
+# single values computed with thermo 0.6.1 (Caleb Bell, MIT) / chemicals 1.5.2, library ADR 0037:
+# - triolein 1844.1: thermo method ZABRANSKY_SPLINE_C (coefficients of Zabransky et al.,
+#   Heat Capacity of Liquids, J. Phys. Chem. Ref. Data monographs; the underlying work not read);
+# - methyl oleate 676.9, methanol 89.33, water 75.39: thermo method HEOS_FIT (fits to CoolProp's
+#   reference equations of state as bundled by thermo; not read);
+# - glycerol 235.15: thermo method ZABRANSKY_SPLINE_C (as above).
+# Sodium methoxide, NaCl and HCl are dilute (below 1 wt% of any stream they are in); their values
+# are ASSUMED (D-009).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: TG, name: "Soybean oil (triglyceride lump with the formula of triolein)", formula: C57H104O6, cas: 122-32-7, molar_mass: 885.453, liquid_heat_capacity: 1844.1}
+  - {id: MEOH, name: Methanol, formula: CH4O, cas: 67-56-1, molar_mass: 32.042, normal_boiling_point: 337.8, liquid_heat_capacity: 89.33}
+  - {id: FAME, name: "Fatty acid methyl esters (lump with the formula of methyl oleate)", formula: C19H36O2, cas: 112-62-9, molar_mass: 296.495, normal_boiling_point: 627.2, liquid_heat_capacity: 676.9}
+  - {id: GLY, name: Glycerol, formula: C3H8O3, cas: 56-81-5, molar_mass: 92.094, normal_boiling_point: 562.2, liquid_heat_capacity: 235.15}
+  - {id: NAOME, name: Sodium methoxide (catalyst), formula: CH3NaO, cas: 124-41-4, molar_mass: 54.024, liquid_heat_capacity: 90.0}
+  - {id: HCL, name: Hydrogen chloride (dissolved), formula: HCl, cas: 7647-01-0, molar_mass: 36.461, liquid_heat_capacity: 75.0}
+  - {id: NACL, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.443, liquid_heat_capacity: 75.0}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_heat_capacity: 75.39}
+templates:
+  - id: bio
+    title: Oil, ester, glycerol, methanol, wash water and reagent streams
+    components: [TG, MEOH, FAME, GLY, NAOME, HCL, NACL, H2O]
+# property_method is a placeholder: no benchmarked package of core covers triglycerides, fatty
+# acid methyl esters, glycerol or their liquid-liquid equilibrium with methanol (D-010, limit L-1);
+# `cheme process props --coverage` reports the streams as not covered.
+property_method:
+  adapter: thermo
+  status: placeholder

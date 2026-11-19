@@ -1,0 +1,38 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with first sizes from the flowsheet's flows and the residence times of DESIGN.md D-010.
+# Design pressures, temperatures and materials are not set yet (basic engineering); the
+# materials named are usual choices for methanol, methoxide, glycerol and dilute acid, to be
+# confirmed. All values ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: V-101, type: Vessel, service: "Methanol and catalyst mixing drum: fresh methanol, recovered methanol and the 25 wt% sodium methoxide solution",
+     notes: "About 2 m3 (about 1 h of the 894 kg/h, 1.2 m3), carbon steel, nitrogen-blanketed and vented to the vent condenser of the methanol tanks; kept dry (methoxide hydrolyses to hydroxide, D-005); with the feed and recycle pumps (P1)."}
+  - {tag: R-101, type: StirredTankReactor, service: "First transesterification reactor (CSTR) at 333 K, 250 kPa(a): oil and 80 % of the methanol and catalyst",
+     notes: "About 8 m3 (1 h residence on the 4787 kg/h effluent at about 880 kg/m3, 5.4 m3, 70 % full; Van Gerpen et al. 2004, p. 33: 5 min to 1 h for base catalysis), stainless steel, agitated (11 kW, ASSUMED), jacket on LP steam via a hot-water loop (Q1, 116 kW from core's conversion duty, mostly the oil's warming); pressure above methanol's vapour pressure at 333 K, so the reactor is liquid-full and needs no reflux condenser (D-005, D-010)."}
+  - {tag: V-102, type: Vessel, service: "First glycerol decanter: glycerol phase from R-101's effluent",
+     notes: "About 8 m3 (1 h residence, Van Gerpen et al. 2004, p. 67), horizontal or tall vertical, L/D 5 to 10 (p. 67), with an interface draw-off for the emulsion layer; a disc-stack centrifuge is the alternative of many continuous plants (p. 67, D-006, D-010)."}
+  - {tag: R-102, type: StirredTankReactor, service: "Second transesterification reactor (CSTR) at 333 K: the ester phase and 20 % of the methanol and catalyst",
+     notes: "About 4 m3 (0.5 h on 5.0 m3/h; the second reactor is quick once the glycerol is out, Van Gerpen et al. 2004, p. 35), stainless steel, agitated (11 kW), jacket on the hot-water loop (Q2, 9 kW from core's conversion duty, D-010)."}
+  - {tag: V-103, type: Vessel, service: "Second glycerol decanter",
+     notes: "About 8 m3 (1 h residence), as V-102 (D-006, D-010)."}
+  - {tag: E-201, type: HeatExchanger, service: "Ester methanol flash: falling-film evaporator at 363 K, 50 kPa(a), with its condenser on cooling water",
+     notes: "Heater 141 kW on LP steam (Q3), condenser 61 kW (Q4), hand estimates (D-009); a falling-film evaporator is named for methanol recovery by Van Gerpen et al. 2004, p. 76; liquid-ring vacuum pump vented to the methanol vent condenser (D-007)."}
+  - {tag: C-202, type: Column, service: "Ester wash contactor: the esters washed with warm, slightly acid water (HCl), the residual methoxide neutralised",
+     notes: "A gentle counter-current or mixer wash (Van Gerpen et al. 2004, pp. 68-69: gentle washing prevents emulsions), stainless steel or lined for the dilute acid; the hot esters cooled from 363 to 333 K by the wash and a cooler on cooling water (Q5, 77 kW from core's conversion duty, D-007)."}
+  - {tag: V-203, type: Vessel, service: "Wash water settler",
+     notes: "About 10 m3 (1 h on 8.7 t/h), the ester-water split is clean (Van Gerpen et al. 2004, p. 69), wash water to treatment (D-007)."}
+  - {tag: D-204, type: Vessel, service: "Vacuum ester dryer (flash or falling film) at 368 K, 10 kPa(a), with its condenser",
+     notes: "Heater 96 kW on LP steam (Q6), condenser 6 kW (Q7), hand estimates (D-009); vacuum pump (7.5 kW) (D-007)."}
+  - {tag: E-205, type: HeatExchanger, service: "Biodiesel cooler on cooling water, 368 to 313 K",
+     notes: "141 kW (Q8, hand estimate); a feed-effluent exchanger with D-204's feed would recover most of it (limit L-6, D-009); product filtered to 5 micrometres to storage (Van Gerpen et al. 2004, p. 69)."}
+  - {tag: V-301, type: Vessel, service: "Glycerol phase collection tank",
+     notes: "About 2 m3 (1 h on 0.72 t/h), stainless steel (D-008)."}
+  - {tag: R-302, type: StirredTankReactor, service: "Glycerol neutraliser: the methoxide in the glycerol phase neutralised with 33 wt% HCl",
+     notes: "About 2 m3, agitated (4 kW), lined or alloy for chloride; HCl dosed 5 % over the methoxide (D-008); cooling 12 kW on cooling water (Q9, from core's conversion duty); pH kept near neutral: below about pH 3 glycerol dehydrates, at high pH it polymerises (Van Gerpen et al. 2004, p. 76)."}
+  - {tag: C-303, type: Column, service: "Glycerol methanol stripping column at 101.3 kPa(a), reboiler 393 K, reflux 1",
+     notes: "Packed column with a reboiler on LP steam (Q10, 178 kW) and a condenser on cooling water (Q11, 163 kW), hand estimates (D-008, D-009); methanol overhead dry to V-501."}
+  - {tag: E-304, type: HeatExchanger, service: "Crude glycerol cooler on cooling water, 393 to 313 K",
+     notes: "28 kW (Q12, hand estimate); crude glycerol to storage (D-008)."}
+  - {tag: V-501, type: Vessel, service: "Recovered methanol drum",
+     notes: "About 2 m3 (1 h of the 446 kg/h recycle, 0.6 m3, with margin), carbon steel, nitrogen-blanketed (D-006)."}

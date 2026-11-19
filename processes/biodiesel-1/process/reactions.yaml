@@ -1,0 +1,31 @@
+# Reactions of biodiesel (FAME) production by base-catalysed transesterification (D-001, D-005).
+# Schema: `cheme schema process-reactions`.
+#
+# TRANS is the overall transesterification of the triglyceride lump (D-004): the three
+# consecutive steps through di- and monoglycerides are lumped, and their equilibrium limit is
+# not modelled; the conversion per reactor is a design specification of the conversion model
+# (D-005, limit L-2). Sodium methoxide catalyses it and takes no part. NEUT is the
+# neutralisation of the catalyst by hydrochloric acid, in the ester wash and in the glycerol
+# neutraliser. Side reactions are left out: saponification of the oil or the esters by the
+# hydroxide that water would form, and the soaps of free fatty acids (refined, dry oil and
+# anhydrous methoxide, D-004, limit L-3).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: TRANS
+    title: Transesterification of the triglyceride with methanol (overall)
+    equation: C57H104O6 + 3 CH3OH -> 3 C19H36O2 + C3H8O3
+    stoichiometry: {TG: -1, MEOH: -3, FAME: 3, GLY: 1}
+    phase: liquid
+    reversible: true
+    conversion: {key: TG, value: 0.90, provenance: assumed, source: "D-005: first CSTR; batch reactors reach 85 to 94 % completion (Van Gerpen et al. 2004, NREL/SR-510-36244, p. 34), ASSUMED 90 % in R-101 before the glycerol is decanted"}
+    heat_of_reaction: {value: 35800, provenance: assumed, source: "D-009: from liquid enthalpies of formation at 298.15 K: triolein -2193.7 kJ/mol (NIST WebBook SRD 69, Freedman, Bagby and Khoury 1989, from the heat of combustion), methyl oleate -734.5, methanol -238.4, glycerol -669.6 kJ/mol (chemicals 1.5.2, methods CRC/WEBBOOK, library ADR 0037); 3(-734.5) - 669.6 - (-2193.7) - 3(-238.4) = +35.8 kJ/mol, a small difference of large numbers, near thermoneutral within its uncertainty"}
+    catalyst: sodium methoxide, homogeneous, 0.25 wt% of the oil
+    sources: ["Van Gerpen, J. et al. (2004) Biodiesel Production Technology, NREL/SR-510-36244, pp. 4-5, 31-36"]
+  - id: NEUT
+    title: Neutralisation of the catalyst by hydrochloric acid
+    equation: CH3ONa + HCl -> NaCl + CH3OH
+    stoichiometry: {NAOME: -1, HCL: -1, NACL: 1, MEOH: 1}
+    phase: liquid
+    conversion: {key: NAOME, value: 1.0, provenance: assumed, source: "D-007, D-008: strong base and strong acid, HCl dosed 5 % over the methoxide, complete"}
+    heat_of_reaction: {value: -55800, provenance: assumed, source: "D-009: taken equal to the neutralisation of a strong acid by a strong base in dilute water at 298 K (about -55.8 kJ/mol), as glycerol-1 D-005 does; methoxide and HCl in the ester wash and the glycerol phase not sourced, ASSUMED"}

@@ -1,0 +1,49 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Biodiesel (FAME) by base-catalysed transesterification of refined soybean oil with methanol, a
+# continuous plant, issue ChemE-as-Code/process-library#515. Values marked ASSUMED are
+# engineering choices of this concept study, not client or licensor data; every decision is in
+# DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried biodiesel (fatty acid methyl esters) at the battery limit to storage
+  biodiesel_t_per_year: 32420            # D-002: the 9.8 Mgal/a plant of Pradhan and Shrestha (2009, p. 8) at 0.8739 kg/L (methyl oleate, Van Gerpen et al. 2004, p. 4)
+  operating_hours_per_year: 8000         # ASSUMED (D-002): continuous, 24/7 (Van Gerpen et al. 2004, p. 40: continuous plants run 24/7)
+  biodiesel_kg_per_h: 4052.5             # 32 420 t / 8000 h
+feeds:
+  - name: Refined, bleached soybean oil (no library producer)
+    source_of_values: "D-004: one triglyceride lump with the formula of triolein; free fatty acids below 0.05 % in refined oils (Van Gerpen et al. 2004, p. 52), dry"
+    composition: "triglyceride 100 % (FFA, water, phospholipids and unsaponifiables not carried, limit L-3)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 300}
+  - name: Methanol (methanol-1)
+    source_of_values: "D-005: 6 mol per mol of oil to the reactors in total, anhydrous (Van Gerpen et al. 2004, pp. 31-32)"
+    composition: "methanol 100 %"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 300}
+  - name: Sodium methoxide, 25 wt% in methanol (no library producer)
+    source_of_values: "D-005: 0.25 wt% sodium methoxide on the oil (Van Gerpen et al. 2004, p. 52), as the 25 wt% solution (p. 33)"
+    composition: "sodium methoxide 25 wt%, methanol 75 wt%"
+  - name: Hydrochloric acid 33 wt% (hydrogen-chloride-1)
+    source_of_values: "D-007, D-008: 5 % over the methoxide in the ester wash and the glycerol phase, ASSUMED"
+  - name: Process water, softened, warm (wash)
+    source_of_values: "D-007: one wash with about 1 gallon of water per gallon of ester (Van Gerpen et al. 2004, p. 77), 1.14 kg per kg of oil; 333 K (p. 68: 120 to 140 F)"
+products:
+  - name: Biodiesel (FAME)
+    purity: "specification ASTM D6751 as listed by Van Gerpen et al. 2004, p. 23: total glycerin at most 0.240 wt%, water and sediment at most 0.050 vol%; modelled 99.68 wt% esters, 0.30 wt% unreacted glycerides (0.031 wt% bound glycerol), 0.023 wt% water, no methanol (D-005, D-007)"
+    delivery: {temperature_K: 313.15, pressure_kPa_a: 300, battery_limit: product storage}
+  - name: Crude glycerol (co-product)
+    note: "about 87 wt% glycerol with 8 wt% esters, 3 wt% water and 2 wt% NaCl, neutralised and stripped of methanol (D-008); Van Gerpen et al. 2004, p. 40: 88 % crude glycerol earns a credit; to sale or to a glycerol refinery such as glycerol-1"
+  - name: Wastewater (spent wash water and dryer condensate)
+    note: "about 1.15 kg per kg of biodiesel, with traces of methanol, glycerol and NaCl, to the site's treatment (D-007)"
+utilities:
+  - {name: Electric power, use: "agitators, pumps, vacuum pumps (D-009)", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 450, use: "the reactors' hot-water loop, the ester flash, the dryer, the glycerol column's reboiler (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "condensers, coolers, the wash contactor, the neutraliser", note: ASSUMED}
+site:
+  location: ASSUMED generic site beside an oilseed crushing and refining plant, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: homogeneous base-catalysed transesterification (sodium methoxide) in two CSTRs in series with glycerol decanted after each (Van Gerpen et al. 2004, pp. 34-35), D-001."
+  - "Conversions 90 % in R-101 and 97 % of the rest in R-102 (99.7 % overall, the completion needed for fuel grade, p. 32), ASSUMED; no kinetics or equilibrium model (limit L-2)."
+  - "Decanters, flash, wash, dryer and glycerol column on specified recoveries (core's component separators), ASSUMED; no qualified FAME-glycerol-methanol LLE or VLE in core (limit L-1)."
+  - "Duties of the reactors and neutralisers from core's conversion model with the components' liquid heat capacities; the others hand estimates (D-009); accuracy +/-30 % not demonstrated."
+  - "No heat integration (limit L-6)."

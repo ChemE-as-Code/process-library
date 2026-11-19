@@ -1,0 +1,17 @@
+# biodiesel-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-011): the build reports each
+# as a gap (lci/gaps.json). Linked here: the methanol to methanol-1, both hydrochloric acid
+# feeds to hydrogen-chloride-1 (33 wt%, per kg of acid as the exchanges count it), and the LP
+# steam counted as heat delivered (kWh), as oxalyl-chloride-1 does. The soybean oil and the
+# sodium methoxide solution have no library producer; their proxies are named in lca.yaml and
+# DESIGN.md D-011, not linked (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:MEOHF": {dataset: {path: processes/methanol-1/lca/dataset.yaml, product: "product:MEOH"}, source: "the Atlas producer methanol-1, Grade AA methanol (500 ppm water), the anhydrous methanol this feed takes (D-005)"}
+  "feed:HCLW": {dataset: {path: processes/hydrogen-chloride-1/lca/dataset.yaml, product: "product:HCLACID"}, source: "the Atlas producer hydrogen-chloride-1, hydrochloric acid 33 wt%, per kg of acid as this exchange counts it (D-007)"}
+  "feed:HCLG": {dataset: {path: processes/hydrogen-chloride-1/lca/dataset.yaml, product: "product:HCLACID"}, source: "the Atlas producer hydrogen-chloride-1, hydrochloric acid 33 wt%, per kg of acid as this exchange counts it (D-008)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the reactors' hot-water loop (Q1, Q2), the ester flash (Q3), the dryer (Q6) and the glycerol column's reboiler (Q10), counted as heat delivered (kWh), D-009"}

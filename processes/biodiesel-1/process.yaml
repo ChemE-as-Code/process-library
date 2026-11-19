@@ -1,0 +1,103 @@
+# Process Atlas manifest of biodiesel-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: biodiesel-1
+title: Biodiesel (FAME) from soybean oil by base-catalysed transesterification (32 420 t/a)
+summary: >-
+  A continuous plant: refined soybean oil transesterified with methanol and sodium methoxide in
+  two stirred reactors with the glycerol decanted after each, methanol flashed and stripped off
+  and recycled, the esters washed with acid water and vacuum dried, the glycerol phase
+  neutralised to crude glycerol. Concept stage, 4052.5 kg/h, preliminary gate-to-gate LCI.
+description: |
+  Refined, dry soybean oil reacts with methanol (6 mol per mol of oil) and sodium methoxide
+  (0.25 wt% of the oil, dosed as its 25 wt% solution in methanol) in two continuous stirred
+  tanks at 333 K: triglyceride + 3 CH3OH -> 3 methyl esters + glycerol, 90 % in the first
+  reactor and 97 % of the rest in the second, 99.7 % overall (the completion fuel-grade
+  biodiesel needs, Van Gerpen et al. 2004, NREL/SR-510-36244). The glycerol phase is decanted
+  after each reactor, taking 40 % of the methanol and most of the catalyst. The esters are
+  flashed at 50 kPa(a) to recover their methanol, washed once with warm water acidified with
+  hydrochloric acid (the residual methoxide to NaCl) and dried under vacuum to biodiesel with
+  99.68 wt% esters, 0.03 wt% total glycerol (ASTM D6751: at most 0.24) and 0.02 wt% water. The
+  glycerol phases are neutralised with hydrochloric acid and stripped of methanol in a column at
+  atmospheric pressure, which leaves crude glycerol of about 87 wt% (0.120 kg per kg of
+  biodiesel); the recovered methanol, dry, is recycled.
+
+  The flowsheet is solved by cheme-as-code's propagate: the oil feed for 32 420 t/a of
+  biodiesel (the 9.8 Mgal/a plant of the USDA model, Pradhan and Shrestha 2009) and the fresh
+  methanol for the 6:1 ratio as design specifications, the methanol recycle as a converged tear,
+  the reactors on their conversions and the decanters, flash, wash, dryer and column as
+  component separators on ASSUMED recoveries (core has no qualified FAME-glycerol-methanol
+  liquid-liquid or vapour-liquid model). The reactors' duties are core's, from liquid heats of
+  formation and heat capacities; the separations' duties are hand estimates. Per kg of biodiesel:
+  1.005 kg of oil, 0.101 kg of fresh methanol, 1.15 kg of wash water, 0.134 kWh of LP-steam heat
+  and 0.017 kWh of power (unallocated). See DESIGN.md for every assumption.
+families: [fuels, bio-based-chemicals]
+keywords: [biodiesel, FAME, fatty acid methyl esters, transesterification, methanolysis, soybean oil, vegetable oil, triglyceride, methanol, sodium methoxide, glycerol, crude glycerol, CSTR, decanter, methanol recovery, recycle, ester washing, vacuum drying, biofuel]
+facets:
+  feedstock_basis: [biogenic, fossil, electricity]
+  product_classes: [fuels, chemicals]
+  unit_operations: [reaction, decanting, evaporation, distillation, washing, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity hours, conversions,
+# separator recoveries, temperatures and pressures and the separations' duties are assumed;
+# ratios and conditions from Van Gerpen et al. 2004 (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept continuous PFD with closed mass, component and element balances (cheme validate
+    clean; cheme process streams: 4 blocks and 16 steps within tolerance; the methanol recycle
+    converged at the tear S20 in 3 Broyden iterations). The oil feed S1 (4071.78 kg/h) and the
+    fresh methanol S3 (407.51 kg/h) are solved by cheme process propagate for two design
+    specifications: 32 420 t/a of S27 in 8000 h and 6 mol of methanol per mol of oil in S5; the
+    catalyst solution, wash water and both acids follow the oil at fixed ratios. Reactors on
+    conversion (90 % and 97 % of the rest, ASSUMED), the neutralisations complete; decanters,
+    ester flash, wash settler, dryer and glycerol column on ASSUMED recoveries (core's
+    component separators, ADR 0070), the methanol split between the phases 60:40 from Van
+    Gerpen et al. (2004). Duties of R101, R102, R201 and R301 written by propagate from the
+    heats of reaction (TRANS +35.8 kJ/mol from liquid enthalpies of formation, NEUT -55.8
+    kJ/mol ASSUMED) and the liquids' heat capacities (thermo 0.6.1); the flash, dryer, column
+    and cooler duties are hand estimates (DESIGN.md D-009). No property package of core covers
+    these liquids, so no stream properties; no heat integration. Preliminary gate-to-gate LCI
+    with mass allocation between biodiesel and crude glycerol; methanol linked to methanol-1,
+    hydrochloric acid to hydrogen-chloride-1, the LP steam as heat; soybean oil and sodium
+    methoxide gaps with recorded proxies. cheme maturity reaches no level (assumed conversions
+    and separations); the claim `maturity: concept` is the lowest value of the schema, not an
+    evidenced level. Not reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: soybean-oil, role: feedstock, inventory_key: "feed:OIL", note: "Refined, bleached soybean oil (no library process; proxy recorded, D-011), 1.005 kg/kg biodiesel (unallocated; NREL's stoichiometric 0.996 at full conversion), carried as triolein"}
+    - {chemical: methanol, role: feedstock, inventory_key: "feed:MEOHF", note: "Fresh methanol (methanol-1), 0.1006 kg/kg; with the catalyst solution's 0.0075 kg/kg, 0.1081 kg/kg in all (unallocated): 0.1088 consumed, 0.0015 formed by the neutralisations, 0.0008 lost to the wastewater and the crude glycerol"}
+    - {chemical: sodium-methoxide, role: feedstock, inventory_key: "feed:CATF", note: "Sodium methoxide, 25 wt% in methanol (no library process; proxy recorded, D-011), 10.0 g/kg; 0.25 wt% of the oil as methoxide"}
+    - {chemical: hydrogen-chloride, role: feedstock, inventory_key: "feed:HCLG", note: "Hydrochloric acid 33 wt% (hydrogen-chloride-1) to the glycerol neutraliser, 5.24 g/kg; feed:HCLW to the ester wash, 0.15 g/kg; 5 % over the methoxide"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Softened process water for the ester wash, 1.145 kg/kg (one wash at about 1 gallon per gallon of ester)"}
+  outputs:
+    - {chemical: biodiesel, role: main-product, inventory_key: "product:BD", note: "Biodiesel (FAME), modelled 99.68 wt% methyl esters, 0.30 wt% unreacted glycerides, 0.023 wt% water, to storage"}
+    - {chemical: crude-glycerol, role: co-product, inventory_key: "product:CGLY", note: "Crude glycerol, about 86.6 wt% glycerol with 8.0 wt% esters, 2.9 wt% water, 2.2 wt% NaCl, 0.120 kg/kg; mass allocation, 10.7 % of the burdens (D-011); a feed for glycerol refining such as glycerol-1"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Spent wash water and dryer condensate with traces of methanol, glycerol and NaCl, 1.146 kg/kg, to treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.0173 kWh/kg: agitators, pumps, vacuum pumps (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.134 kWh/kg of LP steam 450 kPa(a): the reactors (core's conversion duties), the ester flash, the dryer and the glycerol column's reboiler (hand estimates)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.120 kWh/kg removed by cooling water: condensers, coolers, the wash and the neutraliser"}
+basis:
+  capacity: "32 420 t/a biodiesel, 4052.5 kg/h in 8000 h/a (the USDA model plant's 9.8 Mgal/a at 0.8739 kg/L; hours ASSUMED), DESIGN.md D-002"
+  operating_hours_per_year: 8000
+  location: generic site beside an oilseed crushing and refining plant (not chosen)
+references:
+  - {title: "Van Gerpen, J.; Shanks, B.; Pruszko, R.; Clements, D.; Knothe, G. (2004) Biodiesel Production Technology, August 2002-January 2004. NREL/SR-510-36244, National Renewable Energy Laboratory (US government report): mass balance p. 4, total glycerol p. 5, ASTM D6751 table p. 23, alcohols and catalysts pp. 31-33, batch and continuous processes pp. 34-36, crude glycerol p. 40, catalyst amounts p. 52, separation, washing and drying pp. 67-69, methanol and glycerol pp. 75-77", url: "https://fischer-tropsch.org/DOE/DOE_reports/510/510-36244/510-36244%207-01-04.pdf"}
+  - {title: "Pradhan, A.; Shrestha, D. (2009) Life Cycle Analysis of Soybean Biodiesel Production. ASABE Annual International Meeting, Reno, Paper No. 096669 (a meeting paper, not peer reviewed): the USDA-ARS plant model of Haas et al. 2006 (9.8 Mgal/a biodiesel, 4,380 t/a crude glycerin), 82.4/17.6 mass split, conversion inputs per gallon (Table 4)", url: "https://biodieseleducation.org/Literature/Journal/2009_Anup_Life_Cycle_Analysis_.pdf"}
+  - {title: "NIST Chemistry WebBook, SRD 69: triolein, liquid enthalpy of formation -2193.7 kJ/mol (Freedman, Bagby and Khoury 1989, from the heat of combustion)", url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C122327&Mask=2"}
+  - {title: "Bell, C. et al. thermo 0.6.1 and chemicals 1.5.2 (MIT): liquid heat capacities, enthalpies of formation and vaporisation, vapour pressures of single components (methods named in DESIGN.md SRC-3; library ADR 0037)", url: "https://github.com/CalebBell/thermo"}
+  - {title: "Haas, M. J.; McAloon, A. J.; Yee, W. C.; Foglia, T. A. (2006) A process model to estimate biodiesel production costs. Bioresource Technology 97, 671-678 (the plant model behind Pradhan et al.; not read here)", doi: 10.1016/j.biortech.2005.03.039}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/biodiesel-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
