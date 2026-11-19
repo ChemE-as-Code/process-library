@@ -1,0 +1,113 @@
+# Process Atlas manifest of biogas-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: biogas-1
+title: Biogas from cattle slurry and biowastes in mesophilic digesters, membrane upgrading to biomethane (704 t/a)
+summary: >-
+  An agricultural biogas plant on FNR's model plant VII: cattle slurry with hygienised catering
+  waste, grease trap waste and biowaste digested at 40 C in two stirred digesters, the biogas
+  upgraded in three membrane stages to 98 mol% methane for the gas grid, the digestate stored
+  and spread on farmland. Concept stage, 216.9 Nm3/h raw biogas, 88.0 kg/h biomethane,
+  preliminary gate-to-gate LCI.
+description: |
+  22 100 t/a of substrates (4000 t cattle slurry, 8000 t catering waste, 4600 t grease trap
+  waste and 5500 t biowaste, the wastes hygienised before delivery) are mixed in an intake pit,
+  warmed from 283.15 to 313.15 K by a hot-water circuit and digested in two stirred concrete
+  digesters of 1700 m3 each (51 d retention, 2.4 kg VS per m3 and day): the substrates, volumes
+  and retention time of model plant VII of the FNR Guide to Biogas (2010, Tables 8.2, 8.3 and
+  8.7). The substrates' volatile solids are lumped into a digestible carbohydrate (C6H10O5), a
+  digestible fat (as triolein) and an inert remainder, calibrated so that Buswell's
+  stoichiometry gives each substrate's standard biogas yield and methane content (FNR Table
+  8.2); with complete conversion of the digestible lumps the plant makes 216.93 Nm3/h of dry
+  biogas at 60.68 mol% methane, the guide's 1 735 468 m3/a at 60.7 % for plant VII; 60.6 % of
+  the volatile solids are converted. 11.1 % of the biogas fires a hot-water boiler for the
+  digesters' 135.8 kW (the substrate warmed, the insulated tanks' losses, the water evaporated
+  into the biogas). The rest is chilled to 283.15 K to remove its water before compression,
+  cleaned on activated carbon, compressed to 1600 kPa(a), cooled and upgraded in a three-stage
+  membrane unit with internal recycle (design iii of SGC Rapport 2013:270; Evonik's US 8 999 038
+  B2): 99.5 % of the methane to a product of 98.0 mol% CH4, 118.8 Nm3/h (87.99 kg/h, 1.16 MW
+  LHV, 47.4 MJ/kg, 704 t/a), the CO2 with 0.5 % of the methane vented. The upgrading takes 0.25 kWh per
+  Nm3 of raw biogas (SGC: 0.20 to 0.30), the plant 1.03 kWh per kg of biomethane in all. The
+  digestate (28.4 kg per kg of biomethane) is stored six months under a gas-tight cover and
+  spread as fertiliser. The plant is modelled with cheme-as-code's conversion reactors (the
+  digesters, the boiler, whose duty core writes), component separators with recoveries from the
+  balance script (the gas space, the two condensate knock-outs, the membranes, core ADR 0070), a
+  splitter and mixers. Core has no anaerobic digestion model: the QSDsan worker of core ADR 0065
+  runs a project's own dynamic model, and the library's QSDsan entry (wwtp-a2o) covers an
+  activated-sludge waterline, not a digester (DESIGN.md D-004, L-1). The screening carbon
+  footprint is 0.32 kg CO2-eq per kg of biomethane (6.7 g per MJ LHV), the plant's own
+  emissions and its electricity from cradle to gate: 60 % the electricity (UK grid factor as a
+  proxy) and 40 % the membranes' methane slip; the substrates enter burden-free under cut-off.
+  Methane leaks are excluded, so it is a lower bound (a leak the size of the slip would add
+  40 %), and it mixes AR4/AR5 (electricity) and AR6 (methane) GWPs. See DESIGN.md for every assumption.
+families: [biogas]
+keywords: [biogas, biomethane, renewable natural gas, anaerobic digestion, mesophilic, co-digestion, cattle slurry, manure, catering waste, food waste, grease trap waste, biowaste, Buswell, membrane upgrading, gas permeation, methane slip, digestate, hot-water boiler, grid injection]
+facets:
+  feedstock_basis: [biogenic, electricity]
+  product_classes: [fuels]
+  unit_operations: [reaction, adsorption, compression, membrane-separation, combustion]
+  region: EU
+# Honest claim: concept is the lowest level of the manifest. The substrates' lumped
+# composition, the conversion and the membrane split rest on FNR's and SGC's figures with
+# ASSUMED design choices (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass and element balances (cheme validate, cheme process streams: 3
+    blocks and 12 steps within tolerance). Calculated by cheme process propagate: the mixers,
+    the digesters R101 (conversion reactor, Buswell's stoichiometry of the digestible lumps,
+    complete conversion), the gas space V101, the splitter X101, the boiler B101 with its duty
+    Q1 (135.79 kW, equal to the script's heat demand of 135.79 kW), the gas chiller's
+    knock-out E300, the activated-carbon filter, the knock-out E301 and the membrane unit M301 (component separators, core ADR 0070).
+    scripts/balance.py gives the feeds (FNR Tables 8.2 and 8.3, plant VII), the lumped
+    compositions, the recoveries (water saturation before and after compression from IAPWS-95; SGC's 99.5 % methane recovery
+    and 98 mol% product), the boiler's split, the heat demand (with the heat of vaporisation of the water in the
+    biogas), the chiller's and after-coolers' heat and the power, and reproduces the
+    source's biogas per year (1 735 468 m3/a, 0.00 %) and methane content (60.68 against
+    60.7 %), the mixture's 18.2 % DM and the 51 d retention. Not reproduced or not modelled:
+    the digestion's kinetics and inhibition, nitrogen and sulphur, the CO2 dissolved in the
+    digestate, the membranes' stage cuts and recycle (lumped into one separator), methane
+    leaks from the roofs. Preliminary gate-to-gate LCI: substrates burden-free (cut-off), the
+    digestate a recyclable, electricity linked to the shared entry, the off-gas and flue gas
+    characterised directly; screening carbon footprint 0.32 kg CO2-eq/kg (foreground with
+    cradle-to-gate electricity, a lower bound without methane leaks). cheme maturity
+    reaches no level (assumed feeds and separations); the claim `maturity: concept` is the
+    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code
+    1.12.0.
+chemistry:
+  inputs:
+    - {chemical: cattle-slurry, role: feedstock, inventory_key: "feed:SLURRY", note: "Cattle slurry with fodder residues, DM 8 %, 5.682 kg per kg of biomethane (4000 t/a, FNR model plant VII); burden-free under cut-off"}
+    - {chemical: catering-waste, role: feedstock, inventory_key: "feed:CATER", note: "Catering waste, average fat content, hygienised before delivery, DM 16 %, 11.36 kg/kg (8000 t/a); burden-free waste"}
+    - {chemical: grease-trap-waste, role: feedstock, inventory_key: "feed:GREASE", note: "Grease trap waste, hygienised before delivery, DM 5 %, 6.534 kg/kg (4600 t/a); burden-free waste"}
+    - {chemical: biowaste, role: feedstock, inventory_key: "feed:BIOW", note: "Source-separated biowaste, hygienised before delivery, DM 40 %, 7.813 kg/kg (5500 t/a); burden-free waste"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion air of the hot-water boiler, 2.344 kg/kg (15 % excess, ASSUMED)"}
+  outputs:
+    - {chemical: methane/biomethane, role: main-product, inventory_key: "product:BIOMETHANE", note: "Biomethane, 98.0 mol% CH4 and 2.0 mol% CO2, dry, 1550 kPa(a), to the grid injection station; 87.99 kg/h, 118.8 Nm3/h, 0.947 kg CH4 and 47.4 MJ LHV per kg"}
+    - {chemical: digestate, role: by-product, inventory_key: "product:DIGESTATE", note: "Whole digestate, 28.40 kg/kg, 12.0 wt% DM (ash and the unconverted VS), stored six months under a gas-tight cover and spread on farmland as fertiliser; a recyclable, burden-free under cut-off"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:OFFGAS", note: "Membrane off-gas: 1.648 kg/kg, biogenic CO2 with 4.76 g of methane (0.5 % slip, SGC) and water vapour, vented"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:FLUE", note: "Flue gas of the hot-water boiler, 2.692 kg/kg, biogenic CO2"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.028 kWh/kg: the membrane unit at 0.25 kWh/Nm3 raw biogas (SGC Rapport 2013:270), the gas chiller (ASSUMED COP 3.0) and the digesters' agitators and pumps (FNR Table 8.4, ASSUMED run time)"}
+basis:
+  capacity: "216.93 Nm3/h raw biogas (dry) from 22 100 t/a of substrates in 8000 h (FNR model plant VII), 87.99 kg/h biomethane, 704 t/a (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic agricultural biogas site in Germany next to a livestock farm, with a gas-grid connection (not chosen)
+references:
+  - {title: "FNR, Fachagentur Nachwachsende Rohstoffe (ed.) (2010, English edition 2012) Guide to Biogas: From production to use, Guelzow (Tables 2.3 and 2.6 substance groups and biogas composition; Table 3.36 emergency flares; Table 5.9 H2S toxicity; Table 6.2 biological desulphurisation; section 5.1.3 temperature ranges; Tables 3.30 and 3.31 insulation; section 6.1.3 and Table 6.7 upgrading methods; Tables 8.1 to 8.8 model plants, plant VII: substrates, yields, volumes, retention; Tables 8.5 and 8.8 the gas-processing plant X with high-pressure water scrubbing)", url: "https://energypedia.info/wiki/Guide_to_Biogas_-_From_Production_to_Use"}
+  - {title: "Bauer, F.; Hulteberg, C.; Persson, T.; Tamm, D. (2013) Biogas upgrading - Review of commercial technologies, SGC Rapport 2013:270, Svenskt Gastekniskt Center, Malmoe (section 2.3 membrane separation: gas cleaning before compression, designs, 6-20 bar(a), 99-99.5 % recovery; section 2.3.3 0.20-0.30 kWh/Nm3; sections 3.1 to 3.3 purity, consumables and the compressors' excess heat, methane slip)", url: "https://lup.lub.lu.se/record/3512502"}
+  - {title: "Ungerank, M.; Baumgarten, G.; Priske, M.; Roegl, H. (Evonik Fibres, priority 2010) US 8 999 038 B2: Process for separation of gases (three-stage membrane cascade with recycle; Examples 1 to 4: 50/50 CH4/CO2 at 25 bar to 98.5 % CH4 with 0.5-1 % CH4 in the off-gas)", url: "https://patents.google.com/patent/US8999038B2/en"}
+  - {title: "Wagner, W.; Pruss, A. (2002) The IAPWS formulation 1995 for the thermodynamic properties of ordinary water substance, J. Phys. Chem. Ref. Data 31, 387 (vapour pressure and, by Clausius-Clapeyron, heat of vaporisation of water, as implemented in the chemicals package 1.5.2)", doi: 10.1063/1.1461829}
+  - {title: "Buswell, A. M.; Mueller, H. F. (1952) Mechanism of methane fermentation, Industrial and Engineering Chemistry 44(3), 550-552 (the overall stoichiometry of complete anaerobic degradation; method reference, not data)", doi: 10.1021/ie50507a033}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/biogas-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

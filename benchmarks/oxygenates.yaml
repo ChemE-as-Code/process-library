@@ -1,5 +1,7 @@
 # Benchmarks of oxygenated intermediates: purified terephthalic acid, adipic acid and propylene
-# oxide. Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
+# oxide, and vinyl acetate (vinyl-acetate-1: the ethylene KPI is bound to the reactor
+# selectivity of the patent the dataset takes its own selectivity from, so it tests the plant's
+# losses beside the reactor, not new data; the acetic acid KPI has no open reference). Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
 # from the cited source, in our own form.
 #
 # terephthalic-acid-1:
@@ -403,6 +405,115 @@ kpis:
     title: tert-Butanol consumption per kg of potassium tert-butoxide
     unit: kg/kg
     no_open_reference: "No open source with a plant's tert-butanol use per kg of potassium tert-butoxide found (searched 2026-11-06, the sources named under kotbu-specific-potassium; US 4 577 045 A says the alcohol is recycled almost completely, without a figure). The stoichiometric floor is 0.6606 kg/kg; the losses to the vent, the purge and the sieve's regeneration are this design's ASSUMED values (potassium-tert-butoxide-1, DESIGN.md D-006, D-007)."
+  ma-specific-butane:
+    title: n-Butane consumption per kg of maleic anhydride (fixed bed, VPO)
+    unit: kg/kg
+    references:
+      - id: us5688970-butane
+        range: [0.970, 1.061]
+        basis: unallocated
+        note: >-
+          The butane fed per kg of MA in US 5 688 970 A's two examples of the same fixed-bed plant
+          with dibutyl phthalate recovery: 3289 kg/h for 3100 kg/h once through (Example 2, 86.5 %
+          conversion, 65 % selectivity) and 3008 kg/h with the off-gas recycled (Example 1); our
+          division. The 3100 kg/h is the MA recovered from the solvent (line 30), after the
+          absorber and the stripping (about 99.4 % of the about 3120 kg/h its conversion and
+          selectivity give in the reactor gas, our arithmetic) and before any refining; the
+          summary tables call it the MA produced.
+        conditions: {technology: "n-butane oxidation in air over VPO, fixed bed, molten-salt cooled, dibutyl phthalate absorption; once through and with off-gas recycle", capacity: "3100 kg/h of MA", year: 1997}
+        source:
+          citation: "Ruggieri, R.; Cassarino, S. (Italiana Serie Acetica Sintetica) (1997) Process to recycle exhaust gases from n-butane conversion into maleic anhydride. US patent 5,688,970 A"
+          url: https://patents.google.com/patent/US5688970A/en
+          locator: Examples 1 and 2
+          kind: other
+          accessed: "2026-11-19"
+  ma-specific-electricity:
+    title: Electricity per kg of maleic anhydride (fixed bed, VPO)
+    unit: kWh/kg
+    references:
+      - id: us5688970-compression
+        range: [0.730, 1.059]
+        basis: unallocated
+        note: >-
+          The compression power per kg of MA of US 5 688 970 A's examples: 3283 kW once through
+          (Example 2, air to 3.55 bar in two stages) and 2264 kW with the off-gas recycled
+          (Example 1), each for 3100 kg/h; our division. Compression only: the pumps, vacuum pumps
+          and fans are not in the figures.
+        conditions: {technology: "n-butane oxidation in air over VPO, fixed bed, dibutyl phthalate absorption; once through and with off-gas recycle", capacity: "3100 kg/h of MA", year: 1997}
+        source:
+          citation: "Ruggieri, R.; Cassarino, S. (Italiana Serie Acetica Sintetica) (1997) Process to recycle exhaust gases from n-butane conversion into maleic anhydride. US patent 5,688,970 A"
+          url: https://patents.google.com/patent/US5688970A/en
+          locator: Examples 1 and 2
+          kind: other
+          accessed: "2026-11-19"
+
+  vam-specific-ethylene:
+    title: Ethylene consumption per kg of vinyl acetate (gas-phase acetoxylation)
+    unit: kg/kg
+    references:
+      - id: us8765995-ethylene-selectivity
+        range: [0.3489, 0.3585]
+        basis: unallocated
+        note: "The ethylene selectivity to vinyl acetate of Wacker's pilot tubes, 90.9 to 93.4 % over 300 to 1500 h (Tables 1 to 4, the comparative 33 mm and the 27 mm tubes), as ethylene per kg of vinyl acetate (28.054 / 86.090 = 0.3259 kg/kg at 100 %, divided by 0.934 and 0.909). A reactor's selectivity, not a plant's consumption: it leaves out the ethylene lost in the purge and the CO2 vent. Not independent of vinyl-acetate-1, which takes its selectivity (91.0 %) from the same Table 2."
+        conditions: {technology: "multitubular fixed bed, Pd/Au catalyst, 65 mol% ethylene, 150-155 C, pilot reactor with 4 and 7 tubes of 6.3 m", region: DE, year: 2014}
+        source:
+          citation: "Dafinger, W.; Holl, P.; Rudolf, G.; Schoenleben, M. (Wacker Chemie AG) (2014) Process and apparatus for preparing vinyl acetate monomer. US Patent 8,765,995 B2"
+          url: https://patents.google.com/patent/US8765995B2/en
+          locator: "Examples, Tables 1 to 4 (ethylene selectivity)"
+          kind: other
+          accessed: "2026-11-19"
+  vam-specific-acetic-acid:
+    title: Acetic acid consumption per kg of vinyl acetate
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's acetic acid use per kg of vinyl acetate found (searched 2026-11-19: Google Patents US 8 765 995 B2, US 8 410 307 B2, US 6 420 595 B1 and US 5 550 281 A read, which give conversions, selectivities on ethylene and oxygen and compositions but no acetic acid consumption; Wikipedia, Vinyl acetate, the routes without figures). Only the stoichiometric floor, 0.6976 kg/kg (60.052 / 86.090), is known."
+
+  pa-specific-o-xylene:
+    title: o-Xylene consumption per kg of phthalic anhydride (fixed-bed gas-phase oxidation)
+    unit: kg/kg
+    references:
+      - id: ap42-pa-feed-utilisation
+        range: [1.0, 1.0]
+        basis: unallocated
+        note: >-
+          AP-42 states a feed utilisation of about 1.0 lb of PA per lb of o-xylene for the plants of
+          its time (1970s, US), one rounded figure, kept as a point (the source gives no spread).
+          The dataset's 0.9495 kg/kg (1.053 kg PA per kg) is a newer catalyst's yield. Independent of phthalic-anhydride-1, whose selectivities come
+          from patents and a flowsheet paper; the dataset's CO share and condenser recovery are
+          calibrated to AP-42's emission factors, not to this utilisation.
+        conditions: {technology: "o-xylene or naphthalene oxidation over vanadium pentoxide, fixed bed (o-xylene) or fluid bed (naphthalene), switch condensers, vacuum distillation", region: US, year: 1983}
+        source:
+          citation: "US EPA (1983, reformatted 1995) AP-42, Compilation of Air Pollutant Emission Factors, 5th ed., Vol. I, section 6.5 Phthalic anhydride"
+          url: https://www.epa.gov/sites/default/files/2020-10/documents/c06s05.pdf
+          locator: "6.5.1 General, first paragraph"
+          kind: government
+          accessed: "2026-11-19"
+  pa-specific-electricity:
+    title: Electricity per kg of phthalic anhydride
+    unit: kWh/kg
+    no_open_reference: "No open source with a plant's electricity use per kg of phthalic anhydride found (searched 2026-11-19: US EPA AP-42 section 6.5, Google Patents US 8 859 459 B2, US 7 592 293 B2, EP 0 574 855 A2, US 5 730 844 A, US 4 036 783 A and the ESCAPE-15 paper of Jara et al. 2005 read; none states a utility consumption). The dataset's value is its air blower (hand calculation) and ASSUMED pump and vacuum allowances (phthalic-anhydride-1, DESIGN.md D-010)."
+  mma-acetone-yield:
+    title: Methyl methacrylate per acetone fed (ACH-sulfo route), as a share of the stoichiometric maximum
+    unit: "%"
+    description: >-
+      Moles of MMA per mole of acetone, computed from the masses (100.1158 and 58.0791 g/mol). With
+      HCN equimolar it is the yield on ACH times the ACH unit's yield.
+    no_open_reference: >-
+      No open source independent of the dataset's was read (2026-11-19). The only open figures
+      found are the dataset's own source, US 2023/0416184 A1 (Table 4: 90.1 to 91.6 % MMA on ACH
+      in Examples A1 to A3, Table 7: 91.1 % in B1), which a check would pass by construction.
+      Read: US 9,890,105 B2 (routes, no ACH-route yield); the abstract of Darabi Mahboub et al.,
+      Chem. Soc. Rev. 47 (2018) 7703 (no figure); the full text and Ullmann's chapter were not
+      read.
+  mma-specific-natural-gas:
+    title: Natural gas (as methane) per kg of methyl methacrylate, spent acid regenerated on site
+    unit: kg/kg
+    no_open_reference: >-
+      No open source with the fuel of a spent-acid regeneration plant per kg of MMA or per kg of
+      spent acid was found (2026-11-19). Read: US 2023/0416184 A1 (thermal regeneration above
+      900 C, no fuel figure). The dataset's value comes from an adiabatic energy balance on
+      package formation enthalpies (methyl-methacrylate-1 DESIGN.md D-008), an approximation: the
+      heat loss it leaves out and the uncredited sensible heat of the 393 K spent acid act in
+      opposite directions.
 
   acrylic-acid-specific-propylene:
     title: Propylene consumption per kg of acrylic acid (two-stage propylene oxidation)
@@ -546,6 +657,50 @@ datasets:
     kpis:
       kotbu-specific-potassium: {expression: feed:K / product:KOTBU, per: product:KOTBU}
       kotbu-specific-tert-butanol: {expression: feed:TBAF / product:KOTBU, per: product:KOTBU}
+  - process: vinyl-acetate-1
+    dataset: vinyl-acetate-monomer-by-gas-phase-acetoxylation-of-ethylene-200-kt-a
+    conditions: {technology: "gas-phase acetoxylation of ethylene over Pd/Au in a boiling-water-cooled multitubular fixed bed, acetic acid scrubbing, hot carbonate CO2 removal on a water-washed slip stream, 0.3 % purge, azeotropic and dewatering columns", basis: "concept balance, the reactor feed, conversion and selectivity of US 8 765 995 B2 Table 2, ASSUMED separator splits, purge and duties (DESIGN.md D-004 to D-008)"}
+    kpis:
+      vam-specific-ethylene:
+        expression: feed:ETH / product:VAMP
+        per: product:VAMP
+        reference: us8765995-ethylene-selectivity
+        out_of_range_reason: "The reference is a reactor's selectivity; the dataset's 0.370 kg/kg adds the ethylene of the 0.3 % purge (9.1 g/kg) and of the CO2 vent (1.0 g/kg) and the vinyl acetate lost to the effluent (0.41 %), all ASSUMED (vinyl-acetate-1 DESIGN.md D-006, D-007). At the reactor alone its 91.0 % gives 0.3581 kg/kg, inside the range."
+      vam-specific-acetic-acid: {expression: feed:ACF / product:VAMP, per: product:VAMP}
+  - process: maleic-anhydride-1
+    dataset: maleic-anhydride-by-n-butane-oxidation-over-vpo-in-a-fixed-bed-molten-salt-cooling-with-steam-raising-dibutyl-phthalate-absorption-and-vacuum-distillation-25-kt-a
+    conditions: {technology: "n-butane oxidation in air over VPO in a molten-salt cooled fixed bed, once through, dibutyl phthalate absorption, vacuum stripping and distillation, off-gas oxidiser", basis: "concept balance, conversion and selectivity of US 7 589 217 B2 (DESIGN.md D-004 to D-010)"}
+    kpis:
+      ma-specific-butane:
+        expression: feed:BUTF / product:MAP
+        per: product:MAP
+        reference: us5688970-butane
+        out_of_range_reason: "The dataset's 1.068 kg/kg is 0.7 % above the once-through example's 1.061. At the reactor the two agree: 1.053 kg of butane per kg of MA in the gas here, about 1.054 from the patent's 86.5 % conversion and 65 % selectivity (the same per-pass yield as US 7 589 217 B2's 81 % and 69.5 %, from which the dataset's conversion and selectivity come, so the reference stays independent of the value). The gap is the losses the patent's figure leaves out: its 3100 kg/h, the MA recovered from the solvent, is about 99.4 % of its reactor's MA, the absorber's loss only, before any refining, while the dataset also loses MA with the stripper's lights and in the refining column's lights and residue (98.6 % of the reactor's MA reaches the product, D-007)."
+      ma-specific-electricity:
+        expression: feed:POWER / product:MAP
+        per: product:MAP
+        reference: us5688970-compression
+        out_of_range_reason: "The dataset's 1.072 kWh/kg includes the pumps, vacuum pumps and the oxidiser's fan (0.100 kWh/kg); its air compressor alone, 0.971 kWh/kg to 260 kPa(a) at an ASSUMED isentropic efficiency of 0.80, lies inside the range."
+  - process: phthalic-anhydride-1
+    dataset: phthalic-anhydride-by-o-xylene-oxidation-over-v2o5-tio2-5.06-t-h-about-40-kt-a
+    conditions: {technology: "o-xylene at 80 g/Nm3 in air over V2O5/TiO2 in a salt-cooled multitubular reactor raising HP steam, switch condensers, thermal pre-treatment, two vacuum columns, recuperative thermal oxidiser", basis: "concept balance, ASSUMED selectivities inside patent and paper ranges, the CO share and condenser recovery calibrated to AP-42 6.5's uncontrolled factors (DESIGN.md D-005, D-007)"}
+    kpis:
+      pa-specific-o-xylene:
+        expression: feed:OX / product:PAN
+        per: product:PAN
+        reference: ap42-pa-feed-utilisation
+        out_of_range_reason: >-
+          AP-42's 1.0 kg/kg is a rounded figure for the vanadium pentoxide catalysts of the 1970s;
+          phthalic-anhydride-1 takes the reactor yield of a newer graded catalyst (1.102 kg PA per
+          kg in the reactor gas, inside the 1.088 to 1.15 of EP 0 574 855 A2, Jara et al. 2005 and
+          US 4 036 783 A), so it needs 0.9495 kg/kg (DESIGN.md D-005).
+      pa-specific-electricity: {expression: feed:POWER / product:PAN, per: product:PAN}
+  - process: methyl-methacrylate-1
+    dataset: methyl-methacrylate-by-the-ach-sulfo-route-with-sulfuric-acid-regeneration-12.5-t-h-mma
+    conditions: {technology: "ACH-sulfo route: acetone + HCN to ACH, amidation in 98.5 wt% sulfuric acid, esterification with methanol, distillation, spent acid regenerated on site (natural-gas-fired decomposition, double-contact plant)", basis: "concept balance, the acid ratio, conditions and yield of US 2023/0416184 A1 Example A2, ASSUMED loss split, recoveries, SAR furnace and duties (DESIGN.md D-004 to D-009)"}
+    kpis:
+      mma-acetone-yield: {expression: product:MMAP * 58.0791 / 100.1158 / feed:ACEF}
+      mma-specific-natural-gas: {expression: feed:NG / product:MMAP, per: product:MMAP}
   - process: acrylic-acid-1
     dataset: acrylic-acid-by-two-stage-propylene-oxidation-12.5-t-h-glacial-acrylic-acid
     conditions: {technology: "two-stage propylene oxidation with air and steam in salt-cooled multitubular reactors raising HP steam, water quench absorption, azeotropic dehydration with toluene, acetic acid and glacial acid vacuum columns; continuous, 100 kt/a", basis: "concept balance, US 4 873 368 A's yields and US 5 910 607 A's compositions, ASSUMED splits; duties from pure-component data (DESIGN.md D-004 to D-010)"}

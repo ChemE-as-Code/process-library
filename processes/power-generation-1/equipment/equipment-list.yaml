@@ -1,0 +1,32 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# The main items of the PFD (process/flowsheet.yaml), concept stage: no P&ID, no sizing of our
+# own. Ratings and design conditions are NETL Case B31A's major equipment list (SRC-1, section
+# 5.2.5, pp. 571-574), which states that its design conditions carry a 10 % contingency on flows
+# and duties and 21 % on pump and fan heads; numbers in our own words, nothing copied. Items of
+# the balance of plant that NETL lists (water treatment, fire water, air compressors, auxiliary
+# boiler, switchgear, DCS) are not separate PFD steps and are left out here (D-012).
+schema: cheme/equipment/v1
+equipment:
+  # ---- gas turbine generators (GT)
+  - {tag: GT-101, type: Turbine, service: "Gas turbine generators, 2 x F-class with dry low-NOx combustors (A and B trains), each with its hydrogen-cooled generator",
+     notes: "Two machines of about 240 MW each, generators 270 MVA, 18 kV (SRC-1 p. 572); together 477 MWe at ISO conditions, exhaust 625 degC (SRC-1 Exhibits 5-8, 5-9). One conversion step R101 for both (D-005)."}
+  # ---- heat recovery steam generators (HRSG)
+  - {tag: H-101, type: HeatExchanger, service: "Heat recovery steam generators, 2 x three-pressure reheat drum type with SCR between the HP and IP sections (A and B), with stacks",
+     notes: "Each about 267 t/h main steam at 16.4 MPa/585 degC and 309 t/h reheat steam at 3.4 MPa/584 degC (design conditions, SRC-1 pp. 572-573); stack 46 m high; SCR reactor with one catalyst layer and space for a second, aqueous ammonia injection (SRC-1 section 5.1.4). The boiler feed pumps P-202 belong to this step (D-006)."}
+  - {tag: P-202, type: Pump, service: "Boiler feed pumps, multi-stage centrifugal with an interstage bleed for the IP and LP feedwater (2 operating, 2 spare)",
+     notes: "HP about 4,550 L/min at 2,940 m; IP about 2,360 L/min at 470 m (SRC-1 p. 572); 4,830 kW together (Exhibit 5-10). In H101 as its energy stream Q7."}
+  # ---- steam turbine and condenser (STC)
+  - {tag: X-201, type: Turbine, service: "Steam turbine generator, reheat, triple admission (HP, IP, LP), hydrogen-cooled generator",
+     notes: "Rated about 277 MW at 16.4 MPa/585 degC/584 degC, generator 310 MVA, 18 kV (SRC-1 p. 573); 263 MWe at the design case (Exhibit 5-9). One bypass per HRSG for 50 % of the steam (SRC-1 p. 573)."}
+  - {tag: E-201, type: HeatExchanger, service: "Surface condenser, two pass with divided waterbox, vacuum pumps and integrated deaerator",
+     notes: "About 1,550 GJ/h design duty, cooling water in at 16 degC with an 11 K rise (SRC-1 p. 573); 1,406 GJ/h at the design case at 50.8 mm Hg (Exhibits 5-5, 5-9)."}
+  - {tag: P-201, type: Pump, service: "Condensate pumps, vertical canned (1 operating, 1 spare)",
+     notes: "About 11,710 L/min at 80 m (SRC-1 p. 571); 150 kW (Exhibit 5-10)."}
+  # ---- cooling water (CW)
+  - {tag: CT-301, type: CoolingTower, service: "Wet cooling tower, evaporative, mechanical draft, multi-cell",
+     notes: "Design 1,580 GJ/h at 11 degC wet bulb, 16 degC cold and 27 degC hot water (SRC-1 p. 573); fans 1,460 kW (Exhibit 5-10)."}
+  - {tag: P-301, type: Pump, service: "Circulating water pumps, vertical wet pit (2 operating, 1 spare)",
+     notes: "About 283,000 L/min at 30 m each (SRC-1 p. 573); 2,820 kW together (Exhibit 5-10). In CT301 with the fans (energy stream Q8)."}
+  # ---- electrical (EL)
+  - {tag: T-901, type: Transformer, service: "Generator step-up transformers, 18/345 kV (2 for the gas turbine generators, 1 for the steam turbine generator), and the auxiliary transformers",
+     notes: "270 MVA (gas turbine generators) and 290 MVA (steam turbine generator), oil-filled (SRC-1 p. 573); transformer losses 2,250 kW (Exhibit 5-10)."}
