@@ -3,15 +3,18 @@
 Status (2026-10-27): **preliminary gate-to-gate life cycle inventory**, concept stage. The
 foreground comes from the balanced flowsheet (`process/flowsheet.yaml`, case `design`); every
 background is deliberately **unmapped** (`missing:` in `lca.yaml`), so the only characterised
-number in `results.md` is the plant's own fossil CO2 at the stack. That is not a carbon
+number in `results.md` is the plant's own fossil CO2 at the stack and, since D-016, the
+deaerator vent. That is not a carbon
 footprint of hydrogen: the natural gas supply chain, electricity, water treatment, cooling and
 waste water treatment are gaps (`gaps.csv`), never zero. DESIGN.md D-013.
 
 **Read the number with its allocation.** The burdens are shared between hydrogen and the export
 steam by **exergy** (H2 90.1 %, steam 9.9 %; `lca.yaml` `allocation`, revised after review
-2026-10-27-pfd-lci-review#1). The 9.11 kg CO2-eq per kg H2 in `results.md` is the
-exergy-allocated direct stack CO2 (plus the small CH4 and N2O of the combustion estimate);
-unallocated, with the steam's share left on hydrogen, it is 10.10 kg. Neither is a footprint.
+2026-10-27-pfd-lci-review#1). The 9.14 kg CO2-eq per kg H2 in `results.md` (9.13771, on the
+simulated basis of DESIGN.md D-016) is the exergy-allocated direct CO2 of the stack and the
+deaerator vent (plus the small CH4 and N2O of the combustion estimate); unallocated, with the
+steam's share left on hydrogen, it is 10.14 kg. Neither is a footprint. (The concept balance
+of 2026-10-27, before D-016, gave 9.11 and 10.10.)
 The inventory tables below are the whole plant per kg H2, unallocated.
 
 | file | what | written by |
@@ -48,8 +51,10 @@ lowers the product by 0.35 % and raises the per-kg flows by about as much); `inv
 | out: H2O vapour to air | S26 | 4.06 kg | elementary (no climate factor) |
 | out: N2, O2, Ar to air | S26 | 23.42 / 0.650 / 0.396 kg | free (atmospheric, returned) |
 
-**CO2 by origin (process and combustion kept apart).** All carbon leaves as CO2 through the
-reformer stack (complete combustion, D-009). Split by the carbon of the two natural gas
+**CO2 by origin (process and combustion kept apart; concept balance, before D-016).** In the
+concept balance all carbon leaves as CO2 through the reformer stack (complete combustion,
+D-009); since D-016 a small part (0.028 kg per kg H2, unallocated) leaves dissolved in the
+process condensate through the deaerator vent S35. Split by the carbon of the two natural gas
 terminals (2.635 kg CO2 per kg of this gas, from its composition, D-004):
 
 | origin | from | kg CO2 per kg H2 |
@@ -58,7 +63,7 @@ terminals (2.635 kg CO2 per kg of this gas, from its composition, D-004):
 | combustion (trim fuel carbon) | feed:NGF, 0.617 kg | 1.63 |
 | total at the stack | emission:CO2 | 10.10 |
 
-The flowsheet has one stack, so the inventory carries one CO2 exchange; the split above
+The inventory carries one CO2 exchange (stack S26 and vent S35 together); the split above
 follows from the two feed exchanges and the closed carbon balance.
 
 ## Balance checks against the flowsheet (2026-10-27)
@@ -79,10 +84,12 @@ follows from the two feed exchanges and the closed carbon balance.
   particulates, and the unburnt C2H6, C3H8 and H2, which stay at the complete-combustion zero
   of the balance (D-009) and are not a determined value. The EMEP/EEA CO and NOx values were
   not re-read in this run: check them against the guidebook table.
-- Process condensate (S15) and deaerator: the deaerator vent (dissolved CO2, later traces of
-  methanol and ammonia once the shift by-products are modelled) and the stripping steam are not
-  in the flowsheet or this inventory (D-010); a condensate stripper or the deaerator vent is an
-  emission source to add (review #6).
+- Process condensate (S15) and deaerator: since D-016 the deaerator vent S35 (product:DAV,
+  254.5 kg/h, 99.4 mol% CO2, the gases dissolved in the simulated condensate) is in the
+  flowsheet and this inventory (review #6). Still open: the stripping steam lost with the vent
+  (not modelled, D-010), and the methanol and ammonia traces in the vent once the shift
+  by-products are modelled. The dissolved CO2 is uncertain by more than a factor of 1.5
+  (Peng-Robinson not qualified, D-016).
 - Consumables: reforming catalyst (Ni), HT shift catalyst (Fe-Cr), hydrogenation catalyst
   (CoMo/NiMo), ZnO sorbent, PSA adsorbents, boiler water chemicals: amounts and lives are
   vendor inputs; each needs a disposal route (spent ZnO and nickel catalyst carry metals).

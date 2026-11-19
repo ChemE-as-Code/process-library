@@ -134,13 +134,13 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 23 | `cooling-water` **next** | Cooling water system | utilities | n/a, to be sourced | low | - | air-separation, ammonia, methanol | 2 | utility-cooling-tower (T1) |
 | 24 | `phosphoric-acid` | Phosphoric acid (wet process) | phosphoric-acid | n/a, to be sourced | low | dihydrate, hemihydrate | npk-fertilizers | 1 | phosphoric-acid-1 (T1) |
 | 25 | `vcm` | Vinyl chloride monomer (balanced EDC process) | chlorinated-organics | n/a, to be sourced | medium | - | pvc | 1 | vcm-1 (T1) |
-| 26 | `pvc` | Polyvinyl chloride | polymers | n/a, to be sourced | medium | suspension, emulsion | - | 1 | - |
+| 26 | `pvc` | Polyvinyl chloride | polymers | n/a, to be sourced | medium | suspension, emulsion | - | 1 | pvc-1 (T2) |
 | 27 | `styrene` | Styrene (via ethylbenzene) | styrenics | n/a, to be sourced | medium | eb-dehydrogenation, po-sm | polystyrene | 1 | styrene-1 (T2) |
 | 28 | `pet` | Polyethylene terephthalate | polymers | n/a, to be sourced | medium | - | plastic-pyrolysis | 1 | pet-1 (T1) |
 | 29 | `catalytic-reforming` | Catalytic reforming | refining | n/a, to be sourced | medium | - | btx, hydrotreating | 1 | catalytic-reforming-1 (T1) |
 | 30 | `hydrotreating` | Hydrotreating and hydrodesulfurisation | refining | n/a, to be sourced | medium | - | sulfur-recovery | 1 | hydrotreating-1 (T1) |
 | 31 | `fcc` | Fluid catalytic cracking | refining | n/a, to be sourced | high | - | propylene-pdh | 1 | fcc-1 (T1) |
-| 32 | `bioethanol` | Bioethanol | bioethanol | n/a, to be sourced | medium | corn-dry-mill, sugarcane, lignocellulosic | bio-ethylene, carbon-capture | 1 | - |
+| 32 | `bioethanol` | Bioethanol | bioethanol | n/a, to be sourced | medium | corn-dry-mill, sugarcane, lignocellulosic | bio-ethylene, carbon-capture | 1 | bioethanol-1 (T2) |
 | 33 | `adipic-acid` | Adipic acid | oxygenates | n/a, to be sourced | high | - | - | 1 | adipic-acid-1 (T1) |
 | 34 | `acetic-acid` | Acetic acid (methanol carbonylation) | oxygenates | n/a, to be sourced | low | - | - | 1 | acetic-acid-1 (T2) |
 | 35 | `formaldehyde` | Formaldehyde | oxygenates | n/a, to be sourced | low | silver, metal-oxide | mdi-tdi | 1 | formaldehyde-1 (T2) |
@@ -160,7 +160,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 49 | `bio-ethylene` | Bio-ethylene by ethanol dehydration | bio-based-chemicals | n/a, to be sourced | medium | - | polyethylene | 0 | bio-ethylene-1 (T1) |
 | 50 | `waste-incineration` | Waste incineration with energy recovery | waste-treatment | n/a, to be sourced | medium | - | steam-generation | 1 | waste-incineration-1 (T1) |
 | 51 | `caprolactam` | Caprolactam | nitrogen-organics | n/a, to be sourced | medium | - | - | 2 | caprolactam-1 (T2) |
-| 52 | `acrylonitrile` | Acrylonitrile (propylene ammoxidation) | nitrogen-organics | n/a, to be sourced | low | - | - | 0 | - |
+| 52 | `acrylonitrile` | Acrylonitrile (propylene ammoxidation) | nitrogen-organics | n/a, to be sourced | low | - | - | 2 | acrylonitrile-1 (T2) |
 | 53 | `mdi-tdi` | Isocyanates (MDI, TDI) | nitrogen-organics | n/a, to be sourced | medium | - | - | 0 | - |
 | 54 | `polystyrene` | Polystyrene | polymers | n/a, to be sourced | low | - | - | 0 | polystyrene-1 (T2) |
 | 55 | `biogas` | Biogas and biomethane | biogas | n/a, to be sourced | medium | anaerobic-digestion, upgrading | steam-generation, hydrogen | 0 | - |
