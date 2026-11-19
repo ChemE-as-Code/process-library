@@ -1,0 +1,108 @@
+# Process Atlas manifest of pvc-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the ChemE-as-Code
+# files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: pvc-1
+title: Polyvinyl chloride by batch suspension polymerisation with VCM recovery, steam stripping and drying (172 kt/a)
+summary: >-
+  Suspension PVC in four 130 m3 batch autoclaves: VCM (vcm-1) polymerised in water at 330 K to
+  the pressure drop at 90 % conversion, the unreacted VCM recovered and recycled, the slurry
+  steam-stripped, centrifuged and dried. Concept stage, 41.8 t per batch every 1.95 h, thermal
+  screening of the closed batch, preliminary gate-to-gate LCI.
+description: |
+  Each of four autoclaves of 130 m3 is charged with demineralised water and the suspending agent,
+  evacuated, charged with vinyl chloride monomer (fresh from vcm-1 and recovered) and
+  di(2-ethylhexyl) peroxydicarbonate, heated to 330.15 K on its jacket, and the monomer
+  polymerises in its droplets until the pressure drops at 90 % conversion (the recipe of
+  US 6 825 288 B2, Example 1: 46.3 t of VCM in 56.8 t of water, 57.0 C, the end at 0.588 MPa).
+  A short-stop is added, the unreacted VCM vented to a gas holder and the slurry dropped with
+  the autoclave's rinse water. The slurry is stripped continuously with live steam to below 1 g
+  of VCM per t of resin, cooled, dewatered in a decanter centrifuge to 23 wt% moisture and dried
+  in a fluid bed on LP steam to 0.3 wt%. The VCM of the venting and the stripper is compressed
+  and condensed, 99.8 % of it back to the charge (the S-PVC process of the EU Polymers BREF
+  2007, chapter 5). 0.997 kg of fresh VCM per kg of resin.
+
+  The batch is modelled with cheme-as-code's batch reactor (reactor: batch, core ADR 0050, 0059),
+  an ASSUMED zero-order rate calibrated to the example's heat removal (17 250 MJ/h, 3.71 h to the
+  pressure drop) with the activation energy of an open kinetic scheme, the heat of
+  polymerisation of the example (1539.7 kJ/kg), the recovery's recycle converged at a tear
+  stream (ADR 0060), component separators for the venting, the stripper and the recovery (ADR
+  0070), core's centrifuge and dryer models (ADR 0057), and the batch recipe (ADRs 0051, 0052,
+  0063): four autoclaves in turn, 7.79 h each, a cycle of 1.9465 h, 4110 batches of 41 794 kg
+  a year (172 kt/a). The jacket and cooled baffles remove 3.14 MW of the 5.44 MW peak: the
+  autoclave needs its reflux condenser for 42 % of the heat, as the example's has (core's
+  closed batch has none). The thermal screening of the closed batch gives dT_ad 227.6 K and an
+  MTSR of 557.7 K against an MTT of 357.1 K, the temperature at which the charge's vapour
+  pressure reaches the relief set pressure; a loss of cooling at the start reaches it in about
+  11 min: short-stop injection, emergency cooling, agitation on emergency power and a
+  controlled emergency vent to the recovery are design requirements. See DESIGN.md for every
+  assumption.
+families: [polymers]
+keywords: [polyvinyl chloride, PVC, S-PVC, suspension polymerisation, vinyl chloride, VCM, batch, autoclave, peroxydicarbonate, pressure drop, VCM recovery, steam stripping, centrifuge, fluid-bed dryer, thermal screening, polymers]
+facets:
+  feedstock_basis: [fossil, mineral, water, electricity]
+  product_classes: [polymers]
+  unit_operations: [reaction, polymerisation, stripping, compression, centrifugation, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, the rate law's form, the
+# separations' splits, the cake moisture and the dryer's efficiency are assumed; the charge,
+# temperature, conversion and heat of polymerisation from a patent example (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass and component balances (cheme validate, cheme process
+    streams: 5 blocks and 12 steps within tolerance; the recovered VCM converged at the tear
+    S17). The batch R101 (from its ASSUMED zero-order rate, 3.71 h to 90 % conversion at
+    330.15 K), the venting DG101, the stripper ST301, its condenser CN301 and the recovery
+    REC401 (ASSUMED component splits), the centrifuge CF501 (cake 0.30 kg/kg, ASSUMED) and the
+    dryer DR601 (to 0.3 wt%, efficiency 0.55, ASSUMED) are calculated by cheme process
+    propagate, which writes R101's duty Q2 (9543 kW year average); the dryer's duty Q3 is its
+    model's (cheme process crystallizers); the heat-up Q1 is the recipe's (core ADR 0063, the
+    autoclave's ASSUMED metal); Q4 to Q6 and the motors' power (139 kWh/t, the EU Polymers
+    BREF's example plant) by hand. The recipe's year-average rate of the resin agrees with the
+    flowsheet (no cheme.recipe-basis finding); its jacket check warns (cheme.recipe-jacket):
+    the jacket and baffles remove 3138 of the 5438 kW peak, the rest is the reflux condenser's
+    (L-3). Thermal screening (cheme process reactor-hazards): R101 dT_ad 227.6 K,
+    accumulation 1 (a batch), MTSR 557.7 K against an MTT of 357.10 K (the relief set pressure
+    1700 kPa(a), ASSUMED); no criticality class without a TD24 (3, 4 or 5). Preliminary
+    gate-to-gate LCI, single product: the VCM linked to vcm-1, the water and the steam to the
+    shared entries, the suspending agent, the initiator, the short-stop, the chilled water and
+    the vent treatment gaps. Not reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: vinyl-chloride, role: feedstock, inventory_key: "feed:VCMF", note: "Vinyl chloride monomer (vcm-1), 0.997 kg per kg of resin; 1.11 kg charged per kg, 0.11 kg of it recovered and recycled"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DMW", note: "Demineralised water, 1.41 kg/kg: the charge (1.36 kg/kg) and the autoclave rinse (ASSUMED)"}
+    - {chemical: polyvinyl-alcohol, role: feedstock, inventory_key: "feed:PVAF", note: "Suspending agents (two partially hydrolysed polyvinyl alcohols and a cellulose ether in the source, lumped), 0.53 g/kg"}
+    - {chemical: di-2-ethylhexyl-peroxydicarbonate, role: feedstock, inventory_key: "feed:INITF", note: "Initiator, 0.54 g/kg"}
+  outputs:
+    - {chemical: polyvinyl-chloride, role: main-product, inventory_key: "product:PVCP", note: "Suspension PVC resin, 0.3 wt% volatiles, below 1 g/t VCM, to sieving and silos"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "1.29 kg/kg: centrate, stripper condensate and the recovery's water to the wastewater stripper and the site's treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.139 kWh/kg: agitators, the recovery compressor, the centrifuge, the dryer's fans and conveying (the EU Polymers BREF's example plant, without utilities)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.427 kWh/kg of LP steam heat: the autoclaves' heat-up and the dryer (core's dryer model), plus 0.179 kg/kg of live steam to the stripper (feed:LSTM)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.440 kWh/kg removed by chilled water at 283 K: the polymerisation heat (core's batch model; in the plant 26 to 45 % goes to the reflux condenser on cooling water) and the recovery's condensers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.104 kWh/kg removed by cooling water: the slurry cooler and the stripper's condenser"}
+basis:
+  capacity: "171.8 kt/a of dried suspension PVC: 4110 batches/a of 41 794 kg in 8000 h on four autoclaves (21.47 t/h year average), the batch from US 6 825 288 B2, Example 1, the plant's size ASSUMED (DESIGN.md D-002, D-003)"
+  operating_hours_per_year: 8000
+  location: generic site beside a VCM plant, with a wastewater treatment and a vent incinerator (not chosen)
+references:
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), August 2007: chapter 5 (PVC: 5.2 processes, 5.3 emission and consumption levels, Tables 5.4, 5.5, 5.9, 5.10), 13.4 (BAT for PVC, Table 13.9)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/pol_bref_0807.pdf"}
+  - {title: "Shin-Etsu Chemical (2004) US 6 825 288 B2: Method of producing of vinyl chloride-based polymer (Example 1: 130 m3 autoclave, 56.8 t water, 46.3 t VCM, 22.2 kg suspending agents, 22.5 kg di-2-ethylhexyl peroxydicarbonate, 57.0 C, end at 0.588 MPa and 90 % conversion; heat removal by reflux condenser, jacket and baffle, Table 1; 368 kcal/kg in the conversion formula)", url: "https://patents.google.com/patent/US6825288B2/en"}
+  - {title: "Barkanyi, A.; Lakatos, B. G.; Nemeth, S. (2012) Modelling of heat exchange between drops in suspension polymerization of vinyl chloride. Periodica Polytechnica Chemical Engineering 56(2) 55-64 (the three stages of VCM polymerisation and the pressure drop)", doi: 10.3311/pp.ch.2012-2.02}
+  - {title: "Barkanyi, A.; Nemeth, S.; Lakatos, B. G. (2014) Temperature control of batch suspension polyvinyl chloride reactors. Chemical Engineering Transactions 39, 1285-1290 (Table 1: rate coefficients of the kinetic scheme after Sidiropoulou and Kiparissides 1990; batch reactors up to 160 to 200 m3)", doi: 10.3303/CET1439215}
+  - {title: "Wikipedia, Polyvinyl chloride (density 1.4 g/cm3, specific heat 0.9 kJ/(kg K), glass transition 82 C; about 80 % of production by suspension polymerisation), read 2026-11-19", url: "https://en.wikipedia.org/wiki/Polyvinyl_chloride"}
+  - {title: "NIST Chemistry WebBook, SRD 69: vinyl chloride (C75014) (boiling point, heat of vaporization)", url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C75014"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (MTSR, MTT and the criticality classes; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/pvc-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

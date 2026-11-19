@@ -1,0 +1,28 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes from the recipe (D-003) and the models; design pressures and materials are usual
+# choices for VCM service, to be confirmed in basic engineering. All values ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: R-101, type: StirredTankReactor, service: "Polymerisation autoclave (one of four, R-101 to R-104): charge, heat-up, polymerisation at 330.15 K to the pressure drop, short-stop, venting, drop, rinse",
+     notes: "130 m3 (US 6 825 288 B2, Example 1), 87 % full with 112.6 m3 at the charge (cheme process recipe), stainless-clad steel, agitated; jacket and cooled baffles on chilled water (150 m2, U 500 W/(m2 K) ASSUMED) remove 3138 kW against the peak 5438 kW: a reflux condenser on cooling water takes the rest, 2.3 MW or 42 % of the peak, within the 30 to 60 % of the example's first stage (core's batch has none, L-3, D-008); relief set at 1700 kPa(a) (ASSUMED) to the VCM recovery, which sets the MTT 357.10 K (D-010); short-stop injection, emergency cooling, agitator on emergency power, controlled emergency vent (EU Polymers BREF 2007, BAT 9 of 13.4; D-010); the four autoclaves take the batches in turn (cycle 1.9465 h)."}
+  - {tag: C-301, type: Column, service: "Continuous slurry stripper with live steam",
+     notes: "Fed from the slurry tank T-301; live steam 3853 kg/h at 450 kPa(a) (S11); 99.995 % of the slurry's VCM overhead, below 1 g/t left in the resin (D-007); bottoms at about 368 K."}
+  - {tag: T-301, type: Tank, service: "Unstripped slurry tank (buffer between the autoclaves and the stripper)",
+     notes: "Agitated, vented to the gas holder T-401; holds about two batches (about 250 m3, ASSUMED, D-003)."}
+  - {tag: E-301, type: HeatExchanger, service: "Stripper overhead condenser on cooling water",
+     notes: "711.8 kW (Q5, by hand, D-007); the condensate to the wastewater stripper, the gas to T-401."}
+  - {tag: T-401, type: Tank, service: "Gas holder buffering the vent gas of the autoclaves and the stripper",
+     notes: "EU Polymers BREF 2007, 5.2.7: the batch venting fluctuates; kept free of oxygen (polyperoxides) (D-006, D-010)."}
+  - {tag: K-401, type: Compressor, service: "VCM recovery compressor",
+     notes: "2378 kg/h of VCM year average (S16), peaks while an autoclave vents; 298.4 kW (P2, ASSUMED share, D-008)."}
+  - {tag: E-401, type: HeatExchanger, service: "VCM recovery condensers on cooling water and chilled water, water knock-out",
+     notes: "289.6 kW (Q6, by hand, D-006); 99.8 % of the VCM condensed and returned to the charge, the vent to the incinerator (D-006)."}
+  - {tag: E-501, type: HeatExchanger, service: "Stripped slurry cooler on cooling water",
+     notes: "1526.5 kW (Q4) from 368 to 333 K; a feed/bottoms exchanger against the stripper's feed would recover most of it (D-007)."}
+  - {tag: CF-501, type: Centrifuge, service: "Decanter centrifuge: wet cake and centrate",
+     notes: "21.4 t/h of resin, wet cake 0.30 kg water per kg resin (ASSUMED, D-009); 447.7 kW (P3)."}
+  - {tag: D-601, type: Dryer, service: "Fluid-bed dryer on LP steam with cyclones",
+     notes: "6355 kg/h of water evaporated, 7658.8 kW of steam (Q3, core's dryer model, efficiency 0.55 ASSUMED); the resin at 338 K, below its 355 K glass transition; cyclones on the exhaust (BAT 6 of the EU Polymers BREF 2007, 13.4) (D-009)."}
+  - {tag: T-701, type: Tank, service: "Process wastewater collection to the wastewater stripper",
+     notes: "Centrate, stripper condensate and the recovery's water, 27.7 t/h; stripped of VCM before the site's treatment (EU Polymers BREF 2007, 5.2.8; D-009)."}

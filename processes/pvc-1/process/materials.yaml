@@ -1,0 +1,91 @@
+# Components and templates of pvc-1. Schema cheme/process/v1 (`cheme schema process-materials`).
+# Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021 standard atomic weights
+# applied to the formula; a polymer per mole of repeat units, library registry "Polymers"),
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Property sources (DESIGN.md source register SRC-6, SRC-7; single facts with their source,
+# library ADR 0037):
+# - vinyl chloride: normal boiling point 259.44 K (the `chemicals` 1.5.2 package, its Tb
+#   method; NIST WebBook lists 259.45 K, Dreisbach and Martin 1949); liquid molar volume
+#   0.07409 m3/kmol at 330.15 K and heat of vaporization 22553 J/mol at its normal boiling
+#   point from the DIPPR_PERRY_8E method of the `thermo` 0.6.1 package (Perry's Chemical
+#   Engineers' Handbook, 8th ed., coefficients as packaged; Perry's not read here); liquid heat
+#   capacity 102.1 kJ/(kmol K) at 330.15 K from thermo 0.6.1's HEOS_FIT method (its only liquid
+#   method for this compound);
+# - water: liquid molar volume 0.01830 m3/kmol and heat capacity 75.33 kJ/(kmol K) at 330.15 K
+#   (thermo 0.6.1, HEOS_FIT), normal boiling point 373.12 K, heat of vaporization at 373 K
+#   40650 J/mol (thermo 0.6.1);
+# - PVC: density 1.4 g/cm3 and specific heat 0.9 kJ/(kg K) (Wikipedia, Polyvinyl chloride,
+#   infobox, read 2026-11-19): 62.496 / 1400 = 0.04464 m3/kmol and 0.9 x 62.496 = 56.25
+#   kJ/(kmol K). The resin is a solid (phase: solid): it goes to the centrifuge's cake and
+#   through the dryer, and its rate in R101 is pseudo-homogeneous (DESIGN.md D-005, L-1);
+# - the suspending agent (partially hydrolysed polyvinyl alcohols and a cellulose ether in the
+#   source's recipe, lumped as polyvinyl alcohol, repeat unit C2H4O), the initiator
+#   di(2-ethylhexyl) peroxydicarbonate and the short-stop antioxidant (triethylene glycol
+#   bis[3-(3-tert-butyl-4-hydroxy-5-methylphenyl)propionate], C34H50O8, CAS 36443-68-2, the
+#   `chemicals` 1.5.2 package's identity) are below 0.05 wt% of the charge: their liquid
+#   molar volumes (from densities of 1.2, 0.95 and 1.1 g/cm3) and heat capacities (1.5, 2.0 and
+#   1.8 kJ/(kg K)) are ASSUMED, round values of their kind; no open measured value was looked
+#   up, and none changes a balance or a duty by more than 0.1 %. The initiator's and the
+#   antioxidant's fragments stay in the resin (phase: solid, ASSUMED: the initiator decomposes
+#   to radicals that end up as end groups, D-004); the suspending agent stays in the water and
+#   leaves with the centrate (ASSUMED, D-004).
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: VCM
+    name: Vinyl chloride
+    formula: C2H3Cl
+    cas: 75-01-4
+    molar_mass: 62.496
+    normal_boiling_point: 259.44
+    liquid_molar_volume: 0.07409
+    liquid_heat_capacity: 102.1
+    heat_of_vaporization: 22553
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    liquid_molar_volume: 0.01830
+    liquid_heat_capacity: 75.33
+    heat_of_vaporization: 40650
+  - id: PVC
+    name: Polyvinyl chloride (per mole of repeat units)
+    formula: C2H3Cl
+    cas: 9002-86-2
+    molar_mass: 62.496
+    phase: solid
+    liquid_molar_volume: 0.04464
+    liquid_heat_capacity: 56.25
+  - id: PVA
+    name: Suspending agent (partially hydrolysed polyvinyl alcohol, per mole of repeat units)
+    formula: C2H4O
+    cas: 9002-89-5
+    molar_mass: 44.053
+    liquid_molar_volume: 0.03671
+    liquid_heat_capacity: 66.1
+  - id: INIT
+    name: Di(2-ethylhexyl) peroxydicarbonate (initiator; its fragments in the resin)
+    formula: C18H34O6
+    cas: 16111-62-9
+    molar_mass: 346.464
+    phase: solid
+    liquid_molar_volume: 0.3647
+    liquid_heat_capacity: 692.9
+  - id: STOP
+    name: Short-stop antioxidant (hindered phenol; stays in the resin)
+    formula: C34H50O8
+    cas: 36443-68-2
+    molar_mass: 586.766
+    phase: solid
+    liquid_molar_volume: 0.5334
+    liquid_heat_capacity: 1056.2
+templates:
+  - {id: slurry, title: "Charge, suspension and resin", components: [VCM, H2O, PVC, PVA, INIT, STOP]}
+  - {id: vcm, title: Vinyl chloride and water vapour, components: [VCM, H2O]}
+  - {id: water, title: Water, components: [H2O]}
+property_method:
+  adapter: thermo
+  status: placeholder

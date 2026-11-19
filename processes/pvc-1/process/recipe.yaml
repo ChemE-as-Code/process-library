@@ -1,0 +1,40 @@
+# The batch recipe of pvc-1 (schema cheme/recipe/v1, `cheme process recipe`, DESIGN.md D-003).
+# One batch makes the dried resin of one autoclave charge (stream S23); the flowsheet's rates are
+# the year averages: one batch's amounts over the cycle.
+# - The autoclave is one vessel over M101 (the charge), E101 (heated to 330.15 K on its jacket),
+#   R101 (the polymerisation to the pressure drop, its time from R101's batch model) and DG101
+#   (the short-stop, the venting of the unreacted VCM to the recovery, the drop and the rinse):
+#   `units`, core ADR 0057. Four autoclaves take the batches in turn (parallel: 4), so the
+#   cycle is a quarter of one autoclave's occupancy.
+# - The stripper C-301, the recovery, the centrifuge and the dryer run continuously from the
+#   slurry tank T-301 and the gas holder T-401, which buffer the batches (EU Polymers BREF 2007,
+#   5.2.4 and 5.2.7): they are no batch units.
+# Every other duration is ASSUMED (D-003). `cheme process recipe --svg build/gantt.svg` draws one
+# batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: Suspension PVC in four batch autoclaves
+batch_size: {value: 41794, unit: kg, stream: S23, provenance: assumed, source: "the dried resin of one autoclave charge of US 6 825 288 B2, Example 1 (46.3 t of VCM at 90 % conversion, less 0.1 % fines, with its additives and 0.3 wt% moisture): the flowsheet's S23 times the cycle (D-003, D-004)"}
+hours_per_year: {value: 8000, provenance: assumed, source: "333 days of 24 h (D-002)"}
+unit_procedures:
+  - id: POLYMERISE
+    units: [M101, E101, R101, DG101]
+    parallel: 4
+    title: Charge, heat, polymerise to the pressure drop, short-stop, vent, drop and rinse (R-101 to R-104)
+    vessel:
+      fill_fraction: 0.87
+      aspect_ratio: 1.2
+      volume: 130
+      jacket: {u: 500, area: 150, coolant_temperature: 288.31, heating_temperature: 353.15, provenance: assumed, source: "a stainless-clad autoclave with a jacket and cooled internal baffles, U 500 W/(m2 K) and 150 m2 of cooled area (about 100 m2 of jacket and 50 m2 of baffles for 130 m3), ASSUMED (D-008); chilled water enters at 283.15 K (US 6 825 288 B2, Example 1: cold water at 10 C) and leaves at 293.15 K, so the suspension at 330.15 K sees a log-mean driving force of (47 - 37) / ln(47/37) = 41.84 K: core takes the coolant temperature as constant, so the equivalent 330.15 - 41.84 = 288.31 K is entered; heated with hot water at 353.15 K (the example's 80 C). The example's autoclave also has a reflux condenser that takes 26 to 45 % of the heat (its Table 1); core's closed batch has none (L-3), so the jacket check below compares all the heat with the jacket and baffles alone (D-008)"}
+      metal_heat_capacity: 50000
+      provenance: assumed
+      source: "an autoclave of 130 m3 (US 6 825 288 B2, Example 1), filled to at most 87 % (a closed reactor whose charge shrinks as the VCM turns into denser PVC), proportions of a stirred vessel (D-003); its metal about 100 t of clad steel at 0.5 kJ/(kg K) = 50 000 kJ/K, ASSUMED (no vessel mass sourced, D-008): in the heat-up's time (core ADR 0063) and in Q1"
+    operations:
+      - {id: charge_water, kind: charge, title: Charge the demineralised water and the suspending agent (M101), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: evacuate, kind: other, title: Evacuate the head space to 8 kPa (no venting of air), duration: {value: 0.25, provenance: assumed, source: "D-003; US 6 825 288 B2, Example 1: degassed to 8.0 kPa before the VCM"}}
+      - {id: charge_vcm, kind: charge, title: Charge the VCM (fresh and recovered) and the initiator (M101), duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: heat, kind: heat, title: Heat to 330.15 K on the hot-water loop (E101), temperatures: [298.15, 330.15]}
+      - {id: react, kind: react, title: Polymerise at 330.15 K to the pressure drop at 90 % conversion (R101), from: R101}
+      - {id: vent, kind: other, title: "Add the short-stop, vent the unreacted VCM to the gas holder (DG101)", duration: {value: 0.75, provenance: assumed, source: D-003}}
+      - {id: drop, kind: transfer, title: Drop the slurry to the slurry tank T-301, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: rinse, kind: clean, title: "Rinse with water to the slurry tank, apply the anti-fouling coat (closed-reactor practice)", duration: {value: 0.5, provenance: assumed, source: "D-003; EU Polymers BREF 2007, 5.2.3.2: closed reactors opened less than once in 100 batches"}}

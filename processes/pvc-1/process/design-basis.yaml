@@ -1,0 +1,50 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Polyvinyl chloride by batch suspension polymerisation of vinyl chloride monomer (S-PVC), issue
+# ChemE-as-Code/process-library#461. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried suspension PVC resin (0.3 wt% volatiles) to sieving and silos at the battery limit
+  pvc_t_per_year: 171769               # the recipe's result (D-002, D-003): 41 794 kg x 4109.9 batches
+  operating_hours_per_year: 8000       # ASSUMED (D-002): 333 days of 24 h
+  batch_kg: 41794                      # one autoclave charge of US 6 825 288 B2, Example 1 (D-003, D-004)
+  batches_per_year: 4110               # from the recipe (process/recipe.yaml: 4109.9, D-003)
+  autoclaves: 4                        # ASSUMED (D-003): 130 m3 each, taking the batches in turn
+feeds:
+  - name: Vinyl chloride monomer (vcm-1)
+    source_of_values: "US 6 825 288 B2, Example 1: 46.3 t charged per batch, fresh and recovered; fresh 1.0 kg per kg of resin (D-004)"
+    composition: "vinyl chloride 100 % (polymerisation grade; traces such as 1,3-butadiene and EDC, which the EU Polymers BREF 2007, 5.2.1.1, names, not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 1000}
+  - name: Demineralised water
+    source_of_values: "US 6 825 288 B2, Example 1: 56.8 t per batch; 2 t of rinse water per batch ASSUMED (D-004)"
+  - name: Suspending agents (partially hydrolysed polyvinyl alcohols, a cellulose ether)
+    source_of_values: "US 6 825 288 B2, Example 1: 22.2 kg per batch, lumped as polyvinyl alcohol (D-004)"
+  - name: Initiator, di(2-ethylhexyl) peroxydicarbonate
+    source_of_values: "US 6 825 288 B2, Example 1: 22.5 kg per batch, stored and charged cold (D-004, D-010)"
+  - name: Short-stop antioxidant, 30 % aqueous dispersion
+    source_of_values: "US 6 825 288 B2, Example 1: 44.7 kg per batch (D-004)"
+products:
+  - name: PVC resin, suspension grade
+    purity: "0.3 wt% volatiles (ASSUMED, D-009), below 1 g of VCM per t (D-007); carries the initiator's fragments, the short-stop and 0.01 wt% of the suspending agent (D-004)"
+    delivery: {temperature_K: 338.15, pressure_kPa_a: 101.325, battery_limit: sieving and silos}
+  - name: Process wastewater to the wastewater stripper and the site's treatment
+    note: "about 1.3 m3 per t of resin: centrate, stripper condensate, the recovery's water; VCM stripped off before the site's flocculation and biological treatment (D-009)"
+  - name: Recovery vent to the vent treatment
+    note: "the VCM the recovery does not condense, 0.2 % of its feed, to an incinerator (D-006)"
+  - name: Dryer exhaust air
+    note: "water vapour with VCM traces, through cyclones to air (D-009)"
+utilities:
+  - {name: Electric power, use: "agitators, the recovery compressor, the centrifuge, the dryer's fans, conveying and sieving (D-008)"}
+  - {name: LP steam, pressure_kPa_a: 450, use: "the autoclaves' hot-water loop, the dryer's air heater and live steam to the stripper (D-007, D-008)", note: ASSUMED}
+  - {name: Chilled water, supply_K: 283.15, return_K: 293.15, use: "the autoclaves' jackets and baffles, the recovery's second condenser", note: "supply from US 6 825 288 B2, Example 1; return ASSUMED"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the slurry cooler, the stripper's condenser, the autoclaves' reflux condensers (not modelled, L-3)", note: ASSUMED}
+site:
+  location: ASSUMED generic site beside a VCM plant (VCM by pipeline), with a wastewater treatment and a vent incinerator, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: suspension polymerisation of VCM in batch autoclaves, the S-PVC process of the EU Polymers BREF 2007, chapter 5 (D-001)."
+  - "Charge, temperature, conversion at the pressure drop and the heat of polymerisation from US 6 825 288 B2, Example 1 (D-004, D-005)."
+  - "ASSUMED zero-order rate calibrated to the example's heat removal; activation energy from an open kinetic scheme (D-005)."
+  - "ASSUMED splits of the venting, the stripper, the condensers, the recovery and the centrifuge; dryer to 0.3 wt% (D-006, D-007, D-009)."
+  - "All flows are year averages of the recipe (D-003); the duties and powers concept estimates; accuracy +/-30 % not demonstrated."
