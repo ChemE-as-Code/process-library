@@ -14,16 +14,16 @@ description: |
   The ACH-sulfo route, the process the open patent literature calls the commercial one for MMA
   (US 9,890,105 B2; US 2023/0416184 A1). Acetone (acetone-1) and liquid HCN react to acetone
   cyanohydrin (ACH) over a basic catalyst. The ACH is amidated in 98.5 wt% sulfuric acid at
-  1.4 mol per mol, heated in a conversion stage to methacrylamide hydrogen sulfate, and
-  esterified with methanol (methanol-1) and water in a tank cascade at about 393 K; 91.6 % of
+  1.4 mol per mol (94.7 % to the amide, the rest broken down to acetone and CO), heated in a
+  conversion stage to methacrylamide hydrogen sulfate, and esterified with methanol (methanol-1) and water in a tank cascade at about 393 K; 91.6 % of
   the ACH ends up as pure MMA, the yield of the patent's Example A2. The crude MMA is stripped
   off and distilled; the excess methanol is recycled. The spent acid, about 2 kg per kg MMA,
   is decomposed with natural gas at 1273 K together with the light-ends purge, the gas raises
   MP steam, is cleaned and dried, and its SO2 is converted (99.7 %) and absorbed to 98.5 wt%
   acid, which returns to the amidation with a small make-up from sulfuric-acid-1.
 
-  All values are concept estimates. The acid ratio, the conditions and the yield come from
-  US 2023/0416184 A1; the split of the losses, the SAR furnace, the duties and the power are
+  All values are concept estimates. The acid ratio, the conditions, the amide yield and the
+  overall yield come from US 2023/0416184 A1; the split of the downstream losses, the SAR furnace, the duties and the power are
   ASSUMED or come from an independent script (scripts/mma_balance.py), because no property
   package is qualified by ChemE-as-Code for concentrated sulfuric acid with ammonium hydrogen
   sulfate and organics; see DESIGN.md of the engineering files.
@@ -44,36 +44,36 @@ validation:
     cheme process streams: every block and step balanced). Every flow after the feeds is
     calculated by cheme process propagate from conversions, recoveries, two recycle tears and
     three design specifications (rate, acid ratio, methanol ratio). The acid ratio, the
-    temperatures and the 91.6 % MMA yield on ACH are from US 2023/0416184 A1 Example A2; the
-    split of the losses, the recoveries, the SAR furnace and every duty are ASSUMED or come from
+    temperatures, the 94.7 % amide yield and the 91.6 % MMA yield on ACH are from
+    US 2023/0416184 A1 Example A2; the split of the downstream losses, the recoveries, the SAR furnace and every duty are ASSUMED or come from
     scripts/mma_balance.py (formation enthalpies of the chemicals package); the heats of the
     amidation and esterification in the acid are not sourced (the amidation duty is a lower
     bound). Not reviewed.
 chemistry:
   inputs:
-    - {chemical: acetone, role: feedstock, inventory_key: "feed:ACEF", note: "Acetone from acetone-1 (cumene-phenol), 0.634 kg/kg MMA"}
+    - {chemical: acetone, role: feedstock, inventory_key: "feed:ACEF", note: "Acetone from acetone-1 (cumene-phenol), 0.633 kg/kg MMA"}
     - {chemical: hydrogen-cyanide, role: feedstock, inventory_key: "feed:HCNF", note: "Liquid HCN, 0.295 kg/kg MMA; no library producer exports it (a gap)"}
     - {chemical: methanol, role: feedstock, inventory_key: "feed:MEOHF", note: "Methanol from methanol-1, 0.327 kg/kg MMA"}
     - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:ACIDF", note: "98.5 wt% make-up from sulfuric-acid-1, 4.6 g/kg MMA; the 1.5 kg/kg circulating acid is regenerated on site"}
-    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas modelled as methane, fuel of the SAR furnace, 0.228 kg/kg MMA (ASSUMED adiabatic furnace: a lower bound)"}
-    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water to the esterification and the SO3 absorbers"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas modelled as methane, fuel of the SAR furnace, 0.228 kg/kg MMA (ASSUMED adiabatic furnace: approximate, the heat loss and the uncredited 393 K spent acid act in opposite directions, D-008)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water to the esterification and the SO3 absorbers, 0.416 kg/kg MMA (the drying acid supplies most of the absorbers' water)"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Combustion and converter air of the SAR plant"}
   outputs:
     - {chemical: methyl-methacrylate, role: main-product, inventory_key: "product:MMAP", note: "Pure MMA to storage (the functional unit's product)"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "Fossil CO2 of the SAR tail gas, 0.80 kg per kg MMA; with 2.9 g SO2 per kg MMA"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Gas-cleaning condensate (weak acid water) to neutralisation and treatment, 1.55 kg/kg MMA"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Gas-cleaning condensate (weak acid water) to neutralisation and treatment, 1.26 kg/kg MMA"}
     # No inventory_key: the export (product:MPSX, 1500 kPa(a) saturated) is not offered as an
     # Atlas steam producer (the choice sodium-cyanide-1 made for its steam export).
     - {chemical: steam, role: co-product, note: "MP steam 1500 kPa(a) from the SAR waste heat boiler, net of the plant's own steam use (product:MPSX, 1.30 kWh/kg MMA). Upper bound: adiabatic furnace, no boiler loss (DESIGN.md D-009)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "SAR blowers and an ASSUMED lump for pumps, agitators and vacuum, 0.17 kWh/kg MMA"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), 3.6 kWh of heat per kg MMA"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), 3.7 kWh of heat per kg MMA"}
 basis:
   capacity: "12.5 t/h pure MMA, 100 kt/a (ASSUMED)"
   operating_hours_per_year: 8000
   location: generic (not chosen)
 references:
-  - {title: "Röhm GmbH (Evonik Operations GmbH) (2023) Optimized process for synthesizing alkyl methacrylate by reducing unwanted byproducts. US 2023/0416184 A1", url: "https://patents.google.com/patent/US20230416184A1/en"}
+  - {title: "Röhm GmbH (2023) Optimized process for synthesizing alkyl methacrylate by reducing unwanted byproducts. US 2023/0416184 A1", url: "https://patents.google.com/patent/US20230416184A1/en"}
   - {title: "Evonik Röhm GmbH (2018) Method for producing methylmethacrylate. US 9,890,105 B2", url: "https://patents.google.com/patent/US9890105B2/en"}
   - {title: "Darabi Mahboub, M. J., Dubois, J.-L., Cavani, F., Rostamizadeh, M., Patience, G. S. (2018) Catalysis for the synthesis of methacrylic acid and methyl methacrylate. Chem. Soc. Rev. 47, 7703-7738; abstract only read (route lead)", doi: 10.1039/C8CS00117K}
 lca:

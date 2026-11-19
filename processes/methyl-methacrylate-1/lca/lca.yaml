@@ -43,7 +43,7 @@ flows:
   # ---- inputs
   - key: feed:ACEF
     missing: "background not mapped here; the Atlas build links acetone-1 (lca/mappings.yaml)"
-    source: "Acetone (S1, 0.634 kg per kg MMA): the library process acetone-1 (cumene-phenol), product:ACETONE, which allocates between acetone and phenol"
+    source: "Acetone (S1, 0.633 kg per kg MMA): the library process acetone-1 (cumene-phenol), product:ACETONE, which allocates between acetone and phenol"
   - key: feed:HCNF
     missing: "no background: no library process exports hydrogen cyanide (sodium-cyanide-1 makes it internally and does not export it); a gap"
     source: >-
@@ -59,10 +59,10 @@ flows:
     source: "Sulfuric acid 98.5 wt% make-up (S4, 4.6 g per kg MMA, counted by mass of the acid): the library process sulfuric-acid-1, product:ACID, the same 98.5 wt% basis"
   - key: feed:PW
     missing: "background not mapped here; the Atlas build links demineralised water (lca/mappings.yaml)"
-    source: "Process water to the esterification (S12) and to the SO3 absorbers (S29), 0.705 kg per kg MMA"
+    source: "Process water to the esterification (S12) and to the SO3 absorbers (S29, only the part the drying acid does not supply, D-008), 0.416 kg per kg MMA"
   - key: feed:NG
     missing: "background not mapped here; the Atlas build links natural gas by mass (lca/mappings.yaml)"
-    source: "Natural gas (S19, modelled as methane, 0.228 kg per kg MMA) burned in the SAR furnace F-501; adiabatic furnace, so a LOWER BOUND (D-008)"
+    source: "Natural gas (S19, modelled as methane, 0.228 kg per kg MMA) burned in the SAR furnace F-501; adiabatic furnace energy balance, approximate: the heat loss (not modelled) and the uncredited 393 K spent acid act in opposite directions (D-008)"
   - key: feed:POWER
     missing: "background not mapped here; grid electricity at medium voltage by the shared mapping"
     source: "Electricity for the combustion air blower (Q10), the SO2 blower (Q11) and an ASSUMED 500 kW lump for pumps, agitators and vacuum (Q12)"
@@ -78,20 +78,21 @@ flows:
       hazardous: false
     missing: "background not mapped here; the Atlas build links the library's utility-wwtp by the wastewater slug, without the neutralisation"
     source: >-
-      Gas-cleaning condensate (S24, 1.55 kg per kg MMA): the water of the SAR furnace gas,
-      modelled as water only; in a plant it carries dissolved SO2, some H2SO4 and dust, which
+      Gas-cleaning condensate (S24, 1.26 kg per kg MMA): the water of the SAR furnace gas
+      condensed down to saturation at 313 K (the rest is taken up by the drying acid and stays
+      in the acid circuit, D-008), modelled as water only; in a plant it carries dissolved SO2, some H2SO4 and dust, which
       need neutralisation (D-008). The default link to biological treatment does not count the
       neutralising agent: an understatement (D-012).
   - {key: product:STACK, emission: true, source: "tail gas of the final SO3 absorber to atmosphere (S32, D-008)"}
   - {key: emission:N2, free: true, source: "atmospheric N2 of the air returned, with the N2 of the ammonium nitrogen, which is not a burden"}
   - {key: emission:O2, free: true, source: "unused O2 of the air returned"}
-  - {key: emission:CO2, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "S32: CO2 of the natural gas fuel and of the organics burned in F-501 (acetone, methanol, MMA, CO from HCN), all of fossil carbon"}
+  - {key: emission:CO2, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "S32: CO2 of the natural gas fuel and of the organics burned in F-501 (acetone and the sulfonated acetone, the unconverted amide, methanol, MMA, CO from HCN), all of fossil carbon"}
   - {key: emission:SO2, elementary: {compartment: air, subcompartment: unspecified}, source: "S32: the 0.3 % of the regenerated sulfur not converted (D-008), 2.9 g per kg MMA"}
   - {key: emission:H2O, free: true, source: "0 in the dried tail gas; water vapour to air would carry no burden"}
   - {key: emission:H2SO4, elementary: {compartment: air, subcompartment: unspecified}, source: "0 only because complete acid separation is ASSUMED (D-008); acid mist is an emission exclusion"}
   - {key: emission:AHS, elementary: {compartment: air, subcompartment: unspecified}, source: "0: decomposed completely in F-501 (D-008)"}
-  - {key: emission:ACH, elementary: {compartment: air, subcompartment: unspecified}, source: "0 (a 1e-17 kg rounding residue of the trace acetone excess of R-101): no ACH reaches the tail gas"}
-  - {key: emission:MAM, elementary: {compartment: air, subcompartment: unspecified}, source: "0: methacrylamide is esterified completely in R-301 (D-006)"}
+  - {key: emission:ACH, elementary: {compartment: air, subcompartment: unspecified}, source: "0 (a rounding residue below 1e-16 kg of the trace acetone excess of R-101): no ACH reaches the tail gas"}
+  - {key: emission:MAM, elementary: {compartment: air, subcompartment: unspecified}, source: "0: the amide not esterified in R-301 leaves with the spent acid and is burned in F-501 (D-006, D-008)"}
   # components of the tail gas template whose flows are zero in this design (complete
   # conversions ASSUMED, D-008): mapped so that a non-zero value in a later case is
   # characterised, not dropped. NOT ESTIMATED, not measured zeros (emission_exclusions below).
@@ -122,7 +123,8 @@ emission_exclusions:
     reason: >-
       Vents of the ACH reactor, the amidation, the esterification and the columns (to a
       scrubber or the SAR furnace in practice) are not in the flowsheet; amounts not known at
-      concept stage. Open gap.
+      concept stage. Open gap. The gas separator V-201's off-gas, mainly CO, is in the
+      flowsheet and burned in F-501 (S8); its releases on upsets are not estimated.
   - id: storage
     method: storage-tank
     reason: >-

@@ -4,13 +4,14 @@
 # - R-101: acetone + HCN -> acetone cyanohydrin (ACH), base catalysed, taken complete;
 # - R-201: ACH in excess sulfuric acid to methacrylamide (as its hydrogen sulfate; written here
 #   as the amide MAM, an isomer of ACH, so that the sulfate association is not a separate
-#   species) with 7.5 % of the ACH lost by a lumped decomposition to acetone, CO and ammonium
-#   hydrogen sulfate, which reproduces the 91.6 % MMA yield on ACH of US 2023/0416184 A1
-#   Example A2 together with the 99 % purification recovery (D-005, D-007);
-# - R-301: methacrylamide + methanol + H2SO4 -> MMA + NH4HSO4 (D-006);
+#   species) at the 94.7 % amide yield on ACH of US 2023/0416184 A1 Example A2 (Table 1), the
+#   other 5.3 % of the ACH broken down to acetone, CO and ammonium hydrogen sulfate (D-005);
+# - R-301: methacrylamide + methanol + H2SO4 -> MMA + NH4HSO4 at 97.7 % (ASSUMED), which with
+#   the 99 % purification recovery gives the 91.6 % MMA yield on ACH of Example A2 (D-006,
+#   D-007);
 # - F-501: the spent acid's H2SO4 and NH4HSO4 decomposed and its organics burned with
 #   natural gas above 900 C (US 2023/0416184 A1: thermal regeneration in the gas phase above
-#   900 C) (D-008);
+#   900 C), the unconverted amide and the sulfonated acetone (carried as acetone) burned (D-008);
 # - R-502/A-502: SO2 to SO3 over the converter beds and SO3 absorbed to sulfuric acid (D-008).
 # Heats of reaction are not written: core has no property package for these liquids (L-1); the
 # duties are the estimates of scripts/mma_balance.py (D-009).
@@ -22,28 +23,28 @@ reactions:
     equation: CH3COCH3 + HCN -> (CH3)2C(OH)CN
     stoichiometry: {ACETONE: -1.0, HCN: -1.0, ACH: 1.0}
     reversible: false
-    conversion: {key: HCN, value: 1.0, provenance: assumed, source: "ASSUMED complete at an equimolar feed (D-004): US 2023/0416184 A1 (background) states only that HCN and acetone react exothermically to ACH over a basic catalyst (an amine or an alkali hydroxide); the ACH unit's losses are not given in the sources read and are carried by the 7.5 % lumped loss of R-201 (D-005)"}
+    conversion: {key: HCN, value: 1.0, provenance: assumed, source: "ASSUMED complete at an equimolar feed (D-004): US 2023/0416184 A1 (background) states only that HCN and acetone react exothermically to ACH over a basic catalyst (an amine or an alkali hydroxide); the ACH unit's losses are not given in the sources read and are not modelled (D-004)"}
     sources:
-      - "US 2023/0416184 A1 (Evonik Operations / Röhm), background: ACH from HCN and acetone, exothermic, basic catalyst"
+      - "US 2023/0416184 A1 (Röhm GmbH), background: ACH from HCN and acetone, exothermic, basic catalyst"
   # ---- R-201 (amidation at about 368 K, conversion at about 428 K, both lumped)
   - id: AMID
     equation: (CH3)2C(OH)CN -> CH2=C(CH3)CONH2 (as its hydrogen sulfate in the acid)
     stoichiometry: {ACH: -1.0, MAM: 1.0}
     reversible: false
-    conversion: {key: ACH, value: 0.925, provenance: assumed, source: "D-005: 0.925 x 1.0 (R-301) x 0.99 (C-401) = 91.6 % MMA on ACH, the yield of US 2023/0416184 A1 Example A2 (Table 4: 91.6 %); the split of the loss between the sections is ASSUMED"}
+    conversion: {key: ACH, value: 0.947, provenance: given, source: "D-005: US 2023/0416184 A1 Example A2, Table 1: amide yield (methacrylamide + methacrylic acid) on ACH 94.7 % (93.0 % in A1 and A3); the methacrylic acid is lumped with the amide"}
     sources:
       - "US 2023/0416184 A1: amidation of ACH in 98.0-100.0 wt% sulfuric acid at 70-130 C, conversion at 130-200 C; Example A2 at about 95 C and 155 C"
   - id: ACH_DEC
     equation: (CH3)2C(OH)CN + H2O + H2SO4 -> CH3COCH3 + CO + NH4HSO4
     stoichiometry: {ACH: -1.0, H2O: -1.0, H2SO4: -1.0, ACETONE: 1.0, CO: 1.0, AHS: 1.0}
     reversible: false
-    conversion: {key: ACH, value: 0.075, provenance: assumed, source: "D-005: the rest of the ACH, a lumped loss path (ACH back to acetone and HCN, the HCN hydrolysed in the acid to CO and ammonium hydrogen sulfate); US 2023/0416184 A1 names acetone among the by-products of the amidation and sulfonated acetone derivatives in the waste acid; CO as the HCN's fate is ASSUMED, not read"}
+    conversion: {key: ACH, value: 0.053, provenance: given, source: "D-005: the rest of the ACH of US 2023/0416184 A1 Example A2 (Table 1: 94.7 % amide yield); the patent names the breakdown of ACH as the main side reaction of the amidation: from the HCN it forms CO, which outgases (the gas separator's off-gas is mainly CO), and the acetone formed is sulfonated (acetonedisulfonic acid); the lumped stoichiometry (the HCN to CO and ammonium hydrogen sulfate, the acetone's sulfonation not written) is ASSUMED"}
   # ---- R-301 (esterification at about 393 K)
   - id: EST
     equation: CH2=C(CH3)CONH2 + CH3OH + H2SO4 -> CH2=C(CH3)COOCH3 + NH4HSO4
     stoichiometry: {MAM: -1.0, MEOH: -1.0, H2SO4: -1.0, MMA: 1.0, AHS: 1.0}
     reversible: false
-    conversion: {key: MAM, value: 1.0, provenance: assumed, source: "D-006: ASSUMED complete; the methacrylic acid and alpha-hydroxyisobutyric acid ester side paths are inside the lumped loss of R-201"}
+    conversion: {key: MAM, value: 0.977, provenance: assumed, source: "D-006: ASSUMED, so that 0.947 (R-201) x 0.977 x 0.99 (C-401) = 91.6 % MMA on ACH, the yield of US 2023/0416184 A1 Example A2 (Table 4); the unconverted amide (and its side products) stays in the spent acid as organic carbon, which the patent reports in the waste acid (Table 1, A2: 1.5 wt% TOC)"}
     sources:
       - "US 2023/0416184 A1: esterification with methanol at 90-180 C, up to 7 bar(a), catalysed by the acid of the amidation, 10-30 wt% water; the spent acid holds essentially NH4HSO4, H2SO4 and water"
   # ---- F-501 SAR furnace (all complete, D-008)
@@ -62,6 +63,11 @@ reactions:
     stoichiometry: {ACETONE: -1.0, O2: -4.0, CO2: 3.0, H2O: 3.0}
     reversible: false
     conversion: {key: ACETONE, value: 1.0, provenance: assumed, source: "D-008: complete combustion"}
+  - id: MAM_COMB
+    equation: C4H7NO + 21/4 O2 -> 4 CO2 + 7/2 H2O + 1/2 N2
+    stoichiometry: {MAM: -1.0, O2: -5.25, CO2: 4.0, H2O: 3.5, N2: 0.5}
+    reversible: false
+    conversion: {key: MAM, value: 1.0, provenance: assumed, source: "D-008: complete combustion of the unconverted amide in the spent acid, its nitrogen to N2 (NOx not modelled)"}
   - id: MEOH_COMB
     equation: CH3OH + 3/2 O2 -> CO2 + 2 H2O
     stoichiometry: {MEOH: -1.0, O2: -1.5, CO2: 1.0, H2O: 2.0}

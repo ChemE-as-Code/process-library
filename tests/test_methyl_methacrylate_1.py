@@ -6,7 +6,9 @@ README.md, process.yaml and lca/ are checked against them:
 
 - the MMA yield on ACH is the 91.6 % of US 2023/0416184 A1 Example A2, and the acid and
   methanol ratios are the design specifications' 1.4 and 1.2 mol/mol;
-- the spent acid per kg ACH is within 5 % of the patent's Example A2 (2.282 kg/kg);
+- the amide yield and the free acetone are the patent's Example A2 (94.7 %, 26.5 kg/h per
+  5000 kg/h ACH), the spent acid per kg ACH is within 2 % of it (2.282 kg/kg) and its organic
+  carbon close to its 1.5 wt% TOC;
 - the specific consumptions and the tail-gas CO2 and SO2 stated in process.yaml follow from the
   streams; the regenerated acid is 98.5 wt%;
 - the rate spec's followers and every cited duty are the script's;
@@ -95,17 +97,31 @@ def test_the_acid_and_methanol_ratios_are_the_specs(sheet, streams, mw):
 def test_the_spent_acid_is_close_to_the_patent_example(streams, mw):
     ach_kg = _kg(streams, mw, "S3")["ACH"]
     spent = streams["S16"]["flow"]["value"] / ach_kg
-    assert spent == pytest.approx(2.195, abs=0.002)
-    assert abs(spent / (11410 / 5000) - 1) < 0.05
+    assert spent == pytest.approx(2.247, abs=0.002)
+    assert abs(spent / (11410 / 5000) - 1) < 0.02
     kg = _kg(streams, mw, "S16")
     total = sum(kg.values())
-    assert kg["AHS"] / total == pytest.approx(0.62, abs=0.01)
-    assert kg["H2SO4"] / total == pytest.approx(0.21, abs=0.01)
+    assert kg["AHS"] / total == pytest.approx(0.59, abs=0.01)
+    assert kg["H2SO4"] / total == pytest.approx(0.22, abs=0.01)
+    # the organics as carbon against the patent's 1.5 wt% TOC of Example A2 (DESIGN.md D-006)
+    carbon = (kg["ACETONE"] * 3 * 12.011 / mw["ACETONE"] + kg["MAM"] * 4 * 12.011 / mw["MAM"]) / total
+    assert carbon == pytest.approx(0.0140, abs=0.0005)
+
+
+def test_the_amide_yield_and_the_free_acetone_are_the_patent_s(streams, mw):
+    ach = _kmol(streams, mw, "S3")["ACH"]
+    amide = _kmol(streams, mw, "S9")["MAM"]
+    assert amide / ach == pytest.approx(0.947, abs=1e-4)
+    # free acetone in the crude: 26.5 kg/h per 5000 kg/h ACH in Example A2 (Table 1)
+    free = _kg(streams, mw, "S15")["ACETONE"] / _kg(streams, mw, "S3")["ACH"]
+    assert free == pytest.approx(26.5 / 5000, rel=0.01)
+    text = _text("DESIGN.md")
+    assert "94.7 %" in text and "26.5 kg/h" in text
 
 
 def test_the_stated_consumptions_and_emissions_follow_from_the_streams(streams, mw):
     product = streams["S17"]["flow"]["value"]
-    stated = {"S1": 0.634, "S2": 0.295, "S10": 0.327, "S19": 0.228}
+    stated = {"S1": 0.633, "S2": 0.295, "S10": 0.327, "S19": 0.228}
     for sid, value in stated.items():
         assert streams[sid]["flow"]["value"] / product == pytest.approx(value, abs=0.0006), sid
     assert streams["S4"]["flow"]["value"] / product * 1000 == pytest.approx(4.6, abs=0.05)
@@ -113,7 +129,7 @@ def test_the_stated_consumptions_and_emissions_follow_from_the_streams(streams, 
     assert tail["CO2"] / product == pytest.approx(0.80, abs=0.005)
     assert tail["SO2"] / product * 1000 == pytest.approx(2.9, abs=0.05)
     text = _text("process.yaml")
-    for phrase in ("0.634 kg/kg MMA", "0.295 kg/kg MMA", "0.327 kg/kg MMA", "0.228 kg/kg MMA",
+    for phrase in ("0.633 kg/kg MMA", "0.295 kg/kg MMA", "0.327 kg/kg MMA", "0.228 kg/kg MMA",
                    "0.80 kg per kg MMA", "2.9 g SO2"):
         assert phrase in text, phrase
 
@@ -141,6 +157,11 @@ def test_the_followers_and_duties_are_the_script_s(sheet, streams, script, mw):
     for sid, value in expected.items():
         assert streams[sid]["duty"]["value"] == pytest.approx(value, abs=0.11), sid
     assert q["Q6_E501"] > steam, "the waste heat boiler covers the plant's own steam"
+    # the water the drying acid takes up goes to the absorbers, not to the weak acid water (D-008)
+    c501 = next(s for s in sheet["steps"] if s["id"] == "C501")["recovery"]["outlets"]
+    assert c501["cond"]["H2O"] == pytest.approx(b["c501_cond"], abs=1e-5)
+    assert c501["cond"]["H2O"] + c501["dryw"]["H2O"] == pytest.approx(1.0, abs=1e-9)
+    assert 0 < b["pw_abs"] < b["w_dry"], "the drying acid supplies most of the absorbers' water"
 
 
 def test_the_lci_links_existing_library_producers():

@@ -15,16 +15,16 @@ equipment:
   # ---- amidation (block AMID)
   - {tag: T-201, type: Tank, service: Sulfuric acid feed tank (regenerated acid and make-up),
      design_pressure_barg: 3.5, design_temperature_degc: 65, material: "CS for 98.5 wt% acid below about 40 C (open input)",
-     notes: "About 18.8 t/h regenerated acid plus 57 kg/h make-up from sulfuric-acid-1 (D-005). ASSUMED."}
+     notes: "About 18.9 t/h regenerated acid plus 57 kg/h make-up from sulfuric-acid-1 (D-005). ASSUMED."}
   - {tag: R-201, type: Vessel, service: "Amidation loop reactor (ACH into excess sulfuric acid, two stages in the source)",
      design_pressure_barg: 3.5, design_temperature_degc: 125, material: "acid-resistant alloy (open input)",
-     notes: "1.4 mol H2SO4 per mol ACH, about 368 K (US 2023/0416184 A1 Example A2); the heat removed by the loop cooler, ~0.87 MW as a LOWER BOUND (D-005, D-009). ASSUMED."}
+     notes: "1.4 mol H2SO4 per mol ACH, about 368 K (US 2023/0416184 A1 Example A2); the heat removed by the loop cooler, ~0.89 MW as a LOWER BOUND (D-005, D-009). ASSUMED."}
   - {tag: R-202, type: TubularHeatExchanger, service: "Conversion stage (amide mixture heated to about 428 K, short residence)",
      design_pressure_barg: 3.5, design_temperature_degc: 180, material: "acid-resistant alloy (open input)",
      notes: "Lumped with R-201 in step R201 (D-005). ASSUMED."}
   - {tag: V-201, type: Vessel, service: Gas separator after the conversion stage,
      design_pressure_barg: 3.5, design_temperature_degc: 180, material: "acid-resistant alloy (open input)",
-     notes: "About 950 mbar(a), 428 K; CO-bearing off-gas to the SAR furnace F-501 (D-005). ASSUMED."}
+     notes: "About 950 mbar(a), 428 K; off-gas of about 0.2 t/h CO to the SAR furnace F-501 (D-005): toxic and flammable, gas detection and isolation on the line (D-011). ASSUMED."}
   # ---- esterification (block EST)
   - {tag: R-301, type: Vessel, service: "Esterification tank cascade with the crude MMA stripping (lumped, steps R301 and V301)",
      design_pressure_barg: 3.5, design_temperature_degc: 145, material: "acid-resistant lined steel (open input)",
@@ -32,7 +32,7 @@ equipment:
   # ---- purification (block PUR)
   - {tag: C-401, type: ProcessColumn, service: "Light-ends column (methanol, acetone, water heteroazeotrope) with the crude condenser",
      design_pressure_barg: 3.5, design_temperature_degc: 140, material: "stainless (open input)",
-     notes: "Lumped with C-402 in step C401; ~4.9 MW MP steam and ~7.3 MW cooling water for both (D-007, D-009); stabiliser dosing and polymerisation control not designed. ASSUMED."}
+     notes: "Lumped with C-402 in step C401; ~4.8 MW MP steam and ~7.2 MW cooling water for both (D-007, D-009); stabiliser dosing and polymerisation control not designed. ASSUMED."}
   - {tag: C-402, type: ProcessColumn, service: Pure MMA column,
      design_pressure_barg: 3.5, design_temperature_degc: 140, material: "stainless (open input)",
      notes: "12.5 t/h MMA overhead (D-002, D-007). ASSUMED."}
@@ -42,20 +42,20 @@ equipment:
      notes: "About 67 t/h air, 101 -> 115 kPa(a), ~0.27 MW (D-009). Electric drive ASSUMED."}
   - {tag: F-501, type: Furnace, service: "Spent acid decomposition furnace (natural gas fired)",
      design_pressure_barg: 3.5, design_temperature_degc: 1100, material: "refractory-lined steel shell (open input)",
-     notes: "25.5 t/h spent acid, the purge and the CO burned with 2.85 t/h natural gas at 1273 K, 2 mol% O2 (D-008). Adiabatic in the model: the fuel is a LOWER BOUND. ASSUMED."}
+     notes: "26.1 t/h spent acid, the purge and the CO burned with 2.85 t/h natural gas at 1273 K, 2 mol% O2 (D-008). Adiabatic in the model, the spent acid taken at 298 K: the fuel is approximate (heat loss and the hot acid act in opposite directions). ASSUMED."}
   - {tag: E-501, type: TubularHeatExchanger, service: Waste heat boiler (MP steam 1500 kPa(a)),
      design_pressure_barg: 3.5, design_temperature_degc: 1100, material: "gas side: refractory inlet, alloy beyond (open input); steam side design 17 barg, 225 C",
-     notes: "Furnace gas 1273 -> 623 K, ~23.5 MW (D-009). ASSUMED."}
+     notes: "Furnace gas 1273 -> 623 K, ~23.4 MW (D-009). ASSUMED."}
   - {tag: C-501, type: ProcessColumn, service: "Gas quench, scrubbing, wet electrostatic precipitation, cooling and drying tower (lumped)",
      design_pressure_barg: 3.5, design_temperature_degc: 375, material: "brick- or plastic-lined (open input)",
-     notes: "All water out as weak acid condensate, ~23.2 MW to cooling water (D-008, D-009). ASSUMED."}
+     notes: "Water condensed to saturation at 313 K as weak acid condensate (15.8 t/h), the rest (3.6 t/h) taken up by the drying acid into the absorbers' acid circuit; ~20.7 MW to cooling water (D-008, D-009). ASSUMED."}
   # ---- sulfuric acid regeneration, cold end (block SARC)
   - {tag: K-502, type: CentrifugalCompressor, service: SO2 blower,
-     design_pressure_barg: 3.5, design_temperature_degc: 65, material: "CS (dry gas)",
-     notes: "Dry gas with the converter air, 95 -> 150 kPa(a), ~1.4 MW (D-009). Electric drive ASSUMED."}
+     design_pressure_barg: 3.5, design_temperature_degc: 120, material: "CS (dry gas)",
+     notes: "Dry gas with the converter air, 95 -> 150 kPa(a) from 313 K, discharge about 95 C (368 K), ~1.4 MW (D-009). Electric drive ASSUMED."}
   - {tag: R-502, type: Vessel, service: "Contact converter (V2O5 beds, double contact) with its gas-gas exchangers",
      design_pressure_barg: 3.5, design_temperature_degc: 650, material: "stainless (open input)",
      notes: "99.7 % SO2 conversion as sulfuric-acid-1 (D-008). The bed arrangement is not designed. ASSUMED."}
   - {tag: A-502, type: ProcessColumn, service: "Intermediate and final SO3 absorbers with acid coolers (lumped, steps A502 and V502)",
      design_pressure_barg: 3.5, design_temperature_degc: 120, material: "brick-lined (open input)",
-     notes: "Regenerated acid 98.5 wt%, ~18.8 t/h; ~12.2 MW to cooling water including the converter heat (D-008, D-009). ASSUMED."}
+     notes: "Regenerated acid 98.5 wt%, ~18.9 t/h, its water mostly from the drying acid; ~16.1 MW to cooling water including the converter heat, the drying acid's water uptake and K-502's compression heat (D-008, D-009). ASSUMED."}

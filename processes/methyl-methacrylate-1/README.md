@@ -49,11 +49,15 @@ Core converges the two recycles (`tears:`, ADR 0060) and solves the acetone feed
 (`specs:`, ADR 0070); `scripts/mma_balance.py` gives the furnace fuel and every duty.
 
 Headline numbers and their caveats (per kg MMA):
-- Feeds: 0.634 kg acetone, 0.295 kg HCN, 0.327 kg methanol, 4.6 g sulfuric acid make-up,
-  0.228 kg natural gas, 0.17 kWh power. The 91.6 % MMA yield on ACH is the source's (Example
-  A2); its split between the sections is ASSUMED (D-005).
+- Feeds: 0.633 kg acetone, 0.295 kg HCN, 0.327 kg methanol, 4.6 g sulfuric acid make-up,
+  0.228 kg natural gas, 0.17 kWh power. The 94.7 % amide yield and the 91.6 % MMA yield on ACH
+  are the source's (Example A2); the split of the rest between the esterification and the
+  purification is ASSUMED (D-005).
 - Tail gas: 0.80 kg fossil CO2 and 2.9 g SO2. The natural gas comes from an adiabatic furnace
-  energy balance: a lower bound (D-008).
+  energy balance: approximate, since the heat loss and the uncredited 393 K spent acid act in
+  opposite directions (D-008).
+- Water: the drying acid of the SAR plant takes up the cleaned gas's water and supplies most
+  of the absorbers' water, which ties the acid strength to the gas cooling temperature (D-008).
 - Steam export 1.30 kWh: an upper bound (no furnace or boiler loss, D-009).
 - The heats of the amidation and the esterification in the acid are not sourced; the amidation
   cooling is a lower bound and the runaway case is open (D-009, D-011).
@@ -80,19 +84,20 @@ limits hit (L-n).
 | `runs/` | one record per design session, written by `cheme runs record` (`runs/README.md`); never edited |
 | `DESIGN.md`, `PROGRESS.md`, `STAGES.md` | decisions, change log, stage definitions |
 | `scripts/` | scripts that generate sheets (see `generator:` in `plant.yaml`) |
-| `.claude/skills/` | skills: the instructions an AI agent follows when it works here |
+| `.claude/skills/` | how an agent works here (not in git: run `cheme skills update` once after cloning) |
 
 ## How this repository works
 
 - **This repository holds your plant**: drawings, lists, decisions. It does not hold the tools.
 - **The tools come from [`cheme-as-code`](https://github.com/ChemE-as-Code/core)**, installed once on
   your computer (`uv tool install git+https://github.com/ChemE-as-Code/core.git`). Every check,
-  drawing and generated file is made by the `cheme` command, so you need it to work here. The
-  continuous integration (CI) in `.github/workflows/` installs it too.
-- **The skills in `.claude/skills/` are copies** of the ones in cheme-as-code, so that Claude Code
-  finds them here. After upgrading (`uv tool upgrade cheme-as-code`), run `cheme skills update` to
-  refresh them; `cheme skills status` shows which are out of date. A skill you changed here is
-  kept.
+  drawing and generated file is made by the `cheme` command, so you need it to work here.
+- **Licences.** This folder is part of the ChemE-as-Code process library. Its data and designs are
+  under CC BY 4.0 (`LICENSE-DATA`, unless `process.yaml` states otherwise); its skills and scripts
+  are under AGPL-3.0-or-later (`LICENSE`), like the ChemE-as-Code tools. It is public
+  (`publication` in `process.yaml`: public, CC-BY-4.0).
+- **The skills in `.claude/skills/` are not in git.** They come with cheme-as-code: run
+  `cheme skills update` once in this folder after cloning, so that Claude Code finds them here.
 
 ## Quick start
 
@@ -120,12 +125,3 @@ cheme runs list                 # the record of each design session in runs/
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
 ```
-
-## Licence
-
-The ChemE-as-Code tools, including the skill copies in `.claude/skills/` and the scripts in
-`scripts/` that `cheme init` wrote, are licensed under AGPL-3.0-or-later (see
-[`.claude/skills/NOTICE.md`](.claude/skills/NOTICE.md) and
-[cheme-as-code.org/licence](https://cheme-as-code.org/licence/)). Your plant data and models (P&IDs,
-YAML, reports, generated drawings and results) are yours, and you can license them however you
-choose. Running the tools does not put AGPL on what they produce.

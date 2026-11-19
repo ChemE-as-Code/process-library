@@ -37,6 +37,8 @@ cutoff:
   direction: output
   reason: Vents of the ACH reactor, the amidation, the esterification and the columns (to a scrubber or
     the SAR furnace in practice) are not in the flowsheet; amounts not known at concept stage. Open gap.
+    The gas separator V-201's off-gas, mainly CO, is in the flowsheet and burned in F-501 (S8); its releases
+    on upsets are not estimated.
 - key: emission-excluded:storage
   title: storage-tank emissions of the plant
   direction: output
@@ -52,7 +54,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 100000800.0
+  amount: 100000000.0
   unit: kg/a
   source: product:MMAP per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -73,15 +75,15 @@ exchanges:
 - key: feed:ACEF
   title: Acetone (acetone-1)
   type: input
-  amount: 7918.66
+  amount: 7916.78
   unit: kg
   link:
-    source: 'Acetone (S1, 0.634 kg per kg MMA): the library process acetone-1 (cumene-phenol), product:ACETONE,
+    source: 'Acetone (S1, 0.633 kg per kg MMA): the library process acetone-1 (cumene-phenol), product:ACETONE,
       which allocates between acetone and phenol'
     missing: background not mapped here; the Atlas build links acetone-1 (lca/mappings.yaml)
   streams:
   - S1
-  source: 'Acetone (S1, 0.634 kg per kg MMA): the library process acetone-1 (cumene-phenol), product:ACETONE,
+  source: 'Acetone (S1, 0.633 kg per kg MMA): the library process acetone-1 (cumene-phenol), product:ACETONE,
     which allocates between acetone and phenol'
   pedigree:
     scores: [4, 4, 1, 3, 3]
@@ -96,7 +98,7 @@ exchanges:
 - key: feed:HCNF
   title: Liquid hydrogen cyanide, stabilised (no library producer, D-003)
   type: input
-  amount: 3684.7
+  amount: 3683.82
   unit: kg
   link:
     source: 'Liquid HCN (S2, 0.295 kg per kg MMA): connect to an Andrussow HCN plant (methane, ammonia
@@ -123,7 +125,7 @@ exchanges:
 - key: feed:MEOHF
   title: Methanol (methanol-1)
   type: input
-  amount: 4081.42
+  amount: 4087.13
   unit: kg
   link:
     source: 'Fresh methanol (S10, 0.327 kg per kg MMA): the library process methanol-1, product:MEOH'
@@ -144,7 +146,7 @@ exchanges:
 - key: feed:ACIDF
   title: Sulfuric acid 98.5 wt% make-up (sulfuric-acid-1)
   type: input
-  amount: 57.0137
+  amount: 57.0003
   unit: kg
   link:
     source: 'Sulfuric acid 98.5 wt% make-up (S4, 4.6 g per kg MMA, counted by mass of the acid): the library
@@ -169,16 +171,17 @@ exchanges:
 - key: feed:PW
   title: Process water (demineralised)
   type: input
-  amount: 8818.16
+  amount: 5196.1759
   unit: kg
   link:
-    source: Process water to the esterification (S12) and to the SO3 absorbers (S29), 0.705 kg per kg
-      MMA
+    source: Process water to the esterification (S12) and to the SO3 absorbers (S29, only the part the
+      drying acid does not supply, D-008), 0.416 kg per kg MMA
     missing: background not mapped here; the Atlas build links demineralised water (lca/mappings.yaml)
   streams:
   - S12
   - S29
-  source: Process water to the esterification (S12) and to the SO3 absorbers (S29), 0.705 kg per kg MMA
+  source: Process water to the esterification (S12) and to the SO3 absorbers (S29, only the part the drying
+    acid does not supply, D-008), 0.416 kg per kg MMA
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -192,16 +195,18 @@ exchanges:
 - key: feed:NG
   title: Natural gas (as methane) from the site grid
   type: input
-  amount: 2851.45
+  amount: 2845.55
   unit: kg
   link:
-    source: Natural gas (S19, modelled as methane, 0.228 kg per kg MMA) burned in the SAR furnace F-501;
-      adiabatic furnace, so a LOWER BOUND (D-008)
+    source: 'Natural gas (S19, modelled as methane, 0.228 kg per kg MMA) burned in the SAR furnace F-501;
+      adiabatic furnace energy balance, approximate: the heat loss (not modelled) and the uncredited 393
+      K spent acid act in opposite directions (D-008)'
     missing: background not mapped here; the Atlas build links natural gas by mass (lca/mappings.yaml)
   streams:
   - S19
-  source: Natural gas (S19, modelled as methane, 0.228 kg per kg MMA) burned in the SAR furnace F-501;
-    adiabatic furnace, so a LOWER BOUND (D-008)
+  source: 'Natural gas (S19, modelled as methane, 0.228 kg per kg MMA) burned in the SAR furnace F-501;
+    adiabatic furnace energy balance, approximate: the heat loss (not modelled) and the uncredited 393
+    K spent acid act in opposite directions (D-008)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -215,7 +220,7 @@ exchanges:
 - key: feed:AIR
   title: Air (ambient)
   type: input
-  amount: 83619.0
+  amount: 83528.3
   unit: kg
   free: true
   streams:
@@ -238,7 +243,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 2165.5
+  amount: 2163.7
   unit: kWh
   link:
     source: Electricity for the combustion air blower (Q10), the SO2 blower (Q11) and an ASSUMED 500 kW
@@ -260,7 +265,7 @@ exchanges:
 - key: product:MMAP
   title: Methyl methacrylate (pure, stabilised) to storage
   type: product
-  amount: 12500.1
+  amount: 12500.0
   unit: kg
   provenance: calculated
   streams:
@@ -284,7 +289,7 @@ exchanges:
 - key: product:STACK
   title: Tail gas of the SAR absorber to atmosphere
   type: output
-  amount: 79107.7
+  amount: 79023.0
   unit: kg
   provenance: calculated
   streams:
@@ -297,10 +302,10 @@ exchanges:
   composition:
     fractions:
       ACH: 0.0
-      O2: 0.038720438
-      N2: 0.834967925
-      CO2: 0.125847898
-      SO2: 0.000463739
+      O2: 0.038753113
+      N2: 0.83497717
+      CO2: 0.125805593
+      SO2: 0.000464124
     formulas:
       ACH: C4H7NO
       O2: O2
@@ -311,22 +316,24 @@ exchanges:
 - key: product:WW
   title: Gas-cleaning condensate (weak acid water) to neutralisation and wastewater treatment
   type: output
-  amount: 19422.7
+  amount: 15791.8
   unit: kg
   provenance: calculated
   link:
-    source: 'Gas-cleaning condensate (S24, 1.55 kg per kg MMA): the water of the SAR furnace gas, modelled
-      as water only; in a plant it carries dissolved SO2, some H2SO4 and dust, which need neutralisation
-      (D-008). The default link to biological treatment does not count the neutralising agent: an understatement
-      (D-012).'
+    source: 'Gas-cleaning condensate (S24, 1.26 kg per kg MMA): the water of the SAR furnace gas condensed
+      down to saturation at 313 K (the rest is taken up by the drying acid and stays in the acid circuit,
+      D-008), modelled as water only; in a plant it carries dissolved SO2, some H2SO4 and dust, which
+      need neutralisation (D-008). The default link to biological treatment does not count the neutralising
+      agent: an understatement (D-012).'
     missing: background not mapped here; the Atlas build links the library's utility-wwtp by the wastewater
       slug, without the neutralisation
   streams:
   - S24
-  source: 'Gas-cleaning condensate (S24, 1.55 kg per kg MMA): the water of the SAR furnace gas, modelled
-    as water only; in a plant it carries dissolved SO2, some H2SO4 and dust, which need neutralisation
-    (D-008). The default link to biological treatment does not count the neutralising agent: an understatement
-    (D-012).'
+  source: 'Gas-cleaning condensate (S24, 1.26 kg per kg MMA): the water of the SAR furnace gas condensed
+    down to saturation at 313 K (the rest is taken up by the drying acid and stays in the acid circuit,
+    D-008), modelled as water only; in a plant it carries dissolved SO2, some H2SO4 and dust, which need
+    neutralisation (D-008). The default link to biological treatment does not count the neutralising agent:
+    an understatement (D-012).'
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -343,7 +350,7 @@ exchanges:
 - key: product:MPSX
   title: MP steam export (1500 kPa(a)), net of the plant's own steam use
   type: product
-  amount: 16196.2
+  amount: 16291.4
   unit: kWh
   properties:
     exergy: 1323.080187
@@ -363,7 +370,7 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 45313.8
+  amount: 46584.1
   unit: kWh
   link:
     source: Heat rejected to the site cooling water system (Q1, Q2, Q5, Q7, Q8, 298/308 K)
@@ -409,7 +416,7 @@ exchanges:
 - key: emission:ACH
   title: ACH to the environment
   type: emission
-  amount: 1.5117647696653992e-13
+  amount: 9.070503379204068e-13
   unit: kg
   provenance: calculated
   link:
@@ -519,13 +526,13 @@ exchanges:
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 9955.537721795137
+  amount: 9941.535381009091
   unit: kg
   provenance: calculated
   link:
     elementary: {}
-    source: 'S32: CO2 of the natural gas fuel and of the organics burned in F-501 (acetone, methanol,
-      MMA, CO from HCN), all of fossil carbon'
+    source: 'S32: CO2 of the natural gas fuel and of the organics burned in F-501 (acetone and the sulfonated
+      acetone, the unconverted amide, methanol, MMA, CO from HCN), all of fossil carbon'
   cas: 124-38-9
   flow:
   - list: ef-3.1
@@ -537,8 +544,8 @@ exchanges:
     unit: kg
   streams:
   - S32
-  source: 'S32: CO2 of the natural gas fuel and of the organics burned in F-501 (acetone, methanol, MMA,
-    CO from HCN), all of fossil carbon'
+  source: 'S32: CO2 of the natural gas fuel and of the organics burned in F-501 (acetone and the sulfonated
+    acetone, the unconverted amide, methanol, MMA, CO from HCN), all of fossil carbon'
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -624,11 +631,13 @@ exchanges:
   provenance: calculated
   link:
     elementary: {}
-    source: '0: methacrylamide is esterified completely in R-301 (D-006)'
+    source: '0: the amide not esterified in R-301 leaves with the spent acid and is burned in F-501 (D-006,
+      D-008)'
   cas: 79-39-0
   streams:
   - S32
-  source: '0: methacrylamide is esterified completely in R-301 (D-006)'
+  source: '0: the amide not esterified in R-301 leaves with the spent acid and is burned in F-501 (D-006,
+    D-008)'
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -688,7 +697,7 @@ exchanges:
 - key: emission:N2
   title: N2 to the environment
   type: emission
-  amount: 66052.39214534579
+  amount: 65982.40090696774
   unit: kg
   provenance: calculated
   free: true
@@ -709,7 +718,7 @@ exchanges:
 - key: emission:O2
   title: O2 to the environment
   type: emission
-  amount: 3063.0848198140116
+  amount: 3062.387211700192
   unit: kg
   provenance: calculated
   free: true
@@ -730,7 +739,7 @@ exchanges:
 - key: emission:SO2
   title: SO2 to the environment
   type: emission
-  amount: 36.68531304505921
+  amount: 36.67650032296602
   unit: kg
   provenance: calculated
   link:
@@ -805,9 +814,9 @@ provenance:
   plant: Methyl methacrylate by the ACH-sulfo route with sulfuric acid regeneration (12.5 t/h MMA)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:369a04714dd21b307defd7f44d19493328a1d6d86192f1b41666efa71471e8b6
-    lca/lca.yaml: sha256:e25670bc7a1a9e6442b1bf69eebfea692bd51b10e4b4898eddafb4270b82fc7c
-    process.yaml: sha256:5911a5116de94558337f313df570bb23ca8bdd960bf0d45ebfe5882542e751e9
-    process/flowsheet.yaml: sha256:2f803f04b84a51f8894e94057ad97fea39998766d74cf0aee9c02f9efbf2cefa
+    equipment/equipment-list.yaml: sha256:e22edd56c39a88cc8664f6f9549cecae86e9d4106a00debfdc8698991b6acaa8
+    lca/lca.yaml: sha256:b613c903686b1507ef733a8a1dc853652498d251883483c05b20d91c9a9100c7
+    process.yaml: sha256:1464f8ffeb25a90baf29e05a8ea1881caa32363004f328a15cf1cdc3a84c7bd0
+    process/flowsheet.yaml: sha256:da0b77ec13171d92865cfd6a2926e648644a75a3be6f41b79a2c91983b8c1f55
     process/materials.yaml: sha256:e0fc2e16005395b84f96ee0c9355fb0cbde869c0cb58085867d52e7dfa10769c
-    process/simulation.yaml: sha256:a2427ed85d96f7ec05957cd8ec0c25566a467a68efbf40e9711982290340be3b
+    process/simulation.yaml: sha256:42d51573206c347ea2376dca91acf9469b0876683f4516fd79ee03dcaa39a30e
