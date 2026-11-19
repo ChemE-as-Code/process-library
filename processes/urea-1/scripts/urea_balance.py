@@ -60,7 +60,7 @@ CP_L, CP_S, CP_AIR, CP_VAP = 2.1, 1.55, 1.006, 1.88  # kJ/(kg K), ASSUMED
 DUST_RAW, DUST_OUT = 100.0, 35.0  # mg/Nm3: raw within BREF Table 8.10 (60-130), out within BAT 15-55
 NH3_RAW, NH3_OUT = 35.0, 30.0     # mg/Nm3: out within BAT 3-35 (BREF section 8.5), water scrubbing
 SCRUB_EVAP_SHARE = 0.5     # share of the heat the air took up that the wet scrubber turns into evaporation (ASSUMED)
-SCRUB_LIQUOR_UREA = 0.45   # urea mass fraction of the scrubber liquor recycled to evaporation (ASSUMED)
+SCRUB_LIQUOR_UREA = 0.45   # urea/(urea + water) mass fraction of the scrubber liquor to evaporation, NH3-free basis; the scrubbed NH3 comes on top (S52: 43.5 wt% urea) (ASSUMED)
 LAMBDA_SCRUB = 2390.0      # kJ/kg water at about 318 K
 
 # ---- utilities (D-010) ------------------------------------------------------------------
