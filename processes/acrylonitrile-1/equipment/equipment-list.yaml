@@ -1,0 +1,59 @@
+# Equipment list. Schema: `cheme schema equipment`.
+# Concept stage: the items the PFD (process/flowsheet.yaml) needs, no P&ID yet (no sheet).
+# Design pressures and temperatures are ASSUMED concept values (D-010): the highest operating
+# pressure plus 2.5 bar, the highest operating temperature plus 25 K (steam sides: the steam
+# level). Columns are lumped as the PFD lumps them; stages, diameters and weights come at basic
+# engineering (datasheets).
+equipment:
+  # ---- air compression and reactor feed (block FEED)
+  - {tag: K-101, type: CentrifugalCompressor, service: Process air compressor,
+     design_pressure_barg: 4.0, design_temperature_degc: 160, material: CS,
+     notes: "101.3 -> 250 kPa(a), about 101 t/h dry air; 3.09 MW shaft, 3.22 MW electric at isentropic efficiency 0.80 and motor 0.96 (scripts/utilities.py, D-009, ASSUMED). A steam-turbine drive on the reactor's HP steam is the usual alternative (D-009)."}
+  # ---- ammoxidation and effluent cooling (block RXN)
+  - {tag: R-101, type: Vessel, service: "Fluid-bed ammoxidation reactor (air grid, propylene/ammonia spargers, steam coils, internal cyclones)",
+     design_pressure_barg: 3.5, design_temperature_degc: 480, material: "CS shell with refractory or low-alloy internals ASSUMED (open input)",
+     notes: "Bi-Mo oxide catalyst (BIMO) at 713 K and 200 kPa(a); propylene conversion 97.5 % (US 6 596 897 B1, D-004); 56.8 MW to HP steam in the coils (cheme process propagate). Catalyst inventory from WWH 0.085 1/h of the source's test: about 176 t (14 980 kg/h propylene / 0.085), a bench value, not a design (D-004). Listed as a vessel: DEXPI has no fluid-bed reactor class in this list."}
+  - {tag: E-101, type: TubularHeatExchanger, service: Reactor effluent cooler (waste-heat boiler),
+     design_pressure_barg: 42, design_temperature_degc: 465, material: "CS, low-alloy tube sheet ASSUMED",
+     notes: "Effluent 713 -> 493 K, 10.1 MW to HP steam (scripts/utilities.py, D-009). Catalyst fines and polymer fouling on the gas side (open input). Shell design pressure for the 40 barg steam side."}
+  # ---- acid quench (block QCH)
+  - {tag: C-101, type: Column, service: "Quench column (acid section: ammonia neutralised by sulfuric acid; liquor circulation)",
+     design_pressure_barg: 2.5, design_temperature_degc: 245, material: "SS 316L or lined CS ASSUMED (acidic ammonium sulfate liquor)",
+     notes: "Gas 493 K in, 358 K out; 785 kg/h of 98.5 wt% acid at 5 % excess (SP-ACID, D-005); liquor 3.6 t/h with about 28 wt% ammonium sulfate and the acrylic acid (D-005)."}
+  - {tag: P-101, type: CentrifugalPump, service: Quench liquor circulation and draw-off pumps,
+     design_pressure_barg: 6, design_temperature_degc: 110, material: "SS ASSUMED",
+     notes: "One tag for the pump group of the PFD; power in the pump lump Q3 (D-009)."}
+  - {tag: E-102, type: TubularHeatExchanger, service: Quenched gas cooler (cooling water),
+     design_pressure_barg: 2.5, design_temperature_degc: 110, material: "SS ASSUMED",
+     notes: "358 -> 313 K; the PFD gives it the cooling water lump of the whole plant (Q8, 41.3 MW, D-009), its own duty is not calculated (L-2)."}
+  # ---- absorption (block ABS)
+  - {tag: C-102, type: Column, service: Absorber (chilled water),
+     design_pressure_barg: 2.5, design_temperature_degc: 65, material: "CS ASSUMED",
+     notes: "Water 313.5 t/h at 278 K, 4.0 mol per mol of the inlet (SP-LG, D-006); off-gas 85.4 t/h at 283 K to the thermal oxidiser. Li et al. (2025) use 24 stages at 1.6 bar (not designed here)."}
+  - {tag: E-103, type: PlateHeatExchanger, service: Lean water chiller (refrigerant),
+     design_pressure_barg: 6, design_temperature_degc: 65, material: "SS ASSUMED",
+     notes: "Lean water cooled to 278 K; 3.52 MW refrigeration, 0.88 MW electric at COP 4.0 (D-009, ASSUMED)."}
+  # ---- recovery and lean water (block REC)
+  - {tag: C-201, type: Column, service: Recovery column (extractive distillation with water),
+     design_pressure_barg: 2.5, design_temperature_degc: 140, material: "CS ASSUMED",
+     notes: "Rich water 348.6 t/h; overhead acrylonitrile and HCN to the decanter V-201, acetonitrile kept in the water (D-007). The PFD gives it the LP steam lump of all columns (Q7, 50.3 MW, D-009). Li et al. (2025): 36 stages."}
+  - {tag: V-201, type: Vessel, service: Recovery column overhead decanter,
+     design_pressure_barg: 2.5, design_temperature_degc: 65, material: "CS ASSUMED",
+     notes: "Organic phase (crude acrylonitrile, about 3.9 wt% water) to C-301; aqueous phase returned (lumped in C201, D-007)."}
+  - {tag: C-202, type: Column, service: "Stripper (crude acetonitrile overhead, lean water bottoms)",
+     design_pressure_barg: 2.5, design_temperature_degc: 140, material: "CS ASSUMED",
+     notes: "332 t/h feed; crude acetonitrile 0.72 t/h overhead (D-007)."}
+  - {tag: C-203, type: Column, service: "Acetonitrile purification (pressure-swing pair, one tag)",
+     design_pressure_barg: 4.5, design_temperature_degc: 165, material: "CS ASSUMED",
+     notes: "586 kg/h acetonitrile co-product at 99.5 wt% (D-007); Li et al. (2025) run the pair at 4.4 and 1.1 bar."}
+  # ---- purification (block PUR)
+  - {tag: C-301, type: Column, service: HCN (heads) column,
+     design_pressure_barg: 2.5, design_temperature_degc: 100, material: "SS ASSUMED (HCN service)",
+     notes: "HCN 546 kg/h overhead at 99.7 wt% (D-007); refrigerated condenser (Li et al. 2025: about 25 C)."}
+  - {tag: C-302, type: Column, service: "Drying and product column (lumped)",
+     design_pressure_barg: 2.5, design_temperature_degc: 120, material: "CS ASSUMED",
+     notes: "Acrylonitrile product 15.0 t/h at 99.75 wt%; heads cut 0.73 t/h (water, acrolein) to the thermal oxidiser (D-007). Stabiliser (MEHQ) dosing not modelled (L-5)."}
+  # ---- thermal oxidiser (block INC)
+  - {tag: H-401, type: Furnace, service: Thermal oxidiser with waste-heat boiler,
+     design_pressure_barg: 0.5, design_temperature_degc: 1100, material: "refractory-lined CS ASSUMED",
+     notes: "Off-gas 85.4 t/h, heads cut, 75 kg/h natural gas support fuel, combustion air; 99 % destruction ASSUMED (EPA-450/4-84-007a: 98 % or more); 4.1 MW to HP steam with the stack at 473 K (D-008)."}

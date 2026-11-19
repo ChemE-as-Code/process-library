@@ -1,0 +1,78 @@
+# Process Atlas manifest of acrylonitrile-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: acrylonitrile-1
+title: Acrylonitrile by SOHIO propylene ammoxidation in a fluidised bed (120 kt/a, HCN and acetonitrile co-products)
+summary: >-
+  Propylene, ammonia and air react over a bismuth molybdate catalyst in a fluidised bed; the
+  effluent is quenched with sulfuric acid (ammonium sulfate liquor), the nitriles absorbed in
+  water and separated into acrylonitrile, HCN and acetonitrile; the off-gas is burnt with steam
+  recovery. Concept stage, sourced reactor slate, assumed separations, preliminary gate-to-gate
+  inventory.
+description: |
+  A continuous plant of 15 t/h acrylonitrile. The reactor is a conversion step with the propylene
+  conversion and product slate of an open catalyst patent (US 6 596 897 B1), not kinetics; its
+  reaction heat (56.8 MW) is calculated by cheme and raises HP steam. Design specifications that
+  cheme solves set the propylene feed for the product rate (ammonia and air follow at 1.2 and
+  9.8 mol per mol), the acid for a 5 % excess over the unconverted ammonia, and the lean-water
+  recycle for the absorber's water rate, with the recycle torn and converged. The quench,
+  absorber and columns are component separators with ASSUMED splits; the column steam and the
+  cooling water are lumps scaled from the open whole-plant design of Li, Dimian and Kiss (2025).
+  Propylene, ammonia and sulfuric acid come from propylene-pdh-1, ammonia-1 and sulfuric-acid-1.
+families: [nitrogen-organics]
+keywords: [acrylonitrile, SOHIO, ammoxidation, propylene, fluidised bed, bismuth molybdate, hydrogen cyanide, acetonitrile, ammonium sulfate, quench, absorption, extractive distillation]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals]
+  unit_operations: [compression, reaction, absorption, distillation, heat-exchange]
+  region: generic
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass and component balances (cheme validate, cheme process streams);
+    the reactor, quench and oxidiser outlets are calculated by cheme from the sourced conversion
+    and selectivities and assumed conversions, the separators from ASSUMED splits, the feeds and
+    the recycle by cheme's design specifications. The energy balance is ideal-gas only (reactor,
+    effluent boiler, oxidiser); column steam, cooling water and power are scaled or estimated
+    lumps (DESIGN.md D-009). No property package covers the nitrile/water liquids. Not reviewed.
+chemistry:
+  inputs:
+    - {chemical: propylene, role: feedstock, inventory_key: "feed:C3", note: "0.999 kg/kg acrylonitrile, from propylene-pdh-1"}
+    - {chemical: ammonia, role: feedstock, inventory_key: "feed:AMM", note: "0.485 kg/kg, from ammonia-1"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "process air, 9.8 mol per mol propylene"}
+    - {chemical: sulfuric-acid, role: feedstock, inventory_key: "feed:ACID", note: "98.5 wt%, quench, from sulfuric-acid-1"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "natural gas support fuel of the thermal oxidiser, taken as methane"}
+  outputs:
+    - {chemical: acrylonitrile, role: main-product, inventory_key: "product:ACNP", note: "99.75 wt%, 15 t/h"}
+    - {chemical: hydrogen-cyanide, role: co-product, inventory_key: "product:HCNP", note: "0.036 kg/kg acrylonitrile"}
+    - {chemical: acetonitrile, role: co-product, inventory_key: "product:MECNP", note: "0.039 kg/kg acrylonitrile"}
+    - {chemical: ammonium-sulfate, role: waste, inventory_key: "product:LIQ", note: "quench liquor, about 28 wt% ammonium sulfate with acrylic acid, to recovery or treatment"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "fossil CO2 from the reactor's burnt propylene and the thermal oxidiser, 0.46 kg/kg"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam to the column reboilers (lump)"}
+    - {chemical: steam, role: co-product, inventory_key: "product:STEAM", note: "HP steam 4100 kPa(a) exported (gross)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW"}
+basis:
+  capacity: "15 000 kg/h acrylonitrile = 120 000 t/a at 8000 h/a (ASSUMED)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen)
+references:
+  - {title: "Guan, X., Chen, X., Wu, L. (Sinopec) Catalyst for producing acrylonitrile. US Patent 6,596,897 B1 (2003), evaluation results", url: "https://patents.google.com/patent/US6596897B1/en"}
+  - {title: "Li, Q., Dimian, A. C., Kiss, A. A. (2025) Energy efficient process designs for acrylonitrile production by propylene ammoxidation. Systems and Control Transactions 4, 479-484 (ESCAPE 35)", doi: 10.69997/sct.107589}
+  - {title: "US EPA (1984) Locating and Estimating Air Emissions from Sources of Acrylonitrile, EPA-450/4-84-007a", url: "https://19january2021snapshot.epa.gov/sites/static/files/2020-09/documents/acrylonitrile.pdf"}
+  - {title: "IPCC (2006) 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Vol. 3, chapter 3, section 3.9 (Box 3.12, Tables 3.22 and 3.26)", url: "https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/3_Volume3/V3_3_Ch3_Chemical_Industry.pdf"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/acrylonitrile-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

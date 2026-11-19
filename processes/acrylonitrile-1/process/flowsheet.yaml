@@ -1,0 +1,737 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Acrylonitrile by SOHIO propylene ammoxidation in a fluidised bed, 15 t/h (120 kt/a at 8000 h/a)
+# (D-001, D-002). Where the values come from:
+# - the product rate, the feed ratios and the acid: design specifications (`specs:`) that
+#   `cheme process propagate --fill` solves for the feeds and the lean-water split (D-003, D-005,
+#   D-006);
+# - the reactor R101: a conversion step with the sourced propylene conversion and selectivities
+#   (US 6 596 897 B1, D-004); the quench R102 and the thermal oxidiser R401: assumed conversions;
+# - the quench, absorber and columns: component separators (`recovery:`) with ASSUMED splits
+#   (D-005 to D-007), solved by propagate; the lean-water recycle torn at S20 (D-006);
+# - the duties of R101, E101 and R401: calculated by propagate from ideal-gas enthalpies; the
+#   column steam, the cooling water and the electric power: ASSUMED from the open whole-plant
+#   design of Li, Dimian and Kiss (2025) scaled to this capacity, and our own compressor
+#   calculation (D-009);
+# - temperatures and pressures: ASSUMED (design basis and decisions).
+schema: cheme/process/v1
+kind: flowsheet
+title: Acrylonitrile (SOHIO propylene ammoxidation), 15 t/h
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 15 000 kg/h acrylonitrile product (120 kt/a at 8000 h/a), propylene/ammonia/air 1/1.2/9.8 mol (D-002 to D-004)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+specs:
+  - id: SP-RATE
+    vary:
+      stream: S1
+      initial: 15000
+      with: {S2: 0.48566, S3: 6.744317, S31: 1.37641, S32: 0.005}
+    target: {stream: S27, quantity: flow, value: 15000}
+    provenance: assumed
+    source: "D-002: 120 kt/a at 8000 h/a; followers: NH3 1.2 and air 9.8 mol per mol propylene (US 6 596 897 B1, D-003), thermal-oxidiser air 2.0 mol and natural gas 0.005 kg per kg propylene (D-008)"
+  - id: SP-ACID
+    vary: {stream: S8, initial: 780, low: 700}
+    target: {stream: S8, component: H2SO4, quantity: ratio, value: 0.525, basis: mole, per: {stream: S6, component: NH3}}
+    provenance: assumed
+    source: "D-005: 5 % excess of sulfuric acid over the unconverted ammonia"
+  - id: SP-LG
+    vary: {node: SPW, port: recycle, initial: 0.97}
+    target: {stream: S20, quantity: ratio, value: 4.0, basis: mole, per: {stream: S12}}
+    provenance: assumed
+    source: "D-006: absorber water 4.0 mol per mol of the absorber inlet (absorption factor about 1.4 for acrylonitrile, ASSUMED)"
+
+tears:
+  - stream: S20
+    initial: {flow: 450000, unit: kg/h, basis: mass_fraction, composition: {H2O: 1.0}}
+convergence: {method: wegstein, max_iterations: 200}
+
+feeds:
+  - {id: C3, title: "Propylene vapour (boundary feed; made by processes/propylene-pdh-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AMM, title: "Ammonia vapour (boundary feed; made by processes/ammonia-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Process air (dry), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACID, title: "Sulfuric acid 98.5 wt% (made by processes/sulfuric-acid-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NG, title: Natural gas support fuel to the thermal oxidiser, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CAIR, title: Combustion air to the thermal oxidiser, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports: [{id: k101, direction: out, kind: energy}, {id: a101, direction: out, kind: energy}, {id: c201, direction: out, kind: energy}]
+  - id: LPS
+    title: LP steam to the column reboilers (lump)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 700, provenance: assumed, source: "D-009: 6 barg, the LP level of Li et al. (2025) section 4.2.3"}
+      supply_temperature: {value: 438.1, provenance: assumed, source: "saturation at 700 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009, Li et al. (2025) section 3.2.2"}
+    ports: [{id: c201, direction: out, kind: energy}]
+products:
+  - {id: ACNP, title: Acrylonitrile product to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: HCNP, title: Hydrogen cyanide co-product (to an on-site or adjacent user), category: product, ports: [{id: in, direction: in}]}
+  - {id: MECNP, title: Acetonitrile co-product, category: product, ports: [{id: in, direction: in}]}
+  - {id: LIQ, title: Quench liquor (ammonium sulfate solution with acrylic acid) to ammonium sulfate recovery or treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Process wastewater to biological treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Thermal oxidiser flue gas to stack (atmosphere), category: emission, ports: [{id: in, direction: in}]}
+  - id: STEAM
+    title: HP steam raised (reactor coils, effluent boiler, oxidiser boiler)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 4100, provenance: assumed, source: "D-009: 40 barg, the VHP level of Li et al. (2025) section 4.2.3"}
+      supply_temperature: {value: 525.0, provenance: assumed, source: "saturation at 4100 kPa(a), D-009"}
+      min_approach: {value: 20, provenance: assumed, source: D-009}
+    ports: [{id: r101, direction: in, kind: energy}, {id: e101, direction: in, kind: energy}, {id: r401, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return (all coolers and condensers, lump)
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "D-009: the library cooling tower (utility-cooling-tower), 25/35 C"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "D-009: the library cooling tower, 25/35 C"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009, Li et al. (2025) section 3.2.2"}
+    ports: [{id: e102, direction: in, kind: energy}]
+
+blocks:
+  - id: FEED
+    title: Air compression and reactor feed
+    class: Mixing
+    ports:
+      - {id: c3, direction: in}
+      - {id: nh3, direction: in}
+      - {id: air, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: RXN
+    title: Fluid-bed ammoxidation and effluent cooling
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: steam_r, direction: out, kind: energy}
+      - {id: steam_e, direction: out, kind: energy}
+  - id: QCH
+    title: Acid quench (ammonium sulfate)
+    class: ReactingChemicals
+    ports:
+      - {id: gas, direction: in}
+      - {id: acid, direction: in}
+      - {id: liquor, direction: out}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy}
+  - id: ABS
+    title: Absorption in water
+    class: SeparatingByPhysicalProcess
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: offgas, direction: out}
+      - {id: rich, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: REC
+    title: Recovery, acetonitrile stripping and lean-water recycle
+    class: SeparatingByPhysicalProcess
+    ports:
+      - {id: rich, direction: in}
+      - {id: crude, direction: out}
+      - {id: lean, direction: out}
+      - {id: mecn, direction: out}
+      - {id: ww, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: PUR
+    title: HCN removal and acrylonitrile purification
+    class: SeparatingByPhysicalProcess
+    ports:
+      - {id: crude, direction: in}
+      - {id: hcn, direction: out}
+      - {id: product, direction: out}
+      - {id: heads, direction: out}
+  - id: INC
+    title: Thermal oxidiser with waste-heat boiler
+    class: ReactingChemicals
+    ports:
+      - {id: offgas, direction: in}
+      - {id: heads, direction: in}
+      - {id: fuel, direction: in}
+      - {id: air, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: out, kind: energy}
+
+steps:
+  - id: K101
+    block: FEED
+    title: Process air compressor
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-003: propylene and ammonia vaporised at the battery limit (L-4); the three feeds enter the
+  # fluid bed through separate distributors, written as one mixer.
+  - id: M101
+    block: FEED
+    title: Reactor feed (air grid and hydrocarbon/ammonia spargers)
+    class: Mixing
+    ports:
+      - {id: c3, direction: in, delegates: c3}
+      - {id: nh3, direction: in, delegates: nh3}
+      - {id: air, direction: in}
+      - {id: out, direction: out, delegates: out}
+  # D-004: conversion step with the propylene conversion and the selectivities of
+  # US 6 596 897 B1 (evaluation 1, example 1, 440 C, 0.14 MPa), not kinetics.
+  - id: R101
+    block: RXN
+    title: Fluid-bed ammoxidation reactor with steam coils and cyclones
+    class: ReactingChemicals
+    reactions: [AMMOX, HCN_F, MECN_F, ACRO_F, AA_F, CO_F, CO2_F, NH3_OX]
+    reactor: conversion
+    selectivity:
+      key: C3H6
+      conversion: 0.975
+      products: {ACN: 0.816598360656, HCN: 0.0584016393443, MECN: 0.0430327868852, ACRO: 0.00512295081967, AA: 0.015368852459, CO: 0.0952868852459, CO2: 0.248975409836, N2: 0.134829760404}
+      provenance: assumed
+      source: "US 6 596 897 B1, evaluation result 1, example 1: propylene conversion 97.5 %, single-pass carbon yields AN 79.7, acetonitrile 2.8, HCN 1.9, acrolein 0.5, acrylic acid 1.5, CO 3.1, CO2 8.1 % (normalised to the conversion), NH3 conversion 96.5 % with the rest of the converted NH3 burnt to N2 (D-004)"
+    catalyst: BIMO
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: out, kind: energy, delegates: steam_r}
+  - id: E101
+    block: RXN
+    title: Reactor effluent cooler (waste-heat boiler)
+    class: Cooling
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: heat, direction: out, kind: energy, delegates: steam_e}
+  # D-005: the unconverted ammonia neutralised by sulfuric acid in the quench.
+  - id: R102
+    block: QCH
+    title: Quench column, acid section (ammonia neutralisation)
+    class: ReactingChemicals
+    reactions: [NEUT]
+    reactor: conversion
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out}
+  - id: Q101
+    block: QCH
+    title: Quench column, liquor draw-off and quenched gas
+    class: SeparatingByPhysicalProcess
+    recovery:
+      outlets:
+        liquor: {AS: 1.0, H2SO4: 1.0, AA: 1.0, NH3: 1.0, H2O: 0.10, ACN: 0.002, MECN: 0.01}
+      provenance: assumed
+      source: "D-005: salt, excess acid and acrylic acid to the liquor; 10 % of the water, giving about 30 wt% ammonium sulfate; organic losses ASSUMED"
+    links: [{target: equipment, ref: C-101}, {target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liquor, direction: out, delegates: liquor}
+      - {id: gas, direction: out}
+  - id: E102
+    block: QCH
+    title: Quenched gas cooler (condensate goes on with the gas)
+    class: Cooling
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: heat, direction: out, kind: energy, delegates: cw}
+  - id: A101
+    block: ABS
+    title: Absorber (chilled water)
+    class: SeparatingByPhysicalProcess
+    recovery:
+      outlets:
+        rich: {H2O: 0.9988, ACN: 0.9999, HCN: 0.995, MECN: 0.9999, ACRO: 0.98}
+      provenance: assumed
+      source: "D-006: nitriles absorbed; off-gas about 0.001 wt% acrylonitrile (EPA-450/4-84-007a, p. 19) and saturated with water at 283 K; permanent gases and propylene to the off-gas"
+    links: [{target: equipment, ref: C-102}, {target: equipment, ref: E-103}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: water, direction: in, delegates: water}
+      - {id: offgas, direction: out, delegates: offgas}
+      - {id: rich, direction: out, delegates: rich}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C201
+    block: REC
+    title: Recovery column (extractive distillation with water) and overhead decanter
+    class: SeparatingByPhysicalProcess
+    recovery:
+      outlets:
+        crude: {ACN: 0.999, HCN: 1.0, ACRO: 1.0, MECN: 0.02, H2O: 0.0019}
+      provenance: assumed
+      source: "D-007: acrylonitrile and HCN overhead, acetonitrile kept in the water (Li et al. 2025 section 4.1); organic phase about 4 wt% water ASSUMED"
+    links: [{target: equipment, ref: C-201}, {target: equipment, ref: V-201}]
+    ports:
+      - {id: in, direction: in, delegates: rich}
+      - {id: crude, direction: out, delegates: crude}
+      - {id: bot, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C202
+    block: REC
+    title: Stripper (crude acetonitrile overhead, lean water bottoms)
+    class: SeparatingByPhysicalProcess
+    recovery:
+      outlets:
+        top: {MECN: 0.995, ACN: 1.0, HCN: 1.0, ACRO: 1.0, H2O: 0.00034}
+      provenance: assumed
+      source: "D-007: acetonitrile stripped as a wet overhead; water about 16 wt% of it ASSUMED"
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+  - id: SPW
+    block: REC
+    title: Lean water to the absorber / net water purge
+    class: SplittingMaterial
+    split: {}
+    ports:
+      - {id: in, direction: in}
+      - {id: recycle, direction: out, delegates: lean}
+      - {id: purge, direction: out}
+  - id: C203
+    block: REC
+    title: Acetonitrile purification (pressure-swing pair, lumped)
+    class: SeparatingByPhysicalProcess
+    recovery:
+      outlets:
+        product: {MECN: 0.98, H2O: 0.026}
+      provenance: assumed
+      source: "D-007: 98 % recovery to a 99.5 wt% product; lights and water to the wastewater"
+    links: [{target: equipment, ref: C-203}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: mecn}
+      - {id: water, direction: out}
+  - id: M201
+    block: REC
+    title: Process wastewater collection
+    class: Mixing
+    ports:
+      - {id: purge, direction: in}
+      - {id: water, direction: in}
+      - {id: out, direction: out, delegates: ww}
+  - id: C301
+    block: PUR
+    title: HCN (heads) column
+    class: SeparatingByPhysicalProcess
+    recovery:
+      outlets:
+        top: {HCN: 0.998, ACN: 0.0001}
+      provenance: assumed
+      source: "D-007: HCN overhead at about 99.7 wt%"
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: top, direction: out, delegates: hcn}
+      - {id: bot, direction: out}
+  - id: C302
+    block: PUR
+    title: Drying and product column (lumped)
+    class: SeparatingByPhysicalProcess
+    recovery:
+      outlets:
+        product: {ACN: 0.998, H2O: 0.05, MECN: 0.5}
+      provenance: assumed
+      source: "D-007: product above 99.5 wt% (Li et al. 2025: 99.4 wt%); water, acrolein and remaining HCN to a heads cut"
+    links: [{target: equipment, ref: C-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: heads, direction: out, delegates: heads}
+  - id: M401
+    block: INC
+    title: Thermal oxidiser burner (off-gas, heads cut, support fuel, air)
+    class: Mixing
+    ports:
+      - {id: offgas, direction: in, delegates: offgas}
+      - {id: heads, direction: in, delegates: heads}
+      - {id: fuel, direction: in, delegates: fuel}
+      - {id: air, direction: in, delegates: air}
+      - {id: out, direction: out}
+  # D-008: firebox and waste-heat boiler lumped; heat to steam = combustion heat less the stack
+  # gas sensible heat at 473 K.
+  - id: R401
+    block: INC
+    title: Thermal oxidiser with waste-heat boiler
+    class: ReactingChemicals
+    reactions: [OX_C3H6, OX_CO, OX_ACN, OX_HCN, OX_MECN, OX_ACRO, OX_CH4]
+    reactor: conversion
+    links: [{target: equipment, ref: H-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: heat, direction: out, kind: energy, delegates: steam}
+
+streams:
+  - id: S1
+    title: Propylene vapour
+    from: C3.out
+    to: M101.c3
+    template: propylene
+    state:
+      design:
+        pressure: {value: 350.0, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-003"}
+        composition: {basis: mole_fraction, values: {C3H6: 1.0}, provenance: assumed, source: "D-003: chemical grade taken as pure propylene"}
+        flow: {value: 14980.6, provenance: calculated, source: 'cheme process propagate: spec SP-RATE (S27 flow kg/h 15000)', fingerprint: 73dbec71a491e1eb}
+  - id: S2
+    title: Ammonia vapour
+    from: AMM.out
+    to: M101.nh3
+    template: ammonia
+    state:
+      design:
+        pressure: {value: 350.0, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-003"}
+        composition: {basis: mole_fraction, values: {NH3: 1.0}, provenance: assumed, source: "D-003: refrigeration grade taken as pure"}
+        flow: {value: 7275.48, provenance: calculated, source: 'cheme process propagate: spec SP-RATE (0.48566 x S1)', fingerprint: 73dbec71a491e1eb}
+  - id: S3
+    title: Process air
+    from: AIR.out
+    to: K101.in
+    template: air
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, D-003"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis, D-003"}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: assumed, source: "D-003: dry air, CO2 and humidity neglected"}
+        flow: {value: 101034.0, provenance: calculated, source: 'cheme process propagate: spec SP-RATE (6.74432 x S1)', fingerprint: 73dbec71a491e1eb}
+  - id: S4
+    title: Compressed process air
+    from: K101.out
+    to: M101.air
+    template: air
+    state:
+      design:
+        pressure: {value: 250.0, provenance: assumed, source: "D-009: reactor 200 kPa(a) plus grid and line losses"}
+        temperature: {value: 407.4, provenance: assumed, source: "scripts/utilities.py: isentropic efficiency 0.80 ASSUMED, ideal gas (D-009)"}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S3', fingerprint: 5e15d0a6d1b9718f}
+        flow: {value: 101034.0, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S3', fingerprint: 5e15d0a6d1b9718f}
+  - id: S5
+    title: Reactor feed
+    from: M101.out
+    to: R101.in
+    template: reactor_gas
+    state:
+      design:
+        pressure: {value: 230.0, provenance: assumed, source: D-004}
+        temperature: {value: 373.15, provenance: assumed, source: "D-004: mixed feeds before the bed (feed preheat not modelled)"}
+        flow: {value: 123290.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S4', fingerprint: 19b323e5ba813eb0}
+        composition: {basis: mole_fraction, values: {C3H6: 0.083334, NH3: 0.0999999, N2: 0.63798, O2: 0.171092, AR: 0.00759499}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S4', fingerprint: fd3701c44a015f2e}
+  - id: S6
+    title: Reactor effluent (after cyclones)
+    from: R101.out
+    to: E101.in
+    template: reactor_gas
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "D-004: 2.0 bar, Li et al. (2025) section 4.1"}
+        temperature: {value: 713.15, provenance: assumed, source: "D-004: 440 C, US 6 596 897 B1 and Li et al. (2025)"}
+        flow: {value: 123290.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 57d1db84b6768405}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00198246, NH3: 0.00332968, O2: 0.00620291, N2: 0.61751, AR: 0.00722719, H2O: 0.264568, ACN: 0.0631361, HCN: 0.00451538, MECN: 0.00332712, ACRO: 0.000396086, AA: 0.00118826, CO: 0.0073672, CO2: 0.0192498, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 041b3104dd807feb}
+  - id: S7
+    title: Cooled reactor effluent to the quench
+    from: E101.out
+    to: R102.gas
+    template: reactor_gas
+    state:
+      design:
+        pressure: {value: 195.0, provenance: assumed, source: D-005}
+        temperature: {value: 493.15, provenance: assumed, source: "D-005: 220 C, Li et al. (2025) section 4.1"}
+        flow: {value: 123290.0, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: 1c8c2d13c2808d60}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00198246, NH3: 0.00332968, O2: 0.00620291, N2: 0.61751, AR: 0.00722719, H2O: 0.264568, ACN: 0.0631361, HCN: 0.00451538, MECN: 0.00332712, ACRO: 0.000396086, AA: 0.00118826, CO: 0.0073672, CO2: 0.0192498, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S6', fingerprint: 1c8c2d13c2808d60}
+  - id: S8
+    title: Sulfuric acid 98.5 wt%
+    from: ACID.out
+    to: R102.acid
+    template: acid
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: D-005}
+        temperature: {value: 298.15, provenance: assumed, source: D-005}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.985, H2O: 0.015}, provenance: assumed, source: "D-005: 98.5 wt% acid as made by sulfuric-acid-1"}
+        flow: {value: 781.446, provenance: calculated, source: 'cheme process propagate: spec SP-ACID (S8 H2SO4 per S6 NH3 (mole) 0.525)', fingerprint: 73dbec71a491e1eb}
+  - id: S9
+    title: Quench mixture (neutralised)
+    from: R102.out
+    to: Q101.in
+    template: reactor_gas
+    state:
+      design:
+        pressure: {value: 190.0, provenance: assumed, source: "D-005: 1.9 bar, Li et al. (2025) section 4.1"}
+        temperature: {value: 358.15, provenance: assumed, source: "D-005: quench outlet ASSUMED"}
+        flow: {value: 124071.0, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S8', fingerprint: 4a550c1359f32e80}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00198531, NH3: 0.0, O2: 0.00621183, N2: 0.618398, AR: 0.00723759, H2O: 0.265094, ACN: 0.0632269, HCN: 0.00452188, MECN: 0.00333191, ACRO: 0.000396656, AA: 0.00118997, CO: 0.0073778, CO2: 0.0192775, CH4: 0.0, H2SO4: 8.33963e-05, AS: 0.00166723}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S7 S8', fingerprint: 813ed6c3af9fdd45}
+  - id: S10
+    title: Quench liquor
+    from: Q101.liquor
+    to: LIQ.in
+    template: quench_liquor
+    state:
+      design:
+        pressure: {value: 190.0, provenance: assumed, source: D-005}
+        temperature: {value: 358.15, provenance: assumed, source: D-005}
+        flow: {value: 3585.88, provenance: calculated, source: 'cheme process propagate: separator Q101 from S9', fingerprint: 8afe9b3796d8e811}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.895292, ACN: 0.00427068, HCN: 0.0, MECN: 0.00112527, ACRO: 0.0, AA: 0.0401884, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.00281651, AS: 0.0563068}, provenance: calculated, source: 'cheme process propagate: separator Q101 from S9', fingerprint: 8afe9b3796d8e811}
+  - id: S11
+    title: Quenched gas
+    from: Q101.gas
+    to: E102.in
+    template: quench_gas
+    state:
+      design:
+        pressure: {value: 185.0, provenance: assumed, source: D-005}
+        temperature: {value: 358.15, provenance: assumed, source: D-005}
+        flow: {value: 120485.0, provenance: calculated, source: 'cheme process propagate: separator Q101 from S9', fingerprint: 8afe9b3796d8e811}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00204589, NH3: 0.0, O2: 0.00640137, N2: 0.637267, AR: 0.00745843, H2O: 0.245865, ACN: 0.0650258, HCN: 0.00465986, MECN: 0.00339924, ACRO: 0.000408759, AA: 0.0, CO: 0.00760292, CO2: 0.0198657, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator Q101 from S9', fingerprint: 8afe9b3796d8e811}
+  - id: S12
+    title: Cooled gas and condensate to the absorber
+    from: E102.out
+    to: A101.gas
+    template: quench_gas
+    state:
+      design:
+        pressure: {value: 175.0, provenance: assumed, source: D-006}
+        temperature: {value: 313.15, provenance: assumed, source: D-006}
+        flow: {value: 120485.0, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S11', fingerprint: 82b249be08304d7f}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00204589, NH3: 0.0, O2: 0.00640137, N2: 0.637267, AR: 0.00745843, H2O: 0.245865, ACN: 0.0650258, HCN: 0.00465986, MECN: 0.00339924, ACRO: 0.000408759, AA: 0.0, CO: 0.00760292, CO2: 0.0198657, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S11', fingerprint: 82b249be08304d7f}
+  - id: S13
+    title: Absorber off-gas
+    from: A101.offgas
+    to: M401.offgas
+    template: offgas
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: "D-006: 1.6 bar column, Li et al. (2025)"}
+        temperature: {value: 283.15, provenance: assumed, source: D-006}
+        flow: {value: 85357.3, provenance: calculated, source: 'cheme process propagate: separator A101 from S12 S20', fingerprint: 6a80b86d66f20cd2}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00298333, NH3: 0.0, O2: 0.00933451, N2: 0.929266, AR: 0.0108759, H2O: 0.00742963, ACN: 9.48209e-06, HCN: 3.39752e-05, MECN: 4.97991e-07, ACRO: 1.19211e-05, AA: 0.0, CO: 0.0110866, CO2: 0.0289683, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator A101 from S12 S20', fingerprint: 6a80b86d66f20cd2}
+  - id: S14
+    title: Rich water
+    from: A101.rich
+    to: C201.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 160.0, provenance: assumed, source: D-006}
+        temperature: {value: 300.0, provenance: assumed, source: D-006}
+        flow: {value: 348614.0, provenance: calculated, source: 'cheme process propagate: separator A101 from S12 S20', fingerprint: 6a80b86d66f20cd2}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.98297, ACN: 0.0150708, HCN: 0.00107471, MECN: 0.000791504, ACRO: 9.28512e-05, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator A101 from S12 S20', fingerprint: 6a80b86d66f20cd2}
+  - id: S15
+    title: Crude acrylonitrile (decanter organic phase)
+    from: C201.crude
+    to: C301.in
+    template: organic
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 16280.1, provenance: calculated, source: 'cheme process propagate: separator C201 from S14', fingerprint: c9dbf50afe499073}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.103146, ACN: 0.831498, HCN: 0.0593541, MECN: 0.000874263, ACRO: 0.00512798, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C201 from S14', fingerprint: c9dbf50afe499073}
+  - id: S16
+    title: Recovery column bottoms
+    from: C201.bot
+    to: C202.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 170.0, provenance: assumed, source: D-007}
+        temperature: {value: 385.0, provenance: assumed, source: "D-007: REC reboiler about 113 C, Li et al. (2025) Figure 2"}
+        flow: {value: 332334.0, provenance: calculated, source: 'cheme process propagate: separator C201 from S14', fingerprint: c9dbf50afe499073}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.999195, ACN: 1.53487e-05, HCN: 0.0, MECN: 0.000789978, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C201 from S14', fingerprint: c9dbf50afe499073}
+  - id: S17
+    title: Crude acetonitrile
+    from: C202.top
+    to: C203.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 130.0, provenance: assumed, source: D-007}
+        temperature: {value: 350.0, provenance: assumed, source: D-007}
+        flow: {value: 722.432, provenance: calculated, source: 'cheme process propagate: separator C202 from S16', fingerprint: 4503f83fcb5c3c03}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.297717, ACN: 0.0134508, HCN: 0.0, MECN: 0.688832, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C202 from S16', fingerprint: 4503f83fcb5c3c03}
+  - id: S18
+    title: Lean water
+    from: C202.bot
+    to: SPW.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 180.0, provenance: assumed, source: D-007}
+        temperature: {value: 388.0, provenance: assumed, source: D-007}
+        flow: {value: 331612.0, provenance: calculated, source: 'cheme process propagate: separator C202 from S16', fingerprint: 4503f83fcb5c3c03}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.999996, ACN: 0.0, HCN: 0.0, MECN: 3.9544e-06, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C202 from S16', fingerprint: 4503f83fcb5c3c03}
+  - id: S20
+    title: Lean water to the absorber (cooled and chilled)
+    from: SPW.recycle
+    to: A101.water
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: D-006}
+        temperature: {value: 278.15, provenance: assumed, source: "D-006: 5 C, Li et al. (2025) section 4.1"}
+        flow: {value: 313486.0, provenance: calculated, source: 'cheme process propagate: recycle SPW from S18 (tear, broyden)', fingerprint: 075cfbc86b2a14d9}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.999996, ACN: 0.0, HCN: 0.0, MECN: 3.96323e-06, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle SPW from S18 (tear, broyden)', fingerprint: 075cfbc86b2a14d9}
+  - id: S21
+    title: Net water purge
+    from: SPW.purge
+    to: M201.purge
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 17435.0, provenance: calculated, source: 'cheme process propagate: splitter SPW from S18 S20', fingerprint: 5bfe2d321ba90b8c}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.999996, ACN: 0.0, HCN: 0.0, MECN: 3.9544e-06, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SPW from S18', fingerprint: 983f9c1109f3a864}
+  - id: S22
+    title: Acetonitrile co-product
+    from: C203.product
+    to: MECNP.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 585.678, provenance: calculated, source: 'cheme process propagate: separator C203 from S17', fingerprint: 72c90d5325b1f652}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.0113367, ACN: 0.0, HCN: 0.0, MECN: 0.988663, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C203 from S17', fingerprint: 72c90d5325b1f652}
+  - id: S23
+    title: Acetonitrile column water and lights
+    from: C203.water
+    to: M201.water
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 136.754, provenance: calculated, source: 'cheme process propagate: separator C203 from S17', fingerprint: 72c90d5325b1f652}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.914164, ACN: 0.0424043, HCN: 0.0, MECN: 0.0434315, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C203 from S17', fingerprint: 72c90d5325b1f652}
+  - id: S24
+    title: Process wastewater
+    from: M201.out
+    to: WW.in
+    template: aqueous
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 17571.8, provenance: calculated, source: 'cheme process propagate: mixer M201 from S21 S23', fingerprint: 298cfea867db4ec1}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.999409, ACN: 0.000290264, HCN: 0.0, MECN: 0.000301223, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S21 S23', fingerprint: 92b770fa2b41c496}
+  - id: S25
+    title: Hydrogen cyanide co-product
+    from: C301.top
+    to: HCNP.in
+    template: organic
+    state:
+      design:
+        pressure: {value: 130.0, provenance: assumed, source: D-007}
+        temperature: {value: 288.15, provenance: assumed, source: "D-007: chilled condenser, HCN column condenser about 25 C in Li et al. (2025)"}
+        flow: {value: 545.512, provenance: calculated, source: 'cheme process propagate: separator C301 from S15', fingerprint: bda9a36bfb44434e}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.0, ACN: 0.00140175, HCN: 0.998598, MECN: 0.0, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S15', fingerprint: bda9a36bfb44434e}
+  - id: S26
+    title: HCN column bottoms
+    from: C301.bot
+    to: C302.in
+    template: organic
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: D-007}
+        temperature: {value: 340.0, provenance: assumed, source: D-007}
+        flow: {value: 15734.6, provenance: calculated, source: 'cheme process propagate: separator C301 from S15', fingerprint: bda9a36bfb44434e}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.10965, ACN: 0.883843, HCN: 0.000126194, MECN: 0.000929393, ACRO: 0.00545134, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S15', fingerprint: bda9a36bfb44434e}
+  - id: S27
+    title: Acrylonitrile product
+    from: C302.product
+    to: ACNP.in
+    template: organic
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: D-007}
+        temperature: {value: 303.15, provenance: assumed, source: D-007}
+        flow: {value: 14999.8, provenance: calculated, source: 'cheme process propagate: separator C302 from S26', fingerprint: 14dbe1640376757d}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.00617383, ACN: 0.993303, HCN: 0.0, MECN: 0.000523294, ACRO: 0.0, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S26', fingerprint: 14dbe1640376757d}
+  - id: S28
+    title: Heads cut to the thermal oxidiser
+    from: C302.heads
+    to: M401.heads
+    template: organic
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 734.763, provenance: calculated, source: 'cheme process propagate: separator C302 from S26', fingerprint: 14dbe1640376757d}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, NH3: 0.0, O2: 0.0, N2: 0.0, AR: 0.0, H2O: 0.930255, ACN: 0.0157861, HCN: 0.00112696, MECN: 0.00414991, ACRO: 0.0486825, AA: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S26', fingerprint: 14dbe1640376757d}
+  - id: S31
+    title: Combustion air
+    from: CAIR.out
+    to: M401.air
+    template: air
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: D-008}
+        temperature: {value: 298.15, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: assumed, source: "D-003: dry air"}
+        flow: {value: 20619.4, provenance: calculated, source: 'cheme process propagate: spec SP-RATE (1.37641 x S1)', fingerprint: 73dbec71a491e1eb}
+  - id: S32
+    title: Natural gas support fuel
+    from: NG.out
+    to: M401.fuel
+    template: fuel
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: D-008}
+        temperature: {value: 298.15, provenance: assumed, source: D-008}
+        composition: {basis: mole_fraction, values: {CH4: 1.0}, provenance: assumed, source: "D-008: natural gas taken as methane"}
+        flow: {value: 74.903, provenance: calculated, source: 'cheme process propagate: spec SP-RATE (0.005 x S1)', fingerprint: 73dbec71a491e1eb}
+  - id: S33
+    title: Thermal oxidiser feed
+    from: M401.out
+    to: R401.in
+    template: flue_gas
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: D-008}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008: burner inlet at ambient (off-gas preheat not modelled)"}
+        flow: {value: 106786.0, provenance: calculated, source: 'cheme process propagate: mixer M401 from S13 S28 S31 S32', fingerprint: efa50f042fe12180}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00238241, NH3: 0.0, O2: 0.0473838, N2: 0.89098, AR: 0.0104577, H2O: 0.0148467, ACN: 0.000158833, HCN: 3.79302e-05, MECN: 4.01618e-05, ACRO: 0.000475992, AA: 0.0, CO: 0.00885347, CO2: 0.0231333, CH4: 0.00124983, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S13 S28 S31 S32', fingerprint: 1bbafdc058ed4747}
+  - id: S34
+    title: Flue gas to stack
+    from: R401.out
+    to: STACK.in
+    template: flue_gas
+    state:
+      design:
+        pressure: {value: 102.0, provenance: assumed, source: D-008}
+        temperature: {value: 473.15, provenance: assumed, source: "D-008: after the waste-heat boiler"}
+        flow: {value: 106786.0, provenance: calculated, source: 'cheme process propagate: reactor R401 from S33', fingerprint: 736f883a87127642}
+        composition: {basis: mole_fraction, values: {C3H6: 2.38941e-05, NH3: 0.0, O2: 0.027576, N2: 0.893714, AR: 0.0104884, H2O: 0.0257518, ACN: 1.59299e-06, HCN: 3.80416e-07, MECN: 4.02797e-07, ACRO: 4.7739e-06, AA: 0.0, CO: 8.87947e-05, CO2: 0.0423491, CH4: 1.2535e-06, H2SO4: 0.0, AS: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R401 from S33', fingerprint: e9b3a1d48671fe2b}
+  - {id: Q1, title: K-101 air compressor power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 3222.5, provenance: assumed, source: "scripts/utilities.py: ideal-gas isentropic compression of S3 101.3 -> 250 kPa(a), efficiency 0.80, motor 0.96 ASSUMED (D-009)"}}}}
+  - {id: Q2, title: "Absorber water chiller (refrigeration compressor power)", kind: energy, from: POWER.a101, to: A101.power, state: {design: {duty: {value: 881.0, provenance: assumed, source: "D-009: 3.39 MW refrigeration of Li et al. (2025) section 4.1 scaled to 15 t/h, COP 4.0 ASSUMED"}}}}
+  - {id: Q3, title: "Pumps (lump)", kind: energy, from: POWER.c201, to: C201.power, state: {design: {duty: {value: 600.0, provenance: assumed, source: "D-009: ASSUMED lump for the quench, lean-water and column pumps"}}}}
+  - {id: Q4, title: "R-101 reaction heat to HP steam (coils)", kind: energy, from: R101.heat, to: STEAM.r101, state: {design: {duty: {value: 56831.5, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S5 S6', fingerprint: 7d6d17ae1dea665f}}}}
+  - {id: Q5, title: E-101 effluent heat to HP steam, kind: energy, from: E101.heat, to: STEAM.e101, state: {design: {duty: {value: 10106.3, provenance: assumed, source: "scripts/utilities.py: ideal-gas sensible heat of S6 from 713.15 to 493.15 K (D-009)"}}}}
+  - {id: Q6, title: Thermal oxidiser heat to HP steam, kind: energy, from: R401.heat, to: STEAM.r401, state: {design: {duty: {value: 4062.64, provenance: calculated, source: 'cheme process propagate: conversion duty R401 from S33 S34', fingerprint: d003da94e9905e2f}}}}
+  - {id: Q7, title: "LP steam to the reboilers (lump)", kind: energy, from: LPS.c201, to: C201.steam, state: {design: {duty: {value: 50309.0, provenance: assumed, source: "D-009: 48.42 MW hot utility of the base case of Li et al. (2025) section 4.1 at 14 437 kg/h, scaled to 15 000 kg/h"}}}}
+  - {id: Q8, title: "Cooling water (all coolers and condensers, lump)", kind: energy, from: E102.heat, to: CW.e102, state: {design: {duty: {value: 41310.0, provenance: assumed, source: "D-009: 43.15 MW cold utility of Li et al. (2025) section 4.1 less 3.39 MW refrigeration, scaled to 15 000 kg/h"}}}}
+layout: {bfd: {}, pfd: {}}
