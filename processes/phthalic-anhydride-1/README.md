@@ -12,14 +12,14 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 
 A continuous plant for phthalic anhydride (PA) by gas-phase oxidation of o-xylene with air over
 V2O5/TiO2, the route US EPA AP-42 section 6.5 describes and the BASF and Süd-Chemie catalyst
-patents run: air at 4 Nm3/h per tube is blown to 155 kPa(a), preheated on HP steam, and o-xylene
+patents run: air at 4 Nm3/h per tube is blown to 159 kPa(a), preheated on HP steam, and o-xylene
 is evaporated into it at 80 g/Nm3; one multitubular reactor of 15 000 tubes, cooled by molten
 salt at about 633 K, converts 99.9 % of it (79.0 % to PA, C8H10 + 3 O2 -> C8H4O3 + 3 H2O; maleic
-anhydride, benzoic acid, CO and CO2 beside). The salt's 14.4 MW raise HP steam; a gas cooler
-raises LP steam. Switch condensers desublime the PA at 333 K and melt it out on hot oil; the
+anhydride, benzoic acid, CO and CO2 beside). The salt's 14.4 MW raise HP steam, of which the plant uses
+5.1 MW itself and exports the rest; a gas cooler raises LP steam. Switch condensers desublime the PA at 333 K and melt it out on hot oil; the
 crude is held at 523 K and distilled under vacuum (light ends, then the pure PA overhead, whose
 condenser raises LP steam). The off-gas, about 1 vol% CO with maleic anhydride, is burnt in a
-regenerative thermal oxidiser. Needs cheme-as-code 1.12.0. DESIGN.md lists the core features
+thermal oxidiser with a recuperator. Needs cheme-as-code 1.12.0. DESIGN.md lists the core features
 used and the core limits hit.
 
 Headline numbers and their caveats:
@@ -34,9 +34,11 @@ Headline numbers and their caveats:
 - The reactor duty is core's conversion-step model; the other duties (exchangers, switch
   condensers, columns) are hand calculations, because no property package of core covers phthalic
   or maleic anhydride (D-006 to D-009, limits L-1 to L-3).
-- Per kg of PA: 2.86 kWh HP and 1.24 kWh LP steam exported, 1.02 kWh HP steam taken back,
-  0.26 kWh electricity, 0.81 kWh to cooling water, 0.705 kg fossil CO2 at the stack. The steam
-  carries no burden in the preliminary LCI (conservative for PA, D-012).
+- Per kg of PA: 1.85 kWh HP steam (net of the plant's own use) and 1.24 kWh LP steam exported,
+  no steam bought, 0.27 kWh electricity, 0.81 kWh to cooling water, 0.705 kg fossil CO2 at the
+  stack. The steam carries no burden in the preliminary LCI (conservative for PA, D-008,
+  D-012). The blower's pressure covers the bed's pressure drop measured in a BASF patent's tube
+  (D-010).
 - The reactor feed is inside the flammable range of o-xylene in air and the reaction can run
   away at the hot spot: noted for basic engineering and the HAZOP (D-011).
 

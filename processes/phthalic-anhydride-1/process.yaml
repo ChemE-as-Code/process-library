@@ -7,11 +7,11 @@ title: Phthalic anhydride by o-xylene oxidation over V2O5/TiO2, switch condenser
 summary: >-
   o-Xylene evaporated into air and oxidised over V2O5/TiO2 in a multitubular reactor whose molten
   salt raises HP steam; the crude desublimed in switch condensers, pre-treated and distilled under
-  vacuum; the off-gas burnt in a regenerative thermal oxidiser. Concept stage, 5.06 t/h,
+  vacuum; the off-gas burnt in a recuperative thermal oxidiser. Concept stage, 5.06 t/h,
   preliminary gate-to-gate LCI.
 description: |
-  Air (60 000 Nm3/h for one reactor of 15 000 tubes at 4 Nm3/h each) is blown to 155 kPa(a),
-  preheated on HP steam, and liquid o-xylene is evaporated into it at 80 g/Nm3. Over V2O5/TiO2
+  Air (60 000 Nm3/h for one reactor of 15 000 tubes at 4 Nm3/h each) is blown to 159 kPa(a),
+  preheated on the plant's own HP steam, and liquid o-xylene is evaporated into it at 80 g/Nm3. Over V2O5/TiO2
   rings at a salt bath of about 633 K, 79.0 % of the o-xylene becomes phthalic anhydride
   (C8H10 + 3 O2 -> C8H4O3 + 3 H2O), 3.5 % maleic anhydride, 0.5 % benzoic acid and the rest CO2
   and CO, the CO share set to US EPA AP-42's uncontrolled 151 kg CO per t. The salt takes
@@ -20,7 +20,7 @@ description: |
   is held at 523 K to dehydrate phthalic acid and distilled under vacuum in a light-ends column
   (maleic anhydride, benzoic acid) and a pure-PA column, whose condenser raises LP steam: 5055
   kg/h of 99.99 wt% PA melt, 1.053 kg per kg o-xylene. The off-gas (about 1 vol% CO) is burnt
-  in a regenerative thermal oxidiser at AP-42's 95 % destruction.
+  in a thermal oxidiser with a recuperator at AP-42's 95 % destruction.
 
   The reactor and the oxidiser are conversion models solved by cheme (the reactor duty from
   core's conversion-step model, the oxidiser checked adiabatic); the switch condensers and the
@@ -29,7 +29,7 @@ description: |
   DESIGN.md. Sources: US EPA AP-42 section 6.5, BASF and Süd-Chemie catalyst patents, an Exxon
   recovery patent, an Air Products patent's background and an ESCAPE-15 flowsheet paper.
 families: [oxygenates]
-keywords: [phthalic anhydride, o-xylene, partial oxidation, vanadium pentoxide, V2O5/TiO2, multitubular reactor, molten salt, steam generation, switch condensers, desublimation, vacuum distillation, maleic anhydride, benzoic acid, regenerative thermal oxidiser, plasticizers, alkyd resins]
+keywords: [phthalic anhydride, o-xylene, partial oxidation, vanadium pentoxide, V2O5/TiO2, multitubular reactor, molten salt, steam generation, switch condensers, desublimation, vacuum distillation, maleic anhydride, benzoic acid, thermal oxidiser, plasticizers, alkyd resins]
 facets:
   feedstock_basis: [fossil, electricity]
   product_classes: [chemicals]
@@ -49,22 +49,23 @@ validation:
     exchanger, condenser and column duties are hand calculations (ideal gas of materials.yaml,
     latent heats from thermo), because no property package of core covers phthalic or maleic
     anhydride. The selectivities are assumed inside the open sources' ranges, the CO share
-    calibrated to AP-42's uncontrolled factor. Preliminary gate-to-gate LCI: o-xylene,
-    electricity, cooling water and the waste incineration are gaps; the HP steam taken back is
-    linked as heat from steam. Not reviewed.
+    calibrated to AP-42's uncontrolled factor. Preliminary gate-to-gate LCI: in the Atlas build
+    electricity and cooling water are linked through the shared mappings, o-xylene and the
+    waste incineration are gaps (in core's screening every purchased input is a gap); the HP
+    steam the plant uses is its own, netted against the salt bath's steam (no steam bought), and
+    the net HP and the LP steam exported carry no burden. Not reviewed.
 chemistry:
   inputs:
     - {chemical: o-xylene, role: feedstock, inventory_key: "feed:OX", note: "o-Xylene, 0.9495 kg/kg (1.053 kg PA per kg); bought in, no library process makes it (btx-1 exports mixed xylenes)"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Process air, 15.33 kg/kg (60 000 Nm3/h)"}
   outputs:
     - {chemical: phthalic-anhydride, role: main-product, inventory_key: "product:PAN", note: "Phthalic anhydride melt at 433 K to tanks under dry nitrogen, modelled 99.99 wt%"}
-    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 6000 kPa(a) from the salt bath, 2.857 kWh/kg gross; no burden allocated (DESIGN.md D-012)"}
+    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 6000 kPa(a) from the salt bath, 1.852 kWh/kg net of the plant's own HP users (air preheater, melt-out, pre-treatment, PA reboiler: 1.005 kWh/kg); no burden allocated (DESIGN.md D-008, D-012)"}
     - {chemical: steam, role: co-product, inventory_key: "product:LPS", note: "LP steam 400 kPa(a) from the gas cooler and the PA column's condenser, 1.238 kWh/kg; no burden allocated"}
     - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "0.705 kg/kg fossil CO2 from the total oxidation in the reactor and the oxidiser"}
     - {chemical: carbon-monoxide, role: emission, inventory_key: "emission:CO", note: "7.5 g/kg after 95 % destruction in the oxidiser (AP-42 6.5)"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.258 kWh/kg: air blower (1.10 MW), salt pump and vacuum systems (ASSUMED)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:STEAM", note: "1.018 kWh/kg of the plant's own HP steam taken back: air preheater, switch-condenser melt-out, pre-treatment, PA column reboiler"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.272 kWh/kg: air blower (1.17 MW), salt pump and vacuum systems (ASSUMED)"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.809 kWh/kg removed: switch condensers' oil cooler and the light-ends condenser"}
 basis:
   capacity: "5055 kg/h phthalic anhydride (about 40.4 kt/a at 8000 h) from one reactor of 15 000 tubes, 4800 kg/h o-xylene, ASSUMED (DESIGN.md D-002)"

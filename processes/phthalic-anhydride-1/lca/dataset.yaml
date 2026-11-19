@@ -13,9 +13,10 @@ location: GLO
 year: 2026
 boundary: gate-to-gate foreground of the plant
 technology: o-xylene evaporated into air at 80 g/Nm3 and oxidised over V2O5/TiO2 rings in one multitubular
-  reactor of 15 000 tubes cooled by molten salt raising HP steam; gas cooler raising LP steam; switch
-  condensers (desublimation and melt-out); thermal pre-treatment at 523 K; light-ends and pure-PA vacuum
-  columns; regenerative thermal oxidiser on the off-gas; 5.06 t/h, about 40 kt/a
+  reactor of 15 000 tubes cooled by molten salt raising HP steam (part used in the plant, the rest exported);
+  gas cooler raising LP steam; switch condensers (desublimation and melt-out); thermal pre-treatment at
+  523 K; light-ends and pure-PA vacuum columns; recuperative thermal oxidiser on the off-gas; 5.06 t/h,
+  about 40 kt/a
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:so2-dosing
@@ -28,8 +29,8 @@ cutoff:
 - key: emission-excluded:oxidiser-nox-startup
   title: combustion emissions of X-301
   direction: output
-  reason: 'Thermal NOx of the regenerative oxidiser and its start-up and support fuel are not estimated:
-    no sourced factor read (D-009).'
+  reason: 'Thermal NOx of the recuperative oxidiser and its start-up fuel are not estimated: no sourced
+    factor read (D-009).'
 - key: emission-excluded:purification-vents
   title: storage-tank emissions of T-201, C-201, C-202, T-202, T-301
   direction: output
@@ -61,8 +62,9 @@ modelling:
   principle: attributional
   multifunctionality: 'unallocated multi-output dataset; default allocation shares: D-012: the steam raised
     from the reaction heat leaves without a burden and without a credit (conservative for the phthalic
-    anhydride). The plant takes part of its HP steam back (feed:STEAM); the gross export and the gross
-    import are both kept in the inventory.'
+    anhydride). The HP steam the plant uses itself (air preheater, melt-out, pre-treatment, PA reboiler)
+    is netted against the salt bath''s steam in the flowsheet (Q3 is the net export), so it is neither
+    bought nor exported.'
 review:
 - type: none
 data_generator: 'ChemE-as-Code agent session (Claude Opus 5.5) for issue #480, unreviewed'
@@ -117,13 +119,13 @@ exchanges:
 - key: feed:POWER
   title: Electric power
   type: input
-  amount: 1306.6
+  amount: 1376.6
   unit: kWh
   link:
     source: flowsheet energy streams Q1 (air blower), Q4 (salt pump) and Q12 (vacuum and melt pumps),
       D-010
-    missing: 'not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided)
-      site country'
+    missing: 'not mapped yet in the screening (D-012; the Atlas build links it through the shared lci/mappings.yaml);
+      connect to: electricity, medium voltage, grid mix of the (undecided) site country'
   streams:
   - Q1
   - Q4
@@ -136,33 +138,6 @@ exchanges:
   carrier:
     kind: electricity
     source: utility of POWER in process/flowsheet.yaml
-- key: feed:STEAM
-  title: HP steam from the plant's own header (6000 kPa(a), saturated)
-  type: input
-  amount: 5148.4
-  unit: kWh
-  link:
-    source: flowsheet energy streams Q2 (air preheater), Q7 (switch-condenser melt-out), Q8 (pre-treatment)
-      and Q10 (PA column reboiler), D-006 to D-009
-    missing: linked as heat from steam (lca/mappings.yaml); the plant's own HP steam taken back from its
-      header, counted as heat delivered (kWh)
-  streams:
-  - Q2
-  - Q7
-  - Q8
-  - Q10
-  source: flowsheet energy streams Q2 (air preheater), Q7 (switch-condenser melt-out), Q8 (pre-treatment)
-    and Q10 (PA column reboiler), D-006 to D-009
-  pedigree:
-    scores: [4, 4, 1, 3, 3]
-    rule: cheme default pedigree v1 (assumed, design maturity concept)
-  basic_uncertainty: 1.05
-  carrier:
-    kind: steam
-    temperature: 275.55
-    pressure: 60.0
-    level: HP
-    source: utility of STEAM in process/flowsheet.yaml
 - key: product:PAN
   title: Phthalic anhydride melt to storage
   type: product
@@ -201,7 +176,7 @@ exchanges:
   link:
     source: flowsheet stream S15 (D-009)
     missing: 'not mapped yet (D-012); connect to: incineration of hazardous liquid organic waste, per
-      kg (fossil carbon 0.62 kg/kg by the stream''s composition)'
+      kg (fossil carbon 0.63 kg/kg by the stream''s composition)'
   streams:
   - S15
   source: flowsheet stream S15 (D-009)
@@ -263,7 +238,7 @@ exchanges:
 - key: product:HPS
   title: HP steam raised by the salt-bath cooler (6000 kPa(a), saturated)
   type: product
-  amount: 14444.6
+  amount: 9362.95
   unit: kWh
   provenance: calculated
   properties:
@@ -310,8 +285,9 @@ exchanges:
   link:
     source: flowsheet energy streams Q6 (switch condensers' oil cooler) and Q9 (light-ends condenser),
       D-007, D-009
-    missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
-      with cooling tower (processes/utility-cooling-tower), per kWh removed'
+    missing: 'not mapped yet in the screening (D-012; the Atlas build links it through the shared lci/mappings.yaml);
+      connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower),
+      per kWh removed'
   streams:
   - Q6
   - Q9
@@ -585,7 +561,8 @@ allocation:
     LPS: 0.0
   substitution:
     HPS:
-      source: flowsheet energy stream Q3 (core's conversion-step model of R101), D-008
+      source: 'flowsheet energy stream Q3 (core''s conversion-step model of R101: the salt bath''s steam
+        less the plant''s own HP users), D-008'
       missing: not mapped yet (D-012); should connect to the avoided HP steam 6000 kPa(a) from a natural-gas
         boiler (processes/utility-steam-ng-boiler), per kWh of heat above boiler feed water
     LPS:
@@ -593,21 +570,22 @@ allocation:
       missing: not mapped yet (D-012); should connect to the avoided LP steam 400 kPa(a) from a natural-gas
         boiler, per kWh
   source: 'D-012: the steam raised from the reaction heat leaves without a burden and without a credit
-    (conservative for the phthalic anhydride). The plant takes part of its HP steam back (feed:STEAM);
-    the gross export and the gross import are both kept in the inventory.'
+    (conservative for the phthalic anhydride). The HP steam the plant uses itself (air preheater, melt-out,
+    pre-treatment, PA reboiler) is netted against the salt bath''s steam in the flowsheet (Q3 is the net
+    export), so it is neither bought nor exported.'
   deviation: The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
     Energy allocation by heating value would put a share on the steam that rests on the steam's counting
     basis (kWh of heat above boiler feed water); no exergy of the phthalic anhydride melt is available
     from core (no property package, D-006). Shares 1/0/0 are the conservative choice until a substitution
-    study credits the net export (3.08 kWh of HP and LP steam per kg, D-008).
+    study credits the export (3.09 kWh of HP and LP steam per kg, D-008).
 provenance:
   generator: cheme assess lca
   plant: Phthalic anhydride by o-xylene oxidation over V2O5/TiO2 (5.06 t/h, about 40 kt/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:3d8f6e5ae838b6737f071f77fdc4f6bfd67b8c84eb5098e0274732bea8fd79d3
-    lca/lca.yaml: sha256:092c3f778101d4064efc5b9ca3f6c6977ceb70d0644e6bff992eb34cd99ec4c2
-    process.yaml: sha256:7ab0e60e36f4d209501fc86ada7759c04d5ed4804c769ea9b04dd2911b3ca014
-    process/flowsheet.yaml: sha256:9cec946cf267511718ff33651ff7d8b612135cb5acf6ef39bdc0e1507f48781a
+    equipment/equipment-list.yaml: sha256:f9fc45bf965f96041878d298c3e616b33a7b10df0762b86444d1be46534f68bf
+    lca/lca.yaml: sha256:56e9f3a3d3fdc2f34490e34ece4abfad21f88034d7b5965275cfbca08bdd4590
+    process.yaml: sha256:8d27ff330924854f690c7218a0439410e94988afe77713bcddbc3efc15ef2b55
+    process/flowsheet.yaml: sha256:83c8f34cbf41d9f14cef746342e5922efa9b58f0351ff80d873ab15ab9c44223
     process/materials.yaml: sha256:860e6384d5d21cf41d84188d20dbb9d513d2f3c111e9dcd1de7b82f74b21398c
-    process/simulation.yaml: sha256:0bd2d5a085cbd2fe043d2eff0e0adb19a126c48918ee5b7c64f9aae632f3f7e3
+    process/simulation.yaml: sha256:6a8469cbd2f98be524ca489cb236f7182359f2bae5cb737721a187bed330060c

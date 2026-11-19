@@ -3,10 +3,12 @@
 # edit those by hand.
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant
-# with its amount per kg of phthalic anhydride, from the balanced flowsheet. The backgrounds are
-# left unmapped (`missing:` with the activity each should connect to), except where
-# lca/mappings.yaml links a shared entry: a gap, never zero, and no values from licensed
-# databases. o-Xylene has no library producer (btx-1 exports mixed xylenes only): its gap names
+# with its amount per kg of phthalic anhydride, from the balanced flowsheet. In core's screening
+# the backgrounds are left unmapped (`missing:` with the activity each should connect to): a
+# gap, never zero, and no values from licensed databases. The library's Atlas build links
+# electricity and cooling water through the shared lci/mappings.yaml (by their chemical slugs in
+# process.yaml); o-xylene and the waste stay gaps there too. The HP steam the plant uses is its
+# own, raised by the salt bath and netted inside the flowsheet (D-008): no steam is bought. o-Xylene has no library producer (btx-1 exports mixed xylenes only): its gap names
 # the proxy it should connect to (D-012). The plant's own emissions are elementary flows to air.
 schema: cheme/lca/v1
 kind: lca
@@ -24,10 +26,10 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "o-xylene evaporated into air at 80 g/Nm3 and oxidised over V2O5/TiO2 rings in one multitubular reactor of 15 000 tubes cooled by molten salt raising HP steam; gas cooler raising LP steam; switch condensers (desublimation and melt-out); thermal pre-treatment at 523 K; light-ends and pure-PA vacuum columns; regenerative thermal oxidiser on the off-gas; 5.06 t/h, about 40 kt/a"
+technology: "o-xylene evaporated into air at 80 g/Nm3 and oxidised over V2O5/TiO2 rings in one multitubular reactor of 15 000 tubes cooled by molten salt raising HP steam (part used in the plant, the rest exported); gas cooler raising LP steam; switch condensers (desublimation and melt-out); thermal pre-treatment at 523 K; light-ends and pure-PA vacuum columns; recuperative thermal oxidiser on the off-gas; 5.06 t/h, about 40 kt/a"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
-# The exported HP and LP steam are co-products (D-008, D-012). The dataset stays unallocated; the
+# The exported net HP and the LP steam are co-products (D-008, D-012). The dataset stays unallocated; the
 # study and the library build give every burden to the phthalic anhydride (shares 1/0/0), as
 # sulfuric-acid-1 and nitric-acid-1 do for their exported steam.
 allocation:
@@ -36,18 +38,19 @@ allocation:
   shares: {PAN: 1.0, HPS: 0.0, LPS: 0.0}
   source: >-
     D-012: the steam raised from the reaction heat leaves without a burden and without a credit
-    (conservative for the phthalic anhydride). The plant takes part of its HP steam back
-    (feed:STEAM); the gross export and the gross import are both kept in the inventory.
+    (conservative for the phthalic anhydride). The HP steam the plant uses itself (air
+    preheater, melt-out, pre-treatment, PA reboiler) is netted against the salt bath's steam in
+    the flowsheet (Q3 is the net export), so it is neither bought nor exported.
   deviation: >-
     The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
     Energy allocation by heating value would put a share on the steam that rests on the steam's
     counting basis (kWh of heat above boiler feed water); no exergy of the phthalic anhydride
     melt is available from core (no property package, D-006). Shares 1/0/0 are the
-    conservative choice until a substitution study credits the net export (3.08 kWh of HP
-    and LP steam per kg, D-008).
+    conservative choice until a substitution study credits the export (3.09 kWh of HP and LP
+    steam per kg, D-008).
   # substitution (system expansion), for comparison only: the avoided site steam is not mapped.
   substitution:
-    HPS: {missing: "not mapped yet (D-012); should connect to the avoided HP steam 6000 kPa(a) from a natural-gas boiler (processes/utility-steam-ng-boiler), per kWh of heat above boiler feed water", source: "flowsheet energy stream Q3 (core's conversion-step model of R101), D-008"}
+    HPS: {missing: "not mapped yet (D-012); should connect to the avoided HP steam 6000 kPa(a) from a natural-gas boiler (processes/utility-steam-ng-boiler), per kWh of heat above boiler feed water", source: "flowsheet energy stream Q3 (core's conversion-step model of R101: the salt bath's steam less the plant's own HP users), D-008"}
     LPS: {missing: "not mapped yet (D-012); should connect to the avoided LP steam 400 kPa(a) from a natural-gas boiler, per kWh", source: "flowsheet energy streams Q5 (gas cooler) and Q11 (PA column condenser), D-008"}
 flows:
   # raw materials
@@ -57,22 +60,21 @@ flows:
   - {key: feed:AIR, free: true, source: "ambient air: a resource taken from nature without burden (O2 consumed, N2 and Ar returned)"}
   # utilities
   - key: feed:POWER
-    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    missing: "not mapped yet in the screening (D-012; the Atlas build links it through the shared lci/mappings.yaml); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
     source: "flowsheet energy streams Q1 (air blower), Q4 (salt pump) and Q12 (vacuum and melt pumps), D-010"
-  - key: feed:STEAM
-    missing: "linked as heat from steam (lca/mappings.yaml); the plant's own HP steam taken back from its header, counted as heat delivered (kWh)"
-    source: "flowsheet energy streams Q2 (air preheater), Q7 (switch-condenser melt-out), Q8 (pre-treatment) and Q10 (PA column reboiler), D-006 to D-009"
-  # HP and LP steam export (Q3; Q5, Q11) are co-products: allocation above (D-012)
+  # No steam is bought: the air preheater, the melt-out, the pre-treatment and the PA reboiler
+  # (Q2, Q7, Q8, Q10) take the salt bath's own HP steam inside the flowsheet (D-008).
+  # Net HP steam export (Q3) and LP steam export (Q5, Q11) are co-products: allocation above (D-012)
   - key: product:CW
-    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    missing: "not mapped yet in the screening (D-012; the Atlas build links it through the shared lci/mappings.yaml); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
     source: "flowsheet energy streams Q6 (switch condensers' oil cooler) and Q9 (light-ends condenser), D-007, D-009"
   # wastes
   - key: product:WASTE
     treatment: {kind: waste, route: "hazardous-waste incineration of the light ends and the distillation residue (phthalic and maleic anhydride, benzoic acid, tars not modelled) off site (D-009)"}
-    missing: "not mapped yet (D-012); connect to: incineration of hazardous liquid organic waste, per kg (fossil carbon 0.62 kg/kg by the stream's composition)"
+    missing: "not mapped yet (D-012); connect to: incineration of hazardous liquid organic waste, per kg (fossil carbon 0.63 kg/kg by the stream's composition)"
     source: "flowsheet stream S15 (D-009)"
   # stack gas
-  - {key: product:STACK, emission: true, source: "flue gas of the regenerative thermal oxidiser to atmosphere through the stack (D-009), stream S16"}
+  - {key: product:STACK, emission: true, source: "flue gas of the recuperative thermal oxidiser to atmosphere through the stack (D-009), stream S16"}
   - {key: emission:N2, free: true, source: "atmospheric N2 returned to the atmosphere"}
   - {key: emission:O2, free: true, source: "atmospheric O2 returned (the unreacted excess)"}
   - {key: emission:AR, free: true, source: "atmospheric argon returned"}
@@ -101,7 +103,7 @@ operation:
   source: "design basis operating_hours_per_year 8000 (ASSUMED); 20 a service life ASSUMED"
 emission_exclusions:
   - {id: so2-dosing, method: combustion, reason: "AP-42 6.5 reports small SO2 additions to the reactor feed to keep the catalyst active and 4.7 kg SO2 per Mg of PA in the main vent; the promoted catalysts of US 8 859 459 B2 and US 7 592 293 B2 are run without it in their examples, so no SO2 is dosed in this design (D-005); a plant that doses SO2 adds that emission."}
-  - {id: oxidiser-nox-startup, method: combustion, equipment: [X-301], reason: "Thermal NOx of the regenerative oxidiser and its start-up and support fuel are not estimated: no sourced factor read (D-009)."}
+  - {id: oxidiser-nox-startup, method: combustion, equipment: [X-301], reason: "Thermal NOx of the recuperative oxidiser and its start-up fuel are not estimated: no sourced factor read (D-009)."}
   - {id: purification-vents, method: storage-tank, equipment: [T-201, C-201, C-202, T-202, T-301], reason: "The pre-treatment vapours, the columns' vacuum-pump discharges and the tank breathing go to the oxidiser in the plant (AP-42 6.5: pre-treatment and distillation emissions are routed to the main control device); their flows are not in the balance (no P&ID yet, D-009). AP-42 6.5's uncontrolled factors, 6.4 and 45 kg/Mg, would add about 2.6 kg/Mg after 95 % destruction."}
   - {id: catalyst-change, method: equipment-leaks, equipment: [R-101], reason: "Catalyst replacement (V2O5/TiO2 rings every few years) and its disposal or vanadium recovery are not counted: no open catalyst life or mass read (D-012)."}
 dataset:

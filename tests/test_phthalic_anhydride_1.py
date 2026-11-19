@@ -7,7 +7,8 @@ YAML and the numbers DESIGN.md, process.yaml and the sources state are recompute
   tube, up to 100 g/Nm3), and the PA in the reactor gas lies in EP 0 574 855 A2's 0.6-2 vol%;
 - the reactor's parallel conversions add up to 99.9 % of the o-xylene, and every heat of reaction
   is the formation enthalpies of materials.yaml;
-- R101's duty Q3 is core's conversion-step model (calculated);
+- R101's duty Q3 is core's conversion-step model (calculated), net of the plant's own HP steam
+  users, so no steam is bought;
 - the off-gas carries AP-42's uncontrolled CO (151 kg/Mg) and less than its 69 kg/Mg of PA,
   maleic anhydride and benzoic acid; the oxidiser destroys 95 % (AP-42: about 95 %);
 - the LCI's o-xylene per kg and the texts that state it;
@@ -92,9 +93,12 @@ def test_the_reactor_gas_and_duty(model):
     q3 = _state(streams["Q3"])["duty"]
     assert q3["provenance"] == "calculated"
     assert q3["source"].startswith("cheme process propagate: conversion duty R101")
-    assert q3["value"] == pytest.approx(14444.6, abs=0.5)
+    assert q3["value"] == pytest.approx(9362.95, abs=0.5)  # net HP steam export (D-008)
     q4 = _state(streams["Q4"])["duty"]["value"]
-    assert q3["value"] - q4 == pytest.approx(14294.6, abs=0.5)  # the enthalpy change alone
+    own = [streams[q] for q in ("Q2", "Q7", "Q8", "Q10")]  # the plant's own HP users
+    assert all(q["from"].startswith("R101.") for q in own)  # taken from the salt bath's steam
+    users = sum(_state(q)["duty"]["value"] for q in own)
+    assert q3["value"] - q4 + users == pytest.approx(14294.6, abs=0.5)  # the enthalpy change alone
 
 
 def test_the_off_gas_is_calibrated_to_ap42(model):
@@ -130,6 +134,8 @@ def test_the_lci_o_xylene_per_kg_and_the_texts():
     assert "o-xylene 0.9495 kg" in _text("DESIGN.md")
     lca = _yaml("lca/lca.yaml")
     assert lca["allocation"]["shares"] == {"PAN": 1.0, "HPS": 0.0, "LPS": 0.0}
+    assert "feed:STEAM" not in exchanges  # the plant's own HP steam is netted, never bought
+    assert "feed:STEAM" not in (_yaml("lca/mappings.yaml")["exchanges"] or {})
 
 
 def test_public_and_the_source_register_names_the_packages():

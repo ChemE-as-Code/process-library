@@ -3,13 +3,15 @@
 #
 # Phthalic anhydride by gas-phase oxidation of o-xylene with air over V2O5/TiO2 in a multitubular
 # reactor cooled by molten salt that raises HP steam, recovery of the crude in switch condensers,
-# thermal pre-treatment and vacuum distillation of the melt; the off-gas burnt in a regenerative
+# thermal pre-treatment and vacuum distillation of the melt; the off-gas burnt in a recuperative
 # thermal oxidiser (DESIGN.md D-001). Where the values come from:
 # - feeds, temperatures, pressures, conversions, recoveries: design basis and decisions D-002 to
 #   D-010, ASSUMED, the ranges from the open sources of the register where they exist;
 # - the mixer, the reactor R101, the oxidiser X301 and the component separators (SC101, C201,
 #   C202 by `recovery:`) are solved by `cheme process propagate --fill` (calculated); R101's duty
-#   is core's conversion-step model (ideal gas, materials.yaml);
+#   is core's conversion-step model (ideal gas, materials.yaml): the salt-bath steam generator's
+#   HP steam feeds the plant's own HP users (Q2, Q7, Q8, Q10) directly, and Q3 is the net HP
+#   steam the plant exports (D-008);
 # - the other duties and powers are the hand calculation of DESIGN.md D-006 to D-010, given as
 #   ASSUMED with their arithmetic: core has no property package for phthalic or maleic anhydride
 #   and no desublimation model (L-1, L-2).
@@ -37,20 +39,6 @@ feeds:
     ports:
       - {id: k101, direction: out, kind: energy}
       - {id: r101, direction: out, kind: energy}
-      - {id: c202, direction: out, kind: energy}
-  - id: STEAM
-    title: HP steam from the plant's own header (6000 kPa(a), saturated)
-    category: utility
-    utility:
-      kind: steam
-      level: HP
-      pressure: {value: 6000, provenance: assumed, source: "design basis, D-008"}
-      supply_temperature: {value: 548.7, provenance: assumed, source: "saturation at 6000 kPa(a) (IAPWS-97)"}
-      min_approach: {value: 10, provenance: assumed, source: "design basis"}
-    ports:
-      - {id: e101, direction: out, kind: energy}
-      - {id: sc101, direction: out, kind: energy}
-      - {id: t201, direction: out, kind: energy}
       - {id: c202, direction: out, kind: energy}
 products:
   - {id: PAN, title: Phthalic anhydride melt to storage, category: product, ports: [{id: in, direction: in}]}
@@ -103,6 +91,10 @@ blocks:
       - {id: in, direction: in}
       - {id: out, direction: out}
       - {id: hps, direction: out, kind: energy}
+      - {id: hp_feed, direction: out, kind: energy}
+      - {id: hp_recover, direction: out, kind: energy}
+      - {id: hp_t, direction: out, kind: energy}
+      - {id: hp_c, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: RECOVER
     title: Gas cooling and switch condensers
@@ -127,7 +119,7 @@ blocks:
       - {id: lps, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
   - id: OFFGAS
-    title: Off-gas treatment (regenerative thermal oxidiser)
+    title: Off-gas treatment (recuperative thermal oxidiser)
     class: ReactingChemicals
     ports:
       - {id: in, direction: in}
@@ -176,6 +168,10 @@ steps:
       - {id: in, direction: in, delegates: in}
       - {id: out, direction: out, delegates: out}
       - {id: q, direction: out, kind: energy, delegates: hps}
+      - {id: hp_e101, direction: out, kind: energy, delegates: hp_feed}
+      - {id: hp_sc101, direction: out, kind: energy, delegates: hp_recover}
+      - {id: hp_t201, direction: out, kind: energy, delegates: hp_t}
+      - {id: hp_c202, direction: out, kind: energy, delegates: hp_c}
       - {id: power, direction: in, kind: energy, delegates: power}
   # --- RECOVER ---------------------------------------------------------------------------------
   - id: E102
@@ -258,7 +254,7 @@ steps:
   # --- OFFGAS ----------------------------------------------------------------------------------
   - id: X301
     block: OFFGAS
-    title: Regenerative thermal oxidiser
+    title: Recuperative thermal oxidiser
     class: ReactingChemicals
     reactions: [CO_OX, PA_OX, MA_OX, BA_OX, OX_OX]
     reactor: conversion
@@ -288,8 +284,8 @@ streams:
     template: air
     state:
       design:
-        pressure: {value: 155.0, provenance: assumed, source: "D-010: blower discharge for 145 kPa(a) at the reactor inlet (US 7 592 293 B2: 1450 mbar total pressure in its examples)"}
-        temperature: {value: 346.28, provenance: assumed, source: "D-010: adiabatic compression from 298.15 K, isentropic efficiency 0.80 (hand calculation)"}
+        pressure: {value: 159.0, provenance: assumed, source: "D-010: blower discharge for 149 kPa(a) at the reactor inlet, which leaves 125 kPa(a) at the outlet after the bed's pressure drop (US 4 036 783 A, Example 4: 0.28 atm over 280 cm of rings at 4000 l/h in a 25 mm tube, corrected to this pressure)"}
+        temperature: {value: 349.35, provenance: assumed, source: "D-010: adiabatic compression from 298.15 K, isentropic efficiency 0.80 (hand calculation)"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
         flow: {value: 77520.5, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S1', fingerprint: f4b3283dfe3a707d}
         composition: {basis: mole_fraction, values: {N2: 0.7812, O2: 0.2095, AR: 0.0093}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S1', fingerprint: f4b3283dfe3a707d}
@@ -300,7 +296,7 @@ streams:
     template: air
     state:
       design:
-        pressure: {value: 152.0, provenance: assumed, source: "pressure profile (D-010)"}
+        pressure: {value: 156.0, provenance: assumed, source: "pressure profile (D-010)"}
         temperature: {value: 469.57, provenance: assumed, source: "D-006: hot enough to evaporate the o-xylene and leave the mixture at 433.15 K (hand calculation)"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
         flow: {value: 77520.5, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S2', fingerprint: 6b992fcce1b1216e}
@@ -324,7 +320,7 @@ streams:
     template: process
     state:
       design:
-        pressure: {value: 145.0, provenance: assumed, source: "reactor inlet (D-010)"}
+        pressure: {value: 149.0, provenance: assumed, source: "reactor inlet (D-010): 125 kPa(a) at the outlet plus the bed's pressure drop of US 4 036 783 A, Example 4, corrected to this pressure (near US 7 592 293 B2's 1450 mbar)"}
         temperature: {value: 433.15, provenance: assumed, source: "D-006: reactor gas inlet, ASSUMED"}
         phase: {value: vapor, provenance: assumed, source: "gas; the o-xylene dew point at its 2.4 kPa partial pressure is far below"}
         flow: {value: 82320.5, provenance: calculated, source: 'cheme process propagate: mixer M101 from S3 S4', fingerprint: 59651275788f660c}
@@ -337,7 +333,7 @@ streams:
     template: process
     state:
       design:
-        pressure: {value: 125.0, provenance: assumed, source: "pressure profile (D-010)"}
+        pressure: {value: 125.0, provenance: assumed, source: "pressure profile (D-010): enough for the gas cooler, the switch condensers and the oxidiser's beds and stack without an off-gas fan"}
         temperature: {value: 643.15, provenance: assumed, source: "D-005: gas leaves near the salt bath (633 K, AP-42 6.5: 340-385 C), 10 K above it"}
         phase: {value: vapor, provenance: assumed, source: "gas"}
         flow: {value: 82320.5, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: ddd52e91ede7f651}
@@ -466,16 +462,16 @@ streams:
         flow: {value: 77159.5, provenance: calculated, source: 'cheme process propagate: reactor X301 from S9', fingerprint: f74387fc4f8d831e}
         composition: {basis: mole_fraction, values: {OX: 8.36275e-07, PA: 1.98197e-05, MA: 2.63425e-05, BA: 2.09068e-06, O2: 0.12896, N2: 0.773591, AR: 0.00920941, H2O: 0.0577332, CO: 0.000501762, CO2: 0.029956}, provenance: calculated, source: 'cheme process propagate: reactor X301 from S9', fingerprint: 693ecf509ff7a5e8}
   # --- energy ----------------------------------------------------------------------------------
-  - {id: Q1, title: Air blower power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 1096.6, provenance: assumed, source: "D-010: 77 520.5 kg/h x 1.0052 kJ/(kg K) x 48.13 K / 3600 = 1041.7 kW shaft (isentropic 0.80), motor 0.95"}}}}
-  - {id: Q2, title: Air preheater duty, kind: energy, from: STEAM.e101, to: E101.q, state: {design: {duty: {value: 2695.1, provenance: assumed, source: "D-006: air 346.28 to 469.57 K, ideal-gas cp of materials.yaml"}}}}
-  - {id: Q3, title: Reaction heat to the salt bath and its steam generator, kind: energy, from: R101.q, to: HPS.r101, state: {design: {duty: {value: 14444.6, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S5 S6', fingerprint: b0ad474f0bd738d2}}}}
+  - {id: Q1, title: Air blower power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 1166.6, provenance: assumed, source: "D-010: 101.325 to 159 kPa(a), 77 520.5 kg/h x 1.0052 kJ/(kg K) x 51.20 K / 3600 = 1108.3 kW shaft (isentropic 0.80), motor 0.95"}}}}
+  - {id: Q2, title: Air preheater duty (the plant's own HP steam), kind: energy, from: R101.hp_e101, to: E101.q, state: {design: {duty: {value: 2628.4, provenance: assumed, source: "D-006: air 349.35 to 469.57 K, ideal-gas cp of materials.yaml"}}}}
+  - {id: Q3, title: "Net HP steam export: the salt-bath steam generator's steam less the plant's own HP users (Q2, Q7, Q8, Q10)", kind: energy, from: R101.q, to: HPS.r101, state: {design: {duty: {value: 9362.95, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S5 S6', fingerprint: b53a5d2c314a6aca}}}}
   - {id: Q4, title: Salt circulation pump power, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 150.0, provenance: assumed, source: "D-010: ASSUMED allowance for the salt circulation pump"}}}}
   - {id: Q5, title: Gas cooler duty (LP steam), kind: energy, from: E102.q, to: LPS.e102, state: {design: {duty: {value: 5037.4, provenance: assumed, source: "D-006: product gas 643.15 to 443.15 K, ideal-gas cp of materials.yaml"}}}}
   - {id: Q6, title: "Switch condensers, cooling phase (oil to cooling water)", kind: energy, from: SC101.cool, to: CW.sc101, state: {design: {duty: {value: 4047.6, provenance: assumed, source: "D-007: gas 443.15 to 333.15 K and the crude desublimed at its sublimation enthalpy (PA 88.7, MA 70.0, BA 90.0 kJ/mol, NIST WebBook via thermo 0.6.1) = 3507.6 kW, plus 540 kW of the condensers' metal and oil cooled back after each melt-out (ASSUMED, as Q7)"}}}}
-  - {id: Q7, title: "Switch condensers, melt-out phase (hot oil on HP steam)", kind: energy, from: STEAM.sc101, to: SC101.melt, state: {design: {duty: {value: 1080.0, provenance: assumed, source: "D-007: fusion (88.7 - 61.0 = 27.7 kJ/mol) and warming 333 to 433 K of 34.65 kmol/h crude PA = 540 kW, doubled for the metal and oil cycled with it (ASSUMED)"}}}}
-  - {id: Q8, title: Pre-treatment heating, kind: energy, from: STEAM.t201, to: T201.q, state: {design: {duty: {value: 254.0, provenance: assumed, source: "D-009: crude PA 433.15 to 523.15 K, 26.39 kJ/mol (liquid cp by Rowlinson-Bondi on the Joback ideal-gas cp, chemicals 1.5.2); holding losses not counted"}}}}
+  - {id: Q7, title: "Switch condensers, melt-out phase (hot oil on HP steam)", kind: energy, from: R101.hp_sc101, to: SC101.melt, state: {design: {duty: {value: 1080.0, provenance: assumed, source: "D-007: fusion (88.7 - 61.0 = 27.7 kJ/mol) and warming 333 to 433 K of 34.65 kmol/h crude PA = 540 kW, doubled for the metal and oil cycled with it (ASSUMED)"}}}}
+  - {id: Q8, title: Pre-treatment heating, kind: energy, from: R101.hp_t201, to: T201.q, state: {design: {duty: {value: 254.0, provenance: assumed, source: "D-009: crude PA 433.15 to 523.15 K, 26.39 kJ/mol (liquid cp by Rowlinson-Bondi on the Joback ideal-gas cp, chemicals 1.5.2); holding losses not counted"}}}}
   - {id: Q9, title: Light-ends column condenser, kind: energy, from: C201.cond, to: CW.c201, state: {design: {duty: {value: 43.3, provenance: assumed, source: "D-009: reflux ratio 5 on 0.442 kmol/h of light ends; the boil-up comes from the pre-treated feed's heat (no reboiler)"}}}}
-  - {id: Q10, title: PA column reboiler, kind: energy, from: STEAM.c202, to: C202.reb, state: {design: {duty: {value: 1119.3, provenance: assumed, source: "D-009: reflux ratio 1, 2 x 34.13 kmol/h distillate x 59.0 kJ/mol (PA at 470 K, DIPPR via thermo 0.6.1)"}}}}
+  - {id: Q10, title: PA column reboiler, kind: energy, from: R101.hp_c202, to: C202.reb, state: {design: {duty: {value: 1119.3, provenance: assumed, source: "D-009: reflux ratio 1, 2 x 34.13 kmol/h distillate x 59.0 kJ/mol (PA at 470 K, DIPPR via thermo 0.6.1)"}}}}
   - {id: Q11, title: PA column condenser (LP steam), kind: energy, from: C202.cond, to: LPS.c202, state: {design: {duty: {value: 1220.3, provenance: assumed, source: "D-009: the boil-up's latent heat 1119.3 kW and the product subcooled from 470.2 to 433.15 K (101.0 kW)"}}}}
   - {id: Q12, title: Vacuum system and melt pumps power, kind: energy, from: POWER.c202, to: C202.power, state: {design: {duty: {value: 60.0, provenance: assumed, source: "D-010: ASSUMED allowance for the two columns' vacuum systems and the crude, product and waste pumps"}}}}
 layout: {bfd: {}, pfd: {}}
