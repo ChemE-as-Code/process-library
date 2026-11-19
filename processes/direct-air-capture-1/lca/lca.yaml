@@ -1,0 +1,119 @@
+# Goal and scope of the direct-air-capture-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results);
+# never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-011): every exchange of the plant
+# with its amount per kg of the CO2 product, from the flowsheet's design case. The CO2 taken from
+# the air is a resource (`Carbon dioxide, in air`), its carbon booked as non-fossil; the CO2 left
+# in the depleted air is returned to the atmosphere as non-fossil CO2. Backgrounds are linked
+# where lca/mappings.yaml names a library producer or a shared entry, otherwise a gap, never
+# zero, and no values from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of carbon dioxide captured from the air by the
+  liquid-solvent process (aqueous KOH, pellet reactor, steam slaker, oxy-fired calciner on
+  natural gas, grid power), delivered dense phase at 15 MPa, at the concept stage: which
+  resources, raw materials, utilities and wastes the plant exchanges per kg of CO2 product, and
+  how much of the product's carbon comes from the air, as the foreground for a later
+  cradle-to-gate or removal study. Not a net-removal claim: the storage and the background
+  burdens are not assessed here (D-011).
+functional_unit: {product: CO2P, amount: 1, unit: kg, source: "1 kg of the CO2 product (97.0 wt% CO2, 15.1 MPa, 313 K) at the battery limit, stream S20 (D-002, D-008, D-011)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as oxalyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Liquid-solvent direct air capture: ambient air through cross-flow contactors with aqueous KOH (74.5 % of its CO2 captured), the carbonate causticised with slaked lime in fluidised pellet reactors, the CaCO3 pellets dried in a steam slaker and calcined at 900 C in an oxy-fired circulating fluidised bed on natural gas and 95.6 wt% oxygen, the CaO slaked in steam and recycled; the calciner off-gas compressed to 15.1 MPa and dried with glycol; grid power, no on-site generation (Keith et al. 2018, scenario C); 885 kt/a of CO2 from the air, 1.17 Mt/a of product in 7884 h/a"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # air: a resource, the CO2 in it taken from nature
+  - key: feed:AIR
+    resource: true
+    source: "flowsheet stream S1 (D-002): 251 000 t/h of ambient air through the contactors"
+  - key: resource:CO2
+    elementary: {compartment: resource, subcompartment: in-air, origin: biogenic}
+    source: "the CO2 of the air drawn through the contactors (S1); 25.5 % of it returns with the depleted air (emission:CO2), so the net uptake is the 74.5 % captured (D-003)"
+  - {key: resource:N2, free: true, source: "the air's nitrogen (and argon), passed through and returned"}
+  - {key: resource:O2, free: true, source: "the air's oxygen, passed through and returned"}
+  - {key: resource:H2O, free: true, source: "the air's moisture, passed through and returned with the evaporated water"}
+  # raw materials
+  - key: feed:NG
+    missing: "linked to the shared natural-gas entry (lca/mappings.yaml): natural gas, high pressure, per kg taken as methane"
+    source: "flowsheet stream S6, the calciner's fuel, 5.25 GJ (LHV) per t of CO2 calcined (D-007); its combustion CO2 goes into the product, not to air"
+  - key: feed:OXY
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous oxygen 99.5 mol%, a higher-purity proxy for the 95.6 wt% low-pressure oxygen this calciner needs (D-011)"
+    source: "flowsheet stream S7 (D-007)"
+  - key: feed:KOHF
+    missing: "linked to the shared potassium-hydroxide entry (lca/mappings.yaml), counted as 100 % KOH; no library process makes potassium hydroxide (chlor-alkali-1 makes the sodium analogue)"
+    source: "flowsheet stream S3 (D-005)"
+  - key: feed:SEED
+    missing: "linked to the shared limestone entry (lca/mappings.yaml): crushed limestone, a proxy for the ground calcium carbonate seed, counted 1:1 by mass"
+    source: "flowsheet stream S5 (D-005)"
+  - key: feed:PW
+    missing: "not mapped yet (D-011); connect to: process water from a municipal or ground-water supply after basic treatment (softened), per kg; SRC-2 takes half municipal and half ground water"
+    source: "flowsheet streams S2 (pellet washers), S8 (slaker) and S4 (lime slurry), D-003 to D-006"
+  # utilities
+  - key: feed:POWER
+    missing: "linked to the shared electricity entry in the Atlas build: electricity, medium voltage, grid mix of the (undecided) site country; SRC-1 names grid power as scenario C (D-001)"
+    source: "flowsheet energy streams P1 to P4 (D-009)"
+  - key: product:CW
+    missing: "linked by default to processes/utility-cooling-tower in the Atlas build: heat rejected to a recirculating cooling-water system, per kWh removed"
+    source: "flowsheet energy stream Q1, the CO2 train's coolers (hand estimate, D-009)"
+  # outputs
+  - key: product:AIROUT
+    emission: true
+    source: "flowsheet stream S10: the depleted air returned to the atmosphere with 25.5 % of its CO2 and the evaporated water (D-003)"
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: unspecified, origin: biogenic}
+    source: "the air's CO2 not captured (S10), returned to the atmosphere: atmospheric (non-fossil) carbon, not an emission of the plant's fossil fuel, which goes into the product (D-011)"
+  - {key: emission:N2, free: true, source: "the air's nitrogen returned"}
+  - {key: emission:O2, free: true, source: "the air's oxygen returned"}
+  - key: emission:H2O
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "the air's moisture and 4.7 t of water evaporated per t of CO2 captured (SRC-1 p. 1581), to air (D-003)"
+  - key: product:PURGE
+    treatment: {kind: waste, route: "landfill of the filter cake purge (CaCO3 with potassium hydroxide and carbonate, 30 wt% water), D-005"}
+    missing: "linked to the shared inert-waste-landfill entry (lca/mappings.yaml); ASSUMED inert, the alkaline potassium salts may need a residual-material landfill instead"
+    source: "flowsheet stream S22 (D-005)"
+  - key: product:COND
+    treatment: {kind: waste, route: "the calciner's combustion water knocked out in the CO2 train, to the site's wastewater treatment (D-008)"}
+    missing: "not mapped yet (D-011); connect to: treatment of a clean condensate, or its reuse as make-up water (not designed)"
+    source: "flowsheet stream S21 (D-008)"
+  - {key: product:AMBIENT, free: true, source: "flowsheet energy stream Q2: the calciner's heat beyond the calcination, recovered inside the plant or lost to the ambient; no utility (D-007)"}
+emission_exclusions:
+  - {id: calciner-combustion, method: combustion, equipment: [F-401], reason: "The calciner is fired in oxygen and its whole off-gas (CO2, water, excess O2 and N2) goes to the CO2 product through K-501 (S19, S20): the flowsheet carries it. NOx, CO and the SO2 of the gas's odorant leave with the product, not to air (SRC-2 section 5.1.1 puts the calciner's SO2 at the CO2 dryer vent, 0.2 kg/h for a larger plant); not estimated at the concept stage (D-012)."}
+  - {id: lime-mix-tank, method: storage-tank, equipment: [TK-302], reason: "The lime mix tank holds an aqueous Ca(OH)2 slurry with no volatile component; its vent carries water vapour and, from the hot lime, steam only (D-012)."}
+operation:
+  hours_per_year: 7884
+  life_years: 25
+  source: "design basis operating_hours_per_year 7884 (90 % utilisation, SRC-1 Table 2 note, D-002); 25 a service life ASSUMED"
+carbon_accounting:
+  ccu_rule: cut-off
+  trace_emissions: false
+  content:
+    "feed:NG":
+      biogenic_fraction: 0.0
+      source: "D-011: fossil natural gas"
+    "feed:SEED":
+      biogenic_fraction: 0.0
+      source: "D-011: mineral carbonate of the limestone seed, counted fossil"
+    "product:CO2P":
+      biogenic_fraction: 0.7764
+      source: "D-011: of the product's 3271.21 kmol/h of carbon, 2539.69 come from the air (the CO2 calcined, which equals the carbonate precipitated from the liquor; the seed's carbon leaves with the purge) and 731.52 from the natural gas burnt in oxygen: 2539.69 / 3271.21 = 0.7764 (scripts/dac_balance.py)"
+  source: >-
+    D-011: the CO2 taken from the air is the resource `Carbon dioxide, in air` (non-fossil, core
+    lca.md "Carbon accounting"); the natural gas and the seed carbonate are fossil. The plant
+    mixes air and fossil carbon in one product, so the emissions are not traced through one pool:
+    trace_emissions false keeps the returned air CO2 non-fossil (as mapped), which it is.
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals (industrial gases)
+  modelling: {principle: attributional}
+  geography: {description: "Generic site with natural gas and CO2 pipeline access, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: new
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #518, unreviewed"

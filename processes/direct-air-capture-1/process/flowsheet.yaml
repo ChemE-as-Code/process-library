@@ -1,0 +1,453 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Direct air capture of CO2 by the liquid-solvent process of Keith et al. (2018, SRC-1): aqueous
+# KOH in cross-flow air contactors, causticisation in pellet reactors, a steam slaker and an
+# oxy-fired circulating fluidised bed calciner, in the configuration with a natural-gas-fired
+# calciner and grid electricity (SRC-1 scenario C; no on-site power island, D-001). Where the
+# values come from:
+# - every material stream is the steady state of scripts/dac_balance.py, `provenance: assumed`
+#   with that script as its source (library ADR 0027: CI re-runs the script and compares). The
+#   two loops (KOH liquor, calcium) are closed in the script by stoichiometry, not iterated by
+#   core: the electrolyte and the solids have no model in core (limit L-1, D-003);
+# - the capture fraction, the conversions, the carry-overs and the calciner's specific energy are
+#   SRC-1's; the make-ups of KOH and CaCO3 are NETL's (SRC-2) scaled to the CO2 captured; the
+#   rest ASSUMED (DESIGN.md D-002 to D-008);
+# - temperatures and pressures are SRC-1's where it gives them, otherwise ASSUMED;
+# - the power streams are SRC-1's specific consumptions (Table 1) times the flows; the cooling
+#   water of the CO2 train is a hand estimate (D-009). No conversion duty is calculated (L-4).
+schema: cheme/process/v1
+kind: flowsheet
+title: Carbon dioxide by direct air capture, KOH solvent and calcium loop (1.17 Mt/a, 15 MPa)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 251 000 t/h of air at 20 C and 64 % RH, 74.5 % of its CO2 captured (112.2 t/h), gas-fired oxy calciner, grid power, 7884 h/a", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: AIR, title: Ambient air, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: KOHF, title: "Potassium hydroxide make-up (as 100 % KOH)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SEED, title: "Calcium carbonate seed make-up (ground limestone)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: PW
+    title: Process water (pellet wash, slaker, lime slurry)
+    category: raw_material
+    ports: [{id: r201, direction: out}, {id: slaker, direction: out}, {id: lime, direction: out}]
+  - {id: NG, title: "Natural gas to the calciner (as methane)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: OXY, title: "Oxygen 95.6 wt% from an air separation unit", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: c101, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: sl301, direction: out, kind: energy}
+      - {id: k501, direction: out, kind: energy}
+products:
+  - {id: CO2P, title: "CO2 product, dense phase at 15.1 MPa, to pipeline", category: product, ports: [{id: in, direction: in}]}
+  - {id: AIROUT, title: CO2-depleted air from the contactors to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: "Filter cake purge (CaCO3 with potassium salts) to disposal", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: COND, title: Condensate from the CO2 compression and drying, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: k501, direction: in, kind: energy}
+  - id: AMBIENT
+    title: "Calciner heat not taken by the calcination: hot lime, off-gas heat recovery and losses (lumped)"
+    category: utility
+    utility: {kind: other}
+    ports: [{id: f401, direction: in, kind: energy}]
+
+blocks:
+  - id: CAP
+    title: Air contactors
+    class: Absorbing
+    ports:
+      - {id: air, direction: in}
+      - {id: koh, direction: in}
+      - {id: lean, direction: in}
+      - {id: air_out, direction: out}
+      - {id: rich, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: CAUS
+    title: Pellet reactors and lime slurry
+    class: ReactingChemicals
+    ports:
+      - {id: rich, direction: in}
+      - {id: seed, direction: in}
+      - {id: water, direction: in}
+      - {id: limew, direction: in}
+      - {id: lime, direction: in}
+      - {id: lean, direction: out}
+      - {id: pellets, direction: out}
+      - {id: purge, direction: out}
+      - {id: power, direction: in, kind: energy}
+  - id: REG
+    title: Steam slaker and oxy-fired calciner
+    class: ReactingChemicals
+    ports:
+      - {id: pellets, direction: in}
+      - {id: water, direction: in}
+      - {id: ng, direction: in}
+      - {id: o2, direction: in}
+      - {id: lime, direction: out}
+      - {id: offgas, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: heat, direction: out, kind: energy}
+  - id: CO2C
+    title: CO2 compression and drying
+    class: Compressing
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out}
+      - {id: cond, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  - id: C101
+    block: CAP
+    title: Cross-flow air contactors with KOH liquor
+    class: Absorbing
+    reactions: [ABS]
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: air, direction: in, delegates: air}
+      - {id: koh, direction: in, delegates: koh}
+      - {id: lean, direction: in, delegates: lean}
+      - {id: air_out, direction: out, delegates: air_out}
+      - {id: rich, direction: out, delegates: rich}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R201
+    block: CAUS
+    title: Pellet reactors, fines filters and pellet washers
+    class: ReactingChemicals
+    reactions: [SLAKE, CAUST]
+    conversion: {SLAKE: 1.0}
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: rich, direction: in, delegates: rich}
+      - {id: lime, direction: in}
+      - {id: seed, direction: in, delegates: seed}
+      - {id: water, direction: in, delegates: water}
+      - {id: lean, direction: out, delegates: lean}
+      - {id: pellets, direction: out, delegates: pellets}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M302
+    block: CAUS
+    title: Lime mix tank (30 wt% slurry)
+    class: Mixing
+    links: [{target: equipment, ref: TK-302}]
+    ports:
+      - {id: lime, direction: in, delegates: lime}
+      - {id: water, direction: in, delegates: limew}
+      - {id: out, direction: out}
+  - id: SL301
+    block: REG
+    title: Steam slaker (pellets dried, lime slaked)
+    class: ReactingChemicals
+    reactions: [SLAKE]
+    links: [{target: equipment, ref: SL-301}]
+    ports:
+      - {id: pellets, direction: in, delegates: pellets}
+      - {id: cao, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: dried, direction: out}
+      - {id: lime, direction: out, delegates: lime}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: F401
+    block: REG
+    title: Oxy-fired circulating fluidised bed calciner
+    class: HeatingInFurnace
+    reactions: [CALC, COMB]
+    links: [{target: equipment, ref: F-401}]
+    ports:
+      - {id: pellets, direction: in}
+      - {id: ng, direction: in, delegates: ng}
+      - {id: o2, direction: in, delegates: o2}
+      - {id: lime, direction: out}
+      - {id: offgas, direction: out, delegates: offgas}
+      - {id: heat, direction: out, kind: energy, delegates: heat}
+  - id: K501
+    block: CO2C
+    title: CO2 cooling, compression to 15 MPa and glycol drying
+    class: Compressing
+    links: [{target: equipment, ref: K-501}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: prod, direction: out, delegates: prod}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+
+streams:
+  - id: S1
+    title: Ambient air to the contactors
+    from: AIR.out
+    to: C101.air
+    template: air
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "design basis: 20 C (SRC-1 Fig. 2 and p. 1581, D-002)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 251000000.0, provenance: assumed, source: "scripts/dac_balance.py: D-002: ambient air through the contactors, 251 000 t/h with 0.060 wt% CO2 (SRC-1 Fig. 2; about 395 ppm by volume)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0006, N2: 0.7596, O2: 0.23, H2O: 0.0098}, provenance: assumed, source: "scripts/dac_balance.py: D-002: ambient air through the contactors, 251 000 t/h with 0.060 wt% CO2 (SRC-1 Fig. 2; about 395 ppm by volume)"}
+  - id: S3
+    title: Potassium hydroxide make-up
+    from: KOHF.out
+    to: C101.koh
+    template: dac
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 2424.58, provenance: assumed, source: "scripts/dac_balance.py: D-005: KOH make-up at SRC-2's 69.8 short ton/d per 122.1 t/h of air CO2, scaled to the CO2 captured"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.0, KOH: 1.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-005: KOH make-up at SRC-2's 69.8 short ton/d per 122.1 t/h of air CO2, scaled to the CO2 captured"}
+  - id: S11
+    title: Lean KOH liquor to the contactors
+    from: R201.lean
+    to: C101.lean
+    template: dac
+    state:
+      design:
+        temperature: {value: 294.15, provenance: assumed, source: "D-003: 21 C (SRC-1 Fig. 2)"}
+        pressure: {value: 200, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 13354100.0, provenance: assumed, source: "scripts/dac_balance.py: D-003: lean liquor 1.10 mol/L KOH and 0.45 mol/L K2CO3 at 1.10 kg/L (ASSUMED density), circulated for a 0.21 mol/L carbonate swing"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.887357, KOH: 0.056105, K2CO3: 0.056538, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-003: lean liquor 1.10 mol/L KOH and 0.45 mol/L K2CO3 at 1.10 kg/L (ASSUMED density), circulated for a 0.21 mol/L carbonate swing"}
+  - id: S10
+    title: Depleted air from the contactors
+    from: C101.air_out
+    to: AIROUT.in
+    template: air
+    state:
+      design:
+        temperature: {value: 292.15, provenance: assumed, source: "D-003: about 19 C (SRC-1 Fig. 2, evaporative cooling)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 251415000.0, provenance: assumed, source: "scripts/dac_balance.py: D-003: 74.5 % of the CO2 captured, 4.7 t of water evaporated per t of CO2 captured"}
+        composition: {basis: mass_fraction, values: {CO2: 0.000152747, N2: 0.758346, O2: 0.22962, H2O: 0.0118812}, provenance: assumed, source: "scripts/dac_balance.py: D-003: 74.5 % of the CO2 captured, 4.7 t of water evaporated per t of CO2 captured"}
+  - id: S12
+    title: Rich liquor to the pellet reactors
+    from: C101.rich
+    to: R201.rich
+    template: dac
+    state:
+      design:
+        temperature: {value: 294.15, provenance: assumed, source: "D-003: 21 C (SRC-1 Fig. 2)"}
+        pressure: {value: 200, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 12941300.0, provenance: assumed, source: "scripts/dac_balance.py: D-003: the lean liquor with the captured CO2 as K2CO3, the reaction water and the make-up KOH, less the evaporated water"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.878457, KOH: 0.0359765, K2CO3: 0.0855668, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-003: the lean liquor with the captured CO2 as K2CO3, the reaction water and the make-up KOH, less the evaporated water"}
+  - id: S2
+    title: Make-up water to the pellet washers
+    from: PW.r201
+    to: R201.water
+    template: dac
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 300, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 181606.0, provenance: assumed, source: "scripts/dac_balance.py: D-004: closes the loop's water balance: evaporation, pellet moisture, purge cake and the in-reactor slaking, less the reaction and slurry water"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 1.0, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-004: closes the loop's water balance: evaporation, pellet moisture, purge cake and the in-reactor slaking, less the reaction and slurry water"}
+  - id: S5
+    title: Calcium carbonate seed make-up
+    from: SEED.out
+    to: R201.seed
+    template: dac
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 3612.74, provenance: assumed, source: "scripts/dac_balance.py: D-005: seed at SRC-2's 104 short ton/d per 122.1 t/h of air CO2, scaled; its calcium leaves with the purge"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.0, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 1.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-005: seed at SRC-2's 104 short ton/d per 122.1 t/h of air CO2, scaled; its calcium leaves with the purge"}
+  - id: S13
+    title: Lime slurry to the pellet reactors
+    from: M302.out
+    to: R201.lime
+    template: dac
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-004: ASSUMED, warm slurry from the hot lime"}
+        pressure: {value: 200, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 533150.0, provenance: assumed, source: "scripts/dac_balance.py: D-004: 30 wt% Ca(OH)2 slurry (SRC-1 p. 1578) with the unslaked CaO, the uncalcined CaCO3 and the K2CO3 carried with the lime"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.641444, KOH: 0.0, K2CO3: 0.00875691, CAOH2: 0.3, CACO3: 0.0097299, CAO: 0.0400689, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-004: 30 wt% Ca(OH)2 slurry (SRC-1 p. 1578) with the unslaked CaO, the uncalcined CaCO3 and the K2CO3 carried with the lime"}
+  - id: S22
+    title: Filter cake purge to disposal
+    from: R201.purge
+    to: PURGE.in
+    template: dac
+    state:
+      design:
+        temperature: {value: 294.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 8985.81, provenance: assumed, source: "scripts/dac_balance.py: D-005: the seed's calcium as CaCO3 and the make-up's potassium as lean-liquor salts, 30 wt% water (ASSUMED filter cake)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.3, KOH: 0.148403, K2CO3: 0.149548, CAOH2: 0.0, CACO3: 0.40205, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-005: the seed's calcium as CaCO3 and the make-up's potassium as lean-liquor salts, 30 wt% water (ASSUMED filter cake)"}
+  - id: S15
+    title: Washed pellets to the steam slaker
+    from: R201.pellets
+    to: SL301.pellets
+    template: dac
+    state:
+      design:
+        temperature: {value: 294.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 296678.0, provenance: assumed, source: "scripts/dac_balance.py: D-004: CaCO3 pellets (fines included) with 1.8 kg K2CO3 per 100 kg CaCO3 (SRC-1 Fig. 2) and 11 wt% water (SRC-1 Table 1)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.11, KOH: 0.0, K2CO3: 0.0157367, CAOH2: 0.0, CACO3: 0.874263, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-004: CaCO3 pellets (fines included) with 1.8 kg K2CO3 per 100 kg CaCO3 (SRC-1 Fig. 2) and 11 wt% water (SRC-1 Table 1)"}
+  - id: S8
+    title: Water to the steam slaker
+    from: PW.slaker
+    to: SL301.water
+    template: dac
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 300, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 6255.02, provenance: assumed, source: "scripts/dac_balance.py: D-006: the slaking water the pellet moisture does not cover (85 % of the CaO slaked, SRC-1 Table 1)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 1.0, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-006: the slaking water the pellet moisture does not cover (85 % of the CaO slaked, SRC-1 Table 1)"}
+  - id: S18
+    title: Hot quicklime to the steam slaker
+    from: F401.lime
+    to: SL301.cao
+    template: dac
+    state:
+      design:
+        temperature: {value: 947.15, provenance: assumed, source: "D-007: 674 C after the oxygen preheat cyclone (SRC-1 p. 1580)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 152274.0, provenance: assumed, source: "scripts/dac_balance.py: D-007: 98 % of the CaCO3 calcined (SRC-1 Table 1); the K2CO3 passes"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.0, KOH: 0.0, K2CO3: 0.0306601, CAOH2: 0.0, CACO3: 0.0340668, CAO: 0.935273, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-007: 98 % of the CaCO3 calcined (SRC-1 Table 1); the K2CO3 passes"}
+  - id: S17
+    title: Dried pellets to the calciner
+    from: SL301.dried
+    to: F401.pellets
+    template: dac
+    state:
+      design:
+        temperature: {value: 573.15, provenance: assumed, source: "D-006: 300 C (SRC-1 p. 1580)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 264043.0, provenance: assumed, source: "scripts/dac_balance.py: D-006: the washed pellets dried in the slaker"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.0, KOH: 0.0, K2CO3: 0.0176817, CAOH2: 0.0, CACO3: 0.982318, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-006: the washed pellets dried in the slaker"}
+  - id: S16
+    title: Slaked lime to the lime mix tank
+    from: SL301.lime
+    to: M302.lime
+    template: dac
+    state:
+      design:
+        temperature: {value: 573.15, provenance: assumed, source: "D-006: 300 C (SRC-1 p. 1580)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 191164.0, provenance: assumed, source: "scripts/dac_balance.py: D-006: 85 % of the CaO slaked (SRC-1 Table 1)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.0, KOH: 0.0, K2CO3: 0.0244227, CAOH2: 0.83669, CACO3: 0.0271364, CAO: 0.111751, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-006: 85 % of the CaO slaked (SRC-1 Table 1)"}
+  - id: S4
+    title: Water to the lime mix tank
+    from: PW.lime
+    to: M302.water
+    template: dac
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 300, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 341986.0, provenance: assumed, source: "scripts/dac_balance.py: D-004: slurry water for 30 wt% Ca(OH)2 (SRC-1 p. 1578)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 1.0, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-004: slurry water for 30 wt% Ca(OH)2 (SRC-1 p. 1578)"}
+  - id: S6
+    title: Natural gas to the calciner (as methane)
+    from: NG.out
+    to: F401.ng
+    template: dac
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "design basis, ASSUMED"}
+        pressure: {value: 500, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 11735.8, provenance: assumed, source: "scripts/dac_balance.py: D-007: 5.25 GJ (LHV) per t of CO2 calcined (SRC-1 p. 1580) at 50.0 GJ/t (SRC-1 Fig. 2: 670 GJ/h for 13.4 t/h)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 0.0, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 1.0}, provenance: assumed, source: "scripts/dac_balance.py: D-007: 5.25 GJ (LHV) per t of CO2 calcined (SRC-1 p. 1580) at 50.0 GJ/t (SRC-1 Fig. 2: 670 GJ/h for 13.4 t/h)"}
+  - id: S7
+    title: Oxygen (95.6 wt%) to the calciner
+    from: OXY.out
+    to: F401.o2
+    template: dac
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-007: 120 kPa delivery (SRC-1 p. 1581)"}
+        pressure: {value: 120, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 51234.4, provenance: assumed, source: "scripts/dac_balance.py: D-007: 4.37 t of oxidant per t of CH4, 95.6 wt% O2 and 4.4 wt% N2 (SRC-1 Fig. 2)"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.044, O2: 0.956, H2O: 0.0, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-007: 4.37 t of oxidant per t of CH4, 95.6 wt% O2 and 4.4 wt% N2 (SRC-1 Fig. 2)"}
+  - id: S19
+    title: Calciner off-gas after heat recovery
+    from: F401.offgas
+    to: K501.in
+    template: dac
+    state:
+      design:
+        temperature: {value: 373.15, provenance: assumed, source: "D-008: ASSUMED after the calciner's heat recovery"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 174739.0, provenance: assumed, source: "scripts/dac_balance.py: D-007: CO2 from calcination and oxy-combustion, the combustion water, the excess O2 and the oxidant's N2"}
+        composition: {basis: mass_fraction, values: {CO2: 0.82387, N2: 0.012901, O2: 0.0123948, H2O: 0.150834, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-007: CO2 from calcination and oxy-combustion, the combustion water, the excess O2 and the oxidant's N2"}
+  - id: S20
+    title: CO2 product, dense phase 15 MPa
+    from: K501.prod
+    to: CO2P.in
+    template: dac
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: 151 bar (SRC-1 Fig. 2); 40 C after the aftercooler, ASSUMED"}
+        pressure: {value: 15100, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 148398.0, provenance: assumed, source: "scripts/dac_balance.py: D-008: dried to 0.01 wt% water (SRC-1 Fig. 2); no CO2 lost in the train, ASSUMED"}
+        composition: {basis: mass_fraction, values: {CO2: 0.970114, N2: 0.0151911, O2: 0.014595, H2O: 0.0001, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-008: dried to 0.01 wt% water (SRC-1 Fig. 2); no CO2 lost in the train, ASSUMED"}
+  - id: S21
+    title: Knock-out and dryer condensate
+    from: K501.cond
+    to: COND.in
+    template: dac
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: ASSUMED"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis, ASSUMED"}
+        flow: {value: 26341.8, provenance: assumed, source: "scripts/dac_balance.py: D-008: the combustion water condensed in the intercoolers and removed by the glycol dryer"}
+        composition: {basis: mass_fraction, values: {CO2: 0.0, N2: 0.0, O2: 0.0, H2O: 1.0, KOH: 0.0, K2CO3: 0.0, CAOH2: 0.0, CACO3: 0.0, CAO: 0.0, CH4: 0.0}, provenance: assumed, source: "scripts/dac_balance.py: D-008: the combustion water condensed in the intercoolers and removed by the glycol dryer"}
+  # energy
+  - id: P1
+    title: Contactor fans and liquor pumps
+    kind: energy
+    from: POWER.c101
+    to: C101.power
+    state: {design: {duty: {value: 9200.2, provenance: assumed, source: "D-009: (61 kWh/t fans + 21 kWh/t liquor pumping, SRC-1 Table 1) x 112.197 t/h of CO2 captured = 9200.2 kW"}}}
+  - id: P2
+    title: Pellet reactor fluidisation pumps
+    kind: energy
+    from: POWER.r201
+    to: R201.power
+    state: {design: {duty: {value: 3029.3, provenance: assumed, source: "D-009: 27 kWh/t of CO2 captured (SRC-1 Table 1) x 112.197 t/h = 3029.3 kW"}}}
+  - id: P3
+    title: Steam slaker blowers and conveying
+    kind: energy
+    from: POWER.sl301
+    to: SL301.power
+    state: {design: {duty: {value: 3576.6, provenance: assumed, source: "D-009: 32 kWh/t of CO2 processed (SRC-1 Table 1) x 111.77 t/h of CO2 calcined = 3576.6 kW; SRC-1's 77 kWh/t of power from the slaking heat is not credited (D-006, L-5)"}}}
+  - id: P4
+    title: CO2 compressor
+    kind: energy
+    from: POWER.k501
+    to: K501.power
+    state: {design: {duty: {value: 19588.5, provenance: assumed, source: "D-009: 132 kWh/t of CO2 processed (SRC-1 Table 1, 0.1 to 15 MPa) x 148.398 t/h of product = 19588.5 kW"}}}
+  - id: Q1
+    title: CO2 train intercoolers, aftercooler and knock-out
+    kind: energy
+    from: K501.cw
+    to: CW.k501
+    state: {design: {duty: {value: 39190, provenance: assumed, source: "D-009 hand estimate: the compressor's work 19 588 kW rejected in the intercoolers and aftercooler, the 26.34 t/h of combustion water condensed at about 2.4 MJ/kg = 17 560 kW and the gas cooled from 373 to 313 K at about 0.85 kJ/(kg K) x 148.4 t/h = 2 100 kW (ASSUMED round properties): about 39 190 kW"}}}
+  - id: Q2
+    title: Calciner heat beyond the calcination (hot lime, off-gas, losses)
+    kind: energy
+    from: F401.heat
+    to: AMBIENT.f401
+    state: {design: {duty: {value: 37210, provenance: assumed, source: "D-007 hand estimate: fired 11 735.8 kg/h x 50.0 MJ/kg (LHV) = 163.0 MW less the calcination's 2539.69 kmol/h x 178.3 kJ/mol (SRC-1 Fig. 1) = 125.8 MW: 37.2 MW leaves as the hot CaO to the slaker, the off-gas heat recovered to the pellets, the oxygen and steam, and losses (SRC-1 p. 1580: about 78 % thermal efficiency); not split, no heat recovery modelled (L-4)"}}}
+layout: {bfd: {}, pfd: {}}
