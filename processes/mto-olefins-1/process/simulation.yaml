@@ -1,8 +1,10 @@
 # Simulation specs. Schema: `cheme schema process-simulation`. Not run: no DWSIM property package
 # is qualified for this mixture in core (DESIGN.md L-1). Only the heat modes of the reacting
-# steps without a utility are declared, so that the boundary check knows they exchange none.
+# steps without a utility are declared, so that the boundary check knows they exchange none (the
+# caustic tower R310 has its liquor cooler Q26, D-009).
 schema: cheme/simulation/v1
 kind: simulation
 specs:
-  R100: {mode: adiabatic}   # model step of R-101: the recycled DME as methanol equivalents (D-006)
-  R310: {mode: adiabatic}   # caustic tower: heat of neutralisation taken up by the liquor (D-009)
+  # model step of R-101: the recycled DME as methanol equivalents; its endothermic heat is taken
+  # from the feed, S4 leaves colder than S3 (scripts/balance.py, D-006)
+  R100: {mode: adiabatic}

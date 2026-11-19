@@ -34,7 +34,7 @@ tears:
 convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 1.0e-6, rel: 1.0e-8}}
 
 feeds:
-  - {id: MEOH, title: Methanol Grade AA (from methanol-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEOH, title: Methanol from methanol-1 (Grade AA; modelled as the patent's 99.85 wt% feed), category: raw_material, ports: [{id: out, direction: out}]}
   - {id: AIR, title: Regeneration air, category: raw_material, ports: [{id: out, direction: out}]}
   - {id: CAUSTIC, title: Fresh caustic soda solution 10 wt%, category: raw_material, ports: [{id: out, direction: out}]}
   - id: POWER
@@ -94,6 +94,7 @@ products:
       - {id: t202, direction: in, kind: energy}
       - {id: k301, direction: in, kind: energy}
       - {id: k302, direction: in, kind: energy}
+      - {id: t310, direction: in, kind: energy}
       - {id: t501, direction: in, kind: energy}
       - {id: t502, direction: in, kind: energy}
       - {id: t503, direction: in, kind: energy}
@@ -120,6 +121,7 @@ blocks:
       - {id: gas_in, direction: in}
       - {id: ko1, direction: in}
       - {id: ko2, direction: in}
+      - {id: ko3, direction: in}
       - {id: gas_out, direction: out}
       - {id: rec, direction: out}
       - {id: water, direction: out}
@@ -134,12 +136,14 @@ blocks:
       - {id: caustic, direction: in}
       - {id: ko1, direction: out}
       - {id: ko2, direction: out}
+      - {id: ko3, direction: out}
       - {id: spent, direction: out}
       - {id: gas_out, direction: out}
       - {id: power1, direction: in, kind: energy}
       - {id: cw1, direction: out, kind: energy}
       - {id: power2, direction: in, kind: energy}
       - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
   - id: REC
     title: Olefin recovery train and refrigeration
     class: Distilling
@@ -248,9 +252,9 @@ steps:
     title: Quench tower and oxygenate (DME) scrubber
     class: SeparatingByThermalProcess
     recovery:
-      outlets: {water: {H2O: 0.986, MEOH: 0.999, DME: 0.99}}
+      outlets: {water: {H2O: 0.9839, MEOH: 0.999, DME: 0.99}}
       provenance: assumed
-      source: "D-008: water condensed down to saturation at 313 K and 200 kPa(a) (scripts/balance.py), methanol and DME scrubbed out of the gas (US 7 138 557 B2: quench to 40 C, DME absorption), ASSUMED"
+      source: "D-008: the gas leaves saturated with water at 313.15 K and 200 kPa(a) (the recovery that scripts/balance.py prints from the IAPWS-95 vapour pressure, ideal gas); methanol and DME scrubbed out of the gas (US 7 138 557 B2: quench to about 40 C; its DME scrubber lumped here, D-008), ASSUMED"
     links: [{target: equipment, ref: T-201}, {target: equipment, ref: T-202}]
     ports:
       - {id: in, direction: in, delegates: gas_in}
@@ -265,6 +269,7 @@ steps:
       - {id: a, direction: in}
       - {id: b, direction: in, delegates: ko1}
       - {id: c, direction: in, delegates: ko2}
+      - {id: d, direction: in, delegates: ko3}
       - {id: out, direction: out}
   - id: T202
     block: QW
@@ -298,9 +303,9 @@ steps:
     title: Stage 3 discharge drum
     class: SeparatingByPhaseSeparation
     recovery:
-      outlets: {water: {H2O: 0.79}}
+      outlets: {water: {H2O: 0.7895}}
       provenance: assumed
-      source: "D-009: water condensed down to saturation at 313 K and 900 kPa(a) (scripts/balance.py); no hydrocarbon condensate (ASSUMED)"
+      source: "D-009: the gas leaves saturated with water at 313.15 K and 900 kPa(a) (the recovery that scripts/balance.py prints from the IAPWS-95 vapour pressure, ideal gas); no hydrocarbon condensate (a Peng-Robinson flash of S13 forms none, scripts/balance.py), ASSUMED"
     links: [{target: equipment, ref: V-301}]
     ports:
       - {id: in, direction: in}
@@ -308,7 +313,7 @@ steps:
       - {id: gas, direction: out}
   - id: R310
     block: CGC
-    title: Caustic tower (CO2 neutralised)
+    title: Caustic tower (CO2 neutralised; liquor cooler)
     class: ReactingChemicals
     reactor: conversion
     reactions: [CAUSTIC]
@@ -317,6 +322,7 @@ steps:
       - {id: gas, direction: in}
       - {id: caustic, direction: in, delegates: caustic}
       - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
   - id: V310
     block: CGC
     title: Caustic tower liquor draw-off
@@ -341,9 +347,25 @@ steps:
       - {id: out, direction: out}
       - {id: power, direction: in, kind: energy, delegates: power2}
       - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: V302
+    block: CGC
+    title: Compressor discharge drum (three-phase)
+    class: SeparatingByPhaseSeparation
+    recovery:
+      outlets:
+        water: {MEOH: 0.0372, H2O: 0.4547}
+        liq: {MEOH: 0.1908, DME: 0.0433, H2O: 0.0579, H2: 0.0009, CO: 0.0014, CO2: 0.0074, CH4: 0.003, C2H4: 0.0087, C2H6: 0.0117, C3H6: 0.0281, C3H8: 0.0313, C4H6: 0.0736, C4H8: 0.0714, C4H10: 0.0774, C5H10: 0.164}
+      provenance: assumed
+      source: "D-009: US 7 138 557 B2 separates the gas compressed to about 2069 kPa(a) at about 38 C into vapour, a hydrocarbon liquid and an aqueous phase; the split is a Peng-Robinson three-phase flash of S20 at 311.15 K and 2069 kPa(a) (thermo, ChemSep kij) that scripts/balance.py prints, ASSUMED"
+    links: [{target: equipment, ref: V-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: out, delegates: ko3}
+      - {id: liq, direction: out}
+      - {id: gas, direction: out}
   - id: D320
     block: CGC
-    title: Product gas dryers (molecular sieve)
+    title: Product gas and condensate dryers (molecular sieve)
     class: Adsorbing
     recovery:
       outlets: {water: {H2O: 1.0}}
@@ -352,6 +374,7 @@ steps:
     links: [{target: equipment, ref: D-320}]
     ports:
       - {id: in, direction: in}
+      - {id: liq, direction: in}
       - {id: water, direction: out, delegates: ko2}
       - {id: out, direction: out, delegates: gas_out}
   # --- REC
@@ -360,9 +383,9 @@ steps:
     title: Deethaniser (front end)
     class: Distilling
     recovery:
-      outlets: {ovhd: {H2: 1.0, CO: 1.0, CO2: 1.0, CH4: 1.0, C2H4: 0.999, C2H6: 0.995, C3H6: 0.001}}
+      outlets: {ovhd: {H2: 1.0, CO: 1.0, CO2: 1.0, CH4: 1.0, C2H4: 0.99999, C2H6: 0.9999, C3H6: 0.001}}
       provenance: assumed
-      source: "D-010: sharp C2/C3 split, ASSUMED"
+      source: "D-010: sharp C2/C3 split, so that the propylene meets the C2 limit of design-basis.yaml (no C2 removal after T401), ASSUMED"
     links: [{target: equipment, ref: T-401}]
     ports:
       - {id: in, direction: in, delegates: feed}
@@ -383,6 +406,7 @@ steps:
       - {id: in, direction: in}
       - {id: ovhd, direction: out}
       - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy}
       - {id: cond, direction: out, kind: energy}
   - id: T403
     block: REC
@@ -397,6 +421,7 @@ steps:
       - {id: in, direction: in}
       - {id: top, direction: out, delegates: ethylene}
       - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy}
       - {id: cond, direction: out, kind: energy}
   - id: T501
     block: REC
@@ -461,6 +486,8 @@ steps:
       - {id: r401, direction: in, kind: energy}
       - {id: r402, direction: in, kind: energy}
       - {id: r403, direction: in, kind: energy}
+      - {id: reb402, direction: out, kind: energy}
+      - {id: reb403, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy, delegates: power}
       - {id: cw, direction: out, kind: energy, delegates: cw4}
 
@@ -486,8 +513,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-004}
         pressure: {value: 500, provenance: assumed, source: D-004}
-        flow: {value: 229111.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S37', fingerprint: 60f13385c67aee90}
-        composition: {basis: mole_fraction, values: {MEOH: 0.982423, DME: 0.00515978, H2O: 0.0124176}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S37', fingerprint: e2289a1a95eba4ff}
+        flow: {value: 229110.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S37', fingerprint: b188b15bcca9d983}
+        composition: {basis: mole_fraction, values: {MEOH: 0.982427, DME: 0.0051598, H2O: 0.0124133}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S37', fingerprint: ece2eb7f1222d2cd}
   - id: S3
     title: Superheated methanol vapour
     from: E101.out
@@ -495,10 +522,10 @@ streams:
     template: feed
     state:
       design:
-        temperature: {value: 473.15, provenance: assumed, source: "vapour feed at 200 C, D-004"}
+        temperature: {value: 393.15, provenance: assumed, source: "D-004: 20 K above the feed's dew point at 350 kPa(a) (373.6 K); US 7 138 557 B2's feed enters at about 100 C"}
         pressure: {value: 350, provenance: assumed, source: D-004}
-        flow: {value: 229111.0, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S2', fingerprint: 38592b4c5b03a038}
-        composition: {basis: mole_fraction, values: {MEOH: 0.982423, DME: 0.00515978, H2O: 0.0124176}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S2', fingerprint: 38592b4c5b03a038}
+        flow: {value: 229110.0, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S2', fingerprint: 81dea77e7be5cfab}
+        composition: {basis: mole_fraction, values: {MEOH: 0.982427, DME: 0.0051598, H2O: 0.0124133}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S2', fingerprint: 81dea77e7be5cfab}
   - id: S4
     title: Reactor feed, recycled DME as methanol equivalents
     from: R100.out
@@ -506,10 +533,10 @@ streams:
     template: feed
     state:
       design:
-        temperature: {value: 473.15, provenance: assumed, source: D-006}
+        temperature: {value: 390.77, provenance: assumed, source: "scripts/balance.py: adiabatic outlet of the model step R100, the heat of DME + H2O -> 2 CH3OH taken from the feed (D-006)"}
         pressure: {value: 350, provenance: assumed, source: D-006}
-        flow: {value: 229111.0, provenance: calculated, source: 'cheme process propagate: reactor R100 from S3', fingerprint: 9f767dfe1a3ed276}
-        composition: {basis: mole_fraction, values: {MEOH: 0.992742, DME: 0.0, H2O: 0.00725782}, provenance: calculated, source: 'cheme process propagate: reactor R100 from S3', fingerprint: 241fb9a60c694eb4}
+        flow: {value: 229110.0, provenance: calculated, source: 'cheme process propagate: reactor R100 from S3', fingerprint: bb228ab4e75c56e4}
+        composition: {basis: mole_fraction, values: {MEOH: 0.992747, DME: 0.0, H2O: 0.0072535}, provenance: calculated, source: 'cheme process propagate: reactor R100 from S3', fingerprint: 0abc8325b2af8050}
   - id: S5
     title: Reactor effluent with the coked catalyst's coke
     from: R101.out
@@ -519,8 +546,8 @@ streams:
       design:
         temperature: {value: 748.15, provenance: given, source: "US 7 138 557 B2, examples: effluent exit about 475 C (D-004)"}
         pressure: {value: 239, provenance: given, source: "US 7 138 557 B2, examples: about 239 kPa (D-004)"}
-        flow: {value: 229111.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4', fingerprint: ffa4ddec458774d5}
-        composition: {basis: mole_fraction, values: {MEOH: 0.00349444, DME: 0.00366916, H2O: 0.690195, C2H4: 0.117064, C3H6: 0.103668, C4H8: 0.0165986, C5H10: 0.00698888, C4H6: 0.00103086, H2: 0.0235525, CH4: 0.00594055, C2H6: 0.00227139, C3H8: 0.000698888, C4H10: 1.74725e-05, COKE: 0.0199183, CO: 0.003145, CO2: 0.00174722}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4', fingerprint: 91bf51742df0b8ba}
+        flow: {value: 229110.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4', fingerprint: f369886f89d9eb57}
+        composition: {basis: mole_fraction, values: {MEOH: 0.00349445, DME: 0.00366917, H2O: 0.690194, C2H4: 0.117064, C3H6: 0.103669, C4H8: 0.0165986, C5H10: 0.0069889, C4H6: 0.00103086, H2: 0.0235526, CH4: 0.00594057, C2H6: 0.00227139, C3H8: 0.00069889, C4H10: 1.74725e-05, COKE: 0.0199184, CO: 0.00314501, CO2: 0.00174723}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S4', fingerprint: 490dd54874cb60f4}
   - id: S6
     title: Reactor product gas
     from: X101.gas
@@ -530,8 +557,8 @@ streams:
       design:
         temperature: {value: 748.15, provenance: assumed, source: D-004}
         pressure: {value: 230, provenance: assumed, source: D-004}
-        flow: {value: 226673.0, provenance: calculated, source: 'cheme process propagate: separator X101 from S5', fingerprint: f66d672035f70511}
-        composition: {basis: mole_fraction, values: {MEOH: 0.00356546, DME: 0.00374373, H2O: 0.704222, H2: 0.0240312, CO: 0.00320892, CO2: 0.00178273, CH4: 0.00606128, C2H4: 0.119443, C2H6: 0.00231755, C3H6: 0.105775, C3H8: 0.000713091, C4H6: 0.00105181, C4H8: 0.0169359, C4H10: 1.78276e-05, C5H10: 0.00713091, COKE: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X101 from S5', fingerprint: f66d672035f70511}
+        flow: {value: 226672.0, provenance: calculated, source: 'cheme process propagate: separator X101 from S5', fingerprint: 5a5556708991fb68}
+        composition: {basis: mole_fraction, values: {MEOH: 0.00356547, DME: 0.00374374, H2O: 0.704221, H2: 0.0240313, CO: 0.00320892, CO2: 0.00178274, CH4: 0.0060613, C2H4: 0.119443, C2H6: 0.00231755, C3H6: 0.105776, C3H8: 0.000713093, C4H6: 0.00105181, C4H8: 0.0169359, C4H10: 1.78276e-05, C5H10: 0.00713093, COKE: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X101 from S5', fingerprint: 5a5556708991fb68}
   - id: S7
     title: Coke on the spent catalyst to the regenerator
     from: X101.coke
@@ -541,8 +568,8 @@ streams:
       design:
         temperature: {value: 748.15, provenance: assumed, source: D-007}
         pressure: {value: 250, provenance: assumed, source: D-007}
-        flow: {value: 2437.65, provenance: calculated, source: 'cheme process propagate: separator X101 from S5', fingerprint: f66d672035f70511}
-        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 1.0}, provenance: calculated, source: 'cheme process propagate: separator X101 from S5', fingerprint: f66d672035f70511}
+        flow: {value: 2437.65, provenance: calculated, source: 'cheme process propagate: separator X101 from S5', fingerprint: 5a5556708991fb68}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 1.0}, provenance: calculated, source: 'cheme process propagate: separator X101 from S5', fingerprint: 5a5556708991fb68}
   - id: S8
     title: Regeneration air
     from: AIR.out
@@ -586,8 +613,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: given, source: "US 7 138 557 B2, examples: quench to about 40 C and 200 kPa (D-008)"}
         pressure: {value: 200, provenance: given, source: "US 7 138 557 B2, examples (D-008)"}
-        flow: {value: 98909.2, provenance: calculated, source: 'cheme process propagate: separator T201 from S6', fingerprint: 2f336a9bbf3c30a3}
-        composition: {basis: mole_fraction, values: {MEOH: 1.19498e-05, DME: 0.000125473, H2O: 0.0330433, H2: 0.0805418, CO: 0.0107549, CO2: 0.00597491, CH4: 0.0203147, C2H4: 0.400319, C2H6: 0.00776739, C3H6: 0.35451, C3H8: 0.00238996, C4H6: 0.00352519, C4H8: 0.0567615, C4H10: 5.97501e-05, C5H10: 0.0238996, COKE: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T201 from S6', fingerprint: 2f336a9bbf3c30a3}
+        flow: {value: 99175.2, provenance: calculated, source: 'cheme process propagate: separator T201 from S6', fingerprint: 98858810a163106c}
+        composition: {basis: mole_fraction, values: {MEOH: 1.18909e-05, DME: 0.000124854, H2O: 0.0378122, H2: 0.0801446, CO: 0.0107018, CO2: 0.00594545, CH4: 0.0202145, C2H4: 0.398343, C2H6: 0.00772905, C3H6: 0.352764, C3H8: 0.00237817, C4H6: 0.0035078, C4H8: 0.0564814, C4H10: 5.94552e-05, C5H10: 0.0237817, COKE: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T201 from S6', fingerprint: 98858810a163106c}
   - id: S12
     title: Quench water with oxygenates
     from: T201.water
@@ -597,8 +624,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-008}
         pressure: {value: 350, provenance: assumed, source: D-008}
-        flow: {value: 127764.0, provenance: calculated, source: 'cheme process propagate: separator T201 from S6', fingerprint: 2f336a9bbf3c30a3}
-        composition: {basis: mole_fraction, values: {MEOH: 0.00507659, DME: 0.0052824, H2O: 0.989641, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T201 from S6', fingerprint: 2f336a9bbf3c30a3}
+        flow: {value: 127497.0, provenance: calculated, source: 'cheme process propagate: separator T201 from S6', fingerprint: 98858810a163106c}
+        composition: {basis: mole_fraction, values: {MEOH: 0.00508734, DME: 0.00529357, H2O: 0.989619, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T201 from S6', fingerprint: 98858810a163106c}
   - id: S36
     title: Oxygenate stripper feed
     from: M201.out
@@ -608,8 +635,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-008}
         pressure: {value: 350, provenance: assumed, source: D-008}
-        flow: {value: 129564.0, provenance: calculated, source: 'cheme process propagate: mixer M201 from S12 S14 S21', fingerprint: e3b1624fe3173959}
-        composition: {basis: mole_fraction, values: {MEOH: 0.00500523, DME: 0.00520815, H2O: 0.989787, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S12 S14 S21', fingerprint: e0b7d9c63a8fc310}
+        flow: {value: 129507.0, provenance: calculated, source: 'cheme process propagate: mixer M201 from S12 S14 S40 S21', fingerprint: 185649a3ea09e69e}
+        composition: {basis: mole_fraction, values: {MEOH: 0.00500762, DME: 0.00521043, H2O: 0.989782, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S12 S14 S40 S21', fingerprint: 1c85c31a448f84b5}
   - id: S37
     title: Recovered oxygenates (methanol, DME) to the reactor
     from: T202.ovhd
@@ -619,8 +646,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "condensed overhead, D-008"}
         pressure: {value: 500, provenance: assumed, source: D-008}
-        flow: {value: 4110.83, provenance: calculated, source: 'cheme process propagate: recycle T202 from S36 (tear, wegstein)', fingerprint: 94619411febf3d38}
-        composition: {basis: mole_fraction, values: {MEOH: 0.24869, DME: 0.259031, H2O: 0.492278}, provenance: calculated, source: 'cheme process propagate: recycle T202 from S36 (tear, wegstein)', fingerprint: 94619411febf3d38}
+        flow: {value: 4110.31, provenance: calculated, source: 'cheme process propagate: recycle T202 from S36 (tear, wegstein)', fingerprint: c38726fbae3a8ecf}
+        composition: {basis: mole_fraction, values: {MEOH: 0.248752, DME: 0.259086, H2O: 0.492163}, provenance: calculated, source: 'cheme process propagate: recycle T202 from S36 (tear, wegstein)', fingerprint: c38726fbae3a8ecf}
   - id: S38
     title: Stripped process water
     from: T202.bot
@@ -630,8 +657,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "after the feed/bottoms exchanger, D-008"}
         pressure: {value: 200, provenance: assumed, source: D-008}
-        flow: {value: 125453.0, provenance: calculated, source: 'cheme process propagate: separator T202 from S36', fingerprint: 6d612049b0575cc2}
-        composition: {basis: mole_fraction, values: {H2O: 0.999995, MEOH: 5.10793e-06, DME: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T202 from S36', fingerprint: 6d612049b0575cc2}
+        flow: {value: 125397.0, provenance: calculated, source: 'cheme process propagate: separator T202 from S36', fingerprint: b2d8661f0d70da86}
+        composition: {basis: mole_fraction, values: {MEOH: 5.11039e-06, DME: 0.0, H2O: 0.999995, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T202 from S36', fingerprint: b2d8661f0d70da86}
   # ---------------------------------------------------------------- compression, caustic wash, drying
   - id: S13
     title: Stage 3 discharge
@@ -642,8 +669,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-009}
         pressure: {value: 900, provenance: assumed, source: D-009}
-        flow: {value: 98909.2, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S11', fingerprint: 40264cc752923b3d}
-        composition: {basis: mole_fraction, values: {MEOH: 1.19498e-05, DME: 0.000125473, H2O: 0.0330433, H2: 0.0805418, CO: 0.0107549, CO2: 0.00597491, CH4: 0.0203147, C2H4: 0.400319, C2H6: 0.00776739, C3H6: 0.35451, C3H8: 0.00238996, C4H6: 0.00352519, C4H8: 0.0567615, C4H10: 5.97501e-05, C5H10: 0.0238996, COKE: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S11', fingerprint: 40264cc752923b3d}
+        flow: {value: 99175.2, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S11', fingerprint: a645c638057b9107}
+        composition: {basis: mole_fraction, values: {MEOH: 1.18909e-05, DME: 0.000124854, H2O: 0.0378122, H2: 0.0801446, CO: 0.0107018, CO2: 0.00594545, CH4: 0.0202145, C2H4: 0.398343, C2H6: 0.00772905, C3H6: 0.352764, C3H8: 0.00237817, C4H6: 0.0035078, C4H8: 0.0564814, C4H10: 5.94552e-05, C5H10: 0.0237817, COKE: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K301 from S11', fingerprint: a645c638057b9107}
   - id: S14
     title: Stage 3 condensate
     from: V301.water
@@ -653,8 +680,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-009}
         pressure: {value: 900, provenance: assumed, source: D-009}
-        flow: {value: 1401.22, provenance: calculated, source: 'cheme process propagate: separator V301 from S13', fingerprint: 34e0f16b2fb5a302}
-        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 1.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S13', fingerprint: 34e0f16b2fb5a302}
+        flow: {value: 1610.37, provenance: calculated, source: 'cheme process propagate: separator V301 from S13', fingerprint: 94f2124a81a7ef51}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 1.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S13', fingerprint: 94f2124a81a7ef51}
   - id: S15
     title: Gas to the caustic tower
     from: V301.gas
@@ -664,8 +691,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-009}
         pressure: {value: 900, provenance: assumed, source: D-009}
-        flow: {value: 97508.0, provenance: calculated, source: 'cheme process propagate: separator V301 from S13', fingerprint: 34e0f16b2fb5a302}
-        composition: {basis: mole_fraction, values: {MEOH: 1.22701e-05, DME: 0.000128836, H2O: 0.00712509, H2: 0.0827007, CO: 0.0110432, CO2: 0.00613506, CH4: 0.0208592, C2H4: 0.411049, C2H6: 0.00797559, C3H6: 0.364012, C3H8: 0.00245402, C4H6: 0.00361968, C4H8: 0.058283, C4H10: 6.13517e-05, C5H10: 0.0245402, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S13', fingerprint: 34e0f16b2fb5a302}
+        flow: {value: 97564.8, provenance: calculated, source: 'cheme process propagate: separator V301 from S13', fingerprint: 94f2124a81a7ef51}
+        composition: {basis: mole_fraction, values: {MEOH: 1.22568e-05, DME: 0.000128696, H2O: 0.00820439, H2: 0.0826108, CO: 0.0110311, CO2: 0.0061284, CH4: 0.0208365, C2H4: 0.410601, C2H6: 0.00796688, C3H6: 0.363619, C3H8: 0.00245135, C4H6: 0.00361574, C4H8: 0.0582194, C4H10: 6.12847e-05, C5H10: 0.0245135, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S13', fingerprint: 94f2124a81a7ef51}
   - id: S16
     title: Fresh caustic 10 wt%
     from: CAUSTIC.out
@@ -686,8 +713,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-009}
         pressure: {value: 890, provenance: assumed, source: D-009}
-        flow: {value: 118870.0, provenance: calculated, source: 'cheme process propagate: reactor R310 from S15 S16', fingerprint: 6b8e8d0ebb2c6b3b}
-        composition: {basis: mole_fraction, values: {MEOH: 8.89116e-06, DME: 9.33571e-05, H2O: 0.276097, H2: 0.0599266, CO: 0.00800212, CO2: 4.44559e-07, CH4: 0.015115, C2H4: 0.297854, C2H6: 0.00577927, C3H6: 0.26377, C3H8: 0.00177823, C4H6: 0.00262289, C4H8: 0.042233, C4H10: 4.44567e-05, C5H10: 0.0177823, COKE: 0.0, NAOH: 0.00444646, NA2CO3: 0.00444514}, provenance: calculated, source: 'cheme process propagate: reactor R310 from S15 S16', fingerprint: 0f89c5abced0097d}
+        flow: {value: 118926.0, provenance: calculated, source: 'cheme process propagate: reactor R310 from S15 S16', fingerprint: b9e0e61ebef16584}
+        composition: {basis: mole_fraction, values: {MEOH: 8.88417e-06, DME: 9.32834e-05, H2O: 0.276668, H2: 0.0598792, CO: 0.00799573, CO2: 4.44208e-07, CH4: 0.015103, C2H4: 0.297618, C2H6: 0.00577468, C3H6: 0.263564, C3H8: 0.00177683, C4H6: 0.00262082, C4H8: 0.0421995, C4H10: 4.44213e-05, C5H10: 0.0177683, COKE: 0.0, NAOH: 0.00444297, NA2CO3: 0.00444164}, provenance: calculated, source: 'cheme process propagate: reactor R310 from S15 S16', fingerprint: 8318237a2a1947de}
   - id: S18
     title: Spent caustic
     from: V310.spent
@@ -697,8 +724,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-009}
         pressure: {value: 890, provenance: assumed, source: D-009}
-        flow: {value: 22119.3, provenance: calculated, source: 'cheme process propagate: separator V310 from S17', fingerprint: e911b0d3b22eedca}
-        composition: {basis: mole_fraction, values: {H2O: 0.968184, DME: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0159105, NA2CO3: 0.0159058}, provenance: calculated, source: 'cheme process propagate: separator V310 from S17', fingerprint: e911b0d3b22eedca}
+        flow: {value: 22174.9, provenance: calculated, source: 'cheme process propagate: separator V310 from S17', fingerprint: 3605f20e0e8ebe26}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.968271, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0158667, NA2CO3: 0.0158619}, provenance: calculated, source: 'cheme process propagate: separator V310 from S17', fingerprint: 3605f20e0e8ebe26}
   - id: S19
     title: Washed gas
     from: V310.gas
@@ -708,19 +735,52 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-009}
         pressure: {value: 880, provenance: assumed, source: D-009}
-        flow: {value: 96750.7, provenance: calculated, source: 'cheme process propagate: separator V310 from S17', fingerprint: e911b0d3b22eedca}
-        composition: {basis: mole_fraction, values: {H2O: 0.00766369, DME: 0.000129567, H2: 0.0831699, CO: 0.0111058, CO2: 6.16987e-07, CH4: 0.0209775, C2H4: 0.41338, C2H6: 0.00802083, C3H6: 0.366076, C3H8: 0.00246794, C4H6: 0.00364021, C4H8: 0.0586136, C4H10: 6.16998e-05, C5H10: 0.0246794, MEOH: 1.23397e-05, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V310 from S17', fingerprint: e911b0d3b22eedca}
+        flow: {value: 96751.1, provenance: calculated, source: 'cheme process propagate: separator V310 from S17', fingerprint: 3605f20e0e8ebe26}
+        composition: {basis: mole_fraction, values: {MEOH: 1.23395e-05, DME: 0.000129564, H2O: 0.00768543, H2: 0.0831678, CO: 0.0111055, CO2: 6.16972e-07, CH4: 0.020977, C2H4: 0.41337, C2H6: 0.00802061, C3H6: 0.366071, C3H8: 0.00246789, C4H6: 0.00364013, C4H8: 0.058612, C4H10: 6.16979e-05, C5H10: 0.0246789, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V310 from S17', fingerprint: 3605f20e0e8ebe26}
   - id: S20
-    title: Compressed product gas
+    title: Compressed product gas (vapour, hydrocarbon liquid and water after the aftercooler)
     from: K302.out
-    to: D320.in
+    to: V302.in
     template: gas
     state:
       design:
         temperature: {value: 311.15, provenance: given, source: "US 7 138 557 B2, examples: compressed to about 2069 kPa, 38 C (D-009)"}
         pressure: {value: 2069, provenance: given, source: "US 7 138 557 B2, examples (D-009)"}
-        flow: {value: 96750.7, provenance: calculated, source: 'cheme process propagate: pass-through K302 from S19', fingerprint: 70f330997e76a984}
-        composition: {basis: mole_fraction, values: {H2O: 0.00766369, DME: 0.000129567, H2: 0.0831699, CO: 0.0111058, CO2: 6.16987e-07, CH4: 0.0209775, C2H4: 0.41338, C2H6: 0.00802083, C3H6: 0.366076, C3H8: 0.00246794, C4H6: 0.00364021, C4H8: 0.0586136, C4H10: 6.16998e-05, C5H10: 0.0246794, MEOH: 1.23397e-05, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K302 from S19', fingerprint: 70f330997e76a984}
+        flow: {value: 96751.1, provenance: calculated, source: 'cheme process propagate: pass-through K302 from S19', fingerprint: eda7053566dcc8d7}
+        composition: {basis: mole_fraction, values: {MEOH: 1.23395e-05, DME: 0.000129564, H2O: 0.00768543, H2: 0.0831678, CO: 0.0111055, CO2: 6.16972e-07, CH4: 0.020977, C2H4: 0.41337, C2H6: 0.00802061, C3H6: 0.366071, C3H8: 0.00246789, C4H6: 0.00364013, C4H8: 0.058612, C4H10: 6.16979e-05, C5H10: 0.0246789, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K302 from S19', fingerprint: eda7053566dcc8d7}
+  - id: S39
+    title: Compressed product gas (vapour)
+    from: V302.gas
+    to: D320.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 311.15, provenance: given, source: "US 7 138 557 B2, examples: about 38 C (D-009)"}
+        pressure: {value: 2069, provenance: given, source: "US 7 138 557 B2, examples (D-009)"}
+        flow: {value: 93443.5, provenance: calculated, source: 'cheme process propagate: separator V302 from S20', fingerprint: a4b1cfa4633430c3}
+        composition: {basis: mole_fraction, values: {MEOH: 9.78701e-06, DME: 0.000127349, H2O: 0.00384848, H2: 0.0853689, CO: 0.0113937, CO2: 6.2918e-07, CH4: 0.0214869, C2H4: 0.420997, C2H6: 0.00814388, C3H6: 0.365529, C3H8: 0.00245612, C4H6: 0.00346458, C4H8: 0.0559179, C4H10: 5.84816e-05, C5H10: 0.0211967, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V302 from S20', fingerprint: a4b1cfa4633430c3}
+  - id: S40
+    title: Compressor discharge drum water
+    from: V302.water
+    to: M201.d
+    template: water
+    state:
+      design:
+        temperature: {value: 311.15, provenance: given, source: "US 7 138 557 B2, examples: about 38 C (D-009)"}
+        pressure: {value: 2069, provenance: given, source: "US 7 138 557 B2, examples (D-009)"}
+        flow: {value: 181.699, provenance: calculated, source: 'cheme process propagate: separator V302 from S20', fingerprint: a4b1cfa4633430c3}
+        composition: {basis: mole_fraction, values: {MEOH: 0.000131338, DME: 0.0, H2O: 0.999869, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V302 from S20', fingerprint: a4b1cfa4633430c3}
+  - id: S41
+    title: Hydrocarbon condensate to the condensate dryer
+    from: V302.liq
+    to: D320.liq
+    template: hc
+    state:
+      design:
+        temperature: {value: 311.15, provenance: given, source: "US 7 138 557 B2, examples: about 38 C (D-009)"}
+        pressure: {value: 2069, provenance: given, source: "US 7 138 557 B2, examples (D-009)"}
+        flow: {value: 3125.92, provenance: calculated, source: 'cheme process propagate: separator V302 from S20', fingerprint: a4b1cfa4633430c3}
+        composition: {basis: mole_fraction, values: {MEOH: 0.000101634, DME: 0.000242179, H2O: 0.0192093, H2: 0.00323118, CO: 0.000671166, CO2: 1.97088e-07, CH4: 0.00271662, C2H4: 0.155247, C2H6: 0.00405095, C3H6: 0.444054, C3H8: 0.00333452, C4H6: 0.0115653, C4H8: 0.180654, C4H10: 0.000206146, C5H10: 0.174716, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V302 from S20', fingerprint: a4b1cfa4633430c3}
   - id: S21
     title: Water from the dryers' regeneration
     from: D320.water
@@ -730,10 +790,10 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-009}
         pressure: {value: 350, provenance: assumed, source: D-009}
-        flow: {value: 398.375, provenance: calculated, source: 'cheme process propagate: separator D320 from S20', fingerprint: 64046084bfbb4337}
-        composition: {basis: mole_fraction, values: {H2O: 1.0, DME: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D320 from S20', fingerprint: 64046084bfbb4337}
+        flow: {value: 217.853, provenance: calculated, source: 'cheme process propagate: separator D320 from S39 S41', fingerprint: b445ecbb63b167c9}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 1.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D320 from S39 S41', fingerprint: b445ecbb63b167c9}
   - id: S22
-    title: Dry product gas
+    title: Dry product gas and condensate
     from: D320.out
     to: T401.in
     template: hc
@@ -741,8 +801,8 @@ streams:
       design:
         temperature: {value: 311.15, provenance: assumed, source: D-009}
         pressure: {value: 2030, provenance: assumed, source: D-009}
-        flow: {value: 96352.3, provenance: calculated, source: 'cheme process propagate: separator D320 from S20', fingerprint: 64046084bfbb4337}
-        composition: {basis: mole_fraction, values: {H2O: 0.0, DME: 0.000130568, H2: 0.0838123, CO: 0.0111916, CO2: 6.21752e-07, CH4: 0.0211395, C2H4: 0.416573, C2H6: 0.00808278, C3H6: 0.368903, C3H8: 0.002487, C4H6: 0.00366833, C4H8: 0.0590663, C4H10: 6.21764e-05, C5H10: 0.02487, MEOH: 1.2435e-05, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D320 from S20', fingerprint: 64046084bfbb4337}
+        flow: {value: 96351.6, provenance: calculated, source: 'cheme process propagate: separator D320 from S39 S41', fingerprint: b445ecbb63b167c9}
+        composition: {basis: mole_fraction, values: {MEOH: 1.19725e-05, DME: 0.000130568, H2O: 0.0, H2: 0.083812, CO: 0.0111915, CO2: 6.21751e-07, CH4: 0.0211395, C2H4: 0.416571, C2H6: 0.00808273, C3H6: 0.368906, C3H8: 0.002487, C4H6: 0.00366832, C4H8: 0.059066, C4H10: 6.21758e-05, C5H10: 0.0248701, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D320 from S39 S41', fingerprint: b445ecbb63b167c9}
   # ---------------------------------------------------------------- olefin recovery
   - id: S23
     title: Deethaniser overhead (C2 and lighter)
@@ -753,8 +813,8 @@ streams:
       design:
         temperature: {value: 253.15, provenance: assumed, source: D-010}
         pressure: {value: 2000, provenance: assumed, source: D-010}
-        flow: {value: 36517.4, provenance: calculated, source: 'cheme process propagate: separator T401 from S22', fingerprint: 1e03671717f8ac02}
-        composition: {basis: mole_fraction, values: {DME: 0.0, H2: 0.155004, CO: 0.0206979, CO2: 1.14988e-06, CH4: 0.0390957, C2H4: 0.769646, C2H6: 0.0148737, C3H6: 0.000682254, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T401 from S22', fingerprint: 1e03671717f8ac02}
+        flow: {value: 36553.4, provenance: calculated, source: 'cheme process propagate: separator T401 from S22', fingerprint: ce0f8cbdc854de1c}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.0, H2: 0.154874, CO: 0.0206805, CO2: 1.14892e-06, CH4: 0.0390632, C2H4: 0.769765, C2H6: 0.0149344, C3H6: 0.000681693, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T401 from S22', fingerprint: ce0f8cbdc854de1c}
   - id: S24
     title: Deethaniser bottoms (C3+)
     from: T401.bot
@@ -764,8 +824,8 @@ streams:
       design:
         temperature: {value: 353.15, provenance: assumed, source: D-010}
         pressure: {value: 2030, provenance: assumed, source: D-010}
-        flow: {value: 59834.9, provenance: calculated, source: 'cheme process propagate: separator T401 from S22', fingerprint: 1e03671717f8ac02}
-        composition: {basis: mole_fraction, values: {DME: 0.000284284, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.000906998, C2H6: 8.79925e-05, C3H6: 0.802403, C3H8: 0.0054149, C4H6: 0.00798699, C4H8: 0.128604, C4H10: 0.000135376, C5H10: 0.054149, H2O: 0.0, MEOH: 2.70745e-05, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T401 from S22', fingerprint: 1e03671717f8ac02}
+        flow: {value: 59798.2, provenance: calculated, source: 'cheme process propagate: separator T401 from S22', fingerprint: ce0f8cbdc854de1c}
+        composition: {basis: mole_fraction, values: {MEOH: 2.60931e-05, DME: 0.000284562, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 9.07882e-06, C2H6: 1.76156e-06, C3H6: 0.803196, C3H8: 0.00542021, C4H6: 0.0079948, C4H8: 0.128729, C4H10: 0.000135507, C5H10: 0.0542023, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T401 from S22', fingerprint: ce0f8cbdc854de1c}
   - id: S25
     title: Demethaniser overhead (tail gas, warmed in the cold box)
     from: T402.ovhd
@@ -775,8 +835,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: D-010}
         pressure: {value: 600, provenance: assumed, source: D-010}
-        flow: {value: 2414.49, provenance: calculated, source: 'cheme process propagate: separator T402 from S23', fingerprint: 240e88dad0114712}
-        composition: {basis: mole_fraction, values: {DME: 0.0, H2: 0.717138, CO: 0.0957604, CO2: 5.32001e-06, CH4: 0.179975, C2H4: 0.00712165, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T402 from S23', fingerprint: 240e88dad0114712}
+        flow: {value: 2414.52, provenance: calculated, source: 'cheme process propagate: separator T402 from S23', fingerprint: 62ca5bb8b6cf55c8}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.0, H2: 0.717132, CO: 0.0957594, CO2: 5.31998e-06, CH4: 0.179975, C2H4: 0.00712867, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T402 from S23', fingerprint: 62ca5bb8b6cf55c8}
   - id: S26
     title: Demethaniser bottoms (C2)
     from: T402.bot
@@ -784,10 +844,10 @@ streams:
     template: hc
     state:
       design:
-        temperature: {value: 263.15, provenance: assumed, source: D-010}
+        temperature: {value: 243.59, provenance: assumed, source: "scripts/balance.py: bubble point at 1950 kPa(a) (Raoult, thermo vapour pressures), D-010"}
         pressure: {value: 1950, provenance: assumed, source: D-010}
-        flow: {value: 34102.9, provenance: calculated, source: 'cheme process propagate: separator T402 from S23', fingerprint: 240e88dad0114712}
-        composition: {basis: mole_fraction, values: {DME: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.00024938, C2H4: 0.979905, C2H6: 0.018975, C3H6: 0.000870379, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T402 from S23', fingerprint: 240e88dad0114712}
+        flow: {value: 34138.9, provenance: calculated, source: 'cheme process propagate: separator T402 from S23', fingerprint: 62ca5bb8b6cf55c8}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.000249116, C2H4: 0.979833, C2H6: 0.0190481, C3H6: 0.000869465, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T402 from S23', fingerprint: 62ca5bb8b6cf55c8}
   - id: S27
     title: Polymer-grade ethylene
     from: T403.top
@@ -797,8 +857,8 @@ streams:
       design:
         temperature: {value: 243.15, provenance: assumed, source: "C2 splitter top, D-010"}
         pressure: {value: 1900, provenance: assumed, source: D-010}
-        flow: {value: 33267.3, provenance: calculated, source: 'cheme process propagate: separator T403 from S26', fingerprint: 06d82a3165da0a92}
-        composition: {basis: mole_fraction, values: {DME: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.000255185, C2H4: 0.999706, C2H6: 3.88334e-05, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T403 from S26', fingerprint: 06d82a3165da0a92}
+        flow: {value: 33299.8, provenance: calculated, source: 'cheme process propagate: separator T403 from S26', fingerprint: 876b4b41dd7e9a09}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.000254933, C2H4: 0.999706, C2H6: 3.89858e-05, C3H6: 0.0, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T403 from S26', fingerprint: 876b4b41dd7e9a09}
   - id: S28
     title: Ethane (C2 splitter bottoms, warmed) to the tail gas
     from: T403.bot
@@ -808,8 +868,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: D-010}
         pressure: {value: 600, provenance: assumed, source: D-010}
-        flow: {value: 835.577, provenance: calculated, source: 'cheme process propagate: separator T403 from S26', fingerprint: 06d82a3165da0a92}
-        composition: {basis: mole_fraction, values: {DME: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.129234, C2H6: 0.832502, C3H6: 0.0382632, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T403 from S26', fingerprint: 06d82a3165da0a92}
+        flow: {value: 839.066, provenance: calculated, source: 'cheme process propagate: separator T403 from S26', fingerprint: 876b4b41dd7e9a09}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.128818, C2H6: 0.833079, C3H6: 0.0381027, C3H8: 0.0, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T403 from S26', fingerprint: 876b4b41dd7e9a09}
   - id: S29
     title: Depropaniser overhead (C3)
     from: T501.ovhd
@@ -819,8 +879,8 @@ streams:
       design:
         temperature: {value: 318.15, provenance: assumed, source: D-010}
         pressure: {value: 1800, provenance: assumed, source: D-010}
-        flow: {value: 44698.1, provenance: calculated, source: 'cheme process propagate: separator T501 from S24', fingerprint: 1b874c8c339724f7}
-        composition: {basis: mole_fraction, values: {DME: 0.00031678, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.00112297, C2H6: 0.000108945, C3H6: 0.991486, C3H8: 0.00663726, C4H6: 9.88887e-06, C4H8: 0.000318455, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T501 from S24', fingerprint: 1b874c8c339724f7}
+        flow: {value: 44661.6, provenance: calculated, source: 'cheme process propagate: separator T501 from S24', fingerprint: 7ed7f856a9203056}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.000317164, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 1.12433e-05, C2H6: 2.18153e-06, C3H6: 0.992695, C3H8: 0.00664531, C4H6: 9.90083e-06, C4H8: 0.000318838, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T501 from S24', fingerprint: 7ed7f856a9203056}
   - id: S30
     title: Depropaniser bottoms (C4+)
     from: T501.bot
@@ -830,8 +890,8 @@ streams:
       design:
         temperature: {value: 363.15, provenance: assumed, source: D-010}
         pressure: {value: 1850, provenance: assumed, source: D-010}
-        flow: {value: 15136.8, provenance: calculated, source: 'cheme process propagate: separator T501 from S24', fingerprint: 1b874c8c339724f7}
-        composition: {basis: mole_fraction, values: {DME: 0.000147815, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.00834426, C3H8: 0.00028155, C4H6: 0.0414872, C4H8: 0.667345, C4H10: 0.000703893, C5H10: 0.28155, H2O: 0.0, MEOH: 0.000140775, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T501 from S24', fingerprint: 1b874c8c339724f7}
+        flow: {value: 15136.6, provenance: calculated, source: 'cheme process propagate: separator T501 from S24', fingerprint: 7ed7f856a9203056}
+        composition: {basis: mole_fraction, values: {MEOH: 0.000135541, DME: 0.000147816, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0083444, C3H8: 0.000281553, C4H6: 0.0414875, C4H8: 0.667345, C4H10: 0.000703891, C5H10: 0.281554, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T501 from S24', fingerprint: 7ed7f856a9203056}
   - id: S31
     title: Polymer-grade propylene
     from: T502.top
@@ -841,8 +901,8 @@ streams:
       design:
         temperature: {value: 318.15, provenance: assumed, source: "C3 splitter top, liquid, D-010"}
         pressure: {value: 1750, provenance: assumed, source: D-010}
-        flow: {value: 43703.0, provenance: calculated, source: 'cheme process propagate: separator T502 from S29', fingerprint: 6cd52bb553c8dc5d}
-        composition: {basis: mole_fraction, values: {DME: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.00114802, C2H6: 0.000111375, C3H6: 0.998401, C3H8: 0.000339267, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T502 from S29', fingerprint: 6cd52bb553c8dc5d}
+        flow: {value: 43666.5, provenance: calculated, source: 'cheme process propagate: separator T502 from S29', fingerprint: 210d94fac3be2dea}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 1.14945e-05, C2H6: 2.23026e-06, C3H6: 0.999647, C3H8: 0.000339688, C4H6: 0.0, C4H8: 0.0, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T502 from S29', fingerprint: 210d94fac3be2dea}
   - id: S32
     title: C3 splitter bottoms (propane, DME) to the tail gas
     from: T502.bot
@@ -852,8 +912,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: "let down and vaporised, D-010"}
         pressure: {value: 600, provenance: assumed, source: D-010}
-        flow: {value: 995.101, provenance: calculated, source: 'cheme process propagate: separator T502 from S29', fingerprint: 6cd52bb553c8dc5d}
-        composition: {basis: mole_fraction, values: {DME: 0.014516, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.681502, C3H8: 0.288936, C4H6: 0.000453144, C4H8: 0.0145928, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T502 from S29', fingerprint: 6cd52bb553c8dc5d}
+        flow: {value: 995.1, provenance: calculated, source: 'cheme process propagate: separator T502 from S29', fingerprint: 210d94fac3be2dea}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.0145159, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.681504, C3H8: 0.288935, C4H6: 0.00045314, C4H8: 0.0145925, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T502 from S29', fingerprint: 210d94fac3be2dea}
   - id: S33
     title: C4 olefin cut
     from: T503.top
@@ -863,8 +923,8 @@ streams:
       design:
         temperature: {value: 318.15, provenance: assumed, source: D-010}
         pressure: {value: 500, provenance: assumed, source: D-010}
-        flow: {value: 10141.0, provenance: calculated, source: 'cheme process propagate: separator T503 from S30', fingerprint: 1055153028bad8b8}
-        composition: {basis: mole_fraction, values: {DME: 0.000206202, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0116403, C3H8: 0.000392763, C4H6: 0.0572959, C4H8: 0.921637, C4H10: 0.000972112, C5H10: 0.00785525, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T503 from S30', fingerprint: 1055153028bad8b8}
+        flow: {value: 10140.9, provenance: calculated, source: 'cheme process propagate: separator T503 from S30', fingerprint: 3c11a28ac3d72b7d}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.000206203, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0116404, C3H8: 0.000392766, C4H6: 0.0572963, C4H8: 0.921637, C4H10: 0.000972109, C5H10: 0.00785536, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T503 from S30', fingerprint: 3c11a28ac3d72b7d}
   - id: S34
     title: C5+ cut
     from: T503.bot
@@ -874,8 +934,8 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: "cooled, D-010"}
         pressure: {value: 550, provenance: assumed, source: D-010}
-        flow: {value: 4995.75, provenance: calculated, source: 'cheme process propagate: separator T503 from S30', fingerprint: 1055153028bad8b8}
-        composition: {basis: mole_fraction, values: {DME: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.00146518, C4H8: 0.0235682, C4H10: 2.48589e-05, C5H10: 0.974445, H2O: 0.0, MEOH: 0.000497166, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T503 from S30', fingerprint: 1055153028bad8b8}
+        flow: {value: 4995.7, provenance: calculated, source: 'cheme process propagate: separator T503 from S30', fingerprint: 3c11a28ac3d72b7d}
+        composition: {basis: mole_fraction, values: {MEOH: 0.000478683, DME: 0.0, H2O: 0.0, H2: 0.0, CO: 0.0, CO2: 0.0, CH4: 0.0, C2H4: 0.0, C2H6: 0.0, C3H6: 0.0, C3H8: 0.0, C4H6: 0.00146519, C4H8: 0.0235683, C4H10: 2.4859e-05, C5H10: 0.974463, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T503 from S30', fingerprint: 3c11a28ac3d72b7d}
   - id: S35
     title: Tail gas to the site fuel gas header
     from: M401.out
@@ -885,30 +945,33 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: D-010}
         pressure: {value: 600, provenance: assumed, source: D-010}
-        flow: {value: 4245.17, provenance: calculated, source: 'cheme process propagate: mixer M401 from S25 S28 S32', fingerprint: 4ec8f5c39f52ce95}
-        composition: {basis: mole_fraction, values: {DME: 0.000872995, H2: 0.622644, CO: 0.0831425, CO2: 4.61902e-06, CH4: 0.156261, C2H4: 0.0154396, C2H6: 0.0596277, C3H6: 0.0437262, C3H8: 0.0173767, C4H6: 2.72522e-05, C4H8: 0.000877613, C4H10: 0.0, C5H10: 0.0, H2O: 0.0, MEOH: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S25 S28 S32', fingerprint: 4c74d8b261cba579}
+        flow: {value: 4248.69, provenance: calculated, source: 'cheme process propagate: mixer M401 from S25 S28 S32', fingerprint: 559ac694a7fa3552}
+        composition: {basis: mole_fraction, values: {MEOH: 0.0, DME: 0.000872731, H2O: 0.0, H2: 0.622451, CO: 0.0831165, CO2: 4.61759e-06, CH4: 0.156213, C2H4: 0.0154502, C2H6: 0.0599027, C3H6: 0.0437135, C3H8: 0.0173715, C4H6: 2.72439e-05, C4H8: 0.000877337, C4H10: 0.0, C5H10: 0.0, COKE: 0.0, NAOH: 0.0, NA2CO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M401 from S25 S28 S32', fingerprint: c7538dc6275cfd71}
   # ---------------------------------------------------------------- energy
-  - {id: Q1, title: Feed vaporiser and superheater, kind: energy, from: MPS.e101, to: E101.heat, state: {design: {duty: {value: 88156.4, provenance: assumed, source: "scripts/balance.py: liquid methanol to the normal boiling point, vaporised, vapour superheated to 473 K, no heat integration (D-011)"}}}}
-  - {id: Q2, title: Reactor catalyst cooler (steam raised), kind: energy, from: R101.steam, to: HPS.r101, state: {design: {duty: {value: 14220.6, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S4 S5', fingerprint: c0e4d3f352d40039}}}}
+  - {id: Q1, title: Feed vaporiser and superheater, kind: energy, from: MPS.e101, to: E101.heat, state: {design: {duty: {value: 79530.9, provenance: assumed, source: "scripts/balance.py: liquid methanol to the normal boiling point, vaporised, vapour superheated to the S3 temperature (393.15 K), no heat integration (D-011)"}}}}
+  - {id: Q2, title: Reactor catalyst cooler (steam raised), kind: energy, from: R101.steam, to: HPS.r101, state: {design: {duty: {value: 5361.98, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S4 S5', fingerprint: 86ab0da50443a012}}}}
   - {id: Q3, title: Regenerator catalyst cooler and flue gas cooler (steam raised), kind: energy, from: R201.steam, to: HPS.r201, state: {design: {duty: {value: 22098.7, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S7 S9 S10', fingerprint: 9a10a79c8661df03}}}}
   - {id: Q4, title: Air blower drive, kind: energy, from: POWER.k201, to: K201.power, state: {design: {duty: {value: 1169.5, provenance: assumed, source: "scripts/balance.py: single-stage blower 101 -> 300 kPa(a), isentropic efficiency 0.80 (D-011)"}}}}
-  - {id: Q5, title: Quench tower cooling (pumparound coolers), kind: energy, from: T201.cw, to: CW.t201, state: {design: {duty: {value: 143743.4, provenance: assumed, source: "scripts/balance.py: product gas cooled 748 -> 313 K and the water and oxygenates condensed (D-008, D-011)"}}}}
-  - {id: Q6, title: Oxygenate stripper reboiler, kind: energy, from: LPS.t202, to: T202.reb, state: {design: {duty: {value: 4577.8, provenance: assumed, source: "scripts/balance.py: stripping steam 0.06 kg per kg feed (D-011)"}}}}
-  - {id: Q7, title: Oxygenate stripper condenser, kind: energy, from: T202.cond, to: CW.t202, state: {design: {duty: {value: 4577.8, provenance: assumed, source: "scripts/balance.py: condensed overhead, equal to the reboiler (D-011)"}}}}
-  - {id: Q8, title: Compressor stages 1-3 drive, kind: energy, from: POWER.k301, to: K301.power, state: {design: {duty: {value: 4318.1, provenance: assumed, source: "scripts/balance.py: 3 stages 200 -> 900 kPa(a), isentropic efficiency 0.78, intercooled to 313 K (D-011)"}}}}
-  - {id: Q9, title: Compressor stages 1-3 intercoolers, kind: energy, from: K301.cw, to: CW.k301, state: {design: {duty: {value: 5264.9, provenance: assumed, source: "scripts/balance.py: compression heat and the latent heat of the water knocked out in V301 (D-011)"}}}}
-  - {id: Q10, title: Compressor stages 4-5 drive, kind: energy, from: POWER.k302, to: K302.power, state: {design: {duty: {value: 2362.2, provenance: assumed, source: "scripts/balance.py: 2 stages 880 -> 2069 kPa(a), isentropic efficiency 0.78 (D-011)"}}}}
-  - {id: Q11, title: Compressor stages 4-5 intercooler and aftercooler, kind: energy, from: K302.cw, to: CW.k302, state: {design: {duty: {value: 2450.6, provenance: assumed, source: "scripts/balance.py: compression heat and the aftercooler (D-011)"}}}}
-  - {id: Q12, title: Deethaniser reboiler, kind: energy, from: LPS.t401, to: T401.reb, state: {design: {duty: {value: 11637.5, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0 (D-011)"}}}}
-  - {id: Q13, title: Deethaniser condenser (propylene refrigerant), kind: energy, from: T401.cond, to: K701.r401, state: {design: {duty: {value: 11637.5, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0, -30 C refrigerant (D-011)"}}}}
+  - {id: Q5, title: Quench tower cooling (pumparound coolers), kind: energy, from: T201.cw, to: CW.t201, state: {design: {duty: {value: 143562.7, provenance: assumed, source: "scripts/balance.py: product gas cooled 748 -> 313 K and the water and oxygenates condensed (D-008, D-011)"}}}}
+  - {id: Q6, title: Oxygenate stripper reboiler, kind: energy, from: LPS.t202, to: T202.reb, state: {design: {duty: {value: 4575.9, provenance: assumed, source: "scripts/balance.py: stripping steam 0.06 kg per kg feed (D-011)"}}}}
+  - {id: Q7, title: Oxygenate stripper condenser, kind: energy, from: T202.cond, to: CW.t202, state: {design: {duty: {value: 4575.9, provenance: assumed, source: "scripts/balance.py: condensed overhead, equal to the reboiler (D-011)"}}}}
+  - {id: Q8, title: Compressor stages 1-3 drive, kind: energy, from: POWER.k301, to: K301.power, state: {design: {duty: {value: 4339.8, provenance: assumed, source: "scripts/balance.py: 3 stages 200 -> 900 kPa(a), isentropic efficiency 0.78, intercooled to 313 K (D-011)"}}}}
+  - {id: Q9, title: Compressor stages 1-3 intercoolers, kind: energy, from: K301.cw, to: CW.k301, state: {design: {duty: {value: 5428.0, provenance: assumed, source: "scripts/balance.py: compression heat and the latent heat of the water knocked out in V301 (D-011)"}}}}
+  - {id: Q10, title: Compressor stages 4-5 drive, kind: energy, from: POWER.k302, to: K302.power, state: {design: {duty: {value: 2362.4, provenance: assumed, source: "scripts/balance.py: 2 stages 880 -> 2069 kPa(a), isentropic efficiency 0.78 (D-011)"}}}}
+  - {id: Q11, title: Compressor stages 4-5 intercooler and aftercooler, kind: energy, from: K302.cw, to: CW.k302, state: {design: {duty: {value: 2845.4, provenance: assumed, source: "scripts/balance.py: compression heat, the aftercooler to 311.15 K and the latent heat of the water and hydrocarbons condensed into V302 (D-009, D-011)"}}}}
+  - {id: Q12, title: Deethaniser reboiler, kind: energy, from: LPS.t401, to: T401.reb, state: {design: {duty: {value: 11647.1, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0 (D-011)"}}}}
+  - {id: Q13, title: Deethaniser condenser (propylene refrigerant), kind: energy, from: T401.cond, to: K701.r401, state: {design: {duty: {value: 11647.1, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0, -30 C refrigerant (D-011)"}}}}
   - {id: Q14, title: Demethaniser condenser (ethylene refrigerant), kind: energy, from: T402.cond, to: K701.r402, state: {design: {duty: {value: 1886.5, provenance: assumed, source: "scripts/balance.py: reflux 1.5 mol per mol tail gas, -103 C refrigerant (D-011)"}}}}
-  - {id: Q15, title: C2 splitter condenser (propylene refrigerant), kind: energy, from: T403.cond, to: K701.r403, state: {design: {duty: {value: 20058.0, provenance: assumed, source: "scripts/balance.py: reflux ratio 3.5, -40 C refrigerant; reboiler heated by the refrigerant, not counted apart (D-011)"}}}}
-  - {id: Q16, title: Depropaniser reboiler, kind: energy, from: LPS.t501, to: T501.reb, state: {design: {duty: {value: 10869.5, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0 (D-011)"}}}}
-  - {id: Q17, title: Depropaniser condenser, kind: energy, from: T501.cond, to: CW.t501, state: {design: {duty: {value: 10869.5, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0 (D-011)"}}}}
-  - {id: Q18, title: C3 splitter reboiler, kind: energy, from: LPS.t502, to: T502.reb, state: {design: {duty: {value: 69110.1, provenance: assumed, source: "scripts/balance.py: reflux ratio 12 (D-011)"}}}}
-  - {id: Q19, title: C3 splitter condenser, kind: energy, from: T502.cond, to: CW.t502, state: {design: {duty: {value: 69110.1, provenance: assumed, source: "scripts/balance.py: reflux ratio 12 (D-011)"}}}}
+  - {id: Q15, title: C2 splitter condenser (propylene refrigerant), kind: energy, from: T403.cond, to: K701.r403, state: {design: {duty: {value: 20077.7, provenance: assumed, source: "scripts/balance.py: reflux ratio 3.5, -40 C refrigerant; the reboiler (Q25) heated by condensing propylene refrigerant (D-011)"}}}}
+  - {id: Q16, title: Depropaniser reboiler, kind: energy, from: LPS.t501, to: T501.reb, state: {design: {duty: {value: 10856.3, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0 (D-011)"}}}}
+  - {id: Q17, title: Depropaniser condenser, kind: energy, from: T501.cond, to: CW.t501, state: {design: {duty: {value: 10856.3, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0 (D-011)"}}}}
+  - {id: Q18, title: C3 splitter reboiler, kind: energy, from: LPS.t502, to: T502.reb, state: {design: {duty: {value: 69024.1, provenance: assumed, source: "scripts/balance.py: reflux ratio 12 (D-011)"}}}}
+  - {id: Q19, title: C3 splitter condenser, kind: energy, from: T502.cond, to: CW.t502, state: {design: {duty: {value: 69024.1, provenance: assumed, source: "scripts/balance.py: reflux ratio 12 (D-011)"}}}}
   - {id: Q20, title: Debutaniser reboiler, kind: energy, from: LPS.t503, to: T503.reb, state: {design: {duty: {value: 2223.0, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0 (D-011)"}}}}
   - {id: Q21, title: Debutaniser condenser, kind: energy, from: T503.cond, to: CW.t503, state: {design: {duty: {value: 2223.0, provenance: assumed, source: "scripts/balance.py: reflux ratio 1.0 (D-011)"}}}}
-  - {id: Q22, title: Refrigeration compressor drives, kind: energy, from: POWER.k701, to: K701.power, state: {design: {duty: {value: 19697.0, provenance: assumed, source: "scripts/balance.py: refrigeration at 60 % of the Carnot COP, condensing at 313 K (D-011)"}}}}
-  - {id: Q23, title: Refrigeration condensers, kind: energy, from: K701.cw, to: CW.k701, state: {design: {duty: {value: 53279.0, provenance: assumed, source: "scripts/balance.py: refrigeration duties plus drive power (D-011)"}}}}
+  - {id: Q22, title: Refrigeration compressor drives, kind: energy, from: POWER.k701, to: K701.power, state: {design: {duty: {value: 14870.2, provenance: assumed, source: "scripts/balance.py: refrigeration at 60 % of the Carnot COP: T401's condenser duty lifted to 313 K, T402's and T403's to their reboilers (253 K, 273 K) and that work on to 313 K (D-011)"}}}}
+  - {id: Q23, title: Refrigeration condensers, kind: energy, from: K701.cw, to: CW.k701, state: {design: {duty: {value: 26517.4, provenance: assumed, source: "scripts/balance.py: T401's condenser duty plus the drive power; T402's and T403's condenser duties go to their reboilers (Q24, Q25), not to cooling water (D-011)"}}}}
+  - {id: Q24, title: Demethaniser reboiler (condensing propylene refrigerant), kind: energy, from: K701.reb402, to: T402.reb, state: {design: {duty: {value: 1886.5, provenance: assumed, source: "scripts/balance.py: reboiler = condenser, refrigerant condensing at 253 K, 10 K above the bottoms' bubble point (D-011)"}}}}
+  - {id: Q25, title: C2 splitter reboiler (condensing propylene refrigerant), kind: energy, from: K701.reb403, to: T403.reb, state: {design: {duty: {value: 20077.7, provenance: assumed, source: "scripts/balance.py: reboiler = condenser, refrigerant condensing at 273 K, 10 K above the bottoms' bubble point (D-011)"}}}}
+  - {id: Q26, title: Caustic tower liquor cooler, kind: energy, from: R310.cw, to: CW.t310, state: {design: {duty: {value: 847.8, provenance: assumed, source: "scripts/balance.py: heat of neutralisation of the CO2 on the CRC formation enthalpies of solid NaOH and Na2CO3 (chemicals), an upper bound; the liquor held at 313 K (D-009)"}}}}
 layout: {bfd: {}, pfd: {}}

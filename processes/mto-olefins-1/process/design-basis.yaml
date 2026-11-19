@@ -8,20 +8,20 @@ capacity:
   feed_kt_per_a: 1800                 # ASSUMED (D-002): one reactor train of world scale
   feed_kg_per_h: 225000               # = 1800 kt/a / 8000 h
   operating_hours_per_year: 8000      # ASSUMED (D-002)
-  products_kg_per_h: {ethylene: 33267, propylene: 43703}   # calculated by cheme process propagate (S27, S31)
+  products_kg_per_h: {ethylene: 33300, propylene: 43667}   # calculated by cheme process propagate (S27, S31)
 feeds:
-  - name: Methanol, Grade AA (from processes/methanol-1)
-    composition_wt_percent: {CH3OH: 99.85, H2O: 0.15}   # given: US 7 138 557 B2 examples (D-003)
+  - name: Methanol (from processes/methanol-1, which delivers Grade AA)
+    composition_wt_percent: {CH3OH: 99.85, H2O: 0.15}   # given: US 7 138 557 B2 examples (D-003); 0.05 wt% wetter than Grade AA's limit of 0.10 wt%, kept as the sourced basis
     conditions: {pressure_kPa_a: 500, temperature_K: 313.15}   # ASSUMED
   - name: Air (catalyst regeneration)
   - name: Caustic soda 10 wt% (from 50 wt% NaOH)
     note: "Library link: processes/chlor-alkali-1 makes the NaOH (D-009, D-012)."
 products:
   - name: Ethylene, polymer grade
-    purity: "C2H4 >= 99.95 mol% (modelled 99.97 mol%; methane and ethane the only impurities modelled; the CO, CO2, oxygenate and acetylene limits of a polymer-grade specification are not modelled, D-010)"
-    delivery: {pressure_kPa_a: 1900, temperature_K: 243.15, battery_limit: "C2 splitter top; storage outside the boundary"}
+    purity: "C2H4 >= 99.95 mol%, ASSUMED: this study's choice, as ethylene-1's (no open polymer-grade specification read); modelled 99.97 mol%; methane and ethane the only impurities modelled; the CO, CO2, oxygenate and acetylene limits of a polymer-grade specification are not modelled (D-010)"
+    delivery: {pressure_kPa_a: 1900, temperature_K: 243.15, battery_limit: "C2 splitter top; storage outside the boundary", note: "ASSUMED, as ethylene-1 (D-010)"}
   - name: Propylene, polymer grade
-    purity: "C3H6 >= 99.5 mol% (modelled 99.84 mol%, D-010)"
+    purity: "C3H6 >= 99.5 mol% and ethylene + ethane <= 50 ppm(mol), both ASSUMED: this study's choices (no open polymer-grade specification read); modelled 99.96 mol% with 14 ppm of C2; the oxygenate, CO, CO2 and water limits are not modelled (D-010)"
   - name: C4 olefin cut (92 mol% butenes), to a butene user or an olefin cracking unit outside the boundary
   - name: C5+ cut (lumped as 1-pentene), to gasoline blending outside the boundary
   - name: Tail gas (hydrogen, methane, CO, ethane, propane), to the site fuel gas header

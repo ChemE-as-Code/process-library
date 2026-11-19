@@ -15,8 +15,11 @@ makes in DESIGN.md, README.md and process.yaml are checked against them:
 - every heat stream has a duty, Q2 and Q3 are core's conversion-step duties and the script's
   are given as ASSUMED with its source;
 - the LCI's methanol is linked to methanol-1 and its CO2 is the regenerator's;
-- the source register names the packages as single facts, not open data, and the retracted
-  article is used for no number;
+- the source register names the packages as single facts, not open data, with the licensed
+  works behind them (CRC, Yaws, Poling) marked not read, and records the DMTO article as not
+  retracted;
+- the plant's energy balance: the demethaniser and C2 splitter reboilers take the refrigerant's
+  heat (reboiler = condenser), so it is not rejected to cooling water as well;
 - the process is public with CC-BY-4.0 and requires cheme-as-code 1.12.
 """
 
@@ -131,16 +134,17 @@ def test_the_products_and_the_methanol_per_kg_are_the_stated_ones(streams, mater
     eth = _kmol(streams["S27"], materials)
     pro = _kmol(streams["S31"], materials)
     assert eth["C2H4"] / sum(eth.values()) == pytest.approx(0.99971, abs=5e-5)
-    assert pro["C3H6"] / sum(pro.values()) == pytest.approx(0.99840, abs=5e-5)
+    assert pro["C3H6"] / sum(pro.values()) == pytest.approx(0.99965, abs=5e-5)
+    assert (pro.get("C2H4", 0.0) + pro.get("C2H6", 0.0)) / sum(pro.values()) <= 50e-6
     e, p = streams["S27"]["flow"]["value"], streams["S31"]["flow"]["value"]
-    assert e == pytest.approx(33267, abs=5)
-    assert p == pytest.approx(43703, abs=5)
+    assert e == pytest.approx(33300, abs=5)
+    assert p == pytest.approx(43667, abs=5)
     meoh = streams["S1"]["flow"]["value"]
     assert meoh == 225000.0
     assert meoh / (e + p) == pytest.approx(2.923, abs=5e-4)
     design = _text("DESIGN.md")
     assert "2.92 kg methanol per kg of ethylene and propylene" in design
-    assert "ethylene 99.97 mol%" in design and "propylene 99.84 mol%" in design
+    assert "ethylene 99.97 mol%" in design and "propylene 99.96 mol%" in design
     assert "2.92 kg of methanol per kg of the two" in _text("README.md")
 
 
@@ -182,13 +186,27 @@ def test_the_lci_links_methanol_and_counts_the_regenerator_co2(streams, material
     assert "8.93 t/h" in _text("process.yaml")
 
 
-def test_the_source_register_keeps_the_package_and_retraction_rules():
+def test_the_source_register_names_the_package_sources():
     rows = {line.split("|")[1].strip(): line for line in (PROCESS / "DESIGN.md").read_text(encoding="utf-8").splitlines()
             if line.startswith("| SRC-")}
     assert "not open data" in rows["SRC-6"] and "ADR 0037" in rows["SRC-6"]
-    assert "retracted" in rows["SRC-8"] and "no number from it is used" in rows["SRC-8"]
-    for rel in ("process/flowsheet.yaml", "process/reactions.yaml", "scripts/balance.py", "lca/lca.yaml"):
-        assert "eng.2020.12.001" not in (PROCESS / rel).read_text(encoding="utf-8"), rel
+    for work in ("YAWS", "Yaws' handbook", "Poling", "TRC", "CRC Handbook", "were not read"):
+        assert work in rows["SRC-6"], work
+    materials = (PROCESS / "process" / "materials.yaml").read_text(encoding="utf-8")
+    for method in ("YAWS", "Poling", "TRCIG", "ATCT_G", "HEOS"):
+        if method in materials:
+            assert method in rows["SRC-6"], method
+    assert "Not retracted" in rows["SRC-8"] and "2.97" in rows["SRC-8"] and "2.85" in rows["SRC-8"]
+
+
+def test_the_refrigerant_heats_the_cold_reboilers_and_cooling_water_takes_the_rest(sheet):
+    duty = {s["id"]: s["state"]["design"]["duty"]["value"] for s in sheet["streams"] if s.get("kind") == "energy"}
+    ends = {s["id"]: (s["from"], s["to"]) for s in sheet["streams"] if s.get("kind") == "energy"}
+    assert ends["Q24"] == ("K701.reb402", "T402.reb") and ends["Q25"] == ("K701.reb403", "T403.reb")
+    assert duty["Q24"] == pytest.approx(duty["Q14"]) and duty["Q25"] == pytest.approx(duty["Q15"])
+    # K701: condensers and drive power in, reboilers and cooling water out
+    assert duty["Q13"] + duty["Q14"] + duty["Q15"] + duty["Q22"] == pytest.approx(
+        duty["Q23"] + duty["Q24"] + duty["Q25"], abs=0.5)
 
 
 def test_public_cc_by_and_core_version():

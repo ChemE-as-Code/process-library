@@ -28,8 +28,9 @@ cutoff:
 - key: emission-excluded:catalyst-fines
   title: non-routine emissions of R-101, R-201
   direction: output
-  reason: Catalyst attrition, make-up and the fines in the flue gas and the quench water are not quantified
-    (no open make-up rate read, D-007); the catalyst is a gap of the inventory, not zero.
+  reason: 'Catalyst attrition, make-up and the fines in the flue gas and the quench water are not quantified
+    (no open make-up rate read, D-007): the catalyst make-up is excluded here, not counted as zero, an
+    open item of the inventory (a consumable needs a rate).'
 - key: emission-excluded:fugitives
   title: equipment-leaks emissions of the plant
   direction: output
@@ -60,7 +61,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 266138400.00000003
+  amount: 266398400.00000003
   unit: kg/a
   source: product:ETHYLENE per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -70,8 +71,8 @@ modelling:
   principle: attributional
   multifunctionality: 'unallocated multi-output dataset; default allocation mass: D-012: mass allocation
     among the hydrocarbon products, as ethylene-1 does for the steam-cracker outputs: all are hydrocarbons
-    from the same methanol carbon, and ethylene and propylene, 89 % of the product mass, have similar
-    prices per kg. The tail gas is a fuel and small (4.2 t/h of 97.3 t/h); it is allocated by mass with
+    from the same methanol carbon, and ethylene and propylene, 80 % of the product mass, have similar
+    prices per kg. The tail gas is a fuel and small (4.2 t/h of 96.4 t/h); it is allocated by mass with
     the rest. The exported HP steam (product:HPS) is an energy output kept as its own exchange, outside
     the allocation and without a burden: the methanol and electricity that raise it stay with the hydrocarbon
     products, so the figures per kg are gross. Substitution and economic allocation are to be compared
@@ -81,7 +82,7 @@ review:
 data_generator: 'ChemE-as-Code agent session (Claude Opus 5.5) for issue #466, unreviewed'
 exchanges:
 - key: feed:MEOH
-  title: Methanol Grade AA (from methanol-1)
+  title: Methanol from methanol-1 (Grade AA; modelled as the patent's 99.85 wt% feed)
   type: input
   amount: 225000.0
   unit: kg
@@ -152,7 +153,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power (machine drives, D-011)
   type: input
-  amount: 27546.8
+  amount: 22741.9
   unit: kWh
   link:
     source: air blower Q4, product gas compressor Q8, Q10, refrigeration Q22 as electric motors (D-011)
@@ -174,7 +175,7 @@ exchanges:
 - key: feed:MPS
   title: MP steam 1800 kPa(a) to the feed vaporiser
   type: input
-  amount: 88156.4
+  amount: 79530.9
   unit: kWh
   link:
     source: feed vaporiser Q1, no heat integration (D-011)
@@ -196,7 +197,7 @@ exchanges:
 - key: feed:LPS
   title: LP steam 450 kPa(a) to the reboilers
   type: input
-  amount: 98417.90000000001
+  amount: 98326.40000000001
   unit: kWh
   link:
     source: oxygenate stripper Q6 and column reboilers Q12, Q16, Q18, Q20 (D-011)
@@ -222,7 +223,7 @@ exchanges:
 - key: product:ETHYLENE
   title: Polymer-grade ethylene
   type: product
-  amount: 33267.3
+  amount: 33299.8
   unit: kg
   provenance: calculated
   streams:
@@ -239,9 +240,9 @@ exchanges:
     component: C2H4
   composition:
     fractions:
-      CH4: 0.000145946
-      C2H4: 0.999812426
-      C2H6: 4.1628e-05
+      CH4: 0.000145801
+      C2H4: 0.999812407
+      C2H6: 4.1792e-05
     formulas:
       CH4: CH4
       C2H4: C2H4
@@ -250,7 +251,7 @@ exchanges:
 - key: product:PROPYLENE
   title: Polymer-grade propylene
   type: product
-  amount: 43703.0
+  amount: 43666.5
   unit: kg
   provenance: calculated
   streams:
@@ -262,15 +263,15 @@ exchanges:
   state:
     pressure: 17.5
     temperature: 45.0
-    purity: 0.998401
+    purity: 0.999647
     basis: mole
     component: C3H6
   composition:
     fractions:
-      C2H4: 0.000765653
-      C2H6: 7.9617e-05
-      C3H6: 0.998799068
-      C3H8: 0.000355662
+      C2H4: 7.663e-06
+      C2H6: 1.594e-06
+      C3H6: 0.999634787
+      C3H8: 0.000355957
     formulas:
       C2H4: C2H4
       C2H6: C2H6
@@ -280,7 +281,7 @@ exchanges:
 - key: product:C4
   title: C4 olefin cut (butenes)
   type: product
-  amount: 10141.0
+  amount: 10140.9
   unit: kg
   provenance: calculated
   streams:
@@ -297,13 +298,13 @@ exchanges:
     component: C4H8
   composition:
     fractions:
-      DME: 0.000169834
-      C3H6: 0.008757301
-      C3H8: 0.000309641
-      C4H6: 0.055408591
-      C4H8: 0.924495361
-      C4H10: 0.001010163
-      C5H10: 0.009849108
+      DME: 0.000169835
+      C3H6: 0.008757371
+      C3H8: 0.000309643
+      C4H6: 0.055408945
+      C4H8: 0.924494806
+      C4H10: 0.001010159
+      C5H10: 0.00984924
     formulas:
       DME: C2H6O
       C3H6: C3H6
@@ -316,7 +317,7 @@ exchanges:
 - key: product:C5PLUS
   title: C5+ cut
   type: product
-  amount: 4995.75
+  amount: 4995.7
   unit: kg
   provenance: calculated
   streams:
@@ -328,16 +329,16 @@ exchanges:
   state:
     pressure: 5.5
     temperature: 40.0
-    purity: 0.974445
+    purity: 0.974463
     basis: mole
     component: C5H10
   composition:
     fractions:
-      MEOH: 0.000228367
-      C4H6: 0.001136122
-      C4H8: 0.018956221
+      MEOH: 0.000219875
+      C4H6: 0.001136119
+      C4H8: 0.018956118
       C4H10: 2.0713e-05
-      C5H10: 0.979658577
+      C5H10: 0.979667175
     formulas:
       MEOH: CH4O
       C4H6: C4H6
@@ -348,7 +349,7 @@ exchanges:
 - key: product:FUELGAS
   title: Tail gas (methane, hydrogen, CO, ethane, propane) to the site fuel gas header
   type: product
-  amount: 4245.17
+  amount: 4248.69
   unit: kg
   provenance: calculated
   streams:
@@ -360,22 +361,22 @@ exchanges:
   state:
     pressure: 6.0
     temperature: 30.0
-    purity: 0.622644
+    purity: 0.622451
     basis: mole
     component: H2
   composition:
     fractions:
-      DME: 0.003651367
-      H2: 0.113960191
-      CO: 0.211437548
-      CO2: 1.8456e-05
-      CH4: 0.227597256
-      C2H4: 0.039324465
-      C2H6: 0.162783888
-      C3H6: 0.167054877
-      C3H8: 0.069567586
-      C4H6: 0.000133834
-      C4H8: 0.004470532
+      DME: 0.003648313
+      H2: 0.113864006
+      CO: 0.211258511
+      CO2: 1.8441e-05
+      CH4: 0.227405795
+      C2H4: 0.039330441
+      C2H6: 0.163447277
+      C3H6: 0.16691714
+      C3H8: 0.069509615
+      C4H6: 0.000133722
+      C4H8: 0.004466739
     formulas:
       DME: C2H6O
       H2: H2
@@ -415,7 +416,7 @@ exchanges:
 - key: product:WATER
   title: Process water (reaction water) to wastewater treatment
   type: output
-  amount: 125453.0
+  amount: 125397.0
   unit: kg
   provenance: calculated
   link:
@@ -434,8 +435,8 @@ exchanges:
     route: wastewater-treatment
   composition:
     fractions:
-      MEOH: 9.085e-06
-      H2O: 0.999990915
+      MEOH: 9.089e-06
+      H2O: 0.999990911
     formulas:
       MEOH: CH4O
       H2O: H2O
@@ -443,7 +444,7 @@ exchanges:
 - key: product:SPENT
   title: Spent caustic to treatment
   type: output
-  amount: 22119.3
+  amount: 22174.9
   unit: kg
   provenance: calculated
   link:
@@ -463,9 +464,9 @@ exchanges:
     hazardous: true
   composition:
     fractions:
-      H2O: 0.882504891
-      NAOH: 0.032198121
-      NA2CO3: 0.085296988
+      H2O: 0.882800263
+      NAOH: 0.032117344
+      NA2CO3: 0.085082393
     formulas:
       H2O: H2O
       NAOH: NaOH
@@ -474,7 +475,7 @@ exchanges:
 - key: product:HPS
   title: HP steam 4000 kPa(a) raised in the catalyst coolers and the flue gas cooler (export)
   type: output
-  amount: 36319.3
+  amount: 27460.68
   unit: kWh
   provenance: calculated
   link:
@@ -500,11 +501,11 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 291518.3
+  amount: 265880.6
   unit: kWh
   link:
-    source: quench Q5, stripper condenser Q7, compressor coolers Q9, Q11, column condensers Q17, Q19,
-      Q21, refrigeration condensers Q23 (D-011)
+    source: quench Q5, stripper condenser Q7, compressor coolers Q9, Q11, caustic tower liquor cooler
+      Q26, column condensers Q17, Q19, Q21, refrigeration condensers Q23 (D-009, D-011)
     missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
       with cooling tower (processes/utility-cooling-tower), per kWh removed'
   streams:
@@ -516,8 +517,9 @@ exchanges:
   - Q19
   - Q21
   - Q23
-  source: quench Q5, stripper condenser Q7, compressor coolers Q9, Q11, column condensers Q17, Q19, Q21,
-    refrigeration condensers Q23 (D-011)
+  - Q26
+  source: quench Q5, stripper condenser Q7, compressor coolers Q9, Q11, caustic tower liquor cooler Q26,
+    column condensers Q17, Q19, Q21, refrigeration condensers Q23 (D-009, D-011)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -984,8 +986,8 @@ allocation:
   - C5PLUS
   - FUELGAS
   source: 'D-012: mass allocation among the hydrocarbon products, as ethylene-1 does for the steam-cracker
-    outputs: all are hydrocarbons from the same methanol carbon, and ethylene and propylene, 89 % of the
-    product mass, have similar prices per kg. The tail gas is a fuel and small (4.2 t/h of 97.3 t/h);
+    outputs: all are hydrocarbons from the same methanol carbon, and ethylene and propylene, 80 % of the
+    product mass, have similar prices per kg. The tail gas is a fuel and small (4.2 t/h of 96.4 t/h);
     it is allocated by mass with the rest. The exported HP steam (product:HPS) is an energy output kept
     as its own exchange, outside the allocation and without a burden: the methanol and electricity that
     raise it stay with the hydrocarbon products, so the figures per kg are gross. Substitution and economic
@@ -998,9 +1000,9 @@ provenance:
   plant: Ethylene and propylene from methanol (MTO), 1800 kt/a methanol
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:c3ba6368f9f4a3fd6936898afe83f30d59ff049ecaa66197ff64b5fc6f155a6a
-    lca/lca.yaml: sha256:ec8470346e64cf9d999bb5266f7a888fcae4f0be3011f4c6de3e9ec62f6caed6
-    process.yaml: sha256:882d60dce7e0ccaad4309653de75348a3a7e7bfabe83b3f3e50092c7222f7947
-    process/flowsheet.yaml: sha256:8129b44c423fe2a10a6a09edad999f9348d49e8c8898f40835938f53a2f595bc
+    equipment/equipment-list.yaml: sha256:21209f37418e5c7ab25299ca1367aa3c394eda17b78e4102be617446224f4df7
+    lca/lca.yaml: sha256:28cfc944b0cba15a7fbf5d7443090cb3af1b17dfc270a039a488032d9e9ec7db
+    process.yaml: sha256:b1562a3c36d52c0ff5225d8d4007a712270313b396d20d7a32fdc6b2b501a16c
+    process/flowsheet.yaml: sha256:16d16b3db3e23a323c3a68b603095485c67e793d0d8e33635c69446ee79414e8
     process/materials.yaml: sha256:27280c81c4ab4e828c5a0e9a3487e112317a8718c1a3573c490ceda6bfcd0932
-    process/simulation.yaml: sha256:c869d9ff110a9cc72b25f93f0b6cd2fd2f60e45bc0bff8cee8aae21d01806f1c
+    process/simulation.yaml: sha256:0b1df82e237687531e6bdf78419d36552e91bc297e121a84f7c1c20fdcbb73fe

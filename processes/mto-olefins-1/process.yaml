@@ -10,7 +10,7 @@ summary: >-
   recovery train to polymer-grade ethylene and propylene. Concept stage, assumed basis,
   preliminary gate-to-gate LCI.
 description: |
-  225 t/h of Grade AA methanol (from methanol-1) is vaporised, mixed with the recycled methanol
+  225 t/h of methanol (from methanol-1, modelled as the patent's 99.85 wt% feed) is vaporised, mixed with the recycled methanol
   and dimethyl ether and converted at 475 C and 239 kPa(a) in a fluidised bed of SAPO-34
   microspheres: 99.5 % of the methanol per pass, to the yield structure of a UOP MTO fluidised
   bed in an open patent (US 7 138 557 B2): about a third of the methanol's carbon to ethylene and
@@ -19,7 +19,7 @@ description: |
   regenerator at 650 C; the heat of reaction and of the coke burn raises HP steam in catalyst
   coolers. The product gas is quenched with water (the reaction water condenses, the oxygenates
   are stripped from it and recycled), compressed in five stages to 2.07 MPa with a caustic wash
-  for CO2 and molecular-sieve dryers, and separated in a deethaniser, demethaniser, C2 splitter,
+  for CO2, a three-phase discharge drum and molecular-sieve dryers, and separated in a deethaniser, demethaniser, C2 splitter,
   depropaniser, C3 splitter and debutaniser.
 
   The separations are specified recoveries and the duties shortcut estimates of an independent
@@ -38,8 +38,8 @@ maturity: concept
 validation:
   status: unreviewed
   notes: >-
-    Concept PFD with closed mass, component and element balances (cheme validate: 0 errors; two
-    warnings that the recycle S37's mole fractions sum to 0.999999). The reactor is calculated
+    Concept PFD with closed mass, component and element balances (cheme validate: 0 errors, 0
+    warnings). The reactor is calculated
     by cheme from the sourced per-pass conversion and yield structure (US 7 138 557 B2 Table 1,
     a `selectivity:` model); the oxygenate recycle converges at the tear S37 (Wegstein); the
     regenerator, the caustic tower and every separator outlet are calculated by cheme from
@@ -47,29 +47,30 @@ validation:
     conversion-step duties. The other duties are shortcut estimates of scripts/balance.py
     (ideal-gas enthalpies, the chemicals package's CRC heats of vaporisation, ASSUMED reflux
     ratios and efficiencies, no heat integration), so the energy figures are gross upper
-    estimates. Capacity, splits, purities and utility levels are ASSUMED. The preliminary
+    estimates; the script's plant energy balance over feeds, products and utilities closes
+    within 1.7 MW of about 290 MW. Capacity, splits, purities and utility levels are ASSUMED. The preliminary
     gate-to-gate LCI closes in mass; methanol is linked to methanol-1, the steam counted as heat,
     every other background a gap. Not reviewed. cheme maturity reaches no calculation level
     (capacity and recoveries are ASSUMED); concept is claimed as the lowest level of the manifest.
 chemistry:
   inputs:
-    - {chemical: methanol, role: feedstock, inventory_key: "feed:MEOH", note: "Grade AA methanol (methanol-1), 2.92 kg per kg of ethylene and propylene; 2.335 kg per kg of any hydrocarbon product with mass allocation"}
+    - {chemical: methanol, role: feedstock, inventory_key: "feed:MEOH", note: "Methanol from methanol-1 (Grade AA; modelled as the patent's 99.85 wt% feed, D-003), 2.92 kg per kg of ethylene and propylene; 2.335 kg per kg of any hydrocarbon product with mass allocation"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Regeneration air of the coke burn"}
     - {chemical: sodium-hydroxide, role: feedstock, note: "feed:CAUSTIC: fresh caustic soda solution 10 wt%, counted by mass of the solution, 3 mol NaOH per mol CO2 (ASSUMED excess)"}
   outputs:
     - {chemical: ethylene, role: main-product, inventory_key: "product:ETHYLENE", note: "Polymer-grade ethylene, 33.3 t/h (266 kt/a)"}
-    - {chemical: propylene, role: co-product, inventory_key: "product:PROPYLENE", note: "Polymer-grade propylene, 43.7 t/h (350 kt/a)"}
+    - {chemical: propylene, role: co-product, inventory_key: "product:PROPYLENE", note: "Polymer-grade propylene, 43.7 t/h (349 kt/a)"}
     - {chemical: c4-olefin-cut, role: co-product, inventory_key: "product:C4", note: "C4 olefin cut, 92 mol% butenes, 10.1 t/h"}
     - {chemical: c5-plus-cut, role: co-product, inventory_key: "product:C5PLUS", note: "C5+ cut (lumped as 1-pentene), 5.0 t/h"}
     - {chemical: olefins-tail-gas, role: co-product, inventory_key: "product:FUELGAS", note: "Tail gas (hydrogen, methane, CO, ethane, propane, some propylene) to the site fuel gas header, 4.2 t/h"}
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Fossil CO2 of the coke burnt in the regenerator: 8.93 t/h, 0.268 kg/kg ethylene unallocated, 0.093 kg/kg of any hydrocarbon product with mass allocation (ethylene's share 34.5 %)"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:WATER", note: "Stripped reaction water to wastewater treatment, 125.5 t/h; the spent caustic (product:SPENT) is a second wastewater"}
-    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4000 kPa(a) raised in the catalyst coolers and the flue gas cooler, 36.3 MW (ASSUMED export); outside the mass allocation and without a burden"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "Fossil CO2 of the coke burnt in the regenerator: 8.93 t/h, 0.268 kg/kg ethylene unallocated, 0.093 kg/kg of any hydrocarbon product with mass allocation (ethylene's share 34.6 %)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WATER", note: "Stripped reaction water to wastewater treatment, 125.4 t/h; the spent caustic (product:SPENT) is a second wastewater"}
+    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4000 kPa(a) raised in the catalyst coolers and the flue gas cooler, 27.5 MW (ASSUMED export); outside the mass allocation and without a burden"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "27.5 MW: air blower, product gas compressor and refrigeration compressors (ASSUMED electric, D-011)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1800 kPa(a) to the feed vaporiser, 88.2 MW (no heat integration, D-011)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the oxygenate stripper and the reboilers, 98.4 MW"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), 291.5 MW"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "22.7 MW: air blower, product gas compressor and refrigeration compressors (ASSUMED electric, D-011)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "MP steam 1800 kPa(a) to the feed vaporiser, 79.5 MW (no heat integration, D-011)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the oxygenate stripper and the reboilers, 98.3 MW (the demethaniser's and C2 splitter's reboilers take refrigerant, D-011)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "25/35 C (ASSUMED), 265.9 MW"}
 basis:
   capacity: "1800 kt/a methanol fed (225 t/h, ASSUMED)"
   operating_hours_per_year: 8000
@@ -80,6 +81,7 @@ references:
   - {title: "Qi, G. et al. (China Petroleum and Chemical Corp, Sinopec Shanghai Research Institute) (2016) US 9 233 350 B2: Start-up method for reaction-regeneration unit used to prepare light olefins from methanol", url: "https://patents.google.com/patent/US9233350B2/en"}
   - {title: "Lattner, J. R. et al. (ExxonMobil Chemical Patents) (2007) US 7 256 318 B2: Regeneration temperature control in a catalytic reaction system", url: "https://patents.google.com/patent/US7256318B2/en"}
   - {title: "Miller, L. W., Senetar, J. J. (UOP LLC) (2002) US 6 403 854 B1: Two-stage quench tower for use with oxygenate conversion process", url: "https://patents.google.com/patent/US6403854B1/en"}
+  - {title: "Ye, M., Tian, P., Liu, Z. (2021) DMTO: A Sustainable Methanol-to-Olefins Technology. Engineering 7(1):17-21 (methanol per t of light olefins of commercial DMTO units)", url: "https://doi.org/10.1016/j.eng.2020.12.001"}
 lca:
   source: auto
 maintainers:

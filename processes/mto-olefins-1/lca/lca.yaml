@@ -35,8 +35,8 @@ allocation:
   source: >-
     D-012: mass allocation among the hydrocarbon products, as ethylene-1 does for the
     steam-cracker outputs: all are hydrocarbons from the same methanol carbon, and ethylene and
-    propylene, 89 % of the product mass, have similar prices per kg. The tail gas is a fuel and
-    small (4.2 t/h of 97.3 t/h); it is allocated by mass with the rest. The exported HP steam
+    propylene, 80 % of the product mass, have similar prices per kg. The tail gas is a fuel and
+    small (4.2 t/h of 96.4 t/h); it is allocated by mass with the rest. The exported HP steam
     (product:HPS) is an energy output kept as its own exchange, outside the allocation and
     without a burden: the methanol and electricity that raise it stay with the hydrocarbon
     products, so the figures per kg are gross. Substitution and economic allocation are to be
@@ -68,7 +68,7 @@ flows:
     source: "oxygenate stripper Q6 and column reboilers Q12, Q16, Q18, Q20 (D-011)"
   - key: product:CW
     missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "quench Q5, stripper condenser Q7, compressor coolers Q9, Q11, column condensers Q17, Q19, Q21, refrigeration condensers Q23 (D-011)"
+    source: "quench Q5, stripper condenser Q7, compressor coolers Q9, Q11, caustic tower liquor cooler Q26, column condensers Q17, Q19, Q21, refrigeration condensers Q23 (D-009, D-011)"
   - key: product:HPS
     missing: "linked as heat from steam (lca/mappings.yaml); exported HP steam 4000 kPa(a) raised in the catalyst coolers and the flue gas cooler; under substitution it would avoid steam from a natural-gas boiler (utility-steam-ng-boiler), in an integrated design it drives the compressors instead of the electric motors (D-007, D-011)"
     source: "reactor and regenerator duties Q2, Q3 from core's conversion-step model (D-007)"
@@ -110,7 +110,7 @@ operation:
   source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 25 a service life ASSUMED"
 emission_exclusions:
   - {id: regenerator-co-nox, method: combustion, equipment: [R-201], reason: "The regenerator burns the coke completely to CO2 in the model (D-007); its CO, NOx and dust (catalyst fines past the cyclones) are not estimated: no open source with an MTO regenerator's flue-gas concentrations was read (open item, D-012)."}
-  - {id: catalyst-fines, method: non-routine, equipment: [R-101, R-201], reason: "Catalyst attrition, make-up and the fines in the flue gas and the quench water are not quantified (no open make-up rate read, D-007); the catalyst is a gap of the inventory, not zero."}
+  - {id: catalyst-fines, method: non-routine, equipment: [R-101, R-201], reason: "Catalyst attrition, make-up and the fines in the flue gas and the quench water are not quantified (no open make-up rate read, D-007): the catalyst make-up is excluded here, not counted as zero, an open item of the inventory (a consumable needs a rate)."}
   - {id: fugitives, method: equipment-leaks, reason: "No P&ID take-off at concept stage to count components; diffuse and fugitive VOC of the recovery train are an open item for basic engineering (D-012)."}
   - {id: flare, method: flare, reason: "No continuous flaring in normal operation; start-up, shutdown and upset flaring is non-routine and not quantified (D-012)."}
   - {id: water-effluent, method: effluent, exchange: product:WATER, reason: "The organic acids, ketones and aldehydes of the reaction water are not modelled (US 6 403 854 B1 names organic acids neutralised in the quench); the water goes to treatment outside the boundary (D-008)."}
