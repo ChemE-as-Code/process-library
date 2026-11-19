@@ -209,16 +209,18 @@ from separate ranges.
 ## Polymers
 
 A polymer (`polyethylene`, `polypropylene`, `polyethylene-terephthalate`, `polystyrene`,
-`polyvinyl-chloride`, `polyvinyl-alcohol`) is a **substance** described by its repeat unit:
-`formula` is the repeat unit (C2H4, C3H6, C10H8O4, C8H8, C2H3Cl, C2H4O; end groups,
-catalyst residues and additives neglected), and `molar_mass`, `elemental_composition` and
-`carbon_content` are per repeat unit, so the element balance of a polymerisation dataset can read
-the product. The polymer's own CAS number is recorded, with the `chebi` id of the ChEBI polymer
-entry that cross-references that CAS; there is no `inchikey` or `pubchem_cid`, since a polymer has
-no standard structure key. The `chemicals` package cannot confirm a polymer's CAS (it maps some to
-the monomer and lacks others), so each polymer is listed in `CHEMICALS_PACKAGE_EXCEPTIONS` in
-`tests/test_registry.py`, with the reason, instead of being checked against it. Grades (HDPE,
-LDPE, LLDPE; homopolymer and copolymer) are not split yet.
+`polyvinyl-chloride`, `polyvinyl-alcohol`, `polyamide-66`) is a **substance** described by its
+repeat unit: `formula` is the repeat unit (C2H4, C3H6, C10H8O4, C8H8, C2H3Cl, C2H4O, C12H22N2O2;
+end groups, catalyst residues and additives neglected), and `molar_mass`, `elemental_composition`
+and `carbon_content` are per repeat unit, so the element balance of a polymerisation dataset can
+read the product. The polymer's own CAS number is recorded, with the `chebi` id of the ChEBI
+polymer entry that cross-references that CAS where ChEBI has one (it has none for polyamide 66,
+whose CAS is then checked against PubChem Substance records and the note says so); there is no
+`inchikey` or `pubchem_cid`, since a polymer has no standard structure key. The `chemicals`
+package cannot confirm a polymer's CAS (it maps some to the monomer and lacks others), so each
+polymer is listed in `CHEMICALS_PACKAGE_EXCEPTIONS` in `tests/test_registry.py`, with the reason,
+instead of being checked against it. Grades (HDPE, LDPE, LLDPE; homopolymer and copolymer) are
+not split yet.
 
 ## Identities and how they are verified
 

@@ -126,12 +126,14 @@ def test_specific_consumptions_and_energy(streams, mw):
     assert monomers == pytest.approx(1.159, abs=5e-4)
     assert monomers < 1.165  # below the BREF's batch AH salt per t (Table 9.3), as D-004 says
     oil = sum(streams[q]["duty"]["value"] for q in ("Q3", "Q4", "Q5"))
-    assert oil / pellets == pytest.approx(0.804, abs=5e-4)
-    delivered = (oil + streams["Q2"]["duty"]["value"] + sum(streams[p]["duty"]["value"] for p in ("P1", "P2", "P3")))
+    assert oil / pellets == pytest.approx(0.859, abs=5e-4)
+    delivered = (oil + streams["Q2"]["duty"]["value"] + sum(streams[p]["duty"]["value"] for p in ("P1", "P2", "P3", "P4")))
+    assert delivered / pellets * 3.6 == pytest.approx(3.52, abs=5e-3)  # D-009
     gj_per_t = delivered / pellets * 3.6
     assert 3.3 <= gj_per_t <= 7.7  # BREF Table 9.8, batch PA66 total energy
     assert gj_per_t < 5.05  # below Table 9.3's batch range, as D-009 says
-    assert "0.804 kWh/kg" in _text("process.yaml")
+    assert "0.859 kWh/kg" in _text("process.yaml")
+    assert "3.52 MJ/kg" in _text("DESIGN.md")
 
 
 def test_recipe_makes_the_flowsheet_rate(streams):
@@ -148,6 +150,17 @@ def test_recipe_makes_the_flowsheet_rate(streams):
     assert "1508.6 batches/a of 5303.03 kg" in _text("process.yaml")
 
 
+def test_steam_bleed_takes_the_water_to_s9s_declared_state(sheet, streams, mw):
+    # IAPWS-95 (chemicals 1.5.2): liquid at 383.15 K, 1750 kPa to vapour at 548.15 K, 101.325 kPa
+    assert streams["S9"]["temperature"]["value"] == pytest.approx(548.15)
+    assert streams["S9"]["pressure"]["value"] == pytest.approx(101.325)
+    water = _kg(streams, mw, "S9")["H2O"] / 3600.0  # kg/s
+    hmda = _kg(streams, mw, "S9")["HMDA"] / mw["HMDA"] / 3600.0  # kmol/s
+    q4_liquid = water / mw["H2O"] * 75.4 * (548.15 - 383.15)
+    expected = water * (3024.3414 - 462.5848) * 18.015268 / mw["H2O"] - q4_liquid + hmda * 41968.0
+    assert streams["Q5"]["duty"]["value"] == pytest.approx(expected, rel=1e-3)
+
+
 def test_heating_media_and_hazard_limits(sheet):
     feeds = {f["id"]: f for f in sheet["feeds"]}
     oil = feeds["HOTOIL"]["utility"]
@@ -156,6 +169,9 @@ def test_heating_media_and_hazard_limits(sheet):
     assert r101["hazard"]["mtt"] > 338.15 and r101["reactor"] == "semibatch"
     assert 548.15 < r201["hazard"]["mtt"] < oil["supply_temperature"]["value"]
     assert r101["batch"]["dosing"][0]["stream"] == "S4"
+    # the autoclave's design temperature covers the hot oil's supply (D-011)
+    r_201 = next(e for e in _load("equipment/equipment-list.yaml")["equipment"] if e["tag"] == "R-201")
+    assert "design temperature 623 K" in r_201["notes"] and 623.15 > oil["supply_temperature"]["value"]
 
 
 def test_every_energy_stream_has_a_duty_and_the_lci_is_complete(sheet, streams):

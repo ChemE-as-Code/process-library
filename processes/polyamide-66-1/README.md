@@ -30,17 +30,19 @@ Headline numbers and their caveats:
   kg, about 0.6 % below the BREF's 1.165 to 1.167 t of salt per t, which carries the plants'
   yield losses), 1.064 kg of water, all evaporated again; 1.223 kg of condensate with 2.69 g of
   diamine (from the BREF's COD before treatment, D-010).
-- Heat 0.804 kWh/kg from hot oil (2.90 MJ/kg) and 0.058 kWh/kg of LP steam, power 0.059 kWh/kg:
-  about 3.3 MJ/kg delivered, inside the BREF's batch PA66 range of 3.3 to 7.7 GJ/t (Table 9.8).
-  The evaporation of the solution water (about 1 kg per kg) dominates the heat.
+- Heat 0.859 kWh/kg from hot oil (3.09 MJ/kg) and 0.058 kWh/kg of LP steam, power 0.059 kWh/kg:
+  3.52 MJ/kg delivered, inside the BREF's batch PA66 range of 3.3 to 7.7 GJ/t (Table 9.8); the
+  vessels' steel and heat losses, not counted, would only raise it. The evaporation of the
+  solution water (about 1 kg per kg, its enthalpies by IAPWS-95) dominates the heat.
 - The autoclave's phase times, its steam-bleed pressure, the conversion (0.995 of the amide
   links, Mn about 22 600 g/mol) and the melt's 0.2 wt% residual water are ASSUMED: the BREF
   names the phases and the final 275 C but gives no times, pressure or molar mass (D-003,
   D-006).
 - The neutralisation's heat and rate are ASSUMED (no open calorimetry): MTSR 338.6 K against an
   MTT of 373.15 K. The polycondensation's heat is Steppan's apparent amidation enthalpy (Nisoli
-  et al. 2004). The autoclave runs at its boiling point by design; its hazard is the pressure
-  (relief an open input, D-011).
+  et al. 2004), the most exothermic end of their correlation. The autoclave runs at its boiling
+  point by design; its hazards are the pressure and the hot oil, supplied 20 K above the melt's
+  MTT (relief and a high-temperature trip are open inputs, D-011).
 - Core has no step-growth model that removes the water while the salt polycondenses (core limit
   L-1): the autoclave is a specified concentration, a conversion step and a specified steam
   bleed, whose evaporation heats come from `scripts/balance.py`.

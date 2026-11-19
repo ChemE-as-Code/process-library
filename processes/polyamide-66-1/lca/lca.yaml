@@ -6,9 +6,10 @@
 # plant with its amount per kg of polyamide 66 pellets, from the flowsheet's year averages of the
 # recipe (D-003). The adipic acid is linked to its library producer (adipic-acid-1), the hot oil
 # counted as heat from natural gas, the LP steam as heat, the nitrogen linked to asu-1
-# (lca/mappings.yaml); the diamine, which no library entry makes yet, and the other backgrounds
-# are left unmapped (`missing:` with the activity each should connect to): a gap, never zero,
-# and no values from licensed databases.
+# (lca/mappings.yaml); the water, power, cooling water and condensate are linked by the shared
+# lci/mappings.yaml in the library's Atlas build; the diamine, which no library entry makes yet,
+# and the nitrogen's disposal stay gaps there (`missing:` with the activity to connect to): a
+# gap, never zero, and no values from licensed databases.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -17,8 +18,8 @@ goal: >-
   to a 52 wt% salt solution, concentrated, polycondensed to 548 K with the steam bled off,
   finished, extruded and pelletised) at the concept stage: which raw materials, utilities and
   wastes the batch plant exchanges per kg of polyamide 66, as the foreground of a cradle-to-gate
-  study and the first library consumer of adipic acid as a polymer. The diamine and most utility
-  backgrounds are not mapped yet (D-012).
+  study and the first library consumer of adipic acid as a polymer. The diamine and the
+  nitrogen's disposal are not mapped yet (D-012).
 functional_unit: {product: PA66, amount: 1, unit: kg, source: "1 kg of polyamide 66 pellets (modelled 99.22 wt% polymer, 0.58 wt% unlinked ends, 0.2 wt% water) at the plant gate to the silos, stream S11 (D-002, D-007, D-012)"}
 # The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
 # being mapped free (the schema's gate-to-gate maps every feed free), as oxalyl-chloride-1 does.
@@ -38,12 +39,12 @@ flows:
     missing: "not mapped yet (D-012): no library entry makes hexamethylenediamine; connect to: hexamethylenediamine from the hydrogenation of adiponitrile (e.g. a future library entry), per kg"
     source: "flowsheet stream S4 (D-004)"
   - key: feed:DW
-    missing: "not mapped yet (D-012); connect to: demineralised water from the site water treatment (processes/demineralised-water-1), per kg"
+    missing: "background: demineralised water from the site water treatment, per kg; the shared entry `water` links it in the library's Atlas build (market for water, deionised, with processes/demineralised-water-1 as the Atlas producer) (D-012)"
     source: "flowsheet stream S2 (D-004)"
   # utilities
   - key: feed:POWER
-    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
-    source: "flowsheet energy streams P1 to P3 (the dissolver's agitator, the autoclave's agitator and condensate pump, the pelletising line and conveying), D-009"
+    missing: "background: electricity, medium voltage, market for the site's grid (site not chosen), per kWh; the shared entry `electricity` links it (D-012)"
+    source: "flowsheet energy streams P1 to P4 (the dissolver's agitator, the autoclave's agitator, the pelletising line and conveying, the condensate pump), D-009"
   - key: feed:HOTOIL
     missing: "linked as heat from natural gas (lca/mappings.yaml); connect to: heat from a natural-gas-fired hot-oil heater, per kWh absorbed by the oil (its efficiency and combustion emissions in the background)"
     source: "flowsheet energy streams Q3 (concentration, scripts/balance.py), Q4 (heating and polycondensation, core's conversion duty) and Q5 (steam bleed and finishing, scripts/balance.py), D-009"
@@ -51,12 +52,12 @@ flows:
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler, per kWh of condensing heat"
     source: "flowsheet energy stream Q2 (the dissolver's warming, scripts/balance.py), D-009"
   - key: product:CW
-    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    missing: "background: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed; the shared entry `cooling-water` links it (D-012)"
     source: "flowsheet energy streams Q1 (the neutralisation, core's semi-batch model), Q6 (the vapour condenser E-201) and Q7 (the strand quench water), scripts/balance.py, D-009"
   # waste
   - key: product:COND
     treatment: {kind: waste, route: "site biological wastewater treatment with nitrification and denitrification of the process condensate carrying the stripped diamine (EU POL BREF section 9.3.3.3) (D-010)"}
-    missing: "not mapped yet (D-012); connect to: treatment of a process condensate with dissolved amine in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg"
+    missing: "background: treatment of a process condensate with dissolved amine in an industrial wastewater treatment plant, per kg (1 m3 = 1000 kg); the shared entry `wastewater` links it (processes/utility-wwtp in the Atlas) (D-012)"
     source: "flowsheet stream S13 (D-010)"
 # What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
 # ADR 0053): nitrogen for the tanks' blankets, the autoclave's purge before heating and its
@@ -65,8 +66,8 @@ consumables:
   - id: nitrogen
     title: "Nitrogen for the blankets, the autoclave's purge and extrusion, and the pellets"
     unit: kg
-    per_batch: 50
-    source: "ASSUMED 50 kg a batch: the autoclave's free volume of about 6 m3 at the end of the cycle purged and pressurised to about 5 bar(a) for the extrusion (about 35 kg) and the tanks' and pellets' blankets (about 15 kg); SRC-1 names nitrogen for the salt, the autoclave and the drying (D-012)"
+    per_batch: 70
+    source: "ASSUMED 70 kg a batch, ideal gas, M 28.014: the extrusion, the autoclave R-201 (16 m3) pressurised to about 5 bar(a) (ASSUMED) at the melt's 548 K and full of nitrogen once the melt is pressed out, 49 kg, then vented (the headspace before it is steam after the let-down); the purge of the charged autoclave's free volume (16 m3 less the 10.7 m3 charge, D-003) with one volume at 101.325 kPa and 298 K, 6 kg; the tanks' and the pellets' blankets about 15 kg; SRC-1 names nitrogen for the salt, the autoclave and the drying (D-012)"
     missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
     disposal:
       kind: waste

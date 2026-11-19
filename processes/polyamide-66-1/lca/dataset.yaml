@@ -109,8 +109,9 @@ exchanges:
   unit: kg
   link:
     source: flowsheet stream S2 (D-004)
-    missing: 'not mapped yet (D-012); connect to: demineralised water from the site water treatment (processes/demineralised-water-1),
-      per kg'
+    missing: 'background: demineralised water from the site water treatment, per kg; the shared entry
+      `water` links it in the library''s Atlas build (market for water, deionised, with processes/demineralised-water-1
+      as the Atlas producer) (D-012)'
   streams:
   - S2
   source: flowsheet stream S2 (D-004)
@@ -130,16 +131,17 @@ exchanges:
   amount: 60.0
   unit: kWh
   link:
-    source: flowsheet energy streams P1 to P3 (the dissolver's agitator, the autoclave's agitator and
-      condensate pump, the pelletising line and conveying), D-009
-    missing: 'not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided)
-      site country'
+    source: flowsheet energy streams P1 to P4 (the dissolver's agitator, the autoclave's agitator, the
+      pelletising line and conveying, the condensate pump), D-009
+    missing: 'background: electricity, medium voltage, market for the site''s grid (site not chosen),
+      per kWh; the shared entry `electricity` links it (D-012)'
   streams:
   - P1
   - P2
+  - P4
   - P3
-  source: flowsheet energy streams P1 to P3 (the dissolver's agitator, the autoclave's agitator and condensate
-    pump, the pelletising line and conveying), D-009
+  source: flowsheet energy streams P1 to P4 (the dissolver's agitator, the autoclave's agitator, the pelletising
+    line and conveying, the condensate pump), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -172,7 +174,7 @@ exchanges:
 - key: feed:HOTOIL
   title: Hot oil 593/573 K (natural-gas-fired heater)
   type: input
-  amount: 812.5020000000001
+  amount: 868.176
   unit: kWh
   link:
     source: flowsheet energy streams Q3 (concentration, scripts/balance.py), Q4 (heating and polycondensation,
@@ -232,8 +234,9 @@ exchanges:
   provenance: calculated
   link:
     source: flowsheet stream S13 (D-010)
-    missing: 'not mapped yet (D-012); connect to: treatment of a process condensate with dissolved amine
-      in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg'
+    missing: 'background: treatment of a process condensate with dissolved amine in an industrial wastewater
+      treatment plant, per kg (1 m3 = 1000 kg); the shared entry `wastewater` links it (processes/utility-wwtp
+      in the Atlas) (D-012)'
   streams:
   - S13
   source: flowsheet stream S13 (D-010)
@@ -256,13 +259,13 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 1156.835
+  amount: 1212.192
   unit: kWh
   link:
     source: flowsheet energy streams Q1 (the neutralisation, core's semi-batch model), Q6 (the vapour
       condenser E-201) and Q7 (the strand quench water), scripts/balance.py, D-009
-    missing: 'not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system
-      with cooling tower (processes/utility-cooling-tower), per kWh removed'
+    missing: 'background: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower),
+      per kWh removed; the shared entry `cooling-water` links it (D-012)'
   streams:
   - Q1
   - Q6
@@ -280,17 +283,23 @@ exchanges:
 - key: consumable:nitrogen
   title: Nitrogen for the blankets, the autoclave's purge and extrusion, and the pellets
   type: input
-  amount: 9.523809523809524
+  amount: 13.333333333333334
   unit: kg
   link:
-    source: 'ASSUMED 50 kg a batch: the autoclave''s free volume of about 6 m3 at the end of the cycle
-      purged and pressurised to about 5 bar(a) for the extrusion (about 35 kg) and the tanks'' and pellets''
-      blankets (about 15 kg); SRC-1 names nitrogen for the salt, the autoclave and the drying (D-012)'
+    source: 'ASSUMED 70 kg a batch, ideal gas, M 28.014: the extrusion, the autoclave R-201 (16 m3) pressurised
+      to about 5 bar(a) (ASSUMED) at the melt''s 548 K and full of nitrogen once the melt is pressed out,
+      49 kg, then vented (the headspace before it is steam after the let-down); the purge of the charged
+      autoclave''s free volume (16 m3 less the 10.7 m3 charge, D-003) with one volume at 101.325 kPa and
+      298 K, 6 kg; the tanks'' and the pellets'' blankets about 15 kg; SRC-1 names nitrogen for the salt,
+      the autoclave and the drying (D-012)'
     missing: 'linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit'
-  source: 'ASSUMED 50 kg a batch: the autoclave''s free volume of about 6 m3 at the end of the cycle purged
-    and pressurised to about 5 bar(a) for the extrusion (about 35 kg) and the tanks'' and pellets'' blankets
-    (about 15 kg); SRC-1 names nitrogen for the salt, the autoclave and the drying (D-012); 50 kg per
-    batch x 1508.57 batches in 7920 h (process/recipe.yaml, case design, bottleneck AUTOCLAVE)'
+  source: 'ASSUMED 70 kg a batch, ideal gas, M 28.014: the extrusion, the autoclave R-201 (16 m3) pressurised
+    to about 5 bar(a) (ASSUMED) at the melt''s 548 K and full of nitrogen once the melt is pressed out,
+    49 kg, then vented (the headspace before it is steam after the let-down); the purge of the charged
+    autoclave''s free volume (16 m3 less the 10.7 m3 charge, D-003) with one volume at 101.325 kPa and
+    298 K, 6 kg; the tanks'' and the pellets'' blankets about 15 kg; SRC-1 names nitrogen for the salt,
+    the autoclave and the drying (D-012); 70 kg per batch x 1508.57 batches in 7920 h (process/recipe.yaml,
+    case design, bottleneck AUTOCLAVE)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -300,7 +309,7 @@ exchanges:
     the autoclave''s and the tanks'' vents through the scrubber to air, unchanged (SRC-1, section 9.2.2.3)
     (D-010))'
   type: output
-  amount: 9.523809523809524
+  amount: 13.333333333333334
   unit: kg
   link:
     source: the blanket, purge and extrusion nitrogen leaves with the vents (D-010)
@@ -322,8 +331,8 @@ provenance:
   plant: Polyamide 66 by batch autoclave polycondensation of AH salt (8000 t/a)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:4e121d15a5da9b010700e382ac1848d2501b47225de604ff06f24134623d96a0
-    lca/lca.yaml: sha256:c28909b9134a78de181b018e2a1d22aca4b743a8a4e890ba3f807b705d1c1b1b
-    process.yaml: sha256:fa3a0b18d4d61d8ad43ab1a08ed9c8259723fd7ae2468b965f9db3609355a712
-    process/flowsheet.yaml: sha256:0fd3400f36f2c6eb686fe6bbe48c519ff158b42314a6536ebe326945823badf4
-    process/materials.yaml: sha256:5f7d7b8ecf24f330de6eefe8fab96d5f3f50dae694b0b8d7e7bd4a50024d2178
+    equipment/equipment-list.yaml: sha256:8e1bc07ed6889b0e32e8401f4c4ff2575f6f67efe7eb4141a08b4533ef3f56c1
+    lca/lca.yaml: sha256:def29b38eba8ccbfcce79e05e599e135601d66cf23539d589caac012d7472ec8
+    process.yaml: sha256:491ae4d23966fbf93dba65ffd6198a7d6b78bd9873a0017e89eff9a0ba2116d4
+    process/flowsheet.yaml: sha256:cdd2d18f1abd9dd101710f85bafe975f9cdc21922e69c85592d64fecbb380d64
+    process/materials.yaml: sha256:688df041922596982703c2b60ad0404dba000867ee8585b1b300b16a873d9cdb

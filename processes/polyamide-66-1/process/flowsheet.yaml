@@ -60,6 +60,7 @@ feeds:
       - {id: r101, direction: out, kind: energy}
       - {id: r201, direction: out, kind: energy}
       - {id: e301, direction: out, kind: energy}
+      - {id: e201, direction: out, kind: energy}
   - id: LPS
     title: LP steam 350 kPa(a)
     category: utility
@@ -124,6 +125,7 @@ blocks:
       - {id: oil3, direction: in, kind: energy}
       - {id: q_cond, direction: out, kind: energy}
       - {id: power, direction: in, kind: energy}
+      - {id: pump, direction: in, kind: energy}
   - id: FINISH
     title: Extrusion, strand quench and pelletising
     class: Cooling
@@ -200,7 +202,7 @@ steps:
     hazard:
       mtt: 573.15
       provenance: assumed
-      source: "MTT ASSUMED at 300 C, the autoclave's design temperature, 20 K below the hot oil's supply: the water boils off by design at the bleed pressure, so the boiling point bounds nothing here; above it the melt degrades (SRC-2: Steppan's degradation forms ammonia, CO2 and cross-links) (D-011)"
+      source: "MTT ASSUMED at 300 C, 15 K above the continuous finisher's 285 C (SRC-1 section 9.2.2.2): the water boils off by design at the bleed pressure, so the boiling point bounds nothing here; above it the melt degrades (SRC-2: Steppan's degradation forms ammonia, CO2 and cross-links). The hot oil's 593.15 K supply lies above it: a high-temperature trip that closes the hot oil below the MTT is required (open input), and R-201's design temperature, 623.15 K ASSUMED, covers the oil (D-011)"
     links: [{target: equipment, ref: R-201}]
     ports:
       - {id: in, direction: in}
@@ -239,6 +241,7 @@ steps:
       - {id: in, direction: in}
       - {id: out, direction: out, delegates: cond}
       - {id: q, direction: out, kind: energy, delegates: q_cond}
+      - {id: power, direction: in, kind: energy, delegates: pump}
   - id: E301
     block: FINISH
     title: Strand extrusion, water quench and cutting to pellets (to 323 K)
@@ -261,7 +264,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "crystals from the bag or silo store (D-004)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {AA: 1.0}, provenance: assumed, source: "adipic acid of adipic-acid-1, impurities not modelled (D-004)"}
-        flow: {value: 650.434, provenance: calculated, source: 'cheme process propagate: spec rate (S11 t/a 8000)', fingerprint: a24732da388f95d9}
+        flow: {value: 650.434, provenance: calculated, source: 'cheme process propagate: spec rate (S11 t/a 8000)', fingerprint: 135ec588d8e2b5e2}
   - id: S2
     title: Demineralised water to the salt dissolver
     from: DW.out
@@ -272,7 +275,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "design basis"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "demineralised water (D-004)"}
-        flow: {value: 1075.09, provenance: calculated, source: 'cheme process propagate: spec rate (1.65288 x S1)', fingerprint: a24732da388f95d9}
+        flow: {value: 1075.09, provenance: calculated, source: 'cheme process propagate: spec rate (1.65288 x S1)', fingerprint: 135ec588d8e2b5e2}
   - id: S3
     title: Acid slurry
     from: M101.out
@@ -305,7 +308,7 @@ streams:
         temperature: {value: 333.15, provenance: assumed, source: "molten from heated storage, 19 K above its melting point of 314.15 K (chemicals 1.5.2, OPEN_NTBKM) (D-004)"}
         pressure: {value: 101.325, provenance: assumed, source: "design basis"}
         composition: {basis: mass_fraction, values: {HMDA: 1.0}, provenance: assumed, source: "hexamethylenediamine, bought in (D-004)"}
-        flow: {value: 519.921, provenance: calculated, source: 'cheme process propagate: spec rate (0.799344 x S1)', fingerprint: a24732da388f95d9}
+        flow: {value: 519.921, provenance: calculated, source: 'cheme process propagate: spec rate (0.799344 x S1)', fingerprint: 135ec588d8e2b5e2}
   - id: S5
     title: AH salt solution (52 wt%) to the autoclave
     from: R101.out
@@ -407,11 +410,12 @@ streams:
         composition: {basis: mole_fraction, values: {H2O: 0.999658, HMDA: 0.000342023, AA: 0.0, AHSALT: 0.0, PA66: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S12', fingerprint: 37675f3d50601f8c}
   - {id: Q1, title: Heat of neutralisation to cooling water, kind: energy, from: R101.q, to: CW.r101, state: {design: {duty: {value: 122.038, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3A S4', fingerprint: a38cc2ca8fca842b}}}}
   - {id: Q2, title: Slurry warming (jacket on LP steam), kind: energy, from: LPS.e101, to: E101.steam, state: {design: {duty: {value: 58.6703, provenance: assumed, source: "scripts/balance.py: the acid slurry S3 warmed from 298.15 to 338.15 K at the materials' heat capacities, the acid's heat of dissolution not counted (D-005, D-009)"}}}}
-  - {id: Q3, title: Concentration heat (hot oil), kind: energy, from: HOTOIL.x201, to: X201.oil, state: {design: {duty: {value: 437.942, provenance: assumed, source: "scripts/balance.py: the salt solution S5 warmed from 338.15 to 383.15 K and the water of S6 evaporated at 383.15 K (thermo 0.6.1 HEOS_FIT latent heat), the salt's boiling-point rise and the autoclave's steel not counted (D-006, D-009)"}}}}
-  - {id: Q4, title: Heating and polycondensation (hot oil), kind: energy, from: HOTOIL.r201, to: R201.oil, state: {design: {duty: {value: 87.758, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S7 S8', fingerprint: 313597d538d9ee35}}}}
-  - {id: Q5, title: Steam bleed and finishing heat (hot oil), kind: energy, from: HOTOIL.x202, to: X202.oil, state: {design: {duty: {value: 286.802, provenance: assumed, source: "scripts/balance.py: the water and the diamine of S9 evaporated at the mass's 548.15 K (thermo 0.6.1: HEOS_FIT, MORGAN_KOBAYASHI), R201 having heated them as liquid (D-006, D-009)"}}}}
-  - {id: Q6, title: Vapour condenser E-201 to cooling water, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 870.814, provenance: assumed, source: "scripts/balance.py: the vapours S6 (383.15 K) and S9 (548.15 K) condensed at their latent heats and the condensate cooled to 313.15 K (D-009)"}}}}
+  - {id: Q3, title: Concentration heat (hot oil), kind: energy, from: HOTOIL.x201, to: X201.oil, state: {design: {duty: {value: 438.576, provenance: assumed, source: "scripts/balance.py: the salt solution S5 warmed from 338.15 to 383.15 K and the water of S6 taken from liquid at 383.15 K to vapour at 383.15 K and 101.325 kPa (IAPWS-95, chemicals 1.5.2), the salt's boiling-point rise and the autoclave's steel not counted (D-006, D-009)"}}}}
+  - {id: Q4, title: Heating and polycondensation (hot oil), kind: energy, from: HOTOIL.r201, to: R201.oil, state: {design: {duty: {value: 88.758, provenance: calculated, source: 'cheme process propagate: conversion duty R201 from S7 S8', fingerprint: e75b6a4371279d9a}}}}
+  - {id: Q5, title: Steam bleed and finishing heat (hot oil), kind: energy, from: HOTOIL.x202, to: X202.oil, state: {design: {duty: {value: 340.842, provenance: assumed, source: "scripts/balance.py: the water of S9 from liquid at 383.15 K to vapour at S9's 548.15 K and 101.325 kPa (IAPWS-95, chemicals 1.5.2) less the liquid heating at 75.4 kJ/(kmol K) that R201's Q4 already counts, and the diamine of S9 evaporated at 548.15 K (thermo 0.6.1 MORGAN_KOBAYASHI) (D-006, D-009)"}}}}
+  - {id: Q6, title: Vapour condenser E-201 to cooling water, kind: energy, from: E201.q, to: CW.e201, state: {design: {duty: {value: 926.171, provenance: assumed, source: "scripts/balance.py: the water of the vapours S6 (383.15 K) and S9 (548.15 K), both at 101.325 kPa, condensed and cooled to liquid at 313.15 K (IAPWS-95, chemicals 1.5.2), the diamine at its latent heat and liquid heat capacity (D-009)"}}}}
   - {id: Q7, title: Strand quench water to cooling water, kind: energy, from: E301.q, to: CW.e301, state: {design: {duty: {value: 163.983, provenance: assumed, source: "scripts/balance.py: the melt S10 cooled from 548.15 to 323.15 K in the strand bath at the materials' heat capacities (PA66 2.6 kJ/(kg K) ASSUMED), its heat of crystallisation not counted (D-007, L-3)"}}}}
   - {id: P1, title: Dissolver agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: "year average of R-101's agitator (D-009)"}}}}
-  - {id: P2, title: Autoclave agitator and condensate pump, kind: energy, from: POWER.r201, to: R201.power, state: {design: {duty: {value: 15.0, provenance: assumed, source: "year average of R-201's agitator and the condensate pump (D-009)"}}}}
-  - {id: P3, title: "Strand cutter, quench water pump, pellet dryer fan, conveying", kind: energy, from: POWER.e301, to: E301.power, state: {design: {duty: {value: 40.0, provenance: assumed, source: "year average of the pelletising line and the pneumatic conveying to the silos (D-007, D-009)"}}}}
+  - {id: P2, title: Autoclave agitator, kind: energy, from: POWER.r201, to: R201.power, state: {design: {duty: {value: 14.0, provenance: assumed, source: "year average of R-201's agitator; its work ends as heat in the mass, so core credits it against R201's hot-oil duty Q4 (D-006, D-009)"}}}}
+  - {id: P4, title: Condensate pump, kind: energy, from: POWER.e201, to: E201.power, state: {design: {duty: {value: 1.0, provenance: assumed, source: "year average of E-201's condensate pump, a motor's draw (its hydraulic power at 1.24 m3/h and an ASSUMED 3 bar is about 0.1 kW); kept off R201, whose mass it does not heat (D-009)"}}}}
+  - {id: P3, title: "Strand cutter, quench water pump, centrifugal surface dryer, conveying", kind: energy, from: POWER.e301, to: E301.power, state: {design: {duty: {value: 40.0, provenance: assumed, source: "year average of the pelletising line and the pneumatic conveying to the silos (D-007, D-009)"}}}}

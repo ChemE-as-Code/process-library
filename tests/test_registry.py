@@ -125,7 +125,10 @@ def test_every_identified_substance_has_a_formula_and_cas() -> None:
 #: against the ChEBI polymer entry instead (EBI OLS, 2026-11-05; polystyrene, CHEBI:53276,
 #: 2026-11-19). pvc-1 (#461) added two more: the package resolves polyvinyl chloride's CAS
 #: 9002-86-2 to the monomer vinyl chloride and polyvinyl alcohol's 9002-89-5 to ethenol; checked
-#: against CHEBI:53243 and CHEBI:17246 (EBI OLS, 2026-11-19).
+#: against CHEBI:53243 and CHEBI:17246 (EBI OLS, 2026-11-19). polyamide-66-1 (#521) added
+#: polyamide 66: the package does not hold its CAS 32131-17-2 ("not in the database", chemicals
+#: 1.5.2), and ChEBI has no entry for it (EBI OLS, 2026-11-19); the CAS is checked against
+#: Wikipedia's Nylon 66 infobox and PubChem Substance records instead.
 CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate", "polyamide-66", "polyethylene", "polyethylene-terephthalate", "polypropylene", "polystyrene", "polyvinyl-alcohol", "polyvinyl-chloride"}
 
 
