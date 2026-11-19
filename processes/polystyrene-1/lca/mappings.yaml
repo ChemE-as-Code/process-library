@@ -1,0 +1,16 @@
+# polystyrene-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, names an
+# Atlas `dataset`, gives the exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Linked here: the styrene to styrene-1 (its flowsheet-derived dataset), the hot oil's heat as
+# heat from natural gas (kWh absorbed, as hda-1's feed heater), the nitrogen consumable to asu-1's
+# gaseous nitrogen. Electricity, cooling water, wastewater and the process water (as `water`,
+# deionised: a conservative proxy) link by their registry slugs and the shared entries. The
+# purge's and the vent's thermal oxidation and the nitrogen's release stay gaps (DESIGN.md D-011,
+# CONTRIBUTING "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:SM": {dataset: {path: processes/styrene-1/lca/dataset.yaml, product: "product:STYRENE"}, source: "the Atlas producer styrene-1 (ethylbenzene dehydrogenation, its flowsheet-derived dataset): 99.85 % styrene, the grade of this feed (D-003); kg for kg"}
+  "feed:HOTOIL": {use: heat-natural-gas, source: "hot oil from a natural-gas-fired heater, counted as the heat absorbed (kWh), as hda-1 counts its feed heater; the background heat activity includes the combustion (D-008)"}
+  "consumable:nitrogen": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GANP"}, source: "the Atlas producer asu-1, gaseous nitrogen to the battery limit (99.97 mol% N2, 9 bar(a)); the blankets and purges need only a few hundred kPa"}

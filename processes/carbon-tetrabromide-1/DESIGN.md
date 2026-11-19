@@ -97,16 +97,18 @@ Vessels (core ADR 0052, 0057; fill 0.8, H/D 1.2 for the reactors and 1.0 for the
 ASSUMED): M-101 2.76 m3 of liquor in 4 m3 (69 % full, D 1.62 m), R-101 2.79 m3 in 4 m3 (70 %,
 D 1.62 m), F-101 2.79 m3 of slurry in 4 m3 (D 1.72 m, the cake wetting 2.93 m2). Jackets
 (U 300 W/(m2 K), ASSUMED for glass-lined steel) on the brine of D-009, which enters at 258.15 K
-and leaves at 263.15 K: core takes the coolant temperature as constant, so the jackets are
-entered at 260.77 K, the temperature that gives the log-mean driving force of the 20 K and 15 K
-ends against the liquor at 278.15 K (17.38 K), not at the supply temperature. M-101's peak duty
-37.8 kW while the bromine is dosed against 42.1 kW the jacket removes at the charge's wetted
-area; R-101's 45.7 kW against 46.3 kW. **R-101's jacket sets the acetone's 4.5 h dosing and
-M-101's the bromine's 1.7 h**: with the first issue's 4 h and 1.5 h both jackets fail
+and leaves at 260.15 K (a 2 K rise, D-015; 263.15 K before): core takes the coolant temperature
+as constant, so the jackets are entered at 259.17 K, the temperature that gives the log-mean
+driving force of the 20 K and 18 K ends against the liquor at 278.15 K (18.98 K), not at the
+supply temperature. M-101's peak duty 37.8 kW while the bromine is dosed against 45.9 kW the
+jacket removes at the charge's wetted area; R-101's 45.7 kW against 50.6 kW. The acetone's
+4.5 h dosing and the bromine's 1.7 h were set by the jackets at the first issue's 5 K brine
+rise (mean 260.77 K): with the first issue's 4 h and 1.5 h both jackets failed there
 (R-101 51.3 kW against 46.3 kW, M-101 42.8 kW against 42.0 kW, `cheme.recipe-jacket` in a
 scratch copy); entered at the supply temperature, 258.15 K, they had passed only because the
-brine's own 5 K rise was ignored. R-101's margin is 1.3 %: a dirtier jacket, a warmer brine or
-a faster acetone dose needs a longer dosing; the design basis's brine (258/263 K) is the limit.
+brine's own 5 K rise was ignored. At the 5 K rise R-101's margin was 1.3 % at the assumed
+kinetics and none for a fast reaction (issue #427); D-015 decides how it is restored without
+changing the cycle.
 Reason: core ADR 0051 puts the batch basis in one place; the dosing and post-reaction times come
 from the reactor models and the filtration and drying times from F-101's models, so a change of
 the kinetics, the cake data or the drying rate changes the cycle. The other durations are
@@ -236,8 +238,9 @@ SRC-1 air-dries. The sublimation loss itself is not modelled (lesson L-5). The s
 costs no capacity: the two filter-dryers (9.42 h each in turn) stay below R-101's 11.38 h.
 
 ## D-009 Utilities and heat (2026-11-05)
-Decision: chilled brine at 258/263 K (ASSUMED) for M-101 and R-101, its jackets checked at the
-mean brine temperature 260.77 K (D-003):
+Decision: chilled brine at 258/260 K (ASSUMED; the return 263 K until D-015) for M-101 and
+R-101, its jackets checked at the mean brine temperature 259.17 K (D-003). The heats below do
+not depend on the brine's rise:
 - Q1 8.27 kW: the caustic diluted from 50 to 18 wt%, -12 kJ per mol of NaOH (ASSUMED, of the
   order of NaOH's integral heats of solution), 3.55 kW, and the charge from 298 to 278 K at
   3.6 kJ/(kg K), 4.72 kW;
@@ -277,9 +280,21 @@ condenser to a caustic scrubber, ASSUMED):
 
 | step | dT_ad (whole batch) | X_ac max | MTSR | MTT | TD24 | class |
 |---|---|---|---|---|---|---|
-| M101 (bromine into caustic) | 21.8 K | 0.38 % at the end of the dosing | 282.9 K | 331.9 K (bromine) | unknown | none |
+| M101 (bromine into caustic) | 26.5 K (HYPO and DISP as a network; 21.8 K HYPO alone) | 0.38 % at the end of the dosing | 283.0 K | 331.9 K (bromine) | unknown | none |
 | R101 (acetone into hypobromite) | 68.2 K | 12.1 % at the end of the dosing | 284.8 K (at 4.27 h) | 329.3 K (acetone) | unknown | none |
 
+Rerun on core 1.12.0 (ADR 0069, issue #427): M101 carries `hazard.potential: network`, since
+DISP consumes HYPO's product (the hypobromite) and core counts the pair together: MTSR 283.0 K
+instead of 282.9 K, no decision changes. R101's HALO and DISP compete for the hypobromite and
+are not consecutive (no network reported); the accumulation of its one dosed reactant is
+12.1 %, of it 9.4 % still able to react (at 4.27 h). No vent is modelled, so the release over
+the batch and the dissolved release (ADR 0069, 0071) report nothing. `hazard.mtt_from:
+bubble-point` was tried on R101 in a scratch copy and is not used: it needs vapour pressures or
+heats of vaporisation of acetone, bromine and water, and its Raoult's law takes acetone in the
+salt liquor as ideal, whereas acetone's activity in water is well above its mole fraction (a
+known positive deviation, not quantified here): the bubble point would be overstated. Acetone's
+normal boiling point stays the MTT, the lower and conservative choice; at 44.5 K above the MTSR
+no decision depends on it.
 No TD24 is known (the hypobromite's decomposition and that of the product; never estimated):
 no criticality class (`cheme.reactor-hazard-missing`, info). M101's MTSR, 5 K above the
 process temperature with almost no bromine accumulated, is the potential of the hypobromite's
@@ -343,15 +358,84 @@ Used (core 1.8.0):
   operation; `units: [M100, M101]` (a mixer and a semi-batch in one vessel, sized from the
   semi-batch) and `units: [F101, W101, F102, D101]` (ADR 0057); `parallel: 2`;
 - vessel sizing and the jacket check of both reactors (ADR 0052), at the mean brine
-  temperature: the jackets set both dosing times;
+  temperature: the jackets set both dosing times (at the first issue's 5 K brine rise; the
+  2 K rise of D-015 leaves both a margin);
 - `crystallizer.spectators` with a pure-water solubility and zero `salting_out:` coefficients
   (ADR 0056), twice, the second as a reslurry wash with two inlets;
 - `solid_separation.filtration:` (Ruth) and `dryer:` with energy, drying rate and cake density
   (ADR 0057);
-- per-batch `lca.yaml` consumables with a disposal (ADR 0053).
+- per-batch `lca.yaml` consumables with a disposal (ADR 0053);
+- core 1.12.0 (ADR 0069, issue #427): `hazard.potential: network` on M101 (DISP on HYPO's
+  product); `hazard.mtt_from: bubble-point` tried on R101 and not used (D-011).
 Not used, with the reason: `batch.vent` and `dosing.absorbed` (ADR 0054): no gas forms in either
 reaction and both doses are liquids; `still:` (ADR 0055): no distillation in this route;
 `kind: phase-change`: the precipitation is a crystallizer, not a reaction.
+
+## D-015 R-101's jacket margin: a 2 K brine rise and a capped, temperature-limited dose (2026-11-19)
+Finding (issue process-library#427): at the first issue's 5 K brine rise (258.15/263.15 K, mean
+260.77 K) R-101's jacket removed 46.32 kW against a peak duty of 45.73 kW, a margin of 1.3 %,
+with U ASSUMED.
+Model results (core 1.12.0, 0e85885; `cheme process recipe`, `reactors` and `reactor-hazards`;
+the variants in scratch copies, only the decision below committed):
+- The peak duty is set by the dosing, not by the kinetics. The 83.9 kg (1.445 kmol) of acetone
+  over 4.5 h at -520.8 kJ/mol (D-005) release 46.44 kW if they react as dosed; with HALO's rate
+  constant times 10 the model's peak is 46.59 kW (DISP and the dose's cooling added; the
+  acetone's accumulation 6.2 %), and the jacket at the 5 K rise fails (`cheme.recipe-jacket`,
+  46.59 against 46.32 kW). The assumed kinetics give 45.73 kW only because up to 12.1 % of the
+  acetone lags (D-011). A margin that exists because the reaction is slow is no margin: the
+  faster, and safer, the reaction, the less cooling is left. The design case is therefore the
+  dosing-controlled bound, 46.6 kW at a 4.5 h dose.
+- Options, U 300 W/(m2 K) and the charge's wetted 8.88 m2 (margin = jacket / peak duty - 1):
+
+| option | R-101 jacket | margin, assumed k / bound (k x 10) | cycle | batches/a |
+|---|---|---|---|---|
+| first issue: brine 258/263 K, dose 4.5 h | 46.32 kW | 1.3 % / -0.6 % | 11.38 h | 696.1 |
+| dose 5.0 h, brine 258/263 K | 46.32 kW | 12.3 % / 10.4 % | 11.79 h | 671.6 |
+| dose 5.5 h, brine 258/263 K | 46.32 kW | 23.3 % / 21.4 % | 12.21 h | 648.7 |
+| brine 253/258 K, dose 4.5 h | 59.72 kW | 30.6 % / 28.2 % | 11.38 h | 696.1 |
+| **brine 258/260 K (2 K rise), dose 4.5 h** | **50.58 kW** | **10.6 % / 8.6 %** | 11.38 h | 696.1 |
+
+Decision:
+1. The brine flow through the reactor jackets is sized for a 2 K rise at the peak duty: supply
+   258.15 K as before, return 260.15 K, the jackets entered at the log-mean equivalent 259.17 K
+   (`process/recipe.yaml`, the BRINE utility, the design basis). R-101's jacket removes 50.58 kW,
+   10.6 % above the modelled peak and 8.6 % above the dosing-controlled bound; M-101's 45.93 kW,
+   21.5 % above its 37.79 kW (the bromine's 1.7 h dosing is kept: M-101 is not the bottleneck).
+   ASSUMED, as the brine itself (D-009).
+2. The acetone dose rate is capped at the 4.5 h rate (18.6 kg/h) and cut back on R-101's
+   temperature (a temperature-limited dosing with a fixed maximum, design intent for the control
+   stage): if the jacket removes less than assumed (U, fouling, a warmer brine), the dose takes
+   longer instead of the liquor warming, and the cap keeps the accumulation at or below the
+   modelled one for given kinetics (a temperature-paced dose alone would dose faster into a
+   stalled, cold reaction). The dosing interlocks of D-011 stay proposals for the HAZOP; no
+   reliability is claimed for any of them.
+Reason: the 2 K rise keeps the cycle, the batch, the vessels and the 314 t/a (a longer dose costs
+3.6 % of the capacity at 5.0 h and 6.8 % at 5.5 h and changes the LCI's year averages and the
+dataset's name), and the coldest brine at the wall stays at 258.15 K as in the first issue. A
+colder supply (253/258 K) gives the most margin but brings the wall nearer the liquor's freezing
+point, which is not known (a strong NaBr/NaOBr/NaOH liquor freezes well below 273 K, how far is
+not known here): rejected until that is measured. A larger vessel at the same charge wets no
+more area (a lower liquid height), so it was not pursued.
+Consequence of a jacket shortfall, from the screening (D-011, assumed kinetics): a total cooling
+failure at the worst moment gives an MTSR of 284.8 K, 44.5 K below the MTT, so the jacket margin
+decides the temperature band, the yield lost to DISP and the cycle, not a runaway. That holds
+only while the reaction is dosing-controlled: at a hundredth of the rate the MTSR passes the MTT
+(D-011), which calorimetry has to rule out.
+Capacity sensitivity to U (2 K rise, scratch copies): the 4.5 h dose holds the bound down to
+U = 276 W/(m2 K) (46.59 kW / (8.88 m2 x 18.98 K)); at U = 240 W/(m2 K), 20 % lower, a 5.25 h dose
+passes (peak 39.33 kW at the assumed k, 39.95 kW at k x 10, against 40.46 kW): cycle 12.0 h, 660
+batches a year, 5.2 % less product. The capacity of D-002 rests on the U being at least 276.
+Open, with what each decides:
+- vendor data: the overall U of the 4 m3 glass-lined vessel with brine in the jacket at the
+  2 K-rise flow, and the jacket's hydraulic capacity for that flow (about 46.6 kW over 2 K, some
+  7-8 kg/s for a brine of about 3 kJ/(kg K), ASSUMED): decides whether the 4.5 h dose and the
+  314 t/a stand (U at least 276 W/(m2 K)) or the dose lengthens per the sensitivity above;
+- refrigeration (outside the boundary): a brine circuit able to deliver that flow at 258 K;
+- lab data: the heat flow during the acetone dosing by reaction calorimetry (whether the peak is
+  the dosing-controlled bound or below it; already open in D-005, D-011), and the freezing
+  point of the hypobromite liquor and the end liquor (gates any colder brine);
+- human sign-off: the dosing philosophy (cap and temperature cut-back) and the interlocks, in
+  the control stage and the HAZOP.
 
 ## Method and dependency table
 
@@ -419,9 +503,12 @@ assumption recorded above.
   yield).
 - L-10: the recipe's jacket check takes one constant `coolant_temperature` (ADR 0052) and does
   not read the supply and return temperatures of the utility the reactor's energy stream goes
-  to (BRINE, 258/263 K): entering the supply temperature overstates the driving force, which is
-  how the first issue's jackets passed. The log-mean equivalent, 260.77 K, is entered by hand
-  (D-003); core could take it from the utility.
+  to (BRINE, 258/260 K since D-015): entering the supply temperature overstates the driving
+  force, which is how the first issue's jackets passed. The log-mean equivalent, 259.17 K (260.77
+  K at the first issue's 263 K return), is entered by hand (D-003); core could take it from the
+  utility. Still so in core 1.12.0. Nor does the check bound the peak duty by the dose rate
+  times the heat of reaction (the dosing-controlled case): a slower assumed rate law passes a
+  jacket that a fast real reaction would overload (D-015 found it by hand, with a k x 10 copy).
 - L-11: the dryer's `drying_rate` is a bare number (ADR 0057): core relates it neither to the
   heating medium's temperature nor to a temperature limit of the product, so a rate that needs
   a medium above the polymorph transition passed unnoticed; the 318 K limit and the rate's
@@ -433,4 +520,5 @@ the hypobromite and of the wet cake; the yield and the bromoform content of a re
 patent gives neither); solubility of CBr4 at 5-20 C and in the liquor; filtration and wash data
 and the drying rate and sublimation loss from trials; product specification (assay, bromoform,
 colour, water); the catalyst's fate; bromide recovery and bromate treatment (D-010); market and
-capacity; a TEA (`operation.batch: {recipe: true}`).
+capacity; a TEA (`operation.batch: {recipe: true}`). The reactor vessels' U with brine and the
+jackets' brine flow for a 2 K rise (vendor), and the liquors' freezing points (lab), D-015.

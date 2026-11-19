@@ -28,7 +28,8 @@ description: |
   the copper leaves with the brine (22.1 % dissolved), 75 kg of copper-bearing brine per kg of
   product, to copper recovery and wastewater treatment outside the boundary.
 
-  The batch is modelled with cheme-as-code 1.9.0: R-101 is a semi-batch (reactor: semibatch)
+  The batch is modelled with cheme-as-code 1.9.0 and screened with 1.12.0 (the reaction
+  network, core ADR 0069): R-101 is a semi-batch (reactor: semibatch)
   with the chlorine as an absorbed gas dose (core ADR 0054); the copper heel and the recycled
   mother liquor are tears converged by propagate (core ADR 0060); the precipitation and the acid
   reslurry wash are crystallizers with the brine's other solutes as spectators and a solubility
@@ -37,15 +38,18 @@ description: |
   writes its heat at its energy port (core ADR 0059). The recipe gives the cycle (9.37 h, R-101
   the bottleneck, 846 batches a year), sizes R-101 (5 m3) and F-101 (1 m3) and checks R-101's
   jacket on the cooling water's log-mean temperature. Kinetics are ASSUMED (no open data): the
-  dosed chlorine accumulates 0.63 % and the cooling-failure temperature reaches 354.2 K (core,
-  each reaction alone; 354.4 K for the reaction network by hand) against an MTT of 373.1 K
-  (water). At a hundred times slower rates the accumulation is 28.1 % and core gives 363.5 K, but
-  the network's MTSR, with the comproportionation heat that core leaves out, reaches 372.1 K:
-  within about 1 K of the MTT on water's boiling point. The dosing therefore stops on a sign of
-  accumulation (a recorded safety requirement), and the chlorine held would exceed its solubility
-  and break through to the vent scrubber, which is sized for the whole chlorine feed (D-011). The
-  filter-dryer handles ethanol above its flash point under nitrogen (D-011). See DESIGN.md for
-  every assumption.
+  dosed chlorine accumulates 0.63 % and the cooling-failure temperature of the reaction network
+  (core 1.12.0, the comproportionation's heat counted) reaches 354.4 K against an MTT of 375.8 K,
+  the charged brine's bubble point by Raoult's law, a lower bound of its real boiling point
+  (D-014). At a hundred times slower rates the accumulation is 28.1 % and the network's MTSR
+  372.1 K: 3.7 K below that MTT (1.0 K below water's boiling point, the MTT before). The dosing
+  stops on a sign of accumulation (a recorded safety requirement). The chlorine the slow cases
+  hold (7.0 kg at k/10, 46.2 kg at k/100, core's dissolved release) is more than the hot brine
+  dissolves (about 1.6-3.2 kg in R-101 by water's Henry constant), so from about k/10 it breaks
+  through to the vent scrubber during the dosing; the scrubber is sized for the whole chlorine
+  feed and holds the caustic for a whole batch's chlorine (D-011, D-014). The filter-dryer
+  handles ethanol above its flash point under nitrogen (D-011). See DESIGN.md for every
+  assumption.
 families: [inorganic-chemicals]
 keywords: [copper(I) chloride, cuprous chloride, CuCl, copper, chlorine, sodium chloride brine, comproportionation, semi-batch, batch, dosing, gas dosing, precipitation, dilution, recycle, filter-dryer, vacuum dryer, catalyst, fine chemicals]
 facets:
@@ -72,17 +76,19 @@ validation:
     every mixed temperature is the mix of its inlets. The recipe takes the dosing, post-reaction,
     heating, cooling, filtration and drying times from the models (cheme process recipe, no
     cheme.recipe-basis or cheme.recipe-jacket finding). Thermal screening (cheme process
-    reactor-hazards): R101 dT_ad 36.9 K (core's, the chlorination alone; 45.8 K for the net
-    reaction by hand), accumulation 0.63 %, MTSR 354.2 K against an MTT of 373.1 K; no criticality
-    class without a TD24 from calorimetry (never estimated): classes 1, 2 or 5 are still possible.
-    Core's MTSR takes each reaction alone; with the comproportionation's heat (the network, by
-    hand) it is 354.4 K. At k/10 and k/100 the accumulation is 4.26 % and 28.1 %, core's MTSR 357.9
-    and 363.5 K, the network's 359.8 and 372.1 K (within about 1 K of the MTT at k/100), and the
-    copper(II) left after the post-reaction 24 % and 78 %: the dosing's stop on accumulation, the
-    end point and the chlorine's breakthrough to the vent scrubber are the design findings (D-011). Preliminary gate-to-gate
+    reactor-hazards, core 1.12.0, hazard.potential: network): R101 dT_ad 46.0 K (the chlorination
+    and the comproportionation on its product; 36.9 K for the chlorination alone), accumulation
+    0.63 %, MTSR 354.4 K against an MTT of 375.8 K (the charged brine's bubble point by Raoult's
+    law, hazard.mtt, D-014); no criticality class without a TD24 from calorimetry (never
+    estimated): classes 1, 2 or 5 are still possible. At k/10 and k/100 the accumulation is 4.26 %
+    and 28.1 %, the network's MTSR 359.8 and 372.1 K (3.7 K below the MTT at k/100), the chlorine
+    held at the end of the dosing 7.0 and 46.2 kg a batch, above the 1.6-3.2 kg the hot brine
+    dissolves, and the copper(II) left after the post-reaction 24 % and 78 %: the dosing's stop on
+    accumulation, the end point and the chlorine's breakthrough to the vent scrubber are the
+    design findings (D-011, D-014). Preliminary gate-to-gate
     LCI with nitrogen and the rinse as per-batch consumables; chlorine, hydrochloric acid, ethanol
     and nitrogen linked to chlor-alkali-1, hydrogen-chloride-1, ethanol-1 and asu-1, copper and
-    sodium chloride gaps with their proxies recorded. Not reviewed. Needs cheme-as-code 1.9.0.
+    sodium chloride gaps with their proxies recorded. Not reviewed. Needs cheme-as-code 1.12.0.
 chemistry:
   inputs:
     - {chemical: copper, role: feedstock, note: "feed:CU: copper cathode granules or clean scrap (merchant), 0.826 kg/kg CuCl; no library process makes copper (proxy copper cathode recorded, D-012)"}
@@ -112,6 +118,8 @@ references:
   - {title: "US4308239A (1981): Obtaining copper(I) chloride from ores with acetonitrile (CuCl solubility about 1 g/L with 10 g/L excess chloride at 20 C; 0.4 mol/L CuCl in 2.0 mol/L NaCl with 0.5 mol/L HCl at 25 C)", url: "https://patents.google.com/patent/US4308239A/en"}
   - {title: "PubChem CID 62652, Copper(I) chloride (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/compound/62652"}
   - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+  - {title: "Sander, R. (2023) Compilation of Henry's law constants (version 5.0.0) for water as solvent, Atmos. Chem. Phys. 23, 10901-12440 (chlorine's Henry's law constant in water, D-014)", doi: 10.5194/acp-23-10901-2023}
+  - {title: "Silvester, L. F., Pitzer, K. S. (1977) Thermodynamics of electrolytes. 8. High-temperature properties, including enthalpy and heat capacity, with application to sodium chloride, J. Phys. Chem. 81, 1822-1828 (via core's NaCl-H2O model: the brine's water activity, D-014)", doi: 10.1021/j100534a007}
 lca:
   source: auto
 maintainers:

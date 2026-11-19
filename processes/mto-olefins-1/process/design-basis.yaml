@@ -1,0 +1,45 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Ethylene and propylene from methanol (MTO), issue ChemE-as-Code/process-library#466. Route:
+# methanol-to-olefins on SAPO-34 in a fluidised bed with continuous regeneration (DESIGN.md
+# D-001). Values marked ASSUMED are choices of this concept study, not client, licensor or
+# vendor data; every decision is in DESIGN.md.
+capacity:
+  basis: methanol fed to the MTO unit
+  feed_kt_per_a: 1800                 # ASSUMED (D-002): one reactor train of world scale
+  feed_kg_per_h: 225000               # = 1800 kt/a / 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  products_kg_per_h: {ethylene: 33300, propylene: 43667}   # calculated by cheme process propagate (S27, S31)
+feeds:
+  - name: Methanol (from processes/methanol-1, which delivers Grade AA)
+    composition_wt_percent: {CH3OH: 99.85, H2O: 0.15}   # given: US 7 138 557 B2 examples (D-003); 0.05 wt% wetter than Grade AA's limit of 0.10 wt%, kept as the sourced basis
+    conditions: {pressure_kPa_a: 500, temperature_K: 313.15}   # ASSUMED
+  - name: Air (catalyst regeneration)
+  - name: Caustic soda 10 wt% (from 50 wt% NaOH)
+    note: "Library link: processes/chlor-alkali-1 makes the NaOH (D-009, D-012)."
+products:
+  - name: Ethylene, polymer grade
+    purity: "C2H4 >= 99.95 mol%, ASSUMED: this study's choice, as ethylene-1's (no open polymer-grade specification read); modelled 99.97 mol%; methane and ethane the only impurities modelled; the CO, CO2, oxygenate and acetylene limits of a polymer-grade specification are not modelled (D-010)"
+    delivery: {pressure_kPa_a: 1900, temperature_K: 243.15, battery_limit: "C2 splitter top; storage outside the boundary", note: "ASSUMED, as ethylene-1 (D-010)"}
+  - name: Propylene, polymer grade
+    purity: "C3H6 >= 99.5 mol% and ethylene + ethane <= 50 ppm(mol), both ASSUMED: this study's choices (no open polymer-grade specification read); modelled 99.96 mol% with 14 ppm of C2; the oxygenate, CO, CO2 and water limits are not modelled (D-010)"
+  - name: C4 olefin cut (92 mol% butenes), to a butene user or an olefin cracking unit outside the boundary
+  - name: C5+ cut (lumped as 1-pentene), to gasoline blending outside the boundary
+  - name: Tail gas (hydrogen, methane, CO, ethane, propane), to the site fuel gas header
+  - name: Process water (reaction water), to wastewater treatment
+utilities:
+  - {name: Electric power, use: "air blower, product gas compressor, refrigeration compressors (D-011)", note: "ASSUMED electric drives; steam turbines on the raised steam are usual"}
+  - {name: HP steam raised, pressure_kPa_a: 4000, use: "export (D-007)", note: "ASSUMED level"}
+  - {name: MP steam, pressure_kPa_a: 1800, use: "feed vaporiser (D-011)", note: "ASSUMED level, no heat integration"}
+  - {name: LP steam, pressure_kPa_a: 450, use: "column reboilers and oxygenate stripper (D-011)", note: "ASSUMED level"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-011)"}
+  - {name: Refrigeration, note: "propylene and ethylene cascade inside the plant (K-701), driven by power (D-011)"}
+site:
+  location: ASSUMED generic site, not chosen
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Reactor: 99.5 % methanol conversion per pass and the yield structure of US 7 138 557 B2 Table 1 (UOP MTO, fluidised bed, SAPO-34, 475 C, 239 kPa), read as shares of the methanol's carbon, as a conversion model with selectivities (D-005). Sourced yields, not kinetics."
+  - "Oxygenates (unconverted methanol, DME) recovered from the quench water and recycled; recycled DME taken to give the yields of methanol (D-006)."
+  - "Coke burnt off completely to CO2 in the regenerator at 923 K with 2 vol% O2 in the dry flue gas (D-007)."
+  - "Separations are specified recoveries, not rigorous columns; duties are shortcut estimates in scripts/balance.py (D-008 to D-011)."
+  - "No heat integration counted: feed vaporisation on MP steam, the quench heat to cooling water (D-011)."
+  - "All values are concept estimates; accuracy not stated."
