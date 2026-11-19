@@ -56,6 +56,9 @@ REFLUX = {"C201": 1.0, "C202": 3.0, "C203": 1.0}   # mass reflux ratios, ASSUMED
 T = {"reactor": 463.15, "flash": 413.15, "c201_side": 403.15, "c201_bot": 418.15,
      "c202_bot": 413.15, "cold": 313.15, "c203_top": 391.15, "c203_bot": 423.15}
 P_REACTOR, P_FLASH = 2900.0, 250.0     # kPa(a)
+# pump suction and discharge pressures of the flowsheet streams, kPa(a) (D-010): S01 methanol
+# feed, S02/S12 HP scrubber and reactor return; P-101 and P-102 rises are taken from them
+P_S01, P_DISCHARGE = 300.0, 3000.0
 ETA_PUMP = 0.65
 
 
@@ -227,9 +230,10 @@ def duties(s, xi):
     cond3 = (1 + REFLUX["C203"]) * latent(s["S21"]) + enthalpy(s["S21"], T["c203_top"]) - enthalpy(s["S21"], T["cold"])
     reb3 = cond3 + enthalpy(s["S21"], T["cold"]) + enthalpy(s["S22"], T["c203_bot"]) - enthalpy(s["S20"], T["c202_bot"])
     q["C203_condenser"], q["C203_reboiler"] = cond3 / 3600, reb3 / 3600
-    # pumps (D-010): to the reactor 2900 kPa(a); refluxes 300 kPa; product to 400 kPa(a)
-    q["P101"] = pump_kw(s["S01"], P_REACTOR - 100, 790)
-    q["P102"] = pump_kw(s["S11"], P_REACTOR - P_FLASH, 1050)
+    # pumps (D-010): P-101 S01 -> S02 and P-102 S11 -> S12 at the stream pressures (3000 kPa(a));
+    # recycles to the reactor 2900 kPa(a); refluxes 300 kPa; product to 400 kPa(a)
+    q["P101"] = pump_kw(s["S01"], P_DISCHARGE - P_S01, 790)
+    q["P102"] = pump_kw(s["S11"], P_DISCHARGE - P_FLASH, 1050)
     q["C201_pumps"] = pump_kw(add(s["S15"], s["S17"], s["S18"]), P_REACTOR - 200) \
         + pump_kw(s["S13"], 300) * REFLUX["C201"]
     q["C202_pumps"] = pump_kw(s["S19"], P_REACTOR - 200) + pump_kw(s["S19"], 300) * REFLUX["C202"] \

@@ -6,7 +6,7 @@
 > safety decisions and comes with no warranty. Check the design maturity and review status in
 > `process.yaml` before relying on any number.
 
-Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of grey Portland cement clinker from a dry rotary kiln with a cyclone preheater, a precalciner and a grate cooler. The kiln line is a continuous process; the BREF's emission data are yearly averages of continuous measurements.
+Manifest and LCI dataset only, with no flowsheet and no simulation. Per tonne of grey Portland cement clinker from a dry rotary kiln with a cyclone preheater, a precalciner and a grate cooler. The kiln line is a continuous process. Its stack emissions are of three kinds: NOx, SO2 and dust are BAT-AEL midpoints (daily averages), CO is the midpoint of the BREF's yearly-average range (Table 1.23) and mercury is the average of 306 spot measurements (Table 1.23, note 7).
 
 ## How it is built
 
