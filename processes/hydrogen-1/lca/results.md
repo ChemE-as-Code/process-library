@@ -111,7 +111,7 @@ The inventory above excludes:
 
 | rule | level | ids | where |
 |---|---|---|---|
-| cheme.boundary-utility-unassigned | warning | R201 | process/flowsheet.yaml:199 |
+| cheme.boundary-utility-unassigned | warning | R201 | process/flowsheet.yaml:200 |
 
 ## Limitations
 

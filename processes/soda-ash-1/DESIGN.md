@@ -102,7 +102,7 @@ Result per t soda ash: brine 5.78 t (NaCl 1.50 t), limestone 1.08 t, coke 87.6 k
 Rejected: a crystallizer for the towers; it treats one solute in one solvent, and
 NaHCO3 here precipitates from a four-salt system whose yield is the sodium utilisation.
 Sanity checks against independent figures (cross-checks only, not inputs): vented CO2 200-300
-kg/t (EMEP/EEA air pollutant emission inventory guidebook, chapter 2.B.7 soda ash): ours, 306
+kg/t (EMEP/EEA air pollutant emission inventory guidebook 2016, chapter 2.B.7 soda ash): ours, 306
 kg/t, is just above, with all kiln gas going through the towers; salt 1.7 t/t and limestone
 1.4 t/t (USGS Minerals Yearbook 1992, soda ash): ours are lower (1.50, 1.08) because of the
 assumed 73 % utilisation, 96 % CaCO3 and only 5 % excess lime, which are optimistic; energy
@@ -162,11 +162,13 @@ Generated: `cheme process streams --md` (not copied here).
 
 ## 4. Registry entries missing in `chemicals/chemicals.yaml` (for the consolidated PR)
 
-sodium-carbonate (with a grade light-soda-ash), sodium-chloride (or a brine grade), limestone
-or calcium-carbonate, coke, ammonia, calcium-chloride (distiller waste), and as internal
-intermediates calcium-oxide, calcium-hydroxide, sodium-bicarbonate, ammonium-chloride. Until
-then `process.yaml` lists only the existing slugs (water, air, wastewater, carbon-dioxide,
-electricity, steam, cooling-water).
+Since #251 the registry has sodium-carbonate, sodium-chloride, limestone, calcium-carbonate,
+metallurgical-coke, ammonia, calcium-chloride (distiller waste) and the internal intermediates
+calcium-oxide, calcium-hydroxide and ammonium-chloride, and `process.yaml` `chemistry:` names
+limestone, metallurgical-coke, sodium-chloride, ammonia and sodium-carbonate. Still missing:
+sodium-bicarbonate (internal intermediate), and optionally a brine grade of sodium-chloride
+(feed:BRINE is counted by mass of the 26 wt-% solution) and a light-soda-ash grade of
+sodium-carbonate.
 
 ## 5. Open inputs and gated steps
 

@@ -11,19 +11,23 @@ summary: >-
   Concept stage, assumed basis.
 description: |
   An independent concept design (issue ChemE-as-Code/process-library#117). The reformer outlet
-  and the high-temperature shift outlet are modelled as ideal-gas chemical equilibrium
-  (steam methane reforming and water-gas shift; ethane and propane reformed completely) at
-  assumed temperatures and approaches: a model basis, not kinetics. The PSA is a specified
+  and the high-temperature shift outlet are modelled as chemical equilibrium (steam methane
+  reforming and water-gas shift; ethane and propane reformed completely) at assumed
+  temperatures and approaches: a model basis, not kinetics. The PSA is a specified
   split (hydrogen recovery 0.88). The furnace burns the PSA tail gas and the trim natural gas
   completely; the trim fuel closes the radiant section's energy balance, and the convection
   section and the process gas waste heat boiler raise 4.3 MPa steam for the process and for
-  export. All CO2 leaves through the stack; the inventory keeps the feedstock carbon and the
-  trim-fuel carbon apart.
+  export. Almost all CO2 leaves through the stack; the CO2 dissolved in the process condensate
+  leaves through the deaerator vent. The inventory keeps the feedstock carbon and the trim-fuel
+  carbon apart.
 
-  All values are concept estimates. Flashes, enthalpies and duties come from an independent
-  balance script (ideal-gas enthalpies plus IAPWS-IF97 water and steam) that core cannot yet
-  qualify for these mixtures; the reactor outlets and the reactor and furnace
-  duties are recalculated by cheme and agree. See DESIGN.md of the engineering files.
+  All values are concept estimates. The process side (feed pretreatment, reformer tubes, shift,
+  condensate separator, PSA, the fuel mixer and the fans) is simulated in DWSIM with
+  Peng-Robinson, a property package not qualified for this water-bearing mixture (DESIGN.md
+  D-016). The furnace and the steam system are not simulated and keep the values of an
+  independent balance script (ideal-gas enthalpies plus IAPWS-IF97 water and steam); the trim
+  fuel closes the radiant balance at the script's reformer duty, 270 kW (0.26 %) below the
+  simulated one. See DESIGN.md of the engineering files.
 families: [hydrogen]
 keywords: [hydrogen, steam methane reforming, SMR, natural gas, water-gas shift, high-temperature shift, pressure swing adsorption, PSA, tail gas, steam export, synthesis gas]
 facets:
@@ -38,15 +42,18 @@ validation:
   status: unreviewed
   notes: >-
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
-    streams; every block and step ok). The reformer and shift outlets are calculated by cheme
-    (equilibrium reactors) and reproduce the independent balance script
-    (scripts/h2_balance.py); cheme process reactors gives a reformer duty of 102.0 MW and a
-    furnace radiant duty of -102.0 MW on the same ideal-gas basis, and an adiabatic shift
-    (0.03 kW). Since 2026-11-01 (DESIGN.md D-016) the process side is simulated in DWSIM
+    streams; every block and step ok). Until 2026-11-01 the reformer and shift outlets were
+    calculated by cheme (ideal-gas equilibrium reactors) and reproduced the independent balance
+    script (scripts/h2_balance.py), with a reformer duty of 102.0 MW matching the furnace radiant
+    duty. Since 2026-11-01 (DESIGN.md D-016) the process side is simulated in DWSIM
     (cheme process simulate, Peng-Robinson, converged; process/simulation-run.json) and its
-    stream values and duties are the simulated ones; Peng-Robinson is not qualified for this
-    water-bearing mixture and its use is a substitution not yet accepted. The furnace and steam
-    system are excluded from the simulation and keep the concept balance's values. The natural gas composition, capacity, PSA recovery and all conditions are
+    stream values and duties are the simulated ones (reformer duty 102.3 MW, shift re-solved to
+    an adiabatic outlet of 689.92 K); Peng-Robinson is not qualified for this water-bearing
+    mixture and its use is a substitution not yet accepted. The furnace and steam system are
+    excluded from the simulation and keep the concept balance's values, so they are not
+    re-closed: the trim fuel closes the radiant balance at 102.0 MW, 270 kW short of the
+    simulated reformer duty, and the export steam is not re-derived from the simulated waste
+    heat boiler duty. The natural gas composition, capacity, PSA recovery and all conditions are
     ASSUMED, not sourced, so cheme maturity reaches no level yet (sourced boundary and
     sourced model basis fail; the concept claim is the manifest's lowest level). Not reviewed. A preliminary gate-to-gate LCI (lca/) is written with
     its backgrounds unmapped (gaps). The chemicals registry entries used here are listed in
@@ -60,7 +67,8 @@ chemistry:
   outputs:
     - {chemical: hydrogen, role: main-product, inventory_key: "product:H2", note: "99.9 mol% H2 at 2850 kPa(a) (ASSUMED)"}
     - {chemical: steam, role: co-product, inventory_key: "product:STEAMX", note: "export steam 4300 kPa(a), 673 K"}
-    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:FLUE", note: "all CO2 of feedstock and fuel, through the stack"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:FLUE", note: "the CO2 of feedstock and fuel through the stack, except the part dissolved in the process condensate"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:DAV", note: "deaerator vent S35, the CO2 dissolved in the process condensate (D-016)"}
     - {chemical: water, role: waste, inventory_key: "product:BD", note: "boiler blowdown"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "fans, BFW pump, recycle compressor (ASSUMED electric drives)"}
