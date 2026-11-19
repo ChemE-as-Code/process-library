@@ -1,0 +1,15 @@
+# methyl-methacrylate-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, links an
+# Atlas producer (`dataset:`), gives the exchange's `chemical` slug, or `atlas: false`.
+#
+# What stays unmapped is a gap (lci/gaps.json) and marks this process preliminary (ADR 0026):
+# feed:HCNF (no library producer of hydrogen cyanide) and product:WW (no curated background for
+# weak acid condensate). DESIGN.md D-012.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ACEF": {dataset: {path: processes/acetone-1/lca/dataset.yaml, product: "product:ACETONE"}, source: "the Atlas producer acetone-1 (cumene-phenol), acetone kg for kg, which this feed names (D-003, D-012)"}
+  "feed:MEOHF": {dataset: {path: processes/methanol-1/lca/dataset.yaml, product: "product:MEOH"}, source: "the Atlas producer methanol-1, grade AA methanol kg for kg (D-003, D-012)"}
+  "feed:ACIDF": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, 98.5 wt% acid counted by mass of the acid, the basis of this feed (D-003, D-012)"}
+  "feed:PW": {use: water, source: "demineralised process water by mass (D-003)"}
+  "feed:NG": {use: natural-gas, source: "natural gas by mass, taken as methane (the shared unit proxy); burned as fuel in F-501, its combustion CO2 is this dataset's own emission:CO2; not linked to an Atlas producer of the slug methane", atlas: false}

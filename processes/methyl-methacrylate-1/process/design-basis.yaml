@@ -1,0 +1,73 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Methyl methacrylate by the acetone cyanohydrin (ACH-sulfo) route with on-site sulfuric acid
+# regeneration, issue ChemE-as-Code/process-library#477. Acetone (acetone-1), methanol
+# (methanol-1) and the sulfuric acid make-up (sulfuric-acid-1) are library feeds; liquid HCN has
+# no library producer and is a boundary feed (DESIGN.md D-003). Values marked ASSUMED are
+# engineering choices of this concept study, not client or licensor data; every decision is in
+# DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: Pure methyl methacrylate (stabilised) to storage
+  product_t_per_d: 300                # = 12.5 t/h; ASSUMED (D-002): a single train, of the order of US 2023/0416184 A1 Example B1 (11.39 t/h)
+  product_kg_per_h: 12500.0           # ASSUMED (D-002)
+  operating_hours_per_year: 8000      # ASSUMED: 100 kt/a
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: Acetone (from the cumene-phenol plant, library process acetone-1)
+    source_of_values: ASSUMED pure acetone (D-003)
+    composition_mol_percent: {ACETONE: 100}
+    conditions: {pressure_kPa_a: 400, temperature_K: 298.15}
+    flow: "set by the product rate (spec rate), stream S1"
+  - name: Liquid hydrogen cyanide (stabilised; no library producer)
+    source_of_values: "ASSUMED pure HCN, equimolar with the acetone (D-003, D-004); the acid stabiliser not modelled"
+    composition_mol_percent: {HCN: 100}
+    conditions: {pressure_kPa_a: 400, temperature_K: 283.15}
+    flow: stream S2
+  - name: Methanol (grade AA, library process methanol-1)
+    source_of_values: ASSUMED pure methanol (D-003)
+    composition_mol_percent: {MEOH: 100}
+    conditions: {pressure_kPa_a: 400, temperature_K: 298.15}
+    flow: "1.2 mol per mol methacrylamide at the esterification less the recycle (spec methanol), stream S10"
+  - name: Sulfuric acid 98.5 wt% make-up (library process sulfuric-acid-1)
+    source_of_values: "the product of sulfuric-acid-1 (D-003)"
+    conditions: {pressure_kPa_a: 400, temperature_K: 313.15}
+    flow: "replaces the sulfur lost as SO2 in the tail gas (spec acid), stream S4"
+  - name: Natural gas (site grid), modelled as methane
+    source_of_values: ASSUMED (D-003)
+    composition_mol_percent: {CH4: 100}
+    conditions: {pressure_kPa_a: 400, temperature_K: 298.15}
+    flow: "fuel of the SAR furnace from its adiabatic energy balance (scripts/mma_balance.py, D-008), stream S19"
+  - name: Air (combustion air and converter air)
+    source_of_values: "ASSUMED dry air 21 mol% O2, argon lumped with N2 (D-003)"
+    composition_mol_percent: {O2: 21, N2: 79}
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 298.15}
+    flow: "2 mol% O2 at the furnace outlet; O2/SO2 1.0 at the converter (D-008), streams S20, S27"
+  - name: Process water (demineralised)
+    source_of_values: ASSUMED (D-003)
+    conditions: {pressure_kPa_a: 400, temperature_K: 298.15}
+    flow: "0.44 kg per kg ACH to the esterification (US 2023/0416184 A1 Example A2), the SO3 absorption water (D-006, D-008), streams S12, S29"
+products:
+  - name: Methyl methacrylate
+    purity: "at least 99.9 wt% MMA (US 2023/0416184 A1: pure MMA from the last column; the model's product is MMA only, D-007); stabiliser not modelled"
+    delivery: {pressure_kPa_a: 300, temperature_K: 298.15, battery_limit: storage (outside the boundary)}
+  - name: MP steam 1500 kPa(a)
+    use: export to the site header, net of the plant's own steam use (D-009)
+  - name: Tail gas of the SAR absorbers
+    use: to atmosphere through a stack (D-008)
+  - name: Gas-cleaning condensate (weak acid water)
+    use: neutralisation and wastewater treatment (outside the boundary, D-008)
+utilities:
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-009)}
+  - {name: MP steam raised in E-501, pressure_kPa_a: 1500, saturation_K: 471.4, use: "the esterification stripper and the purification reboilers, the rest exported", note: ASSUMED level (D-009)}
+  - {name: Electric power, use: "combustion air blower K-501, SO2 blower K-502, pumps, agitators, vacuum", note: "ASSUMED electric drives (D-009)"}
+site:
+  location: ASSUMED generic site, not chosen
+  design_ambient_K: 303.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "ASSUMED ACH synthesis complete at an equimolar feed (D-004)."
+  - "Amidation and conversion at 1.4 mol H2SO4 per mol ACH (US 2023/0416184 A1 Example A2) with 92.5 % of the ACH to methacrylamide and 7.5 % lost to acetone, CO and NH4HSO4 (lumped, ASSUMED split) (D-005)."
+  - "ASSUMED esterification complete at 1.2 mol methanol per mol amide, 0.44 kg water per kg ACH (Example A2), 15 % of the water stripped with the crude (D-006)."
+  - "ASSUMED purification recovery 99 % MMA and 95 % methanol; overall 91.6 % MMA on ACH as in Example A2 (D-005, D-007)."
+  - "ASSUMED SAR furnace adiabatic at 1273 K and 2 mol% O2, no air preheat; SO2 conversion 99.7 % (as sulfuric-acid-1); regenerated acid 98.5 wt% (D-008)."
+  - "All duties and powers are concept estimates of scripts/mma_balance.py; the liquid-phase heats of the amidation and esterification are not sourced (D-009, L-1)."

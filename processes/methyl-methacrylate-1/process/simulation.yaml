@@ -1,0 +1,17 @@
+# Simulation specs. Schema: `cheme schema process-simulation`.
+# Not run (DESIGN.md L-1): no property package is qualified by core for 98 wt% sulfuric acid
+# with ammonium hydrogen sulfate, methacrylamide and organics, so `cheme process simulate` is
+# not used at this stage. The file records what is decided already (D-008, D-009):
+# - F501, the SAR furnace, is adiabatic: its natural gas follows from its energy balance at
+#   1273 K (scripts/mma_balance.py), and its heat leaves with the gas to the waste heat boiler;
+# - R502, the contact converter, is adiabatic over its beds: its heat reheats the cleaned gas
+#   in the gas-gas exchangers; what is left is counted in the absorbers' cooling water (Q8);
+# - R301, the esterification cascade, exchanges no heat of its own in the model: the heat of
+#   esterification in the acid is not sourced and is neglected, the steam goes to the stripping
+#   step V301 (Q3).
+schema: cheme/simulation/v1
+kind: simulation
+specs:
+  F501: {mode: adiabatic}
+  R502: {mode: adiabatic}
+  R301: {mode: adiabatic}

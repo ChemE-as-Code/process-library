@@ -1,0 +1,761 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Methyl methacrylate by the acetone cyanohydrin (ACH-sulfo) route with sulfuric acid
+# regeneration (DESIGN.md D-001):
+# - ACH: acetone and HCN react to acetone cyanohydrin over a basic catalyst (R101);
+# - AMID: the ACH is amidated in excess sulfuric acid (1.4 mol/mol, D-005) and the mixture is
+#   heated in the conversion stage to methacrylamide hydrogen sulfate (R101 lumped as R201); the
+#   CO of the lumped loss path leaves in the gas separator (V201);
+# - EST: methanol and water are added and the amide esterified to MMA (R301); the crude MMA
+#   with the excess methanol, the acetone and part of the water is stripped off (V301); the
+#   spent acid (NH4HSO4, H2SO4, water) goes to the SAR plant;
+# - PUR: the crude is distilled to pure MMA; the methanol is recycled, a purge of light ends
+#   and water goes to the SAR furnace (C401, lumped);
+# - SAR: the spent acid, the purge and the CO are burned with natural gas at 1273 K (F501), the
+#   gas raises MP steam (E501), is quenched, cleaned and dried (C501), takes converter air
+#   (M502), is blown (K502) through the converter (R502) and the SO3 absorbed to 98.5 wt%
+#   sulfuric acid (A502, V502), which returns to the amidation (tear S5) with a small make-up
+#   from sulfuric-acid-1.
+# Where the values come from:
+# - temperatures and pressures: design basis and D-004..D-009 (US 2023/0416184 A1 where
+#   stated, else ASSUMED);
+# - every flow and composition after the feeds: `cheme process propagate --fill` through the
+#   conversion reactors (process/reactions.yaml), mixers and component separators
+#   (`recovery:`), the two recycles converged at the tears S5 and S11 (core ADR 0060) and the
+#   feeds solved by the three design specifications below (core ADR 0070);
+# - the follower ratios of the rate spec (HCN, water, natural gas, air) and every duty and
+#   power: scripts/mma_balance.py (D-008, D-009), ASSUMED.
+schema: cheme/process/v1
+kind: flowsheet
+title: Methyl methacrylate by the ACH-sulfo route with sulfuric acid regeneration (12.5 t/h MMA)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  enthalpy_reference: {state: ideal_gas, temperature: 298.15}
+cases:
+  - {id: design, description: "Design case: 12.5 t/h pure MMA (100 kt/a in 8000 h), ACH-sulfo route at the acid ratio and yield of US 2023/0416184 A1 Example A2, spent acid regenerated on site (D-002)", default: true}
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# Two recycles (D-010): the regenerated acid S5 (SAR -> amidation; its loop is closed by the
+# make-up spec `acid`) and the methanol S11 (purification -> esterification).
+tears:
+  - stream: S5
+    initial: {flow: 18950.0, unit: kg/h, basis: mass_fraction, composition: {H2SO4: 0.985, H2O: 0.015}}
+  - stream: S11
+    initial: {flow: 770.0, unit: kg/h, basis: mass_fraction, composition: {MEOH: 1.0}}
+convergence: {method: wegstein, max_iterations: 300, tolerance: {abs: 1.0e-6, rel: 1.0e-8}}
+specs:
+  - id: rate
+    vary: {stream: S1, initial: 7918.6, with: {S2: 0.465318,S12: 0.644741, S19: 0.360092, S20: 8.450431, S27: 2.109303, S29: 0.468852}}
+    target: {stream: S17, quantity: flow, value: 12500, unit: kg/h}
+    provenance: assumed
+    source: "design basis: 12.5 t/h MMA (D-002); followers in kg per kg acetone from scripts/mma_balance.py: HCN equimolar (D-004; 0.4653194 rounded down, so that R101's HCN, the conversion key, is never short of acetone), water 0.44 kg/kg ACH (D-006), natural gas and air of the adiabatic furnace at 1273 K and 2 mol% O2, converter air for O2/SO2 1.0, absorber water for 98.5 wt% acid (D-008)"
+  - id: acid
+    vary: {stream: S4, initial: 57.0}
+    target: {stream: S6, component: H2SO4, quantity: ratio, per: {stream: S3, component: ACH}, basis: mole, value: 1.4}
+    provenance: assumed
+    source: "D-005: 1.4 mol H2SO4 per mol ACH at R-201, US 2023/0416184 A1 Example A2 (8100 kg/h H2SO4 for 5000 kg/h ACH, Table 1); the make-up from sulfuric-acid-1 replaces the SO2 lost to the stack"
+  - id: methanol
+    vary: {stream: S10, initial: 4080.0}
+    target: {stream: S13, component: MEOH, quantity: ratio, per: {stream: S13, component: MAM}, basis: mole, value: 1.2}
+    provenance: assumed
+    source: "D-006: 1.2 mol methanol per mol methacrylamide at R-301, ASSUMED inside the 0.7-1.6 range of US 2023/0416184 A1"
+
+feeds:
+  - {id: ACEF, title: Acetone (acetone-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HCNF, title: "Liquid hydrogen cyanide, stabilised (no library producer, D-003)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MEOHF, title: Methanol (methanol-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACIDF, title: Sulfuric acid 98.5 wt% make-up (sulfuric-acid-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: PW
+    title: Process water (demineralised)
+    category: raw_material
+    ports: [{id: est, direction: out}, {id: abs, direction: out}]
+  - {id: NG, title: Natural gas (as methane) from the site grid, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: AIR
+    title: Air (ambient)
+    category: raw_material
+    ports: [{id: furnace, direction: out}, {id: conv, direction: out}]
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k501, direction: out, kind: energy}
+      - {id: k502, direction: out, kind: energy}
+      - {id: misc, direction: out, kind: energy}
+products:
+  - {id: MMAP, title: "Methyl methacrylate (pure, stabilised) to storage", category: product, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Tail gas of the SAR absorber to atmosphere, category: emission, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Gas-cleaning condensate (weak acid water) to neutralisation and wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: MPSX
+    title: MP steam export (1500 kPa(a)), net of the plant's own steam use
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a), D-009"}
+      min_approach: {value: 20, provenance: assumed, source: D-009}
+    ports: [{id: e501, direction: in, kind: energy}]
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r201, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+      - {id: c501, direction: in, kind: energy}
+      - {id: a502, direction: in, kind: energy}
+
+blocks:
+  - id: ACH
+    title: Acetone cyanohydrin synthesis
+    class: ReactingChemicals
+    ports:
+      - {id: acetone, direction: in}
+      - {id: hcn, direction: in}
+      - {id: ach, direction: out}
+      - {id: cw, direction: out, kind: energy}
+  - id: AMID
+    title: Amidation and conversion in sulfuric acid
+    class: ReactingChemicals
+    ports:
+      - {id: ach, direction: in}
+      - {id: makeup, direction: in}
+      - {id: regen, direction: in}
+      - {id: co, direction: out}
+      - {id: liquor, direction: out}
+      - {id: cw, direction: out, kind: energy}
+  - id: EST
+    title: Esterification with methanol and crude MMA stripping
+    class: ReactingChemicals
+    ports:
+      - {id: liquor, direction: in}
+      - {id: meoh, direction: in}
+      - {id: rec, direction: in}
+      - {id: water, direction: in}
+      - {id: crude, direction: out}
+      - {id: spent, direction: out}
+      - {id: steam, direction: in, kind: energy}
+  - id: PUR
+    title: MMA purification (distillation) and methanol recovery
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: product, direction: out}
+      - {id: rec, direction: out}
+      - {id: purge, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  # The SAR plant is two blocks: the decomposition reaction H2SO4 -> SO2 + H2O + 1/2 O2 of the
+  # furnace is the sum of the contact plant's two reactions reversed, so one block holding all
+  # three has no unique extents (D-010).
+  - id: SARF
+    title: Spent acid decomposition, waste heat boiler and gas cleaning (SAR, hot end)
+    class: ReactingChemicals
+    ports:
+      - {id: spent, direction: in}
+      - {id: purge, direction: in}
+      - {id: co, direction: in}
+      - {id: ng, direction: in}
+      - {id: air, direction: in}
+      - {id: gas, direction: out}
+      - {id: cond, direction: out}
+      - {id: st_est, direction: out, kind: energy}
+      - {id: st_pur, direction: out, kind: energy}
+      - {id: st_x, direction: out, kind: energy}
+      - {id: cw_c501, direction: out, kind: energy}
+      - {id: p_k501, direction: in, kind: energy}
+  - id: SARC
+    title: Contact plant and SO3 absorption (SAR, cold end)
+    class: ReactingChemicals
+    ports:
+      - {id: gas, direction: in}
+      - {id: secair, direction: in}
+      - {id: water, direction: in}
+      - {id: acid, direction: out}
+      - {id: tail, direction: out}
+      - {id: cw_a502, direction: out, kind: energy}
+      - {id: p_k502, direction: in, kind: energy}
+
+steps:
+  # ---- ACH (D-004)
+  - id: R101
+    block: ACH
+    title: ACH reactor (acetone + HCN, basic catalyst, cooled)
+    class: ReactingChemicals
+    reactions: [ACH_FORM]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: acetone, direction: in, delegates: acetone}
+      - {id: hcn, direction: in, delegates: hcn}
+      - {id: out, direction: out, delegates: ach}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # ---- AMID (D-005)
+  - id: M201
+    block: AMID
+    title: Acid feed (regenerated acid and make-up)
+    class: Mixing
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: regen, direction: in, delegates: regen}
+      - {id: mk, direction: in, delegates: makeup}
+      - {id: out, direction: out}
+  - id: R201
+    block: AMID
+    title: Amidation loop reactor and conversion stage (lumped)
+    class: ReactingChemicals
+    reactions: [AMID, ACH_DEC]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}, {target: equipment, ref: R-202}]
+    ports:
+      - {id: ach, direction: in, delegates: ach}
+      - {id: acid, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V201
+    block: AMID
+    title: Gas separator after the conversion stage
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets: {gas: {CO: 1.0}}
+      provenance: assumed
+      source: "D-005: the CO of the lumped loss leaves as gas (US 2023/0416184 A1 Example A2: a gas separator after the conversion stage at about 950 mbar(a) and 155 C); dissolved gas and entrained liquid not modelled"
+    links: [{target: equipment, ref: V-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: co}
+      - {id: liq, direction: out, delegates: liquor}
+  # ---- EST (D-006)
+  - id: M301
+    block: EST
+    title: Esterification feed (amide liquor, methanol fresh and recycled, water)
+    class: Mixing
+    ports:
+      - {id: liq, direction: in, delegates: liquor}
+      - {id: meoh, direction: in, delegates: meoh}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+  - id: R301
+    block: EST
+    title: Esterification tank cascade
+    class: ReactingChemicals
+    reactions: [EST]
+    reactor: conversion
+    links: [{target: equipment, ref: R-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: V301
+    block: EST
+    title: Crude MMA stripping (steam-heated)
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets: {vap: {MMA: 1.0, MEOH: 1.0, ACETONE: 1.0, H2O: 0.15}}
+      provenance: assumed
+      source: "D-006: MMA, methanol and acetone stripped completely, 15 % of the water with them: 0.062 kg water per kg MMA in the vapour against 0.060 in US 2023/0416184 A1 Example B1 (stream 12: 5.3 and 87.9 wt%); the rest is the spent acid"
+    links: [{target: equipment, ref: R-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vap, direction: out, delegates: crude}
+      - {id: spent, direction: out, delegates: spent}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+  # ---- PUR (D-007)
+  - id: C401
+    block: PUR
+    title: Light-ends and pure MMA columns with methanol recovery (lumped)
+    class: Distilling
+    recovery:
+      outlets: {product: {MMA: 0.99}, rec: {MEOH: 0.95}}
+      provenance: assumed
+      source: "D-007: 99 % of the MMA to the product, 95 % of the methanol recycled; the rest with the water and acetone to the SAR furnace (US 2023/0416184 A1: at least two distillation steps, part of the light heteroazeotrope discharged)"
+    links: [{target: equipment, ref: C-401}, {target: equipment, ref: C-402}]
+    ports:
+      - {id: feed, direction: in, delegates: crude}
+      - {id: product, direction: out, delegates: product}
+      - {id: rec, direction: out, delegates: rec}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # ---- SAR (D-008)
+  - id: K501
+    block: SARF
+    title: Combustion air blower
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-501}]
+    ports:
+      - {id: in, direction: in, delegates: air}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: p_k501}
+  - id: F501
+    block: SARF
+    title: Spent acid decomposition furnace (natural gas fired)
+    class: ReactingChemicals
+    reactions: [H2SO4_DEC, AHS_DEC, ACET_COMB, MEOH_COMB, MMA_COMB, CO_COMB, CH4_COMB]
+    reactor: conversion
+    links: [{target: equipment, ref: F-501}]
+    ports:
+      - {id: spent, direction: in, delegates: spent}
+      - {id: purge, direction: in, delegates: purge}
+      - {id: co, direction: in, delegates: co}
+      - {id: ng, direction: in, delegates: ng}
+      - {id: air, direction: in}
+      - {id: out, direction: out}
+  - id: E501
+    block: SARF
+    title: Waste heat boiler (MP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: est, direction: out, kind: energy, delegates: st_est}
+      - {id: pur, direction: out, kind: energy, delegates: st_pur}
+      - {id: exp, direction: out, kind: energy, delegates: st_x}
+  - id: C501
+    block: SARF
+    title: Gas quench, cleaning, cooling and drying (lumped)
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets: {cond: {H2O: 1.0}}
+      provenance: assumed
+      source: "D-008: all water condensed or taken up by the drying acid and sent out as weak acid water; the SO2, SO3 traces and dust it carries are not modelled"
+    links: [{target: equipment, ref: C-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cond, direction: out, delegates: cond}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: cw, direction: out, kind: energy, delegates: cw_c501}
+  - id: M502
+    block: SARC
+    title: Converter air addition
+    class: Mixing
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: air, direction: in, delegates: secair}
+      - {id: out, direction: out}
+  - id: K502
+    block: SARC
+    title: SO2 blower
+    class: Compressing
+    method: CentrifugalMotion
+    links: [{target: equipment, ref: K-502}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: p_k502}
+  - id: R502
+    block: SARC
+    title: Contact converter (V2O5 beds, double contact)
+    class: ReactingChemicals
+    reactions: [SO2_OX]
+    reactor: conversion
+    links: [{target: equipment, ref: R-502}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+  - id: A502
+    block: SARC
+    title: SO3 absorbers (intermediate and final)
+    class: ReactingChemicals
+    reactions: [SO3_ABS]
+    reactor: conversion
+    links: [{target: equipment, ref: A-502}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw_a502}
+  - id: V502
+    block: SARC
+    title: Absorber acid / tail gas separation
+    class: Absorbing
+    recovery:
+      outlets: {acid: {H2SO4: 1.0, H2O: 1.0}}
+      provenance: assumed
+      source: "D-008: the acid leaves the absorber sump, the tail gas (unconverted SO2, N2, O2, CO2) the top; acid mist not modelled"
+    links: [{target: equipment, ref: A-502}]
+    ports:
+      - {id: in, direction: in}
+      - {id: acid, direction: out, delegates: acid}
+      - {id: tail, direction: out, delegates: tail}
+
+streams:
+  - id: S1
+    title: Acetone
+    from: ACEF.out
+    to: R101.acetone
+    template: organic
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "design basis (D-003)"}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        composition: {basis: mass_fraction, values: {ACETONE: 1.0}, provenance: assumed, source: "D-003: acetone from acetone-1, impurities not modelled"}
+        flow: {value: 7918.66, provenance: calculated, source: 'cheme process propagate: spec rate (S17 flow kg/h 12500)', fingerprint: bdda2b787c12007d}
+  - id: S2
+    title: Liquid HCN
+    from: HCNF.out
+    to: R101.hcn
+    template: organic
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 283.15, provenance: assumed, source: "D-003: liquid HCN kept below its 298.8 K boiling point"}
+        composition: {basis: mass_fraction, values: {HCN: 1.0}, provenance: assumed, source: "D-003: stabilised liquid HCN, the stabiliser not modelled"}
+        flow: {value: 3684.7, provenance: calculated, source: 'cheme process propagate: spec rate (0.465318 x S1)', fingerprint: bdda2b787c12007d}
+  - id: S3
+    title: Acetone cyanohydrin
+    from: R101.out
+    to: R201.ach
+    template: organic
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-004}
+        temperature: {value: 303.15, provenance: assumed, source: "D-004: ACH reactor kept cool, not sourced"}
+        flow: {value: 11603.4, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: a4ac300edbb21a26}
+        composition: {basis: mole_fraction, values: {ACETONE: 4.78159e-07, HCN: 0.0, ACH: 1.0, MAM: 0.0, MMA: 0.0, MEOH: 0.0, H2SO4: 0.0, AHS: 0.0, H2O: 0.0, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S1 S2', fingerprint: 04cffd4cea697f52}
+  - id: S4
+    title: Sulfuric acid make-up 98.5 wt%
+    from: ACIDF.out
+    to: M201.mk
+    template: acid
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 313.15, provenance: assumed, source: D-003}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.985, H2O: 0.015}, provenance: assumed, source: "D-003: the 98.5 wt% product of sulfuric-acid-1"}
+        flow: {value: 57.0137, provenance: calculated, source: 'cheme process propagate: spec acid (S6 H2SO4 per S3 ACH (mole) 1.4)', fingerprint: bdda2b787c12007d}
+  - id: S5
+    title: Regenerated sulfuric acid (recycle)
+    from: V502.acid
+    to: M201.regen
+    template: acid
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: after the acid coolers"}
+        flow: {value: 18949.2, provenance: calculated, source: 'cheme process propagate: recycle V502 from S31 (tear, broyden)', fingerprint: 84c3b7c34d44d317}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0, HCN: 0.0, ACH: 0.0, MAM: 0.0, MMA: 0.0, MEOH: 0.0, H2SO4: 0.923438, AHS: 0.0, H2O: 0.0765618, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle V502 from S31 (tear, broyden)', fingerprint: 84c3b7c34d44d317}
+  - id: S6
+    title: Acid to the amidation
+    from: M201.out
+    to: R201.acid
+    template: acid
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-005}
+        temperature: {value: 313.15, provenance: assumed, source: D-005}
+        flow: {value: 19006.2, provenance: calculated, source: 'cheme process propagate: mixer M201 from S4 S5', fingerprint: 7039da8dc9fb3060}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0, HCN: 0.0, ACH: 0.0, MAM: 0.0, MMA: 0.0, MEOH: 0.0, H2SO4: 0.923438, AHS: 0.0, H2O: 0.0765618, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S4 S5', fingerprint: b76637701211efb8}
+  - id: S7
+    title: Converted amide mixture
+    from: R201.out
+    to: V201.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 95, provenance: assumed, source: "D-005: US 2023/0416184 A1 Example A2, gas separator at about 950 mbar(a)"}
+        temperature: {value: 428.15, provenance: assumed, source: "D-005: US 2023/0416184 A1 Example A2, conversion at 155 C"}
+        flow: {value: 30609.6, provenance: calculated, source: 'cheme process propagate: reactor R201 from S3 S6', fingerprint: c458c74aad143ecf}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0298087, HCN: 0.0, ACH: 5.17817e-18, MAM: 0.367638, MMA: 0.0, MEOH: 0.0, H2SO4: 0.526612, AHS: 0.0298085, H2O: 0.0163241, CO: 0.0298085, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S3 S6', fingerprint: d9ba16b8630c445b}
+  - id: S8
+    title: Conversion off-gas (CO) to the SAR furnace
+    from: V201.gas
+    to: F501.co
+    template: gas
+    state:
+      design:
+        pressure: {value: 95, provenance: assumed, source: D-005}
+        temperature: {value: 428.15, provenance: assumed, source: D-005}
+        flow: {value: 286.424, provenance: calculated, source: 'cheme process propagate: separator V201 from S7', fingerprint: c7d715f47a4208c3}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0, HCN: 0.0, ACH: 0.0, MAM: 0.0, MMA: 0.0, MEOH: 0.0, H2SO4: 0.0, AHS: 0.0, H2O: 0.0, CO: 1.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V201 from S7', fingerprint: c7d715f47a4208c3}
+  - id: S9
+    title: Amide liquor
+    from: V201.liq
+    to: M301.liq
+    template: acid
+    state:
+      design:
+        pressure: {value: 200, provenance: assumed, source: D-005}
+        temperature: {value: 428.15, provenance: assumed, source: D-005}
+        flow: {value: 30323.2, provenance: calculated, source: 'cheme process propagate: separator V201 from S7', fingerprint: c7d715f47a4208c3}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0307246, HCN: 0.0, ACH: 5.33727e-18, MAM: 0.378934, MMA: 0.0, MEOH: 0.0, H2SO4: 0.542792, AHS: 0.0307244, H2O: 0.0168257, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V201 from S7', fingerprint: c7d715f47a4208c3}
+  - id: S10
+    title: Fresh methanol
+    from: MEOHF.out
+    to: M301.meoh
+    template: organic
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        composition: {basis: mass_fraction, values: {MEOH: 1.0}, provenance: assumed, source: "D-003: grade AA methanol from methanol-1"}
+        flow: {value: 4081.42, provenance: calculated, source: 'cheme process propagate: spec methanol (S13 MEOH per S13 MAM (mole) 1.2)', fingerprint: bdda2b787c12007d}
+  - id: S11
+    title: Recovered methanol (recycle)
+    from: C401.rec
+    to: M301.rec
+    template: organic
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 767.793, provenance: calculated, source: 'cheme process propagate: recycle C401 from S15 (tear, broyden)', fingerprint: 84c3b7c34d44d317}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0, HCN: 0.0, ACH: 0.0, MAM: 0.0, MMA: 0.0, MEOH: 1.0, H2SO4: 0.0, AHS: 0.0, H2O: 0.0, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C401 from S15 (tear, broyden)', fingerprint: 84c3b7c34d44d317}
+  - id: S12
+    title: Process water to the esterification
+    from: PW.est
+    to: M301.water
+    template: acid
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-003: demineralised water"}
+        flow: {value: 5105.48, provenance: calculated, source: 'cheme process propagate: spec rate (0.644741 x S1)', fingerprint: bdda2b787c12007d}
+  - id: S13
+    title: Esterification feed
+    from: M301.out
+    to: R301.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 115, provenance: assumed, source: "D-006: US 2023/0416184 A1 Example A2, 50-150 mbar(g)"}
+        temperature: {value: 393.15, provenance: assumed, source: "D-006: US 2023/0416184 A1 Example A2, about 120 C"}
+        flow: {value: 40277.9, provenance: calculated, source: 'cheme process propagate: mixer M301 from S9 S10 S11 S12', fingerprint: d2b74ec7034bdad8}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0133225, HCN: 0.0, ACH: 2.3143e-18, MAM: 0.16431, MMA: 0.0, MEOH: 0.19717, H2SO4: 0.23536, AHS: 0.0133224, H2O: 0.376514, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S9 S10 S11 S12', fingerprint: 33521295e22aa33a}
+  - id: S14
+    title: Esterified mixture
+    from: R301.out
+    to: V301.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 115, provenance: assumed, source: D-006}
+        temperature: {value: 393.15, provenance: assumed, source: D-006}
+        flow: {value: 40277.9, provenance: calculated, source: 'cheme process propagate: reactor R301 from S13', fingerprint: 89990984c682db41}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0159419, HCN: 0.0, ACH: 2.76933e-18, MAM: 0.0, MMA: 0.196616, MEOH: 0.0393209, H2SO4: 0.0850197, AHS: 0.212558, H2O: 0.450543, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S13', fingerprint: a8a961a77f04c207}
+  - id: S15
+    title: Crude MMA vapour
+    from: V301.vap
+    to: C401.feed
+    template: organic
+    state:
+      design:
+        pressure: {value: 110, provenance: assumed, source: D-006}
+        temperature: {value: 373.15, provenance: assumed, source: D-006}
+        flow: {value: 14809.4, provenance: calculated, source: 'cheme process propagate: separator V301 from S14', fingerprint: 1571d6b02fe3ae14}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0499026, HCN: 0.0, ACH: 0.0, MAM: 0.0, MMA: 0.615463, MEOH: 0.123085, H2SO4: 0.0, AHS: 0.0, H2O: 0.211549, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S14', fingerprint: 1571d6b02fe3ae14}
+  - id: S16
+    title: Spent acid to the SAR furnace
+    from: V301.spent
+    to: F501.spent
+    template: acid
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-006}
+        temperature: {value: 393.15, provenance: assumed, source: D-006}
+        flow: {value: 25468.5, provenance: calculated, source: 'cheme process propagate: separator V301 from S14', fingerprint: 1571d6b02fe3ae14}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0, HCN: 0.0, ACH: 4.06932e-18, MAM: 0.0, MMA: 0.0, MEOH: 0.0, H2SO4: 0.12493, AHS: 0.312338, H2O: 0.562732, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S14', fingerprint: 1571d6b02fe3ae14}
+  - id: S17
+    title: Pure methyl methacrylate
+    from: C401.product
+    to: MMAP.in
+    template: organic
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: "design basis (D-002)"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis (D-002)"}
+        flow: {value: 12500.1, provenance: calculated, source: 'cheme process propagate: separator C401 from S15', fingerprint: 18999b8c25b68c83}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0, HCN: 0.0, ACH: 0.0, MAM: 0.0, MMA: 1.0, MEOH: 0.0, H2SO4: 0.0, AHS: 0.0, H2O: 0.0, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S15', fingerprint: 18999b8c25b68c83}
+  - id: S18
+    title: Light-ends and water purge to the SAR furnace
+    from: C401.purge
+    to: F501.purge
+    template: organic
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-007}
+        temperature: {value: 313.15, provenance: assumed, source: D-007}
+        flow: {value: 1541.53, provenance: calculated, source: 'cheme process propagate: separator C401 from S15', fingerprint: 18999b8c25b68c83}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.182286, HCN: 0.0, ACH: 0.0, MAM: 0.0, MMA: 0.0224818, MEOH: 0.0224804, H2SO4: 0.0, AHS: 0.0, H2O: 0.772752, CO: 0.0, CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S15', fingerprint: 18999b8c25b68c83}
+  - id: S19
+    title: Natural gas (fuel)
+    from: NG.out
+    to: F501.ng
+    template: gas
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: "design basis (D-003)"}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        composition: {basis: mole_fraction, values: {CH4: 1.0}, provenance: assumed, source: "D-003: natural gas modelled as methane"}
+        flow: {value: 2851.45, provenance: calculated, source: 'cheme process propagate: spec rate (0.360092 x S1)', fingerprint: bdda2b787c12007d}
+  - id: S20
+    title: Combustion air
+    from: AIR.furnace
+    to: K501.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        composition: {basis: mole_fraction, values: {O2: 0.21, N2: 0.79}, provenance: assumed, source: "D-003: dry air, argon lumped with nitrogen"}
+        flow: {value: 66916.1, provenance: calculated, source: 'cheme process propagate: spec rate (8.45043 x S1)', fingerprint: bdda2b787c12007d}
+  - id: S21
+    title: Combustion air to the burner
+    from: K501.out
+    to: F501.air
+    template: gas
+    state:
+      design:
+        pressure: {value: 115, provenance: assumed, source: D-009}
+        temperature: {value: 298.15, provenance: assumed, source: "D-008: no air preheat ASSUMED (the compression heat neglected)"}
+        composition: {basis: mole_fraction, values: {O2: 0.21, N2: 0.79}, provenance: calculated, source: 'cheme process propagate: pass-through K501 from S20', fingerprint: 34fda65f11d6cd79}
+        flow: {value: 66916.1, provenance: calculated, source: 'cheme process propagate: pass-through K501 from S20', fingerprint: 34fda65f11d6cd79}
+  - id: S22
+    title: Furnace gas
+    from: F501.out
+    to: E501.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 110, provenance: assumed, source: D-008}
+        temperature: {value: 1273.15, provenance: assumed, source: "D-008: 1000 C, above the 900 C of US 2023/0416184 A1"}
+        flow: {value: 97064.0, provenance: calculated, source: 'cheme process propagate: reactor F501 from S8 S16 S18 S19 S21', fingerprint: 7d21fec94c4cbb8e}
+        composition: {basis: mole_fraction, values: {ACETONE: 0.0, HCN: 0.0, ACH: 5.12655e-19, MAM: 0.0, MMA: 0.0, MEOH: 0.0, H2SO4: 0.0, AHS: 0.0, H2O: 0.311144, CO: 0.0, CH4: 0.0, O2: 0.0199994, N2: 0.548485, CO2: 0.0652848, SO2: 0.0550872, SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor F501 from S8 S16 S18 S19 S21', fingerprint: 7d741e2903292242}
+  - id: S23
+    title: Cooled furnace gas
+    from: E501.out
+    to: C501.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 105, provenance: assumed, source: D-009}
+        temperature: {value: 623.15, provenance: assumed, source: "D-009: waste heat boiler outlet, ASSUMED"}
+        flow: {value: 97064.0, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S22', fingerprint: 9608bc6085aeb024}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0199994, N2: 0.548485, CO2: 0.0652848, SO2: 0.0550872, SO3: 0.0, H2O: 0.311144, CO: 0.0, ACH: 5.12655e-19, MAM: 0.0, MMA: 0.0, MEOH: 0.0, ACETONE: 0.0, H2SO4: 0.0, AHS: 0.0, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E501 from S22', fingerprint: 9608bc6085aeb024}
+  - id: S24
+    title: Gas-cleaning condensate (weak acid water)
+    from: C501.cond
+    to: WW.in
+    template: acid
+    state:
+      design:
+        pressure: {value: 300, provenance: assumed, source: D-008}
+        temperature: {value: 313.15, provenance: assumed, source: D-008}
+        flow: {value: 19422.7, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 205d0ae6aac2c5ea}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0, N2: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0, H2O: 1.0, CO: 0.0, ACH: 0.0, MAM: 0.0, MMA: 0.0, MEOH: 0.0, ACETONE: 0.0, H2SO4: 0.0, AHS: 0.0, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 205d0ae6aac2c5ea}
+  - id: S25
+    title: Cleaned, dried gas
+    from: C501.gas
+    to: M502.gas
+    template: gas
+    state:
+      design:
+        pressure: {value: 95, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 77641.3, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 205d0ae6aac2c5ea}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0290328, N2: 0.796225, CO2: 0.0947727, SO2: 0.0799691, SO3: 0.0, H2O: 0.0, CO: 0.0, ACH: 7.44212e-19, MAM: 0.0, MMA: 0.0, MEOH: 0.0, ACETONE: 0.0, H2SO4: 0.0, AHS: 0.0, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C501 from S23', fingerprint: 205d0ae6aac2c5ea}
+  - id: S27
+    title: Converter air (dried)
+    from: AIR.conv
+    to: M502.air
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        composition: {basis: mole_fraction, values: {O2: 0.21, N2: 0.79}, provenance: assumed, source: "D-003: dry air, argon lumped with nitrogen"}
+        flow: {value: 16702.9, provenance: calculated, source: 'cheme process propagate: spec rate (2.1093 x S1)', fingerprint: bdda2b787c12007d}
+  - id: S26
+    title: Gas with converter air
+    from: M502.out
+    to: K502.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 95, provenance: assumed, source: D-009}
+        temperature: {value: 313.15, provenance: assumed, source: D-009}
+        flow: {value: 94344.2, provenance: calculated, source: 'cheme process propagate: mixer M502 from S25 S27', fingerprint: 60092dc9c159c1e5}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0643585, N2: 0.79501, CO2: 0.0762726, SO2: 0.0643588, SO3: 0.0, H2O: 0.0, CO: 0.0, ACH: 5.98938e-19, MAM: 0.0, MMA: 0.0, MEOH: 0.0, ACETONE: 0.0, H2SO4: 0.0, AHS: 0.0, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M502 from S25 S27', fingerprint: 07c9dd3788944e64}
+  - id: S28
+    title: Gas to the converter
+    from: K502.out
+    to: R502.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 150, provenance: assumed, source: "D-009: SO2 blower discharge, ASSUMED"}
+        temperature: {value: 693.15, provenance: assumed, source: "D-008: first bed inlet after the gas-gas exchangers, ASSUMED"}
+        flow: {value: 94344.2, provenance: calculated, source: 'cheme process propagate: pass-through K502 from S26', fingerprint: e134017f08106d0a}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0643585, N2: 0.79501, CO2: 0.0762726, SO2: 0.0643588, SO3: 0.0, H2O: 0.0, CO: 0.0, ACH: 5.98938e-19, MAM: 0.0, MMA: 0.0, MEOH: 0.0, ACETONE: 0.0, H2SO4: 0.0, AHS: 0.0, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K502 from S26', fingerprint: e134017f08106d0a}
+  - id: S30
+    title: Converted gas
+    from: R502.out
+    to: A502.gas
+    template: gas
+    state:
+      design:
+        pressure: {value: 130, provenance: assumed, source: D-008}
+        temperature: {value: 453.15, provenance: assumed, source: "D-008: to the absorbers after the economisers, ASSUMED"}
+        flow: {value: 94344.2, provenance: calculated, source: 'cheme process propagate: reactor R502 from S28', fingerprint: ac1e2c822952dac6}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0333455, N2: 0.821362, CO2: 0.0788008, SO2: 0.000199476, SO3: 0.0662926, H2O: 0.0, CO: 0.0, ACH: 6.18791e-19, MAM: 0.0, MMA: 0.0, MEOH: 0.0, ACETONE: 0.0, H2SO4: 0.0, AHS: 0.0, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R502 from S28', fingerprint: 0b89b6af48664eb3}
+  - id: S29
+    title: Process water to the absorbers
+    from: PW.abs
+    to: A502.water
+    template: absorber
+    state:
+      design:
+        pressure: {value: 400, provenance: assumed, source: D-003}
+        temperature: {value: 298.15, provenance: assumed, source: D-003}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-003: demineralised water"}
+        flow: {value: 3712.68, provenance: calculated, source: 'cheme process propagate: spec rate (0.468852 x S1)', fingerprint: bdda2b787c12007d}
+  - id: S31
+    title: Absorber outlet
+    from: A502.out
+    to: V502.in
+    template: absorber
+    state:
+      design:
+        pressure: {value: 120, provenance: assumed, source: D-008}
+        temperature: {value: 343.15, provenance: assumed, source: D-008}
+        flow: {value: 98056.9, provenance: calculated, source: 'cheme process propagate: reactor A502 from S30 S29', fingerprint: 35517c812e38b153}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0331632, N2: 0.816872, CO2: 0.07837, SO2: 0.000198386, SO3: 0.0, H2O: 0.00546638, CO: 0.0, ACH: 6.15408e-19, MAM: 0.0, MMA: 0.0, MEOH: 0.0, ACETONE: 0.0, H2SO4: 0.0659302, AHS: 0.0, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor A502 from S30 S29', fingerprint: 6895018522057e5f}
+  - id: S32
+    title: Tail gas to stack
+    from: V502.tail
+    to: STACK.in
+    template: gas
+    state:
+      design:
+        pressure: {value: 101.325, provenance: assumed, source: D-008}
+        temperature: {value: 343.15, provenance: assumed, source: D-008}
+        flow: {value: 79107.7, provenance: calculated, source: 'cheme process propagate: separator V502 from S31', fingerprint: 5b4a7746ca0f87ce}
+        composition: {basis: mole_fraction, values: {H2SO4: 0.0, H2O: 0.0, SO2: 0.000213639, SO3: 0.0, O2: 0.035713, N2: 0.879678, CO2: 0.0843955, CH4: 0.0, CO: 0.0, ACH: 6.62724e-19, MAM: 0.0, MMA: 0.0, MEOH: 0.0, ACETONE: 0.0, AHS: 0.0, HCN: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V502 from S31', fingerprint: 5b4a7746ca0f87ce}
+  # Energy streams: duties and power from scripts/mma_balance.py, ASSUMED (D-009)
+  - {id: Q1, title: R-101 reactor cooling, kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 1750.5, provenance: assumed, source: "scripts/mma_balance.py: heat of ACH formation from the gas-phase formation enthalpies of chemicals 1.5.2, 46.2 kJ/mol (D-009)"}}}}
+  - {id: Q2, title: R-201 amidation cooling, kind: energy, from: R201.cw, to: CW.r201, state: {design: {duty: {value: 865.3, provenance: assumed, source: "scripts/mma_balance.py: ACH to methacrylamide from the gas-phase formation enthalpies of chemicals 1.5.2, 24.7 kJ/mol; LOWER BOUND, the heat of protonation and solution in the acid is not included (D-009, L-1)"}}}}
+  - {id: Q3, title: Steam to the esterification stripper, kind: energy, from: E501.est, to: V301.steam, state: {design: {duty: {value: 2425.4, provenance: assumed, source: "scripts/mma_balance.py: vaporisation of the crude vapour S15 at the formation-enthalpy differences of chemicals 1.5.2, the heat of esterification neglected (D-009)"}}}}
+  - {id: Q4, title: Steam to the purification reboilers, kind: energy, from: E501.pur, to: C401.steam, state: {design: {duty: {value: 4850.8, provenance: assumed, source: "scripts/mma_balance.py: 2 x the latent heat of the crude S15, ASSUMED (D-009)"}}}}
+  - {id: Q5, title: Purification condensers and the crude condenser, kind: energy, from: C401.cw, to: CW.c401, state: {design: {duty: {value: 7276.2, provenance: assumed, source: "scripts/mma_balance.py: Q3 + Q4 (D-009)"}}}}
+  - {id: Q7, title: "Gas quench, cleaning and cooling", kind: energy, from: C501.cw, to: CW.c501, state: {design: {duty: {value: 23190.6, provenance: assumed, source: "scripts/mma_balance.py: gas 623 -> 313 K, all water condensed (D-009)"}}}}
+  - {id: Q8, title: Converter and absorber heat, kind: energy, from: A502.cw, to: CW.a502, state: {design: {duty: {value: 12231.2, provenance: assumed, source: "scripts/mma_balance.py: heats of SO2 oxidation and SO3 absorption (chemicals 1.5.2), all to cooling water; the converter heat that reheats the gas is not raised as steam (D-009)"}}}}
+  - {id: Q9, title: E-501 steam export, kind: energy, from: E501.exp, to: MPSX.e501, state: {design: {duty: {value: 16196.2, provenance: assumed, source: "scripts/mma_balance.py: E-501 duty 23472.3 kW (1273 -> 623 K) less Q3 and Q4; UPPER BOUND: adiabatic furnace, no boiler loss (D-009)"}}}}
+  - {id: Q10, title: K-501 shaft power, kind: energy, from: POWER.k501, to: K501.power, state: {design: {duty: {value: 274.5, provenance: assumed, source: "scripts/mma_balance.py: 101.3 -> 115 kPa(a), isentropic efficiency 0.75 (D-009)"}}}}
+  - {id: Q11, title: K-502 shaft power, kind: energy, from: POWER.k502, to: K502.power, state: {design: {duty: {value: 1391.0, provenance: assumed, source: "scripts/mma_balance.py: 95 -> 150 kPa(a) at 313 K, isentropic efficiency 0.75 (D-009)"}}}}
+  - {id: Q12, title: "Pumps, agitators, vacuum and the ACH and esterification drives", kind: energy, from: POWER.misc, to: C401.power, state: {design: {duty: {value: 500.0, provenance: assumed, source: "D-009: lumped estimate, not sized"}}}}
+layout: {bfd: {}, pfd: {}}
