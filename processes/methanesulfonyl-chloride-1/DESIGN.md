@@ -458,11 +458,13 @@ Cases against it, all with the vapour:
 - the slower-kinetics cases (D-011): k/10 about 388 m3/h (78 %), k/100 about 201 m3/h;
 - a cooling failure: nothing (endothermic). Core 1.12.0's largest gas release over the batch
   (`gas_release.largest_over_batch`, core ADR 0069: every moment's content at its own MTSR, here
-  T_p) is 178.7 m3/h at 1.11 h (0.822 mol/s each of SO2 and HCl, a vapour share of 0.18, the
-  vapour limited by the reactions' heat), 0.36 of the capacity, which `cheme.reactor-hazard-vent`
-  (info) now quotes (a nil release, 3e-29 of it, up to core 1.11.0). It is the dosing's normal
-  gas peak (182.9 m3/h at 1.1 h above), not a release from accumulation, and below this
-  decision's basis with the vapour at Raoult;
+  T_p) is 178.7 m3/h at 1.11 h, 0.36 of the capacity, which `cheme.reactor-hazard-vent` (info)
+  now quotes (a nil release, 3e-29 of it, up to core 1.11.0). It is the gas alone, 0.822 mol/s
+  each of SO2 and HCl with no vapour: core caps each moment's vapour at what the reactions' heat
+  can evaporate (`heat_limited`), and the reaction is endothermic, so the cap is nil; the
+  `vapour_share` of 0.18 it reports there is Raoult's share over the liquid, not carried in the
+  178.7 m3/h. It is the dosing's normal gas peak without its vapour (182.9 m3/h at 1.1 h above),
+  not a release from accumulation, and below this decision's basis with the vapour at Raoult;
 - **design finding 1, an accumulated dose**: if the heating fails (steam lost, E-105 stopped)
   while the dosing goes on, the batch cools (the reaction and the cold dose both take heat), the
   reaction slows and the thionyl chloride accumulates; when the heating returns it reacts at

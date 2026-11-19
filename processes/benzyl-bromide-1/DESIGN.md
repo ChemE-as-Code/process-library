@@ -563,9 +563,10 @@ m3/h at 363.9 K and 101.3 kPa(a), which leaves saturated with the content's vapo
 gas, 0.72 mol per mol of HBr): 59.57 m3/h up the line to E-102 (per batch of the recipe, from the
 worst moment's content; the condenser is not credited, its cooling may fail too). Run to
 completion the accumulated bromine gives 0.0956 kmol (2.86 m3 at the MTSR, 4.91 m3 with the
-vapour) more HBr. `reactor-hazards` reports that worst-accumulation moment only; the release
-is larger earlier in the dosing, when the content holds more toluene and so more vapour per mol
-of HBr. Core's gas release at the MTSR applied to each moment of R101's cooling profile (126
+vapour) more HBr. Up to core 1.11.0 `reactor-hazards` reported that worst-accumulation moment
+only (since core 1.12.0 it also gives its own largest release over the batch, see below); the
+release is larger earlier in the dosing, when the content holds more toluene and so more vapour
+per mol of HBr. Core's gas release at the MTSR applied to each moment of R101's cooling profile (126
 moments, its `_gas` on each moment's content at that moment's MTSR; the library test
 `test_core_screens_the_gas_release_at_every_moment`) gives the largest, 72.80 m3/h, for a cooling failure
 0.38 h into the dosing: 34.54 m3/h of HBr at an MTSR of 363.8 K with 0.526 of the gas vapour
@@ -584,13 +585,15 @@ to the next 5 m3/h. The release at the worst-accumulation moment's MTSR is then 
 largest over the batch 0.81, the normal peak at the vessel 0.77. Since core 1.12.0 the screening
 gives its own largest release over the batch (`gas_release.largest_over_batch`, core ADR 0069),
 and `cheme.reactor-hazard-vent` (info) quotes it: 66.27 m3/h 0.782 h into the dosing (its MTSR
-363.8 K, 0.322 mol/s of HBr, a vapour share of 0.516), 0.74 of the capacity (0.66 up to core
-1.11.0). It is below the 72.80 m3/h above because core caps each moment's vapour at what the
-reactions' heat there can evaporate (`heat_limited`), which the per-moment sweep of this entry's
-test does not; the capacity stays on the larger, uncapped figure. A first sizing of 75 m3/h took 1.2 x the worst-accumulation moment's 59.57 m3/h as
-the largest; it left 1.09 over the normal peak and 1.03 over the release 0.38 h into the
-dosing, so it is not kept. E-102 condenses about 14 kW at the normal peak (8.78 kW year average,
-11.8 kW over the 5.24 h of gas).
+363.8 K, 0.322 mol/s of HBr with 0.294 mol/s of vapour, 0.477 of the gas), 0.74 of the
+capacity (0.66 up to core 1.11.0). Core caps each moment's vapour at what the reactions' heat
+there can evaporate (`heat_limited`): its reported `vapour_share`, 0.516, is Raoult's share over
+the liquid, and the capped vapour carried is 0.477 of the gas. That cap, which the per-moment
+sweep of this entry's test does not apply, puts it below the 72.80 m3/h above; the capacity stays
+on the larger, uncapped figure. A first sizing of 75 m3/h took 1.2 x the worst-accumulation
+moment's 59.57 m3/h as the largest; it left 1.09 over the normal peak and 1.03 over the release
+0.38 h into the dosing, so it is not kept. E-102 condenses about 14 kW at the normal peak (8.78
+kW year average, 11.8 kW over the 5.24 h of gas).
 Reason: with a fast chain the release follows the dosing, so sizing for it costs little and
 needs no slower dosing; the vapour is most of the volume and has to pass the line to E-102. The
 1.2 is a margin on that case, not on the kinetics: the rate law is ASSUMED (D-005), and the
@@ -695,6 +698,11 @@ differences come from the design (the charge, the forerun), not from the models.
   vent S7 past it at 303.15 K with the vapour left in it; the screening's gas release at the MTSR
   with the vapour (59.57 m3/h, `vapour_share` 0.418) against `hazard.vent_capacity` (D-008,
   D-014). HBr's `ideal_gas` data (materials.yaml, SRC-4) let the condenser cool the gas.
+- Core 1.12.0, ADR 0069 (2026-11-19, the library's pin 0e85885): the screening's own largest gas
+  release over the batch (`gas_release.largest_over_batch`, every moment's content at its MTSR,
+  the vapour capped by the reactions' heat), 66.27 m3/h 0.782 h into the dosing, which
+  `cheme.reactor-hazard-vent` (info) quotes against `hazard.vent_capacity`: 0.74 (D-014). The
+  entry's test sweeps the moments without the cap (72.80 m3/h), and the capacity stays on that.
 - Tried, not adopted (D-015): `still.heat_up` (ADR 0063; no heat-up for a charge above its
   bubble point, both here). Not used: `batch.heat_up`, `vessel.metal_heat_capacity`, a dose's
   `heat_of_solution` (ADR 0063), `vent.henry` (ADR 0062), a `purity` end (ADR 0061), each for
@@ -739,7 +747,10 @@ filter and the dryer (no solids), `still.feed` (no solvent swap).
 
 Status on core 1.10.0 (2026-11-06): L-4 resolved, L-3 mostly resolved (core ADRs 0061, 0062,
 D-015); on core 1.9.0 L-8 resolved, L-6 and L-7 partly (each says what is left); L-1, L-2, L-5
-and L-9 stand.
+and L-9 stand. On core 1.12.0 (2026-11-19, ADR 0069) the screening reports the largest gas
+release over the batch itself, not only the worst-accumulation moment's (D-014); it caps the
+vapour at the reactions' heat, so the uncapped sweep of the entry's test still sets the
+capacity. No L-item changes.
 
 - L-1: no photochemical rate law. The rate of a light-driven chain depends on the absorbed photon
   flux (lamp power, emission spectrum, the light path through a bromine-coloured liquid, the
