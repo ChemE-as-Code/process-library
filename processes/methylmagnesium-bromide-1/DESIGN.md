@@ -486,9 +486,13 @@ SRC-10, ASSUMED; the files declare no vapour pressure):
 
 The k/100 and uninitiated rows take the ASSUMED rate laws far outside their 298-338 K range: an
 order of magnitude, not a value. With the vapour, core's largest release over the batch at k/100
-is 3.1e4 m3/h: the reactions' heat at the MTSR, 434 K, a temperature a content boiling at 369.6
-K does not reach while it is relieved; the boil-up at the bubble point (`gas_release.boil_up`, a
-tempered reaction) is the relief's case. Methyl bromide stripped by the gas release on a cooling
+is 3.1e4 m3/h: the reactions' heat at the MTSR, 434 K, a temperature a tempered content does not
+reach while it is relieved; the boil-up at the bubble point (`gas_release.boil_up`, a tempered
+reaction) is the relief's case. Core takes that bubble point at the vessel's stream pressure, the
+120 kPa(a) pad (ADR 0069, item 6), so 369.6 K is the tempering temperature only at the pad. A
+relief lifts at its set pressure and relieves above it (overpressure), where the content boils
+hotter and reacts faster (corrected after the review of PR #505; the first version said a content
+boiling at 369.6 K is what is relieved). Methyl bromide stripped by the gas release on a cooling
 failure (a further scratch run with methyl bromide's Antoine parameters, SRC-12, extrapolated
 from 276.8 K): at most 0.097 kg/h at the base rate and 2.83 kg/h at k/10, and the release with
 the vapour 3.53 and 9.43 m3/h (0.18 and 0.47 times the vent).
@@ -504,11 +508,28 @@ dose could not be held dissolved at 120 kPa(a) (the fixed `absorbed: 0.99` does 
 so it would raise R-101's pressure and pass to the vent before it all accumulated.
 
 Decisions:
-1. **Relief basis: the tempered boil-up of a sluggish reaction (k/100).** R-101's emergency
-   relief, separate from the process vent, is designed for about 3.9e3 m3/h of 2-MeTHF vapour at
-   369.6 K and 120 kPa(a) (0.0419 kmol/s, about 13 t/h, from 1.4 MW of reaction heat), preceded
-   by the 301 kg of dissolved methyl bromide, which boils off first (the content with it boils
-   at about 341 K). It discharges to a catch tank, not to the oxidiser's header (193 times the
+1. **Relief basis: the tempered boil-up of a sluggish reaction (k/100); its load is open, with a
+   lower bound.** R-101's emergency relief, separate from the process vent, relieves the boil-up
+   of the k/100 case, preceded by the 301 kg of dissolved methyl bromide, which boils off first
+   (the content with it boils at about 341 K at the pad). Core's figure, about 3.9e3 m3/h of
+   2-MeTHF vapour at 369.6 K and 120 kPa(a) (0.0419 kmol/s, about 13 t/h, from 1.4 MW of
+   reaction heat), is the boil-up at the pad pressure: **a lower bound, not the design load**
+   (restated after the review of PR #505). At the relieving pressure (set pressure plus
+   overpressure, both open) the content tempers hotter and the reaction heat, and with it the
+   boil-off mass rate, is larger. My arithmetic, to show the size of it (the content at the
+   worst moment unchanged, its bubble point following the Clausius-Clapeyron line of the table's
+   note scaled through 369.6 K at 120 kPa(a), the rate constant by Ea 40 kJ/mol, the latent heat
+   taken as constant; relieving pressures ASSUMED for illustration, not decided):
+
+   | relieving pressure | tempering temperature | reaction heat | boil-off |
+   |---|---|---|---|
+   | 120 kPa(a) (core, the pad) | 369.6 K | 1.43 MW | about 13 t/h |
+   | 150 kPa(a) | 377.2 K | 1.85 MW | about 17 t/h |
+   | 200 kPa(a) | 387.5 K | 2.60 MW | about 24 t/h |
+   | 300 kPa(a) | 403.0 K | 4.19 MW | about 38 t/h |
+
+   The relief's load is decided once R-101's design and set pressures are (open, below), from
+   the calorimetry at that temperature; until then 13 t/h is the floor. It discharges to a catch tank, not to the oxidiser's header (193 times the
    20 m3/h it is sized for) and never to atmosphere; the catch tank holds R-101's liquid at the
    end of the dosing, 4.56 m3 (`cheme process recipe`; ASSUMED, as a two-phase discharge can
    carry the content out), is kept dry and under nitrogen (the Grignard solution reacts with
@@ -558,13 +579,15 @@ Decisions:
    value for methyl bromide in 2-MeTHF, L-7, D-004).
 
 Stays open, and what it gates:
-- reaction calorimetry with gas dosing in 2-MeTHF up to the bubble point (heat flow, the
-  induction time, the rate above 338 K): the relief load of decision 1 (the k/100 boil-up rests
-  on the ASSUMED rate law extrapolated to 369.6 K), the dosing-stop thresholds of decision 2 and,
-  with the initiation signal it shows, the 3 % or 5 % charge of decision 3;
-- vent-sizing tests of the solution (level swell, foaming, viscosity; DIERS method) and R-101's
-  design and set pressures: the relief area and the catch tank of decision 1 (core models no
-  two-phase relief or vessel pressure);
+- reaction calorimetry with gas dosing in 2-MeTHF up to the bubble point at the relieving
+  pressure (heat flow, the induction time, the rate above 338 K, to about 400 K): the relief load
+  of decision 1 (the k/100 boil-up rests on the ASSUMED rate law extrapolated to 369.6 K and
+  beyond), the dosing-stop thresholds of decision 2 and, with the initiation signal it shows,
+  the 3 % or 5 % charge of decision 3;
+- R-101's design and set pressures (vendor, relief study): the tempering temperature and so the
+  relief's load of decision 1 (13 t/h at the 120 kPa(a) pad is its lower bound), and with the
+  vent-sizing tests of the solution (level swell, foaming, viscosity; DIERS method) the relief
+  area and the catch tank (core models no two-phase relief or vessel pressure);
 - the TD24 of the solution and the wet magnesium cake (DSC or ARC): the criticality class, and
   whether the k/100 MTSR (434 K) reaches a decomposition;
 - the solubility and vapour-liquid equilibrium of methyl bromide in 2-MeTHF: the dissolved
