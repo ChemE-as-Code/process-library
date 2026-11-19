@@ -14,10 +14,10 @@ year: 2026
 boundary: gate-to-gate foreground of the plant
 technology: 'Agricultural biogas plant next to a livestock farm: cattle slurry with hygienised catering
   waste, grease trap waste and biowaste (22 100 t/a) mixed in an intake pit, warmed to 313.15 K and digested
-  in two stirred concrete digesters (3400 m3 gross, 51 d), the biogas desulphurised on activated carbon,
-  compressed to 1600 kPa(a) and upgraded in three membrane stages to 98 mol% CH4 at 99.5 % methane recovery;
-  10.4 % of the biogas fired in a hot-water boiler for the digesters; the digestate stored six months
-  under a gas-tight cover and spread on farmland'
+  in two stirred concrete digesters (3400 m3 gross, 51 d), the biogas chilled to 283.15 K to remove its
+  water, desulphurised on activated carbon, compressed to 1600 kPa(a) and upgraded in three membrane stages
+  to 98 mol% CH4 at 99.5 % methane recovery; 11.1 % of the biogas fired in a hot-water boiler for the
+  digesters; the digestate stored six months under a gas-tight cover and spread on farmland'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:intake-pit
@@ -30,7 +30,8 @@ cutoff:
   direction: output
   reason: 'Methane leaking from the digesters'' and the store''s membrane roofs, their over-pressure valves
     and the emergency flare is not estimated: no open measured rate was read for this concept (D-011,
-    L-4).'
+    L-4). Its size is not bounded: a leak equal to the membranes'' slip (4.76 g CH4 per kg of biomethane)
+    would add 0.13 kg CO2-eq per kg, 40 % of the screening result, so the result is a lower bound (D-012).'
 - key: emission-excluded:hydrogen-sulphide
   title: storage-tank emissions of A-301
   direction: output
@@ -40,7 +41,8 @@ cutoff:
   title: combustion emissions of B-101
   direction: output
   reason: CO, NOx and unburnt methane of the hot-water boiler are not estimated; complete combustion ASSUMED
-    (D-008).
+    (D-008). Each 1 % of the boiler's methane left unburnt would add 1.2 g CH4, 0.03 kg CO2-eq, per kg
+    of biomethane (D-012).
 uuid: dffa5765-a65a-5d06-83eb-e7e1a261341f
 version: 0.1.0
 geography:
@@ -52,7 +54,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: current
 production_volume:
-  amount: 709851.2
+  amount: 703957.6
   unit: kg/a
   source: product:BIOMETHANE per hour x operation.hours_per_year (8000 h/a)
 classification:
@@ -194,7 +196,7 @@ exchanges:
 - key: feed:AIR
   title: Combustion air for the hot-water boiler
   type: input
-  amount: 192.45
+  amount: 206.27
   unit: kg
   free: true
   streams:
@@ -218,19 +220,22 @@ exchanges:
 - key: feed:POWER
   title: Electric power (AC, grid)
   type: input
-  amount: 87.61
+  amount: 90.48
   unit: kWh
   link:
     factor: desnz-ghg-2026:electricity-gb
-    source: flowsheet energy streams W1 (digester agitators and pumps, FNR Table 8.4) and W2 (the membrane
-      unit at 0.25 kWh/Nm3 raw biogas, SGC Rapport 2013:270 section 3.2), D-009
+    source: flowsheet energy streams W1 (digester agitators and pumps, FNR Table 8.4), W2 (the membrane
+      unit at 0.25 kWh/Nm3 raw biogas, SGC Rapport 2013:270 section 2.3.3) and W3 (the gas chiller's refrigeration
+      unit, ASSUMED COP 3.0), D-007, D-009
     proxy: UK grid electricity (DESNZ 2026) for the undecided site's grid (DE assumed); the Atlas build
       links the library's shared entry `electricity` (medium voltage, site country) instead (lca/mappings.yaml)
   streams:
   - W1
   - W2
-  source: flowsheet energy streams W1 (digester agitators and pumps, FNR Table 8.4) and W2 (the membrane
-    unit at 0.25 kWh/Nm3 raw biogas, SGC Rapport 2013:270 section 3.2), D-009
+  - W3
+  source: flowsheet energy streams W1 (digester agitators and pumps, FNR Table 8.4), W2 (the membrane
+    unit at 0.25 kWh/Nm3 raw biogas, SGC Rapport 2013:270 section 2.3.3) and W3 (the gas chiller's refrigeration
+    unit, ASSUMED COP 3.0), D-007, D-009
   pedigree:
     scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -241,7 +246,7 @@ exchanges:
 - key: product:BIOMETHANE
   title: Biomethane, 98 mol% CH4, 1550 kPa(a), to the grid injection station
   type: product
-  amount: 88.7314
+  amount: 87.9947
   unit: kg
   provenance: calculated
   streams:
@@ -271,7 +276,7 @@ exchanges:
 - key: product:DIGESTATE
   title: Digestate from the covered store to land application
   type: output
-  amount: 2498.98
+  amount: 2498.88
   unit: kg
   provenance: calculated
   free: true
@@ -283,7 +288,7 @@ exchanges:
     rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   carbon:
-    total: 0.023459382
+    total: 0.023460293
     biogenic_fraction: 1.0
     source: composition and formulas
   treatment:
@@ -292,9 +297,9 @@ exchanges:
       fertiliser, its nutrients re-used in place of mineral fertiliser (D-010)
   composition:
     fractions:
-      H2O: 0.879521333
-      RVS: 0.052781167
-      ASH: 0.0676975
+      H2O: 0.87951656
+      RVS: 0.052783217
+      ASH: 0.067700223
     formulas:
       H2O: H2O
       RVS: C6H10O5
@@ -303,7 +308,7 @@ exchanges:
 - key: product:OFFGAS
   title: Membrane off-gas (CO2 with the methane slip) to atmosphere
   type: output
-  amount: 146.24
+  amount: 145.025
   unit: kg
   provenance: calculated
   streams:
@@ -314,13 +319,13 @@ exchanges:
     rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   carbon:
-    total: 0.273518913
+    total: 0.273518919
     source: composition and formulas
   composition:
     fractions:
       CH4: 0.002887371
-      CO2: 0.994268541
-      H2O: 0.002844089
+      CO2: 0.994268561
+      H2O: 0.002844068
     formulas:
       CH4: CH4
       CO2: CO2
@@ -329,7 +334,7 @@ exchanges:
 - key: product:FLUE
   title: Flue gas of the hot-water boiler to atmosphere
   type: output
-  amount: 221.001
+  amount: 236.87
   unit: kg
   provenance: calculated
   streams:
@@ -340,14 +345,14 @@ exchanges:
     rule: cheme default pedigree v1 (calculated, design maturity concept)
   basic_uncertainty: 1.05
   carbon:
-    total: 0.054550212
+    total: 0.054548988
     source: composition and formulas
   composition:
     fractions:
-      CO2: 0.199875136
-      H2O: 0.105683183
-      O2: 0.026450286
-      N2: 0.667991395
+      CO2: 0.199870654
+      H2O: 0.105681366
+      O2: 0.026454122
+      N2: 0.667993858
     formulas:
       CO2: CO2
       H2O: H2O
@@ -355,14 +360,16 @@ exchanges:
       N2: N2
     source: stream table (S14)
 - key: product:AMBIENT
-  title: Heat of compression rejected to the air by the after-coolers
+  title: Heat rejected to the air by the gas chiller and the after-coolers
   type: output
-  amount: 48.61
+  amount: 57.27
   unit: kWh
   free: true
   streams:
   - Q2
-  source: 'heat of compression rejected to the ambient air by the after-coolers (Q2): no burden'
+  - Q3
+  source: 'heat rejected to the ambient air by the gas chiller (Q3) and by the after-coolers and the compressor''s
+    oil cooler (Q2), D-007: no burden'
   pedigree:
     scores: [4, 4, 1, 1, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -422,7 +429,7 @@ exchanges:
 - key: emission:CH4
   title: CH4 to the environment
   type: emission
-  amount: 0.4222490743820333
+  amount: 0.4187409277698459
   unit: kg
   provenance: calculated
   link:
@@ -462,7 +469,7 @@ exchanges:
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 189.5744363700491
+  amount: 191.53715984699977
   unit: kg
   provenance: calculated
   link:
@@ -502,7 +509,7 @@ exchanges:
 - key: emission:H2O
   title: H2O to the environment
   type: emission
-  amount: 23.77200871851106
+  amount: 25.445206184491468
   unit: kg
   provenance: calculated
   free: true
@@ -551,7 +558,7 @@ exchanges:
 - key: emission:N2
   title: N2 to the environment
   type: emission
-  amount: 147.62676624809865
+  amount: 158.22770520054374
   unit: kg
   provenance: calculated
   free: true
@@ -576,7 +583,7 @@ exchanges:
 - key: emission:O2
   title: O2 to the environment
   type: emission
-  amount: 5.84553958895918
+  amount: 6.266187840195189
   unit: kg
   provenance: calculated
   free: true
@@ -629,9 +636,9 @@ provenance:
     biogas)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:1e72e28be4a2149dbfbf7489f405bd07d78f0df5c8f3b57a33123db36bd667d2
-    lca/lca.yaml: sha256:dc710da3f4c357bf1da09d3fa924736160087e1ad7de63e90d20e8d4d7e0afe4
-    process.yaml: sha256:ea31fdc82f02d8073fc4dd85dfbdd35f1b863201a0ec08fe2f53682932dc8179
-    process/flowsheet.yaml: sha256:098c9636e1d33484c6ae80023fe9263750c1f91ffe3e653202554aac0d3cddac
+    equipment/equipment-list.yaml: sha256:5e94b325686c6bee25b1d038cfc411d0cdd3906ed0dc7b1c11daf80ca3c1f733
+    lca/lca.yaml: sha256:14a6add9fb0921e14a3bcd714ec885f8402c631372e062bef53a9f2db5f38509
+    process.yaml: sha256:5dbfcbd5b612cbbfebd6d9d00f6d3cd6d65c0a915a2af14b023a9b1a4d9e543c
+    process/flowsheet.yaml: sha256:58f5f3e1d4f7221e05ec7d7b0df26c5128fcf375ccc79baaf580e55016ca08a9
     process/materials.yaml: sha256:e743d37d79a900dc05b2db26b812d028731177e113f5944f452a3ba1f51dea7f
-    process/simulation.yaml: sha256:9fe71ba0c760fd9fd9a2f7241dde311cc83e35ea0bff81a8eb96d8e53bff2410
+    process/simulation.yaml: sha256:2244d680359a875822ad49463f3212ee3a44fd5631fa81310dc54cca335aac26

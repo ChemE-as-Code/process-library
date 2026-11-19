@@ -5,11 +5,11 @@
 # digestion in two stirred digesters, upgraded to biomethane in a three-stage membrane unit; the
 # digestate stored for land application (DESIGN.md D-001 to D-010).
 # Where the values come from:
-# - the feeds (flows and lumped compositions), the air, the power and the after-coolers' heat
-#   come from scripts/balance.py (D-002 to D-009), given as `assumed` with the script's path;
+# - the feeds (flows and lumped compositions), the air, the power and the heat of the gas chiller
+#   and the after-coolers come from scripts/balance.py (D-002 to D-009), given as `assumed` with the script's path;
 #   its inputs are sourced (FNR Guide to Biogas; SGC Rapport 2013:270) or ASSUMED;
 # - the digesters R101 (Buswell, complete conversion of the digestible lumps), the gas space
-#   V101, the boiler B101, the knock-out E301 and the membrane unit M301 (component separators
+#   V101, the boiler B101, the knock-outs E300 and E301 and the membrane unit M301 (component separators
 #   with the script's recoveries), the mixers and the splitter are calculated by
 #   `cheme process propagate --fill`, which writes B101's heat to the hot-water circuit (Q1);
 # - temperatures and pressures are design choices (ASSUMED, D-005 to D-008); no property
@@ -41,16 +41,17 @@ feeds:
     ports:
       - {id: u101, direction: out, kind: energy}
       - {id: c301, direction: out, kind: energy}
+      - {id: u301, direction: out, kind: energy}
 products:
   - {id: BIOMETHANE, title: "Biomethane, 98 mol% CH4, 1550 kPa(a), to the grid injection station", category: product, ports: [{id: in, direction: in}]}
   - {id: DIGESTATE, title: Digestate from the covered store to land application, category: by_product, ports: [{id: in, direction: in}]}
   - {id: OFFGAS, title: Membrane off-gas (CO2 with the methane slip) to atmosphere, category: emission, ports: [{id: in, direction: in}]}
   - {id: FLUE, title: Flue gas of the hot-water boiler to atmosphere, category: emission, ports: [{id: in, direction: in}]}
   - id: AMBIENT
-    title: Heat of compression rejected to the air by the after-coolers
+    title: Heat rejected to the air by the gas chiller and the after-coolers
     category: utility
     utility: {kind: air_cooling}
-    ports: [{id: e301, direction: in, kind: energy}]
+    ports: [{id: e300, direction: in, kind: energy}, {id: e301, direction: in, kind: energy}]
 
 blocks:
   - id: AD
@@ -62,6 +63,7 @@ blocks:
       - {id: grease, direction: in}
       - {id: biow, direction: in}
       - {id: cond, direction: in}
+      - {id: cond1, direction: in}
       - {id: biogas, direction: out}
       - {id: fuel, direction: out}
       - {id: digestate, direction: out}
@@ -76,15 +78,18 @@ blocks:
       - {id: flue, direction: out}
       - {id: heat, direction: out, kind: energy}
   - id: UPG
-    title: Biogas upgrading (activated carbon, compression, three-stage membranes)
+    title: Biogas upgrading (gas chiller, activated carbon, compression, three-stage membranes)
     class: Separating
     ports:
       - {id: gas, direction: in}
       - {id: product, direction: out}
       - {id: offgas, direction: out}
       - {id: cond, direction: out}
+      - {id: cond1, direction: out}
       - {id: power, direction: in, kind: energy}
+      - {id: power1, direction: in, kind: energy}
       - {id: cool, direction: out, kind: energy}
+      - {id: cool1, direction: out, kind: energy}
 
 steps:
   # AD: intake pit, hot-water circuit, two-stage digesters with gas space, digestate store (D-003)
@@ -141,18 +146,19 @@ steps:
       - {id: power, direction: in, kind: energy, delegates: power}
   - id: T201
     block: AD
-    title: Gas-tight covered digestate store (with the upgrading's condensate)
+    title: Gas-tight covered digestate store (with the upgrading's condensates)
     class: Mixing
     links: [{target: equipment, ref: T-201}]
     ports:
       - {id: in, direction: in}
       - {id: cond, direction: in, delegates: cond}
+      - {id: cond1, direction: in, delegates: cond1}
       - {id: out, direction: out, delegates: digestate}
   - id: X101
     block: AD
     title: Biogas to the boiler and to upgrading
     class: SplittingMaterial
-    split: {boiler: 0.1037056}   # scripts/balance.py: the share whose heat covers the digesters' demand (D-008)
+    split: {boiler: 0.1111505}   # scripts/balance.py: the share whose heat covers the digesters' demand (D-008)
     ports:
       - {id: in, direction: in}
       - {id: boiler, direction: out, delegates: fuel}
@@ -172,6 +178,28 @@ steps:
       - {id: flue, direction: out, delegates: flue}
       - {id: heat, direction: out, kind: energy, delegates: heat}
   # UPG (D-006, D-007)
+  - id: E300
+    block: UPG
+    title: Gas chiller and condensate separator (water removed before compression)
+    class: Separating
+    links: [{target: equipment, ref: E-300}, {target: equipment, ref: V-300}]
+    recovery:
+      outlets:
+        gas: {CH4: 1.0, CO2: 1.0, H2O: 0.156929}
+      provenance: assumed
+      source: "scripts/balance.py: the gas saturated with water at 283.15 K and 101.5 kPa(a) (IAPWS-95, chemicals 1.5.2), the rest condenses before the compressor (SGC Rapport 2013:270, section 2.3.1; D-007)"
+    ports:
+      - {id: in, direction: in, delegates: gas}
+      - {id: gas, direction: out}
+      - {id: cond, direction: out, delegates: cond1}
+      - {id: cool, direction: out, kind: energy, delegates: cool1}
+  - id: U301
+    block: UPG
+    title: Refrigeration unit of the gas chiller (chilled water)
+    class: ProcessStep
+    links: [{target: equipment, ref: E-300}]
+    ports:
+      - {id: power, direction: in, kind: energy, delegates: power1}
   - id: A301
     block: UPG
     title: Activated carbon filter (H2S removal) and particle filter
@@ -184,7 +212,7 @@ steps:
       provenance: assumed
       source: "D-007: the trace components it removes are not represented"
     ports:
-      - {id: in, direction: in, delegates: gas}
+      - {id: in, direction: in}
       - {id: out, direction: out}
   - id: C301
     block: UPG
@@ -202,9 +230,9 @@ steps:
     links: [{target: equipment, ref: E-301}, {target: equipment, ref: V-301}]
     recovery:
       outlets:
-        gas: {CH4: 1.0, CO2: 1.0, H2O: 0.034098}
+        gas: {CH4: 1.0, CO2: 1.0, H2O: 0.217282}
       provenance: assumed
-      source: "scripts/balance.py: the gas saturated with water at 303.15 K and 1600 kPa(a) (IAPWS-95, chemicals 1.5.2), the rest condenses (D-007)"
+      source: "scripts/balance.py: the gas saturated with water at 303.15 K and 1600 kPa(a) (IAPWS-95, chemicals 1.5.2), the rest of the water left after the chiller condenses (D-007)"
     ports:
       - {id: in, direction: in}
       - {id: gas, direction: out}
@@ -294,10 +322,10 @@ streams:
     template: slurry
     state:
       design:
-        temperature: {value: 288.15, provenance: assumed, source: 'D-010: cooled in the uninsulated store'}
+        temperature: {value: 288.15, provenance: assumed, source: 'D-010: the digestate cools in the store, whose walls are not insulated (ASSUMED); its heat goes to ambient'}
         pressure: {value: 101.325, provenance: assumed, source: D-010}
-        flow: {value: 2498.98, provenance: calculated, source: 'cheme process propagate: mixer T201 from S9 S18', fingerprint: 14d5095c11138e5e}
-        composition: {basis: mole_fraction, values: {H2O: 0.971113, CARB: 0.0, LIPID: 0.0, RVS: 0.00647506, ASH: 0.0224119, CH4: 0.0, CO2: 0.0, O2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer T201 from S9 S18', fingerprint: c65d5c2cf9a74e92}
+        flow: {value: 2498.88, provenance: calculated, source: 'cheme process propagate: mixer T201 from S9 S22 S18', fingerprint: 8d80a6f7bf569dc0}
+        composition: {basis: mole_fraction, values: {H2O: 0.971112, CARB: 0.0, LIPID: 0.0, RVS: 0.00647534, ASH: 0.0224129, CH4: 0.0, CO2: 0.0, O2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer T201 from S9 S22 S18', fingerprint: e79b6a1f5e3deb0a}
   # boiler
   - id: S11
     title: Biogas to the boiler
@@ -308,9 +336,9 @@ streams:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-008}
         pressure: {value: 102.0, provenance: assumed, source: D-008}
-        flow: {value: 28.5506, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8', fingerprint: 1a0608071fea4c73}
+        flow: {value: 30.6002, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8', fingerprint: c2de4b0dd3341f5c}
         composition: {basis: mole_fraction, values: {H2O: 0.0724015, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0, CH4: 0.562879, CO2: 0.364719, O2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8', fingerprint: 00479c12fd3c82a9}
-  - {id: S13, title: Combustion air, from: AIR.out, to: B101.air, template: gas, state: {design: {temperature: {value: 283.15, provenance: assumed, source: D-008}, pressure: {value: 101.325, provenance: assumed, source: D-008}, flow: {value: 192.45, basis: mass, provenance: assumed, source: "scripts/balance.py: 15 % excess air, dry air 21/79 mol% (D-008)"}, composition: {basis: mass_fraction, values: {O2: 0.2329092, N2: 0.7670908}, provenance: assumed, source: "scripts/balance.py: dry air 21/79 mol%, argon counted as N2 (D-008)"}}}}
+  - {id: S13, title: Combustion air, from: AIR.out, to: B101.air, template: gas, state: {design: {temperature: {value: 283.15, provenance: assumed, source: D-008}, pressure: {value: 101.325, provenance: assumed, source: D-008}, flow: {value: 206.27, basis: mass, provenance: assumed, source: "scripts/balance.py: 15 % excess air, dry air 21/79 mol% (D-008)"}, composition: {basis: mass_fraction, values: {O2: 0.2329092, N2: 0.7670908}, provenance: assumed, source: "scripts/balance.py: dry air 21/79 mol%, argon counted as N2 (D-008)"}}}}
   - id: S14
     title: Boiler flue gas
     from: B101.flue
@@ -320,20 +348,42 @@ streams:
       design:
         temperature: {value: 423.15, provenance: assumed, source: 'D-008: flue gas leaving the boiler'}
         pressure: {value: 101.325, provenance: assumed, source: D-008}
-        flow: {value: 221.001, provenance: calculated, source: 'cheme process propagate: reactor B101 from S11 S13', fingerprint: 8b056aef764b431c}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, CO2: 0.129468, H2O: 0.167231, O2: 0.0235642, N2: 0.679737, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor B101 from S11 S13', fingerprint: d6bdb9c3c33d4af3}
+        flow: {value: 236.87, provenance: calculated, source: 'cheme process propagate: reactor B101 from S11 S13', fingerprint: 11a03287aab35899}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, CO2: 0.129465, H2O: 0.167228, O2: 0.0235676, N2: 0.679739, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor B101 from S11 S13', fingerprint: 46857124741a147f}
   # upgrading
   - id: S12
     title: Biogas to upgrading
     from: X101.upg
-    to: A301.in
+    to: E300.in
     template: gas
     state:
       design:
         temperature: {value: 313.15, provenance: assumed, source: D-007}
         pressure: {value: 102.0, provenance: assumed, source: D-007}
-        flow: {value: 246.753, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8 S11', fingerprint: 55a20ba77762f1e7}
+        flow: {value: 244.704, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8 S11', fingerprint: e8bb9c3f0dc663b4}
         composition: {basis: mole_fraction, values: {H2O: 0.0724015, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0, CH4: 0.562879, CO2: 0.364719, O2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8', fingerprint: 00479c12fd3c82a9}
+  - id: S21
+    title: Chilled biogas to the activated carbon filter
+    from: E300.gas
+    to: A301.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: 'D-007: chilled before compression (SGC Rapport 2013:270, section 2.3.1)'}
+        pressure: {value: 101.5, provenance: assumed, source: D-007}
+        flow: {value: 234.506, provenance: calculated, source: 'cheme process propagate: separator E300 from S12', fingerprint: 8f2c8c9b5b0e9fe7}
+        composition: {basis: mole_fraction, values: {CH4: 0.599471, CO2: 0.388429, H2O: 0.0121005, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E300 from S12', fingerprint: 8f2c8c9b5b0e9fe7}
+  - id: S22
+    title: Chiller condensate to the digestate store
+    from: E300.cond
+    to: T201.cond1
+    template: slurry
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: D-007}
+        pressure: {value: 101.5, provenance: assumed, source: D-007}
+        flow: {value: 10.1982, provenance: calculated, source: 'cheme process propagate: separator E300 from S12', fingerprint: 8f2c8c9b5b0e9fe7}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, CO2: 0.0, H2O: 1.0, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E300 from S12', fingerprint: 8f2c8c9b5b0e9fe7}
   - id: S15
     title: Desulphurised biogas
     from: A301.out
@@ -341,10 +391,10 @@ streams:
     template: gas
     state:
       design:
-        temperature: {value: 313.15, provenance: assumed, source: D-007}
-        pressure: {value: 101.5, provenance: assumed, source: D-007}
-        flow: {value: 246.753, provenance: calculated, source: 'cheme process propagate: separator A301 from S12', fingerprint: aaeee3f155678c10}
-        composition: {basis: mole_fraction, values: {CH4: 0.562879, CO2: 0.364719, H2O: 0.0724015, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator A301 from S12', fingerprint: aaeee3f155678c10}
+        temperature: {value: 283.15, provenance: assumed, source: D-007}
+        pressure: {value: 101.0, provenance: assumed, source: D-007}
+        flow: {value: 234.506, provenance: calculated, source: 'cheme process propagate: separator A301 from S21', fingerprint: 18a20769de65e99e}
+        composition: {basis: mole_fraction, values: {CH4: 0.599471, CO2: 0.388429, H2O: 0.0121005, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator A301 from S21', fingerprint: 18a20769de65e99e}
   - id: S16
     title: Compressed biogas
     from: C301.out
@@ -354,8 +404,8 @@ streams:
       design:
         temperature: {value: 353.15, provenance: assumed, source: 'D-007: after the compressor''s oil-cooled stages'}
         pressure: {value: 1600.0, provenance: assumed, source: 'D-007: inside SGC''s 6-20 bar(a) (Rapport 2013:270, section 2.3.1)'}
-        flow: {value: 246.753, provenance: calculated, source: 'cheme process propagate: pass-through C301 from S15', fingerprint: a7b7f6ac348a93ed}
-        composition: {basis: mole_fraction, values: {CH4: 0.562879, CO2: 0.364719, H2O: 0.0724015, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through C301 from S15', fingerprint: a7b7f6ac348a93ed}
+        flow: {value: 234.506, provenance: calculated, source: 'cheme process propagate: pass-through C301 from S15', fingerprint: e1e226cf2c4fc03a}
+        composition: {basis: mole_fraction, values: {CH4: 0.599471, CO2: 0.388429, H2O: 0.0121005, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through C301 from S15', fingerprint: e1e226cf2c4fc03a}
   - id: S17
     title: Cooled biogas to the membranes
     from: E301.gas
@@ -365,10 +415,10 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: D-007}
         pressure: {value: 1600.0, provenance: assumed, source: D-007}
-        flow: {value: 234.971, provenance: calculated, source: 'cheme process propagate: separator E301 from S16', fingerprint: 16b975caccaf863c}
-        composition: {basis: mole_fraction, values: {CH4: 0.605203, CO2: 0.392143, H2O: 0.00265438, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E301 from S16', fingerprint: 16b975caccaf863c}
+        flow: {value: 233.02, provenance: calculated, source: 'cheme process propagate: separator E301 from S16', fingerprint: 16d807da2e1b08f2}
+        composition: {basis: mole_fraction, values: {CH4: 0.605203, CO2: 0.392143, H2O: 0.00265436, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E301 from S16', fingerprint: 16d807da2e1b08f2}
   - id: S18
-    title: Condensate to the digestate store
+    title: After-cooler condensate to the digestate store
     from: E301.cond
     to: T201.cond
     template: slurry
@@ -376,8 +426,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: D-007}
         pressure: {value: 1600.0, provenance: assumed, source: D-007}
-        flow: {value: 11.7818, provenance: calculated, source: 'cheme process propagate: separator E301 from S16', fingerprint: 16b975caccaf863c}
-        composition: {basis: mole_fraction, values: {CH4: 0.0, CO2: 0.0, H2O: 1.0, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E301 from S16', fingerprint: 16b975caccaf863c}
+        flow: {value: 1.48582, provenance: calculated, source: 'cheme process propagate: separator E301 from S16', fingerprint: 16d807da2e1b08f2}
+        composition: {basis: mole_fraction, values: {CH4: 0.0, CO2: 0.0, H2O: 1.0, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E301 from S16', fingerprint: 16d807da2e1b08f2}
   - id: S19
     title: Biomethane product
     from: M301.product
@@ -387,8 +437,8 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: D-006}
         pressure: {value: 1550.0, provenance: assumed, source: 'D-006: membrane feed less 50 kPa'}
-        flow: {value: 88.7314, provenance: calculated, source: 'cheme process propagate: separator M301 from S17', fingerprint: 60083b3a7b0fdeeb}
-        composition: {basis: mole_fraction, values: {CH4: 0.98, CO2: 0.0199999, H2O: 0.0, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator M301 from S17', fingerprint: 60083b3a7b0fdeeb}
+        flow: {value: 87.9947, provenance: calculated, source: 'cheme process propagate: separator M301 from S17', fingerprint: d61c4c4b5c344b1f}
+        composition: {basis: mole_fraction, values: {CH4: 0.98, CO2: 0.0199999, H2O: 0.0, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator M301 from S17', fingerprint: d61c4c4b5c344b1f}
   - id: S20
     title: Membrane off-gas
     from: M301.offgas
@@ -398,11 +448,13 @@ streams:
       design:
         temperature: {value: 303.15, provenance: assumed, source: D-006}
         pressure: {value: 101.325, provenance: assumed, source: D-006}
-        flow: {value: 146.24, provenance: calculated, source: 'cheme process propagate: separator M301 from S17', fingerprint: 60083b3a7b0fdeeb}
-        composition: {basis: mole_fraction, values: {CH4: 0.00784889, CO2: 0.985266, H2O: 0.00688494, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator M301 from S17', fingerprint: 60083b3a7b0fdeeb}
+        flow: {value: 145.025, provenance: calculated, source: 'cheme process propagate: separator M301 from S17', fingerprint: d61c4c4b5c344b1f}
+        composition: {basis: mole_fraction, values: {CH4: 0.00784889, CO2: 0.985266, H2O: 0.00688489, O2: 0.0, N2: 0.0, CARB: 0.0, LIPID: 0.0, RVS: 0.0, ASH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator M301 from S17', fingerprint: d61c4c4b5c344b1f}
   # energy (scripts/balance.py; Q1 from B101's conversion step)
-  - {id: Q1, title: Boiler heat to the hot-water circuit (substrate warming and digester losses), kind: energy, from: B101.heat, to: E101.heat, state: {design: {duty: {value: 126.696, provenance: calculated, source: 'cheme process propagate: conversion duty B101 from S11 S13 S14', fingerprint: de8a00a70fc6b99e}}}}
+  - {id: Q1, title: "Boiler heat to the hot-water circuit (substrate warming, digester losses, water evaporated into the biogas)", kind: energy, from: B101.heat, to: E101.heat, state: {design: {duty: {value: 135.791, provenance: calculated, source: 'cheme process propagate: conversion duty B101 from S11 S13 S14', fingerprint: 6acd0def7f9d33e6}}}}
   - {id: W1, title: "Digester agitators, intake pit mixer and pumps", kind: energy, from: POWER.u101, to: U101.power, state: {design: {duty: {value: 39.0, provenance: assumed, source: "scripts/balance.py: 25 and 15 W/m3 of 1700 m3 each (FNR Table 8.4), run half the time, plus 5 kW pumps, ASSUMED (D-009)"}}}}
-  - {id: W2, title: Upgrading compressor and permeate vacuum (whole membrane unit), kind: energy, from: POWER.c301, to: C301.power, state: {design: {duty: {value: 48.61, provenance: assumed, source: "scripts/balance.py: 0.25 kWh/Nm3 raw biogas (SGC Rapport 2013:270, section 3.2: 0.20-0.30), D-009"}}}}
-  - {id: Q2, title: Heat of compression to the air coolers, kind: energy, from: E301.cool, to: AMBIENT.e301, state: {design: {duty: {value: 48.61, provenance: assumed, source: "scripts/balance.py: the compression work rejected by the after-coolers, ASSUMED (D-007)"}}}}
+  - {id: W2, title: Upgrading compressor and permeate vacuum (whole membrane unit), kind: energy, from: POWER.c301, to: C301.power, state: {design: {duty: {value: 48.21, provenance: assumed, source: "scripts/balance.py: 0.25 kWh/Nm3 raw biogas (SGC Rapport 2013:270, section 2.3.3: 0.20-0.30), D-009"}}}}
+  - {id: Q2, title: Heat of compression and condensation to the air coolers, kind: energy, from: E301.cool, to: AMBIENT.e301, state: {design: {duty: {value: 47.46, provenance: assumed, source: "scripts/balance.py: the whole upgrading power taken to end as heat in the after-coolers and the compressor's oil cooler (ASSUMED), the gas's enthalpy from 283.15 to 303.15 K and the heat of vaporisation of the water condensed at 1600 kPa(a), D-007"}}}}
+  - {id: W3, title: Refrigeration compressor of the gas chiller, kind: energy, from: POWER.u301, to: U301.power, state: {design: {duty: {value: 3.27, provenance: assumed, source: "scripts/balance.py: the chiller's duty Q3 at a coefficient of performance of 3.0, ASSUMED (D-007, D-009)"}}}}
+  - {id: Q3, title: Heat taken from the biogas by the gas chiller, kind: energy, from: E300.cool, to: AMBIENT.e300, state: {design: {duty: {value: 9.81, provenance: assumed, source: "scripts/balance.py: the gas cooled from 313.15 to 283.15 K as ideal gas (process/materials.yaml) and the heat of vaporisation of its condensate (IAPWS-95), D-007"}}}}
 layout: {bfd: {}, pfd: {}}

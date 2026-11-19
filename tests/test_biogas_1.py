@@ -9,6 +9,7 @@ lca/lca.yaml are checked against them:
 - the lumped compositions give each substrate's standard yield and methane content by Buswell;
 - the membrane product holds 98.0 mol% CH4 at 99.5 % methane recovery (SGC Rapport 2013:270);
 - the boiler's calculated heat equals the script's heat demand;
+- the water is removed before compression, and the functional unit's CH4 and LHV per kg;
 - the element balance of carbon closes over the plant;
 - the stated key numbers (biomethane, electricity, methane slip) follow from the streams;
 - the LCI keeps the substrates free, the digestate a recyclable, the emissions biogenic;
@@ -103,10 +104,32 @@ def test_membrane_split(streams):
 def test_boiler_heat_meets_the_demand(streams):
     q1 = streams["Q1"]["duty"]
     assert q1["provenance"] == "calculated"
-    # the script's demand: substrate 96.23 kW + losses 30.47 kW
-    assert q1["value"] == pytest.approx(126.70, abs=0.05)
+    # the script's demand: substrate 96.23 kW + losses 30.47 kW + water evaporated 9.10 kW
+    assert q1["value"] == pytest.approx(135.79, abs=0.05)
     design = _text("DESIGN.md")
-    assert "126.70 kW" in design and "96.23" in design and "30.47 kW" in design
+    assert "135.79 kW" in design and "96.23" in design and "30.47 kW" in design and "9.10 kW" in design
+
+
+def test_water_removed_before_compression(streams):
+    # SGC Rapport 2013:270 section 2.3.1: the water is removed by cooling before compression
+    sheet = _load("process/flowsheet.yaml")
+    links = {s["id"]: (s["from"], s["to"]) for s in sheet["streams"]}
+    assert links["S12"][1] == "E300.in" and links["S15"][1] == "C301.in"
+    y_in = streams["S15"]["composition"]["values"]["H2O"]
+    assert y_in == pytest.approx(1228.2 / 101500, rel=2e-3)   # saturated at 283.15 K, 101.5 kPa(a)
+    # its partial pressure at 1600 kPa(a) is below water's vapour pressure at the 353.15 K outlet
+    assert y_in * 1600 < 47.4
+
+
+def test_functional_unit_heating_value(streams):
+    s19 = kmol(streams["S19"])
+    ch4 = s19["CH4"] * MW["CH4"] / streams["S19"]["flow"]["value"]
+    assert ch4 == pytest.approx(0.947, abs=5e-4)
+    lhv = ch4 * 50.027   # MJ/kg of methane on the materials' ideal-gas data (balance.py)
+    assert lhv == pytest.approx(47.4, abs=0.05)
+    assert "0.947 kg CH4 per kg" in _text("lca/lca.yaml") and "47.4 MJ LHV per kg" in _text("lca/lca.yaml")
+    assert "47.4 MJ LHV per kg" in _text("process.yaml")
+    assert "6.7 g per MJ LHV" in _text("DESIGN.md")
 
 
 def test_carbon_closes(streams):
@@ -119,12 +142,12 @@ def test_carbon_closes(streams):
 
 def test_key_numbers(streams):
     prod = streams["S19"]["flow"]["value"]
-    assert prod == pytest.approx(88.73, abs=0.01)
-    power = streams["W1"]["duty"]["value"] + streams["W2"]["duty"]["value"]
-    assert power / prod == pytest.approx(0.987, abs=0.001)
-    assert streams["S10"]["flow"]["value"] / prod == pytest.approx(28.16, abs=0.01)
+    assert prod == pytest.approx(87.99, abs=0.01)
+    power = sum(streams[w]["duty"]["value"] for w in ("W1", "W2", "W3"))
+    assert power / prod == pytest.approx(1.028, abs=0.001)
+    assert streams["S10"]["flow"]["value"] / prod == pytest.approx(28.40, abs=0.01)
     text = _text("process.yaml")
-    assert "88.73 kg/h" in text and "0.987 kWh/kg" in text and "710 t/a" in text
+    assert "87.99 kg/h" in text and "1.028 kWh/kg" in text and "704 t/a" in text
 
 
 def test_lca_scope():

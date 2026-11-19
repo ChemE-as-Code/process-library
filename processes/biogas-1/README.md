@@ -12,12 +12,12 @@ issue [#462](https://github.com/ChemE-as-Code/process-library/issues/462); not r
 | Substrates | 22 100 t/a: 4000 t cattle slurry, 8000 t catering waste, 4600 t grease trap waste, 5500 t biowaste (the wastes hygienised before delivery); the FNR Guide to Biogas's model plant VII |
 | Digestion | two stirred concrete digesters, 2 x 1700 m3, 40 C (mesophilic), 51 d retention, 2.4 kg VS per m3 and day |
 | Raw biogas | 216.93 Nm3/h (dry), 60.68 mol% methane; the guide gives 1 735 468 m3/a at 60.7 % for plant VII |
-| Digester heat | 126.7 kW from a hot-water boiler burning 10.4 % of the biogas |
-| Upgrading | activated carbon (H2S), compression to 16 bar(a), drying by cooling, three membrane stages with internal recycle: 99.5 % of the methane to the product |
-| Biomethane | 88.73 kg/h, 119.8 Nm3/h, 98.0 mol% CH4, 1.17 MW (LHV), 710 t/a, to a grid injection station |
-| Electricity | 0.99 kWh per kg of biomethane (the membrane unit 0.25 kWh/Nm3 raw biogas, the agitators and pumps) |
-| Digestate | 28.2 kg per kg of biomethane, stored six months under a gas-tight cover, spread on farmland |
-| Screening carbon footprint | 0.31 kg CO2-eq per kg of biomethane (gate-to-gate): 59 % electricity (UK grid factor as a proxy), 41 % the 0.5 % methane slip of the membranes; the wastes enter burden-free (cut-off) |
+| Digester heat | 135.8 kW (the substrate warmed, the tanks' losses, the water evaporated into the biogas) from a hot-water boiler burning 11.1 % of the biogas |
+| Upgrading | a gas chiller to 10 C that removes the water before compression, activated carbon (H2S), compression to 16 bar(a), an after-cooler, three membrane stages with internal recycle: 99.5 % of the methane to the product |
+| Biomethane | 87.99 kg/h, 118.8 Nm3/h, 98.0 mol% CH4 (0.947 kg CH4 per kg), 1.16 MW (LHV, 47.4 MJ/kg), 704 t/a, to a grid injection station |
+| Electricity | 1.03 kWh per kg of biomethane (the membrane unit 0.25 kWh/Nm3 raw biogas, the gas chiller, the agitators and pumps) |
+| Digestate | 28.4 kg per kg of biomethane, stored six months under a gas-tight cover, spread on farmland |
+| Screening carbon footprint | 0.32 kg CO2-eq per kg of biomethane, 6.7 g per MJ (the plant's gate-to-gate emissions with its electricity from cradle to gate): 60 % electricity (UK grid factor as a proxy), 40 % the 0.5 % methane slip of the membranes; the wastes enter burden-free (cut-off). A lower bound: methane leaks are excluded, and a leak the size of the slip would add 40 %. AR4/AR5 (electricity) and AR6 (methane) GWPs mixed: a screening figure |
 
 ## How it is modelled
 
@@ -27,7 +27,8 @@ substrate's standard biogas yield and methane content from the FNR guide; the pl
 reproduces the guide's gas output for model plant VII. `cheme process propagate` computes the
 digesters (a conversion reactor), the gas space, the boiler and its heat, and the separators;
 `scripts/balance.py` gives the feeds, the lumped compositions, the water saturation, the
-membranes' split from the SGC review of upgrading technologies, the heat demand and the power.
+membranes' split from the SGC review of upgrading technologies, the heat demand, the chiller's
+and after-coolers' heat and the power.
 Core has no anaerobic digestion model: the QSDsan integration runs a project's own model, and
 the library's QSDsan entry covers an activated-sludge waterline, not a digester. Nitrogen,
 sulphur, kinetics and methane leaks are not modelled. Every decision, source and limit is in
