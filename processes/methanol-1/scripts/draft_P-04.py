@@ -70,7 +70,7 @@ e201 = equipment(sheet, "TubularHeatExchanger", "E-201", shape=HX, at=(190, OVHD
                  label_at=(190, 58))
 v201 = equipment(sheet, "Vessel", "V-201", shape=DRUM, at=(260, 90), scale=(1.0, 1.6),
                  rotation=90,
-                 nozzles=[Nozzle("N1", (-16, -10), 500), Nozzle("N2", (16, -10), 125),
+                 nozzles=[Nozzle("N1", (-16, -10), 500), Nozzle("N2", (16, -10), 150),
                           Nozzle("N3", (16, 10), 150), Nozzle("N4", (-24, 2), 50),
                           Nozzle("N5", (24, 2), 50)],
                  label_at=(260, 90))
@@ -105,7 +105,7 @@ line(sheet, "CWS-440", dn=500, fluid="Cooling water", route=[
     offpage("in", at=(197, TOP), note="CW supply", rotation=90, note_at=(211, 20)),
     e201["S1"]], label_at=(209, 28))
 pv404 = valve("PV404", "GlobeValve", tag="PV-404", at=(330, 40))
-line(sheet, "FG-116", dn=125, fluid="Fuel gas", route=[
+line(sheet, "FG-116", dn=150, fluid="Fuel gas", route=[
     v201["N2"], (276, 40), pv404, valve("CV116", "SwingCheckValve", tag="CV-116", at=(352, 40)),
     offpage("out", at=(EDGE, 40), note="to fuel gas header (B/L)")], label_at=(372, 48))
 
