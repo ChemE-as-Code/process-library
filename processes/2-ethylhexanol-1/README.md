@@ -22,22 +22,22 @@ the light ends and the heavies.
 
 `cheme process propagate` solves the whole material balance: five design specifications
 (`specs:`, core ADR 0070) set the propylene, synthesis gas, water, caustic and hydrogen feeds,
-together with six tear streams (ADR 0060), the conversion steps and eleven component separators
+together with six tear streams (ADR 0060), the conversion steps and nine component separators
 (`recovery:`). The plant yields 97.73 % of theory on n-butanal, the 97.74 % of the patent. Needs
 cheme-as-code 1.13.0. DESIGN.md lists the core features used and the core limits hit.
 
 Headline numbers and their caveats:
 - Per kg of 2-ethylhexanol: 0.713 kg propylene, 0.530 kg synthesis gas (H2/CO about 1:1),
   0.034 kg hydrogen, 3.9 g caustic soda 50 wt%; 0.059 kg isobutanal co-produced, 0.023 kg light
-  ends and 0.018 kg heavies to fuel, 0.039 kg off-gas to the fuel gas, 0.155 kg aqueous
-  effluent; 0.504 kWh MP steam imported, 0.155 kWh LP steam exported, 1.58 kWh to cooling water,
-  0.028 kWh of electricity.
+  ends and 0.018 kg heavies to fuel, 0.039 kg off-gas to the fuel gas, 0.154 kg aqueous
+  effluent; 0.479 kWh MP steam imported, 0.249 kWh LP steam exported, 1.39 kWh to cooling water,
+  0.032 kWh of electricity (with the vacuum pumps).
 - The per-pass propylene conversion (90 %), the gas composition and the purges are ASSUMED: no
   open source read gives them (D-004). The crude's n/iso/heavies split, the column's purities,
   the aldol's caustic strength and the overall yield are the patent's.
 - The n/iso column runs at a reflux of 50 (1.1 x Underwood's minimum at a relative volatility
-  of 1.43); its 11.1 MW reboiler takes R-101's 9.7 MW, as US 4 523 036 A does, and LP steam
-  raised in the gas-phase hydrogenation (D-009).
+  of 1.43), only its organic overhead refluxed; R-101's heat covers its 5.2 MW reboiler, as
+  US 4 523 036 A does, and the rest of R-101's 8.7 MW goes to cooling water (D-009).
 - No property package of core covers these liquids: every duty comes from `scripts/balance.py`
   on formation enthalpies and constant heat capacities (L-2); the columns are component splits
   (L-5).

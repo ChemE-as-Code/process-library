@@ -27,7 +27,7 @@ in this work (Google Patents machine text, PubChem, ChEBI, the data packaged in 
 | SRC-3 | US 4 148 830 A, R. L. Pruett, J. A. Smith (Union Carbide), priority 1975-03-07, granted 1979-04-10: Hydroformylation of olefins, https://patents.google.com/patent/US4148830A/en | homogeneous Rh with excess triphenylphosphine at 50-145 C, H2 + CO below about 450 psia, H2:CO 3:2 to 20:1, at least 2 (preferably 10) mol free phosphine per mol Rh; continuous examples (Ex. 12: 97 C, n/iso 9.1:1; Ex. 13: 110 C, 82 psig, the products flashed and vaporised off the catalyst solution, 720 h without rhodium loss; its stated n/iso 0.5:1 is inconsistent with the rest and not used) | read (Google Patents, first 100 000 characters); patent, facts only | D-001 (rejected alternative) |
 | SRC-4 | PubChem (PUG REST) CIDs 7720, 6561, 263; ChEBI (OLS search) | formulas, InChIKeys and IUPAC names of 2-ethylhexan-1-ol, 2-methylpropanal, butan-1-ol; CHEBI:16011, 48943, 28885 | read | registry |
 | SRC-5 | processes/propylene-pdh-1, hydrogen-1, chlor-alkali-1, acrylic-acid-1 (this library) | the feeds' grades: propylene taken at chemical grade with 0.5 mol% propane (as acrylic-acid-1); hydrogen 99.9 mol% with nitrogen at 2850 kPa(a); caustic soda 50 wt% | library, internal | D-003, D-010 |
-| SRC-6 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment, C. Bell, MIT) | formation enthalpies at 298.15 K, kJ/mol: gas propylene 20.37, propane -104.39, CO -110.525 (ATcT); liquid n-butanal -239.2, isobutanal -247.3, 2-ethylhexanol -432.8, n-butanol -327.3, isobutanol -334.7 (CRC; their gas values -204.8, -215.7, -365.3, -274.9, -283.8 give the heats of vaporization), 2-ethylhexenal -261.3 (NIST WebBook), water -285.825 (ATcT); butyl butyrate gas -524.9 (Yaws); critical constants and acentric factors (2-ethylhexenal Tc 636 K, omega 0.454; butyl butyrate 612.1 K, 0.4852) for the Pitzer heats of vaporization 49.63 and 48.39 kJ/mol; liquid heat capacities (n-butanal 163.7 CRC; water 75.4, n-butanol 218.5, isobutanol 229.5, 2-ethylhexanol 385 kJ/(kmol K) near 350 K, thermo's HEOS and Zabransky fits); ideal-gas heat capacities (means over 298-450 K: HEOS fits, TRCIG, Joback); vapour pressures (Wagner-McGarry for the butanals and 2-ethylhexanol, Landolt for 2-ethylhexenal): the iso/n relative volatility 1.43 at 338 K and the bubble points of 2-ethylhexanol at 20, 30 and 60 kPa(a); liquid propylene density 506 kg/m3 at 298 K (HEOS) | open-source packages queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037); the underlying works (ATcT, CRC Handbook, NIST WebBook, Yaws, Zabransky et al., Landolt-Boernstein, Joback) were not read here | materials, reactions, scripts/balance.py, C-102's reflux |
+| SRC-6 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment, C. Bell, MIT) | formation enthalpies at 298.15 K, kJ/mol: gas propylene 20.37, propane -104.39, CO -110.525 (ATcT); liquid n-butanal -239.2, isobutanal -247.3, 2-ethylhexanol -432.8, n-butanol -327.3, isobutanol -334.7 (CRC; their gas values -204.8, -215.7, -365.3, -274.9, -283.8 give the heats of vaporization), 2-ethylhexenal -261.3 (NIST WebBook), water -285.825 (ATcT); butyl butyrate gas -524.9 (Yaws); critical constants and acentric factors (2-ethylhexenal Tc 636 K, omega 0.454; butyl butyrate 612.1 K, 0.4852) for the Pitzer heats of vaporization 49.63 and 48.39 kJ/mol; liquid heat capacities, kJ/(kmol K) (n-butanal 163.7 CRCSTD; water 75.4, n-butanol 218.5, isobutanol 229.5, 2-ethylhexanol 385 near 350 K, thermo's HEOS and Zabransky fits; NaOH liquid 87.5 at 350 K, WEBBOOK_SHOMATE; no measured value packaged for 2-ethylhexenal, butyl butyrate and isobutanal: thermo's Dadgostar-Shaw estimates at 350 K, 266.5 and 302.7, for the first two, and isobutanal at n-butanal's 163.7, ASSUMED, the Dadgostar-Shaw estimate giving both butanals the same value); NaOH formation enthalpy -416.88 kJ/mol (chemicals' liquid value Hfl, used for the dissolved caustic; NaOH reacts in no step, so it cancels); ideal-gas heat capacities (means over 298-450 K: HEOS fits, TRCIG, WEBBOOK_SHOMATE for NaOH 55.8, Joback); vapour pressures (Wagner-McGarry for the butanals and 2-ethylhexanol, Landolt for 2-ethylhexenal, Ambrose-Walton for butyl butyrate): the iso/n relative volatility 1.43 at 338 K, the bubble points of 2-ethylhexanol at 20, 30 and 60 kPa(a) and butyl butyrate's 397 K at 30 kPa(a); liquid propylene density 506 kg/m3 at 298 K (HEOS); n-butanal's liquid density 703 kg/m3 at 391 K and 5 MPa (DIPPR Perry 8E with COSTALD) | open-source packages queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037); the underlying works (ATcT, CRC Handbook, NIST WebBook, Yaws, Zabransky et al., Landolt-Boernstein, Joback) were not read here | materials, reactions, scripts/balance.py, C-102's reflux |
 | SRC-7 | Ullmann's Encyclopedia of Industrial Chemistry, "2-Ethylhexanol" and "Butanals"; Cornils and Kuntz's reviews of the Ruhrchemie/Rhone-Poulenc process | - | not read (licensed); known leads for the per-pass conversion, the gas composition, the rhodium losses and the by-products | route lead only |
 
 ## D-001 Route and boundary (2026-11-19)
@@ -89,7 +89,12 @@ n-butanal (butyl butyrate standing for the aldols, trimers and esters; process/m
 
 The aqueous catalyst phase stays in R-101/V-101 (L-3); its water losses with the crude are
 replaced (S4). The crude is separated uncooled (SRC-2) and its dissolved propylene and propane
-are stripped by the fresh synthesis gas in C-101 (SRC-2) and returned. The splits are ASSUMED:
+are stripped by the fresh synthesis gas in C-101 (SRC-2) and returned. V-101 runs at 4950
+kPa(a), below R-101 (5000); the crude pump P-101 lifts its liquid to C-101's head (5050 kPa(a),
+the bottom at 5080, the synthesis gas fed at 5100), from where the strip gas flows on to
+R-101. V-101 and C-101 have no duty: their outlets take the temperature that closes their
+energy balance, 391 and 373 K (the aldehydes and water they evaporate into the gas, D-009). All
+pressures ASSUMED. The splits are ASSUMED:
 
 | step | split | why |
 |---|---|---|
@@ -109,7 +114,9 @@ isobutanal to n-butanal at 338 K is 1.43 (thermo's vapour pressures, SRC-6); Und
 minimum reflux for the propagated feed (5.1 mol% isobutanal of the aldehydes) and SRC-1's
 overhead is 45.5; 100 plates are 2.7 times Fenske's minimum (about 37), so a reflux of
 1.1 times the minimum, 50, is taken (ASSUMED, Gilliland's correlation puts such a column near
-the minimum). The boil-up this gives is the largest heat duty of the plant (D-009).
+the minimum). Only the organic phase of the overhead is refluxed: the water is condensed once
+and decanted (S16). The reboiler this gives, 5.2 MW, is covered by R-101's heat (D-009). The
+column runs under vacuum: a liquid-ring pump (P-102) takes the vent to 150 kPa(a).
 
 ## D-005 Aldol condensation (2026-11-19)
 
@@ -152,8 +159,13 @@ overhead at 20 kPa(a) (97 % of its 2-ethylhexanol per pass, the heavies 0.2 %); 
 the after-run (96 % of the 2-ethylhexanol, 5 % of the heavies) to C-402 and leaves the heavies
 with 7 wt% 2-ethylhexanol. All splits ASSUMED. Butyl butyrate stands for the heavies: its own
 boiling point (438 K) is below 2-ethylhexanol's, but its splits follow the heavies it stands
-for, not its own volatility (L-4). The light ends (0.023 kg/kg) and the heavies (0.018 kg/kg)
-go to the site's liquid fuel, the isobutanal (0.059 kg/kg, 99.9 wt%) is a co-product.
+for, not its own volatility (L-4); so does C-403's bottoms temperature, 453 K (ASSUMED), above
+butyl butyrate's own bubble point at 30 kPa(a) (397 K, SRC-6): the heavies cooled from 453 K
+in Q16 are the real heavies, about 9 kW more than the pseudo-component from its bubble point.
+C-401 refluxes its light ends; its water is condensed once and decanted. C-401 to C-403 run
+under vacuum on liquid-ring pumps (P-401). The light ends (0.023 kg/kg) and the heavies
+(0.018 kg/kg) go to the site's liquid fuel, the isobutanal (0.059 kg/kg, 99.9 wt%) is a
+co-product.
 
 ## D-008 Hazards (2026-11-19)
 
@@ -162,9 +174,10 @@ Screening statements for the next stage, not a HAZOP:
   off-gas: CO detection, closed vents to the fuel gas, no confined spaces without monitoring.
 - **Hydrogen and propylene** (extremely flammable, wide limits): the oxo loop at 5 MPa and the
   hydrogenation at 0.4 and 2.3 MPa; hazardous-area classification, relief to a flare.
-- **Reaction heat**: hydroformylation releases about 149 kJ/mol; R-101's 9.7 MW go to C-102's
-  reboiler through the cooling register, so a loss of the column's duty is a loss of cooling
-  of the reactor; a trim cooler or a steam raiser on R-101 is a next-stage item. The gas-phase
+- **Reaction heat**: hydroformylation releases about 149 kJ/mol; of R-101's 8.7 MW, 5.2 MW go
+  to C-102's reboiler through the cooling register and 3.5 MW to the trim cooler on cooling
+  water. A loss of the column's duty is a loss of most of the reactor's cooling: the trim
+  cooler must take R-101's whole heat then (its sizing is a next-stage item). The gas-phase
   hydrogenation releases 171.5 kJ/mol of 2-ethylhexenal in a cooled multitubular bed (4.9 MW of
   LP steam): a loss of the shell's water or of hydrogen dilution gives a hot spot; temperature
   trips on the bed. The aldol step is mildly exothermic (68.7 kJ/mol) and self-heating; its
@@ -175,36 +188,47 @@ Screening statements for the next stage, not a HAZOP:
 No thermal screening by core applies: the reactors are continuous conversion steps without
 kinetics (L-1).
 
-## D-009 Heat and power: every energy flow (2026-11-19)
+## D-009 Heat and power: every energy flow (2026-11-19, revised 2026-11-20)
 
 Every duty comes from `scripts/balance.py` (balance-output contract, library ADR 0027) on one
 basis: formation enthalpies at 298.15 K (liquid for the organics and water, ideal gas for the
 light gases), constant liquid and ideal-gas heat capacities and heats of vaporization at
-298.15 K (SRC-6), so the reactors' duties hold their heats of reaction. Core writes no duty
+298.15 K (SRC-6), so the reactors' duties hold their heats of reaction. The light gases are
+gaseous in every stream, the dissolved ones too (L-2); only the liquid propylene feed S1 holds
+its propylene and propane as liquids, which take up their heat of vaporization in M101 (so
+S5's 309 K is notional; R-101's heat, S5 - S7, does not depend on it). Core writes no duty
 here: the reactors' streams change phase (a gas fed to a liquid product, L-2) and no property
-package covers the liquids. The script also gives the adiabatic mixers' and the compressors'
-outlet temperatures.
+package covers the liquids. The script also gives the outlet temperatures of the adiabatic
+mixers, of V-101 and C-101 (no duty, D-004) and of the compressors, and checks that every
+step's energy balance closes within 1 kW with its energy streams; only the compressors' drive
+losses and the pumps' work leave as heat (the streams do not carry them).
 
 | stream | duty, kW | what |
 |---|---|---|
-| Q1 + Q17 | 9644.7 + 35.7 | R-101's heat (reactions, the feed warmed to 393 K) to C-102's reboiler through its cooling register (SRC-2) |
-| Q2 | 1408.0 | LP steam 300 kPa(a) raised in R-301 to the rest of C-102's reboiler (11 088 kW) |
-| Q3 | 1171.1 | LP steam to R-302's feed heater (313 to 395 K, less the stage's small reaction heat) |
-| Q4 | 2327.5 | R-301's surplus LP steam, exported (0.155 kWh/kg) |
-| Q5 | 11302.6 | C-102's condenser at reflux 50 (D-004), the overhead and vent cooled to 313 K |
-| Q6, Q7 | 113.6, 2481.7 | R-201's surplus heat and the aldol product cooled to 333 K |
-| Q8 | 3271.3 | E-301 on MP steam: the organic phase vaporised into the cycle gas |
-| Q9 | 4449.2 | E-302: the first stage's product condensed to 313 K |
-| Q10, Q11 | 1276.0, 755.8 | C-401 reboiler (MP steam), condenser at reflux 3 (ASSUMED) |
-| Q12, Q13, Q14 | 2922.3, 3303.0, 1182.7 | C-402 reboiler, condenser at reflux 1 (ASSUMED), product cooler |
-| Q15, Q16 | 98.1, 118.6 | C-403 reboiler and condenser at reflux 1 (ASSUMED), the heavies cooled |
-| P1, P2, P3 | 20.2, 250.2, 150.0 | K-101, K-301 (isentropic 0.75, drive 0.95), the pumps (ASSUMED allowance) |
+| Q1 + Q17 | 5170.8 + 34.9 | R-101's heat (reactions, the feed warmed to 393 K) to C-102's whole reboiler through its cooling register (SRC-2) |
+| Q18 | 3491.8 | the rest of R-101's heat to its trim cooler on cooling water |
+| Q3 | 1171.9 | LP steam 300 kPa(a) raised in R-301 to R-302's feed heater (313 to 395 K, less the stage's small reaction heat) |
+| Q4 | 3734.6 | R-301's surplus LP steam, exported (0.249 kWh/kg) |
+| Q5 | 5310.2 | C-102's condenser at reflux 50 (D-004): the organic overhead boiled up at R + 1, the decanted water condensed once, the overhead and vent cooled to 313 K |
+| Q6, Q7 | 52.1, 2524.9 | R-201's surplus heat and the aldol product cooled to 333 K |
+| Q8 | 3252.4 | E-301 on MP steam: the organic phase vaporised into the cycle gas |
+| Q9 | 4449.0 | E-302: the first stage's product condensed to 313 K |
+| Q10, Q11 | 909.6, 388.9 | C-401 reboiler (MP steam), condenser at reflux 3 (ASSUMED) of the light ends, the decanted water condensed once |
+| Q12, Q13, Q14 | 2922.1, 3303.0, 1182.7 | C-402 reboiler, condenser at reflux 1 (ASSUMED), product cooler |
+| Q15, Q16 | 98.3, 120.0 | C-403 reboiler and condenser at reflux 1 (ASSUMED), the heavies cooled from 453 K (D-007) |
+| P1, P2, P3 | 20.1, 250.2, 150.0 | K-101, K-301 (isentropic 0.75, drive 0.95), the pumps (ASSUMED allowance) |
+| P6 | 2.7 | the crude pump P-101, 4950 to 5100 kPa(a) (efficiency 0.60, ASSUMED; the crude's density as n-butanal's, SRC-6) |
+| P4, P5 | 17.1, 45.0 | the liquid-ring vacuum pumps: C-102's vent from its head (50 kPa(a)) to 150 kPa(a) at isentropic efficiency 0.40, and 15 kW per vacuum column (C-102, C-401 to C-403) for the air leaking in and the vapour it carries (ASSUMED) |
 
-Steam levels: MP 1500 kPa(a) (471 K) for E-301 and the reboilers of C-401 to C-403 (bottoms up to
-453 K); R-301's shell raises LP steam at 300 kPa(a) (407 K), which serves C-102's reboiler
-(bottoms 368 K) and R-302's feed heater (to 395 K, a 12 K approach). Per kg of 2-ethylhexanol:
-0.504 kWh of MP steam imported, 0.155 kWh of LP steam exported, 1.58 kWh to cooling water and
-0.028 kWh of electricity.
+R-101's heat, 8.7 MW at 393 K, exceeds C-102's reboiler (5.2 MW, bottoms 368 K): the reboiler
+takes no steam, and the surplus goes to cooling water. Raising steam from it, as SRC-2 names,
+would give steam below about 150 kPa(a) at a reactor of 393 K, of little use on a generic
+site; it is an option of the next stage, and cooling water is the conservative choice for the
+inventory. Steam levels: MP 1500 kPa(a) (471 K) for E-301 and the reboilers of C-401 to C-403
+(bottoms up to 453 K); R-301's shell raises LP steam at 300 kPa(a) (407 K), which serves
+R-302's feed heater (to 395 K, a 12 K approach); the rest is exported. Per kg of
+2-ethylhexanol: 0.479 kWh of MP steam imported, 0.249 kWh of LP steam exported, 1.39 kWh to
+cooling water and 0.032 kWh of electricity.
 
 ## D-010 LCI and allocation (2026-11-19)
 
@@ -232,13 +256,13 @@ contract of library ADR 0027, `process build`, `assess lca`.
 - **L-2** No property package of core covers the aldehyde, alcohol and water liquids, the
   caustic or the oxo gas at 5 MPa; the duties come from scripts/balance.py on constant heat
   capacities, and core's conversion-step duty does not apply where a component is fed as a gas
-  and leaves as a liquid. The dissolved gases' heat of solution and the gases' solubility (the
-  V101 and C101 splits) are not modelled.
+  and leaves as a liquid. The dissolved gases' heat of solution, the caustic's heat of
+  dilution and the gases' solubility (the V101 and C101 splits) are not modelled.
 - **L-3** The aqueous catalyst phase is not a stream: core has no circulating catalyst
   inventory with its water balance, so R-101/V-101 hold it internally and only its make-up
   water is a feed.
 - **L-4** By-products are lumped: butyl butyrate stands for all heavies (with ASSUMED splits
-  that do not follow its own boiling point), 2-ethylhexanal, the cross-aldol of isobutanal,
+  and C-403's bottoms temperature that do not follow its own boiling point), 2-ethylhexanal, the cross-aldol of isobutanal,
   sodium butyrate from the Cannizzaro reaction and the acetals are not modelled.
 - **L-5** The columns are component splits, not stage-by-stage models: C-102's reflux comes
   from Underwood's minimum and a factor, not from a rigorous 100-plate column (a DWSIM check
