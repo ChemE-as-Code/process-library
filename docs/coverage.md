@@ -235,6 +235,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 124 | `salicylic-acid` | Salicylic acid | oxygenates | n/a, to be sourced | n/a | - | - | 2 | salicylic-acid-1 (T2) |
 | 125 | `sodium-chlorate` | Sodium chlorate | inorganic-chemicals | 1-10 (spasojevic-2018) | n/a | - | kraft-pulp | 2 | sodium-chlorate-1 (T2) |
 | 126 | `biodiesel` | Biodiesel (fatty acid methyl esters) | bio-based-chemicals | n/a, to be sourced | n/a | - | - | 2 | biodiesel-1 (T2) |
+| 127 | `2-ethylhexanol` | 2-Ethylhexanol (oxo route via n-butanal) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | 2-ethylhexanol-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);
