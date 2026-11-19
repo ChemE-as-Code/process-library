@@ -1,0 +1,93 @@
+# Goal and scope of the paracetamol-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of dried paracetamol, from the flowsheet's year averages of the
+# recipe (D-003). Per batch: multiply by 2516.47 kg. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# library producer: a gap, never zero, and no values from licensed databases. The plant has no
+# emission to air in the balance: the anhydride is dosed into a closed vessel and hydrolysed to
+# 0.9999 in the digestion (D-005); the acetic acid and the paracetamol not isolated leave with the
+# liquors to the wastewater treatment (S18); vent losses are not estimated (emission_exclusions).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of paracetamol made by the semi-batch
+  acetylation of 4-aminophenol with acetic anhydride in aqueous acetic acid at the concept
+  stage: which raw materials, utilities and wastes the batch plant exchanges per kg of dried
+  paracetamol, as the foreground for a later cradle-to-gate study. No impact results: most
+  backgrounds are not mapped yet, the 4-aminophenol among them (D-012).
+functional_unit: {product: APAP, amount: 1, unit: kg, source: "1 kg of dried paracetamol (99.8 wt%, crude, before a pharmacopoeial recrystallisation) at the plant gate to packing, stream S15 (D-002, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as thionyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: 4-aminophenol dissolved in water and recycled mother liquor at 358 K and carbon-treated, acetic anhydride dosed over 2.5 h at 313 K (semi-batch), digested at 358 K, crystallised by cooling to 293 K, centrifuged, washed with cold water and vacuum-dried at 343 K; half of the mother liquor recycled; 2516.47 kg per batch, 795 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+flows:
+  # raw materials
+  - key: feed:PAPF
+    missing: "not mapped yet (D-012); connect to: 4-aminophenol, technical grade, by the catalytic hydrogenation of nitrobenzene in sulfuric acid (SRC-2, background); no library process makes 4-aminophenol or nitrobenzene; proxy recorded in DESIGN.md D-012, not linked"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:AC2OF
+    missing: "linked to processes/acetic-anhydride-1 (lca/mappings.yaml): acetic anhydride 99.5 wt% by the ketene route"
+    source: "flowsheet stream S4 (D-004)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:WASHW
+    missing: "not mapped yet (D-012); connect to: process water from the site water treatment"
+    source: "flowsheet stream S11 (D-007)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (dissolver agitator), P2 (acetylator agitator), P3 (centrifuge) and P4 (dryer agitator and vacuum pump), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (the dissolver heated, scripts/balance.py), Q4 (the digestion's heat-up, core's batch model) and Q6 (the dryer, core's dryer model), D-009"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy stream Q2 (the dissolver cooled to 313 K, scripts/balance.py), D-009"
+  - key: product:CHW
+    missing: "not mapped yet (D-012); connect to: refrigeration at 278 K (chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy streams Q3 (the heat of acetylation, core's semi-batch model) and Q5 (the cooling crystallisation with R-101's metal, core's crystallizer model), D-009"
+  # waste
+  - key: product:WW
+    treatment: {kind: waste, route: "site biological wastewater treatment of an aqueous liquor with acetic acid and dissolved paracetamol (no recovery of either, D-008)"}
+    missing: "not mapped yet (D-012); connect to: treatment of an organic process effluent (acetic acid 16 wt%, paracetamol 5.5 wt%, COD-rich) in an industrial wastewater treatment plant (e.g. processes/utility-wwtp), per kg; or recovery of the acetic acid and the paracetamol by extraction (SRC-2), not modelled"
+    source: "flowsheet stream S18 (D-008)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the decolourising carbon of M-101, converted with the recipe's batches per year
+# (process/recipe.yaml), and its disposal.
+consumables:
+  - id: activated-carbon
+    title: Activated carbon for the decolourisation of the hot charge in M-101
+    unit: kg
+    per_batch: 87.2
+    source: "4.3 g per 109 g of 4-aminophenol (SRC-1 Example 1: 4.3 g of carbon on 109 g) x 2210 kg of fresh aminophenol per batch (221.78 kg/h x 9.965 h) = 87.2 kg, used once, ASSUMED not regenerated (D-008, D-012)"
+    missing: "not mapped yet (D-012); connect to: activated carbon, powdered, from coal or wood by steam activation"
+    disposal:
+      kind: waste
+      route: "spent carbon with the adsorbed colour bodies and the filter's liquor to hazardous-waste incineration (D-008)"
+      source: "the spent carbon off F-100, its mass as charged (the liquor held in it not counted), D-008"
+      missing: "not mapped yet (D-012); connect to: incineration of spent activated carbon in a hazardous-waste incinerator (e.g. processes/waste-incineration-1), per kg"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: reactor-vent, method: storage-tank, equipment: [M-101, R-101, V-101], reason: "No P&ID yet: the air or nitrogen displaced from M-101, R-101 and V-101 while charging and dosing (with acetic acid and anhydride vapour at 313 to 358 K) goes through R-101's condenser to a water scrubber not in the balance; not estimated (open for basic engineering, D-011)."}
+  - {id: storage-breathing, method: storage-tank, equipment: [T-101, T-102, T-103], reason: "The breathing of the mother liquor, wastewater and slurry tanks (aqueous acetic acid at about 293 K, nitrogen-blanketed, vented to the scrubber) is not estimated (D-011)."}
+  - {id: dryer-vent, method: equipment-leaks, reason: "Paracetamol dust and acetic acid traces in the dryer's vacuum pump exhaust after E-101 are not estimated (D-008, D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2100"}   # ISIC Rev.4 2100 Manufacture of basic pharmaceutical products and pharmaceutical preparations
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with an acetic anhydride supply and a biological wastewater treatment, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #481, unreviewed"

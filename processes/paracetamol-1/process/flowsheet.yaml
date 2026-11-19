@@ -1,0 +1,539 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Paracetamol by the acetylation of 4-aminophenol in aqueous acetic acid (DESIGN.md D-001), a
+# batch plant on the route of US 3 917 695 A (SRC-1): the aminophenol is dissolved at 358 K in
+# water and half of the last batch's mother liquor, treated with activated carbon, polished and
+# cooled to 313 K; acetic anhydride (1.15 mol per mol) is dosed into it (a semi-batch, reactor:
+# semibatch), the mass is digested at 358 K (the anhydride's excess hydrolysed), cooled to
+# 293 K to crystallise the paracetamol, centrifuged, washed with cold water and vacuum-dried at
+# 343 K. Half of the mother liquor goes back into the next charge (SRC-1, Example 4), the other
+# half, the wash filtrate and the dryer's condensate to wastewater treatment.
+# The flows are the year averages of the batch recipe (process/recipe.yaml, `cheme process
+# recipe`, D-003).
+# Where the values come from:
+# - feeds, temperatures, pressures, ratios: design basis and D-002..D-009, ASSUMED or from SRC-1;
+# - R101: cheme's semi-batch model (the rate laws of ACET and HYD, D-005), to 0.998 conversion
+#   of the aminophenol; R102: cheme's batch model, the digestion to 0.9999 conversion of the
+#   anhydride; CR101 and W101: core's crystallizer with the liquor's other solutes as
+#   spectators, the solubility of paracetamol in water (SRC-3) and a salting-in coefficient of
+#   the acetic acid calibrated to SRC-1 Example 1 (D-007); F101, F102: the centrifuge's
+#   specified splits; D101: core's dryer to a residual moisture; SP101: the recycle split; M101,
+#   M102: mixers (all calculated by `cheme process propagate --fill`, the recycle converged at
+#   the tear S16, core ADR 0060);
+# - the duties of R101 (Q3), R102 (Q4, with the heat-up), CR101 (Q5, with R-101's metal) and
+#   D101 (Q6): written by `cheme process propagate --fill` from the models (core ADRs 0059,
+#   0063);
+# - the feeds that make 2000 t/a, the dissolver's duties Q1 and Q2 and the temperature of S18:
+#   the independent balance scripts/balance.py (D-006, ADR 0027 of the library), given here as
+#   ASSUMED: no property package of core is qualified for this liquor, and core does not size
+#   feeds to a product rate.
+schema: cheme/process/v1
+kind: flowsheet
+title: Paracetamol by semi-batch acetylation of 4-aminophenol in aqueous acetic acid (2000 t/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 2000 t/a dried paracetamol, year averages of the batch recipe in 7920 h (D-002, D-003)", default: true}
+tolerance: {abs: 0.05, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+# One recycle (core ADR 0060): half of the mother liquor S9 back into the next charge, torn at
+# S16 (D-008). Its tolerance is far tighter than the balances'.
+tears:
+  - stream: S16
+    initial: {flow: 762.7, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.733, HOAC: 0.200, APAP: 0.066, APAP_S: 0.0008, PAP: 0.0002}}
+convergence: {method: wegstein, max_iterations: 500, tolerance: {abs: 1.0e-6, rel: 1.0e-8}}
+
+feeds:
+  - {id: PW, title: Process water (charge make-up), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PAPF, title: 4-Aminophenol (merchant; no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AC2OF, title: Acetic anhydride (acetic-anhydride-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: WASHW, title: Cold process water (cake wash), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: m101, direction: out, kind: energy}
+      - {id: r101, direction: out, kind: energy}
+      - {id: c101, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 350 kPa(a) (to the hot-water loops and the dryer's jacket)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 350, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 412.0, provenance: given, source: "saturation at 350 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: m101, direction: out, kind: energy}
+      - {id: r102, direction: out, kind: energy}
+      - {id: d101, direction: out, kind: energy}
+products:
+  - {id: APAP, title: Paracetamol crystals to packing, category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: "Mother liquor purge, wash filtrate and dryer condensate to wastewater treatment", category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: m101, direction: in, kind: energy}
+  - id: CHW
+    title: Chilled water return
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 278.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 283.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: cr101, direction: in, kind: energy}
+
+blocks:
+  - id: PREP
+    title: Dissolution and carbon treatment
+    class: Mixing
+    ports:
+      - {id: pw, direction: in}
+      - {id: pap, direction: in}
+      - {id: ml, direction: in}
+      - {id: out, direction: out}
+      - {id: qh, direction: in, kind: energy}
+      - {id: qc, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: REACT
+    title: Acetylation, digestion and crystallisation
+    class: ReactingChemicals
+    ports:
+      - {id: in, direction: in}
+      - {id: ac2o, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: qh, direction: in, kind: energy}
+      - {id: qcr, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: ISOL
+    title: Centrifuging, washing, drying and mother-liquor split
+    class: SeparatingMechanically
+    ports:
+      - {id: in, direction: in}
+      - {id: wash, direction: in}
+      - {id: product, direction: out}
+      - {id: recycle, direction: out}
+      - {id: ww, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: power_c, direction: in, kind: energy}
+      - {id: power_d, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: PREP
+    title: Dissolver (aminophenol in water and mother liquor at 358 K, carbon, cooled to 313 K)
+    class: Mixing
+    links: [{target: equipment, ref: M-101}, {target: equipment, ref: F-100}]
+    ports:
+      - {id: pw, direction: in, delegates: pw}
+      - {id: pap, direction: in, delegates: pap}
+      - {id: ml, direction: in, delegates: ml}
+      - {id: out, direction: out, delegates: out}
+      - {id: qh, direction: in, kind: energy, delegates: qh}
+      - {id: qc, direction: out, kind: energy, delegates: qc}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R101
+    block: REACT
+    title: Acetylator (acetic anhydride dosed into the 313 K charge)
+    class: ReactingChemicals
+    reactions: [ACET, HYD]
+    reactor: semibatch
+    batch:
+      dosing: [{stream: S4, time: 9000}]
+      target: {key: PAP, conversion: 0.998}
+      heat: isothermal
+      provenance: assumed
+      source: "acetic anhydride dosed at a constant rate over 2.5 h into the charge at 313.15 K (SRC-1: added at 35 to 40 C; over 5 min in the laboratory examples, here over the time R-101's jacket on chilled water needs, D-005), held to 0.998 conversion of the aminophenol"
+    hazard:
+      mtt: 373.15
+      provenance: assumed
+      source: "MTT: the normal boiling point of water, a lower bound of the reaction mass's bubble point at 101.325 kPa(a) (acetic acid, 17 wt% at the end, is less volatile than water and forms no azeotrope with it; the solutes have no vapour pressure); R-101 is vented through its condenser, so the mass boils there (D-011)"
+    links: [{target: equipment, ref: R-101}, {target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: ac2o, direction: in, delegates: ac2o}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R102
+    block: REACT
+    title: Digestion at 358 K (the anhydride's excess hydrolysed)
+    class: ReactingChemicals
+    reactions: [ACET, HYD]
+    reactor: batch
+    batch:
+      target: {key: AC2O, conversion: 0.9999}
+      heat: isothermal
+      heat_up: true
+      provenance: assumed
+      source: "the mass heated from 313.15 to 358.15 K and held until 0.9999 of the anhydride left is converted (SRC-1 Example 1: heated to 85 C after the acetylation; D-005); the heat-up counted in the duty (core ADR 0063)"
+    hazard:
+      mtt: 373.15
+      provenance: assumed
+      source: "as R101 (D-011)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: qh}
+  - id: CR101
+    block: REACT
+    title: Cooling crystallisation to 293 K
+    class: Crystallizing
+    crystallizer:
+      solute: APAP
+      solvent: H2O
+      crystal: APAP_S
+      basis: solubility
+      temperature: 293.15
+      solubility:
+        unit: kg/kg_solvent
+        points: [[293.15, 0.012774], [298.15, 0.015552], [303.15, 0.017574], [308.15, 0.021536], [313.15, 0.026515]]
+        provenance: given
+        source: "Jimenez and Martinez (2006), J. Braz. Chem. Soc. 17(1), 125-134, the mole-fraction solubility of acetaminophen in pure water at 20.0 to 40.0 C (0 % propylene glycol), converted here to kg per kg water, x/(1-x) x 151.165/18.015 (SRC-3, D-007); 293.15 K is the lowest point: core does not extrapolate, so the crystallisation ends at 20 C, not the 10 to 15 C of SRC-1 (L-3)"
+        salting_out:
+          coefficients: {HOAC: -0.1865, PAP: 0.0, AC2O: 0.0}
+          provenance: assumed
+          source: "HOAC (salting in): calibrated so that the crystallizer reproduces SRC-1 Example 1, 110 g of product from 109 g of 4-aminophenol, the 41 g of paracetamol not isolated taken as dissolved in the mother liquor's water with 4.01 mol/kg of acetic acid (scripts/balance.py calibration(), D-007); no open solubility data of paracetamol in aqueous acetic acid read; PAP and AC2O, traces: 0"
+      energy: {heat_capacity: 3.244, heat_of_crystallization: 0.0, provenance: assumed, source: "the feed S6's heat capacity from the components' liquid heat capacities of process/materials.yaml (scripts/balance.py composition, 3.244 kJ/(kg K)); the heat of crystallisation is counted in ACET's heat of reaction (the product taken as formed solid, D-005), so 0 here"}
+      spectators: [HOAC, PAP, AC2O]
+      outlets: {slurry: out}
+    # the crystallizer's lumped duty (the slurry's cool-down from 358 to 293 K) and R-101's metal
+    # cooled with it (the REACT vessel's metal_heat_capacity, core ADR 0063) go on Q5 (D-009)
+    energy_port: q
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: out, kind: energy, delegates: qcr}
+  - id: F101
+    block: ISOL
+    title: Centrifuging the mother liquor off
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.995
+      cake_liquid: {value: 0.15, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "a vertical peeler centrifuge (SRC-1: centrifuge filtration), 99.5 % of the crystals to the cake, the cake spun to 0.15 kg of liquor per kg of crystals (D-007)"
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power_c}
+  - id: SP101
+    block: ISOL
+    title: Mother liquor split (half back to the next charge)
+    class: SplittingMaterial
+    split: {recycle: 0.5}
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: recycle, direction: out, delegates: recycle}
+      - {id: purge, direction: out}
+  - id: W101
+    block: ISOL
+    title: Cake wash with cold water (paracetamol dissolves to saturation)
+    class: Crystallizing
+    crystallizer:
+      solute: APAP
+      solvent: H2O
+      crystal: APAP_S
+      basis: solubility
+      temperature: 293.15
+      solubility:
+        unit: kg/kg_solvent
+        points: [[293.15, 0.012774], [298.15, 0.015552], [303.15, 0.017574], [308.15, 0.021536], [313.15, 0.026515]]
+        provenance: given
+        source: "as CR101 (SRC-3, D-007)"
+        salting_out:
+          coefficients: {HOAC: -0.1865, PAP: 0.0, AC2O: 0.0}
+          provenance: assumed
+          source: "as CR101 (D-007)"
+      spectators: [HOAC, PAP, AC2O]
+      outlets: {slurry: out}
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: cake, direction: in}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: out, direction: out}
+  - id: F102
+    block: ISOL
+    title: Spinning the washed cake
+    class: Filtering
+    solid_separation:
+      solid_recovery: 0.995
+      cake_liquid: {value: 0.15, basis: per_kg_solid}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "as F101 (D-007)"
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out}
+      - {id: filtrate, direction: out}
+  - id: D101
+    block: ISOL
+    title: Vacuum drying at 343 K
+    class: Drying
+    dryer:
+      volatiles: [H2O, HOAC, AC2O]
+      residual_moisture: {value: 0.002, basis: mass_fraction, provenance: assumed, source: "0.2 wt% volatiles in the dried product (D-008)"}
+      temperature: 343.15
+      energy:
+        heat_capacity: 1.4
+        latent_heat: {H2O: 2333.0, HOAC: 393.3, AC2O: 446.0}
+        vessel_heat_capacity: 2000
+        efficiency: 0.7
+        port: steam
+        provenance: assumed
+        source: "wet cake 1.4 kJ/(kg K) (paracetamol 1.17 with 0.15 kg of water per kg), 70 % efficiency (D-009); latent heats at 343.15 K: water 2333.0, acetic acid 393.3 and acetic anhydride 446.0 kJ/kg (thermo 0.6.1, Chemical(...).Hvap, its default methods); the dryer's metal, about 4 t of steel at 0.5 kJ/(kg K), heated from 293 K each batch, ASSUMED (D-009)"
+      drying_rate: {value: 4.0, provenance: assumed, source: "ASSUMED mean rate of a jacketed conical vacuum dryer: a wall flux of about 2.6 kW/m2 over 2333 kJ/kg (D-009)"}
+      cake_density: {value: 750, provenance: assumed, source: "ASSUMED bulk density of the wet cake: paracetamol crystals 1.293 g/cm3 (PubChem CID 1983) with 0.15 kg of water per kg and about 45 % voids (D-009)"}
+      outlets: {product: product, vapour: vapour}
+    links: [{target: equipment, ref: D-101}, {target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: product, direction: out, delegates: product}
+      - {id: vapour, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: power, direction: in, kind: energy, delegates: power_d}
+  - id: M102
+    block: ISOL
+    title: Liquor collection to wastewater
+    class: Mixing
+    links: [{target: equipment, ref: T-102}]
+    ports:
+      - {id: ml, direction: in}
+      - {id: wf, direction: in}
+      - {id: cond, direction: in}
+      - {id: out, direction: out, delegates: ww}
+
+streams:
+  - id: S1
+    title: Process water
+    from: PW.out
+    to: M101.pw
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 591.5398, provenance: assumed, source: "scripts/balance.py: the charge's liquid 5.87 kg per kg of fresh aminophenol (SRC-1 Example 1), less the recycled mother liquor's (D-004)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S2
+    title: 4-Aminophenol
+    from: PAPF.out
+    to: M101.pap
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 221.7832, provenance: assumed, source: "scripts/balance.py: the aminophenol that makes 2000 t/a (D-002)"}
+        composition: {basis: mass_fraction, values: {PAP: 1.0}, provenance: assumed, source: "technical 4-aminophenol, impurities not modelled (D-004)"}
+  - id: S16
+    title: Recycled mother liquor
+    from: SP101.recycle
+    to: M101.ml
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "the mother liquor from C-101 (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 761.103, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S9 (tear, wegstein)', fingerprint: f1911ab4ddda4359}
+        composition: {basis: mole_fraction, values: {H2O: 0.915188, PAP: 2.23012e-10, AC2O: 7.35732e-08, HOAC: 0.0748887, APAP: 0.0097983, APAP_S: 0.000124685}, provenance: calculated, source: 'cheme process propagate: recycle SP101 from S9 (tear, wegstein)', fingerprint: f1911ab4ddda4359}
+  - id: S3
+    title: Charge (aminophenol solution, 313 K)
+    from: M101.out
+    to: R101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "dissolved at 358 K, carbon-treated and cooled to 313 K in M-101 (SRC-1; D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1574.43, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S16', fingerprint: f704d5f037e59899}
+        composition: {basis: mole_fraction, values: {H2O: 0.928648, PAP: 0.0295745, AC2O: 3.62417e-08, HOAC: 0.0368897, APAP: 0.00482658, APAP_S: 6.1419e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S16', fingerprint: a2c28b07f2f02c81}
+  - id: S4
+    title: Acetic anhydride (dosed)
+    from: AC2OF.out
+    to: R101.ac2o
+    template: liquor
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "storage (D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 239.7983, provenance: assumed, source: "scripts/balance.py: 1.15 mol per mol of fresh aminophenol (SRC-1 Example 6, D-004)"}
+        composition: {basis: mass_fraction, values: {AC2O: 0.995, HOAC: 0.005}, provenance: assumed, source: "acetic anhydride 99.5 wt% of acetic-anhydride-1, the rest taken as acetic acid (D-004)"}
+  - id: S5
+    title: Acetylated mass
+    from: R101.out
+    to: R102.in
+    template: liquor
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 0.89428, PAP: 9.3846e-09, AC2O: 0.000718344, HOAC: 0.0716823, APAP: 0.0332602, APAP_S: 5.93821e-05}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: 0619cd9c546c5157}
+        flow: {value: 1814.23, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: 09b68f45ab1e7cf8}
+        temperature: {value: 313.15, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: 0619cd9c546c5157}
+        pressure: {value: 101.325, provenance: calculated, source: 'cheme process propagate: reactor R101 from S3 S4', fingerprint: 0619cd9c546c5157}
+  - id: S6
+    title: Digested mass (358 K)
+    from: R102.out
+    to: CR101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 358.15, provenance: assumed, source: "digestion at 85 C (SRC-1 Example 1, D-005)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1814.23, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5', fingerprint: 1eb7126d6bceb7bc}
+        composition: {basis: mole_fraction, values: {H2O: 0.893562, PAP: 2.17781e-10, AC2O: 7.18344e-08, HOAC: 0.0731188, APAP: 0.0332602, APAP_S: 5.93821e-05}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S5', fingerprint: b4f960cc98a584e4}
+  - id: S7
+    title: Paracetamol slurry
+    from: CR101.out
+    to: F101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "cooled to 293 K (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1814.23, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S6', fingerprint: c9b28c1a01eb40ca}
+        composition: {basis: mole_fraction, values: {APAP: 0.0095667, H2O: 0.893562, APAP_S: 0.0237529, HOAC: 0.0731188, PAP: 2.17781e-10, AC2O: 7.18344e-08}, provenance: calculated, source: 'cheme process propagate: crystallizer CR101 from S6', fingerprint: c9b28c1a01eb40ca}
+  - id: S8
+    title: Centrifuge cake
+    from: F101.cake
+    to: W101.cake
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 292.019, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S7', fingerprint: 0c73da56e29c6e9b}
+        composition: {basis: mole_fraction, values: {APAP_S: 0.497713, H2O: 0.459744, PAP: 1.1205e-10, AC2O: 3.69593e-08, HOAC: 0.0376202, APAP: 0.00492214}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S7', fingerprint: 0c73da56e29c6e9b}
+  - id: S9
+    title: Mother liquor
+    from: F101.filtrate
+    to: SP101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1522.21, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S7', fingerprint: 0c73da56e29c6e9b}
+        composition: {basis: mole_fraction, values: {H2O: 0.915189, PAP: 2.23052e-10, AC2O: 7.3573e-08, HOAC: 0.0748885, APAP: 0.00979824, APAP_S: 0.000124685}, provenance: calculated, source: 'cheme process propagate: solid-separation F101 from S7', fingerprint: 0c73da56e29c6e9b}
+  - id: S10
+    title: Mother liquor purge
+    from: SP101.purge
+    to: M102.ml
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-008"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 761.105, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S9 S16', fingerprint: 752db8652c50bab0}
+        composition: {basis: mole_fraction, values: {H2O: 0.915189, PAP: 2.23052e-10, AC2O: 7.3573e-08, HOAC: 0.0748885, APAP: 0.00979824, APAP_S: 0.000124685}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S9', fingerprint: 5b5ee87310ee79cf}
+  - id: S11
+    title: Wash water
+    from: WASHW.out
+    to: W101.wash
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "cold process water (D-007)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 203.1429, provenance: assumed, source: "scripts/balance.py: 0.8 kg per kg of paracetamol in the cake (D-007)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: given, source: "pure water"}
+  - id: S12
+    title: Wash slurry
+    from: W101.out
+    to: F102.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 495.162, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S8 S11', fingerprint: 6478d6ab96cb4cfd}
+        composition: {basis: mole_fraction, values: {APAP: 0.00168756, H2O: 0.875548, APAP_S: 0.114099, HOAC: 0.00866613, PAP: 2.58117e-11, AC2O: 8.51389e-09}, provenance: calculated, source: 'cheme process propagate: crystallizer W101 from S8 S11', fingerprint: 6478d6ab96cb4cfd}
+  - id: S13
+    title: Washed cake
+    from: F102.cake
+    to: D101.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 289.156, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: d7403a95a597cb9f}
+        composition: {basis: mole_fraction, values: {APAP_S: 0.4517, H2O: 0.541892, PAP: 1.59753e-11, AC2O: 5.2694e-09, HOAC: 0.00536362, APAP: 0.00104446}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: d7403a95a597cb9f}
+  - id: S14
+    title: Wash filtrate
+    from: F102.filtrate
+    to: M102.wf
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 206.006, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: d7403a95a597cb9f}
+        composition: {basis: mole_fraction, values: {H2O: 0.98756, PAP: 2.91139e-11, AC2O: 9.6031e-09, HOAC: 0.00977482, APAP: 0.00190346, APAP_S: 0.000762017}, provenance: calculated, source: 'cheme process propagate: solid-separation F102 from S12', fingerprint: d7403a95a597cb9f}
+  - id: S15
+    title: Dried paracetamol
+    from: D101.product
+    to: APAP.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "cooled in D-101 before discharge (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 252.527, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: baa4e8fd4557c0e4}
+        composition: {basis: mole_fraction, values: {H2O: 0.0160154, PAP: 3.47148e-11, AC2O: 1.55735e-10, HOAC: 0.000158519, APAP: 0.00226964, APAP_S: 0.981556}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: baa4e8fd4557c0e4}
+  - id: S17
+    title: Dryer vapour (condensed in E-101)
+    from: D101.vapour
+    to: M102.cond
+    template: liquor
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "condensate of the vacuum condenser E-101 (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 36.6295, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: baa4e8fd4557c0e4}
+        composition: {basis: mole_fraction, values: {H2O: 0.990199, AC2O: 9.62877e-09, HOAC: 0.00980094}, provenance: calculated, source: 'cheme process propagate: dryer D101 from S13', fingerprint: baa4e8fd4557c0e4}
+  - id: S18
+    title: Liquors to wastewater treatment
+    from: M102.out
+    to: WW.in
+    template: liquor
+    state:
+      design:
+        temperature: {value: 293.56, provenance: assumed, source: "scripts/balance.py: adiabatic mixing of S10, S14 (293.15 K) and S17 (303.15 K) (D-008)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        flow: {value: 1003.74, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S14 S17', fingerprint: 663bb36ef37f401e}
+        composition: {basis: mole_fraction, values: {H2O: 0.935334, PAP: 1.68131e-10, AC2O: 5.58665e-08, HOAC: 0.0568654, APAP: 0.00753203, APAP_S: 0.000268744}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S14 S17', fingerprint: 5a174a88f6373d5c}
+  # energy
+  - {id: Q1, title: Dissolver heated to 358 K (LP steam), kind: energy, from: LPS.m101, to: M101.qh, state: {design: {duty: {value: 94.8953, provenance: assumed, source: "scripts/balance.py: the charge S3 from its mixed temperature 295.66 K to 358.15 K at the components' liquid heat capacities; the aminophenol's heat of solution and M-101's metal left out (D-009)"}}}}
+  - {id: Q2, title: Dissolver cooled to 313 K (cooling water), kind: energy, from: M101.qc, to: CW.m101, state: {design: {duty: {value: 68.3311, provenance: assumed, source: "scripts/balance.py: the charge S3 from 358.15 to 313.15 K (D-009)"}}}}
+  - {id: Q3, title: Heat of acetylation to chilled water, kind: energy, from: R101.q, to: CHW.r101, state: {design: {duty: {value: 59.4802, provenance: calculated, source: 'cheme process propagate: semibatch duty R101 from S3 S4', fingerprint: 58462510ceb565d2}}}}
+  - {id: Q4, title: Digestion heat-up (LP steam), kind: energy, from: LPS.r102, to: R102.q, state: {design: {duty: {value: 72.7519, provenance: calculated, source: 'cheme process propagate: batch duty R102 from S5', fingerprint: c615e91f8f99c57d}}}}
+  - {id: Q5, title: Crystalliser cooling to chilled water, kind: energy, from: CR101.q, to: CHW.cr101, state: {design: {duty: {value: 118.947, provenance: calculated, source: 'cheme process propagate: crystallizer duty CR101 from S6', fingerprint: df206957856575b2}}}}
+  - {id: Q6, title: Dryer heat (LP steam), kind: energy, from: LPS.d101, to: D101.steam, state: {design: {duty: {value: 45.025, provenance: assumed, source: "cheme process crystallizers: D101's dryer model, the cake to 343 K, the water and acetic acid evaporated, D-101's metal heated each batch, 70 % efficiency (D-009)"}}}}
+  - {id: P1, title: Dissolver agitator, kind: energy, from: POWER.m101, to: M101.power, state: {design: {duty: {value: 3.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P2, title: Acetylator agitator, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 6.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P3, title: Centrifuge drive, kind: energy, from: POWER.c101, to: F101.power, state: {design: {duty: {value: 8.0, provenance: assumed, source: "year average (D-009)"}}}}
+  - {id: P4, title: Dryer agitator and vacuum pump, kind: energy, from: POWER.d101, to: D101.power, state: {design: {duty: {value: 5.0, provenance: assumed, source: "year average (D-009)"}}}}

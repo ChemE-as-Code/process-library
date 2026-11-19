@@ -1,0 +1,36 @@
+# Components and templates of paracetamol-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula), normal_boiling_point in K at
+# 101.325 kPa.
+#
+# The aqueous liquor is carried as molecular pseudo-components (4-aminophenol, acetic
+# anhydride, acetic acid and paracetamol dissolved), an inventory basis, not a speciation: the
+# aminophenol's acetate salt, the suspended aminophenol before it reacts and the product
+# precipitating in R-101 are not resolved, and core has no property package for this liquor
+# (DESIGN.md D-006). The paracetamol crystals are a separate solid component, APAP_S (phase:
+# solid). The liquid data the semi-batch reactor and the duties need (D-005, D-006):
+# - liquid_molar_volume, m3/kmol: water 997.05, acetic anhydride 1075.15 and acetic acid
+#   1042.06 kg/m3 at 298.15 K (thermo 0.6.1, Chemical(...).rho, its default liquid-density
+#   method); 4-aminophenol 1.290 and paracetamol 1.293 g/cm3, the crystals' densities
+#   (PubChem CIDs 403 and 1983, HSDB), taken as their volume in the solution (ideal mixing, no
+#   partial molar volumes; ASSUMED);
+# - liquid_heat_capacity, kJ/(kmol K): water 75.3, acetic anhydride 152.4 and acetic acid 132.0
+#   (thermo 0.6.1, Chemical(...).Cplm at 298.15 K); 4-aminophenol 131.5 and paracetamol 176.6
+#   the solids' (thermo 0.6.1, Chemical(...).Cpsm at 298.15 K, an estimation method of the
+#   package), standing for the dissolved solutes (ASSUMED);
+# - normal boiling points: water 373.12 K; acetic acid 391.05 K and acetic anhydride 412.65 K
+#   (chemicals 1.5.2, Tb, its default method). The solids have none.
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01807, liquid_heat_capacity: 75.3}
+  - {id: PAP, name: 4-Aminophenol (dissolved), formula: C6H7NO, cas: 123-30-8, molar_mass: 109.128, liquid_molar_volume: 0.08460, liquid_heat_capacity: 131.5}
+  - {id: AC2O, name: Acetic anhydride, formula: C4H6O3, cas: 108-24-7, molar_mass: 102.089, normal_boiling_point: 412.65, liquid_molar_volume: 0.09495, liquid_heat_capacity: 152.4}
+  - {id: HOAC, name: Acetic acid, formula: C2H4O2, cas: 64-19-7, molar_mass: 60.052, normal_boiling_point: 391.05, liquid_molar_volume: 0.05763, liquid_heat_capacity: 132.0}
+  - {id: APAP, name: Paracetamol (dissolved), formula: C8H9NO2, cas: 103-90-2, molar_mass: 151.165, liquid_molar_volume: 0.11691, liquid_heat_capacity: 176.6}
+  - {id: APAP_S, name: Paracetamol (crystals), formula: C8H9NO2, cas: 103-90-2, molar_mass: 151.165, phase: solid, liquid_molar_volume: 0.11691, liquid_heat_capacity: 176.6}
+templates:
+  - {id: liquor, title: Aqueous liquor and slurry, components: [H2O, PAP, AC2O, HOAC, APAP, APAP_S]}
+property_method:
+  adapter: thermo
+  status: placeholder
