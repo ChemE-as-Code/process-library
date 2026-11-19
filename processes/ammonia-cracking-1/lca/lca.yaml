@@ -24,19 +24,19 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Catalytic ammonia cracking: pressurised liquid ammonia vaporised against the cracked gas, superheated to 723 K in the convection section and cracked over a nickel catalyst in fired tubes to equilibrium at 773 K and 1100 kPa(a) (97.4 % of the ammonia cracked); cracked gas cooled to 313 K, hydrogen purified by PSA (79.4 % hydrogen recovery) to 99.99 mol%; the PSA tail gas (hydrogen, nitrogen, ammonia) is the furnace's only fuel, burnt with 2 mol% excess oxygen; 200 t/d of hydrogen in 8000 h (EP 4 337 600 A1 reference example 2)"
+technology: "Catalytic ammonia cracking: pressurised liquid ammonia vaporised against the cracked gas, superheated to 723 K in the convection section and cracked over a nickel catalyst in fired tubes to equilibrium at 773 K and 1100 kPa(a) (97.4 % of the ammonia cracked); cracked gas cooled to 313 K, hydrogen purified by PSA (79.4 % hydrogen recovery) to 99.99 mol%; the PSA tail gas (hydrogen, nitrogen, ammonia) is the furnace's only fuel, burnt with 2 mol% excess oxygen and air preheated to 623 K in the convection section; 200 t/d of hydrogen in 8000 h (EP 4 337 600 A1 reference example 2)"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 flows:
   # --- raw materials
   - key: feed:NH3
     missing: "linked to processes/ammonia-1 (lca/mappings.yaml): anhydrous liquid ammonia from natural-gas steam reforming and Haber-Bosch synthesis"
-    source: "flowsheet stream S1, 7.27 kg per kg of product (7.28 per kg of its H2): 97.4 % cracked in R-101, the hydrogen of 79.4 % of it recovered by the PSA, the rest burnt in H-101 (D-004, D-005)"
+    source: "flowsheet stream S1, 7.27 kg per kg of product (7.28 per kg of its H2): 97.4 % cracked in R-101, the hydrogen of 79.4 % of it recovered by the PSA, the rest burnt in H-101 (D-004, D-005); taken pressurised at 1500 kPa(a) and 293.15 K, its pumping (about 49 kW) and warming (4.10 MW, 0.49 kWh/kg) from ammonia-1's 110 kPa(a) and 240.15 K outside the boundary (D-003)"
   - {key: feed:AIR, free: true, source: "combustion air S9 (99.8 t/h): a resource taken from nature without burden"}
   # --- utilities
   - key: feed:POWER
     missing: "linked in the Atlas LCI by the shared mapping (market for electricity, medium voltage), D-010; connect to: electricity, medium voltage, grid mix of the (undecided) site country"
-    source: "flowsheet energy stream W1, the combustion air fan K-101, 0.0181 kWh/kg (D-008); the PSA's valves and the plant's instruments not counted"
+    source: "flowsheet energy stream W1, the combustion air fan K-101, 0.0181 kWh/kg (D-008); not counted: the PSA's valves and instrument air (ASSUMED below 20 kW, 0.0024 kWh/kg, D-005) and the pumping of the ammonia from ammonia-1's 110 to 1500 kPa(a) outside the boundary (about 49 kW, 0.0059 kWh/kg, D-003)"
   - key: product:CW
     missing: "linked in the Atlas LCI by the shared mapping (cooling water service per kWh rejected, a screening proxy), D-010; connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
     source: "flowsheet energy stream Q3, the cracked gas trim cooler E-103, 0.758 kWh/kg (D-008)"
@@ -61,8 +61,8 @@ emission_exclusions:
       inventory are not data.
     source: "DESIGN.md D-006, D-010, L-3"
   - {id: fugitive-losses, method: equipment-leaks, reason: "No P&ID yet: fugitive ammonia and hydrogen from flanges, seals and valves, and the PSA's depressurisation losses beyond the tail gas, are not estimated at the concept stage (D-010)."}
-# Not inventoried, and not cut off: the replacement of the cracking catalyst in R-101 and of the
-# PSA adsorbents. No open source read here gives the catalyst volume (no kinetics, L-4), its life
+# Not inventoried, and not cut off (an open input noted only here, not in the dataset): the
+# replacement of the cracking catalyst in R-101 and of the PSA adsorbents. No open source read here gives the catalyst volume (no kinetics, L-4), its life
 # or the adsorbents' life (DESIGN.md D-010, open inputs); an amount would be a guess. They are
 # added as consumables once a rate is sourced.
 operation:

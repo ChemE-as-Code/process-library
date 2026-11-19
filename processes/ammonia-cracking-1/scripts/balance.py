@@ -3,8 +3,8 @@
 `cheme process propagate --fill` solves the material balance from process/flowsheet.yaml: the
 ammonia feed and the combustion air (design specifications for 200 t/d of hydrogen and 2.0 mol%
 oxygen in the flue gas), the equilibrium of R101 at its outlet, the PSA's split and the complete
-combustion in H101; it writes H101's convection heat Q2 (the rest after Q1, `energy_port: conv`,
-core ADR 0059). This script reads the streams propagate wrote and gives what core has no model
+combustion in H101; it writes H101's convection heat Q2 (the rest after Q1 and Q5,
+`energy_port: conv`, core ADR 0059), its only duty. This script reads the streams propagate wrote and gives what core has no model
 for, on one enthalpy basis, the ideal-gas data of process/materials.yaml (elements basis: the
 formation enthalpy at 298.15 K plus the sensible heat), with liquid ammonia below it:
 
@@ -17,9 +17,15 @@ formation enthalpy at 298.15 K plus the sensible heat), with liquid ammonia belo
   saturation point (its departure, about 1 kJ/mol at 1.35 MPa, is left out, L-2);
 - the cracked gas temperature S5 after E-101 gives Q4 up, and the trim cooler's duty Q3 to S6;
 - the combustion air fan K-101's discharge temperature S10 and power W1;
-- the stack temperature S11 at which the tail gas's heat of combustion covers Q1 and the
+- Q5, the air preheater E-104 in the cold end of the convection section: the air S10 heated to
+  S12 (623.15 K, ASSUMED, D-006);
+- the stack temperature S11 at which the tail gas and the preheated air give Q1, Q5 and the
   superheater coil's duty (S2 to S3): the furnace balance, which closes the heat that propagate
-  writes on Q2 against the coil (D-006).
+  writes on Q2 against the coil (D-006);
+- the furnace check of D-006 (printed, not written): the adiabatic flame temperature, the flue
+  gas temperature leaving the radiant section once the tubes have taken Q1 (the bridgewall),
+  and the flue gas temperatures between the superheater coil and the air preheater, with the
+  approaches of both banks.
 
 Run: cheme run scripts/balance.py (prints the table; writes the balance-output JSON of the
 library's ADR 0027 when BALANCE_OUTPUT names a file).
@@ -167,14 +173,34 @@ def main() -> None:
         flows("S2"), state(streams["S2"], "temperature"), comps
     )
 
-    # H-101: the stack temperature at which the tail gas S8 and the air S10 give Q1 + Q2
+    # E-104: the air preheater, S10 to S12
+    t12 = state(streams["S12"], "temperature")
+    q5 = enthalpy(air, t12, comps) - enthalpy(air, t10, comps)
+    out["Q5"] = {"duty": round(q5, 1)}
+
+    # H-101: the stack temperature at which the tail gas S8 and the preheated air S12 give
+    # Q1 + Q5 + the coil's duty
+    flue = flows("S11")
     h_in = enthalpy(flows("S8"), state(streams["S8"], "temperature"), comps) + enthalpy(
-        air, t10, comps
+        air, t12, comps
     )
-    t11 = solve_t(h_in - q1 - q2, flows("S11"), comps)
+    t11 = solve_t(h_in - q1 - q2 - q5, flue, comps)
     out["S11"] = {"temperature": round(t11, 2)}
 
-    lhv = {"H2": 241822.0, "NH3": 317175.0}  # kJ/kmol from the formation data: see DESIGN.md D-008
+    # the furnace check (D-006): flame, bridgewall, between the banks; the bank approaches
+    t_flame = solve_t(h_in, flue, comps, hi=3000.0)
+    t_bridgewall = solve_t(h_in - q1, flue, comps, hi=3000.0)
+    t_after_coil = solve_t(h_in - q1 - q2, flue, comps)
+    t3, t2 = state(streams["S3"], "temperature"), state(streams["S2"], "temperature")
+    approaches = {
+        "coil hot end": t_bridgewall - t3, "coil cold end": t_after_coil - t2,
+        "preheater hot end": t_after_coil - t12, "preheater cold end": t11 - t10,
+    }
+
+    # lower heating values, kJ/kmol, from the formation enthalpies of process/materials.yaml
+    # (water as vapour): H2 = -dHf(H2O), NH3 = 1.5 x -dHf(H2O) + dHf(NH3); DESIGN.md D-008
+    dhf = {c: comps[c]["ideal_gas"]["dHf_298"] for c in ("H2O", "NH3")}
+    lhv = {"H2": -dhf["H2O"], "NH3": -1.5 * dhf["H2O"] + dhf["NH3"]}
     fired = sum(flows("S8").get(c, 0.0) * v for c, v in lhv.items()) / 3600.0
     product = flows("S7")
     h2_lhv = product["H2"] * lhv["H2"] / 3600.0
@@ -186,7 +212,12 @@ def main() -> None:
           f"vapour {detail['superheat']:.0f} kJ")
     print(f"Q1 R-101 {q1:.1f} kW; E-102 coil {q2:.1f} kW (propagate's Q2 should match); "
           f"Q4 E-101 {q4:.1f} kW; Q3 E-103 {q3:.1f} kW; W1 K-101 {w_shaft / ETA_DRIVE:.1f} kW")
-    print(f"S5 {t5:.2f} K; S10 {t10:.2f} K; stack S11 {t11:.2f} K")
+    print(f"S5 {t5:.2f} K; S10 {t10:.2f} K; Q5 E-104 {q5:.1f} kW; stack S11 {t11:.2f} K")
+    print(f"furnace: adiabatic flame {t_flame:.1f} K; bridgewall (after Q1) {t_bridgewall:.1f} K, "
+          f"{t_bridgewall - state(streams['S4'], 'temperature'):.1f} K above the tube outlet; "
+          f"after the coil {t_after_coil:.1f} K; Q1 {q1 / fired:.3f} of the fired LHV")
+    print("approaches, K: " + ", ".join(f"{k} {v:.1f}" for k, v in approaches.items()))
+    print(f"LHV kJ/kmol: H2 {lhv['H2']:.0f}, NH3 {lhv['NH3']:.0f}")
     print(f"tail gas fired (LHV) {fired:.1f} kW; hydrogen product (LHV) {h2_lhv:.1f} kW; "
           f"ammonia fed (LHV) {nh3_lhv:.1f} kW; LHV efficiency {h2_lhv / nh3_lhv:.4f}")
     print(f"hydrogen recovery from the ammonia {product['H2'] / (1.5 * n_nh3):.4f}")

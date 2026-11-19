@@ -34,9 +34,14 @@ Headline numbers and their caveats:
 - 97.4 % of the ammonia is cracked at equilibrium on ideal-gas data (the patent's example
   implies 97.0 %); 77.4 % of its hydrogen reaches the product, the rest fires the furnace.
 - The furnace absorbs 70.9 MW (53.6 MW in the tubes, 17.3 MW superheat) of the tail gas's
-  80.1 MW (LHV); the flue gas leaves at 492 K. No steam is raised or exported.
+  80.1 MW (LHV); the combustion air is preheated to 623 K in the convection section (9.1 MW),
+  so the flue gas leaves the radiant section at 993 K, 220 K above the tube outlet, and the
+  stack at 492 K. The tubes are not sized: whether they take their duty at that firebox
+  temperature is open (D-006). No steam is raised or exported.
 - Burner NOx from the ammonia in the tail gas is not estimated (no open factor read); it is an
-  open exclusion of the LCI, as are the catalyst and adsorbent replacement (D-006, D-010).
+  open exclusion of the LCI (D-006, D-010). The catalyst and adsorbent replacement is an open
+  input, noted in a comment of lca/lca.yaml but not in the dataset; the ammonia's pumping and
+  warming before S1 (about 49 kW and 4.1 MW) are outside the boundary (D-003, D-010).
 - The hydrogen leaves at the PSA's pressure; compression for a pipeline or trailers is outside
   the boundary (D-001).
 - Hazards: toxic ammonia, flammable hydrogen, nitriding and hydrogen attack at 773 K, a furnace

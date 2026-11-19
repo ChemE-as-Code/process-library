@@ -16,8 +16,8 @@ technology: 'Catalytic ammonia cracking: pressurised liquid ammonia vaporised ag
   superheated to 723 K in the convection section and cracked over a nickel catalyst in fired tubes to
   equilibrium at 773 K and 1100 kPa(a) (97.4 % of the ammonia cracked); cracked gas cooled to 313 K, hydrogen
   purified by PSA (79.4 % hydrogen recovery) to 99.99 mol%; the PSA tail gas (hydrogen, nitrogen, ammonia)
-  is the furnace''s only fuel, burnt with 2 mol% excess oxygen; 200 t/d of hydrogen in 8000 h (EP 4 337
-  600 A1 reference example 2)'
+  is the furnace''s only fuel, burnt with 2 mol% excess oxygen and air preheated to 623 K in the convection
+  section; 200 t/d of hydrogen in 8000 h (EP 4 337 600 A1 reference example 2)'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
 - key: emission-excluded:burner-nox-and-slip
@@ -62,13 +62,17 @@ exchanges:
   unit: kg
   link:
     source: 'flowsheet stream S1, 7.27 kg per kg of product (7.28 per kg of its H2): 97.4 % cracked in
-      R-101, the hydrogen of 79.4 % of it recovered by the PSA, the rest burnt in H-101 (D-004, D-005)'
+      R-101, the hydrogen of 79.4 % of it recovered by the PSA, the rest burnt in H-101 (D-004, D-005);
+      taken pressurised at 1500 kPa(a) and 293.15 K, its pumping (about 49 kW) and warming (4.10 MW, 0.49
+      kWh/kg) from ammonia-1''s 110 kPa(a) and 240.15 K outside the boundary (D-003)'
     missing: 'linked to processes/ammonia-1 (lca/mappings.yaml): anhydrous liquid ammonia from natural-gas
       steam reforming and Haber-Bosch synthesis'
   streams:
   - S1
   source: 'flowsheet stream S1, 7.27 kg per kg of product (7.28 per kg of its H2): 97.4 % cracked in R-101,
-    the hydrogen of 79.4 % of it recovered by the PSA, the rest burnt in H-101 (D-004, D-005)'
+    the hydrogen of 79.4 % of it recovered by the PSA, the rest burnt in H-101 (D-004, D-005); taken pressurised
+    at 1500 kPa(a) and 293.15 K, its pumping (about 49 kW) and warming (4.10 MW, 0.49 kWh/kg) from ammonia-1''s
+    110 kPa(a) and 240.15 K outside the boundary (D-003)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -108,14 +112,18 @@ exchanges:
   amount: 151.2
   unit: kWh
   link:
-    source: flowsheet energy stream W1, the combustion air fan K-101, 0.0181 kWh/kg (D-008); the PSA's
-      valves and the plant's instruments not counted
+    source: 'flowsheet energy stream W1, the combustion air fan K-101, 0.0181 kWh/kg (D-008); not counted:
+      the PSA''s valves and instrument air (ASSUMED below 20 kW, 0.0024 kWh/kg, D-005) and the pumping
+      of the ammonia from ammonia-1''s 110 to 1500 kPa(a) outside the boundary (about 49 kW, 0.0059 kWh/kg,
+      D-003)'
     missing: 'linked in the Atlas LCI by the shared mapping (market for electricity, medium voltage),
       D-010; connect to: electricity, medium voltage, grid mix of the (undecided) site country'
   streams:
   - W1
-  source: flowsheet energy stream W1, the combustion air fan K-101, 0.0181 kWh/kg (D-008); the PSA's valves
-    and the plant's instruments not counted
+  source: 'flowsheet energy stream W1, the combustion air fan K-101, 0.0181 kWh/kg (D-008); not counted:
+    the PSA''s valves and instrument air (ASSUMED below 20 kW, 0.0024 kWh/kg, D-005) and the pumping of
+    the ammonia from ammonia-1''s 110 to 1500 kPa(a) outside the boundary (about 49 kW, 0.0059 kWh/kg,
+    D-003)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -348,8 +356,8 @@ provenance:
   plant: Hydrogen by catalytic ammonia cracking with PSA purification (200 t/d)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:e678a9a438020731bacc7328a7b385e783aee06e97955320e8156a39d92babea
-    lca/lca.yaml: sha256:409d725244c0397ab7da4c236477e083137174505fec217d3c1b059af8affd33
-    process.yaml: sha256:77e69ee6efb44d9765089de6eafdcd868ff3bf9189ebaf033ccd3c87c00a2993
-    process/flowsheet.yaml: sha256:2fe4c21b40abc5d1e464abe082e5209f49a33a56aa5deb8d44f1eaad717c3a04
-    process/materials.yaml: sha256:79c553bb0bbc7c92196b37b39603bf530cc01d3bf4a65aee907602e0129ec8c3
+    equipment/equipment-list.yaml: sha256:259d0623d81fb8220fb187d7e822decff615d99cd305e26e8398e5c83f5a184f
+    lca/lca.yaml: sha256:20c36090817d8819f4a05909d78f6b5fc16d4407b2e314dd8368a2bec859c7b4
+    process.yaml: sha256:118b9603087b3a77cc46a5915c8cd7871b9f9f8c4fc6a5c4792e2a064e21b760
+    process/flowsheet.yaml: sha256:b72891fcffdcb61d1cf4620d4173392bcf1eff3d4cb9db8d7ffd162bcb1e87e2
+    process/materials.yaml: sha256:8bdb4c59e3211c9ac4eac065c6d30fbe36f709f558b7276908eb24cafacb34ee

@@ -21,8 +21,9 @@ description: |
   swing adsorption U-201, which recovers 79.4 % of it to 99.99 mol% (the patent's reference
   example 2) and retains the ammonia. The tail gas (37 mol% hydrogen, 60 % nitrogen, 3.2 %
   ammonia) is the only fuel of the furnace, as in that example: it is burnt with air to 2 mol%
-  excess oxygen, and covers the tubes' 53.6 MW and the superheater's 17.3 MW with the flue gas
-  leaving at 492 K.
+  excess oxygen, the air preheated to 623 K in the convection section, and covers the tubes'
+  53.6 MW and the superheater's 17.3 MW; the flue gas leaves the radiant section at 993 K and
+  the stack at 492 K.
 
   The material balance is solved by cheme-as-code: design specifications set the ammonia feed
   for 200 t/d of hydrogen and the air for the flue gas's oxygen, the equilibrium reactor and
@@ -48,7 +49,7 @@ validation:
   status: unreviewed
   notes: >-
     Concept continuous PFD with closed mass, component and element balances (cheme validate,
-    cheme process streams: 2 blocks and 8 steps within tolerance). cheme process propagate
+    cheme process streams: 2 blocks and 9 steps within tolerance). cheme process propagate
     solves the ammonia feed and the combustion air with two design specifications (200 t/d of
     hydrogen; 2.0 mol% oxygen in the wet flue gas, ASSUMED), the equilibrium reactor R101 at
     773.15 K and 1100 kPa(a) (EP 4 337 600 A1's basis; 97.42 % cracked on the ideal-gas data of
@@ -56,8 +57,8 @@ validation:
     implies), the PSA as a component separator (79.4 % hydrogen recovery, the same example) and
     the complete combustion of the tail gas, and writes H101's convection duty. scripts/balance.py
     gives the tubes' duty (core's equilibrium model writes none), the ammonia vaporiser on
-    thermo's liquid ammonia data, the trim cooler, the fan and the stack temperature that
-    closes the furnace. Preliminary gate-to-gate LCI; in the Atlas build the ammonia is linked
+    thermo's liquid ammonia data, the trim cooler, the fan, the air preheater and the stack
+    temperature that closes the furnace, with a bridgewall check (D-006). Preliminary gate-to-gate LCI; in the Atlas build the ammonia is linked
     to ammonia-1, and electricity and cooling water through the shared proxies; the burner NOx
     and the catalyst and adsorbent replacement are open (no open factor or rate). cheme maturity
     reaches no level (assumed splits and temperatures); the claim `maturity: concept` is the

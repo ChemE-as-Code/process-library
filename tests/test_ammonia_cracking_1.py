@@ -10,8 +10,10 @@ README.md, process.yaml, lca/ and the benchmarks are checked against them:
 - the PSA recovers 79.4 % of the hydrogen, the product meets the ISO 14687 limits as the patent
   states them, and the product rate is 200 t/d;
 - the elements (N, H, O, Ar) close over the plant, and the flue gas holds 2.0 mol% oxygen;
-- the furnace closes: the tail gas's heat release covers Q1 and Q2, propagate's Q2 equals the
-  superheater's duty, and DESIGN.md's duty table matches the energy streams;
+- the furnace closes: the tail gas's heat release with the preheated air covers Q1, Q2 and the
+  air preheater's Q5, propagate's Q2 equals the superheater's duty, DESIGN.md's duty table
+  matches the energy streams, and the bridgewall check of D-006 holds (the flue gas leaves the
+  radiant section well above the tube outlet, the convection banks keep positive approaches);
 - the stated specific consumptions follow from the streams, every energy stream reaches the
   LCI, the ammonia is linked to ammonia-1, and the benchmark derivations hold;
 - the process is public with CC-BY-4.0 and requires cheme-as-code 1.13.
@@ -139,21 +141,54 @@ def test_the_elements_close(streams, comps):
 
 
 def test_the_furnace_and_the_exchangers_close(streams, comps):
-    q1, q2, q3, q4 = (_duty(streams, q) for q in ("Q1", "Q2", "Q3", "Q4"))
+    q1, q2, q3, q4, q5 = (_duty(streams, q) for q in ("Q1", "Q2", "Q3", "Q4", "Q5"))
     t = lambda sid: streams[sid]["temperature"]["value"]  # noqa: E731
     k = lambda sid: _kmol(streams[sid], comps)  # noqa: E731
     assert q1 == pytest.approx(_enthalpy_kw(k("S4"), t("S4"), comps) - _enthalpy_kw(k("S3"), t("S3"), comps), abs=1)
     assert q2 == pytest.approx(_enthalpy_kw(k("S3"), t("S3"), comps) - _enthalpy_kw(k("S2"), t("S2"), comps), abs=1)
-    released = _enthalpy_kw(k("S8"), t("S8"), comps) + _enthalpy_kw(k("S10"), t("S10"), comps) - _enthalpy_kw(k("S11"), t("S11"), comps)
-    assert released == pytest.approx(q1 + q2, abs=2)
+    assert q5 == pytest.approx(_enthalpy_kw(k("S12"), t("S12"), comps) - _enthalpy_kw(k("S10"), t("S10"), comps), abs=1)
+    released = _enthalpy_kw(k("S8"), t("S8"), comps) + _enthalpy_kw(k("S12"), t("S12"), comps) - _enthalpy_kw(k("S11"), t("S11"), comps)
+    assert released == pytest.approx(q1 + q2 + q5, abs=2)
     assert _enthalpy_kw(k("S4"), t("S4"), comps) - _enthalpy_kw(k("S5"), t("S5"), comps) == pytest.approx(q4, abs=2)
     assert _enthalpy_kw(k("S5"), t("S5"), comps) - _enthalpy_kw(k("S6"), t("S6"), comps) == pytest.approx(q3, abs=2)
     assert streams["Q2"]["duty"]["provenance"] == "calculated"
     design = _text("DESIGN.md")
-    for sid in ("Q1", "Q4", "Q3"):
+    for sid in ("Q1", "Q4", "Q3", "Q5"):
         assert f"| {sid} | {_duty(streams, sid):.1f} kW |" in design
     assert f"| Q2 | {_duty(streams, 'Q2'):.1f} kW |" in design
     assert f"{t('S11'):.2f} K" in design and f"{t('S5'):.2f} K" in design
+
+
+def _solve_t(target_kw: float, flows: dict[str, float], comps, lo: float = 250.0, hi: float = 3000.0) -> float:
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        if _enthalpy_kw(flows, mid, comps) > target_kw:
+            hi = mid
+        else:
+            lo = mid
+    return (lo + hi) / 2
+
+
+def test_the_bridgewall_check(streams, comps):
+    t = lambda sid: streams[sid]["temperature"]["value"]  # noqa: E731
+    k = lambda sid: _kmol(streams[sid], comps)  # noqa: E731
+    flue = k("S11")
+    h_in = _enthalpy_kw(k("S8"), t("S8"), comps) + _enthalpy_kw(k("S12"), t("S12"), comps)
+    flame = _solve_t(h_in, flue, comps)
+    bridgewall = _solve_t(h_in - _duty(streams, "Q1"), flue, comps)
+    between = _solve_t(h_in - _duty(streams, "Q1") - _duty(streams, "Q2"), flue, comps)
+    assert flame == pytest.approx(1885.8, abs=0.5)
+    assert bridgewall == pytest.approx(993.1, abs=0.5)
+    assert between == pytest.approx(671.5, abs=0.5)
+    # the gas leaving the radiant section well above the tube outlet (D-006)
+    assert bridgewall - t("S4") > 200
+    # positive approaches in both convection banks: E-102 (S2 -> S3), then E-104 (S10 -> S12)
+    assert bridgewall - t("S3") > 0 and between - t("S2") > 0
+    assert between - t("S12") == pytest.approx(48.4, abs=0.5)
+    assert t("S11") - t("S10") > 0
+    design = _text("DESIGN.md")
+    for stated in ("1885.8 K", "993.1 K", "671.5 K", "219.9 K", "48.4 K"):
+        assert stated in design, stated
 
 
 def test_the_stated_consumptions(streams, comps):
@@ -205,7 +240,7 @@ def test_the_benchmark_derivations():
 
 def test_the_balance_script_cites_every_value_it_gives(sheet):
     cited = {s["id"] for s in sheet["streams"] if "scripts/balance.py" in str(s.get("state", ""))}
-    assert {"Q1", "Q3", "Q4", "W1", "S5", "S10", "S11"} <= cited
+    assert {"Q1", "Q3", "Q4", "Q5", "W1", "S5", "S10", "S11"} <= cited
 
 
 def test_published_public_with_cc_by():
