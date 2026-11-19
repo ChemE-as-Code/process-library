@@ -4,6 +4,7 @@ Newest first. One line per change: date, sheet or file, what, why.
 
 | date | where | what | why |
 |---|---|---|---|
+| 2026-11-19 | DESIGN.md, process/design-basis.yaml, process/flowsheet.yaml, scripts/kmno4_balance.py, process/BFD.xml, process/PFD.xml, lca/ | audit fixes: D-011 states 10 gaps plus H2 outside GWP100; grind 98 % < 80 um cited to SRC-2 Description (Claim 12 gives only < 80 um); KMnO4 crystallisation heat 43.42 kJ/mol from the SRC-7 values (was an unsourced 43.56), Q6 962.4 -> 962.1 kW, cooling water 2594.9 -> 2594.6 kWh/h; BFD/PFD rebuilt, LCA outputs regenerated with the pinned core (stamp 1.12) | close the potassium-permanganate-1 audit findings |
 | 2026-10-28 | process/, scripts/, lca/, process.yaml, DESIGN.md | responses to reviews/2026-10-28-pfd-lci-review.md (below) | close the review findings |
 | 2026-10-28 | DESIGN.md, lca/README.md | route memo, source register, decisions D-001 to D-011, method/dependency table, open inputs | record the concept basis and its gaps |
 | 2026-10-28 | lca/, process.yaml | preliminary gate-to-gate LCI per kg KMnO4 (backgrounds missing), inventory/coverage written; Atlas manifest (internal, concept, unreviewed) | scope step 4 of issue #146 |

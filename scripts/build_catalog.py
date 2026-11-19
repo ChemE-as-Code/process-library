@@ -276,13 +276,27 @@ def _display_name(name: str) -> str:
     return name[0].lower() + name[1:] if len(name) > 1 and name[0].isupper() and name[1].islower() else name
 
 
+def _functional_unit_flow(key: str, outputs: list[dict]) -> dict | None:
+    """The chemistry output that names the functional unit's product: the one whose
+    ``inventory_key`` is ``key``, else (ADR 0040) the main product whose note starts with ``key``,
+    ADR 0028's feed note convention, which ADR 0040 extends to a keyless main product."""
+    flow = next((f for f in outputs if f.get("inventory_key") == key), None)
+    if flow is not None:
+        return flow
+    starts = re.compile(rf"{re.escape(key)}(?![\w-])")
+    return next(
+        (f for f in outputs if f.get("role") == "main-product" and not f.get("inventory_key") and starts.match(str(f.get("note") or "").lstrip())),
+        None,
+    )
+
+
 def _name_functional_unit(functional_unit: dict, flows: dict[str, list[dict]], products: reg.Registry) -> None:
-    """Label the functional unit with its product's name (issue #249): the chemistry output whose
-    ``inventory_key`` is ``product:<functional unit product>`` gives the registry chemical, its
-    grade's name when the flow has a grade, else the chemical's name. Without such a flow the
-    label keeps the component id. Adds ``chemical``, ``grade`` and ``product_name``."""
+    """Label the functional unit with its product's name (issue #249): the chemistry output that
+    names the product (``_functional_unit_flow``) gives the registry chemical, its grade's name
+    when the flow has a grade, else the chemical's name. Without such a flow the label keeps the
+    component id. Adds ``chemical``, ``grade`` and ``product_name``."""
     key = f"product:{functional_unit.get('product')}"
-    flow = next((f for f in flows.get("outputs", []) if f.get("inventory_key") == key), None)
+    flow = _functional_unit_flow(key, flows.get("outputs", []))
     chemical = products.chemicals.get(flow["chemical"]) if flow else None
     functional_unit.update(chemical=flow["chemical"] if chemical else None, grade=flow.get("grade") if chemical else None, product_name=None)
     if not chemical:

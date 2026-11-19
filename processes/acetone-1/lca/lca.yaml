@@ -39,18 +39,18 @@ allocation:
     route at scale that could be credited without its own study (phenol without acetone has no
     commercial route in Europe, LVOC 8.2.1).
   compare: [energy]
-  # LHV per kg, gas basis at 298.15 K, from the formation enthalpies (cheme chemistry thermo:
-  # phenol -96.4 kJ/mol CRC, acetone -216.07 kJ/mol ATcT) and CO2(g) -393.51, H2O(g) -241.826
-  # kJ/mol (CODATA key values, Cox et al. 1989). Calculated, D-014.
+  # LHV per kg, gas basis at 298.15 K, from the ideal-gas formation enthalpies of cheme chemistry
+  # thermo (chemicals 1.5.2, DESIGN.md S4): phenol -96.4 kJ/mol (CRC), acetone -216.07, CO2(g)
+  # -393.474 and H2O(g) -241.822 kJ/mol (ATcT 1.112). Calculated, D-014.
   properties:
     ACETONE: {energy: 29010, source: "LHV of S20 (99.7 wt% acetone, 0.3 wt% water) from formation enthalpies, gas basis (D-014)"}
     PHENOL: {energy: 31770, source: "LHV of S24 (phenol) from formation enthalpies, gas basis (D-014)"}
 flows:
-  - {key: feed:CUM, missing: "no background chosen yet: cumene, market for (benzene alkylation with propylene on zeolite, incl. transport to the plant); a library cumene process would be linked as a dataset", source: "fresh cumene S01 (D-001)"}
+  - {key: feed:CUM, missing: "no background chosen yet: cumene, market for (benzene alkylation with propylene on zeolite, incl. transport to the plant); core's study links none; the Atlas build links cumene-1's product:CUMENE (lca/mappings.yaml)", source: "fresh cumene S01 (D-001)"}
   - {key: feed:AIR, free: true, source: "ambient air for the oxidisers: a resource without burden; its N2 and O2 leave in the spent air"}
   - {key: feed:H2F, missing: "no background chosen yet: hydrogen, gaseous, 2 MPa, from steam methane reforming or electrolysis; library hydrogen-1 as a dataset once published", source: "hydrogen S26 (D-008)"}
   - {key: feed:ACID, missing: "no background chosen yet: sulfuric acid 98 wt%, market for (contact process from sulfur); library sulfuric-acid-1 as a dataset once published", source: "sulfuric acid S12 (D-007)"}
-  - {key: feed:NAOH50, missing: "no background chosen yet: sodium hydroxide 50 wt% in water, market for (chlor-alkali membrane cells); library chlor-alkali-1 as a dataset once published", source: "caustic soda S14 (D-007)"}
+  - {key: feed:NAOH50, missing: "no background chosen yet: sodium hydroxide 50 wt% in water, market for (chlor-alkali membrane cells); core's study links none; the Atlas build links chlor-alkali-1's product:NAOH (lca/mappings.yaml)", source: "caustic soda S14 (D-007)"}
   - {key: feed:PW, missing: "no background chosen yet: process water, deionised or decarbonised, from the site water treatment (incl. the withdrawal from a river or well)", source: "wash water S30 (D-007)"}
   - {key: feed:POWER, missing: "no background chosen yet: electricity, medium voltage, market for the site's grid (site not chosen)", source: "air compressor and vacuum/pump shares Q01-Q03 (D-011)"}
   - {key: feed:LPS, missing: "no background chosen yet: steam, in chemical industry, 500 kPa(a) (site boiler on natural gas or tar firing), per MJ of condensing heat", source: "CHP concentration Q04 (D-011)"}
@@ -63,7 +63,7 @@ flows:
   - key: product:WW
     treatment: {kind: waste, route: "site waste water treatment: phenol recovery, peroxide decomposition and biological treatment (LVOC BREF 8.3.2)"}
     missing: "no background chosen yet: treatment of waste water from organic chemicals production, per m3 or kg COD, with its sludge and residual emissions to water"
-    source: "brine S16 and acetone column bottoms S21 (D-008, D-009); a LOWER BOUND (64 kg/t phenol against S1 8.3.5 water 1-4 t/t): cleavage dilution water, cumene caustic wash and phenol recovery are not modelled (D-016, I-11)"
+    source: "brine S16 and acetone column bottoms S21 (D-008, D-009); a LOWER BOUND (64 kg/t phenol): cleavage dilution water, cumene caustic wash and phenol recovery are not modelled (D-016, I-05). S1 8.3.5's 1-4 t/t phenol is total water use including cooling-water make-up, not a waste water volume, so it is no like-for-like check"
   - {key: product:VENT, emission: true, source: "spent air after condensers and activated carbon adsorbers S08 and the hydrogenation flash vent S28, to atmosphere (D-010)"}
   - {key: emission:N2, free: true, source: "atmospheric N2 returned unchanged"}
   - {key: emission:O2, free: true, source: "atmospheric O2 not consumed, returned"}
