@@ -572,7 +572,8 @@ against the 261.15 K normal boiling point in materials.yaml (CRC, SRC-5). Taken 
 slope (B 2487.3 K, C -5.697 K) through 261.15 K at 101.3 kPa (ASSUMED, an extrapolation above
 273 K): 186 kPa(a) at 278.15 K (the jacket's chilled-water supply, the coldest wall), 219 kPa(a)
 at 283.15 K, 347 kPa(a) at 298.15 K. Landolt's set unshifted gives 231 kPa(a) at 278.15 K. So
-case B, about 125 + 227 = 352 kPa(a) in the closed head space, would put liquid methyl nitrite
+case B, about 151 + 227 = 378 kPa(a) in the closed head space (from the 50 kPa(g) trip, where
+the acid stops; corrected 2026-11-19 from 125 kPa(a), R-101's normal pressure), would put liquid methyl nitrite
 on the jacketed wall before the vessel reached it. That liquid is toxic and flammable, and can
 decompose explosively (D-015). Case B therefore decides R-101's relief set pressure, not its
 design pressure.
@@ -585,8 +586,11 @@ Decisions (ASSUMED values; the P&ID, the HAZOP and the relief study confirm or c
    (5.712 m3 in D 2.04 m), about 19 kPa at a density of about 1.1 t/m3 ASSUMED, plus the flame
    arrester and line losses, not yet known. In case A R-101 reaches the set point about 37 s after
    the blockage, and its relief set point about 65 s after it. The trip must therefore act within
-   tens of seconds. In case C R-101 sits about 20 kPa above R-102 and trips first, about 8 min
-   after the blockage. Its reliability (SIL) is not set here: LOPA or the HAZOP.
+   tens of seconds. In case C R-101 follows R-102 at about 19 to 24 kPa above it (the
+   submergence and the line losses) and trips first, once R-102 has risen about 26 to 31 kPa
+   at 0.100 kPa/s: about 260 to 310 s, 4 to 5 min, after the blockage (R-102 itself would reach
+   50 kPa(g) after about 500 s; corrected 2026-11-19 from "about 8 min", which was R-102's
+   time). Its reliability (SIL) is not set here: LOPA or the HAZOP.
 2. **R-101 relief device** to the thermal oxidiser, set at 70 kPa(g) (171 kPa(a)). That is
    below the 186 kPa(a) at which methyl nitrite condenses on the 278 K wall, so a blocked S7 vents
    the gas rather than condensing it. Required relieving rate: case A with the trip failed,
@@ -598,12 +602,24 @@ Decisions (ASSUMED values; the P&ID, the HAZOP and the relief study confirm or c
    S7 line, needs a lower set point or a tempered jacket. Open.
 3. **R-102 relief device** to the thermal oxidiser through a catch pot. The catch pot is there
    because liquor carried over from R-102 holds azide, which must not reach the oxidiser or
-   metal parts (D-015). The relief is set at the design pressure, 1.0 MPa(g). Required relieving
-   rate: the 60 m3/h vent capacity at 313.15 K, 2.33 kmol/h. That covers case D, R-102 not
-   absorbing with the trip failed (51 m3/h, D-017), and the 6.34 m3/h released at the MTSR. Gas
-   only with the declared kinetics: MTSR 318.9 K, below the MTT. With k/10 the MTSR of 352.9 K
-   is above it (D-011), and the content would boil: a two-phase (DIERS) case that only the lab
-   data below can size.
+   metal parts (D-015). The relief is set at the design pressure, 1.0 MPa(g). **Its required
+   relieving rate is open** (restated 2026-11-19; it was given as the 60 m3/h vent capacity at
+   313.15 K, 2.33 kmol/h). No gas-only case with the declared kinetics reaches the 1.0 MPa(g) set
+   point (decision 4): R-101's relief caps R-101 at 171 kPa(a), so once R-102 is above about
+   150 kPa(a) R-101's methyl nitrite leaves through R-101's own relief (decision 2, sized for
+   it), and R-102 then rises only on the gas its accumulated methyl nitrite forms, which case F
+   bounds at about 0.82 MPa(g). That holds for case C and for case D (R-102 not absorbing with
+   the trip failed, 0.000594 kmol/s, about 55 m3/h at 313.15 K and 101.3 kPa(a); an upper bound,
+   since the off-gas's 3.8 m3/h of unabsorbed methyl nitrite is also in R-101's 0.000507 kmol/s,
+   which D-017's 51 m3/h counts once), and for the 6.34 m3/h released at the MTSR, a vent rate at
+   101.3 kPa(a). So 2.33 kmol/h is the vent line's capacity, not a relieving rate of any credible
+   case at the set pressure. The cases that can lift this relief, and so size it, are:
+   - the runaway at k/10: MTSR 352.9 K, above the MTT (D-011), the content boils, a two-phase
+     (DIERS) case that only the lab data below (calorimetry with gas measurement at the relief
+     set pressure) can size;
+   - fire on R-102 (not screened; the relief study, with the wetted area and the insulation).
+   Until one of them is sized, the relief's rate and area are not decided; the gas-only cases
+   above do not size it.
 4. **Design pressure 1.0 MPa(g) for R-102** (`design_pressure_barg: 10` in the equipment list).
    After the trip at 50 kPa(g), R-102 must hold the blocked-vent cases without the relief
    lifting: case F reaches about 0.82 MPa(g) (151 + 765 kPa(a)), case E about 0.43 MPa(g). That
@@ -612,9 +628,15 @@ Decisions (ASSUMED values; the P&ID, the HAZOP and the relief study confirm or c
    discharge on every blocked S14), and a rating for R-101's methyl nitrite going to R-102 as
    well. R-101's relief caps R-101 at 171 kPa(a), so R-101 cannot push gas into R-102 once R-102
    is above about 150 kPa(a).
-5. **Design pressure 1.0 MPa(g) for R-101 too**, one rating for the coupled pair. A leaking
-   non-return device on S7 would otherwise expose R-101 to R-102's case F pressure (0.82 MPa(g))
-   before R-101's relief acts. The relief study may lower it once that case is settled.
+5. **Design pressure 1.0 MPa(g) for R-101 too**, one rating for the coupled pair. Reason
+   (restated 2026-11-19): a slow leak back through the non-return device on S7 is not a reason,
+   since R-101's relief at 70 kPa(g) lifts on it long before 0.82 MPa(g) and caps R-101 at
+   171 kPa(a) for as long as the backflow stays within the relief's capacity. The rating covers
+   the non-return device failing open with R-102 at up to case F's 0.82 MPa(g): the gas flowing
+   back through S7, and R-102's liquor pushed back up the sparger line, at a rate not known here
+   that may exceed what R-101's relief (sized for 1.82 kmol/h of gas, decision 2) passes. Until
+   that backflow is quantified, R-101 is rated for R-102's pressure. The relief study may lower
+   it once that case is settled (the backflow rate, and whether R-101's relief must pass liquor).
 
 **Open (needs data or sign-off; none of it is estimated here):**
 - Lab, reaction calorimetry with gas measurement (RC1 with a gas-flow meter, or a closed-cell
@@ -632,7 +654,10 @@ Decisions (ASSUMED values; the P&ID, the HAZOP and the relief study confirm or c
   and the non-return device's pressure drop. They give R-101's normal pressure and the margin to
   the 50 kPa(g) trip.
 - Relief study (human sign-off): device type (bursting disc, valve or both), sizes, the fire case
-  (not screened), the catch pot and the relief header.
+  (not screened), the catch pot and the relief header. R-102's relieving rate is decided by the
+  larger of the fire case (wetted area, insulation) and the k/10 two-phase runaway (from the
+  calorimetry above); no gas-only case sizes it (decision 3). The backflow through a failed-open
+  non-return device on S7 decides whether R-101 keeps 1.0 MPa(g) (decision 5).
 - HAZOP and LOPA (human sign-off): the trip's SIL and response time, and whether the double
   failure D is credible. The C&E entry and the instrument tags follow with the P&ID.
 - Vendor: the vessels' rating, 1.0 MPa(g) in glass-lined or stainless steel at 6.3 and 8 m3.
