@@ -17,7 +17,7 @@ feeds:
     source_of_values: "US 4 500 724 A: at least 98 % Si, below 700 um, mean 100 to 150 um preferred; modelled as pure Si (D-004)"
     conditions: {temperature_K: 298.15}
   - name: Copper catalyst (no library producer)
-    source_of_values: "ASSUMED (D-004): 0.5 wt% of the silicon fed, the low end of US 4 500 724 A's 0.5 to 10 %; the zinc and tin promoters not modelled"
+    source_of_values: "ASSUMED (D-004): 0.001 kg per kg of silicon fed, which keeps about 2 % copper relative to the bed's silicon, US 4 500 724 A's Example 3 (its 0.5 to 10 % is the contact mass's copper, not a make-up rate); the zinc and tin promoters not modelled"
 products:
   - name: Dimethyldichlorosilane (Me2SiCl2)
     purity: "at least 99.5 wt%, at most about 0.5 wt% MeSiCl3 (US 2 563 557); modelled 99.51 wt%"
@@ -34,15 +34,16 @@ products:
     note: "1500 kPa(a) saturated, raised in the reactor's cooling coils (D-005)"
 utilities:
   - {name: Electric power, use: "silicon handling, recycle-gas compressor K-303, pumps (D-009)"}
+  - {name: Brine, supply_K: 243.15, return_K: 248.15, use: "C-302's vent condenser E-304 (D-007, D-009)", note: ASSUMED}
   - {name: MP steam, pressure_kPa_a: 1500, use: "raised in R-201's coils; drawn for the vaporiser E-101 and the reboilers of C-302 and C-401 (D-009)", note: ASSUMED}
   - {name: LP steam, pressure_kPa_a: 450, use: "reboilers of C-402 and C-403 (D-009)", note: ASSUMED}
-  - {name: Cooling water, supply_K: 298.15, return_K: 303.15, use: "crude cooler-condenser, the condensers and product coolers; C-302's condenser at 306 K needs the narrow range (D-007, D-009)", note: ASSUMED}
-  - {name: Nitrogen, use: "blanketing of the silicon hoppers, the spent mass and the silane tanks; not in the balance (D-011)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 303.15, use: "crude cooler-condenser, the condensers and product coolers; C-302's reflux drum at 306.15 K needs the narrow range (D-007, D-009)", note: ASSUMED}
+  - {name: Nitrogen, use: "blanketing of the silicon hoppers, the spent mass and the silane tanks, of the order of 10 m3/h (about 12 kg/h, 1.5 g per kg of Me2SiCl2); below the cut-off, not in the balance (D-011)", note: ASSUMED}
 site:
   location: ASSUMED generic chemical site with a methyl chloride supply (chloromethane-1), a steam system and a thermal oxidiser with acid-gas scrubbing, not chosen
   design_ambient_K: 298.15            # ASSUMED
   atmospheric_pressure_kPa: 101.325
 assumptions:
-  - "Route: the direct process in a copper-catalysed fluidised bed at 573 K and 400 kPa(a) (US 4 500 724 A, Wikipedia 'Direct process'); 95 % of the silicon converted, half of the methyl chloride per pass, an ASSUMED crude distribution inside the open ranges (D-001, D-003, D-004)."
-  - "Methyl chloride recovered in a column at about 90 psig on cooling water and the crude distilled in three columns after US 2 563 557, the MeSiCl3/Me2SiCl2 split at a relative volatility of 1.17 (EP 1 957 504 B1); component separators, not stage models (D-007, D-008)."
+  - "Route: the direct process in a copper-catalysed fluidised bed at 573 K and 400 kPa(a) (US 4 500 724 A, Wikipedia 'Direct process'); 95 % of the silicon converted, half of the methyl chloride per pass, an ASSUMED crude distribution inside the ranges of Wikipedia 'Direct process' (its MeHSiCl2, 1.5 %, below the 3 to 5 % of Wikipedia 'Dimethyldichlorosilane') (D-001, D-003, D-004)."
+  - "Methyl chloride recovered in a column at 800 kPa(a) (above US 2 563 557's about 90 psig) on cooling water with a refrigerated vent condenser, and the crude distilled in three columns after US 2 563 557, the MeSiCl3/Me2SiCl2 split at a relative volatility of 1.17 (EP 1 957 504 B1); component separators, not stage models (D-007, D-008)."
   - "Every duty and power from scripts/balance.py with formation enthalpies and heat capacities of chemicals 1.5.2 / thermo 0.6.1; Me2SiCl2's formation enthalpy ASSUMED; accuracy +/-30 % not demonstrated (D-005, D-009)."

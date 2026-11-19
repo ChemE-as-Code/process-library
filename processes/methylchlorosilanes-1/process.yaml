@@ -6,39 +6,43 @@ id: methylchlorosilanes-1
 title: Methylchlorosilanes by the direct process in a copper-catalysed fluidised bed with crude distillation (60 kt/a Me2SiCl2)
 summary: >-
   Ground silicon reacts with methyl chloride over a copper catalyst in a fluidised bed at 573 K;
-  the methyl chloride is recovered in a column at about 90 psig and recycled, and the crude is
+  the methyl chloride is recovered in a column at 800 kPa(a) and recycled, and the crude is
   distilled into dimethyldichlorosilane, a methyltrichlorosilane cut, a light silanes cut and a
   residue. Concept stage, 60 kt/a, balanced flowsheet with the feeds solved for the rate,
   preliminary gate-to-gate LCI.
 description: |
   Liquid methyl chloride (fresh from chloromethane-1 and recovered) is vaporised and superheated
   to 453 K and fluidises a bed of ground metallurgical silicon (mean 100 to 150 um, at least 98 %
-  Si) with 0.5 wt% copper at 573 K and 400 kPa(a), the conditions of US 4 500 724 A (General
+  Si) with about 2 % copper at 573 K and 400 kPa(a), the conditions of US 4 500 724 A (General
   Electric) and the ranges of the direct process (Wikipedia). 95 % of the silicon and half of
   the methyl chloride convert per pass (both ASSUMED inside the open ranges). The crude
-  distribution is ASSUMED inside those ranges: 84.0 wt% Me2SiCl2, 7.0 MeSiCl3, 3.0 Me3SiCl,
-  1.5 MeHSiCl2 and 4.5 of a high-boiling residue, with US 4 500 724 A's continuous fluid-bed T/D
+  distribution is ASSUMED inside Wikipedia's direct-process ranges: 84.0 wt% Me2SiCl2, 7.0
+  MeSiCl3, 3.0 Me3SiCl, 1.5 MeHSiCl2 (below the 3 to 5 % of Wikipedia's Dimethyldichlorosilane
+  article) and 4.5 of a high-boiling residue, with US 4 500 724 A's continuous fluid-bed T/D
   ratio and residue. Cooling coils in the bed take 4.64 MW (about 239 kJ per mol of silicon)
   and raise MP steam. Without them the gas would heat to about 1250 K. Cyclones return the
   fines; the spent contact mass leaves the bed.
 
-  The crude gas is cooled on cooling water, and the condensed silanes and the compressed methyl
-  chloride enter a column at 722 kPa(a), the 90 psig of US 2 563 557 at which methyl chloride
-  condenses on cooling water (306 K). The methyl chloride returns to the feed, and the ethane
-  and ethylene (the lumped hydrocarbons) are vented to the site's thermal oxidiser. Three
+  The crude gas is cooled on cooling water and flashed; the condensate and the compressed gas
+  enter a column at 800 kPa(a), a little above the 90 psig of US 2 563 557, so that methyl
+  chloride condenses on cooling water and the reflux drum (306 K) can vent the ethane and
+  ethylene (the lumped hydrocarbons). A brine-cooled vent condenser at 253 K keeps the methyl
+  chloride in the vent to 15 mol%; the vent goes to the site's thermal oxidiser. The methyl
+  chloride returns to the feed. Three
   columns follow US 2 563 557: the heavies, the lights (Me3SiCl, MeHSiCl2) and the close-boiling
   MeSiCl3/Me2SiCl2 split (66.1 and 70.1 C, relative volatility 1.17 after EP 1 957 504 B1). That
   split needs 93 theoretical stages at a reflux of 94 for 99.5 wt% Me2SiCl2 and an 89 wt%
-  MeSiCl3 cut, and its reboilers take 43 % of the plant's steam.
+  MeSiCl3 cut, and its reboilers take 40 % of the plant's steam.
 
   Per kg of Me2SiCl2: 0.276 kg of silicon (0.218 stoichiometric), 0.963 kg of methyl chloride,
-  1.4 g of copper, 0.030 kWh of electricity, 0.48 kWh of MP and 0.47 kWh of LP steam drawn,
-  0.62 kWh of MP steam raised and 1.04 kWh to cooling water. Co-products: 0.087 kg of the
-  MeSiCl3 cut and 0.063 kg of the light silanes cut. Wastes: 0.055 kg of residue, 15 g of
-  spent contact mass and 20 g of vent gas. Hazards: methyl chloride, a flammable gas (7.6 to 19 vol%
+  0.28 g of copper, 0.028 kWh of electricity, 0.53 kWh of MP and 0.49 kWh of LP steam drawn,
+  0.62 kWh of MP steam raised, 1.07 kWh to cooling water and 0.033 kWh to brine. Co-products:
+  0.087 kg of the MeSiCl3 cut and 0.062 kg of the light silanes cut. Wastes: 0.055 kg of
+  residue, 14 g of spent contact mass and 21 g of vent gas. Hazards: methyl chloride, a flammable gas (7.6 to 19 vol%
   in air) handled under pressure; the chlorosilanes, flammable liquids (Me2SiCl2: flash point
-  -9 C, H225) that release HCl with water; combustible silicon dust; and a strongly exothermic
-  bed (DESIGN.md D-011).
+  -9 C, H225) that release HCl with water; MeHSiCl2, which also releases hydrogen with water and
+  is fatal if inhaled (H260, H330); methyl chloride's health hazards (H351, H341); combustible
+  silicon dust; and a strongly exothermic bed (DESIGN.md D-011).
 
   The mass balance is solved by cheme-as-code: the reactor as a conversion step on the silicon,
   the cyclones and columns as component separators with sourced or ASSUMED splits, the silicon
@@ -83,17 +87,18 @@ chemistry:
   inputs:
     - {chemical: chloromethane, role: feedstock, inventory_key: "feed:MECLF", note: "Methyl chloride, liquid, from chloromethane-1, 0.963 kg/kg Me2SiCl2"}
     - {chemical: silicon, role: feedstock, inventory_key: "feed:SIF", note: "Metallurgical-grade silicon, ground (no library process), 0.276 kg/kg"}
-    - {chemical: copper, role: feedstock, inventory_key: "feed:CUF", note: "Copper catalyst make-up (no library process), 1.4 g/kg; the zinc and tin promoters not modelled"}
+    - {chemical: copper, role: feedstock, inventory_key: "feed:CUF", note: "Copper catalyst make-up (no library process), 0.28 g/kg; the zinc and tin promoters not modelled"}
   outputs:
     - {chemical: dichlorodimethylsilane, role: main-product, inventory_key: "product:DMDCSP", note: "Dimethyldichlorosilane, modelled 99.51 wt% (at most 0.5 wt% MeSiCl3), to storage"}
     - {chemical: methyltrichlorosilane, role: co-product, inventory_key: "product:MTCSP", note: "MeSiCl3 cut, 89 wt% MeSiCl3 with 10 % Me2SiCl2, 0.087 kg/kg; mass allocation (DESIGN.md D-012)"}
-    - {chemical: chlorotrimethylsilane, role: co-product, inventory_key: "product:LIGHTSP", note: "Light silanes cut, 56 wt% Me3SiCl, 29 wt% MeHSiCl2 (dichloromethylsilane) and 9 wt% methyl chloride, 0.063 kg/kg; mass allocation (D-012)"}
+    - {chemical: chlorotrimethylsilane, role: co-product, inventory_key: "product:LIGHTSP", note: "Light silanes cut, 57 wt% Me3SiCl, 29 wt% MeHSiCl2 (dichloromethylsilane) and 8 wt% methyl chloride, 0.062 kg/kg; mass allocation (D-012)"}
     - {chemical: steam, role: co-product, inventory_key: "product:MPS", note: "MP steam 1500 kPa(a) raised in the reactor's cooling coils, 0.62 kWh/kg; allocation share 0 (D-012)"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.030 kWh/kg: silicon handling, the recycle-gas compressor K-303, pumps"}
-    - {chemical: steam, role: utility, inventory_key: "feed:MPSI", note: "0.476 kWh/kg of MP steam 1500 kPa(a): the methyl chloride vaporiser and the reboilers of C-302 and C-401"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.475 kWh/kg of LP steam 450 kPa(a): the reboilers of C-402 and C-403"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.036 kWh/kg removed: the crude cooler-condenser and the column condensers"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.028 kWh/kg: silicon handling, the recycle-gas compressor K-303, pumps"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPSI", note: "0.529 kWh/kg of MP steam 1500 kPa(a): the methyl chloride vaporiser and the reboilers of C-302 and C-401"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.492 kWh/kg of LP steam 450 kPa(a): the reboilers of C-402 and C-403"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.072 kWh/kg removed: the crude cooler-condenser and the column condensers"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:BRINE", note: "0.033 kWh/kg removed by brine at 243/248 K: C-302's vent condenser E-304 (the registry has chilled water, not brine: the closest entry)"}
 basis:
   capacity: "60 000 t/a dimethyldichlorosilane in 8000 h (7500 kg/h), ASSUMED (DESIGN.md D-002)"
   operating_hours_per_year: 8000

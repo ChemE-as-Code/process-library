@@ -11,6 +11,9 @@ Core 1.13 solves conversion steps, component separators from a specified split, 
 target by design specifications (core ADR 0070) and recycles at tear streams (ADR 0060): the
 whole mass balance is core's. The heats are a script's, because the reactor has solid
 reactants and dimethyldichlorosilane has no formation enthalpy in core's data (L-1, L-2).
+Revised 2026-11-20 after the review of PR #564: C-302 at 800 kPa(a) with a refrigerated vent
+condenser (D-007), the V-302 flash, bubble and dew points for the columns (D-008, D-009), the
+copper make-up for SRC-1's 2 % in the bed (D-004), the hazard screen (D-011, SRC-11).
 Templates: `maleic-anhydride-1` (structure, a balance script beside core's models, the steam
 export at share 0), `oxalyl-chloride-1` (the source register and the LCI conventions).
 Requires cheme-as-code 1.13 (plant.yaml).
@@ -31,9 +34,10 @@ package method and the underlying work it comes from, which was not read here (l
 | SRC-4 | Wikipedia, Direct process, https://en.wikipedia.org/wiki/Direct_process (2026-11-19) | about 300 C and 2 to 5 bar in a fluidised bed; 90 to 98 % silicon and 30 to 90 % chloromethane conversion; copper as catalyst (about Cu3Si), tin and zinc as promoters; typical products Me2SiCl2 70 to 90 %, MeSiCl3 5 to 15 %, Me3SiCl 2 to 4 %, MeHSiCl2 1 to 4 %, Me2HSiCl 0.1 to 0.5 %; boiling points; about 1.4 Mt/a of Me2SiCl2 | read; CC BY-SA, facts only | D-001, D-003, D-004 |
 | SRC-5 | Wikipedia, Dimethyldichlorosilane, https://en.wikipedia.org/wiki/Dimethyldichlorosilane (2026-11-19) | a flammable liquid, density 1.07 g/cm3, flash point -9 C, GHS H225, H315, H319, H335; hydrolyses to silicones and HCl; direct-process products Me2SiCl2 80 to 90 %, MeSiCl3 5 to 15 %, MeHSiCl2 3 to 5 %, Me3SiCl 3 to 5 % | read; CC BY-SA, facts only | D-004, D-011 |
 | SRC-6 | US 2017/0305939 A1, method for the direct synthesis of methylchlorosilanes in fluidized-bed reactors, https://patents.google.com/patent/US20170305939A1/en | two fluid-bed reactors, 200 to 450 C (the first 300 to 350 C, the second 250 to 300 C), 1 to 5 bar; copper 0.1 to 10, zinc 0.01 to 1, tin 0.001 to 0.2 parts per 100 parts silicon; silicon d50 180 to 350 um; local temperature rises of up to several 100 K from the exotherm; laboratory Me2SiCl2 selectivities 71 to 78 % | read (Google Patents); patent, facts only | D-001, D-004, D-005 |
-| SRC-7 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment), queried directly | gas formation enthalpies: ATCT_G (methyl chloride -82.62, ethane -83.78, ethylene +52.56 kJ/mol), CRC (MeSiCl3 -528.9, Me3SiCl -352.8, Me4Si -239.1), YAWS (MeHSiCl2 -402.0); none for Me2SiCl2; normal boiling points CRC_ORG; ideal-gas heat capacities: HEOS_FIT (methyl chloride, ethane, ethylene), WEBBOOK_SHOMATE (MeSiCl3, Me4Si, silicon and copper solid), LASTOVKA_SHAW (a group estimate: MeHSiCl2 and the disilane); liquid heat capacities ZABRANSKY_SPLINE_C, DADGOSTAR_SHAW; heats of vaporisation MORGAN_KOBAYASHI (a correlation), DIPPR_PERRY_8E, HEOS_FIT; vapour pressures (methyl chloride 577 kPa at 298 K); methyl chloride's flammable limits 7.6 and 19 vol% (IEC 60079-20-1 (2010) table packaged in `chemicals`); flash points (Serat DIPPR 2017) | open-source packages queried 2026-11-19; single values, facts only, with the package and method; the underlying works (ATcT, the CRC Handbook, Yaws, the NIST WebBook's Shomate fits, CoolProp's sources, Zabransky et al., Perry's 8th ed. / DIPPR 801, IEC 60079-20-1) were not read here; not open data (library ADR 0037) | materials, D-005, D-007 to D-011 |
+| SRC-7 | The `chemicals` 1.5.2 and `thermo` 0.6.1 packages (core's environment), queried directly | gas formation enthalpies: ATCT_G (methyl chloride -82.62, ethane -83.78, ethylene +52.56 kJ/mol), CRC (MeSiCl3 -528.9, Me3SiCl -352.8, Me4Si -239.1), YAWS (MeHSiCl2 -402.0); none for Me2SiCl2; normal boiling points CRC_ORG; ideal-gas heat capacities: HEOS_FIT (methyl chloride, ethane, ethylene), WEBBOOK_SHOMATE (MeSiCl3, Me4Si, silicon and copper solid), LASTOVKA_SHAW (a group estimate: MeHSiCl2 and the disilane); liquid heat capacities ZABRANSKY_SPLINE_C, DADGOSTAR_SHAW; heats of vaporisation MORGAN_KOBAYASHI (a correlation), DIPPR_PERRY_8E, HEOS_FIT; vapour pressures (methyl chloride 577 kPa at 298 K); methyl chloride's flammable limits 7.6 and 19 vol% (IEC 60079-20-1 (2010) table packaged in `chemicals`); flash points (Serat DIPPR 2017) | open-source packages queried 2026-11-19; single values, facts only, with the package and method; the underlying works (ATcT, the CRC Handbook, Yaws, the NIST WebBook's Shomate fits, CoolProp's sources, Zabransky et al., Perry's 8th ed. / DIPPR 801, IEC 60079-20-1, Serat et al. / DIPPR (2017) for the flash points) were not read here; not open data (library ADR 0037) | materials, D-005, D-007 to D-011 |
 | SRC-8 | NIST Chemistry WebBook, SRD 69, dichlorodimethylsilane (C75785), condensed-phase and phase-change data | liquid S 270.4 J/(mol K) and Cp 171.5 J/(mol K) at 298.15 K (Samorukov and Kostryukov 1971); heat of vaporisation 31.5 kJ/mol at 316 K (Jenkins and Chambers 1954); boiling points 342.5 to 345 K; no formation enthalpy listed | read | D-005 (the missing value), cross-check of SRC-7 |
-| SRC-9 | PubChem CIDs 5461123 (silicon), 6398 (Me2SiCl2), 6399 (MeSiCl3), 6397 (Me3SiCl), 6376 (MeHSiCl2), 78276 (the disilane), 6324, 6325 | identity (formula, InChIKey, CAS, ChEBI cross-references) | read (PUG REST) | materials, registry |
+| SRC-9 | PubChem CIDs 5461123 (silicon), 6398 (Me2SiCl2), 6399 (MeSiCl3), 6397 (Me3SiCl), 6376 (MeHSiCl2), 78276 (the disilane), 6324, 6325 | identity (formula, InChIKey, CAS, ChEBI cross-references); the hazard classifications are SRC-11 | read (PUG REST) | materials, registry |
+| SRC-11 | PubChem PUG View, GHS Classification of CID 6376 (dichloromethylsilane, MeHSiCl2) and CID 6327 (methyl chloride), https://pubchem.ncbi.nlm.nih.gov/compound/6376 and /6327 | the aggregated GHS hazard statements (from ECHA C&L notifications, NITE-CMC and, for methyl chloride, Regulation (EC) No 1272/2008): MeHSiCl2 H225, H260, H261, H301, H314, H318, H330, H331, H335; methyl chloride H220, H280, H332, H336, H341, H351, H373 (with H340, H360, H361, H370, H372 in some notifications) | read (PUG View JSON, 2026-11-20); facts only | D-011 |
 | SRC-10 | processes/chloromethane-1, maleic-anhydride-1, tert-butyldimethylsilyl-chloride-1 (this library) | the methyl chloride product; the balance-script pattern and the steam export at share 0; the consumer of Me2SiCl2 | library, internal | D-003, D-012 |
 
 Searched and not found openly (2026-11-19): a formation enthalpy of Me2SiCl2 or a heat of
@@ -93,18 +97,21 @@ iterations together with the specifications.
 Decision: a conversion step on the silicon (`reactor: conversion`): 95 % of the silicon fed
 converts (ASSUMED inside SRC-4's 90 to 98 %). The crude distribution is ASSUMED, in wt% of the
 silanes: Me2SiCl2 84.0, MeSiCl3 7.0, Me3SiCl 3.0, MeHSiCl2 1.5, residue 4.5. It lies inside
-SRC-4's and SRC-5's ranges, its T/D (0.083) and residue (4.5 %) inside SRC-1's continuous
-fluid-bed Example 3 (0.07 to 0.10, 4 to 5 %). Me2HSiCl (SRC-4: 0.1 to 0.5 %) and SiCl4 are not
+SRC-4's ranges; it lies inside SRC-5's too except MeHSiCl2, whose 1.5 % is below SRC-5's 3 to
+5 % (it follows SRC-4's 1 to 4 %). Its T/D (0.083) and residue (4.5 %) lie inside SRC-1's
+continuous fluid-bed Example 3 (0.07 to 0.10, 4 to 5 %). Me2HSiCl (SRC-4: 0.1 to 0.5 %) and SiCl4 are not
 modelled. scripts/balance.py turns the distribution into the shares of the reacted silicon
 (0.83679, 0.02471, 0.07100, 0.01676, 0.05074), times 0.95 the conversions of reactions.yaml.
 Lumped by-product chemistry, ASSUMED (L-3): the methyl groups a silane does not keep leave as
 ethane (with MeSiCl3 and the residue) or ethylene (with MeHSiCl2); Me3SiCl forms with an equal
 amount of MeSiCl3; the residue is lumped as the disilane Me2Si2Cl4. The real off-gas holds
 methane, hydrogen and other hydrocarbons, and carbon deposits on the contact mass.
-Catalyst: copper 0.5 wt% of the silicon fed (10.3 kg/h), the low end of SRC-1's 0.5 to 10 %,
-ASSUMED: the copper leaves only with the purged contact mass (D-006), so the bed's copper
-content is set by the purge (here about 9 wt% of the spent mass). Zinc and tin (SRC-1's
-Example 3: Zn/Cu 0.08, Sn/Cu 0.001) are not modelled (0.08 % and 0.0001 % of the silicon).
+Catalyst: SRC-1's 0.5 to 10 % copper is the contact mass's copper relative to its silicon, not
+a make-up rate; its continuous Example 3 keeps about 2 % copper in the bed. The copper leaves
+only with the purged contact mass (D-006), so the make-up sets the bed's copper: 0.001 kg of
+copper per kg of silicon fed (2.07 kg/h, ASSUMED) keeps 2.0 % copper relative to the purged
+silicon (1.96 wt% of the spent mass), Example 3's value. Zinc and tin (SRC-1's Example 3: Zn/Cu
+0.08, Sn/Cu 0.001) are not modelled (0.008 % and 0.0001 % of the silicon fed).
 Conditions: 573 K (SRC-1's examples and SRC-4) and 400 kPa(a) (SRC-4: 2 to 5 bar).
 Rejected: SRC-1's rate expression (Voorhoeve, with its adsorption constants) as a kinetic
 model: core has no fluid-bed model with a solids inventory (L-3), and SRC-1 gives no rate
@@ -113,9 +120,9 @@ constant in absolute units read here.
 ## D-005 Reactor heat: R-201's cooling coils and the formation enthalpy of Me2SiCl2 (2026-11-19)
 Decision: scripts/balance.py closes R-201's energy balance: the feed gas at 453 K and the solids
 at 298 K in, every outlet at 573 K, formation enthalpies of SRC-7 and the silicon and copper as
-solids (WEBBOOK_SHOMATE heat capacities). Q2 = 4635.7 kW, 239 kJ per mol of silicon reacted, to
+solids (WEBBOOK_SHOMATE heat capacities). Q2 = 4635.9 kW, 239 kJ per mol of silicon reacted, to
 cooling coils in the bed raising MP steam at 1500 kPa(a) (471 K; ASSUMED, a 100 K approach to
-the bed). Without the coils the outlet would reach about 1250 K (scripts/balance.py): the bed
+the bed; the export terminal's minimum approach, 20 K, ASSUMED). Without the coils the outlet would reach about 1250 K (scripts/balance.py): the bed
 must be cooled continuously (D-011; SRC-6 notes local rises of several 100 K).
 Me2SiCl2's gas formation enthalpy is ASSUMED: -440.9 kJ/mol, the mean of Me3SiCl's (-352.8) and
 MeSiCl3's (-528.9, SRC-7), because neither `chemicals` nor the NIST WebBook (SRC-8) lists one
@@ -129,36 +136,59 @@ entry.
 ## D-006 Cyclones and the spent contact mass (2026-11-19)
 Decision: cyclones return the fines to the bed (SRC-1 recycles fines of 2 to 50 um); at steady
 state the 5 % of the silicon that does not convert and all the copper leave as spent contact
-mass and filter dust (CY202, a component separator: every solid to SPENT, 114 kg/h, ASSUMED),
-cooled under nitrogen to treatment (D-012). The crude gas carries no solids in the model; a hot
-scrubber with condensed crude takes the last dust before E-301 (not modelled).
+mass and filter dust (CY202, a component separator: every solid to SPENT, 105 kg/h, ASSUMED),
+cooled under nitrogen to treatment (D-012). The cooling from the bed's 573 K to 313 K is about
+6 kW (scripts/balance.py, the solids' heat capacities of SRC-7), 0.08 % of the cooling water: a
+water-jacketed hopper, ASSUMED, left out of the flowsheet's duties and recorded here. The crude
+gas carries no solids in the model; a hot scrubber with condensed crude takes the last dust
+before E-301 (not modelled).
 
-## D-007 Crude condensation and methyl chloride recovery (2026-11-19)
-Decision: E-301 cools the crude gas from 573 to 313 K on cooling water at 380 kPa(a); the
-silanes condense, the methyl chloride and the hydrocarbons stay in the gas (ASSUMED; part of
-the methyl chloride dissolves in the crude). V-302 separates them: the liquid is pumped and the
-gas compressed by K-303 to 760 kPa(a) into C-302, which runs at 722 kPa(a), the 90 psig at
-which SRC-2's first column condenses methyl chloride with ordinary cooling water (306.1 K,
-SRC-7's vapour pressure). Hence the cooling water's narrow range, 298 to 303 K (ASSUMED).
-C302 (component separator): the methyl chloride distillate takes 99 % of it, the vent from the
-reflux drum 95 % of the ethane, 97 % of the ethylene and 0.4 % of the methyl chloride, the
-bottoms (S12) every silane and 0.6 % of the methyl chloride (to the lights cut). ASSUMED splits
-for SRC-2's statement that the bottoms are free of methyl chloride. Reflux 1.0 (ASSUMED).
-The vent, 150 kg/h with 19 wt% methyl chloride, goes to the site's thermal oxidiser with
-acid-gas scrubbing (a waste treatment, D-012).
+## D-007 Crude condensation and methyl chloride recovery (2026-11-19, revised 2026-11-20)
+Decision: E-301 cools the crude gas from 573 to 313 K on cooling water at 380 kPa(a), and V-302
+separates liquid and gas. scripts/balance.py flashes S10 at these conditions with Raoult's law
+(SRC-7's vapour pressures, the hydrocarbons non-condensable): 52.5 mol% gas; 28 % of the methyl
+chloride (40 kmol/h) dissolves in the crude, and 834 kg/h of silanes (699 kg/h Me2SiCl2) stay in
+the gas. Q3, K-303 and C-302's feed enthalpy follow this split. The liquid (10.2 t/h) is pumped
+and the gas (6.1 t/h) compressed by K-303 to 840 kPa(a) into C-302 (it stays superheated after
+compression: its silanes' partial pressure is far below their vapour pressure at 377 K).
+C-302 runs at 800 kPa(a), ASSUMED. SRC-2's first column runs at about 90 psig (722 kPa(a)),
+where methyl chloride condenses on cooling water at 306.1 K (SRC-7). But at that pressure a
+drum at 306 K holds methyl chloride at its own vapour pressure: no gas can leave it, and the
+condenser would approach the cooling-water return by 2.95 K, below the 3 K minimum. At
+800 kPa(a) the top vapour's dew point is about 309.4 K and the reflux drum runs at 306.15 K,
+3 K above the return (cooling water 298/303 K, ASSUMED). The drum's gas holds the hydrocarbons
+with 90.3 mol% methyl chloride (its vapour pressure over the 99.9 % liquid), 38 kmol/h of it.
+A refrigerated vent condenser E-304 cools that gas to 253.15 K on brine at 243.15/248.15 K
+(ASSUMED) and returns 1.9 t/h of condensed methyl chloride to the column as reflux; the vent
+leaves with methyl chloride's vapour pressure at 253.15 K, 15.0 mol% (Q12 248 kW to brine,
+scripts/balance.py). Venting straight from a cooling-water drum (722 kPa(a), the drum at 301 to 303 K) would lose
+1.4 to 2.4 t/h of methyl chloride (20 to 34 % of the fresh feed) with the hydrocarbons.
+C302 (component separator): the methyl chloride distillate takes 99 % of the methyl chloride;
+the vent 95 % of the ethane, 97 % of the ethylene (ASSUMED) and 0.51 % of the methyl chloride,
+the split that gives the vent's 15.0 mol% (scripts/balance.py prints both); the bottoms (S12)
+every silane and 0.49 % of the methyl chloride (to the lights cut, ASSUMED for SRC-2's statement
+that the bottoms are free of it). Reflux 1.0 (ASSUMED). The vent, 158 kg/h with 23 wt% methyl
+chloride, goes to the site's thermal oxidiser with acid-gas scrubbing (a waste treatment, D-012).
+Rejected: venting from the cooling-water drum (the loss above); a higher column pressure
+(1000 kPa(a) would cut the brine duty to about a quarter but takes K-303 further from SRC-2's
+pressure and its power up); SRC-2's 722 kPa(a) on colder cooling water (a site choice not made
+here).
 
 ## D-008 Distillation train (2026-11-19)
 Decision: three columns after SRC-2's columns 2 to 4, at 200 kPa(a) at their tops (ASSUMED, so
 that the condensers run on cooling water), component separators with ASSUMED splits for SRC-2's
-cuts:
+cuts. Their temperatures are bubble and dew points by Raoult's law (scripts/balance.py, SRC-7):
 - C401 (heavies): the residue (the disilane and 0.15 % of the Me2SiCl2, about 3 wt% of the
   residue) at the bottom (SRC-2's column 2 carries about 1.6 % Me2SiCl2 in its bottoms);
   reflux 0.5.
 - C402 (lights): everything boiling below MeSiCl3 overhead with 2 % of the MeSiCl3 and 0.2 % of
   the Me2SiCl2 (SRC-2: about 7 % MeSiCl3 in its column 3 overhead), 2 % of the Me3SiCl to the
-  bottoms; reflux 15. The lights cut (470 kg/h: 56 wt% Me3SiCl, 29 % MeHSiCl2, 9 % methyl
+  bottoms; reflux 15. The lights cut (462 kg/h: 57 wt% Me3SiCl, 29 % MeHSiCl2, 8 % methyl
   chloride) is a co-product; its own separation (Me3SiCl forms an azeotrope with SiCl4, not
-  modelled) is outside the boundary.
+  modelled) is outside the boundary. With its methyl chloride it condenses from a dew point of
+  344.9 K to a bubble point of 314.7 K at 200 kPa(a), 11.6 K above the cooling-water return, so
+  the condenser still runs on cooling water; it is subcooled to 308.15 K (bubble pressure
+  165 kPa) for storage.
 - C403 (MeSiCl3/Me2SiCl2): an overhead of 89 wt% MeSiCl3 (SRC-2: about 90 %) and a bottoms of
   99.51 wt% Me2SiCl2 (SRC-2: 99.5 %), by splits ASSUMED for these purities (MeSiCl3 94 % and
   Me2SiCl2 0.86 % overhead). Relative volatility 1.17, SRC-3's value for a 10/90 mixture (the
@@ -170,28 +200,38 @@ cuts:
 Rejected: stage models of the columns (no property package of core covers the chlorosilanes,
 L-4); a benzonitrile extractive column (D-001).
 
-## D-009 Utilities and heat: every energy flow (2026-11-19)
+## D-009 Utilities and heat: every energy flow (2026-11-19, revised 2026-11-20)
 Decision: scripts/balance.py gives each duty and power:
-- E-101 (Q1): 2019.1 kW of MP steam, the liquid at 302.1 K vaporised and superheated to 453 K.
-- R-201 (Q2): 4635.7 kW raised as MP steam (D-005).
-- E-301 (Q3): 1819.6 kW to cooling water.
-- C-302 (Q4, Q5): condenser 1437.0 kW at reflux 1.0; reboiler 1007.3 kW of MP steam at the
-  421.7 K bottom (Me2SiCl2's saturation at 722 kPa(a)), Q4 less Q5 closing the column's heat
-  balance from its feeds (the condensate at 313 K, K-303's gas at 374 K) to its outlets.
-- C-401 (Q6, Q7): condenser and residue cooler 772.9 kW; reboiler 541.4 kW of MP steam (the
-  residue boils at about 456 K at 200 kPa(a), too hot for LP steam).
-- C-402 (Q8, Q9): 481.4 kW of LP steam, 493.8 kW to cooling water.
-- C-403 (Q10, Q11): 3077.9 kW of LP steam, 3246.4 kW to cooling water.
+- E-101 (Q1): 2018.8 kW of MP steam, the liquid at 302.1 K vaporised and superheated to 453 K.
+- R-201 (Q2): 4635.9 kW raised as MP steam (D-005).
+- E-301 (Q3): 1964.8 kW to cooling water, the crude flashed at 313 K (D-007).
+- C-302 (Q4, Q5, Q12): condenser 1430.8 kW at the drum's 306.15 K and reflux 1.0; vent
+  condenser E-304 248.2 kW to brine; reboiler 1406.3 kW of MP steam at the 422.3 K bottom (the
+  crude's bubble point at 800 kPa(a)), Q4 less Q5 and Q12 closing the column's heat balance from
+  its feeds (V-302's liquid at 313 K, K-303's gas at 376.8 K) to its outlets.
+- C-401 (Q6, Q7): condenser and residue cooler 798.7 kW; reboiler 543.2 kW of MP steam (the
+  residue boils at 444.5 K at 200 kPa(a), too hot for LP steam).
+- C-402 (Q8, Q9): 601.5 kW of LP steam, 593.2 kW to cooling water.
+- C-403 (Q10, Q11): 3088.4 kW of LP steam, 3255.9 kW to cooling water.
+- The condensers take each overhead from its dew to its bubble point (Raoult) at its reflux.
 - P1: silicon milling, conveying and lock hoppers at 50 kWh/t of silicon (an allowance,
-  ASSUMED; no open figure read) and the feed pump, 106.2 kW; P2: K-303 (104.5 kW shaft at an
-  isentropic efficiency of 0.75) and C-302's pumps, 113.2 kW; P3: the train's pumps, 6.8 kW;
+  ASSUMED; no open figure read) and the feed pump, 106.2 kW; P2: K-303 (92.3 kW shaft at an
+  isentropic efficiency of 0.75) and C-302's pumps, 100.6 kW; P3: the train's pumps, 6.8 kW;
   pumps at 400 kPa, 0.60, a liquid density of 1000 kg/m3 (ASSUMED).
-- The temperatures S2, S3, S12, S14 and S16 (saturation and mixing, SRC-7).
-Per kg of Me2SiCl2: electricity 0.030 kWh, MP steam raised 0.618 kWh and drawn 0.476 kWh, LP
-steam 0.475 kWh, cooling water 1.036 kWh. C-403 takes 43 % of the steam drawn. The plant could
-run E-101 and the MP reboilers on its own steam; the flowsheet keeps the export and the draw
-apart so that each terminal has one level and direction, as maleic-anhydride-1 does.
-Utilities: MP steam 1500 kPa(a), LP steam 450 kPa(a), cooling water 298/303 K, all ASSUMED.
+- The temperatures S3, S12, S14 and S16 (mixing and bubble points, SRC-7); S2, S11 and S15 are
+  set points (D-007, D-008).
+- Not in the flowsheet: the spent contact mass's cooling, about 6 kW (D-006); the brine plant's
+  own electricity and heat rejection, which belong to the brine utility (D-012).
+Per kg of Me2SiCl2: electricity 0.028 kWh, MP steam raised 0.618 kWh and drawn 0.529 kWh, LP
+steam 0.492 kWh, cooling water 1.072 kWh, brine 0.033 kWh. C-403 takes 40 % of the steam drawn.
+The plant could run E-101 and the MP reboilers on its own steam; the flowsheet keeps the export
+and the draw apart so that each terminal has one level and direction, as maleic-anhydride-1
+does.
+Utilities: MP steam 1500 kPa(a), LP steam 450 kPa(a), cooling water 298/303 K, brine
+243/248 K, all ASSUMED. Minimum approaches, ASSUMED: 10 K to the steam heaters and reboilers,
+3 K to the cooling-water coolers and condensers (C-302's drum at 306.15 K sets it), 5 K to the
+brine (E-304's vent leaves 10 K above the brine supply), and 20 K for the steam raised in
+R-201's coils (D-005).
 
 ## D-010 Equipment sizes (2026-11-19)
 Decision: only what the balance gives (equipment/equipment-list.yaml): R-201's inlet gas, about
@@ -205,12 +245,28 @@ Screening notes for a later HAZOP (no study yet):
   reach about 1250 K (D-005), and SRC-6 reports local rises of several 100 K. Loss of coolant,
   loss of fluidisation (hot spots, sintering) and a methyl chloride feed failure set the trips:
   bed temperature, coolant flow and the fluidising gas flow.
-- Methyl chloride: a flammable gas (7.6 to 19 vol% in air, SRC-7) handled liquefied above its
-  577 kPa vapour pressure at 298 K and as a gas at up to 760 kPa(a); C-302's vent carries it to
-  the thermal oxidiser.
+- Methyl chloride: an extremely flammable gas (7.6 to 19 vol% in air, SRC-7; H220) handled
+  liquefied above its 577 kPa vapour pressure at 298 K and as a gas at up to 840 kPa(a) (H280,
+  gas under pressure); harmful if inhaled and narcotic (H332, H336), suspected of causing
+  cancer and genetic defects (H351, H341) and damaging organs on repeated exposure (H373)
+  (SRC-11). C-302's vent carries it through E-304 to the thermal oxidiser; the fugitive and
+  storage exclusions of D-012 are to be estimated at basic engineering with these hazards in
+  mind (occupational exposure, not only the LCI).
 - Chlorosilanes: flammable liquids (Me2SiCl2 flash point -9 C, H225, SRC-5; the others' flash
-  points 241 to 262 K, SRC-7) that hydrolyse with water to HCl (SRC-5): the plant is kept dry,
+  points 241 to 260 K, SRC-7) that hydrolyse with water to HCl (SRC-5): the plant is kept dry,
   tanks and hoppers under dry nitrogen, vents through scrubbers; a leak releases HCl.
+- MeHSiCl2 (the Si-H silane, 29 wt% of the lights cut S15, also in C-402's overhead and the
+  crude): with water it releases a flammable gas, hydrogen, as well as HCl (H260, H261); it is
+  fatal or toxic if inhaled (H330, H331), toxic if swallowed (H301) and causes severe burns
+  (H314, H318) (SRC-11). Hence: no water or steam in contact with chlorosilane service (a
+  reboiler tube leak in C-401 to C-403 or C-302 is a HAZOP cause: hydrogen and HCl in the
+  column and its vent), the scrubbers and vent headers sized and protected for hydrogen, the
+  lights cut's storage and loading as an acutely toxic, water-reactive liquid.
+- Nitrogen for blanketing (the silane tanks, the silicon hoppers, the spent-mass hopper): of the
+  order of 10 m3/h (about 12 kg/h, 1.5 g per kg of Me2SiCl2), ASSUMED from the liquid and solid
+  volumes the tanks and hoppers discharge (the silanes at SRC-5's 1.07 g/cm3, the silicon at an
+  ASSUMED bulk density of 1400 kg/m3); the spent mass's passivation is not quantified. Below
+  the cut-off, not in the balance (design basis).
 - Silicon dust: combustible dust in the milling, the hoppers and the spent contact mass (cooled
   and passivated under nitrogen, D-006); explosion protection to be set at basic engineering.
 - No reactor hazard screening of core applies: `cheme process reactor-hazards` screens batch and
@@ -219,16 +275,17 @@ Screening notes for a later HAZOP (no study yet):
 ## D-012 Preliminary gate-to-gate LCI (2026-11-19)
 Decision: `lca/lca.yaml` with `boundary: cradle-to-gate` so that the purchased inputs stay open
 gaps, as maleic-anhydride-1. Allocation: `shares` equal to the mass shares of the three silane
-products (Me2SiCl2 0.870075, the MeSiCl3 cut 0.075412, the light silanes cut 0.054513), the
+products (Me2SiCl2 0.870875, the MeSiCl3 cut 0.075477, the light silanes cut 0.053648), the
 exported MP steam at share 0 (no burden, no credit). The shares are written out instead of
 `method: mass` so that the steam can carry share 0 in the same allocation.
 Linked in lca/mappings.yaml: the methyl chloride to chloromethane-1's product (kg for kg) and the
 MP and LP steam drawn as heat delivered (steam-heat). Gaps in lca/lca.yaml, each naming the
 activity it should connect to: silicon (no library producer; carbothermic reduction of quartz),
 copper, electricity and cooling water (the Atlas build links these two through the shared
-lci/mappings.yaml), and the three waste treatments: the residue (incineration of a chlorinated
-organosilicon liquid), the spent contact mass (copper recovery or landfill) and the vent (the
-site's thermal oxidiser). No direct emission in normal operation: the vent is a waste treatment,
+lci/mappings.yaml), the brine of E-304 (refrigeration at 243 K from an electric
+vapour-compression unit, as acetyl-chloride-1 leaves its brine), and the three waste
+treatments: the residue (incineration of a chlorinated organosilicon liquid), the spent contact
+mass (copper recovery or landfill) and the vent (the site's thermal oxidiser). No direct emission in normal operation: the vent is a waste treatment,
 and fugitives, tank breathing and dust are recorded exclusions.
 The consumer tert-butyldimethylsilyl-chloride-1 (feed:SILF) names Me2SiCl2 from the direct
 process as its open gap; linking it to this entry is that entry's own change (a follow-up).
@@ -244,7 +301,8 @@ process as its open gap; linking it to this entry is that entry's own change (a 
 | methyl chloride loop | done in cheme (tear S2, Broyden) | D-003, core ADR 0060 |
 | reaction shares from the crude distribution, methyl chloride per silicon | script | D-003, D-004 |
 | reactor heat Q2 (solids, Me2SiCl2's formation enthalpy ASSUMED) | script | D-005 |
-| Q1, Q3 to Q11, P1 to P3, saturation and mixing temperatures | script | D-007 to D-009 |
+| V-302 flash, C-302's vent and E-304 (Raoult) | script | D-007 |
+| Q1, Q3 to Q12, P1 to P3, bubble, dew and mixing temperatures | script | D-007 to D-009 |
 | C-403 minimum reflux and stages (Underwood, Fenske, Gilliland) | script | D-008 |
 | R-201 diameter | by hand from the gas flow | D-010 |
 | LCI inventory | done, most backgrounds unmapped | D-012 |
@@ -273,8 +331,9 @@ process as its open gap; linking it to this entry is that entry's own change (a 
   mass purge, and no rate law with adsorption terms (SRC-1's Voorhoeve form); the conversion,
   the distribution and the lumped by-product chemistry are inputs (D-004, D-010).
 - L-4: no property package or column model for chlorosilanes: the four columns are fixed splits,
-  and their duties and C-403's stages are the script's shortcut methods; an extractive variant
-  (SRC-3) cannot be modelled (D-001, D-008).
+  and their duties and C-403's stages are the script's shortcut methods; the V-302 flash and the
+  vent's methyl chloride are the script's Raoult calculations, and the C302 vent split is set to
+  match them by hand; an extractive variant (SRC-3) cannot be modelled (D-001, D-007, D-008).
 - L-5: a stream's `phase` takes vapor, liquid or two-phase only: the silicon, copper and spent
   contact mass streams (S5, S6, S8) carry no phase.
 - L-6: no hazard screening for a continuous reactor (`reactor-hazards` screens batch and
@@ -290,7 +349,8 @@ signed off.
 A formation enthalpy of Me2SiCl2 (or a measured heat of the direct reaction); a plant's methyl
 chloride conversion per pass, superficial velocity, bed inventory and productivity; the real
 by-product gas (methane, hydrogen, carbon); the copper, zinc and tin make-up and the contact-mass
-purge rate; Me2HSiCl and SiCl4; the stage count and specification of C-403 against SRC-3's 200
+purge rate; Me2HSiCl and SiCl4; the hydrocarbons' solubility in the methyl chloride (C302's ASSUMED 5 % of the ethane in the
+distillate) and the real vent gas; the stage count and specification of C-403 against SRC-3's 200
 stages, and the benzonitrile extractive alternative; heat integration (the reactor's steam for
 E-101 and the reboilers, C-403's condenser); the treatment of the residue (cleavage to
 monosilanes) and the spent contact mass (copper recovery); the hydrolysis and HCl loop to

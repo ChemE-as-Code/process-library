@@ -9,7 +9,10 @@ README.md, process.yaml and lca/lca.yaml are checked against them:
 - the reactor converts 95 % of the silicon and half of the methyl chloride per pass, and the
   crude's T/D ratio and residue lie in US 4 500 724 A's continuous fluid-bed range;
 - the product meets SRC-2's specification, the MeSiCl3 cut is about 90 wt%;
-- the specific consumptions and the energy totals per kg are the stated ones;
+- the specific consumptions and the energy totals per kg are the stated ones, the copper make-up
+  keeps about 2 % copper in the bed;
+- C-302's reflux drum keeps the cooling water's approach, and its vent leaves the refrigerated
+  vent condenser with the stated methyl chloride;
 - the allocation shares are the mass shares of the three silane products, the steam at 0;
 - every energy stream reaches the LCI; the methyl chloride is linked to chloromethane-1;
 - the registry has the slugs process.yaml names; the process is public with CC-BY-4.0 and
@@ -128,11 +131,15 @@ def test_reactor_conversions_and_selectivity(streams, materials):
     assert float(streams["S7"]["temperature"]["value"]) == pytest.approx(573.15)
 
 
-def test_mecl_ratio_of_the_spec(sheet, streams, materials):
+def test_mecl_ratio_of_the_spec(sheet, streams, materials, reactions):
     spec = next(s for s in sheet["specs"] if s["id"] == "mecl")
     ratio = _kg(streams, materials, "S4")["MECL"] / _kg(streams, materials, "S5")["SI"]
     assert ratio == pytest.approx(spec["target"]["value"], rel=1e-4)
-    assert spec["target"]["value"] == pytest.approx(1.92347 / 0.5 * 50.485 / 28.085, abs=1e-3)
+    # methyl chloride consumed per mol of silicon fed, from the reactions' conversions (D-003)
+    mecl_per_si = sum(r["conversion"]["value"] * r["stoichiometry"]["MECL"] / r["stoichiometry"]["SI"]
+                      for r in reactions.values())
+    m = {k: materials[k]["molar_mass"] for k in ("MECL", "SI")}
+    assert spec["target"]["value"] == pytest.approx(mecl_per_si / 0.5 * m["MECL"] / m["SI"], abs=1e-3)
 
 
 def test_product_and_cuts_meet_the_stated_purities(streams, materials):
@@ -151,7 +158,10 @@ def test_consumptions_as_stated(streams, materials):
     cu = sum(_kg(streams, materials, "S6").values()) / prod
     assert si == pytest.approx(0.276, abs=0.0005)
     assert mecl == pytest.approx(0.963, abs=0.0005)
-    assert cu * 1000 == pytest.approx(1.38, abs=0.01)
+    assert cu * 1000 == pytest.approx(0.276, abs=0.001)
+    # D-004: the make-up keeps SRC-1's Example 3 copper, about 2 % of the bed's silicon
+    spent = _kg(streams, materials, "S8")
+    assert spent["CU"] / spent["SI"] == pytest.approx(0.02, abs=1e-4)
     assert si > 28.085 / 129.055  # above the stoichiometric 0.218
     for rel in ("process.yaml", "README.md"):
         text = _text(rel)
@@ -164,19 +174,32 @@ def test_energy_totals_as_stated(streams, materials):
     lps = sum(_duty(streams, k) for k in ("Q8", "Q10")) / prod
     cw = sum(_duty(streams, k) for k in ("Q3", "Q5", "Q7", "Q9", "Q11")) / prod
     power = sum(_duty(streams, k) for k in ("P1", "P2", "P3")) / prod
-    assert mps_in == pytest.approx(0.476, abs=0.001)
-    assert lps == pytest.approx(0.475, abs=0.001)
-    assert cw == pytest.approx(1.036, abs=0.001)
-    assert power == pytest.approx(0.030, abs=0.001)
+    assert mps_in == pytest.approx(0.529, abs=0.001)
+    assert lps == pytest.approx(0.492, abs=0.001)
+    assert cw == pytest.approx(1.072, abs=0.001)
+    assert power == pytest.approx(0.028, abs=0.001)
+    assert _duty(streams, "Q12") / prod == pytest.approx(0.033, abs=0.001)
     assert _duty(streams, "Q2") / prod == pytest.approx(0.618, abs=0.001)
     share = _duty(streams, "Q10") / (_duty(streams, "Q10") + _duty(streams, "Q8") + mps_in * prod)
-    assert share == pytest.approx(0.43, abs=0.005)
-    assert "43 %" in _text("README.md") and "43 %" in _text("DESIGN.md")
+    assert share == pytest.approx(0.40, abs=0.005)
+    assert "40 %" in _text("README.md") and "40 %" in _text("DESIGN.md")
 
 
-def test_c302_runs_at_90_psig(streams):
-    # SRC-2: about 90 psig, 722 kPa(a)
-    assert float(streams["S11"]["pressure"]["value"]) == pytest.approx(90 * 6.894757 + 101.325, abs=1.0)
+def test_c302_vent_and_cooling_water_approach(sheet, streams, materials):
+    # D-007: 800 kPa(a), above SRC-2's about 90 psig (722 kPa(a)), so that the reflux drum keeps
+    # the cooling water's minimum approach and can vent the hydrocarbons
+    assert float(streams["S11"]["pressure"]["value"]) == pytest.approx(800.0)
+    assert float(streams["S11"]["pressure"]["value"]) > 90 * 6.894757 + 101.325
+    cw = next(p for p in sheet["products"] if p["id"] == "CW")["utility"]
+    t_drum = float(streams["S2"]["temperature"]["value"])
+    assert t_drum - cw["return_temperature"]["value"] >= cw["min_approach"]["value"] - 1e-9
+    # the vent leaves E-304 with methyl chloride at its vapour pressure at 253.15 K, 15.0 mol%
+    assert float(streams["S11"]["temperature"]["value"]) == pytest.approx(253.15)
+    vent = _kmol(streams, materials, "S11")
+    assert vent["MECL"] / sum(vent.values()) == pytest.approx(0.150, abs=0.001)
+    assert "15.0 mol%" in _text("DESIGN.md")
+    brine = next(p for p in sheet["products"] if p["id"] == "BRINE")["utility"]
+    assert 253.15 - brine["supply_temperature"]["value"] >= brine["min_approach"]["value"]
 
 
 def test_allocation_is_by_mass(streams, materials):

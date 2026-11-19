@@ -25,23 +25,23 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Direct process: ground metallurgical silicon (2.07 t/h) with 0.5 wt% copper in a fluidised bed at 573 K and 400 kPa(a) fluidised by methyl chloride (US 4 500 724 A), 95 % of the silicon and half of the methyl chloride converted per pass, the bed cooled by coils raising MP steam; the methyl chloride recovered in a column at about 90 psig and recycled, the crude distilled into a heavies residue, a light silanes cut, a MeSiCl3 cut and Me2SiCl2 (US 2 563 557), the close-boiling split at a relative volatility of 1.17 (EP 1 957 504 B1); 60 kt/a Me2SiCl2 in 8000 h"
+technology: "Direct process: ground metallurgical silicon (2.07 t/h) with about 2 % copper in a fluidised bed at 573 K and 400 kPa(a) fluidised by methyl chloride (US 4 500 724 A), 95 % of the silicon and half of the methyl chloride converted per pass, the bed cooled by coils raising MP steam; the methyl chloride recovered in a column at 800 kPa(a) with a brine-cooled vent condenser and recycled, the crude distilled into a heavies residue, a light silanes cut, a MeSiCl3 cut and Me2SiCl2 (US 2 563 557), the close-boiling split at a relative volatility of 1.17 (EP 1 957 504 B1); 60 kt/a Me2SiCl2 in 8000 h"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 allocation:
   method: shares
   coproducts: [DMDCSP, MTCSP, LIGHTSP, MPS]
-  shares: {DMDCSP: 0.870075, MTCSP: 0.075412, LIGHTSP: 0.054513, MPS: 0.0}
+  shares: {DMDCSP: 0.870875, MTCSP: 0.075477, LIGHTSP: 0.053648, MPS: 0.0}
   source: >-
-    D-012: the three silane products share the burdens by mass (S18 7500.05, S17 650.05 and S15
-    469.90 kg/h of 8620.00), all made by the same reaction from the same silicon and methyl
+    D-012: the three silane products share the burdens by mass (S18 7499.94, S17 650.01 and S15
+    462.02 kg/h of 8611.96), all made by the same reaction from the same silicon and methyl
     chloride; the exported MP steam leaves without a burden and without a credit, as
     maleic-anhydride-1 and nitric-acid-1 do.
   deviation: >-
     The shares are the mass allocation of the library hierarchy (docs/system-model.md) written out
     so that the exported steam can be given share 0 in the same step; the steam would take a share
     by energy or a credit by substitution once the receiving site is known. The plant exports
-    0.62 kWh of MP steam per kg and draws 0.48 kWh of MP steam back.
+    0.62 kWh of MP steam per kg and draws 0.53 kWh of MP steam back.
 flows:
   - key: feed:MECLF
     missing: "linked to processes/chloromethane-1 (lca/mappings.yaml), kg for kg: methyl chloride from methanol and hydrogen chloride, the product to storage"
@@ -51,33 +51,36 @@ flows:
     source: "flowsheet stream S5, 0.276 kg/kg (D-004)"
   - key: feed:CUF
     missing: "not mapped yet (D-012): no library process makes copper. Connect to: copper powder (or copper(I) chloride as copper) for the contact mass, per kg; the zinc and tin promoters (about 8 % and 0.1 % of the copper, US 4 500 724 A's Example 3) are not in the balance"
-    source: "flowsheet stream S6, 1.38 g/kg (D-004)"
+    source: "flowsheet stream S6, 0.28 g/kg: 0.001 kg per kg of silicon fed, about 2 % copper in the bed (D-004)"
   # utilities
   - key: feed:POWER
     missing: "not mapped yet (D-012): connect to grid electricity, medium voltage, of the (undecided) site country"
-    source: "flowsheet energy streams P1 (silicon handling and the feed pump), P2 (K-303 and C-302's pumps) and P3 (distillation pumps), 0.030 kWh/kg (D-009)"
+    source: "flowsheet energy streams P1 (silicon handling and the feed pump), P2 (K-303 and C-302's pumps) and P3 (distillation pumps), 0.028 kWh/kg (D-009)"
   - key: feed:MPSI
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: MP steam 1500 kPa(a) from the site steam system, per kWh of heat; in practice part of the steam R-201 raises"
-    source: "flowsheet energy streams Q1 (E-101), Q4 (C-302) and Q6 (C-401), 0.476 kWh/kg (D-009)"
+    source: "flowsheet energy streams Q1 (E-101), Q4 (C-302) and Q6 (C-401), 0.529 kWh/kg (D-009)"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: LP steam 450 kPa(a) from the site steam system, per kWh of heat"
-    source: "flowsheet energy streams Q8 (C-402) and Q10 (C-403), 0.475 kWh/kg (D-009)"
+    source: "flowsheet energy streams Q8 (C-402) and Q10 (C-403), 0.492 kWh/kg (D-009)"
   - key: product:CW
     missing: "not mapped yet (D-012): connect to heat rejected to a recirculating cooling-water system (processes/utility-cooling-tower), per kWh"
-    source: "flowsheet energy streams Q3, Q5, Q7, Q9 and Q11, 1.036 kWh/kg (D-009)"
+    source: "flowsheet energy streams Q3, Q5, Q7, Q9 and Q11, 1.072 kWh/kg (D-009)"
+  - key: product:BRINE
+    missing: "not mapped yet (D-012); connect to: refrigeration at 243 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
+    source: "flowsheet energy stream Q12, C-302's vent condenser E-304, 0.033 kWh/kg (D-007, D-009)"
   # wastes
   - key: product:RESID
     treatment: {kind: waste, route: "incineration of the high-boiling methylchlorodisilane residue with acid-gas scrubbing, ASSUMED; plants may cleave the disilanes back to monosilanes instead (D-012)"}
     missing: "not mapped yet (D-012); connect to: hazardous-waste incineration of a chlorinated organosilicon liquid, per kg"
     source: "flowsheet stream S13, 55.5 g/kg (D-008)"
   - key: product:SPENT
-    treatment: {kind: waste, route: "the spent contact mass (silicon with about 9 wt% copper and the fines), passivated under nitrogen, to copper recovery or hazardous-waste landfill, ASSUMED (D-006)"}
+    treatment: {kind: waste, route: "the spent contact mass (silicon with about 2 wt% copper and the fines), passivated under nitrogen, to copper recovery or hazardous-waste landfill, ASSUMED (D-006)"}
     missing: "not mapped yet (D-012); connect to: treatment of a spent copper-silicon contact mass (copper recovery or landfill after passivation), per kg"
-    source: "flowsheet stream S8, 15.2 g/kg (D-006)"
+    source: "flowsheet stream S8, 14.1 g/kg (D-006)"
   - key: product:VENT
-    treatment: {kind: waste, route: "the site's thermal oxidiser with an acid-gas scrubber: ethane, ethylene and the methyl chloride vented from C-302, burnt to CO2, water and HCl (scrubbed), ASSUMED (D-007)"}
+    treatment: {kind: waste, route: "the site's thermal oxidiser with an acid-gas scrubber: ethane, ethylene and the methyl chloride vented from C-302 through its vent condenser E-304, burnt to CO2, water and HCl (scrubbed), ASSUMED (D-007)"}
     missing: "not mapped yet (D-012); connect to: thermal oxidation of a hydrocarbon vent gas with methyl chloride and acid-gas scrubbing, per kg of gas"
-    source: "flowsheet stream S11, 20.1 g/kg (D-007)"
+    source: "flowsheet stream S11, 21.1 g/kg, 23 wt% methyl chloride (D-007)"
 operation:
   hours_per_year: 8000
   life_years: 20

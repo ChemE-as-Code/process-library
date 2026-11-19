@@ -16,9 +16,12 @@ and recovered, is vaporised and fluidises a bed of ground metallurgical silicon 
 catalyst at 573 K and 400 kPa(a), the conditions of US 4 500 724 A. 95 % of the silicon and half
 of the methyl chloride convert per pass (`reactor: conversion` on the silicon). The crude holds
 84 wt% Me2SiCl2, 7 % MeSiCl3, 3 % Me3SiCl, 1.5 % MeHSiCl2 and 4.5 % of a high-boiling residue,
-a distribution ASSUMED inside the open ranges. Cooling coils in the bed raise MP steam, and
-cyclones return the fines. The crude gas is cooled; the methyl chloride is recovered in a column
-at about 90 psig, which condenses it on cooling water (US 2 563 557), and recycled. Three
+a distribution ASSUMED inside the ranges of Wikipedia's Direct process article (its MeHSiCl2 lies
+below the 3 to 5 % of the Dimethyldichlorosilane article). Cooling coils in the bed raise MP
+steam, and cyclones return the fines. The crude gas is cooled and flashed; the methyl chloride
+is recovered in a column at 800 kPa(a), a little above the 90 psig at which US 2 563 557
+condenses it on cooling water, and recycled. A brine-cooled vent condenser keeps the methyl
+chloride the column vents with the hydrocarbons to 15 mol%. Three
 columns then split the crude into a residue, a light silanes cut, a MeSiCl3 cut and the
 product. The last split separates two silanes that boil 4 K apart (relative volatility 1.17,
 EP 1 957 504 B1).
@@ -33,24 +36,26 @@ the core limits hit.
 
 Headline numbers and their caveats:
 - 0.276 kg of silicon (0.218 by stoichiometry) and 0.963 kg of methyl chloride per kg of
-  Me2SiCl2, with 0.087 kg of a MeSiCl3 cut and 0.063 kg of a light silanes cut as co-products.
-  The conversions and the crude distribution are ASSUMED inside the ranges of the open sources
-  (D-003, D-004).
+  Me2SiCl2, with 0.087 kg of a MeSiCl3 cut and 0.062 kg of a light silanes cut as co-products.
+  The conversions and the crude distribution are ASSUMED inside the ranges of the open sources,
+  except MeHSiCl2, below one of them (D-003, D-004).
 - The bed releases about 239 kJ per mol of silicon (4.6 MW), taken by cooling coils that raise
   0.62 kWh of MP steam per kg. It rests on an ASSUMED formation enthalpy of Me2SiCl2; no open
   value was found (D-005).
 - The MeSiCl3/Me2SiCl2 split needs 93 theoretical stages at a reflux of 94 for 99.5 wt%
-  Me2SiCl2. EP 1 957 504 B1 states 200 or more for a commercial split. Its reboilers take 43 %
-  of the 0.95 kWh of steam drawn per kg (D-008, D-009).
-- 0.030 kWh of electricity and 1.04 kWh of heat to cooling water per kg (D-009).
-- Wastes per kg: 55 g of high-boiling residue, 15 g of spent contact mass (silicon with about
-  9 wt% copper) and 20 g of vent gas to the site's thermal oxidiser (D-006 to D-008).
+  Me2SiCl2. EP 1 957 504 B1 states 200 or more for a commercial split. Its reboilers take 40 %
+  of the 1.02 kWh of steam drawn per kg (D-008, D-009).
+- 0.028 kWh of electricity, 1.07 kWh of heat to cooling water and 0.033 kWh to brine per kg
+  (D-009).
+- Wastes per kg: 55 g of high-boiling residue, 14 g of spent contact mass (silicon with about
+  2 wt% copper) and 21 g of vent gas to the site's thermal oxidiser (D-006 to D-008).
 - The preliminary LCI shares the burdens by mass between the three silane products and gives
   none to the exported steam. Methyl chloride is linked to chloromethane-1; silicon and copper
   are gaps (D-012).
 - Hazards: the strongly exothermic bed (about 1250 K without cooling), methyl chloride (a
-  flammable gas under pressure), chlorosilanes (flammable, and they release HCl with water) and
-  silicon dust (D-011).
+  flammable gas under pressure, suspected of causing cancer), chlorosilanes (flammable, and they
+  release HCl with water), MeHSiCl2 in the lights cut (it also releases hydrogen with water and
+  is fatal if inhaled) and silicon dust (D-011).
 
 | path | what |
 |---|---|

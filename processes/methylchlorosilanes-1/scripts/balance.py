@@ -11,12 +11,17 @@ chloride loop at the tear S2 (ADR 0060). This script gives, from the streams pro
 - the reactor R-201's heat (Q2): core's conversion step counts every inlet as an ideal gas and
   has no formation enthalpy of Me2SiCl2, so the energy balance is done here, the silicon and
   copper as solids (D-005, L-1, L-2);
-- the vaporiser Q1, the crude gas cooler-condenser Q3, the recycle-gas compressor K-303 and the
-  four columns' reboilers and condensers (Q4 to Q11), each column's heat balance closed from its
-  feed to its outlets at their stated temperatures; the superfractionator's minimum reflux
-  (Underwood) and stages (Fenske, Gilliland after Eduljee) at the relative volatility of SRC-3;
-- the saturation temperatures the flowsheet states (S2, S12, S14, S16) and the mixed S3;
-- the powers P1 to P3.
+- the vaporiser Q1; the crude gas cooler-condenser Q3 and its separator V-302 by an ideal
+  (Raoult) flash at 313.15 K and 380 kPa(a) (part of the methyl chloride dissolves in the
+  crude, part of the silanes stays in the gas); the recycle-gas compressor K-303 on that gas;
+- C-302's refrigerated vent condenser E-304 (Q12) and the methyl chloride left in the vent at
+  its outlet temperature, checked against the column's vent split (D-007);
+- the four columns' reboilers and condensers (Q4 to Q11), each column's heat balance closed
+  from its feed to its outlets at their stated temperatures, the condensers from the overhead's
+  dew point to its bubble point (Raoult); the superfractionator's minimum reflux (Underwood)
+  and stages (Fenske, Gilliland after Eduljee) at the relative volatility of SRC-3;
+- the bubble points the flowsheet states (S12, S14, S16) and the mixed S3;
+- the powers P1 to P3; as cross-checks only, the spent contact mass's cooling (D-006).
 
 Data (DESIGN.md SRC-7, library ADR 0037): formation enthalpies of the gases from `chemicals`
 1.5.2 (ATCT_G for methyl chloride, ethane and ethylene; CRC for MeSiCl3 and Me3SiCl; YAWS for
@@ -50,15 +55,24 @@ ROOT = Path(__file__).resolve().parent.parent
 R_GAS = 8.314462618  # J/(mol K)
 T_REF = 298.15
 
-# crude silane distribution, wt% of the silanes (D-004): inside the ranges of SRC-4 and SRC-5,
-# T/D and residue as SRC-1's Example 3 (US 4 500 724 A)
+# crude silane distribution, wt% of the silanes (D-004): inside the ranges of SRC-4; inside
+# SRC-5's too except MeHSiCl2 (1.5 against SRC-5's 3 to 5 %); T/D and residue as SRC-1's
+# Example 3 (US 4 500 724 A)
 CRUDE_WT = {"DMDCS": 84.0, "MTCS": 7.0, "TMCS": 3.0, "MDCS": 1.5, "DISIL": 4.5}
 X_SI = 0.95  # silicon conversion (SRC-4: 90 to 98 %)
 X_MECL = 0.50  # methyl chloride conversion per pass (SRC-4: 30 to 90 %)
 
 T_BED = 573.15  # K (SRC-1: 250 to 350 C, the examples about 300 C)
-P_COND, P_C302 = 380.0, 722.0  # kPa(a): crude condensation; C-302 at about 90 psig (SRC-2)
-P_K303 = 760.0  # kPa(a), compressor discharge into C-302
+P_COND = 380.0  # kPa(a), crude condensation in E-301 / V-302
+# C-302: 800 kPa(a), above SRC-2's 90 psig (722 kPa(a), where methyl chloride's own vapour
+# pressure is reached at 306.1 K and no gas can leave a cooling-water condenser), so that the
+# reflux drum at T_DRUM keeps a 3 K approach to the cooling-water return and can vent the
+# hydrocarbons (D-007)
+P_C302 = 800.0
+P_K303 = 840.0  # kPa(a), compressor discharge into C-302
+T_DRUM = 306.15  # K, C-302's reflux drum: the cooling-water return 303.15 K + 3 K
+T_VENT = 253.15  # K, the vent leaving E-304 on brine at 243.15/248.15 K (D-007)
+T_LIGHTS = 308.15  # K, the lights cut subcooled below its bubble point at 200 kPa(a) (D-008)
 ETA_K303, ETA_MOTOR, ETA_PUMP = 0.75, 0.95, 0.60
 P_DIST = 200.0  # kPa(a), C-401 to C-403 tops
 T_STORE = 313.15  # K, products and residue cooled to storage
@@ -120,6 +134,67 @@ def h_liq(c: str, t: float) -> float:
 def tsat(c: str, p_kpa: float) -> float:
     hi = min(700.0, _CHEM[c].Tc - 0.5)
     return brentq(lambda t: _CHEM[c].VaporPressure(t) - p_kpa * 1e3, 150.0, hi)
+
+
+def psat_kpa(c: str, t: float) -> float:
+    """kPa; above Tc - 1 K (methyl chloride dissolved in a hot crude) ln P extrapolated linearly
+    in 1/T from Tc - 21 K and Tc - 1 K (ASSUMED; thermo's correlation turns over above Tc)."""
+    tc = _CHEM[c].Tc
+    if t < tc - 1.0:
+        return _CHEM[c].VaporPressure(t) / 1000.0
+    t1, t2 = tc - 21.0, tc - 1.0
+    p1, p2 = (math.log(_CHEM[c].VaporPressure(x)) for x in (t1, t2))
+    return math.exp(p2 + (p2 - p1) * (1 / t2 - 1 / t) / (1 / t1 - 1 / t2)) / 1000.0
+
+
+def _condensables(flows: dict[str, float]) -> dict[str, float]:
+    """mol fractions of the condensable components (the hydrocarbons and solids left out)."""
+    n = {c: v for c, v in mol_s(flows).items() if c not in GASES and c not in SOLIDS}
+    tot = sum(n.values())
+    return {c: v / tot for c, v in n.items()}
+
+
+def bubble_t(flows: dict[str, float], p_kpa: float) -> float:
+    """K, Raoult's law: sum x_i Psat_i(T) = P."""
+    x = _condensables(flows)
+    return brentq(lambda t: sum(v * psat_kpa(c, t) for c, v in x.items()) - p_kpa, 200.0, 500.0)
+
+
+def dew_t(flows: dict[str, float], p_kpa: float) -> float:
+    """K, Raoult's law: sum y_i P / Psat_i(T) = 1."""
+    y = _condensables(flows)
+    return brentq(lambda t: sum(v * p_kpa / psat_kpa(c, t) for c, v in y.items()) - 1.0, 200.0, 500.0)
+
+
+def flash(flows: dict[str, float], t: float, p_kpa: float) -> tuple[dict[str, float], dict[str, float]]:
+    """Ideal (Raoult) isothermal flash, kg/h of liquid and vapour; the hydrocarbons stay gas
+    (non-condensable, their solubility left out)."""
+    n = mol_s(flows)
+    tot = sum(n.values())
+    z = {c: v / tot for c, v in n.items()}
+    k = {c: (math.inf if c in GASES else psat_kpa(c, t) / p_kpa) for c in z}
+
+    def rr(v: float) -> float:
+        return sum(z[c] * ((1.0 / v) if math.isinf(k[c]) else (k[c] - 1) / (1 + v * (k[c] - 1))) for c in z)
+
+    vf = brentq(rr, 1e-9, 1.0 - 1e-9)
+    liq, vap = {}, {}
+    for c, v in flows.items():
+        if math.isinf(k[c]):
+            vap[c] = v
+            continue
+        xl = z[c] / (1 + vf * (k[c] - 1))
+        f_liq = (1 - vf) * xl / z[c]
+        liq[c], vap[c] = v * f_liq, v * (1 - f_liq)
+    return liq, vap
+
+
+def condense_kw(flows: dict[str, float], p_kpa: float, reflux: float) -> tuple[float, float, float]:
+    """kW to condense (reflux + 1) times the overhead from its dew point (vapour) to its bubble
+    point (liquid), Raoult; returns the duty, the dew and the bubble point."""
+    td, tb = dew_t(flows, p_kpa), bubble_t(flows, p_kpa)
+    q = (reflux + 1.0) * (enthalpy_kw(flows, td) - enthalpy_kw(flows, tb, liquid(flows)))
+    return q, td, tb
 
 
 def component_flows(sheet: dict, sid: str) -> dict[str, float]:
@@ -194,22 +269,23 @@ def main() -> None:
     print(f"methyl chloride consumed {mecl_per_si:.5f} mol per mol Si fed; reactor feed ratio {ratio:.4f} kg/kg")
 
     s = {sid: component_flows(sheet, sid) for sid in
-         ("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S9", "S10", "S11", "S12", "S13", "S14",
+         ("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13", "S14",
           "S15", "S16", "S17", "S18")}
 
-    # saturation temperatures (D-007, D-008)
-    t2 = tsat("MECL", P_C302)
-    t12 = tsat("DMDCS", P_C302)
-    t14 = tsat("DMDCS", P_DIST)
-    t_top402 = tsat("TMCS", P_DIST)
-    t_top403 = tsat("MTCS", P_DIST)
-    t_bot401 = tsat("DISIL", P_DIST)
-    out["S2"] = {"temperature": round(t2, 1)}
-    out["S12"] = {"temperature": round(t12, 1)}
-    out["S14"] = {"temperature": round(t14, 1)}
-    out["S16"] = {"temperature": round(t14, 1)}
-    print(f"T sat: MeCl at {P_C302} kPa {t2:.1f} K; Me2SiCl2 at {P_C302} kPa {t12:.1f} K, at {P_DIST} kPa "
-          f"{t14:.1f} K; Me3SiCl {t_top402:.1f} K, MeSiCl3 {t_top403:.1f} K, residue {t_bot401:.1f} K at {P_DIST} kPa")
+    # temperatures (D-007, D-008): C-302's drum at T_DRUM (ASSUMED), the rest bubble points
+    t2 = T_DRUM
+    t12 = bubble_t(s["S12"], P_C302)
+    t14 = bubble_t(s["S14"], P_DIST)
+    t16 = bubble_t(s["S16"], P_DIST)
+    t18 = bubble_t(s["S18"], P_DIST)
+    t_bot401 = bubble_t(s["S13"], P_DIST)
+    for k, v in (("S12", t12), ("S14", t14), ("S16", t16)):
+        out[k] = {"temperature": round(v, 1)}
+    for k, v in (("S2", t2), ("S11", T_VENT), ("S15", T_LIGHTS)):  # set points
+        out[k] = {"temperature": v}
+    print(f"T: MeCl saturation at {P_C302} kPa {tsat('MECL', P_C302):.1f} K (drum at {t2} K); bubble points "
+          f"S12 {t12:.1f} K at {P_C302} kPa, at {P_DIST} kPa S14 {t14:.1f}, S16 {t16:.1f}, S18 {t18:.1f}, "
+          f"residue {t_bot401:.1f} K")
 
     # S3: S1 (298.15 K) and S2 mixed as liquids
     h_mix = enthalpy_kw(s["S1"], 298.15, liquid(s["S1"])) + enthalpy_kw(s["S2"], t2, liquid(s["S2"]))
@@ -231,14 +307,23 @@ def main() -> None:
     t_ad = brentq(lambda t: enthalpy_kw(s["S7"], t) - h_in, T_BED, 3000.0)
     print(f"R-201 without cooling: outlet {t_ad:.0f} K")
 
-    # E-301 (Q3): the crude gas to 313.15 K, the silanes condensed, MeCl and hydrocarbons gas
-    t10 = 313.15
-    ph10 = {c: ("g" if c in GASES or c == "MECL" else "l") for c in s["S10"]}
-    q3 = enthalpy_kw(s["S9"], T_BED) - enthalpy_kw(s["S10"], t10, ph10)
-    out["Q3"] = {"duty": round(q3, 1)}
+    # cross-check only (D-006): the spent contact mass cooled from the bed to 313.15 K
+    q_spent = enthalpy_kw(s["S8"], T_BED) - enthalpy_kw(s["S8"], 313.15)
+    print(f"spent contact mass S8 cooled from {T_BED} to 313.15 K: {q_spent:.1f} kW (not in the flowsheet)")
 
-    # K-303: the gas of S10 (MeCl, hydrocarbons) from P_COND to P_K303
-    gas = {c: v for c, v in s["S10"].items() if ph10[c] == "g"}
+    # E-301 (Q3) and V-302: the crude gas to 313.15 K, an ideal flash at P_COND
+    t10 = 313.15
+    liq10, gas = flash(s["S10"], t10, P_COND)
+    q3 = enthalpy_kw(s["S9"], T_BED) - enthalpy_kw(liq10, t10, liquid(liq10)) - enthalpy_kw(gas, t10)
+    out["Q3"] = {"duty": round(q3, 1)}
+    n10, nl, ng = mol_s(s["S10"]), mol_s(liq10), mol_s(gas)
+    sil = [c for c in n10 if c not in GASES and c != "MECL"]
+    print(f"V-302 flash at {t10} K, {P_COND} kPa: vapour {sum(ng.values()) / sum(n10.values()):.3f} mol/mol; "
+          f"MeCl {3.6 * nl['MECL']:.1f} kmol/h liquid ({nl['MECL'] / n10['MECL']:.3f}), {3.6 * ng['MECL']:.1f} vapour; "
+          f"silanes in the vapour {sum(gas[c] for c in sil):.0f} kg/h ({sum(gas.get(c, 0.0) for c in ('DMDCS',)):.0f} Me2SiCl2); "
+          f"liquid {sum(liq10.values()):.0f} kg/h, gas {sum(gas.values()):.0f} kg/h")
+
+    # K-303: the gas of V-302 from P_COND to P_K303
     n_gas = sum(mol_s(gas).values())
     cp = sum(n * cp_gas(c, t10) for c, n in mol_s(gas).items()) / n_gas
     t_is = t10 * (P_K303 / P_COND) ** (R_GAS / cp)
@@ -246,34 +331,54 @@ def main() -> None:
     t_k303 = t10 + (t_is - t10) / ETA_K303
     print(f"K-303: {sum(gas.values()):.0f} kg/h, {w_k303:.1f} kW shaft, outlet {t_k303:.1f} K")
 
-    # C-302 (Q4, Q5): condenser at t2, the distillate (S2) and the vent's MeCl condensed at reflux R
-    d_mecl = mol_s(s["S2"]).get("MECL", 0.0) + mol_s(s["S11"]).get("MECL", 0.0)
+    # C-302's vent (D-007): the reflux drum's gas at T_DRUM, cooled to T_VENT in E-304
+    n2, n11 = mol_s(s["S2"]), mol_s(s["S11"])
+    x2 = n2["MECL"] / sum(n2.values())
+    hc = sum(n11.get(c, 0.0) for c in GASES)
+    y_drum = x2 * psat_kpa("MECL", t2) / P_C302
+    y_vent = psat_kpa("MECL", T_VENT) / P_C302  # condensate of E-304: methyl chloride
+    mecl_drum = hc * y_drum / (1 - y_drum)
+    mecl_vent = hc * y_vent / (1 - y_vent)
+    print(f"C-302 drum gas: y_MeCl {y_drum:.3f}, {3.6 * mecl_drum:.1f} kmol/h MeCl with {3.6 * hc:.2f} kmol/h "
+          f"hydrocarbons; vent at {T_VENT} K: y_MeCl {y_vent:.4f}, {3.6 * mecl_vent:.3f} kmol/h MeCl needed, "
+          f"S11 carries {3.6 * n11['MECL']:.3f} (vent split {n11['MECL'] / n10['MECL']:.5f} of S10's MeCl; "
+          f"for y_vent {mecl_vent / n10['MECL']:.5f})")
+    drum_gas = {c: v for c, v in s["S11"].items() if c in GASES}
+    drum_gas["MECL"] = mecl_drum * 3.6 * MATERIALS["MECL"]["molar_mass"]
+    cond_vc = {"MECL": drum_gas["MECL"] - s["S11"]["MECL"]}
+    q12 = (enthalpy_kw(drum_gas, t2) - enthalpy_kw(s["S11"], T_VENT)
+           - enthalpy_kw(cond_vc, T_VENT, liquid(cond_vc)))
+    out["Q12"] = {"duty": round(q12, 1)}
+    print(f"E-304: {cond_vc['MECL']:.0f} kg/h of methyl chloride condensed, {q12:.1f} kW to brine")
+
+    # C-302 (Q4, Q5): the distillate condensed at the drum at reflux R; E-304's condensate
+    # returns as reflux, so the column's balance takes Q12 with the vent at T_VENT
+    d_mecl = n2["MECL"]
     q5 = (REFLUX["C302"] + 1.0) * d_mecl * hvap("MECL", t2) / 1000.0
-    liq10 = {c: v for c, v in s["S10"].items() if ph10[c] == "l"}
     h_feed = enthalpy_kw(liq10, t10, liquid(liq10)) + enthalpy_kw(gas, t_k303)
-    h_outs = (enthalpy_kw(s["S11"], t2) + enthalpy_kw(s["S2"], t2, {"MECL": "l"})
+    h_outs = (enthalpy_kw(s["S11"], T_VENT) + enthalpy_kw(s["S2"], t2, {"MECL": "l"})
               + enthalpy_kw(s["S12"], t12, liquid(s["S12"])))
-    q4 = q5 + h_outs - h_feed
-    print(f"C-302: condenser {q5:.1f} kW, reboiler {q4:.1f} kW")
+    q4 = q5 + q12 + h_outs - h_feed
+    print(f"C-302: condenser {q5:.1f} kW, reboiler {q4:.1f} kW; top dew point "
+          f"{tsat('MECL', P_C302 * (1 - hc / ((REFLUX['C302'] + 1.0) * d_mecl + mecl_drum + hc))):.1f} K")
     out["Q4"], out["Q5"] = {"duty": round(q4, 1)}, {"duty": round(q5, 1)}
 
-    # C-401 (Q6, Q7): overhead S14 at t14 condensed at reflux 0.5; residue cooled to storage
-    d14 = sum(mol_s(s["S14"]).values())
-    hv14 = sum(n * hvap(c, t14) for c, n in mol_s(s["S14"]).items() if c not in GASES) / d14
-    qc401 = (REFLUX["C401"] + 1.0) * d14 * hv14 / 1000.0
+    # C-401 (Q6, Q7): overhead S14 condensed at reflux 0.5; residue cooled to storage
+    qc401, td14, _ = condense_kw(s["S14"], P_DIST, REFLUX["C401"])
     q_res_cool = enthalpy_kw(s["S13"], t_bot401, liquid(s["S13"])) - enthalpy_kw(s["S13"], T_STORE, liquid(s["S13"]))
     q7 = qc401 + q_res_cool
     q6 = column("C-401", s["S12"], t12, liquid(s["S12"]),
                 [(s["S13"], T_STORE, liquid(s["S13"])), (s["S14"], t14, liquid(s["S14"]))], q7)
     out["Q6"], out["Q7"] = {"duty": round(q6, 1)}, {"duty": round(q7, 1)}
 
-    # C-402 (Q8, Q9): lights at reflux 15, condensed at the top and cooled to storage
-    d15 = sum(mol_s(s["S15"]).values())
-    hv15 = sum(n * hvap(c, t_top402) for c, n in mol_s(s["S15"]).items() if c not in GASES) / d15
-    q9 = (REFLUX["C402"] + 1.0) * d15 * hv15 / 1000.0 + (
-        enthalpy_kw(s["S15"], t_top402, liquid(s["S15"])) - enthalpy_kw(s["S15"], T_STORE, liquid(s["S15"])))
+    # C-402 (Q8, Q9): lights at reflux 15, condensed from dew to bubble point, subcooled
+    qc402, td15, tb15 = condense_kw(s["S15"], P_DIST, REFLUX["C402"])
+    q9 = qc402 + enthalpy_kw(s["S15"], tb15, liquid(s["S15"])) - enthalpy_kw(s["S15"], T_LIGHTS, liquid(s["S15"]))
+    print(f"C-401 top: dew {td14:.1f} K, bubble {t14:.1f} K; C-402 top (S15): dew {td15:.1f} K, "
+          f"bubble {tb15:.1f} K at {P_DIST} kPa, bubble pressure at {T_LIGHTS} K "
+          f"{sum(v * psat_kpa(c, T_LIGHTS) for c, v in _condensables(s['S15']).items()):.0f} kPa")
     q8 = column("C-402", s["S14"], t14, liquid(s["S14"]),
-                [(s["S15"], T_STORE, liquid(s["S15"])), (s["S16"], t14, liquid(s["S16"]))], q9)
+                [(s["S15"], T_LIGHTS, liquid(s["S15"])), (s["S16"], t16, liquid(s["S16"]))], q9)
     out["Q8"], out["Q9"] = {"duty": round(q8, 1)}, {"duty": round(q9, 1)}
 
     # C-403 (Q10, Q11): Underwood minimum reflux and Fenske-Gilliland stages, MeSiCl3 light key
@@ -290,13 +395,14 @@ def main() -> None:
     yg = 0.75 * (1 - xg ** 0.5668)
     n_stages = (n_min + yg) / (1 - yg)
     d17 = sum(mol_s(s["S17"]).values())
-    q11c = (r403 + 1.0) * d17 * hvap("MTCS", t_top403) / 1000.0
-    q_cool = (enthalpy_kw(s["S17"], t_top403, liquid(s["S17"])) - enthalpy_kw(s["S17"], T_STORE, liquid(s["S17"]))
-              + enthalpy_kw(s["S18"], t14, liquid(s["S18"])) - enthalpy_kw(s["S18"], T_STORE, liquid(s["S18"])))
+    q11c, td17, tb17 = condense_kw(s["S17"], P_DIST, r403)
+    q_cool = (enthalpy_kw(s["S17"], tb17, liquid(s["S17"])) - enthalpy_kw(s["S17"], T_STORE, liquid(s["S17"]))
+              + enthalpy_kw(s["S18"], t18, liquid(s["S18"])) - enthalpy_kw(s["S18"], T_STORE, liquid(s["S18"])))
     q11 = q11c + q_cool
     print(f"C-403: x_F {xf:.4f}, x_D {xd:.4f}, x_B {xb:.5f} (mol MeSiCl3); R_min {r_min:.1f}, R {r403:.1f}; "
-          f"N_min {n_min:.1f}, N {n_stages:.0f} theoretical stages; boil-up {(r403 + 1) * d17 * 3.6:.0f} kmol/h")
-    q10 = column("C-403", s["S16"], t14, liquid(s["S16"]),
+          f"N_min {n_min:.1f}, N {n_stages:.0f} theoretical stages; boil-up {(r403 + 1) * d17 * 3.6:.0f} kmol/h; "
+          f"top dew {td17:.1f} K, bubble {tb17:.1f} K")
+    q10 = column("C-403", s["S16"], t16, liquid(s["S16"]),
                  [(s["S17"], T_STORE, liquid(s["S17"])), (s["S18"], T_STORE, liquid(s["S18"]))], q11)
     out["Q10"], out["Q11"] = {"duty": round(q10, 1)}, {"duty": round(q11, 1)}
 
@@ -312,9 +418,11 @@ def main() -> None:
     lps = q8 + q10
     cw = q3 + q5 + q7 + q9 + q11
     power = p1 + p2 + p3
+    print(f"cross-check: spent-mass cooling {q_spent:.1f} kW = {100 * q_spent / cw:.2f} % of the cooling water")
     print(f"per kg Me2SiCl2: Si {s['S5']['SI'] / prod:.4f} kg, MeCl {sum(s['S1'].values()) / prod:.4f} kg, "
           f"Cu {s['S6']['CU'] / prod * 1000:.3f} g; MP steam raised {q2 / prod:.4f} kWh, MP steam used "
           f"{steam_in / prod:.4f} kWh, LP steam {lps / prod:.4f} kWh, cooling water {cw / prod:.4f} kWh, "
+          f"brine {q12 / prod:.4f} kWh, "
           f"power {power / prod:.4f} kWh")
     for k in sorted(out, key=lambda x: (x[0], int(x[1:]))):
         print(k, out[k])
