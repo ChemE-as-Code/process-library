@@ -1,0 +1,15 @@
+# potassium-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, a `dataset` (an Atlas producer), `atlas: false`, or a
+# `properties_reason`.
+#
+# Linked here (DESIGN.md D-010): the make-up water to the shared water entry, the LP steam as heat
+# delivered (kWh), the dryer's fired heat as heat from natural gas (kWh). The ore (no library
+# process mines sylvinite), the electricity (linked by the build's shared entry), the cooling
+# water, the salt tailings and the brine purge stay gaps (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:PW": {use: water, chemical: water, source: "process make-up water to the crystallizer feed (D-005), by mass"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the mother-liquor heater (Q3, hand balance), counted as heat delivered (kWh), D-008"}
+  "feed:FUEL": {use: heat-natural-gas, source: "the dryer's natural-gas-fired air heater (Q4, core's dryer model), counted as heat absorbed (kWh); combustion emissions in the background, D-008"}

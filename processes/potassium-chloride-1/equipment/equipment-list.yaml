@@ -1,0 +1,24 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the duties the propagated balance and hand balances give (DESIGN.md D-005 to D-008).
+# Sizes, design pressures, temperatures and materials are not set yet (basic engineering). One
+# tag stands for a group of parallel or series units where the sources describe several (the
+# two leach stages, the seven crystallizer stages). All values ASSUMED unless a source is named.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: R-101, type: Vessel, service: "Hot leach tanks: two cascaded agitated stages, crushed sylvinite ore in reheated mother liquor at about 90 C",
+     notes: "607.7 t/h of ore (S1) in 3648 t/h of mother liquor (S2); 96.07 % of the sylvite dissolved (ASSUMED, D-005); two stages at about 90 C after SRC-1 (section 1.10); residence time not sized (no open dissolution rate read)."}
+  - {tag: S-101, type: Separator, service: "Tailings separation: classifying cyclones, hot thickener with flocculant, tailings filter",
+     notes: "480 t/h of tailings at 10 wt% brine (ASSUMED) to the pile and backfill, 3775 t/h of hot brine to the crystallizer (D-006); flocculant per SRC-1, amount not given (D-009)."}
+  - {tag: X-201, type: Crystallizer, service: "Vacuum cooling crystallizer, seven stages from 363 to 318 K, with hydrocyclones and product centrifuges",
+     notes: "4039 t/h of diluted brine (S8), 216.4 t/h of water flashed, 150 t/h of KCl crystal at an ASSUMED 0.28 per-pass yield (D-007); centrifuge cake 96 % solids (SRC-2, section 17.3.5); seven stages and 45 C after SRC-1."}
+  - {tag: E-201, type: HeatExchanger, service: "Crystallizer vapour condensers: stages 1-5 into the mother-liquor preheaters, stages 6-7 surface condensers on cooling water",
+     notes: "140.6 MW of vapour heat: 100.4 MW to the mother liquor (Q1), 40.2 MW to cooling water (Q2); condensate returned as dilution water (S7) (D-007, D-008). The vacuum system (steam ejectors or vacuum pumps) is not sized."}
+  - {tag: P-201, type: CentrifugalPump, service: "Mother-liquor pumps (with the plant's auxiliary power booked here)",
+     notes: "3648 t/h of mother liquor; P1 28.5 MW lumps every auxiliary drive at 187.5 kWh/t (ASSUMED, D-008)."}
+  - {tag: E-202, type: HeatExchanger, service: "Mother-liquor preheaters (indirect, on the vapour of crystallizer stages 1-5)",
+     notes: "Mother liquor from 318.15 to 351.18 K, 100.4 MW (Q1); SRC-3 describes the same heat recovery (D-008)."}
+  - {tag: E-203, type: HeatExchanger, service: "Mother-liquor steam heater",
+     notes: "Mother liquor from 351.18 to 366.08 K, 45.3 MW of LP steam at 450 kPa(a), about 76.9 t/h (Q3) (D-008)."}
+  - {tag: DR-301, type: Dryer, service: "Product dryer with natural-gas-fired air, dust cyclones and scrubbers; compaction, screening and product cooling lumped",
+     notes: "156.3 t/h of cake (4 wt% liquor) to 0.1 wt% water at 423 K, 4.17 t/h evaporated, 9.67 MW of fired heat at an efficiency of 0.6 (core's dryer model, ASSUMED parameters); SRC-2: fluid-bed dryers, gas burners, crystals out at 140-160 C; SRC-1: rotary dryer."}

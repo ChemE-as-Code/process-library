@@ -1,0 +1,451 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Potassium chloride (muriate of potash) from crushed sylvinite ore by hot leaching and vacuum
+# cooling crystallisation, one train of 150 t/h of KCl crystal (DESIGN.md D-001, D-002).
+# Where the values come from:
+# - cheme process propagate solves every stream: the leach tanks are a conversion reactor
+#   (process/reactions.yaml: the dissolution of sylvite and of a little halite), the tailings
+#   separation a solid separation, the crystallizer with its centrifuge and the dryer are core's
+#   models, the rest mixers and splitters; the loop is torn at the hot mother liquor S2, and two
+#   design specifications set the ore feed for the product rate and the make-up water for the
+#   hot brine's KCl content (D-004, D-005);
+# - the crystallizer's yield and evaporation are ASSUMED (no open solubility data of KCl in
+#   NaCl-saturated brine were read, L-3); the duties are hand balances on the propagated
+#   streams (D-008), and the dryer's is core's dryer model, every input marked ASSUMED;
+# - flocculant, anti-caking agent and de-dusting oil are named by the sources without amounts
+#   and are left out (D-009, L-5).
+schema: cheme/process/v1
+kind: flowsheet
+title: Potassium chloride by hot leaching of sylvinite and vacuum cooling crystallisation (150 t/h)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: 150 t/h KCl crystal in the dried product (1.2 Mt/a at 8000 h/a, D-002)"
+    default: true
+    capacity: 150000 kg/h KCl crystal
+    provenance: assumed
+    source: "D-002: one train of the two of SRC-1 (2.44 Mt/a design capacity, section 1.10), at 8000 h/a ASSUMED"
+tolerance: {abs: 0.5, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+tears:
+  - stream: S2
+    initial:
+      flow: 3600000
+      basis: mass_fraction
+      composition: {KCl: 0.106, NaCl: 0.205, H2O: 0.689}
+  # the condensate returns to the crystallizer's own feed (D-007): a second loop
+  - stream: S7
+    initial:
+      flow: 215000
+      basis: mass_fraction
+      composition: {H2O: 1.0}
+convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 0.001, rel: 1.0e-9}}
+specs:
+  - id: rate
+    vary: {stream: S1, initial: 610000}
+    target: {stream: S16, component: KCl_s, quantity: flow, value: 150000}
+    provenance: assumed
+    source: "D-002: 150 t/h of KCl crystal, 1.2 Mt/a in 8000 h"
+  - id: liquor
+    vary: {stream: S6, initial: 60000}
+    target: {stream: S5, component: KCl, quantity: fraction, basis: mass, value: 0.1419}
+    provenance: assumed
+    source: "D-004: the hot brine leaves the leach saturated in KCl at 363.15 K: SRC-2's 60 C brine (148 g/L KCl, 254 g/L NaCl, at an ASSUMED 1.25 kg/L: 0.1745 kg KCl and 0.2995 kg NaCl per kg water, taken as saturated in both) carried to 90 C by a KCl solubility linear in temperature that doubles between 20 and 110 C (SRC-3), 0.1745 x 1.7778 / 1.4444 = 0.2148 kg/kg, 14.18 wt%, rounded up to 14.19; ASSUMED (L-3)"
+
+feeds:
+  - {id: ORE, title: "Crushed sylvinite ore (below 4 mm, 27.3 wt% KCl)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process make-up water, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: aux, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 450 kPa(a) (mother-liquor heater; condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-008"}
+      min_approach: {value: 10, provenance: assumed, source: D-008}
+    ports:
+      - {id: e203, direction: out, kind: energy}
+  - id: FUEL
+    title: Natural gas firing of the dryer air (direct-fired air heater)
+    category: utility
+    utility:
+      kind: fired_heat
+      level: natural gas firing
+      supply_temperature: {value: 773.15, provenance: assumed, source: "D-008: hot gas to the dryer, a concept value"}
+      min_approach: {value: 50, provenance: assumed, source: D-008}
+    ports:
+      - {id: dr301, direction: out, kind: energy}
+products:
+  - {id: KCLP, title: "Potassium chloride (MOP), dried, to compaction, screening and storage", category: product, ports: [{id: in, direction: in}]}
+  - {id: TAIL, title: "Salt tailings (halite, anhydrite, insolubles with brine) to the tailings pile and backfill", category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: BRINE, title: Brine purge to deep-well injection, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: DRYV, title: Dryer exhaust vapour (with the drying gas) to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+      min_approach: {value: 5, provenance: assumed, source: D-008}
+    ports:
+      - {id: e201, direction: in, kind: energy}
+
+blocks:
+  - id: LCH
+    title: Hot leaching and tailings separation
+    class: ReactingChemicals
+    ports:
+      - {id: ore, direction: in}
+      - {id: ml, direction: in}
+      - {id: tail, direction: out}
+      - {id: brine, direction: out}
+  - id: CRY
+    title: Vacuum cooling crystallisation, centrifuging and mother-liquor heating
+    class: Crystallizing
+    ports:
+      - {id: brine, direction: in}
+      - {id: water, direction: in}
+      - {id: cake, direction: out}
+      - {id: purge, direction: out}
+      - {id: ml, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: steam, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: DRY
+    title: Drying (compaction, screening and storage lumped)
+    class: Drying
+    ports:
+      - {id: in, direction: in}
+      - {id: prod, direction: out}
+      - {id: vap, direction: out}
+      - {id: heat, direction: in, kind: energy}
+
+steps:
+  # D-005: two cascaded agitated leach tanks at about 90 C (SRC-1), the ore's sylvite dissolved
+  # into the reheated mother liquor
+  - id: L101
+    block: LCH
+    title: Hot leach tanks (two cascaded agitated stages)
+    class: ReactingChemicals
+    reactions: [DISK, DISN]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: ore, direction: in, delegates: ore}
+      - {id: ml, direction: in, delegates: ml}
+      - {id: out, direction: out}
+  # D-006: cyclones, the hot thickener and the tailings filter, lumped: the solids to the
+  # tailings with the brine they hold, the clarified hot brine to the crystallizer
+  - id: S101
+    block: LCH
+    title: Tailings separation (cyclones, hot thickener, tailings filter)
+    class: Filtering
+    solid_separation:
+      solid_recovery: 1.0
+      cake_liquid: {value: 0.10, basis: mass_fraction}
+      outlets: {cake: cake, filtrate: filtrate}
+      provenance: assumed
+      source: "D-006: all solids to the tailings (the slimes settle in the thickener with flocculant, SRC-1 section 1.10), the filtered tailings holding 10 wt% brine, ASSUMED; no cake wash modelled (L-4)"
+    links: [{target: equipment, ref: S-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out, delegates: tail}
+      - {id: filtrate, direction: out, delegates: brine}
+  # D-007: the condensate of the crystallizer vapour and the make-up water dilute the hot brine,
+  # so that the NaCl stays dissolved as the water evaporates in the vacuum stages
+  - id: M201
+    block: CRY
+    title: Crystallizer feed (hot brine with condensate and make-up water)
+    class: Mixing
+    ports:
+      - {id: brine, direction: in, delegates: brine}
+      - {id: water, direction: in, delegates: water}
+      - {id: cond, direction: in}
+      - {id: out, direction: out}
+  # D-007: seven vacuum cooling stages from 363 to 318 K (SRC-1), lumped, with the product
+  # centrifuges
+  - id: X201
+    block: CRY
+    title: Vacuum cooling crystallizer (seven stages) and product centrifuges
+    class: Crystallizing
+    links: [{target: equipment, ref: X-201}]
+    crystallizer:
+      solute: KCl
+      solvent: H2O
+      crystal: KCl_s
+      basis: yield
+      temperature: 318.15
+      yield: {value: 0.28, provenance: assumed, source: "D-007: the KCl solubility in NaCl-saturated brine taken linear in temperature and doubled between 293 and 383 K (SRC-3: more than doubled over 20-110 C), so 1 - (1 + 25/90) / (1 + 70/90) = 0.281 of the KCl crystallises between the leach's 363.15 K and 318.15 K when the evaporated water is returned as dilution water; no open solubility data of KCl in NaCl-saturated brine were read (L-3)"}
+      evaporation: {solvent_fraction: 0.0785, provenance: assumed, source: "D-007: adiabatic vacuum cooling: the hot brine S5's sensible heat from 363.15 to 318.15 K (3.0 kJ/(kg K) ASSUMED), less the make-up water S6's warming from 298.15 to 318.15 K (4.18 kJ/(kg K)), taken by the latent heat of water at the stages' mean 340.65 K (2339 kJ/kg, thermo 0.6.1 HEOS_FIT, SRC-6), as a share of the water in the crystallizer feed S8; the heat of crystallisation left out (L-2)"}
+      spectators: [NaCl]
+      separation:
+        solid_recovery: 1.0
+        cake_liquid: {value: 0.04, basis: mass_fraction}
+        provenance: assumed
+        source: "D-007: centrifuge cake about 96 % solids (SRC-2, section 17.3.5); every crystal to the cake (the hydrocyclones' overflow returned, ASSUMED); no cake wash (L-4)"
+      outlets: {cake: cake, mother_liquor: ml, vapour: vap}
+    ports:
+      - {id: in, direction: in}
+      - {id: cake, direction: out, delegates: cake}
+      - {id: ml, direction: out}
+      - {id: vap, direction: out}
+  - id: E201
+    block: CRY
+    title: Crystallizer vapour condensers (five stages heat the mother liquor, two to cooling water)
+    class: Cooling
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: hr, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: SP201
+    block: CRY
+    title: Mother-liquor purge
+    class: SplittingMaterial
+    # D-006, ASSUMED: 0.5 % of the mother liquor purged against the build-up of the ore's soluble
+    # impurities (magnesium and sulfate, not modelled, L-1), to deep-well injection (SRC-1)
+    split: {purge: 0.005}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: ret, direction: out}
+  - id: P201
+    block: CRY
+    title: Mother-liquor pumps (with the plant's auxiliary power, lumped)
+    class: Pumping
+    links: [{target: equipment, ref: P-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: E202
+    block: CRY
+    title: Mother-liquor preheaters (vapour of the first five crystallizer stages)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: E203
+    block: CRY
+    title: Mother-liquor steam heater
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-203}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: ml}
+      - {id: heat, direction: in, kind: energy, delegates: steam}
+  # D-008: gas-fired dryer, crystals out at 140-160 C (SRC-2, section 17.3.6)
+  - id: DR301
+    block: DRY
+    title: Product dryer (natural-gas-fired air), with compaction and screening lumped
+    class: Drying
+    links: [{target: equipment, ref: DR-301}]
+    dryer:
+      volatiles: [H2O]
+      residual_moisture: {value: 0.001, basis: mass_fraction, provenance: assumed, source: "D-008: 0.1 wt% water in the dried product, ASSUMED"}
+      temperature: 423.15
+      energy:
+        heat_capacity: 0.70
+        latent_heat: {H2O: 2256}
+        efficiency: 0.6
+        inlet_temperature: 318.15
+        port: heat
+        provenance: assumed
+        source: "D-008: cake heat capacity 0.70 kJ/(kg K) from KCl(s) 0.688 at 298.15 K and 0.706 at 373.15 K (thermo 0.6.1 WEBBOOK_SHOMATE, SRC-6), latent heat of water at 373.15 K 2256 kJ/kg (thermo 0.6.1 HEOS_FIT, SRC-6), 60 % of the fired heat to the cake, the rest with the exhaust, ASSUMED; product at 423.15 K, inside the 140-160 C of SRC-2"
+      outlets: {product: prod, vapour: vap}
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: prod, direction: out, delegates: prod}
+      - {id: vap, direction: out, delegates: vap}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+
+streams:
+  - id: S1
+    title: Crushed sylvinite ore
+    from: ORE.out
+    to: L101.ore
+    template: ore
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from the ore storage, design basis"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {KCl_s: 0.273, NaCl_s: 0.5881, CaSO4_s: 0.0722, INSOL: 0.0637, H2O: 0.003}, provenance: assumed, source: "D-003: 27.3 wt% KCl, the life-of-mine plant feed of SRC-1 (section 1.9); the rest split as the 2014 average of SRC-1 Table 10 (NaCl 55.4, CaSO4 6.8, insolubles 3.5 with MgSO4 1.0 and K2SO4 1.5 lumped as INSOL, moisture 0.3 wt%), scaled to 72.4 wt%"}
+        flow: {value: 607743.0, provenance: calculated, source: 'cheme process propagate: spec rate (S16 KCl_s flow kg/h 150000)', fingerprint: 79ffa9ff50e19e0e}
+  - id: S2
+    title: Hot mother liquor to the leach
+    from: E203.out
+    to: L101.ml
+    template: brine
+    state:
+      design:
+        temperature: {value: 366.08, provenance: assumed, source: "D-008: the temperature at which the mother liquor (3.0 kJ/(kg K) ASSUMED), mixed with the ore at 298.15 K (0.8113 kJ/(kg K): KCl(s) 0.688, NaCl(s) 0.8642 and CaSO4(s) 0.7163 from thermo 0.6.1, SRC-6, insolubles 0.80 ASSUMED, water 4.18), gives the leach's 363.15 K: 363.15 + S1 x 0.8113 x 65 / (S2 x 3.0); heat of solution and heat losses left out (L-2); SRC-1 reheats to about 115 C"}
+        pressure: {value: 300, provenance: assumed, source: "design basis"}
+        flow: {value: 3647590.0, provenance: calculated, source: 'cheme process propagate: recycle E203 from S15 (tear, broyden)', fingerprint: 5e51b329be33062a}
+        composition: {basis: mole_fraction, values: {KCl: 0.0325555, NaCl: 0.0803988, H2O: 0.887046, KCl_s: 0.0, NaCl_s: 0.0, CaSO4_s: 0.0, INSOL: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle E203 from S15 (tear, broyden)', fingerprint: 5e51b329be33062a}
+  - id: S3
+    title: Leach slurry
+    from: L101.out
+    to: S101.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 363.15, provenance: assumed, source: "D-005: about 90 C (SRC-1, section 1.10)"}
+        flow: {value: 4255330.0, provenance: calculated, source: 'cheme process propagate: reactor L101 from S1 S2', fingerprint: 2ec53e9a373f75ac}
+        composition: {basis: mole_fraction, values: {KCl_s: 0.000522886, NaCl_s: 0.0350793, CaSO4_s: 0.0019269, INSOL: 0.00385184, H2O: 0.837754, KCl: 0.0435063, NaCl: 0.0773589}, provenance: calculated, source: 'cheme process propagate: reactor L101 from S1 S2', fingerprint: d32c7ccb34c5a503}
+  - id: S4
+    title: Salt tailings
+    from: S101.cake
+    to: TAIL.in
+    template: slurry
+    state:
+      design:
+        temperature: {value: 363.15, provenance: assumed, source: "D-006: as the leach"}
+        flow: {value: 480037.0, provenance: calculated, source: 'cheme process propagate: solid-separation S101 from S3', fingerprint: 910ca92bad01ffb7}
+        composition: {basis: mole_fraction, values: {KCl_s: 0.00978877, NaCl_s: 0.656707, CaSO4_s: 0.0360728, INSOL: 0.072109, KCl: 0.0102261, NaCl: 0.0181831, H2O: 0.196913}, provenance: calculated, source: 'cheme process propagate: solid-separation S101 from S3', fingerprint: 910ca92bad01ffb7}
+  - id: S5
+    title: Hot clarified brine
+    from: S101.filtrate
+    to: M201.brine
+    template: brine
+    state:
+      design:
+        temperature: {value: 363.15, provenance: assumed, source: "D-005: as the leach"}
+        flow: {value: 3775290.0, provenance: calculated, source: 'cheme process propagate: solid-separation S101 from S3', fingerprint: 910ca92bad01ffb7}
+        composition: {basis: mole_fraction, values: {KCl_s: 0.0, NaCl_s: 0.0, CaSO4_s: 0.0, INSOL: 0.0, KCl: 0.0453843, NaCl: 0.0806983, H2O: 0.873917}, provenance: calculated, source: 'cheme process propagate: solid-separation S101 from S3', fingerprint: 910ca92bad01ffb7}
+  - id: S6
+    title: Make-up water
+    from: PW.out
+    to: M201.water
+    template: water
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 300, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "site process water"}
+        flow: {value: 46873.4, provenance: calculated, source: 'cheme process propagate: spec liquor (S5 KCl mass fraction 0.1419)', fingerprint: 79ffa9ff50e19e0e}
+  - id: S7
+    title: Condensate (dilution water)
+    from: E201.out
+    to: M201.cond
+    template: water
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "D-008: condensed down to the last stage's 318.15 K, ASSUMED"}
+        flow: {value: 216352.0, provenance: calculated, source: 'cheme process propagate: recycle E201 from S11 (tear, broyden)', fingerprint: 5e51b329be33062a}
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: recycle E201 from S11 (tear, broyden)', fingerprint: 5e51b329be33062a}
+  - id: S8
+    title: Crystallizer feed
+    from: M201.out
+    to: X201.in
+    template: brine
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {KCl: 0.0415501, NaCl: 0.0738807, H2O: 0.884569, KCl_s: 0.0, NaCl_s: 0.0, CaSO4_s: 0.0, INSOL: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S5 S6 S7', fingerprint: a313b4a631132005}
+        flow: {value: 4038520.0, provenance: calculated, source: 'cheme process propagate: mixer M201 from S5 S6 S7', fingerprint: 674add59414ade44}
+  - id: S9
+    title: Centrifuge cake
+    from: X201.cake
+    to: DR301.in
+    template: cake
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "D-007: the last crystallizer stage's 318.15 K (about 45 C, SRC-1)"}
+        flow: {value: 156250.0, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S8', fingerprint: 77ca98bb65bbd170}
+        composition: {basis: mole_fraction, values: {KCl: 0.00385791, H2O: 0.105117, KCl_s: 0.881497, NaCl: 0.00952749}, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S8', fingerprint: 77ca98bb65bbd170}
+  - id: S10
+    title: Mother liquor
+    from: X201.ml
+    to: SP201.in
+    template: brine
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "D-007: the last crystallizer stage's 318.15 K (SRC-1)"}
+        flow: {value: 3665920.0, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S8', fingerprint: 77ca98bb65bbd170}
+        composition: {basis: mole_fraction, values: {KCl: 0.0325554, H2O: 0.887046, KCl_s: 0.0, NaCl: 0.0803989}, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S8', fingerprint: 77ca98bb65bbd170}
+  - id: S11
+    title: Crystallizer vapour
+    from: X201.vap
+    to: E201.in
+    template: water
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S8', fingerprint: 77ca98bb65bbd170}
+        flow: {value: 216352.0, provenance: calculated, source: 'cheme process propagate: crystallizer X201 from S8', fingerprint: 77ca98bb65bbd170}
+  - id: S12
+    title: Brine purge
+    from: SP201.purge
+    to: BRINE.in
+    template: brine
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "as S10"}
+        flow: {value: 18329.6, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S10', fingerprint: c66faba9cf9a08c5}
+        composition: {basis: mole_fraction, values: {KCl: 0.0325554, H2O: 0.887046, KCl_s: 0.0, NaCl: 0.0803989}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S10', fingerprint: 2ebc786933f69128}
+  - id: S13
+    title: Mother liquor to the pumps
+    from: SP201.ret
+    to: P201.in
+    template: brine
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {KCl: 0.0325554, H2O: 0.887046, KCl_s: 0.0, NaCl: 0.0803989}, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S10', fingerprint: 2ebc786933f69128}
+        flow: {value: 3647590.0, provenance: calculated, source: 'cheme process propagate: splitter SP201 from S10 S12', fingerprint: 94b4a573d29cdaf3}
+  - id: S14
+    title: Mother liquor to the preheaters
+    from: P201.out
+    to: E202.in
+    template: brine
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {KCl: 0.0325554, H2O: 0.887046, KCl_s: 0.0, NaCl: 0.0803989}, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S13', fingerprint: 84d639d3a82c937a}
+        flow: {value: 3647590.0, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S13', fingerprint: 84d639d3a82c937a}
+  - id: S15
+    title: Preheated mother liquor
+    from: E202.out
+    to: E203.in
+    template: brine
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {KCl: 0.0325554, H2O: 0.887046, KCl_s: 0.0, NaCl: 0.0803989}, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S14', fingerprint: 2f0a42554372f5bc}
+        flow: {value: 3647590.0, provenance: calculated, source: 'cheme process propagate: pass-through E202 from S14', fingerprint: 2f0a42554372f5bc}
+  - id: S16
+    title: Potassium chloride product
+    from: DR301.prod
+    to: KCLP.in
+    template: cake
+    state:
+      design:
+        temperature: {value: 423.15, provenance: assumed, source: "D-008: dried crystals out at 140-160 C (SRC-2, section 17.3.6), before cooling, compaction and screening"}
+        flow: {value: 152080.0, provenance: calculated, source: 'cheme process propagate: dryer DR301 from S9', fingerprint: dc78858ec41842c9}
+        composition: {basis: mole_fraction, values: {KCl_s: 0.980988, KCl: 0.00429334, NaCl: 0.0106028, H2O: 0.00411571}, provenance: calculated, source: 'cheme process propagate: dryer DR301 from S9', fingerprint: dc78858ec41842c9}
+  - id: S17
+    title: Dryer vapour
+    from: DR301.vap
+    to: DRYV.in
+    template: water
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: dryer DR301 from S9', fingerprint: dc78858ec41842c9}
+        flow: {value: 4170.49, provenance: calculated, source: 'cheme process propagate: dryer DR301 from S9', fingerprint: dc78858ec41842c9}
+  - {id: P1, title: "Auxiliary power (pumps, agitators, cyclones, centrifuges, vacuum system, dryer fans, compaction, conveyors; lumped)", kind: energy, from: POWER.aux, to: P201.power, state: {design: {duty: {value: 28515.0, provenance: assumed, source: "D-008: 187.5 kWh per t of product x 152.08 t/h (S16): the 312.5 kWh per t K2O of SRC-4 (Table 3) at 0.6 t K2O per t KCl, a plant of another route taken as the only open per-t figure read, ASSUMED; mining and crushing outside the boundary"}}}}
+  - {id: Q1, title: "Vapour heat of the first five crystallizer stages to the mother liquor", kind: energy, from: E201.hr, to: E202.heat, state: {design: {duty: {value: 100406.22, provenance: assumed, source: "D-008: 5/7 of the vapour's latent heat (S11 216 352 kg/h x 2339 kJ/kg / 3600 = 140 568.70 kW), the stages taken to evaporate equal shares; SRC-3: the vapours of the first five of seven stages heat the returning mother liquor; S14 heated from 318.15 to 351.18 K at 3.0 kJ/(kg K)"}}}}
+  - {id: Q2, title: Vapour of the last two stages to cooling water (surface condensers), kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 40162.49, provenance: assumed, source: "D-008: 2/7 of the vapour's latent heat, 140 568.70 - 100 406.22 kW"}}}}
+  - {id: Q3, title: LP steam to the mother-liquor heater, kind: energy, from: LPS.e203, to: E203.heat, state: {design: {duty: {value: 45280.66, provenance: assumed, source: "D-008: S14 3 647 590 kg/h x 3.0 kJ/(kg K) x (366.08 - 351.18 K) / 3600; about 76.9 t/h of steam at its 2121 kJ/kg latent heat at 450 kPa(a) (thermo 0.6.1 HEOS_FIT, SRC-6)"}}}}
+  - {id: Q4, title: Fired heat (natural gas) to the dryer, kind: energy, from: FUEL.dr301, to: DR301.heat, state: {design: {duty: {value: 9672.68, provenance: assumed, source: "cheme process crystallizers (DR301, core's dryer model): the cake heated from 318.15 to 423.15 K and 4170.5 kg/h of water evaporated, over an efficiency of 0.6 (D-008)"}}}}
+layout: {bfd: {}, pfd: {}}
