@@ -6,7 +6,8 @@
 # NREL/TP-580-28893), so these references are not independent of the dataset: they check that
 # the dataset reproduces its source and stays inside the yields the source reports for the
 # industry. Our arithmetic: a bushel of corn is 56 lb at 15 % moisture (the source, p. 18), a US
-# gallon 3.785 L, ethanol 0.7932 kg/L at 60 F (thermo 0.6.1). Searched and not read
+# gallon 3.785 L, ethanol 0.7894 kg/L at 68 F (the source's own density and temperature,
+# its appendix input sheet, PDF pp. 40-41). Searched and not read
 # (2026-11-19): the USDA dry-mill model of Kwiatkowski et al. (2006, paywalled), the 2012 corn
 # ethanol survey of Mueller and Kwik and the USDA 2015 energy balance report (downloads refused).
 schema: cheme-as-code/benchmarks/v1
@@ -18,14 +19,14 @@ kpis:
     unit: kg/kg
     references:
       - id: mcaloon-2000-yield
-        range: [3.088, 3.384]
+        range: [3.102, 3.400]
         basis: unallocated
-        note: "Our arithmetic from the source's yields of pure ethanol per bushel: the maximum then, 2.74 gal/bu (p. 2), and the industry's rise from 2.5 to more than 2.7 gal/bu (p. 4): 56 lb x 0.4536 kg/lb over (gal/bu x 3.785 L x 0.7932 kg/L) gives 3.088 to 3.384 kg of corn per kg of ethanol. The source's model uses 2.71 gal/bu (3.122 kg/kg)."
+        note: "Our arithmetic from the source's yields of pure ethanol per bushel: the maximum then, 2.74 gal/bu (p. 2), and the industry's rise from 2.5 to more than 2.7 gal/bu (p. 4): 56 lb x 0.4536 kg/lb over (gal/bu x 3.785 L x 0.7894 kg/L) gives 3.102 to 3.400 kg of corn per kg of ethanol. The source's model uses 2.71 gal/bu (3.137 kg/kg)."
         conditions: {technology: "corn dry mill, US, about 2000", region: US, year: 2000}
         source: &mcaloon
           citation: "McAloon, A., Taylor, F., Yee, W., Ibsen, K., Wooley, R. (2000) Determining the Cost of Producing Ethanol from Corn Starch and Lignocellulosic Feedstocks. NREL/TP-580-28893, National Renewable Energy Laboratory, Golden, CO"
           url: https://docs.nlr.gov/docs/fy01osti/28893.pdf
-          locator: pp. 2, 4 and 18; Table 2
+          locator: pp. 2, 4 and 18; Table 2; appendix input and operating-cost sheets (PDF pp. 40-41)
           kind: government
           accessed: "2026-11-19"
   corn-dry-grind-specific-ddgs:
@@ -33,15 +34,15 @@ kpis:
     unit: kg/kg
     references:
       - id: mcaloon-2000-ddgs
-        range: [1.018, 1.018]
+        range: [1.027, 1.027]
         basis: unallocated
-        note: "One value, recorded as a zero-width range and not widened: 6.4 lb of DDG per gallon of fuel ethanol (Table 2, p. 19), the fuel 95 vol% ethanol (Table 3): 6.4 x 0.4536 / (0.95 x 3.785 x 0.7932) = 1.018 kg per kg of ethanol (our arithmetic)."
+        note: "One value, recorded as a zero-width range and not widened: the appendix operating-cost sheet (PDF p. 41) gives 9205 kg/h of DDGS with 8959 kg/h of pure ethanol, 1.027 kg per kg of pure ethanol (our arithmetic; Table 2's 243.6 short tons a day is the same 9208 kg/h, and its rounded 6.4 lb per gallon of fuel ethanol gives 1.023)."
         conditions: {technology: "corn dry mill, US, about 2000", region: US, year: 2000}
         source: *mcaloon
 
 datasets:
   - process: bioethanol-1
-    dataset: fuel-ethanol-from-corn-by-dry-grind-633-dry-t-d-of-corn-71-800-t-a-anhydrous-ethanol
+    dataset: fuel-ethanol-from-corn-by-dry-grind-633-dry-t-d-of-corn-71-300-t-a-anhydrous-ethanol
     conditions: {technology: "corn dry grind on McAloon et al. (2000)'s basis, continuous fermentation, molecular sieves", basis: concept flowsheet}
     kpis:
       corn-dry-grind-specific-corn:
@@ -52,4 +53,4 @@ datasets:
         expression: product:DDGS / product:ETOH
         per: product:ETOH
         reference: mcaloon-2000-ddgs
-        out_of_range_reason: "0.958 kg/kg, 5.9 % below the source's 1.018: the dataset's corn is the source's simplified composition, and the yeast cell mass, the enzymes, the urea and the lime that end in the DDGS are not represented (bioethanol-1 DESIGN.md D-008, L-3)."
+        out_of_range_reason: "0.980 kg per kg of the dataset's product, 4.6 % below the source's 1.027 per kg of pure ethanol; on pure ethanol (8959 kg/h in both) the shortfall is 4.2 %, as DESIGN.md D-008 states, the difference being the product's 0.45 wt% water. The dataset's corn is the source's simplified composition, and the yeast cell mass, the enzymes, the urea and the lime that end in the DDGS are not represented (bioethanol-1 DESIGN.md D-008, L-3)."

@@ -16,7 +16,7 @@ hammer-milled, slurried with recycled condensate, liquefied at 88 C with alpha-a
 with backset, cooked at 110 C and saccharified at 60 C with glucoamylase. Yeast ferments the
 glucose in four continuous cascade fermentors (46 h, 32-34 C) to a beer of 9 wt% ethanol; the CO2
 is water-scrubbed and vented. A beer column takes the ethanol to 45 wt%, a rectifier to 91 wt%
-and vapour-phase molecular sieves to 99.55 wt%: 9.07 t/h, 71 800 t/a in 7920 h. Decanters split
+and vapour-phase molecular sieves to 99.55 wt%: 9.00 t/h, 71 300 t/a in 7920 h. Decanters split
 the whole stillage into wet cake and thin stillage; part of the thin stillage goes back as
 backset, the rest is evaporated to a syrup, and a natural-gas dryer makes DDGS from the wet cake
 and syrup. The plant discharges no liquid.
@@ -29,25 +29,29 @@ backset share for 15 % of the mash. Needs cheme-as-code 1.12.0. DESIGN.md lists 
 features used and the core limits hit.
 
 Headline numbers and their caveats:
-- Yield: 113.97 gal of ethanol per dry short ton of corn (the source: 114), 0.377 kg per kg of dry
-  corn. The fermentation's conversion (95.0 % of the glucose to ethanol) is calibrated to the
-  source's yield; 3 % to glycerol and acetate is ASSUMED (D-005).
-- Per kg of ethanol: 3.11 kg of corn (15 % moisture), 0.96 kg of DDGS, 0.96 kg of biogenic CO2,
-  1.76 kWh of steam, 0.086 kg of natural gas (1.20 kWh LHV) and 0.23 kWh of power. Steam, gas and
-  power are the source's, derived from its costs per gallon and its power shares, and split
-  between the users by ASSUMED shares (D-009).
+- Yield: 8959 kg/h of ethanol, the source's stated rate, 113.67 gal per dry short ton of corn at
+  68 F (the source's appendix: 113.68; its p. 2 rounds to 114), 0.374 kg per kg of dry corn. The
+  fermentation's conversion (94.2 % of the glucose to ethanol) is calibrated to it; 3 % to
+  glycerol and acetate is ASSUMED (D-005).
+- Per kg of ethanol: 3.13 kg of corn (15 % moisture), 0.98 kg of DDGS, 0.96 kg of biogenic CO2,
+  1.70 kWh of steam (150 psig), 0.074 kg of natural gas (1.03 kWh LHV), 0.23 kWh of power and
+  1.55 kWh to cooling water. Steam, gas and cooling water are the rates the source's appendix
+  states, power its p. 24 figure with its area shares, split between the users by ASSUMED shares
+  (D-009).
 - The separations are specified recoveries chosen for the source's stated compositions (45 and
   91 wt% ethanol, 35 wt% wet cake, 55 wt% syrup), not rigorous ethanol-water VLE: core has no
   property package for corn mash or ethanol-water (D-007, L-1).
-- The zero-discharge water balance needs 9.5 t/h of make-up (1.05 kg/kg), which the source puts
-  on the CO2 scrubber; a real plant takes part of it as live steam and cleaning water (D-006).
-- The DDGS is 5.7 % below the source's: yeast growth, enzymes, urea and lime are not
-  represented (D-008, L-3).
+- The zero-discharge water balance needs 9.3 t/h of make-up (1.03 kg/kg), 4.0 % above the source's
+  8.9 t/h, which it puts on the CO2 scrubber; a real plant takes part of it as live steam and
+  cleaning water (D-006).
+- The DDGS is 4.2 % below the source's 9205 kg/h: yeast growth, enzymes, urea and lime are not in
+  the balance (D-008, L-3).
 - Hazards reasoned in D-011: ethanol (flammable), CO2 in the fermentation area (asphyxiation),
   grain dust, dryer fires; the continuous fermentation is not a runaway hazard.
-- The preliminary LCI allocates by mass between ethanol (51.1 %) and DDGS (the WBCSD rule on the
-  source's prices); the fermentation CO2 is biogenic, the dryer's CO2 fossil; the corn is a gap
-  (D-012).
+- The preliminary LCI allocates by mass between ethanol (50.5 %) and DDGS (the WBCSD rule on the
+  source's prices); the fermentation CO2 is biogenic, the dryer's CO2 fossil; the source's
+  caustic, sulfuric acid, lime, urea, enzymes and yeast (39 g per kg of ethanol) are consumables;
+  the corn, the enzymes and the yeast are gaps (D-012).
 
 | path | what |
 |---|---|

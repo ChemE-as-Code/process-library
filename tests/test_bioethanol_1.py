@@ -4,11 +4,14 @@ Fast, without core: the flowsheet's streams (propagated by core from the corn, t
 and the air) are read as YAML, and the statements the folder makes in DESIGN.md, README.md,
 process.yaml and the LCA are checked against them:
 
-- the yield is SRC-1's 114 gal per dry short ton (NREL/TP-580-28893), from S22 and S1;
+- the ethanol is SRC-1's 8959 kg/h of pure ethanol (NREL/TP-580-28893, appendix), 113.7 gal per
+  dry short ton at its 68 F density, from S22 and S1;
 - the beer, the beer column's and the rectifier's overheads, the product, the wet cake, the syrup
   and the DDGS have SRC-1's stated compositions; the backset is 15 % of the mash;
-- the corn feed is SRC-1's 633 dry short tons a day; steam, natural gas and power follow from
-  SRC-1's costs per gallon and its power shares;
+- the corn feed is SRC-1's 633 dry short tons a day; steam, natural gas, cooling water and power
+  follow from the rates of SRC-1's appendix and its power shares;
+- the scrubber's vent is saturated with water at 305.15 K; the flue gas S34 keeps its temperature;
+- SRC-1's purchased chemicals are in the LCI as consumables with its amounts;
 - the zero-discharge balance: no wastewater product, water leaves with the dryer and the vent;
 - the specific consumptions in process.yaml and README.md follow from the flowsheet;
 - the allocation is mass, with the WBCSD price ratio below 5 at SRC-1's prices;
@@ -29,7 +32,8 @@ PROCESS = KIT / "processes" / "bioethanol-1"
 
 GAL_L = 3.785411784  # US gallon in litres (definition)
 SHORT_TON_KG = 907.18474  # short ton in kg (definition)
-RHO_ETOH_60F = 0.7932  # kg/L at 288.71 K (thermo 0.6.1, DESIGN.md SRC-3)
+RHO_ETOH_68F = 0.7894  # kg/L at 68 F, SRC-1's appendix input sheet (DESIGN.md SRC-1)
+BTU_MJ = 1.05505585262e-3  # IT Btu in MJ (definition)
 HOURS = 7920
 
 
@@ -93,13 +97,16 @@ def test_the_corn_feed_is_src1s_633_dry_tons_a_day(streams):
     assert vals["NFD"] / (1 - vals["H2O"]) == pytest.approx(0.12, abs=1e-6)
 
 
-def test_the_yield_is_src1s_114_gal_per_dry_ton(streams):
+def test_the_ethanol_is_src1s_8959_kg_h(streams):
     etoh = _mass(streams, "S22")["ETOH"]
+    assert etoh == pytest.approx(8959, abs=1.0)  # SRC-1 appendix: pure ethanol 8959 kg/h
+    # SRC-1's own gal/yr over its 633 dry short tons a day, 330 days, at 68 F
+    src1 = 23746631 / (633 * 330)
     dry_tons_h = _flow(streams, "S1") * 0.85 / SHORT_TON_KG
-    gal = etoh / RHO_ETOH_60F / GAL_L
-    assert gal / dry_tons_h == pytest.approx(114, rel=0.002)
-    assert "113.97 gal" in _text("README.md") and "113.97 gal" in _text("DESIGN.md")
-    assert round(_flow(streams, "S22") * HOURS / 1000, -2) == 71800
+    gal = etoh / RHO_ETOH_68F / GAL_L
+    assert gal / dry_tons_h == pytest.approx(src1, rel=0.001)
+    assert "113.67 gal" in _text("README.md") and "113.67 gal" in _text("DESIGN.md")
+    assert round(_flow(streams, "S22") * HOURS / 1000, -2) == 71300
 
 
 def test_the_stated_compositions_are_src1s(streams):
@@ -115,23 +122,33 @@ def test_the_stated_compositions_are_src1s(streams):
     assert _flow(streams, "S25") / _flow(streams, "S7") == pytest.approx(0.15, abs=1e-4)
 
 
-def test_the_ddgs_against_src1s_table_2(streams):
-    src1 = 243.6 * SHORT_TON_KG / 24
-    assert _flow(streams, "S30") / src1 - 1 == pytest.approx(-0.057, abs=0.002)
+def test_the_ddgs_against_src1(streams):
+    # SRC-1 appendix: 9205 kg/h of DDGS (Table 2's 243.6 short tons a day is the same)
+    assert 243.6 * SHORT_TON_KG / 24 == pytest.approx(9205, rel=0.001)
+    assert _flow(streams, "S30") / 9205 - 1 == pytest.approx(-0.042, abs=0.0006)
+    assert "4.2 % below SRC-1's 9205 kg/h" in _text("process.yaml")
+    assert "4.2 % below SRC-1's 9205 kg/h" in _text("DESIGN.md")
+    # the benchmark's per-kg reference: 9205 per 8959 kg/h of pure ethanol
+    assert 9205 / 8959 == pytest.approx(1.027, abs=0.0005)
+    assert _flow(streams, "S30") / _flow(streams, "S22") / (9205 / 8959) - 1 == pytest.approx(-0.046, abs=0.0006)
 
 
-def test_the_utilities_follow_from_src1(streams):
-    gal_h = 25e6 / HOURS
-    steam_kg_h = 0.085 / 4.50 * 1000 * gal_h * 0.45359237
-    assert steam_kg_h == pytest.approx(27045, rel=1e-3)
+def test_the_utilities_follow_from_src1(sheet, streams):
+    # steam: SRC-1 appendix 27 681 kg/h of 150 psi steam, latent heat at 1135.5 kPa(a) (SRC-3)
+    feed = next(f for f in sheet["feeds"] if f["id"] == "MPS")
+    assert feed["utility"]["pressure"]["value"] == pytest.approx(150 * 6.894757 + 101.325, abs=0.1)
     q = {k: streams[k]["duty"]["value"] for k in ("Q1", "Q1B", "Q2")}
-    assert sum(q.values()) == pytest.approx(steam_kg_h * 2120.2 / 3600, rel=1e-3)
-    ft3_h = 0.038 / 2.95 * 1000 * gal_h
-    kmol_h = ft3_h * 0.028316846592 * 101.325 / (8.314462618 * 288.7056)
-    assert _flow(streams, "S32") == pytest.approx(kmol_h * 16.043, rel=2e-3)
+    assert sum(q.values()) == pytest.approx(27681 * 1994.5 / 3600, rel=1e-4)
+    # natural gas: 35.1341 million Btu/h as HHV over methane's 890.59 MJ/kmol
+    hhv = 393.474 + 2 * 285.825 - 74.534
+    kmol_h = 35.1341 * 1e6 * BTU_MJ / hhv
+    assert _flow(streams, "S32") == pytest.approx(kmol_h * 16.043, rel=1e-4)
     assert streams["Q9"]["duty"]["value"] == pytest.approx(
-        _flow(streams, "S32") / 16.043 * 802584 / 3600, rel=1e-3
+        _flow(streams, "S32") / 16.043 * 802584 / 3600, rel=1e-4
     )
+    # cooling water: SRC-1's 1 040 224 kg/h of cooling-tower water over 10 K is Q8 + Q11
+    tower = 1040224 * 4.180 * 10 / 3600
+    assert streams["Q8"]["duty"]["value"] + streams["Q11"]["duty"]["value"] == pytest.approx(tower, rel=1e-3)
     power = {k: streams[k]["duty"]["value"] for k in ("Q3", "Q4", "Q5", "Q6")}
     assert sum(power.values()) == pytest.approx(2090, abs=0.1)
     assert power["Q3"] == pytest.approx(0.08 * 2090, abs=0.1)
@@ -157,14 +174,44 @@ def test_zero_liquid_discharge(sheet):
 def test_the_stated_consumptions_per_kg(streams):
     etoh = _flow(streams, "S22")
     manifest = _text("process.yaml")
-    for sid, stated in (("S1", "3.105 kg/kg"), ("S32", "0.086 kg/kg"), ("S12", "1.045 kg/kg"), ("S30", "0.958 kg/kg")):
+    for sid, stated in (("S1", "3.128 kg/kg"), ("S32", "0.074 kg/kg"), ("S12", "1.030 kg/kg"), ("S30", "0.980 kg/kg")):
         value = float(stated.split()[0])
         assert _flow(streams, sid) / etoh == pytest.approx(value, abs=0.0006), sid
         assert stated in manifest, stated
     co2b = _mass(streams, "S13")["CO2B"] / etoh
     assert co2b == pytest.approx(0.959, abs=0.0006)
     co2 = _mass(streams, "S35")["CO2"] / etoh
-    assert co2 == pytest.approx(0.236, abs=0.0006)
+    assert co2 == pytest.approx(0.204, abs=0.0006)
+    duty = {k: streams[k]["duty"]["value"] for k in streams if "duty" in streams[k]}
+    for keys, stated in (
+        (("Q1", "Q1B", "Q2"), "1.704 kWh/kg"),
+        (("Q3", "Q4", "Q5", "Q6"), "0.232 kWh/kg"),
+        (("Q7", "Q8", "Q11"), "1.554 kWh/kg"),
+    ):
+        assert sum(duty[k] for k in keys) / etoh == pytest.approx(float(stated.split()[0]), abs=0.0006), keys
+        assert stated in manifest, stated
+    assert "15.34 MW" in manifest and sum(duty[k] for k in ("Q1", "Q1B", "Q2")) == pytest.approx(15340, abs=5)
+    assert "9.28 MW" in manifest and duty["Q9"] == pytest.approx(9280, abs=5)
+
+
+def test_the_vent_is_saturated_at_305_k(streams):
+    comp = streams["S13"]["composition"]["values"]
+    assert comp["H2O"] / sum(comp.values()) == pytest.approx(4.76 / 101.325, abs=0.0005)
+
+
+def test_the_flue_gas_keeps_its_temperature(streams):
+    # one state mapping for S34: the temperature lets core calculate the burner's duty on Q9
+    assert streams["S34"]["temperature"]["value"] == 298.15
+    assert "flow" in streams["S34"] and "composition" in streams["S34"]
+
+
+def test_src1s_chemicals_are_consumables():
+    lca = _load("lca/lca.yaml")
+    per_h = {c["id"]: c["per_year"] / HOURS for c in lca["consumables"]}
+    # SRC-1 appendix operating-cost sheet (PDF p. 41), kg/h
+    assert per_h == pytest.approx(
+        {"caustic": 147, "alpha-amylase": 20, "gluco-amylase": 29, "sulfuric-acid": 58, "lime": 35, "urea": 58, "yeast": 6}
+    )
 
 
 def test_mass_allocation_by_the_wbcsd_rule(streams):
@@ -174,7 +221,7 @@ def test_mass_allocation_by_the_wbcsd_rule(streams):
     ddgs_price = 0.045 / 0.45359237  # $/kg, SRC-1 p. 19
     etoh_price = ddgs_price * ddgs * 0.8 / 0.2 / etoh  # DDG about 20 % of the income
     assert 1 < etoh_price / ddgs_price < 5
-    assert etoh / (etoh + ddgs) == pytest.approx(0.511, abs=0.001)
+    assert etoh / (etoh + ddgs) == pytest.approx(0.505, abs=0.001)
 
 
 def test_biogenic_and_fossil_co2_apart():
@@ -188,9 +235,9 @@ def test_biogenic_and_fossil_co2_apart():
 def test_every_heat_stream_reaches_the_lci():
     with (PROCESS / "lca" / "inventory.csv").open(encoding="utf-8") as fh:
         rows = {r["key"]: r for r in csv.DictReader(fh)}
-    assert set(rows["feed:LPS"]["streams"].split()) == {"Q1", "Q1B", "Q2"}
+    assert set(rows["feed:MPS"]["streams"].split()) == {"Q1", "Q1B", "Q2"}
     assert set(rows["feed:POWER"]["streams"].split()) == {"Q3", "Q4", "Q5", "Q6"}
-    assert set(rows["product:CW"]["streams"].split()) == {"Q7", "Q8"}
+    assert set(rows["product:CW"]["streams"].split()) == {"Q7", "Q8", "Q11"}
 
 
 def test_published_public_with_cc_by_and_registry_slugs():

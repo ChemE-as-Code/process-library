@@ -5,9 +5,11 @@
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the dry
 # mill with its amount per kg of anhydrous ethanol, from the flowsheet's year averages. Linked
 # where the library has a producer or a shared entry (lca/mappings.yaml): the natural gas, the
-# LP steam as heat, the power, the cooling water. The corn and the scrubber's make-up water stay
-# gaps: no library process makes them. A gap, never zero, and no values from licensed
-# databases. The carbon of the corn is biogenic: the fermentation CO2 (CO2B) is kept apart from
+# MP steam as heat, the power, the cooling water, the scrubber's make-up water (to the shared
+# deionised water, a conservative proxy), and the caustic, sulfuric acid, lime and urea SRC-1's
+# appendix states (consumables, to their Atlas producers). The corn, the enzymes, the yeast and
+# the trash's disposal stay gaps: no library process makes them. A gap, never zero, and no values
+# from licensed databases. The carbon of the corn is biogenic: the fermentation CO2 (CO2B) is kept apart from
 # the burner's fossil CO2 (CO2) as components, so each elementary flow carries its own origin.
 schema: cheme/lca/v1
 kind: lca
@@ -35,9 +37,9 @@ allocation:
     D-012: the library hierarchy (docs/system-model.md). No physical relationship applies: DDGS
     is an animal feed, not a fuel, so the energy rule for co-produced fuels does not; the WBCSD
     rule then compares the prices per kg. SRC-1 gives DDG at $0.045/lb and says it provides
-    about 20 % of the plant's sales income (p. 19): with the modelled 9066 kg/h of ethanol and
-    8681 kg/h of DDGS, ethanol's price per kg is about 3.8 times the DDGS's, below 5, so the
-    rule gives mass allocation (about 0.51 / 0.49).
+    about 20 % of the plant's sales income (p. 19): with the modelled 8999 kg/h of ethanol and
+    8823 kg/h of DDGS, ethanol's price per kg is about 3.9 times the DDGS's, below 5, so the
+    rule gives mass allocation (about 0.505 / 0.495).
   deviation: >-
     None from the hierarchy. For comparison: economic allocation at SRC-1's income split would
     give 0.80 / 0.20; the EU's Renewable Energy Directive (2018/2001, Annex V) allocates biofuel
@@ -48,11 +50,11 @@ flows:
     missing: "not mapped yet (D-012); no library process makes corn. Connect to: maize grain production (US Midwest or the site's region), per kg at 15 wt% moisture, with the biogenic carbon uptake of the grain (0.37 kg C per kg as fed, from SRC-1's composition as hexosan), field emissions (N2O from fertiliser), land use; the dominant burden of the product"
     source: "flowsheet stream S1 (SRC-1 Table 3, D-002)"
   - key: feed:WATER
-    missing: "not mapped yet (D-012); connect to: process water (well or surface water, filtered) for the CO2 scrubber, per kg; the shared entry `water` is deionised water and would overstate it"
-    source: "flowsheet stream S12: the make-up the zero-discharge water balance needs (D-006)"
+    missing: "linked in the Atlas build to the shared `water` entry (deionised water, lca/mappings.yaml), a conservative proxy: the scrubber needs only process water (well or surface water, filtered), for which the library has no entry yet (D-012)"
+    source: "flowsheet stream S12: the make-up the zero-discharge water balance needs (D-006); SRC-1's appendix states 8910 kg/h of make-up water"
   - key: feed:NG
     missing: "linked as natural gas by mass (lca/mappings.yaml)"
-    source: "flowsheet stream S32 (SRC-1 Table 8, D-009); its combustion emissions are in the foreground (STACK)"
+    source: "flowsheet stream S32 (SRC-1's appendix operating-cost sheet, PDF p. 41, D-009); its combustion emissions are in the foreground (STACK)"
   - key: feed:AIR
     free: true
     source: "combustion air of the dryer's burner: ambient air, a resource taken without burden"
@@ -60,12 +62,12 @@ flows:
   - key: feed:POWER
     missing: "linked to the shared electricity entry (lca/mappings.yaml): grid electricity, medium voltage, of the (undecided) site country"
     source: "flowsheet energy streams Q3 to Q6: SRC-1's 2090 kW by its area shares (p. 24), D-009"
-  - key: feed:LPS
+  - key: feed:MPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q1 and Q2: SRC-1's steam (Table 8) at 450 kPa(a), D-009"
+    source: "flowsheet energy streams Q1, Q1B and Q2: SRC-1's 27 681 kg/h of 150 psi steam (appendix operating-cost sheet, PDF p. 41), condensing at 1135.5 kPa(a), D-009"
   - key: product:CW
     missing: "connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q7 (fermentation) and Q8 (product condenser), D-009"
+    source: "flowsheet energy streams Q7 (fermentation), Q8 (product condenser) and Q11 (the rest of SRC-1's cooling-tower water: evaporator, column and regenerate condensers, mash and beer coolers), D-009"
   # wastes
   - key: product:TRASH
     treatment: {kind: waste, route: "grain-cleaning trash (tramp metal, stones, broken kernels and fines) to landfill or sold with the DDGS; landfilled here (D-008)"}
@@ -97,6 +99,53 @@ flows:
   - {key: emission:NFD, free: true, source: "a component of the vent's template, zero in it (S13)"}
   - {key: emission:GLC, free: true, source: "a component of the vent's template, zero in it (S13)"}
   - {key: emission:GLY, free: true, source: "a component of the vent's template, zero in it (S13)"}
+# The purchased chemicals of SRC-1's appendix operating-cost sheet (PDF p. 41, kg/h on the same
+# 8959 kg/h of pure ethanol and 7920 h/a), counted per year (kg/h x 7920 h). They end in the DDGS
+# (or, the cleaning caustic, are neutralised in the zero-discharge plant), but are not in the
+# flowsheet's balance (L-3), so no disposal exchange is written (D-012).
+consumables:
+  - id: caustic
+    title: Caustic soda for cleaning-in-place and the liquefaction's pH
+    unit: kg
+    per_year: 1164240
+    source: "SRC-1 appendix (PDF p. 41): caustic CIP 147 kg/h x 7920 h; its strength is not stated, counted as 50 wt-% solution as bought (ASSUMED, D-012)"
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt-%"
+  - id: alpha-amylase
+    title: Alpha-amylase (liquefaction enzyme)
+    unit: kg
+    per_year: 158400
+    source: "SRC-1 appendix (PDF p. 41): alpha-amylase 20 kg/h x 7920 h, as the commercial preparation (D-012)"
+    missing: "not mapped yet (D-012): no library process or shared entry makes enzymes; connect to: industrial enzyme production (submerged fermentation, formulated liquid preparation), per kg"
+  - id: gluco-amylase
+    title: Glucoamylase (saccharification enzyme)
+    unit: kg
+    per_year: 229680
+    source: "SRC-1 appendix (PDF p. 41): gluco-amylase 29 kg/h x 7920 h, as the commercial preparation (D-012)"
+    missing: "not mapped yet (D-012): no library process or shared entry makes enzymes; connect to: industrial enzyme production (submerged fermentation, formulated liquid preparation), per kg"
+  - id: sulfuric-acid
+    title: Sulfuric acid for the saccharification's pH
+    unit: kg
+    per_year: 459360
+    source: "SRC-1 appendix (PDF p. 41): sulfuric acid 58 kg/h x 7920 h; its strength is not stated, counted as 98.5 wt-% acid (ASSUMED, D-012)"
+    missing: "linked to processes/sulfuric-acid-1 (lca/mappings.yaml): sulfuric acid 98.5 wt-%"
+  - id: lime
+    title: Lime for the liquefaction's pH
+    unit: kg
+    per_year: 277200
+    source: "SRC-1 appendix (PDF p. 41): lime 35 kg/h x 7920 h; quick or hydrated lime is not stated, counted as quicklime kg for kg (ASSUMED, D-012)"
+    missing: "linked to processes/lime-1 (lca/mappings.yaml): quicklime"
+  - id: urea
+    title: Urea, the yeast's nitrogen source
+    unit: kg
+    per_year: 459360
+    source: "SRC-1 appendix (PDF p. 41): urea 58 kg/h x 7920 h (D-012)"
+    missing: "linked to processes/urea-1 (lca/mappings.yaml): prilled urea"
+  - id: yeast
+    title: Yeast (Saccharomyces cerevisiae), purchased
+    unit: kg
+    per_year: 47520
+    source: "SRC-1 appendix (PDF p. 41): yeast 6 kg/h x 7920 h (D-012)"
+    missing: "not mapped yet (D-012): no library process or shared entry makes yeast; connect to: baker's or distiller's yeast production (molasses fermentation, dried or cream yeast), per kg"
 # Emissions not estimated at this stage: declared, never silently 0 (D-011).
 emission_exclusions:
   - {id: dryer-voc-particulates, method: combustion, equipment: [D-601], exchange: product:STACK, reason: "The DDGS dryer's other VOC (aldehydes, organic acids besides acetic acid), particulates, CO and NOx are not estimated; a real plant passes the exhaust through a thermal oxidiser or a regenerative oxidiser, not modelled (D-011)", source: "DESIGN.md D-011"}
