@@ -1,0 +1,112 @@
+# Reactions of maleic-anhydride-1. Schema: `cheme schema process-reactions`. Heats of reaction
+# from the ideal-gas formation enthalpies of materials.yaml at 298.15 K (vapour basis).
+#
+# R201, the fixed-bed VPO reactor (DESIGN.md D-004): a conversion model, not kinetics. Every
+# reaction converts its share of the n-butane at the reactor inlet in parallel (core's
+# conversion step), so each reaction's conversion is the overall conversion times its molar
+# selectivity: X = 0.81 (SRC-1, US 7 589 217 B2, the pilot's 80 to 82 % target) and the
+# selectivities MA 0.695 (SRC-1, Example 3 in air without added CO), acetic acid 0.015 and
+# acrylic acid 0.010 (ASSUMED: SRC-2 and SRC-3 name both acids as by-products but give no
+# selectivity), the rest to carbon oxides, CO : CO2 = 0.62 : 0.38 on carbon (SRC-5, the CO and
+# CO2 selectivities of an industrial VPO catalyst at 673 K, 18.1 and 11.1 %).
+#
+# R501, the thermal oxidiser (D-009): the absorber's off-gas and the liquid wastes burnt; the
+# destruction efficiencies are ASSUMED.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: MAF
+    title: n-Butane to maleic anhydride
+    equation: C4H10 + 3.5 O2 -> C4H2O3 + 4 H2O
+    stoichiometry: {NC4: -1.0, O2: -3.5, MA: 1.0, H2O: 4.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: NC4, value: 0.56295, provenance: given, source: "SRC-1 (US 7 589 217 B2): conversion 0.81 (the pilot's target 80 to 82 %) x selectivity 0.695 (Example 3, 20.9 % O2, no CO added, salt 402 C), D-004"}
+    heat_of_reaction: {value: -1239738.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: VPO
+    sources: ["US 7 589 217 B2 (SD Lizenzverwertungs, 2009), description and Examples 1 to 5, Google Patents"]
+  - id: COF
+    title: n-Butane to carbon monoxide
+    equation: C4H10 + 4.5 O2 -> 4 CO + 5 H2O
+    stoichiometry: {NC4: -1.0, O2: -4.5, CO: 4.0, H2O: 5.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: NC4, value: 0.14094, provenance: assumed, source: "0.81 x 0.174: the 0.280 of the converted butane not to MA or the acids, 0.62 of it on carbon to CO after SRC-5's CO and CO2 selectivities (18.1 and 11.1 %), ASSUMED for this catalyst (D-004)"}
+    heat_of_reaction: {value: -1525360.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: VPO
+  - id: CO2F
+    title: n-Butane to carbon dioxide
+    equation: C4H10 + 6.5 O2 -> 4 CO2 + 5 H2O
+    stoichiometry: {NC4: -1.0, O2: -6.5, CO2: 4.0, H2O: 5.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: NC4, value: 0.08586, provenance: assumed, source: "0.81 x 0.106, the CO2 share of the carbon oxides after SRC-5, ASSUMED for this catalyst (D-004)"}
+    heat_of_reaction: {value: -2657156.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: VPO
+  - id: AAF
+    title: n-Butane to acetic acid
+    equation: C4H10 + 2.5 O2 -> 2 C2H4O2 + H2O
+    stoichiometry: {NC4: -1.0, O2: -2.5, AA: 2.0, H2O: 1.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: NC4, value: 0.01215, provenance: assumed, source: "0.81 x 0.015, ASSUMED selectivity: SRC-2 and SRC-3 name acetic acid as a by-product without a selectivity (D-004)"}
+    heat_of_reaction: {value: -980372.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: VPO
+  - id: ACRF
+    title: n-Butane to acrylic acid
+    equation: C4H10 + 3.5 O2 -> C3H4O2 + CO2 + 3 H2O
+    stoichiometry: {NC4: -1.0, O2: -3.5, ACR: 1.0, CO2: 1.0, H2O: 3.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: NC4, value: 0.0081, provenance: assumed, source: "0.81 x 0.010, ASSUMED selectivity: SRC-2 and SRC-3 name acrylic acid as a by-product without a selectivity (D-004)"}
+    heat_of_reaction: {value: -1323673.2, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+    catalyst: VPO
+  # Thermal oxidiser R501 (D-009)
+  - id: NC4_OX
+    title: n-Butane burnt in the thermal oxidiser
+    equation: C4H10 + 6.5 O2 -> 4 CO2 + 5 H2O
+    stoichiometry: {NC4: -1.0, O2: -6.5, CO2: 4.0, H2O: 5.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: NC4, value: 0.999, provenance: assumed, source: "destruction efficiency of the thermal oxidiser, ASSUMED (D-009)"}
+    heat_of_reaction: {value: -2657156.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: CO_OX
+    title: Carbon monoxide burnt
+    equation: CO + 0.5 O2 -> CO2
+    stoichiometry: {CO: -1.0, O2: -0.5, CO2: 1.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: CO, value: 0.998, provenance: assumed, source: "CO burn-out of the thermal oxidiser, ASSUMED (D-009)"}
+    heat_of_reaction: {value: -282949.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: MA_OX
+    title: Maleic anhydride burnt
+    equation: C4H2O3 + 3 O2 -> 4 CO2 + H2O
+    stoichiometry: {MA: -1.0, O2: -3.0, CO2: 4.0, H2O: 1.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: MA, value: 0.9999, provenance: assumed, source: "destruction efficiency of the thermal oxidiser, ASSUMED (D-009)"}
+    heat_of_reaction: {value: -1417418.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: AA_OX
+    title: Acetic acid burnt
+    equation: C2H4O2 + 2 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {AA: -1.0, O2: -2.0, CO2: 2.0, H2O: 2.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: AA, value: 0.9999, provenance: assumed, source: "destruction efficiency of the thermal oxidiser, ASSUMED (D-009)"}
+    heat_of_reaction: {value: -838392.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: ACR_OX
+    title: Acrylic acid burnt
+    equation: C3H4O2 + 3 O2 -> 3 CO2 + 2 H2O
+    stoichiometry: {ACR: -1.0, O2: -3.0, CO2: 3.0, H2O: 2.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: ACR, value: 0.9999, provenance: assumed, source: "destruction efficiency of the thermal oxidiser, ASSUMED (D-009)"}
+    heat_of_reaction: {value: -1333482.8, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}
+  - id: DBP_OX
+    title: Dibutyl phthalate burnt
+    equation: C16H22O4 + 19.5 O2 -> 16 CO2 + 11 H2O
+    stoichiometry: {DBP: -1.0, O2: -19.5, CO2: 16.0, H2O: 11.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: DBP, value: 0.9999, provenance: assumed, source: "destruction efficiency of the thermal oxidiser, ASSUMED (D-009)"}
+    heat_of_reaction: {value: -8204726.0, provenance: given, source: "ideal-gas formation enthalpies of materials.yaml, 298.15 K"}

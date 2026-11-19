@@ -1,0 +1,103 @@
+# Goal and scope of the maleic-anhydride-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the plant per
+# kg of maleic anhydride from the balanced flowsheet. The backgrounds are left unmapped
+# (`missing:` with the activity each should connect to), except where lca/mappings.yaml links a
+# shared entry: a gap, never zero, and no values from licensed databases. n-Butane and dibutyl
+# phthalate have no library producer.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of maleic anhydride made by selective oxidation
+  of n-butane in air over a VPO catalyst in a molten-salt cooled fixed-bed reactor, recovered by
+  absorption in dibutyl phthalate and purified by vacuum distillation, the off-gas burnt in a
+  thermal oxidiser with heat recovery, at the concept stage: which raw materials, utilities and
+  emissions the plant exchanges per kg of maleic anhydride, as the foreground for a later
+  cradle-to-gate study. No impact results are claimed while the backgrounds stay unmapped
+  (D-012).
+functional_unit: {product: MAP, amount: 1, unit: kg, source: "1 kg of molten maleic anhydride (modelled 99.99 wt%, specification at least 99.5 wt%) at the plant gate to storage, stream S18 (D-002, D-008)"}
+# cradle-to-gate keeps the purchased inputs open gaps instead of mapping them free (the schema's
+# gate-to-gate maps every feed free), as oxalyl-chloride-1 and acetyl-chloride-1 do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "n-Butane (1.8 mol% in humid air, 239 kPa(a)) over a VPO catalyst in a multitubular fixed-bed reactor with molten salt at 675 K, 81 % conversion and 69.5 % molar selectivity (US 7 589 217 B2); HP steam raised from the salt, the reactor gas and the thermal oxidiser; the anhydride absorbed in dibutyl phthalate (99.4 %), stripped under vacuum and distilled under vacuum (US 4 118 403 A); 25 kt/a in 8000 h"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  method: shares
+  coproducts: [MAP, HPS]
+  shares: {MAP: 1.0, HPS: 0.0}
+  source: >-
+    D-012: the exported HP steam (4500 kPa(a)) is the only co-product. All burdens are given to
+    the maleic anhydride; the steam leaves without a burden and without a credit (conservative
+    for the anhydride), as nitric-acid-1 and sulfuric-acid-1 do.
+  deviation: >-
+    The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md).
+    Energy allocation on the anhydride's heating value against the steam's heat, or a credit
+    for the avoided boiler steam (system expansion), would lower the anhydride's burden markedly:
+    the plant exports about 7.4 kWh of net HP steam per kg (8.46 raised less 1.07 drawn back for
+    the reboilers). Shares 1/0 are the conservative choice until the receiving site and its
+    steam are known.
+flows:
+  - {key: feed:AIRF, free: true, source: "ambient air (oxidant and the water it carries): a resource taken from nature without burden, stream S3"}
+  - key: feed:BUTF
+    missing: "not mapped yet (D-012): no library process makes n-butane. Connect to: n-butane from natural-gas liquids fractionation or refinery LPG (a debutaniser/deisobutaniser cut), per kg; processes/natural-gas-processing-1 recovers NGL without exporting a butane cut"
+    source: "flowsheet stream S1, 1.068 kg/kg (D-003)"
+  - key: feed:SOLF
+    missing: "not mapped yet (D-012): no library process makes dibutyl phthalate. Connect to: dibutyl phthalate by esterification of phthalic anhydride with n-butanol, per kg; 5.5 g/kg"
+    source: "flowsheet stream S15, the solvent make-up (D-007)"
+  - key: feed:POWER
+    missing: "not mapped yet (D-012): connect to grid electricity, medium voltage, of the (undecided) site country"
+    source: "flowsheet energy streams P1 (air compressor, 3035 kW), P2, P3 (pumps and vacuum pumps) and P4 (oxidiser fan), 1.067 kWh/kg (D-010)"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: LP steam 450 kPa(a) from the site steam system, per kWh of heat"
+    source: "flowsheet energy stream Q1, the butane vaporiser (D-010)"
+  - key: feed:HPSI
+    missing: "linked as heat from steam (lca/mappings.yaml): HP steam drawn back from the site header for the reboilers; in practice part of the steam the plant raises (D-010, D-012)"
+    source: "flowsheet energy streams Q4 (stripper reboiler) and Q7 (column reboiler), 1.072 kWh/kg (D-010)"
+  - key: product:CW
+    missing: "not mapped yet (D-012): connect to heat rejected to a recirculating cooling-water system (processes/utility-cooling-tower), per kWh"
+    source: "flowsheet energy streams Q5, Q6 and Q8, 1.190 kWh/kg (D-010)"
+  - {key: product:STACK, emission: true, source: "thermal oxidiser flue gas to the stack, stream S22 (D-009)"}
+  - {key: emission:N2, free: true, source: "atmospheric nitrogen returned"}
+  - {key: emission:O2, free: true, source: "atmospheric oxygen not consumed, returned"}
+  - {key: emission:AR, free: true, source: "atmospheric argon returned"}
+  - {key: emission:H2O, free: true, source: "water vapour: air humidity and water formed in the reactor and the oxidiser"}
+  - {key: emission:CO2, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "CO2 formed in the reactor and the oxidiser from the fossil butane and solvent, 1.451 kg/kg (D-009)"}
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "CO slip of the oxidiser, 0.2 % of its CO, ASSUMED (D-009)"}
+  - {key: emission:NC4, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "butane slip of the oxidiser, 0.1 %, ASSUMED (D-009)"}
+  - {key: emission:MA, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "maleic anhydride slip of the oxidiser, 0.01 %, ASSUMED (D-009)"}
+  - {key: emission:AA, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "acetic acid slip of the oxidiser, 0.01 %, ASSUMED (D-009)"}
+  - {key: emission:ACR, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "acrylic acid slip of the oxidiser, 0.01 %, ASSUMED (D-009)"}
+  - {key: emission:DBP, elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}, source: "dibutyl phthalate slip of the oxidiser, 0.01 %, ASSUMED (D-009)"}
+consumables:
+  - id: vpo-catalyst
+    title: VPO catalyst of R-201
+    unit: t
+    per_year: 8.8
+    catalyst: true
+    source: "about 39 m3 of catalyst (D-005) at an ASSUMED bulk density of 0.9 t/m3, replaced every 4 years (ASSUMED; no open catalyst life read), 35 t / 4 a"
+    missing: "not mapped yet (D-012): connect to the production of a vanadium phosphorus oxide catalyst (vanadium pentoxide, phosphoric acid, an alcohol medium, calcination), per kg; no open dataset known"
+    disposal: {kind: recyclable, route: "spent catalyst to vanadium recovery (ASSUMED)", missing: "no background chosen for vanadium catalyst reclaiming", source: "D-012, ASSUMED"}
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: nox, method: combustion, equipment: [F-501], reason: "The thermal oxidiser's NOx (thermal NOx at its temperature, no fuel nitrogen) is not estimated: no open factor for a butane-oxidation off-gas oxidiser was read (D-009, open input)."}
+  - {id: fugitives, method: equipment-leaks, reason: "No P&ID yet: the butane, MA and solvent leaks are not counted (D-009); to be estimated with the equipment-leaks method at basic engineering."}
+  - {id: storage-breathing, method: storage-tank, reason: "The butane storage (pressurised), the molten MA and the solvent tanks' breathing are outside the balance; the MA tank is vented to the oxidiser (D-009)."}
+  - {id: wastewater, method: effluent, reason: "No aqueous effluent in normal operation: the water formed leaves with the off-gas and the lights to the oxidiser (D-007, D-009); boiler blowdown belongs to the steam system."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic petrochemical site with an n-butane supply and an HP steam header, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #478, unreviewed"

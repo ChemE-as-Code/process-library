@@ -1,0 +1,105 @@
+# Process Atlas manifest of maleic-anhydride-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: maleic-anhydride-1
+title: Maleic anhydride by n-butane oxidation over VPO in a molten-salt cooled fixed bed, solvent absorption (25 kt/a)
+summary: >-
+  n-Butane oxidised in air over a vanadium phosphorus oxide catalyst in a multitubular fixed-bed
+  reactor whose molten salt raises HP steam, the anhydride absorbed in dibutyl phthalate, stripped
+  and distilled under vacuum, the off-gas burnt with heat recovery. Concept stage, 25 kt/a,
+  balanced flowsheet with the feeds solved for the rate, preliminary gate-to-gate LCI.
+description: |
+  Liquid n-butane is vaporised and mixed with compressed humid air to 1.8 mol% butane and 1.7
+  mol% water at 239 kPa(a), the feed of the pilot reactor of US 7 589 217 B2 (Scientific Design).
+  The feed passes through about 24 000 tubes of VPO catalyst cooled by a nitrate-nitrite salt at
+  675 K: 81 % of the butane converts, 69.5 % of it to maleic anhydride
+  (C4H10 + 3.5 O2 -> C4H2O3 + 4 H2O), the rest to CO, CO2, acetic and acrylic acid. The salt
+  raises 10.5 MW of HP steam (4500 kPa(a)); the reactor gas is cooled to 423 K in a second steam
+  generator (7.5 MW) and enters an absorber where lean dibutyl phthalate, 4.8 kg per kg of
+  anhydride in the gas, takes up 99.4 % of it (US 4 118 403 A, Monsanto). The rich solvent is
+  stripped under vacuum: the crude anhydride as a side draw, water and the acids to the vacuum
+  system, the lean solvent at 519 K back through a cooler, 0.1 % of it purged and made up. The
+  crude is distilled under vacuum to the product. The off-gas (about 0.7 t/h of unconverted
+  butane and 0.9 t/h of CO) and the plant's liquid wastes are burnt in a thermal oxidiser whose
+  waste-heat boiler raises another 8.4 MW.
+
+  Per kg of anhydride: 1.068 kg butane (55.5 mol% overall yield; SRC-3's once-through example
+  1.061), 1.07 kWh of electricity (0.97 for the air compressor), 8.46 kWh of HP steam raised and
+  1.07 drawn back for the reboilers, 1.45 kg of fossil CO2 to the stack, 5.5 g of solvent. The
+  1.8 mol% butane feed lies above butane's lower flammable limit (1.4 vol%): the feed train and
+  the reactor heads are the main hazard (DESIGN.md D-011).
+
+  The flowsheet is solved by cheme-as-code: the conversion reactor and the oxidiser as conversion
+  steps with their duties (core ADR 0059), the absorber, the stripper and the column as component
+  separators with sourced or ASSUMED splits, the feeds solved for 25 000 t/a and the solvent
+  make-up for the circulation ratio by design specifications, the solvent loop torn and converged
+  (core ADRs 0060, 0070). The other duties and powers come from a balance script (thermo 0.6.1
+  liquid data). See DESIGN.md for every assumption.
+families: [oxygenates]
+keywords: [maleic anhydride, n-butane, butane oxidation, selective oxidation, vanadium phosphorus oxide, VPO, fixed bed, multitubular reactor, molten salt, steam generation, absorption, dibutyl phthalate, solvent recovery, vacuum stripping, vacuum distillation, thermal oxidiser, unsaturated polyester resins]
+facets:
+  feedstock_basis: [fossil, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, compression, absorption, separation, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, by-product selectivities,
+# the stripper's and the column's splits and the oxidiser's destruction are assumed; conversion,
+# selectivity, feed and the absorber's conditions from patents (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: 5 blocks and 13 steps within tolerance). cheme process propagate solves the
+    reactor R201 and the oxidiser R501 as conversion steps and writes their duties Q2 and Q9
+    from the heats of reaction and ideal-gas data (core ADR 0059), the absorber A301, the
+    stripper T302 and the column C401 as component separators (core ADR 0070), the feeds for
+    25 000 t/a and the solvent make-up for 4.8 kg of lean solvent per kg of MA in the gas
+    (design specifications), and the solvent loop at the tear S17 (ADR 0060).
+    scripts/balance.py gives the air ratio, the compressor, the mixing temperatures and the
+    other duties and powers (no property package of core covers these liquids) and cross-checks
+    R201's duty (10 547.6 kW, equal to core's). Conversion 0.81 and selectivity 0.695 from US
+    7 589 217 B2; the absorber's conditions and splits from US 4 118 403 A; by-product
+    selectivities, the stripper's and column's other splits, the oxidiser's destruction
+    efficiencies and the efficiencies of machines ASSUMED. Preliminary gate-to-gate LCI with
+    all burdens on the anhydride (the exported steam at share 0); butane, solvent and
+    electricity are gaps, the steam drawn linked as heat. cheme maturity not evaluated; the
+    claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
+    reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: n-butane, role: feedstock, inventory_key: "feed:BUTF", note: "n-Butane, liquefied (no library process), 1.068 kg/kg maleic anhydride"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIRF", note: "Ambient humid air, 28.8 kg/kg, oxidant (free)"}
+    - {chemical: dibutyl-phthalate, role: feedstock, inventory_key: "feed:SOLF", note: "Absorption solvent make-up (no library process), 5.5 g/kg"}
+  outputs:
+    - {chemical: maleic-anhydride, role: main-product, inventory_key: "product:MAP", note: "Molten maleic anhydride, modelled 99.99 wt% (specification at least 99.5 wt%, ASSUMED), to storage"}
+    - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4500 kPa(a), 8.46 kWh/kg raised (salt cooler, gas cooler, oxidiser's waste-heat boiler); allocation share 0 (DESIGN.md D-012)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "product:STACK", note: "1.451 kg/kg fossil CO2 in the flue gas to the stack from the reactor's and the oxidiser's combustion"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.067 kWh/kg: air compressor 0.971, oxidiser fan 0.079, pumps and vacuum pumps"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPSI", note: "1.072 kWh/kg of HP steam to the stripper and column reboilers (drawn back from the header the plant feeds)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.124 kWh/kg of LP steam to the butane vaporiser"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.190 kWh/kg removed: stripper condenser, lean solvent cooler, column condenser"}
+basis:
+  capacity: "25 000 t/a maleic anhydride in 8000 h (3125 kg/h), ASSUMED (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic petrochemical site with an n-butane supply and an HP steam header (not chosen)
+references:
+  - {title: "Padia, A. S.; Sachs, H.; Millman, M. (SD Lizenzverwertungs GmbH, filed 2006, granted 2009) US 7 589 217 B2: Yield improvement in the production of maleic anhydride (VPO fixed bed, 1.8 vol% butane and 1.7 vol% water in the pilot feed, 20 psig, GHSV 1850, salt 395 to 402 C, conversion 80 to 82 %, Example 3 selectivity 69.5 mol% in air)", url: "https://patents.google.com/patent/US7589217B2/en"}
+  - {title: "White, J. E. (Monsanto, filed 1976, granted 1978) US 4 118 403 A: Recovery of maleic anhydride (absorption in dibutyl phthalate, absorber and vacuum stripper conditions, 98.5 to 99 % recovery)", url: "https://patents.google.com/patent/US4118403A/en"}
+  - {title: "Ruggieri, R.; Cassarino, S. (SISAS, priority 1994, granted 1997) US 5 688 970 A: Process to recycle exhaust gases from n-butane conversion into maleic anhydride (once-through example: feeds, compression power, conversion and selectivity)", url: "https://patents.google.com/patent/US5688970A/en"}
+  - {title: "Zhang, X.; Wang, H.; Gou, L.; Li, L.; Duan, A.; Cao, Z. (2021) Reaction behaviors and crystal transformation of industrial VPO catalysts for n-butane oxidation, ACS Omega 6, 23558-23563 (CC BY-NC-ND 4.0; CO and CO2 selectivities, facts only)", doi: 10.1021/acsomega.1c03652}
+  - {title: "NIST Chemistry WebBook, SRD 69: maleic anhydride (C108316): solid formation enthalpy, sublimation and vaporization enthalpies, gas heat capacities, melting point", url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C108316"}
+  - {title: "Wikipedia, Maleic anhydride (routes, the butane reaction's heat, hazards)", url: "https://en.wikipedia.org/wiki/Maleic_anhydride"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/maleic-anhydride-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
