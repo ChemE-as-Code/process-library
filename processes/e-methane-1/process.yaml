@@ -1,0 +1,103 @@
+# Process Atlas manifest of e-methane-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: e-methane-1
+title: e-Methane (synthetic natural gas) by two-stage catalytic CO2 methanation of electrolytic hydrogen (290 t/a)
+summary: >-
+  Power-to-gas after the STORE&GO Falkenhagen demonstration: electrolytic hydrogen and pipeline
+  CO2 (4:1) react on nickel in an oil-cooled honeycomb reactor (92 %) and a polishing bed to
+  equilibrium; the gas is dried and injected into the grid. Concept stage, 50.8 Nm3/h SNG of
+  99.06 mol% methane, preliminary LCI with the hydrogen an open gap.
+description: |
+  9.0045 kmol/h (200 Nm3/h) of dry hydrogen from an electrolysis plant, compressed in two
+  intercooled stages from 120 to 1530 kPa(a), and 2.2511 kmol/h of CO2 (H2/CO2 = 4), let down
+  from carbon-capture-1's dense-phase pipeline at 15.3 MPa with a thermal-oil heater, are mixed,
+  preheated to 523 K against the effluent and fed to an oil-cooled honeycomb reactor at about
+  623 K, where 92 % of the CO2 is converted to methane: the measured and simulated value of the
+  STORE&GO demonstration at Falkenhagen (D5.9, DVGW 2020, Table 4-1) at its 95 % load point,
+  which is the design point. The effluent is cooled to 283 K and 74.6 kg/h of reaction water
+  is knocked out; an electric preheater brings the gas to 513 K for an oil-cooled fixed-bed
+  polishing reactor, where the remaining CO2 reaches its ideal-gas equilibrium (97.6 %
+  converted; 99.81 % of the hydrogen overall). After a second cooling and knock-out the gas is
+  dried in two adsorbers and compressed to 5.0 MPa(a) for a transport grid: 36.27 kg/h, 50.84
+  Nm3/h of SNG with 99.06 mol% CH4, 0.75 mol% H2 and 0.19 mol% CO2 (D5.9 measured 99 vol-% CH4;
+  the grid takes below 2 vol-% each of H2 and CO2), 556 kW on HHV, 290 t/a in 8000 h. The
+  methanation efficiency (HHV) is 77.7 %, against 77.5 % measured and 78.0 % in the source's
+  ASPEN model; the electricity 0.91 kWh per Nm3 of SNG (the source's measured 41 kW for the
+  methanation unit and 0.1 kWh/Nm3 for injection); the reactors give 101.6 kW to the oil, of
+  which 94.8 kW at about 180-200 C would be usable (1.86 kWh/Nm3; 86 kW, 1.7 kWh/Nm3 used at
+  Falkenhagen) but go to an air cooler at this generic site. The plant is modelled with
+  cheme-as-code's conversion reactors (the honeycomb at the measured conversion, the polishing
+  bed at the equilibrium conversion the balance script solves from the same data, checked by
+  `cheme process reactors`: ln(Q/K) 0.04), component separators for the knock-outs (IAPWS-95
+  saturation) and the dryer, mixers and pass-through steps (DESIGN.md D-004, D-005, L-1, L-2).
+  The screening carbon footprint of the plant's own electricity is 0.23 kg CO2-eq per kg of SNG
+  (UK grid factor as a proxy); the electrolytic hydrogen, about 31 kWh of electrolyser power per
+  kg of SNG at the demonstration's efficiency, is an open gap, so the result is far from a
+  complete footprint. The CO2 links to carbon-capture-1 in the Atlas build; its carbon is
+  fossil. See DESIGN.md for every assumption.
+families: [synthetic-fuels]
+keywords: [e-methane, synthetic natural gas, SNG, power-to-gas, PtG, CO2 methanation, Sabatier reaction, nickel catalyst, honeycomb reactor, polishing reactor, electrolytic hydrogen, carbon capture and utilisation, CCU, e-fuel, STORE&GO, Falkenhagen, grid injection]
+facets:
+  feedstock_basis: [electricity, water, fossil]
+  product_classes: [fuels]
+  unit_operations: [compression, reaction, heat-exchange, condensation, adsorption]
+  region: EU
+# Honest claim: concept is the lowest level of the manifest. The design point, the first
+# stage's conversion and the electricity are the demonstration's measured values; the rest is
+# ideal-gas thermodynamics with ASSUMED temperatures, pressures and efficiencies (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass and element balances (cheme validate, cheme process streams: 4
+    blocks and 15 steps within tolerance). Calculated by cheme process propagate: the mixers,
+    the honeycomb reactor R101 (conversion reactor, 92 % of the CO2, STORE&GO D5.9 Table 4-1)
+    and the polishing reactor R102 (conversion reactor at the ideal-gas equilibrium conversion
+    of the Sabatier and reverse water-gas shift reactions at 513.15 K and 1400 kPa(a), 97.62 %,
+    from scripts/balance.py), both reactors' heat to the thermal oil (Q3 93.03 kW, Q5 8.55 kW,
+    equal to the script's), the knock-outs V101 and V102 and the dryer A201 (component
+    separators). cheme process reactors: ln(Q/K) -4.61 at R101's outlet (short of
+    equilibrium, as measured) and 0.041 at R102's (the 0.7 ppm CO the flowsheet does not
+    carry). scripts/balance.py gives the feeds, the water saturation (IAPWS-95), the exchanger,
+    cooler and heater duties (ideal gas), the CO2 let-down heat (Span-Wagner, CoolProp), the
+    compressor power and the rest of the measured 41 kW, and reproduces the source's SNG
+    output (555.8 against 549 kW measured and 557 kW ASPEN, HHV), methanation efficiency
+    (77.7 against 77.5 and 78.0 %), methane content (99.06 against 99 vol-%) and electricity
+    (0.81 against 0.8 kWh/Nm3). Not modelled: kinetics and hot spots, carbon deposition,
+    start-up and part load, gases dissolved in the condensate, the dryers' regeneration.
+    Preliminary gate-to-gate LCI: the hydrogen an open gap, the CO2 linked to carbon-capture-1
+    in the Atlas build, electricity linked to the shared entry; screening carbon footprint
+    0.23 kg CO2-eq/kg from the plant's electricity only. cheme maturity reaches no level
+    (assumed feeds and separations); the claim `maturity: concept` is the lowest value of the
+    schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: hydrogen, role: feedstock, note: "feed:H2: dry electrolytic hydrogen, 0.5005 kg/kg SNG (200 Nm3/h) at 120 kPa(a); supplier not chosen, an open gap: no library electrolysis entry (hydrogen-1 is SMR), lca/mappings.yaml"}
+    - {chemical: carbon-dioxide/dense-153bara-99.95, role: feedstock, inventory_key: "feed:CO2", note: "Dense-phase CO2, 99.95 mol% with 500 ppm water, 15.3 MPa, from carbon-capture-1 (linked in lca/mappings.yaml), 2.732 kg/kg SNG; fossil carbon (an ammonia plant's stripper vent)"}
+  outputs:
+    - {chemical: methane/synthetic-natural-gas, role: main-product, inventory_key: "product:SNG", note: "Synthetic natural gas, 99.06 mol% CH4, 0.75 mol% H2, 0.19 mol% CO2, dry, 5000 kPa(a), to the transport grid; 36.27 kg/h, 50.84 Nm3/h, 0.9939 kg CH4 and 49.8 MJ LHV per kg"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:COND", note: "Process condensate (the reaction water), 2.233 kg/kg SNG, to treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "1.270 kWh/kg SNG: the methanation unit's 41 kW measured by STORE&GO D5.9 (Table 4-1; hydrogen compressor 27.7 kW, electric preheater 7.2 kW, chiller, pumps and fans 6.1 kW) and the injection compressor at 0.1 kWh/Nm3 (Table 4-2)"}
+basis:
+  capacity: "200 Nm3/h hydrogen (9.0045 kmol/h) and 50 Nm3/h CO2, 36.27 kg/h (50.84 Nm3/h) SNG, 290 t/a in 8000 h: the Falkenhagen methanation unit at its 95 % load point (STORE&GO D5.9 Table 4-1), DESIGN.md D-002"
+  operating_hours_per_year: 8000
+  location: generic site in Germany at a transport gas grid and a dense-phase CO2 pipeline, next to an electrolysis plant (not chosen)
+references:
+  - {title: "Moers, F.; Schlautmann, R.; Gorre, J.; Leonhard, R. (2020) STORE&GO Deliverable D5.9: Final report on evaluation of technologies and processes, DVGW, EU Horizon 2020 grant 691797, public (section 2.1 the Falkenhagen plant; section 3.1 system boundaries and injection limits; section 4.1 and Table 4-1 measured and ASPEN performance indicators at 200 Nm3/h H2; section 4.1.1 start-up and flaring; section 4.1.2 and Table 4-2 energy demand per m3 SNG; appendix 8.4 the ASPEN model's assumptions: stoichiometric feed, 350 C honeycomb, 240 C fixed bed, electric preheating)", url: "https://www.storeandgo.info/fileadmin/downloads/deliverables_2020/20200713-STOREandGO_D5.9_DVGW_Final_report_on_evaluation_of_technologies_and_processes.pdf"}
+  - {title: "van Leeuwen, C.; Zauner, A. (2018) STORE&GO Deliverable D8.3: Report on the costs involved with PtG technologies and their potentials across the EU, University of Groningen, public (section on methanation: reactions R1 to R3, nickel catalysts and their sulfur sensitivity, 200-550 C; the Falkenhagen reactors; compressors and the 48 bar grid; the 30 m3 liquid CO2 tank at 16-20 bar and -24 C)", url: "https://www.storeandgo.info/fileadmin/downloads/deliverables_2020/Update/20180424_STOREandGO_D8.3_RUG_accepted.pdf"}
+  - {title: "Wagner, W.; Pruss, A. (2002) The IAPWS formulation 1995 for the thermodynamic properties of ordinary water substance, J. Phys. Chem. Ref. Data 31, 387 (vapour pressure and heat of vaporisation of water, as implemented in the chemicals package 1.5.2)", doi: 10.1063/1.1461829}
+  - {title: "Span, R.; Wagner, W. (1996) A new equation of state for carbon dioxide covering the fluid region from the triple-point temperature to 1100 K at pressures up to 800 MPa, J. Phys. Chem. Ref. Data 25, 1509 (CO2 enthalpies of the let-down, as implemented in CoolProp 8.0.0)", doi: 10.1063/1.555991}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/e-methane-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

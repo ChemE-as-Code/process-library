@@ -1,0 +1,463 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# e-Methane (synthetic natural gas) by two-stage catalytic CO2 methanation on nickel, after the
+# STORE&GO demonstration at Falkenhagen (STORE&GO D5.9, DVGW 2020): electrolytic hydrogen
+# compressed to 1.5 MPa, CO2 let down from a dense-phase pipeline (carbon-capture-1), a cooled
+# honeycomb reactor (92 % conversion), cooling and knock-out at 10 C, an isothermal polishing
+# reactor, cooling and knock-out again, adsorption drying and compression into a transport grid
+# (DESIGN.md D-001 to D-010).
+# Where the values come from:
+# - the feeds, the compressor, cooler, heater and polishing-reactor duties, the electricity and
+#   the knock-outs' water split come from scripts/balance.py (D-002 to D-008), given as
+#   `assumed` with the script's path; its inputs are sourced (STORE&GO D5.9; carbon-capture-1)
+#   or ASSUMED;
+# - the mixers, the pass-through steps, the honeycomb reactor R101 (conversion reactor, 92 % of
+#   the CO2), the polishing reactor R102 (conversion reactor at the script's ideal-gas
+#   equilibrium conversion at 513.15 K and 1400 kPa(a), checked by `cheme process reactors`),
+#   the knock-outs and the dryer (component separators with the script's recoveries) are
+#   calculated by `cheme process propagate --fill`, which also writes both reactors' heat to
+#   the thermal oil (Q3, Q5);
+# - temperatures and pressures are the source's (D5.9 sections 2.1 and 8.4) or design choices
+#   (ASSUMED, D-004 to D-008).
+schema: cheme/process/v1
+kind: flowsheet
+title: e-Methane by two-stage CO2 methanation of electrolytic hydrogen (200 Nm3/h H2, 50.8 Nm3/h SNG)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+  normal_conditions: {temperature: 273.15, pressure: 101.325, basis: ideal_gas}
+cases:
+  - {id: design, description: "Design case: the Falkenhagen methanation unit at its measured point of 200 Nm3/h hydrogen (95 % load, STORE&GO D5.9 Table 4-1) with stoichiometric CO2, 8000 h/a (D-002)", default: true}
+tolerance: {abs: 0.05, rel: 0.001}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+
+feeds:
+  - {id: H2, title: "Hydrogen from the electrolysis plant (dry, 120 kPa(a))", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CO2, title: "CO2 from the dense-phase pipeline (15.3 MPa, carbon-capture-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (AC, grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: e104, direction: out, kind: energy}
+      - {id: u101, direction: out, kind: energy}
+      - {id: k201, direction: out, kind: energy}
+products:
+  - {id: SNG, title: "Synthetic natural gas, 99 mol% CH4, dry, 5000 kPa(a), to the transport grid", category: product, ports: [{id: in, direction: in}]}
+  - {id: COND, title: Process condensate (reaction water) to treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: AMBIENT
+    title: Heat rejected to air and cooling water (intercoolers, product coolers, thermal oil cooler)
+    category: utility
+    utility: {kind: air_cooling}
+    ports:
+      - {id: k101, direction: in, kind: energy}
+      - {id: v101, direction: in, kind: energy}
+      - {id: v102, direction: in, kind: energy}
+      - {id: oil, direction: in, kind: energy}
+
+blocks:
+  - id: FEED
+    title: Feed conditioning (hydrogen compression, CO2 let-down, mixing)
+    class: Compressing
+    ports:
+      - {id: h2, direction: in}
+      - {id: co2, direction: in}
+      - {id: feed, direction: out}
+      - {id: power, direction: in, kind: energy}
+      - {id: cool, direction: out, kind: energy}
+      - {id: heat, direction: in, kind: energy}
+  - id: METH
+    title: Two-stage methanation (honeycomb reactor, knock-out, polishing reactor, knock-out)
+    class: ReactingChemicals
+    ports:
+      - {id: feed, direction: in}
+      - {id: gas, direction: out}
+      - {id: cond1, direction: out}
+      - {id: cond2, direction: out}
+      - {id: heat1, direction: out, kind: energy}
+      - {id: heat2, direction: out, kind: energy}
+      - {id: cool1, direction: out, kind: energy}
+      - {id: cool2, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: power1, direction: in, kind: energy}
+  - id: OIL
+    title: Thermal oil circuit (reactor cooling, CO2 heater, oil cooler)
+    class: ExchangingThermalEnergy
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: r102, direction: in, kind: energy}
+      - {id: co2, direction: out, kind: energy}
+      - {id: out, direction: out, kind: energy}
+  - id: GAS
+    title: Drying, grid injection and condensate collection
+    class: Separating
+    ports:
+      - {id: gas, direction: in}
+      - {id: sng, direction: out}
+      - {id: cond1, direction: in}
+      - {id: cond2, direction: in}
+      - {id: cond, direction: out}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  # FEED (D-003, D-006)
+  - id: K101
+    block: FEED
+    title: Hydrogen compressor (two stages, intercooled)
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in, delegates: h2}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cool, direction: out, kind: energy, delegates: cool}
+  - id: E100
+    block: FEED
+    title: CO2 let-down heater and pressure control valve
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-100}]
+    ports:
+      - {id: in, direction: in, delegates: co2}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: heat}
+  - id: M101
+    block: FEED
+    title: Feed gas mixing (hydrogen and CO2 at 4:1, ratio control)
+    class: Mixing
+    ports:
+      - {id: h2, direction: in}
+      - {id: co2, direction: in}
+      - {id: out, direction: out, delegates: feed}
+  # METH (D-004, D-005, D-007)
+  - id: E101
+    block: METH
+    title: Feed/effluent exchanger, feed side
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in, delegates: feed}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: R101
+    block: METH
+    title: Honeycomb methanation reactor (catalyst-coated metallic honeycombs in oil-cooled tubes)
+    class: ReactingChemicals
+    reactions: [SAB]
+    reactor: conversion
+    conversion: {SAB: 0.92}   # STORE&GO D5.9 Table 4-1: honeycomb conversion 92 %, measured and ASPEN (D-004)
+    energy_port: heat
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: out, kind: energy, delegates: heat1}
+  - id: E102
+    block: METH
+    title: Feed/effluent exchanger, effluent side
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: out, kind: energy}
+  - id: V101
+    block: METH
+    title: Air cooler, water cooler (10 C) and first knock-out drum
+    class: Separating
+    links: [{target: equipment, ref: E-102}, {target: equipment, ref: E-103}, {target: equipment, ref: V-101}]
+    recovery:
+      outlets:
+        gas: {H2: 1.0, CO2: 1.0, CH4: 1.0, CO: 1.0, H2O: 0.0006209}
+      provenance: assumed
+      source: "scripts/balance.py: the gas saturated with water at 283.15 K and 1420 kPa(a) (IAPWS-95, chemicals 1.5.2), the rest condenses; the gases' solubility in the condensate neglected (D-007, L-4)"
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: cond, direction: out, delegates: cond1}
+      - {id: cool, direction: out, kind: energy, delegates: cool1}
+  - id: E104
+    block: METH
+    title: Electric preheater of the polishing reactor
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy, delegates: power1}
+  - id: R102
+    block: METH
+    title: Polishing reactor (oil-cooled tubular fixed bed, nickel pellets, isothermal)
+    class: ReactingChemicals
+    reactions: [SAB]
+    reactor: conversion
+    conversion: {SAB: 0.976212}   # scripts/balance.py: the ideal-gas equilibrium of SAB and RWGS at 513.15 K and 1400 kPa(a) (D-005)
+    energy_port: heat
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: out, kind: energy, delegates: heat2}
+  - id: V102
+    block: METH
+    title: Product gas coolers (10 C) and second knock-out drum
+    class: Separating
+    links: [{target: equipment, ref: E-105}, {target: equipment, ref: V-102}]
+    recovery:
+      outlets:
+        gas: {H2: 1.0, CO2: 1.0, CH4: 1.0, CO: 1.0, H2O: 0.0057048}
+      provenance: assumed
+      source: "scripts/balance.py: the gas saturated with water at 283.15 K and 1380 kPa(a) (IAPWS-95, chemicals 1.5.2), the rest condenses (D-007, L-4)"
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out, delegates: gas}
+      - {id: cond, direction: out, delegates: cond2}
+      - {id: cool, direction: out, kind: energy, delegates: cool2}
+  - id: U101
+    block: METH
+    title: Balance of plant (10 C chiller, oil and cooling-water pumps, air-cooler fans, instruments)
+    class: ProcessStep
+    ports:
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # OIL (D-009)
+  - id: H301
+    block: OIL
+    title: Thermal oil circuit (pumps, expansion vessel, oil cooler)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: H-301}]
+    ports:
+      - {id: r101, direction: in, kind: energy, delegates: r101}
+      - {id: r102, direction: in, kind: energy, delegates: r102}
+      - {id: co2, direction: out, kind: energy, delegates: co2}
+      - {id: out, direction: out, kind: energy, delegates: out}
+  # GAS (D-008)
+  - id: A201
+    block: GAS
+    title: Adsorption dryers (two vessels, one adsorbing, one regenerating)
+    class: Adsorbing
+    links: [{target: equipment, ref: A-201}]
+    recovery:
+      outlets:
+        out: {H2: 1.0, CO2: 1.0, CH4: 1.0, CO: 1.0, H2O: 0.0}
+      provenance: assumed
+      source: "D-008: the residual water removed to the grid's dew point (a few ppm, not counted); the regeneration gas in a closed loop, its water condensed to the condensate (L-5)"
+    ports:
+      - {id: in, direction: in, delegates: gas}
+      - {id: out, direction: out}
+      - {id: water, direction: out}
+  - id: K201
+    block: GAS
+    title: Grid injection compressor with aftercooler
+    class: Compressing
+    links: [{target: equipment, ref: K-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: sng}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: M102
+    block: GAS
+    title: Condensate collection
+    class: Mixing
+    ports:
+      - {id: c1, direction: in, delegates: cond1}
+      - {id: c2, direction: in, delegates: cond2}
+      - {id: c3, direction: in}
+      - {id: out, direction: out, delegates: cond}
+
+streams:
+  # feeds (scripts/balance.py; D-002, D-003)
+  - {id: S1, title: Hydrogen feed, from: H2.out, to: K101.in, template: process_gas, state: {design: {temperature: {value: 303.15, provenance: assumed, source: D-006}, pressure: {value: 120.0, provenance: assumed, source: "D-006: an atmospheric alkaline electrolyser's outlet"}, flow: {value: 18.152, basis: mass, provenance: assumed, source: "scripts/balance.py: 9.0045 kmol/h, 200 Nm3/h (STORE&GO D5.9 section 4.1, 95 % load)"}, composition: {basis: mole_fraction, values: {H2: 1.0, CO2: 0.0, CH4: 0.0, CO: 0.0, H2O: 0.0}, provenance: assumed, source: "scripts/balance.py: dry hydrogen from the electrolysis plant (D-003)"}}}}
+  - {id: S3, title: CO2 from the pipeline, from: CO2.out, to: E100.in, template: process_gas, state: {design: {temperature: {value: 303.15, provenance: assumed, source: "D-003: carbon-capture-1's product, 15.3 MPa and 30 C"}, pressure: {value: 15300.0, provenance: assumed, source: D-003}, flow: {value: 99.092, basis: mass, provenance: assumed, source: "scripts/balance.py: stoichiometric H2/CO2 of 4 (STORE&GO D5.9 appendix 8.4), 2.2511 kmol/h CO2"}, composition: {basis: mole_fraction, values: {H2: 0.0, CO2: 0.9995, CH4: 0.0, CO: 0.0, H2O: 0.0005}, provenance: assumed, source: "scripts/balance.py: carbon-capture-1's 99.95 mol% CO2 with 500 ppm water (D-003)"}}}}
+  - id: S2
+    title: Compressed hydrogen
+    from: K101.out
+    to: M101.h2
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006: after the aftercooler"}
+        pressure: {value: 1530.0, provenance: assumed, source: D-006}
+        flow: {value: 18.152, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S1', fingerprint: 8384912715760d32}
+        composition: {basis: mole_fraction, values: {H2: 1.0, CO2: 0.0, CH4: 0.0, CO: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K101 from S1', fingerprint: 8384912715760d32}
+  - id: S4
+    title: CO2 let down to the reaction pressure
+    from: E100.out
+    to: M101.co2
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-003: heated before and after the valve, so no dry ice or liquid forms"}
+        pressure: {value: 1530.0, provenance: assumed, source: D-003}
+        flow: {value: 99.092, basis: mass, provenance: calculated, source: 'cheme process propagate: pass-through E100 from S3', fingerprint: 389da846f23fa01a}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CO2: 0.9995, CH4: 0.0, CO: 0.0, H2O: 0.0005}, provenance: calculated, source: 'cheme process propagate: pass-through E100 from S3', fingerprint: 389da846f23fa01a}
+  - id: S5
+    title: Feed gas (H2/CO2 4:1)
+    from: M101.out
+    to: E101.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: D-004}
+        pressure: {value: 1500.0, provenance: assumed, source: "D-004: STORE&GO D5.9 section 2.1, compressed up to 14 bar (read as gauge)"}
+        flow: {value: 117.244, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S4', fingerprint: 942c379ee1bec99a}
+        composition: {basis: mole_fraction, values: {H2: 0.799917, CO2: 0.199983, CH4: 0.0, CO: 0.0, H2O: 0.000100041}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S4', fingerprint: 800c932e86c33804}
+  - id: S6
+    title: Preheated feed to the honeycomb reactor
+    from: E101.out
+    to: R101.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 523.15, provenance: assumed, source: "D-004: the nickel catalyst's light-off, ASSUMED"}
+        pressure: {value: 1490.0, provenance: assumed, source: D-004}
+        flow: {value: 117.244, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: f76c0ed2eaa98fcd}
+        composition: {basis: mole_fraction, values: {H2: 0.799917, CO2: 0.199983, CH4: 0.0, CO: 0.0, H2O: 0.000100041}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S5', fingerprint: f76c0ed2eaa98fcd}
+  - id: S7
+    title: Honeycomb reactor effluent
+    from: R101.out
+    to: E102.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 623.15, provenance: assumed, source: "D-004: about 350 C, isothermal (STORE&GO D5.9 appendix 8.4)"}
+        pressure: {value: 1460.0, provenance: assumed, source: D-004}
+        flow: {value: 117.244, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: 464ff91db9c8c5f2}
+        composition: {basis: mole_fraction, values: {H2: 0.101228, CO2: 0.025313, CH4: 0.2911, CO: 0.0, H2O: 0.582358}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S6', fingerprint: fa30516f171e004e}
+  - id: S8
+    title: Effluent after the feed/effluent exchanger
+    from: E102.out
+    to: V101.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 344.86, provenance: assumed, source: "scripts/balance.py: the effluent's enthalpy less the feed's preheat Q2 (D-007)"}
+        pressure: {value: 1440.0, provenance: assumed, source: D-007}
+        flow: {value: 117.244, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S7', fingerprint: 14498a46d0b153ab}
+        composition: {basis: mole_fraction, values: {H2: 0.101228, CO2: 0.025313, CH4: 0.2911, CO: 0.0, H2O: 0.582358}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S7', fingerprint: 14498a46d0b153ab}
+  - id: S9
+    title: Gas after the first knock-out
+    from: V101.gas
+    to: E104.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: "D-007: water cooler to 10 C (STORE&GO D5.9 section 2.1)"}
+        pressure: {value: 1420.0, provenance: assumed, source: D-007}
+        flow: {value: 42.6481, provenance: calculated, source: 'cheme process propagate: separator V101 from S8', fingerprint: 69144fb4f9f0d437}
+        composition: {basis: mole_fraction, values: {H2: 0.242171, CO2: 0.060557, CH4: 0.696407, CO: 0.0, H2O: 0.000865033}, provenance: calculated, source: 'cheme process propagate: separator V101 from S8', fingerprint: 69144fb4f9f0d437}
+  - id: S10
+    title: Condensate of the first knock-out
+    from: V101.cond
+    to: M102.c1
+    template: water
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: D-007}
+        pressure: {value: 1420.0, provenance: assumed, source: D-007}
+        flow: {value: 74.5959, provenance: calculated, source: 'cheme process propagate: separator V101 from S8', fingerprint: 69144fb4f9f0d437}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CO2: 0.0, CH4: 0.0, CO: 0.0, H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S8', fingerprint: 69144fb4f9f0d437}
+  - id: S11
+    title: Preheated gas to the polishing reactor
+    from: E104.out
+    to: R102.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 513.15, provenance: assumed, source: "D-005: the bed's temperature, about 240 C (STORE&GO D5.9 appendix 8.4)"}
+        pressure: {value: 1410.0, provenance: assumed, source: D-005}
+        flow: {value: 42.6481, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S9', fingerprint: 21fb1173e75c2b0a}
+        composition: {basis: mole_fraction, values: {H2: 0.242171, CO2: 0.060557, CH4: 0.696407, CO: 0.0, H2O: 0.000865033}, provenance: calculated, source: 'cheme process propagate: pass-through E104 from S9', fingerprint: 21fb1173e75c2b0a}
+  - id: S12
+    title: Polishing reactor effluent
+    from: R102.out
+    to: V102.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 513.15, provenance: assumed, source: "D-005: isothermal oil-cooled bed"}
+        pressure: {value: 1400.0, provenance: assumed, source: D-005}
+        flow: {value: 42.6481, provenance: calculated, source: 'cheme process propagate: reactor R102 from S11', fingerprint: 4855f357263592e6}
+        composition: {basis: mole_fraction, values: {H2: 0.0064701, CO2: 0.00163369, CH4: 0.856829, CO: 0.0, H2O: 0.135067}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S11', fingerprint: f52b8383cc9e9405}
+  - id: S13
+    title: Wet SNG to the dryers
+    from: V102.gas
+    to: A201.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: "D-007: cooled to 10 C (STORE&GO D5.9 section 2.1)"}
+        pressure: {value: 1380.0, provenance: assumed, source: D-007}
+        flow: {value: 36.3037, provenance: calculated, source: 'cheme process propagate: separator V102 from S12', fingerprint: f52d0d1fe9fbcb68}
+        composition: {basis: mole_fraction, values: {H2: 0.00747381, CO2: 0.00188712, CH4: 0.989749, CO: 0.0, H2O: 0.000890063}, provenance: calculated, source: 'cheme process propagate: separator V102 from S12', fingerprint: f52d0d1fe9fbcb68}
+  - id: S14
+    title: Condensate of the second knock-out
+    from: V102.cond
+    to: M102.c2
+    template: water
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: D-007}
+        pressure: {value: 1380.0, provenance: assumed, source: D-007}
+        flow: {value: 6.34443, provenance: calculated, source: 'cheme process propagate: separator V102 from S12', fingerprint: f52d0d1fe9fbcb68}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CO2: 0.0, CH4: 0.0, CO: 0.0, H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: separator V102 from S12', fingerprint: f52d0d1fe9fbcb68}
+  - id: S16
+    title: Dry SNG
+    from: A201.out
+    to: K201.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: D-008}
+        pressure: {value: 1350.0, provenance: assumed, source: D-008}
+        flow: {value: 36.2673, provenance: calculated, source: 'cheme process propagate: separator A201 from S13', fingerprint: 9e0c4a988f7fef92}
+        composition: {basis: mole_fraction, values: {H2: 0.00748047, CO2: 0.0018888, CH4: 0.990631, CO: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator A201 from S13', fingerprint: 9e0c4a988f7fef92}
+  - id: S17
+    title: Water from the dryers' regeneration
+    from: A201.water
+    to: M102.c3
+    template: water
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: D-008}
+        pressure: {value: 101.325, provenance: assumed, source: D-008}
+        flow: {value: 0.0364014, provenance: calculated, source: 'cheme process propagate: separator A201 from S13', fingerprint: 9e0c4a988f7fef92}
+        composition: {basis: mole_fraction, values: {H2: 0.0, CO2: 0.0, CH4: 0.0, CO: 0.0, H2O: 1.0}, provenance: calculated, source: 'cheme process propagate: separator A201 from S13', fingerprint: 9e0c4a988f7fef92}
+  - id: S15
+    title: Process condensate to treatment
+    from: M102.out
+    to: COND.in
+    template: water
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: D-007}
+        pressure: {value: 101.325, provenance: assumed, source: "D-007: let down to the condensate tank"}
+        flow: {value: 80.9767, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S14 S17', fingerprint: 70034e12b962bab2}
+        composition: {basis: mole_fraction, values: {H2O: 1.0, H2: 0.0, CO2: 0.0, CH4: 0.0, CO: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S10 S14 S17', fingerprint: 6d00c33be813e1d0}
+  - id: S18
+    title: SNG to the transport grid
+    from: K201.out
+    to: SNG.in
+    template: process_gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: after the aftercooler"}
+        pressure: {value: 5000.0, provenance: assumed, source: "D-008: above the 48 bar of the Falkenhagen grid connection (STORE&GO D8.3) and D5.9's > 45 bar"}
+        flow: {value: 36.2673, provenance: calculated, source: 'cheme process propagate: pass-through K201 from S16', fingerprint: 8530542cd39529f3}
+        composition: {basis: mole_fraction, values: {H2: 0.00748047, CO2: 0.0018888, CH4: 0.990631, CO: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through K201 from S16', fingerprint: 8530542cd39529f3}
+  # energy (scripts/balance.py; Q3 from R101's conversion step)
+  - {id: W1, title: Hydrogen compressor power, kind: energy, from: POWER.k101, to: K101.power, state: {design: {duty: {value: 27.68, provenance: assumed, source: "scripts/balance.py: two intercooled stages, ideal gas, isentropic efficiency 0.70 ASSUMED (D-006)"}}}}
+  - {id: Q0, title: Heat of the hydrogen intercoolers and aftercooler, kind: energy, from: K101.cool, to: AMBIENT.k101, state: {design: {duty: {value: 27.68, provenance: assumed, source: "scripts/balance.py: the compression work, removed by the coolers back to 313.15 K (ideal gas, D-006)"}}}}
+  - {id: Q1, title: Thermal oil to the CO2 let-down heater, kind: energy, from: H301.co2, to: E100.heat, state: {design: {duty: {value: 6.78, provenance: assumed, source: "scripts/balance.py: CO2 from 15.3 MPa, 303.15 K to 1.53 MPa, 313.15 K, Span-Wagner equation of state (CoolProp 8.0.0), D-003"}}}}
+  - {id: Q2, title: Feed/effluent exchanger duty, kind: energy, from: E102.heat, to: E101.heat, state: {design: {duty: {value: 20.8, provenance: assumed, source: "scripts/balance.py: the feed from 313.15 to 523.15 K, ideal gas (process/materials.yaml), D-004"}}}}
+  - {id: Q3, title: Honeycomb reactor heat to the thermal oil, kind: energy, from: R101.heat, to: H301.r101, state: {design: {duty: {value: 93.034, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S6 S7', fingerprint: 8113f027ff7d6915}}}}
+  - {id: Q4, title: Heat of the air cooler and the 10 C water cooler before the first knock-out, kind: energy, from: V101.cool, to: AMBIENT.v101, state: {design: {duty: {value: 55.48, provenance: assumed, source: "scripts/balance.py: the gas from 344.86 to 283.15 K and the heat of condensation of its water (IAPWS-95), D-007"}}}}
+  - {id: W3, title: Electric preheater of the polishing reactor, kind: energy, from: POWER.e104, to: E104.heat, state: {design: {duty: {value: 7.22, provenance: assumed, source: "scripts/balance.py: the gas from 283.15 to 513.15 K, ideal gas; electric as at Falkenhagen (STORE&GO D5.9 appendix 8.4), D-005"}}}}
+  - {id: Q5, title: Polishing reactor heat to the thermal oil, kind: energy, from: R102.heat, to: H301.r102, state: {design: {duty: {value: 8.54554, provenance: calculated, source: 'cheme process propagate: conversion duty R102 from S11 S12', fingerprint: 141cb21420720780}}}}
+  - {id: Q6, title: Heat of the product gas coolers before the second knock-out, kind: energy, from: V102.cool, to: AMBIENT.v102, state: {design: {duty: {value: 11.05, provenance: assumed, source: "scripts/balance.py: the gas from 513.15 to 283.15 K and the heat of condensation of its water (IAPWS-95), D-007"}}}}
+  - {id: W2, title: Balance of plant of the methanation unit, kind: energy, from: POWER.u101, to: U101.power, state: {design: {duty: {value: 6.1, provenance: assumed, source: "scripts/balance.py: the methanation unit's 41 kW measured at this load (STORE&GO D5.9 Table 4-1) less W1 and W3 (D-006)"}}}}
+  - {id: W4, title: Grid injection compressor power, kind: energy, from: POWER.k201, to: K201.power, state: {design: {duty: {value: 5.08, provenance: assumed, source: "scripts/balance.py: 0.1 kWh per Nm3 of SNG (STORE&GO D5.9 Table 4-2, injection unit), D-008"}}}}
+  - {id: Q8, title: Thermal oil cooler (the heat a user at about 180 C could take), kind: energy, from: H301.out, to: AMBIENT.oil, state: {design: {duty: {value: 94.79, provenance: assumed, source: "scripts/balance.py: Q3 + Q5 - Q1; no heat user at the generic site, so rejected to air (D-009)"}}}}
+layout: {bfd: {}, pfd: {}}
