@@ -11,13 +11,16 @@ ADR 0028 labels the catalog's LCA functional unit with the product's registry na
 uses the name only when a chemistry output has `inventory_key: product:<functional unit
 product>`; otherwise it keeps the component id. ADR 0028 also lets a process leave a main
 product without its `inventory_key` when it gives a reason: in the LCI build an inventory key
-links the exchange to the slug's background mapping or to an Atlas producer. Such a flow's note
-starts with the inventory key instead.
+links the exchange to the slug's background mapping or to an Atlas producer. ADR 0028 sets a
+note convention only for new feed entries, whose note starts with the inventory key; for a main
+product it asks only for the reason. The keyless main products of the library follow the feed
+convention by practice, and this ADR makes it a rule for main products.
 
 After ADR 0028, three of the library's 67 LCA studies still showed an id (#249):
 glycerol-1 "1 kg GLYC", natural-gas-processing-1 "1 kg SALESGAS" (both give their reason in
-`process.yaml`) and lng-terminal-1 "1000 kg SHIP". Each one's main product has no
-`inventory_key`, and its note starts with `product:<id>`.
+`process.yaml`) and lng-terminal-1 "1000 kg SHIP" (which records no reason, so ADR 0028's
+exception does not cover it). Each one's main product has no `inventory_key`, and its note
+starts with `product:<id>`.
 
 The options were:
 
@@ -26,7 +29,7 @@ The options were:
 - Add a schema field that names the functional unit's flow. That would be a second way to say
   what the note convention already says.
 - Take the only main product. This is wrong when the functional unit is a different output.
-- Read the note convention of ADR 0028, and only for the main product.
+- Extend the feed note convention of ADR 0028 to the main product, and read it only there.
 
 ## Decision
 

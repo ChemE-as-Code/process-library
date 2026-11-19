@@ -154,7 +154,8 @@ def test_functional_unit_without_a_chemistry_flow_keeps_the_id(library: Path, tm
 
 def test_functional_unit_of_a_main_product_without_inventory_key_is_named_from_its_note(library: Path, tmp_path: Path) -> None:
     """Issue #249, ADR 0040: a main product left without an inventory key on purpose (its note
-    starts with the key, ADR 0028) still names the functional unit; the id stays for tools."""
+    starts with the key, the feed convention of ADR 0028) still names the functional unit; the id
+    stays for tools."""
     manifest = library / "processes" / "fixture-electrolysis" / "process.yaml"
     text = manifest.read_text()
     old = '{chemical: hydrogen, role: main-product, inventory_key: "product:H2"}'

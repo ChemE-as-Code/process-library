@@ -279,7 +279,7 @@ def _display_name(name: str) -> str:
 def _functional_unit_flow(key: str, outputs: list[dict]) -> dict | None:
     """The chemistry output that names the functional unit's product: the one whose
     ``inventory_key`` is ``key``, else (ADR 0040) the main product whose note starts with ``key``,
-    the convention of a flow left without an inventory key on purpose (ADR 0028)."""
+    ADR 0028's feed note convention, which ADR 0040 extends to a keyless main product."""
     flow = next((f for f in outputs if f.get("inventory_key") == key), None)
     if flow is not None:
         return flow
