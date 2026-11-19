@@ -19,7 +19,8 @@ Model (every choice is a DESIGN.md decision, ASSUMED where marked there):
 - tertiary reactor (D-009): N2O decomposition sized to reach the IPCC default for plants with
   tail-gas N2O destruction (2.5 kg N2O per t HNO3, Table 3.3), SCR of NO with NH3 (no slip);
 - enthalpies (D-010): ideal-gas heat capacities and gas formation enthalpies of `thermo` /
-  `chemicals` (Poling et al. / TRC correlations, unqualified here); liquid water and acid with
+  `chemicals` with their default methods (Cp: TRCIG for NO, NO2, HNO3 and HEOS_FIT for the
+  others; Hfg: ATCT_G; DESIGN.md S5, unqualified here); liquid water and acid with
   constant heat capacity and an assumed heat of mixing; NH3 evaporation with CoolProp (pure
   NH3 reference EOS); compressors and expander isentropic with an assumed efficiency.
 

@@ -15,7 +15,7 @@ CoolProp 8.0.0. Agent-generated, not reviewed.
 | S2 | European Commission JRC (2007) LVIC-AAF BREF, Chapter 3 Nitric acid, https://bureau-industrial-transformation.jrc.ec.europa.eu/sites/default/files/2022-03/LVIC-AAF.pdf | section 3.2 from printed p. 96 (PDF p. 124): oxidation, absorption, mono/dual-pressure; sections 3.3/3.4 consumption, emissions, techniques | not re-read in this run (locator from the issue's literature note); no number taken from it | facts only | qualitative process description (unit sequence, dual-pressure scheme, tertiary abatement as a technique): D-001, D-003, D-009. Its consumption and emission ranges are the next check (open input O-1) |
 | S3 | `cheme chemistry library nitric_acid` (core reaction library; cites Ullmann's article on nitric acid) | entry nitric_acid | packaged | stoichiometry only | reactions NH3_OX, NH3_N2, NO_OX (D-005) |
 | S4 | skill `tech-heavy-chem-nitric-acid-and-fertilizers` (Speight 2002, Part 2; Ray and Das 2020, Ch 10) | gauze 750-920 degC, about 7 bar, 2-10 % Rh; absorption product about 65 %, azeotrope 68.4 % | packaged skill | facts | plausibility of the gauze temperature and the product strength below the azeotrope (D-002, D-005) |
-| S5 | `thermo` 0.6.1 / `chemicals` 1.5.2 (ideal-gas heat capacities, gas formation enthalpies); CoolProp 8.0.0 (NH3 reference EOS) | as called in `scripts/hno3_balance.py` | open-source packages | MIT | enthalpies and machine discharge temperatures of the balance (D-010) |
+| S5 | `thermo` 0.6.1 / `chemicals` 1.5.2 of core's environment (the versions core pins), queried with their default methods: ideal-gas heat capacities from `HeatCapacityGas`, method `TRCIG` for NO, NO2 and HNO3 (coefficients of the TRC Thermodynamic Tables, Thermodynamics Research Center, as thermo bundles them; not read here) and `HEOS_FIT` for NH3, N2, O2, Ar, H2O and N2O (thermo's fits to the ideal-gas part of the CoolProp reference equations of state; the published equations not read here); gas formation enthalpies from `chemicals` `Hfg`, method `ATCT_G` for all nine components (Active Thermochemical Tables, Argonne National Laboratory, as chemicals bundles them; not read here); CoolProp 8.0.0 (its reference equation of state for pure NH3; the published equation not read here) | as called in `scripts/hno3_balance.py` (`CPG`, `HFG`, the NH3 evaporation); values computed at run time, none typed into the library | open-source package queried; single values, facts only; the underlying works not read | facts only; not open data (library ADR 0037): the packages' MIT licence covers their code, not the coefficients they bundle | enthalpies and machine discharge temperatures of the balance (D-010) |
 | S6 | NIST-JANAF / NBS standard formation enthalpies of liquid water (-285.83 kJ/mol) and liquid HNO3 (-174.1 kJ/mol) | standard values at 298.15 K | well-known reference values, typed in the script | facts | liquid enthalpies in the cooler-condenser and absorber duties (D-010) |
 
 No vendor, licensor or licensed-database value is used. Nothing above is copied (tables,
@@ -216,7 +216,8 @@ N2O-decomposition and the SCR catalysts are `cutoff:` entries with unknown amoun
 The Pt consumable has no composition in core's dataset, so the element balance became
 "not assessable" (mass balance still closes); to be raised with cheme-as-code. Direct emissions are
 elementary flows to air (high stack); N2O is characterised by the packaged IPCC AR6 GWP100, NO
-and the zero NH3/NO2/HNO3 are not characterised by it (gaps in the climate category). Equipment
+and the zero NH3/NO2/HNO3 are not characterised by it (gaps in the climate category; since
+counted by core as outside the method, not as gaps, lca/results.md). Equipment
 leaks are excluded until a P&ID count exists; no tank, combustion unit or wastewater is inside
 the boundary. Construction, catalysts and Pt loss are not in the inventory (open inputs O-3, O-5).
 Result (`cheme assess lca --coverage`): partial screening carbon footprint; 0.68 kg CO2-eq/kg
@@ -224,7 +225,9 @@ HNO3 is the plant's direct N2O emission only, not the product's footprint (ammon
 the other backgrounds are open); 10 gaps (9 before the Pt consumable, the HPS substitution gap
 no longer counted under shares). Balance (`--balance`): mass and the
 Ar, H, N, O element balances close (< 0.01 %); the reported energy closure (57.9 %) counts only
-delivered utilities, not the reaction enthalpy (D-010 closes the energy).
+delivered utilities, not the reaction enthalpy (D-010 closes the energy). (Since: 6 gaps, the
+uncharacterised emissions no longer counted as gaps by core; energy closure 57.6 % after D-016
+moved CW to 47009 and HP steam to 29480 kWh/h; lca/manifest.json, 2026-11-19.)
 Reason: the run's scope: a preliminary inventory, no background data and nothing from licensed
 databases.
 
@@ -822,11 +825,11 @@ I-401 permissive to the train start.
 - O-3: Pt/Rh loss per t HNO3 and gauze recovery (a precious-metal flow, never cut off).
 - O-4: tertiary-abatement and SCR catalyst performance, volume and life (vendor or literature); permit limits for NOx and N2O.
 - O-5: construction and consumables (catalysts) for the LCI; equipment weights.
-- O-6: Atlas export of lca/dataset.yaml (library work outside this folder): the strict `scripts/build_lci.py` needs a chemicals-registry entry for ammonia (feed:NH3), `lci/mappings.yaml` entries for emission:NO, emission:HNO3 and consumable:pt-rh-gauze-loss, and a per-kWh steam-heat mapping for feed:LPS (the `steam` slug is per kg).
-- O-6: ammonia purity, air filter, site conditions, steam-turbine vs motor drive (D-011).
+- O-6 (closed): Atlas export of lca/dataset.yaml (library work outside this folder): the strict `scripts/build_lci.py` needed a chemicals-registry entry for ammonia (feed:NH3), `lci/mappings.yaml` entries for emission:NO, emission:HNO3 and consumable:pt-rh-gauze-loss, and a per-kWh steam-heat mapping for feed:LPS (the `steam` slug is per kg). All exist now: `ammonia` in chemicals/chemicals.yaml (linked through `inventory_key: "feed:NH3"` in process.yaml), and `ammonia`, `steam-heat`, `pt-rh-gauze` and the nitric oxide and nitric acid air flows in lci/mappings.yaml, used by lca/mappings.yaml.
+- O-10 (numbered O-6 until 2026-11-19, a duplicate ID): ammonia purity, air filter, site conditions, steam-turbine vs motor drive (D-011).
 
 ## Chemicals registry items missing (for the consolidated library PR)
-`ammonia` (substance; grade liquid anhydrous), `nitric-acid` (substance; grade 60 wt% aqueous,
-reference product of this process), `nitrous-oxide` (emission), `nitric-oxide` or
-`nitrogen-oxides` (emission). Present and used: air, water, steam, electricity, cooling-water,
-nitrogen.
+`nitric-oxide` or `nitrogen-oxides` (emission), and a 60 wt% aqueous grade of `nitric-acid`
+(reference product of this process). Present since and used: `ammonia` (feed:NH3), `nitric-acid`
+(product:ACID), `nitrous-oxide` (in the treated tail gas, not a separate chemistry entry). Present
+and used from the start: air, water, steam, electricity, cooling-water, nitrogen.
