@@ -166,7 +166,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 55 | `biogas` | Biogas and biomethane | biogas | n/a, to be sourced | medium | anaerobic-digestion, upgrading | steam-generation, hydrogen | 0 | - |
 | 56 | `hydrogen-peroxide` | Hydrogen peroxide (anthraquinone process) | inorganic-chemicals | n/a, to be sourced | low | - | propylene-oxide | 0 | hydrogen-peroxide-1 (T2) |
 | 57 | `titanium-dioxide` | Titanium dioxide | inorganic-chemicals | n/a, to be sourced | medium | sulfate, chloride | - | 0 | - |
-| 58 | `power-generation` | Electricity generation (on-site and grid technologies) | power-generation | n/a, to be sourced | high | - | air-separation, chlor-alkali, hydrogen, aluminium | 0 | - |
+| 58 | `power-generation` | Electricity generation (on-site and grid technologies) | power-generation | n/a, to be sourced | high | - | air-separation, chlor-alkali, hydrogen, aluminium | 2 | power-generation-1 (T2) |
 | 59 | `demineralised-water` | Demineralised water | utilities | n/a, to be sourced | low | - | steam-generation, hydrogen | 1 | - |
 | 60 | `refrigeration` | Refrigeration and compressed air | utilities | n/a, to be sourced | low | - | - | 0 | utility-chiller (T1), utility-instrument-air (T1) |
 | 61 | `mto-olefins` | Methanol to olefins | olefins | n/a, to be sourced | high | - | polyethylene, polypropylene | 0 | - |

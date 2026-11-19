@@ -1,0 +1,50 @@
+# Benchmarks of power generation: for now the natural-gas combined cycle (power-generation-1,
+# #469). Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from
+# the cited source, in our own form.
+#
+# How independent they are: the reference is NETL's comparison of currently offered F-class
+# machines (Exhibit 5-2, from three manufacturers' published ratings), a different figure from
+# the Case B31A model the dataset reproduces, but in the same report. It is a single value per
+# configuration, recorded as a zero-width range and not widened; the dataset's 2017 F-class
+# machine is a little less efficient than the currently offered ones (NETL section 5.1.2.1).
+schema: cheme-as-code/benchmarks/v1
+family: power-generation
+
+kpis:
+  ngcc-heat-rate-lhv:
+    title: Natural gas (LHV) per kWh of net electricity, combined cycle
+    unit: MJ/kWh
+    references:
+      - id: netl-rev4a-f-class-2x1-literature
+        range: [5.960, 5.960]
+        basis: unallocated
+        note: "NETL's literature value for an F-class 2x1 combined cycle, 60.4 % net efficiency on LHV: 3.6 / 0.604 = 5.960 MJ/kWh. One value, not a range; NETL's own Case B31A model gives 59.4 % (6.060 MJ/kWh)."
+        conditions: {technology: "2x1 combined cycle with currently offered F-class gas turbines, natural gas", region: "US (ISO conditions)", year: 2022}
+        source: &netl
+          citation: "Schmitt, T. et al. (2022) Cost and Performance Baseline for Fossil Energy Plants Volume 1: Bituminous Coal and Natural Gas to Electricity, Revision 4a. National Energy Technology Laboratory, DOE/NETL-2023/4320"
+          url: https://netl.doe.gov/projects/files/CostAndPerformanceBaselineForFossilEnergyPlantsVolume1BituminousCoalAndNaturalGasToElectricity_101422.pdf
+          locator: "Section 5.1.2.1, Exhibit 5-2, pp. 551-552"
+          kind: government
+          accessed: "2026-11-19"
+  ngcc-co2-direct:
+    title: Direct fossil CO2 per kWh of net electricity, combined cycle
+    unit: kg/kWh
+    no_open_reference: >-
+      No open source independent of the dataset's own was read for a range (2026-11-19). Read:
+      NETL Revision 4a, whose Case B31A (342 kg/MWh net, Exhibit 5-11) is the dataset's basis and
+      so not independent. The IEA, IPCC AR6 WGIII Annex III and the EU LCP BREF were not read in
+      this run.
+
+datasets:
+  - process: power-generation-1
+    dataset: natural-gas-combined-cycle-2x1-f-class-726-mw-net
+    conditions: {technology: "2x1 2017 F-class combined cycle, NETL Case B31A operating point", region: "generic, ISO conditions"}
+    kpis:
+      ngcc-heat-rate-lhv:
+        expression: feed:NG * 47.201 / product:ELEC
+        per: product:ELEC
+        reference: netl-rev4a-f-class-2x1-literature
+        out_of_range_reason: "D-001 and D-005 in processes/power-generation-1/DESIGN.md: the dataset reproduces NETL's Case B31A with a 2017 F-class machine (59.35 % LHV, 6.066 MJ/kWh), one point below NETL's literature value for currently offered F-class plants (60.4 %)"
+      ngcc-co2-direct:
+        expression: emission:CO2 / product:ELEC
+        per: product:ELEC
