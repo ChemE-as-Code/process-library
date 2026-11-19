@@ -1,0 +1,118 @@
+# Goal and scope of the 2-ethylhexanol-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-010): every exchange of the plant
+# with its amount per kg of 2-ethylhexanol from the design case of process/flowsheet.yaml. This
+# study links no background, so every feed, utility and waste carries `missing:` with the
+# activity it should connect to, never zero, and no values from licensed databases. In the Atlas
+# LCI (scripts/build_lci.py) lca/mappings.yaml links the propylene to propylene-pdh-1, the
+# hydrogen to hydrogen-1, the caustic soda to chlor-alkali-1, the make-up water to deionised
+# water and the MP steam as heat, and the shared lci/mappings.yaml links electricity, cooling
+# water and the effluent's treatment through its proxies; there the synthesis gas (no library
+# producer of a 1:1 H2/CO gas), the off-gas, light ends and heavies to the site's fuel stay gaps.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of 2-ethylhexanol made by propylene
+  hydroformylation with an aqueous rhodium catalyst, aldol condensation of n-butanal with
+  aqueous caustic, two-stage hydrogenation and distillation, at the concept stage: which raw
+  materials, utilities, wastes and emissions the plant exchanges per kg of 2-ethylhexanol, as
+  the foreground for a cradle-to-gate study with the library's propylene, hydrogen and caustic
+  soda.
+functional_unit: {product: EHP, amount: 1, unit: kg, source: "1 kg of 2-ethylhexanol (modelled 99.98 wt%) at the plant gate to storage, stream S46 (D-002, D-007)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain gaps or links
+# instead of being mapped free (the schema's gate-to-gate maps every feed free).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Propylene hydroformylation at 5 MPa and 393 K with an aqueous Rh/TPPTS catalyst phase (US 4 684 750 A), the dissolved propylene stripped by the synthesis gas (US 4 523 036 A), n/iso-butanal column of 100 theoretical plates at 50-80 kPa(a) with the reactor's heat in its reboiler; aldol condensation with 1.5 wt% aqueous NaOH at 413 K and phase separation at 333 K; hydrogenation in the gas phase over Cu at 423-433 K raising LP steam and in the liquid phase over Ni at 2.3 MPa; light-ends, product and after-run columns; 120 kt/a in 8000 h, yield 97.73 % of theory on n-butanal"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  method: shares
+  coproducts: [EHP, IBAL, LPSX]
+  # S46 15003.5 and S15 879.8 kg/h: 15003.5 / 15883.3 and 879.8 / 15883.3
+  shares: {EHP: 0.9446, IBAL: 0.0554, LPSX: 0.0}
+  source: >-
+    D-010: mass allocation between 2-ethylhexanol and the isobutanal co-product, the two
+    products of the same hydroformylation (isomeric aldehydes of the same propylene, CO and
+    hydrogen, so mass is also the moles and the carbon), written as its shares; the exported LP
+    steam raised from R-301's heat leaves without a burden and without a credit (conservative
+    for the products), as phthalic-anhydride-1 does.
+  deviation: >-
+    The isobutanal is allocated by mass though it carries only the oxo step and the n/iso column
+    (not the aldol, hydrogenation and distillation that only the n-butanal sees), which puts
+    slightly too much burden on it; no co-product prices are sourced for the WBCSD price test.
+    The library hierarchy allocates exported steam by energy or exergy (docs/system-model.md);
+    a zero share is the conservative bound. Sourced prices and a substitution of the steam are
+    to be compared.
+  # substitution (system expansion), for comparison only: the avoided site steam is not mapped.
+  substitution:
+    LPSX: {missing: "not mapped yet (D-010); should connect to the avoided LP steam 300 kPa(a) from a natural-gas boiler (processes/utility-steam-ng-boiler), per kWh", source: "flowsheet energy stream Q4: the surplus of R-301's LP steam after C-102's reboiler and R-302's feed heater (D-009)"}
+flows:
+  # --- raw materials
+  - key: feed:C3
+    missing: "linked to processes/propylene-pdh-1 (lca/mappings.yaml): chemical-grade propylene with 0.5 mol% propane, kg for kg"
+    source: "flowsheet stream S1, 0.714 kg/kg (D-003, D-004)"
+  - key: feed:SYN
+    missing: "not mapped (an Atlas gap, D-010): no library process makes a 1:1 H2/CO synthesis gas (acetylene-1's synthesis gas is H2-rich, about 2:1). Connect to: synthesis gas H2/CO 1:1 from partial oxidation of natural gas or residue, or from a steam-reformer syngas adjusted in a cold box, per kg"
+    source: "flowsheet stream S2, 0.530 kg/kg (D-003, D-004)"
+  - key: feed:H2F
+    missing: "linked to processes/hydrogen-1 (lca/mappings.yaml): hydrogen 99.9 mol% by steam methane reforming and PSA"
+    source: "flowsheet stream S35, 0.034 kg/kg (D-003, D-006)"
+  - key: feed:NAOH
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt%, per kg of solution"
+    source: "flowsheet stream S18, 0.0039 kg/kg of 50 wt% solution (D-005)"
+  - key: feed:DMW
+    missing: "linked in the Atlas LCI to deionised water (lca/mappings.yaml); connect to: demineralised water from the site's water treatment (processes/demineralised-water-1), per kg"
+    source: "flowsheet stream S4, the catalyst phase's water make-up, 0.012 kg/kg (D-004)"
+  # --- utilities
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1500 kPa(a), from a natural-gas-fired site boiler (processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q8 (E-301), Q10, Q12 and Q15 (the reboilers of C-401 to C-403), 0.504 kWh/kg before allocation (D-009)"
+  - key: feed:POWER
+    missing: "linked in the Atlas LCI by the shared mapping (market for electricity, medium voltage), D-010; connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 (K-101), P2 (K-301) and P3 (the pumps), 0.028 kWh/kg (D-009)"
+  - key: product:CW
+    missing: "linked in the Atlas LCI by the shared mapping (cooling water service per kWh rejected, a screening proxy), D-010; connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q5, Q6, Q7, Q9, Q11, Q13, Q14 and Q16: the condensers and coolers (D-009)"
+  # --- wastes to treatment and to the site's fuel
+  - key: product:WW
+    treatment: {kind: waste, route: "biological treatment of the aqueous effluent: the aldol caustic purge (1.5 wt% NaOH, traces of aldehydes) and the water decanted from C-102 and C-401; neutralised before treatment"}
+    missing: "linked in the Atlas LCI by the shared mapping (wastewater to treatment per kg, a unit proxy), D-010; connect to: treatment of industrial waste water in a biological plant, per kg, with its organic load and alkalinity (processes/utility-wwtp)"
+    source: "flowsheet stream S50, 0.155 kg/kg (D-005, D-008)"
+  - key: product:OFFGAS
+    treatment: {kind: waste, route: "the oxo purge, C-102's vent and the hydrogenation purge (CO, inerts, propane, hydrogen, propylene, some butanal) to the site's fuel gas header"}
+    missing: "not mapped (an Atlas gap, D-010); connect to: combustion of a CO- and hydrocarbon-rich off-gas in the site's boiler or a thermal oxidiser, with the CO2 of its carbon and the heat recovered, per kg"
+    source: "flowsheet stream S49, 0.039 kg/kg (D-004, D-006, D-008)"
+  - key: product:LIGHTS
+    treatment: {kind: waste, route: "the light ends (n- and isobutanol with some 2-ethylhexanol) burnt as liquid fuel on site; a butanol recovery is an option of the next stage"}
+    missing: "not mapped (an Atlas gap, D-010); connect to: combustion of a waste alcohol fuel in the site's boiler with heat recovery (or sale as crude butanol), per kg"
+    source: "flowsheet stream S41, 0.023 kg/kg (D-007)"
+  - key: product:HVY
+    treatment: {kind: waste, route: "the heavy ends (heavies with some 2-ethylhexanol) burnt as liquid fuel on site"}
+    missing: "not mapped (an Atlas gap, D-010); connect to: combustion of a heavy organic residue in the site's boiler or an incinerator with heat recovery, per kg"
+    source: "flowsheet stream S48, 0.018 kg/kg (D-007)"
+emission_exclusions:
+  - {id: fugitive-losses, method: equipment-leaks, reason: "No P&ID yet: fugitive losses of propylene, CO, aldehydes and hydrogen from flanges, seals and valves are not estimated at the concept stage (D-010)."}
+  - {id: storage-breathing, method: storage-tank, equipment: [R-101, V-201], reason: "R-101 is a closed pressure vessel at 5 MPa whose gas leaves only by the cycle gas and the purge the flowsheet carries; the breathing of the aldehyde and alcohol tanks and of V-201 (nitrogen-blanketed, vented to the fuel gas, ASSUMED) is not estimated (D-010)."}
+# Not inventoried, and not cut off: the rhodium lost from the aqueous catalyst phase and the
+# TPPTS ligand replaced, and the Cu and Ni hydrogenation catalysts' replacement. R-101 holds
+# about 40 kg of rhodium (equipment list); no open source read here gives its loss per tonne,
+# the ligand's make-up or the hydrogenation catalysts' lives (DESIGN.md D-010, Open inputs). A
+# precious-metal catalyst is never cut off; it is added as a consumable once a rate is sourced.
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 20 a service life ASSUMED"
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic site with propylene, synthesis gas, hydrogen and steam supply, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #511, unreviewed"

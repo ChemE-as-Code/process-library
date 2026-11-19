@@ -1,0 +1,108 @@
+# Process Atlas manifest of 2-ethylhexanol-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: 2-ethylhexanol-1
+title: 2-Ethylhexanol by propylene hydroformylation (aqueous Rh), aldol condensation and hydrogenation (120 kt/a)
+summary: >-
+  A continuous oxo-alcohol plant: propylene and synthesis gas react over a water-soluble rhodium
+  catalyst to n- and isobutanal, a 100-plate column splits them, n-butanal condenses with
+  aqueous caustic to 2-ethylhexenal, which is hydrogenated over Cu and then Ni and distilled.
+  Concept stage, 120 kt/a, the loops solved by core's design specifications, preliminary LCI.
+description: |
+  Propylene, carbon monoxide and hydrogen react in a stirred reactor whose catalyst is rhodium
+  with the water-soluble ligand TPPTS in an aqueous phase, as in Ruhrchemie's US 4 684 750 A:
+  5 MPa, 393 K, CO/H2 about 1:1, about 30 min. The crude holds 94.0 wt% n-butanal, 5.0 wt%
+  isobutanal and 1.0 wt% heavies (the patent's figures). The aqueous catalyst phase is decanted
+  and returned to the reactor; the propylene dissolved in the crude is stripped back by the fresh
+  synthesis gas (US 4 523 036 A), and 5 % of the cycle gas is purged. A column of 100
+  theoretical plates at 50-80 kPa(a) takes 99.9 wt% isobutanal overhead, a co-product; its
+  reboiler takes the reactor's heat. n-Butanal condenses with 1.5 wt% aqueous caustic at 413 K
+  in a mixing section; at 333 K the phases separate, 90 % of the caustic phase returns and the
+  rest is purged, and the organic phase holds 95 wt% 2-ethylhexenal. It is hydrogenated in the
+  gas phase over copper (423-433 K, the heat raising LP steam) and then in the liquid phase over
+  nickel at 2.3 MPa, and three columns take off the light ends, the product and the heavies.
+
+  The material balance is solved by cheme-as-code (core ADRs 0060, 0070). Design
+  specifications set the propylene, synthesis gas, water make-up, caustic and hydrogen feeds; six
+  recycles are tear streams; the separators are component splits (`recovery:`, ASSUMED inside
+  the patents' purities). The plant yields 97.73 % of theory on n-butanal, the 97.74 % of
+  US 4 684 750 A. Per kg of 2-ethylhexanol: 0.713 kg propylene, 0.530 kg synthesis gas,
+  0.034 kg hydrogen, 0.059 kg isobutanal co-produced; 0.50 kWh of MP steam, 1.58 kWh to
+  cooling water. See DESIGN.md for every assumption.
+families: [oxygenates]
+keywords: [2-ethylhexanol, 2-EH, oxo alcohol, oxo process, hydroformylation, propylene, synthesis gas, rhodium, TPPTS, aqueous biphasic catalysis, Ruhrchemie/Rhone-Poulenc, n-butanal, butyraldehyde, isobutyraldehyde, aldol condensation, 2-ethylhexenal, sodium hydroxide, hydrogenation, copper catalyst, nickel catalyst, distillation, plasticiser alcohol, design specification, recycle]
+facets:
+  feedstock_basis: [fossil, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, distillation, separation, compression, stripping]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, the per-pass conversion,
+# the separators' splits, the purges, the temperatures and the duties' basis are assumed; the
+# route, conditions, compositions and the overall yield from the patents (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept continuous PFD with closed mass, component and element balances (cheme validate,
+    cheme process streams: 5 blocks and 30 steps within tolerance). cheme process propagate
+    solves the feeds with five design specifications (120 kt/a of 2-ethylhexanol; 1.5 mol CO
+    per mol propylene in R-101's feed; 1.0 wt% water in the crude; 1.5 wt% NaOH in the aldol's
+    aqueous phase, from US 4 684 750 A; 90 mol% hydrogen in R-301's vapour feed) together with
+    six tear streams (the strip gas S3, the oxo cycle gas S11, the caustic S19, the hydrogen
+    cycle gas S33, the second stage's hydrogen S38, the after-run S43), the conversion steps
+    and eleven component separators with ASSUMED splits inside the purities of US 4 684 750 A.
+    scripts/balance.py gives every duty and power on a formation-enthalpy basis with constant
+    heat capacities (chemicals 1.5.2 and thermo 0.6.1, single facts; no property package of
+    core covers these liquids), the C-102 boil-up from Underwood's minimum reflux, and the
+    mixers' and compressors' outlet temperatures. Preliminary gate-to-gate LCI with mass
+    allocation between 2-ethylhexanol and isobutanal; in the Atlas build the propylene,
+    hydrogen and caustic soda are linked to propylene-pdh-1, hydrogen-1 and chlor-alkali-1, the
+    MP steam counted as heat, the make-up water as deionised water, and electricity, cooling
+    water and the effluent's treatment through the shared proxies; the synthesis gas (no
+    library producer of a 1:1 H2/CO gas), the off-gas, the light ends and the heavies to fuel
+    are the gaps. The rhodium and ligand make-up and the hydrogenation catalysts are open inputs
+    (no open rate). No thermal screening by core applies to continuous conversion reactors
+    without kinetics; the hazards are in DESIGN.md D-008. cheme maturity reaches no level
+    (assumed splits); the claim `maturity: concept` is the lowest value of the schema, not an
+    evidenced level. Not reviewed. Needs cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: propylene, role: feedstock, inventory_key: "feed:C3", note: "Chemical-grade propylene with 0.5 mol% propane (propylene-pdh-1), 0.713 kg/kg; 98.0 % of it to aldehydes"}
+    - {chemical: synthesis-gas, role: feedstock, inventory_key: "feed:SYN", note: "Synthesis gas 50 mol% H2, 49 mol% CO, 1 mol% inerts (ASSUMED), 0.530 kg/kg; no library producer of this grade (a gap)"}
+    - {chemical: hydrogen, role: feedstock, inventory_key: "feed:H2F", note: "Hydrogen 99.9 mol% (hydrogen-1), 0.034 kg/kg, for the two hydrogenation stages"}
+    - {chemical: sodium-hydroxide, role: reactant, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt% (chlor-alkali-1), 3.9 g/kg of solution, the aldol catalyst's make-up"}
+    - {chemical: water, role: utility, inventory_key: "feed:DMW", note: "Demineralised make-up water of the aqueous catalyst phase, 0.012 kg/kg"}
+  outputs:
+    - {chemical: 2-ethylhexanol, role: main-product, inventory_key: "product:EHP", note: "2-Ethylhexanol, modelled 99.98 wt%, to storage"}
+    - {chemical: isobutyraldehyde, role: co-product, inventory_key: "product:IBAL", note: "Isobutanal 99.9 wt% from C-102's overhead, 0.059 kg/kg; mass allocation, 5.5 % of the burdens"}
+    - {chemical: n-butanol, role: by-product, inventory_key: "product:LIGHTS", note: "Light ends, 86 wt% n-butanol and 10 wt% isobutanol with 2 wt% 2-ethylhexanol, 0.023 kg/kg, to the site's liquid fuel (a gap)"}
+    - {chemical: carbon-monoxide, role: waste, inventory_key: "product:OFFGAS", note: "Oxo purge, C-102 vent and hydrogenation purge (39 wt% CO, 27 % inerts, 20 % propane, 8 % hydrogen), 0.039 kg/kg, to the site's fuel gas (a gap)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Aqueous effluent (the aldol caustic purge with 1.3 wt% NaOH and the decanted water), 0.155 kg/kg, to neutralisation and biological treatment"}
+    - {chemical: steam, role: co-product, inventory_key: "product:LPSX", note: "LP steam 300 kPa(a) raised in R-301, 0.155 kWh/kg exported after the plant's own users; no burden and no credit (D-010)"}
+  # The heavy ends (product:HVY, 0.018 kg/kg of heavies with 7 wt% 2-ethylhexanol, to the site's
+  # liquid fuel, a gap) carry no chemical: the registry has no slug for an oxo heavies mixture.
+  utilities:
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.504 kWh/kg of MP steam 1500 kPa(a): E-301 and the reboilers of C-401 to C-403; R-101's heat and R-301's LP steam cover C-102's reboiler and R-302's feed heater"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.028 kWh/kg: the two cycle-gas compressors and the pumps"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.58 kWh/kg removed by cooling water: the condensers and coolers"}
+basis:
+  capacity: "120 kt/a 2-ethylhexanol (15 t/h in 8000 h), ASSUMED normalisation basis (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic site with propylene, synthesis gas, hydrogen and steam supply (not chosen)
+references:
+  - {title: "Kessen, G.; Cornils, B.; Gick, W.; Wiebus, E.; Hibbel, J.; Bach, H.; Zgorzelski, W. (Ruhrchemie AG, priority 1985) US 4 684 750 A: Process for the production of 2-ethyl-hexanol (hydroformylation with aqueous Rh/TPPTS at 50 bar and 115-125 C; crude composition; n/iso column of 100 plates; aldolisation with aqueous NaOH; gas-phase Cu and liquid-phase Ni hydrogenation; yield 97.74 % of theory)", url: "https://patents.google.com/patent/US4684750A/en"}
+  - {title: "Cornils, B.; Hibbel, J.; Lieder, B.; Much, J.; Schmidt, V.; Wiebus, E.; Konkol, W. (Ruhrchemie AG, priority 1982) US 4 523 036 A: Process for the preparation of aldehydes (aqueous Rh catalyst; crude separated uncooled, its dissolved olefin stripped by synthesis gas; cycle gas compressor; reaction heat used for the aldehyde distillation)", url: "https://patents.google.com/patent/US4523036"}
+  - {title: "Pruett, R. L.; Smith, J. A. (Union Carbide, priority 1975) US 4 148 830 A: Hydroformylation of olefins (homogeneous Rh/triphenylphosphine at low pressure, the rejected alternative of D-001)", url: "https://patents.google.com/patent/US4148830A/en"}
+  - {title: "Bell, C. et al.: chemicals 1.5.2 and thermo 0.6.1 (MIT): formation enthalpies (ATcT, CRC, NIST WebBook, Yaws), heat capacities, vapour pressures, critical constants; single values with the package named (library ADR 0037)", url: "https://github.com/CalebBell/chemicals"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/2-ethylhexanol-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
