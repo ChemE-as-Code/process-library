@@ -1,0 +1,99 @@
+# Process Atlas manifest of acrylic-acid-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: acrylic-acid-1
+title: Acrylic acid by two-stage propylene oxidation, quench absorption and azeotropic dehydration (100 kt/a)
+summary: >-
+  Propylene oxidised with air and steam to acrolein and then to acrylic acid in two salt-cooled
+  multitubular reactors that raise HP steam, the acid quenched into water, dehydrated with toluene
+  and distilled to the glacial grade with inhibitors. Concept stage, continuous, 12.5 t/h,
+  preliminary gate-to-gate LCI.
+description: |
+  Chemical-grade propylene (propylene-pdh-1) is mixed with compressed air and process steam (12 %
+  propylene, 10 % steam) and oxidised to acrolein over a Mo-Bi mixed oxide at 583 K in a
+  multitubular reactor cooled by molten salt, with a cooling zone that brings the gas to 533 K
+  before the acrolein can burn by itself; secondary air and steam are added and a Mo-V oxide at
+  538 K oxidises the acrolein to acrylic acid (the ratios, temperatures and yields of US 4 873
+  368 A, Examples 2 and 5: 87.8 % of the propylene to acrylic acid). The salt raises 35.2 MW of
+  HP steam at 2500 kPa(a) for export. The gas is cooled and quenched in inhibited water to a 55 wt%
+  aqueous acid; the off-gas is burnt in a recuperative catalytic oxidiser. Water is removed by
+  azeotropic distillation with toluene at 180 mmHg (US 5 910 607 A, Example 1), acetic acid and
+  toluene in a second vacuum column whose overhead returns the toluene, and the glacial acid
+  (99.92 wt%) is distilled at 8 kPa(a) with hydroquinone in the columns and 200 ppm MEHQ in the
+  product. 0.686 kg of propylene per kg, 85.6 % of it to product.
+
+  Both reactors are core conversion steps (the first with its reported selectivities), the
+  absorber and columns component separators with ASSUMED splits that meet the compositions of
+  US 5 910 607 A, the toluene recycle a tear that core converges, and core writes the reactors'
+  duties from the heats of reaction; scripts/aa_balance.py gives the feeds and the duties of the
+  absorber and columns. See DESIGN.md for every assumption and the core limits hit.
+families: [oxygenates]
+keywords: [acrylic acid, propenoic acid, acrolein, propylene oxidation, two-stage oxidation, Mo-Bi catalyst, Mo-V catalyst, multitubular reactor, molten salt, quench absorption, azeotropic distillation, toluene entrainer, acetic acid, hydroquinone, MEHQ, polymerisation inhibitor, glacial acrylic acid, steam export, superabsorbent polymers, acrylates]
+facets:
+  feedstock_basis: [fossil, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, absorption, distillation, compression, incineration]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. The yields come from patent
+# examples, the separator splits and the capacity are assumed (DESIGN.md D-002 to D-011).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: 5 blocks and 13 steps within tolerance; the toluene recycle converged at the tear
+    S21). The reactors R101 (selectivity spec of US 4 873 368 A, Example 2) and R201 (parallel
+    conversions giving Example 5's 87.8 % acrylic acid), the air split, the mixers, the absorber
+    and the three columns (component splits) are calculated by cheme process propagate, which
+    writes the reactors' duties (23.74 and 11.46 MW, matched by the script). scripts/aa_balance.py
+    gives the feeds for 100 kt/a, the temperatures of the mixers and the oxidiser, the
+    compressor's power and the duties of the gas cooler, the absorber and the columns (no property
+    package of core covers the aqueous acids and toluene). The by-products are lumped as CO2 and
+    acetic acid; the splits are ASSUMED to meet US 5 910 607 A's compositions. Preliminary
+    gate-to-gate LCI with the exported HP steam allocated by exergy (83.6 % to the acid); the
+    propylene linked to propylene-pdh-1 and the toluene to btx-1, most other backgrounds gaps.
+    cheme maturity reaches no level (assumed splits, no kinetics). Not reviewed. Needs
+    cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: propylene, role: feedstock, inventory_key: "feed:C3", note: "Chemical-grade propylene with 0.5 mol% propane (propylene-pdh-1), 0.686 kg/kg acrylic acid"}
+    - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Process air, 4.83 kg/kg, 10.33 mol per mol of propylene"}
+    - {chemical: steam, role: feedstock, inventory_key: "feed:STM", note: "Process steam 1100 kPa(a) as diluent, 0.584 kg/kg (2.0 mol per mol of propylene)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the quench absorber, 52 g/kg"}
+    - {chemical: toluene, role: feedstock, inventory_key: "feed:TOL", note: "Entrainer make-up (btx-1), 0.80 g/kg"}
+    - {chemical: hydroquinone, role: feedstock, inventory_key: "feed:HQ", note: "Process inhibitor in the columns, 0.91 g/kg (800 ppm in the dehydration bottoms)"}
+    - {chemical: 4-methoxyphenol, role: feedstock, inventory_key: "feed:MEHQ", note: "Product stabiliser, 200 ppm"}
+  outputs:
+    - {chemical: acrylic-acid, role: main-product, inventory_key: "product:PRODUCT", note: "Glacial acrylic acid, modelled 99.92 wt% with 0.057 wt% acetic acid and 200 ppm MEHQ"}
+    # No inventory_key: the export (product:STMX, 2500 kPa(a) saturated, counted in kWh) is not
+    # offered as an Atlas steam producer (the aniline-1 and cumene-1 precedent).
+    - {chemical: steam, role: co-product, note: "HP steam 2500 kPa(a) for export (product:STMX), 2.82 kWh/kg of heat; exergy allocation, 16.4 % of the burdens (D-012)"}
+    - {chemical: carbon-dioxide, role: emission, inventory_key: "emission:CO2", note: "0.235 kg/kg (unallocated), from the by-products burnt in the reactors and the oxidiser (fossil)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Aqueous phase of the dehydration column, 0.81 kg/kg, with 0.18 wt% acetic acid"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.140 kWh/kg: the process air compressor (pumps in the cut-off)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "1.57 kWh/kg of LP steam 450 kPa(a) to the three columns' reboilers"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "2.76 kWh/kg rejected: gas cooler, quench absorber, condensers"}
+basis:
+  capacity: "12 500 kg/h glacial acrylic acid, 100 kt/a in 8000 h, ASSUMED (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic petrochemical site with a propylene supply and a steam header (not chosen)
+references:
+  - {title: "Kadowaki, K.; Sarumaru, K.; Shibano, T. (Mitsubishi Petrochemical, priority 1979) US 4 873 368 A: Process for producing acrylic acid (two-stage propylene oxidation; Examples 2 and 5: feed ratios, temperatures, conversions and yields; acrolein's spontaneous oxidation, Table 3)", url: "https://patents.google.com/patent/US4873368A/en"}
+  - {title: "Kadowaki, K.; Sarumaru, K.; Shibano, T. (Mitsubishi Petrochemical, priority 1979) US 4 365 087 A: Production of acrylic acid (off-gas recycle between the stages, Example 8)", url: "https://patents.google.com/patent/US4365087A/en"}
+  - {title: "Sakakura, Y.; Yamagishi, M.; Hosaka, H. (Mitsubishi Chemical, priority 1994) US 5 910 607 A: Process for producing acrylic acid (azeotropic dehydration with toluene, Example 1; inhibitors; product limits)", url: "https://patents.google.com/patent/US5910607A/en"}
+  - {title: "Arkema (2023) Acrylic acid (AA) data sheet, BU/V8/05.23 (specification, MEHQ, storage under air, heat of polymerisation; manufacturer literature)", url: "https://www.arkema.com/files/live/sites/shared_arkema/files/downloads/products-documentations/acrylicmonomers/data-sheet-aa-v8.pdf"}
+  - {title: "Wikipedia, Acrylic acid (route and volume, hazards)", url: "https://en.wikipedia.org/wiki/Acrylic_acid"}
+  - {title: "PubChem CIDs 6581 (acrylic acid), 7847 (acrolein), 785 (hydroquinone), 9015 (4-methoxyphenol)", url: "https://pubchem.ncbi.nlm.nih.gov/"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/acrylic-acid-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

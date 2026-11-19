@@ -28,7 +28,7 @@ process reactor-hazards`, `cheme process stills`). The semi-batch's and the stil
 their duties Q2, Q3, Q8 and the column's condenser Q10 (`energy_port`, `still.condenser_port`,
 core ADRs 0059, 0061), and the screening gives the MTSR over
 the batch and compares the gas released at a cooling failure with R-101's vent capacity of 20
-m3/h (`hazard.vent_capacity`, core ADR 0058). Needs cheme-as-code 1.10.0. DESIGN.md lists the core
+m3/h (`hazard.vent_capacity`, core ADR 0058). Needs cheme-as-code 1.12.0 (melting points, D-017). DESIGN.md lists the core
 features used and the core limits hit.
 
 Four headline numbers carry caveats:

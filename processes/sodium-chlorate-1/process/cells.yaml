@@ -1,0 +1,48 @@
+# The undivided chlorate cells of sodium-chlorate-1 (DESIGN.md D-006). Schema `cheme schema
+# process-cells`; `cheme process cell` gives the Faraday, element, charge and energy balance.
+# Specified performance only: voltage and current efficiency are sourced inputs, never predicted
+# (no polarisation model in core).
+#
+# The overall reaction is the global one of the sources, NaCl + 3 H2O -> NaClO3 + 3 H2 at
+# 6 electrons (SRC-1). The anode's half-reaction is written for the net change at the anode and in
+# the liquor (chloride to chlorate via chlorine, hypochlorous acid and hypochlorite): the bulk
+# disproportionation is not an electrode reaction, but the electrons and the products per
+# extent are those of the plant (D-006). The flowsheet carries the same chemistry as HYPO in the
+# cells and CHEM and OXY in the reaction tanks (process/reactions.yaml).
+schema: cheme/electrochemical-cells/v1
+kind: electrochemical_cells
+cells:
+  - id: EL201
+    title: Undivided chlorate cells (DSA titanium anodes, steel cathodes, dichromate in the liquor)
+    performance: specified
+    reaction: CHLORATE
+    electrons: 6
+    electrodes:
+      anode: {equation: "Cl- + 6 OH- -> ClO3- + 3 H2O + 6 e- (net, via Cl2, HOCl and OCl-)", species: {Cl-: -1, OH-: -6, ClO3-: 1, H2O: 3, e-: 6}}
+      cathode: {equation: "6 H2O + 6 e- -> 3 H2 + 6 OH-", species: {H2O: -6, e-: -6, H2: 3, OH-: 6}}
+    dissociation:
+      NaCl: {Na+: 1, Cl-: 1}
+      NaClO3: {Na+: 1, ClO3-: 1}
+    # 400 cells in series as one DC load: a design simplification (D-006); the split into cell
+    # boxes, rows and rectifier circuits does not change the balance.
+    cells: 400
+    current: {value: 25.1557, unit: kA, provenance: assumed, source: "D-006: the current that forms the chlorate of the flowsheet (59.4442 kmol/h, the extent of CHEM in R201) at the current efficiency, 6 F per NaClO3, over 400 cells"}
+    active_area: {value: 10.062, unit: m2, provenance: assumed, source: "D-006: sized for 2.5 kA/m2, inside the 1.0-3.0 kA/m2 of SRC-1 (BREF LVIC-S 2007, Table 7.80)"}
+    faradaic_efficiency: {value: 0.95, provenance: given, origin: literature, source: "SRC-1: BREF LVIC-S 2007, 7.13.4.1: plant cells at an average current efficiency of 95 %; SRC-3 (Spasojevic et al. 2018, introduction): 94-96 % in modern plants, limited by oxygen formation"}
+    voltage: {value: 3.0, unit: V, provenance: assumed, origin: literature, source: "D-006: ASSUMED inside the 2.75-3.6 V per cell of SRC-1 (BREF LVIC-S 2007, 7.13.4.1) and the 2.6-3.6 V of its Table 7.80"}
+    side_reactions:
+      - reaction: WATER_SPLIT
+        electrons: 4
+        current_fraction: {value: 0.045, provenance: assumed, origin: literature, source: "D-006: the oxygen loss, ASSUMED so that the cell gas holds 2.2 mol% O2, inside the 2-2.5 % oxygen in the hydrogen of SRC-1 (BREF LVIC-S 2007, 7.13.4.1); the remaining 0.5 % of the current (cathodic reduction of hypochlorite and chlorate, which dichromate suppresses) forms no net product and becomes heat"}
+    thermal:
+      kind: isothermal
+      temperature: {value: 343.15, unit: K, provenance: assumed, origin: literature, source: "D-005: 70 C, inside the 60-80 C of SRC-1 (BREF LVIC-S 2007, 7.13.2.3) and SRC-2 (US 5 419 818 A, description) and at the 70 C of the rate constant of SRC-3"}
+    operating_range:
+      temperature: [333.15, 353.15]
+      current_density: [1000, 3000]
+      source: "SRC-1: BREF LVIC-S 2007, 7.13.2.3 (60-80 C) and Table 7.80 (1.0-3.0 kA/m2, 2.6-3.6 V)"
+    electrolyte: "about 121 g/L NaCl and 565 g/L NaClO3 (US 5 419 818 A: 110-125 and 550-580 g/L preferred), 3-5 g/L Na2Cr2O7 (BREF), pH 6.0-6.5, 70 C"
+    flowsheet: {step: EL201, electricity: P2, heat: Q2}
+    sources:
+      - "SRC-1: European Commission JRC (2007), Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry (LVIC-S BREF), section 7.13 Sodium chlorate"
+      - "SRC-3: Spasojevic, M.; Markovic, D.; Trisovic, T.; Spasojevic, M. (2018) J. Electrochem. Soc. 165, E8-E19, doi:10.1149/2.0291802jes"

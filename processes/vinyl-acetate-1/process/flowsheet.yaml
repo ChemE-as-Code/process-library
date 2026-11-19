@@ -1,0 +1,898 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Vinyl acetate monomer by gas-phase acetoxylation of ethylene, 200 kt/a (D-001, D-002). Where the
+# values come from:
+# - the feeds' compositions are the library producers' products (ethylene-1, asu-1,
+#   acetic-acid-1, D-003); their flows are solved by core's design specifications (`specs:`, core
+#   ADR 0070) for the product rate and the reactor feed of US 8 765 995 B2 Table 2 (SRC-1: 65
+#   mol% ethylene, 12.3 mol% acetic acid, 8.6 mol% oxygen), with the CO2 slip split solved for
+#   the ethylene;
+# - R101 converts the fractions of process/reactions.yaml (D-004); the separators' splits
+#   (`recovery:`) are ASSUMED design specifications inside the compositions US 8 410 307 B2 and
+#   US 6 420 595 B1 state (SRC-2, SRC-3, D-005 to D-007); the splits X101 and X201 are ASSUMED;
+# - the cycle gas, the recycle acid and the dewatering column's bottoms are torn (S2, S28, S31,
+#   core ADR 0060) and solved together with the specifications by `cheme process propagate
+#   --fill`, which writes every flow and composition but the feeds' compositions;
+# - temperatures and pressures are ASSUMED design values inside the sources' ranges (D-005);
+# - R101's duty Q1 is written by propagate on the elements basis from the ideal-gas data of
+#   process/materials.yaml (core ADR 0059); every other duty and power comes from
+#   scripts/balance.py (D-008), which reads the propagated streams.
+schema: cheme/process/v1
+kind: flowsheet
+title: Vinyl acetate monomer by gas-phase acetoxylation of ethylene (200 kt/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: 200 kt/a vinyl acetate (25 t/h in 8000 h), the reactor feed of US 8 765 995 B2 Table 2 (D-002, D-004)"
+    default: true
+    capacity: 25 t/h vinyl acetate
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+tears:
+  - stream: S2
+    initial: {flow: 109000, unit: kg/h, basis: mole_fraction, composition: {C2H4: 0.76, C2H6: 0.001, O2: 0.047, AR: 0.05, CO2: 0.12, H2O: 0.015, ACOH: 0.005, VAM: 0.002}}
+  - stream: S28
+    initial: {flow: 23000, unit: kg/h, basis: mass_fraction, composition: {ACOH: 0.85, H2O: 0.149, VAM: 0.001}}
+  - stream: S31
+    initial: {flow: 130, unit: kg/h, basis: mass_fraction, composition: {VAM: 0.99, ACOH: 0.01}}
+convergence: {method: wegstein, max_iterations: 200}
+specs:
+  - id: rate
+    vary: {stream: S1, initial: 9300}
+    target: {stream: S33, component: VAM, quantity: annual, value: 200000, unit: t, hours: 8000}
+    provenance: assumed
+    source: "D-002: 200 kt/a of vinyl acetate in 8000 h, ASSUMED normalisation basis"
+  - id: oxygen
+    vary: {stream: S7, initial: 7500}
+    target: {stream: S9, component: O2, quantity: fraction, basis: mole, value: 0.086}
+    provenance: given
+    source: "US 8 765 995 B2 (SRC-1) Table 2: 8.6 mol% oxygen in the reactor feed (D-004)"
+  - id: acid
+    vary: {stream: S4, initial: 17500}
+    target: {stream: S9, component: ACOH, quantity: fraction, basis: mole, value: 0.123}
+    provenance: given
+    source: "US 8 765 995 B2 (SRC-1) Table 2: 12.3 mol% acetic acid in the reactor feed (D-004)"
+  - id: ethylene
+    vary: {node: X102, port: slip, initial: 0.2}
+    target: {stream: S9, component: C2H4, quantity: fraction, basis: mole, value: 0.65}
+    provenance: given
+    source: "US 8 765 995 B2 (SRC-1) Table 2: 65 mol% ethylene in the reactor feed; the CO2 slip to A101 holds it (D-006)"
+
+feeds:
+  - {id: ETH, title: "Ethylene (polymer grade, ethylene-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: OXY, title: "Oxygen (GOX, asu-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACF, title: "Acetic acid (glacial, acetic-acid-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: "Demineralised wash water for the slip-gas scrubber C-104", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: LPS
+    title: LP steam import 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-008"}
+      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a), D-008"}
+    ports:
+      - {id: c201, direction: out, kind: energy}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: a101, direction: out, kind: energy}
+      - {id: dis, direction: out, kind: energy}
+products:
+  - {id: VAMP, title: Vinyl acetate monomer to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: PURGE, title: Cycle-gas purge to the thermal oxidiser, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: CO2V, title: CO2 vent of the carbonate regenerator, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Aqueous effluent to biological treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-008"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-008"}
+    ports:
+      - {id: e102, direction: in, kind: energy}
+      - {id: c101, direction: in, kind: energy}
+      - {id: c102, direction: in, kind: energy}
+      - {id: a101, direction: in, kind: energy}
+      - {id: c201, direction: in, kind: energy}
+      - {id: c202, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+
+blocks:
+  - id: RXN
+    title: Acetic acid saturation and acetoxylation reactor
+    class: ReactingChemicals
+    ports:
+      - {id: eth, direction: in}
+      - {id: oxy, direction: in}
+      - {id: acf, direction: in}
+      - {id: rec, direction: in}
+      - {id: acid, direction: in}
+      - {id: out, direction: out}
+      - {id: fe, direction: in, kind: energy}
+      - {id: stm1, direction: out, kind: energy}
+      - {id: stm2, direction: out, kind: energy}
+      - {id: stm3, direction: out, kind: energy}
+  - id: GAS
+    title: Effluent condensation, cycle-gas scrubbing, CO2 removal and recycle compression
+    class: Absorbing
+    ports:
+      - {id: in, direction: in}
+      - {id: scr, direction: in}
+      - {id: rec, direction: out}
+      - {id: purge, direction: out}
+      - {id: co2, direction: out}
+      - {id: org, direction: out}
+      - {id: bot, direction: out}
+      - {id: scrbot, direction: out}
+      - {id: dmw, direction: in}
+      - {id: aq, direction: out}
+      - {id: wash, direction: out}
+      - {id: fe, direction: out, kind: energy}
+      - {id: stm, direction: in, kind: energy}
+      - {id: pw1, direction: in, kind: energy}
+      - {id: pw2, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+      - {id: cw4, direction: out, kind: energy}
+  - id: DIS
+    title: Distillation (azeotropic column, dewatering column with the VAM side draw)
+    class: Distilling
+    ports:
+      - {id: bot, direction: in}
+      - {id: org, direction: in}
+      - {id: scrbot, direction: in}
+      - {id: aq, direction: in}
+      - {id: wash, direction: in}
+      - {id: acid, direction: out}
+      - {id: scr, direction: out}
+      - {id: vam, direction: out}
+      - {id: ww, direction: out}
+      - {id: stm1, direction: in, kind: energy}
+      - {id: stm2, direction: in, kind: energy}
+      - {id: stm3, direction: in, kind: energy}
+      - {id: pw, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+
+steps:
+  # ---------------------------------------------------------------- reaction (D-004, D-005)
+  - id: M101
+    block: RXN
+    title: Fresh ethylene into the cycle gas
+    class: Mixing
+    ports:
+      - {id: eth, direction: in, delegates: eth}
+      - {id: rec, direction: in, delegates: rec}
+      - {id: out, direction: out}
+  - id: T101
+    block: RXN
+    title: Acetic acid saturator (cycle gas saturated with fresh and recycle acid)
+    class: Mixing
+    links: [{target: equipment, ref: T-101}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: acf, direction: in, delegates: acf}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out}
+      - {id: stm, direction: in, kind: energy}
+  - id: M102
+    block: RXN
+    title: Oxygen mixing nozzle
+    class: Mixing
+    ports:
+      - {id: gas, direction: in}
+      - {id: oxy, direction: in, delegates: oxy}
+      - {id: out, direction: out}
+  - id: E101
+    block: RXN
+    title: Reactor feed superheater
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: fe, direction: in, kind: energy, delegates: fe}
+  - id: R101
+    block: RXN
+    title: Acetoxylation reactor (multitubular fixed bed, Pd/Au catalyst, boiling-water shell)
+    class: ReactingChemicals
+    reactions: [ACX, COMB]
+    reactor: conversion
+    # Q1: the heat left after the steam R-101 raises for T-101 (Q2), the CO2 regenerator (Q7)
+    # and C-202 (Q11), all at 450 kPa(a), goes to C-201's reboiler (D-008)
+    energy_port: stm
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: stm, direction: out, kind: energy, delegates: stm1}
+      - {id: sat, direction: out, kind: energy}
+      - {id: co2, direction: out, kind: energy, delegates: stm2}
+      - {id: c202, direction: out, kind: energy, delegates: stm3}
+  # ---------------------------------------------------------------- gas recovery (D-005, D-006)
+  - id: E102
+    block: GAS
+    title: Reactor effluent cooler
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-102}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: fe, direction: out, kind: energy, delegates: fe}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: C101
+    block: GAS
+    title: Preliminary dewatering column at loop pressure, overhead condenser and decanter
+    class: Separating
+    recovery:
+      outlets:
+        gas: {C2H4: 1.0, C2H6: 1.0, O2: 1.0, AR: 1.0, CO2: 1.0, VAM: 0.25, H2O: 0.03, ACOH: 0.002}
+        org: {VAM: 0.55, H2O: 0.02}
+        aq: {H2O: 0.14, VAM: 0.0003, ACOH: 0.002}
+      provenance: assumed
+      source: "D-005: ASSUMED split; the organic phase about 98.9 wt% VAM and 1.1 wt% water, inside US 8 410 307 B2's 90-99 wt% VAM and 0.5-8 wt% water (SRC-2); the decanter's aqueous phase taken off as SRC-2 claims (step c): the overhead carries water at 0.35 mol per mol of its VAM, the vapour of a two-liquid-phase top (Dortmund UNIFAC and thermo's vapour pressures, 323-338 K), less the water of the gas and the organic phase; its VAM in C-201's decanter ratio to water, its acid as the gas's share; the gases leave overhead (their solution in the liquids not modelled)"
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: org, direction: out, delegates: org}
+      - {id: aq, direction: out, delegates: aq}
+      - {id: bot, direction: out, delegates: bot}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: C102
+    block: GAS
+    title: Cycle-gas scrubber with recycle acetic acid
+    class: Absorbing
+    recovery:
+      outlets:
+        out: {C2H4: 1.0, C2H6: 1.0, O2: 1.0, AR: 1.0, CO2: 1.0, VAM: 0.005, H2O: 0.3, ACOH: 0.125}
+      provenance: assumed
+      source: "D-005: ASSUMED split; the acetic acid scrub of the uncondensed gas of US 8 410 307 B2 (SRC-2), its bottoms to the azeotropic column; the scrubbed gas leaves with the acid of equilibrium with the lean scrub acid S15 at 313 K (about 0.43 mol%: Dortmund UNIFAC and thermo's vapour pressure)"
+    links: [{target: equipment, ref: C-102}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: acid, direction: in, delegates: scr}
+      - {id: out, direction: out}
+      - {id: bot, direction: out, delegates: scrbot}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+  - id: X101
+    block: GAS
+    title: Inerts purge
+    class: SplittingMaterial
+    split: {purge: 0.003}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: out, direction: out}
+  - id: X102
+    block: GAS
+    title: Slip stream to the CO2 removal
+    class: SplittingMaterial
+    ports:
+      - {id: in, direction: in}
+      - {id: slip, direction: out}
+      - {id: byp, direction: out}
+  - id: C104
+    block: GAS
+    title: Slip-gas water scrubber ahead of the carbonate absorber
+    class: Absorbing
+    recovery:
+      outlets:
+        gas: {C2H4: 1.0, C2H6: 1.0, O2: 1.0, AR: 1.0, CO2: 1.0, VAM: 1.0, H2O: 0.25, ACOH: 0.01}
+      provenance: assumed
+      source: "D-006: ASSUMED split; US 6 420 595 B1 (SRC-3) passes the slip stream through a scrubber before the potassium carbonate absorber. Demineralised water, 540 kg/h (about 6 mol per mol of the acid, ASSUMED), washes out 99 % of the acid (absorption factor about 1.4-2.5 from Dortmund UNIFAC, about six stages, ASSUMED); the vinyl acetate passes; the gas leaves near saturation with water at 313 K (a quarter of the water in); the wash liquor to C-201"
+    links: [{target: equipment, ref: C-104}]
+    ports:
+      - {id: in, direction: in}
+      - {id: wat, direction: in, delegates: dmw}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out, delegates: wash}
+  - id: A101
+    block: GAS
+    title: CO2 removal by hot potassium carbonate (absorber and regenerator)
+    class: Absorbing
+    recovery:
+      outlets:
+        vent: {CO2: 0.45, C2H4: 0.001, C2H6: 0.001, O2: 0.001, AR: 0.001}
+      provenance: assumed
+      source: "D-006: US 6 420 595 B1 (SRC-3): the carbonate removes almost half of the CO2 of the gas it treats, ASSUMED 0.45; the hydrocarbons co-absorbed and lost with the regenerator's CO2, ASSUMED 0.1 %"
+    links: [{target: equipment, ref: C-103}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vent, direction: out, delegates: co2}
+      - {id: gas, direction: out}
+      - {id: stm, direction: in, kind: energy, delegates: stm}
+      - {id: pw, direction: in, kind: energy, delegates: pw2}
+      - {id: cw, direction: out, kind: energy, delegates: cw4}
+  - id: M103
+    block: GAS
+    title: Treated slip back into the cycle gas
+    class: Mixing
+    ports:
+      - {id: slip, direction: in}
+      - {id: byp, direction: in}
+      - {id: out, direction: out}
+  - id: K101
+    block: GAS
+    title: Cycle-gas compressor
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: rec}
+      - {id: pw, direction: in, kind: energy, delegates: pw1}
+  # ---------------------------------------------------------------- distillation (D-007)
+  - id: M201
+    block: DIS
+    title: Azeotropic column feeds
+    class: Mixing
+    ports:
+      - {id: bot, direction: in, delegates: bot}
+      - {id: scr, direction: in, delegates: scrbot}
+      - {id: wash, direction: in, delegates: wash}
+      - {id: c202, direction: in}
+      - {id: out, direction: out}
+  - id: C201
+    block: DIS
+    title: Azeotropic column with overhead decanter
+    class: Distilling
+    recovery:
+      outlets:
+        org: {VAM: 0.995, H2O: 0.02, ACOH: 0.00002}
+        aq: {VAM: 0.004, H2O: 0.75, ACOH: 0.0005}
+      provenance: assumed
+      source: "D-007: ASSUMED split; the VAM-water heteroazeotrope overhead, decanted, the acetic acid at the bottom as recycle acid (US 8 410 307 B2, SRC-2; US 6 420 595 B1, SRC-3)"
+    links: [{target: equipment, ref: C-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: org, direction: out}
+      - {id: aq, direction: out}
+      - {id: bot, direction: out}
+      - {id: rx, direction: in, kind: energy, delegates: stm1}
+      - {id: stm, direction: in, kind: energy, delegates: stm2}
+      - {id: pw, direction: in, kind: energy, delegates: pw}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: X201
+    block: DIS
+    title: Recycle acid to the saturator and to the cycle-gas scrubber
+    class: SplittingMaterial
+    split: {scr: 0.3}
+    ports:
+      - {id: in, direction: in}
+      - {id: sat, direction: out, delegates: acid}
+      - {id: scr, direction: out, delegates: scr}
+  - id: M202
+    block: DIS
+    title: Collection vessel of the organic phases
+    class: Mixing
+    links: [{target: equipment, ref: V-201}]
+    ports:
+      - {id: c101, direction: in, delegates: org}
+      - {id: c201, direction: in}
+      - {id: out, direction: out}
+  - id: C202
+    block: DIS
+    title: Dewatering column with the pure VAM side draw
+    class: Distilling
+    recovery:
+      outlets:
+        vam: {VAM: 0.993, H2O: 0.0075}
+        top: {VAM: 0.002, H2O: 0.99249}
+      provenance: assumed
+      source: "D-007: ASSUMED split; US 8 410 307 B2 (SRC-2): water and low boilers overhead, pure VAM as a side draw from the stripping section, the bottoms (0.5 % of the feed in its example) back to the azeotropic column; the water falls down the stripping section, so the bottoms below the draw are drier than it (water 0.001 % of the feed) and carry the acid"
+    links: [{target: equipment, ref: C-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vam, direction: out}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: stm, direction: in, kind: energy, delegates: stm3}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: E201
+    block: DIS
+    title: Product cooler
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: vam}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+  - id: M203
+    block: DIS
+    title: Aqueous effluents
+    class: Mixing
+    ports:
+      - {id: c101, direction: in, delegates: aq}
+      - {id: c201, direction: in}
+      - {id: c202, direction: in}
+      - {id: out, direction: out, delegates: ww}
+
+streams:
+  - id: S1
+    title: Fresh ethylene
+    from: ETH.out
+    to: M101.eth
+    template: gas
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 2000, provenance: assumed, source: "D-003: pipeline delivery above the loop"}
+        composition: {basis: mole_fraction, values: {C2H4: 0.9995, C2H6: 0.0005}, provenance: assumed, source: "D-003: ethylene-1's product, C2H4 >= 99.95 mol%, ethane the impurity"}
+        flow: {value: 9248.11, provenance: calculated, source: 'cheme process propagate: spec rate (S33 VAM t/a 200000)', fingerprint: 05ab6fa8205bc436}
+  - id: S2
+    title: Compressed cycle gas
+    from: K101.out
+    to: M101.rec
+    template: gas
+    state:
+      design:
+        temperature: {value: 339.2, provenance: assumed, source: "scripts/balance.py: K-101's discharge, isentropic efficiency 0.75 (D-008)"}
+        pressure: {value: 1050, provenance: assumed, source: "D-005"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 105944.0, provenance: calculated, source: 'cheme process propagate: recycle K101 from S24 (tear, broyden)', fingerprint: 389fbab8a2071755}
+        composition: {basis: mole_fraction, values: {C2H4: 0.77842, C2H6: 0.0141709, O2: 0.0485274, AR: 0.0602372, CO2: 0.0909599, H2O: 0.00478034, ACOH: 0.00279951, VAM: 0.000104804}, provenance: calculated, source: 'cheme process propagate: recycle K101 from S24 (tear, broyden)', fingerprint: 389fbab8a2071755}
+  - id: S3
+    title: Cycle gas with fresh ethylene to the saturator
+    from: M101.out
+    to: T101.gas
+    template: gas
+    state:
+      design:
+        temperature: {value: 335.57, provenance: assumed, source: "scripts/balance.py: the fresh ethylene S1 and the cycle gas S2 mixed adiabatically (D-008)"}
+        pressure: {value: 1050, provenance: assumed, source: "D-005"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 115192.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 5307c215e40f9fc8}
+        composition: {basis: mole_fraction, values: {C2H4: 0.797576, C2H6: 0.0129864, O2: 0.0443226, AR: 0.0550178, CO2: 0.0830785, H2O: 0.00436614, ACOH: 0.00255694, VAM: 9.5723e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: dcdccaa10a58929c}
+  - id: S4
+    title: Fresh acetic acid
+    from: ACF.out
+    to: T101.acf
+    template: liquid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 1200, provenance: assumed, source: "D-003: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        composition: {basis: mass_fraction, values: {ACOH: 0.999309, H2O: 0.000691}, provenance: assumed, source: "D-003: acetic-acid-1's product at its design point, 691 ppm(wt) water (propionic acid not modelled)"}
+        flow: {value: 17571.4, provenance: calculated, source: 'cheme process propagate: spec acid (S9 ACOH mole fraction 0.123)', fingerprint: 05ab6fa8205bc436}
+  - id: S5
+    title: Recycle acid to the saturator
+    from: X201.sat
+    to: T101.acid
+    template: liquid
+    state:
+      design:
+        temperature: {value: 393.15, provenance: assumed, source: "D-007: the azeotropic column's bottoms, pumped"}
+        pressure: {value: 1200, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 17516.3, provenance: calculated, source: 'cheme process propagate: splitter X201 from S28 S15', fingerprint: fd51401c8afcccde}
+        composition: {basis: mole_fraction, values: {VAM: 0.000275055, H2O: 0.192767, ACOH: 0.806958, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X201 from S28', fingerprint: 7f6ca1536eb5fd33}
+  - id: S6
+    title: Acid-saturated cycle gas
+    from: T101.out
+    to: M102.gas
+    template: gas
+    state:
+      design:
+        temperature: {value: 408.15, provenance: assumed, source: "D-005: saturator top"}
+        pressure: {value: 1020, provenance: assumed, source: "D-005"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 150280.0, provenance: calculated, source: 'cheme process propagate: mixer T101 from S3 S4 S5', fingerprint: f5ee9a0128c89a2c}
+        composition: {basis: mole_fraction, values: {C2H4: 0.684231, C2H6: 0.0111409, O2: 0.0380238, AR: 0.0471991, CO2: 0.071272, H2O: 0.0185526, ACOH: 0.129478, VAM: 0.00010303}, provenance: calculated, source: 'cheme process propagate: mixer T101 from S3 S4 S5', fingerprint: fd7d800eb0359292}
+  - id: S7
+    title: Oxygen
+    from: OXY.out
+    to: M102.oxy
+    template: gas
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 1200, provenance: assumed, source: "D-003: let down from asu-1's 31 bar(a)"}
+        phase: {value: vapor, provenance: assumed, source: "D-003"}
+        composition: {basis: mole_fraction, values: {O2: 0.997, AR: 0.003}, provenance: assumed, source: "D-003: asu-1's GOX, 99.7 mol% O2, the rest counted as argon"}
+        flow: {value: 7478.43, provenance: calculated, source: 'cheme process propagate: spec oxygen (S9 O2 mole fraction 0.086)', fingerprint: 05ab6fa8205bc436}
+  - id: S8
+    title: Mixed reactor feed
+    from: M102.out
+    to: E101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 405.01, provenance: assumed, source: "scripts/balance.py: S6 and the oxygen S7 mixed adiabatically (D-008)"}
+        pressure: {value: 1010, provenance: assumed, source: "D-005"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 157758.0, provenance: calculated, source: 'cheme process propagate: mixer M102 from S6 S7', fingerprint: 680ecbe873723ee5}
+        composition: {basis: mole_fraction, values: {C2H4: 0.65, C2H6: 0.0105835, O2: 0.0859999, AR: 0.0449879, CO2: 0.0677063, H2O: 0.0176244, ACOH: 0.123, VAM: 9.78755e-05}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S6 S7', fingerprint: 8b5863c03ce426cc}
+  - id: S9
+    title: Reactor feed
+    from: E101.out
+    to: R101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 423.15, provenance: assumed, source: "D-005: 150 C, US 8 765 995 B2 (SRC-1) Table 1"}
+        pressure: {value: 1000, provenance: assumed, source: "D-005: inside 8-12 bar(a), US 8 410 307 B2 (SRC-2)"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 157758.0, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S8', fingerprint: 5c4aa1a82ca62e8e}
+        composition: {basis: mole_fraction, values: {C2H4: 0.65, C2H6: 0.0105835, O2: 0.0859999, AR: 0.0449879, CO2: 0.0677063, H2O: 0.0176244, ACOH: 0.123, VAM: 9.78755e-05}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S8', fingerprint: 5c4aa1a82ca62e8e}
+  - id: S10
+    title: Reactor effluent
+    from: R101.out
+    to: E102.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 438.15, provenance: assumed, source: "D-005: inside 130-200 C (SRC-1, SRC-2)"}
+        pressure: {value: 930, provenance: assumed, source: "D-005"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 157758.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S9', fingerprint: 73215965cfd75cd6}
+        composition: {basis: mole_fraction, values: {C2H4: 0.600103, C2H6: 0.0109247, O2: 0.0374108, AR: 0.0464383, CO2: 0.0826373, H2O: 0.0954196, ACOH: 0.0624866, VAM: 0.0645799}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S9', fingerprint: 6edcfec2e7c335e0}
+  - id: S11
+    title: Cooled effluent to the preliminary dewatering column
+    from: E102.out
+    to: C101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 398.15, provenance: assumed, source: "D-005: inside 115-130 C, US 8 410 307 B2 (SRC-2)"}
+        pressure: {value: 920, provenance: assumed, source: "D-005"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 157758.0, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S10', fingerprint: 1e7350667fbf58a7}
+        composition: {basis: mole_fraction, values: {C2H4: 0.600103, C2H6: 0.0109247, O2: 0.0374108, AR: 0.0464383, CO2: 0.0826373, H2O: 0.0954196, ACOH: 0.0624866, VAM: 0.0645799}, provenance: calculated, source: 'cheme process propagate: pass-through E102 from S10', fingerprint: 1e7350667fbf58a7}
+  - id: S12
+    title: Uncondensed gas to the scrubber
+    from: C101.gas
+    to: C102.gas
+    template: gas
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "D-005: condenser outlet inside -20 to +50 C (SRC-2)"}
+        pressure: {value: 900, provenance: assumed, source: "D-005"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 114424.0, provenance: calculated, source: 'cheme process propagate: separator C101 from S11', fingerprint: 04f84ce34ea1ed11}
+        composition: {basis: mole_fraction, values: {C2H4: 0.753286, C2H6: 0.0137134, O2: 0.0469603, AR: 0.0582922, CO2: 0.103731, H2O: 0.0035933, ACOH: 0.000156874, VAM: 0.0202662}, provenance: calculated, source: 'cheme process propagate: separator C101 from S11', fingerprint: 04f84ce34ea1ed11}
+  - id: S13
+    title: Organic phase of the preliminary dewatering column
+    from: C101.org
+    to: M202.c101
+    template: liquid
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "D-005"}
+        pressure: {value: 900, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 13984.1, provenance: calculated, source: 'cheme process propagate: separator C101 from S11', fingerprint: 04f84ce34ea1ed11}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0, H2O: 0.0509893, ACOH: 0.0, VAM: 0.949011}, provenance: calculated, source: 'cheme process propagate: separator C101 from S11', fingerprint: 04f84ce34ea1ed11}
+  - id: S14
+    title: Bottoms of the preliminary dewatering column
+    from: C101.bot
+    to: M201.bot
+    template: liquid
+    state:
+      design:
+        temperature: {value: 383.15, provenance: assumed, source: "D-005: inside 100-120 C (SRC-2)"}
+        pressure: {value: 920, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 28219.9, provenance: calculated, source: 'cheme process propagate: separator C101 from S11', fingerprint: 04f84ce34ea1ed11}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0, H2O: 0.507074, ACOH: 0.408315, VAM: 0.0846106}, provenance: calculated, source: 'cheme process propagate: separator C101 from S11', fingerprint: 04f84ce34ea1ed11}
+  - id: S15
+    title: Scrub acid
+    from: X201.scr
+    to: C102.acid
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-005: cooled on cooling water"}
+        pressure: {value: 1000, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 7506.99, provenance: calculated, source: 'cheme process propagate: splitter X201 from S28', fingerprint: 773a1887c7197978}
+        composition: {basis: mole_fraction, values: {VAM: 0.000275055, H2O: 0.192767, ACOH: 0.806958, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X201 from S28', fingerprint: 7f6ca1536eb5fd33}
+  - id: S16
+    title: Scrubbed cycle gas
+    from: C102.out
+    to: X101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-005"}
+        pressure: {value: 880, provenance: assumed, source: "D-005"}
+        phase: {value: vapor, provenance: assumed, source: "D-005"}
+        flow: {value: 109003.0, provenance: calculated, source: 'cheme process propagate: separator C102 from S12 S15', fingerprint: 9beb51f838f2d08a}
+        composition: {basis: mole_fraction, values: {C2H4: 0.765887, C2H6: 0.0139428, O2: 0.0477459, AR: 0.0592674, CO2: 0.105466, H2O: 0.00345411, ACOH: 0.00413301, VAM: 0.000103082}, provenance: calculated, source: 'cheme process propagate: separator C102 from S12 S15', fingerprint: 9beb51f838f2d08a}
+  - id: S17
+    title: Scrubber bottoms
+    from: C102.bot
+    to: M201.scr
+    template: liquid
+    state:
+      design:
+        temperature: {value: 318.15, provenance: assumed, source: "D-005"}
+        pressure: {value: 890, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 12928.5, provenance: calculated, source: 'cheme process propagate: separator C102 from S12 S15', fingerprint: 9beb51f838f2d08a}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0, H2O: 0.140157, ACOH: 0.503114, VAM: 0.356729}, provenance: calculated, source: 'cheme process propagate: separator C102 from S12 S15', fingerprint: 9beb51f838f2d08a}
+  - id: S18
+    title: Purge gas
+    from: X101.purge
+    to: PURGE.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 880, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 327.009, provenance: calculated, source: 'cheme process propagate: splitter X101 from S16', fingerprint: eea855d092065f5b}
+        composition: {basis: mole_fraction, values: {C2H4: 0.765887, C2H6: 0.0139428, O2: 0.0477459, AR: 0.0592674, CO2: 0.105466, H2O: 0.00345411, ACOH: 0.00413301, VAM: 0.000103082}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S16', fingerprint: a0466a2494feea9f}
+  - id: S19
+    title: Cycle gas after the purge
+    from: X101.out
+    to: X102.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 880, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 108676.0, provenance: calculated, source: 'cheme process propagate: splitter X101 from S16 S18', fingerprint: cf3f6bea5c196b7e}
+        composition: {basis: mole_fraction, values: {C2H4: 0.765887, C2H6: 0.0139428, O2: 0.0477459, AR: 0.0592674, CO2: 0.105466, H2O: 0.00345411, ACOH: 0.00413301, VAM: 0.000103082}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S16', fingerprint: a0466a2494feea9f}
+  - id: S20
+    title: Slip stream to the slip-gas scrubber
+    from: X102.slip
+    to: C104.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 880, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 36640.1, provenance: calculated, source: 'cheme process propagate: splitter X102 from S19', fingerprint: 66c40f6887d5a96f}
+        composition: {basis: mole_fraction, values: {C2H4: 0.765887, C2H6: 0.0139428, O2: 0.0477459, AR: 0.0592674, CO2: 0.105466, H2O: 0.00345411, ACOH: 0.00413301, VAM: 0.000103082}, provenance: calculated, source: 'cheme process propagate: splitter X102 from S19', fingerprint: 0823f106d747f215}
+  - id: S21
+    title: CO2 from the regenerator
+    from: A101.vent
+    to: CO2V.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006: after the regenerator's overhead condenser"}
+        pressure: {value: 130, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 2518.51, provenance: calculated, source: 'cheme process propagate: separator A101 from S36', fingerprint: 2f5945a0cfcba99a}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0158417, C2H6: 0.000288395, O2: 0.000987579, AR: 0.00122589, CO2: 0.981656, H2O: 0.0, ACOH: 0.0, VAM: 0.0}, provenance: calculated, source: 'cheme process propagate: separator A101 from S36', fingerprint: 2f5945a0cfcba99a}
+  - id: S22
+    title: Treated slip stream
+    from: A101.gas
+    to: M103.slip
+    template: gas
+    state:
+      design:
+        temperature: {value: 343.15, provenance: assumed, source: "D-006: hot carbonate absorber overhead"}
+        pressure: {value: 870, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 33908.3, provenance: calculated, source: 'cheme process propagate: separator A101 from S36', fingerprint: 2f5945a0cfcba99a}
+        composition: {basis: mole_fraction, values: {C2H4: 0.804322, C2H6: 0.0146425, O2: 0.050142, AR: 0.0622417, CO2: 0.0609781, H2O: 0.00752161, ACOH: 4.34477e-05, VAM: 0.000108363}, provenance: calculated, source: 'cheme process propagate: separator A101 from S36', fingerprint: 2f5945a0cfcba99a}
+  - id: S23
+    title: Cycle gas bypassing the CO2 removal
+    from: X102.byp
+    to: M103.byp
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 880, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 72035.9, provenance: calculated, source: 'cheme process propagate: splitter X102 from S19 S20', fingerprint: ed2a59b489e3cd47}
+        composition: {basis: mole_fraction, values: {C2H4: 0.765887, C2H6: 0.0139428, O2: 0.0477459, AR: 0.0592674, CO2: 0.105466, H2O: 0.00345411, ACOH: 0.00413301, VAM: 0.000103082}, provenance: calculated, source: 'cheme process propagate: splitter X102 from S19', fingerprint: 0823f106d747f215}
+  - id: S24
+    title: Cycle gas to the compressor
+    from: M103.out
+    to: K101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 323.13, provenance: assumed, source: "scripts/balance.py: the treated slip S22 and the bypass S23 mixed adiabatically (D-008)"}
+        pressure: {value: 870, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 105944.0, provenance: calculated, source: 'cheme process propagate: mixer M103 from S22 S23', fingerprint: 850ff66ab633af79}
+        composition: {basis: mole_fraction, values: {C2H4: 0.77842, C2H6: 0.014171, O2: 0.0485272, AR: 0.0602373, CO2: 0.0909596, H2O: 0.00478043, ACOH: 0.0027995, VAM: 0.000104804}, provenance: calculated, source: 'cheme process propagate: mixer M103 from S22 S23', fingerprint: 44fde90d05006db8}
+  - id: S25
+    title: Azeotropic column feed
+    from: M201.out
+    to: C201.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 364.05, provenance: assumed, source: "scripts/balance.py: S14, S17, S31 and S37 mixed adiabatically, as a liquid (part of it flashes at the column's pressure; the column's balance counts the same enthalpy), D-008"}
+        pressure: {value: 150, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 42028.0, provenance: calculated, source: 'cheme process propagate: mixer M201 from S14 S17 S31 S37', fingerprint: 8b5864c6e7834033}
+        composition: {basis: mole_fraction, values: {VAM: 0.143217, H2O: 0.436394, ACOH: 0.420389, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S14 S17 S31 S37', fingerprint: f08a8e51a57a0f02}
+  - id: S26
+    title: Organic phase of the azeotropic column's decanter
+    from: C201.org
+    to: M202.c201
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 150, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 11493.5, provenance: calculated, source: 'cheme process propagate: separator C201 from S25', fingerprint: 5ca97aed2b984499}
+        composition: {basis: mole_fraction, values: {VAM: 0.942235, H2O: 0.0577099, ACOH: 5.55933e-05, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C201 from S25', fingerprint: 5ca97aed2b984499}
+  - id: S27
+    title: Aqueous phase of the azeotropic column's decanter
+    from: C201.aq
+    to: M203.c201
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 150, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 5511.22, provenance: calculated, source: 'cheme process propagate: separator C201 from S25', fingerprint: 5ca97aed2b984499}
+        composition: {basis: mole_fraction, values: {VAM: 0.00174613, H2O: 0.997613, ACOH: 0.000640683, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C201 from S25', fingerprint: 5ca97aed2b984499}
+  - id: S28
+    title: Recycle acid (azeotropic column bottoms)
+    from: C201.bot
+    to: X201.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 393.15, provenance: assumed, source: "D-007: bottoms at about 140 kPa(a)"}
+        pressure: {value: 140, provenance: assumed, source: "D-007: top at 1.1-1.5 bar(a), US 8 410 307 B2 (SRC-2)"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 25023.3, provenance: calculated, source: 'cheme process propagate: recycle C201 from S25 (tear, broyden)', fingerprint: 389fbab8a2071755}
+        composition: {basis: mole_fraction, values: {VAM: 0.000275055, H2O: 0.192767, ACOH: 0.806958, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C201 from S25 (tear, broyden)', fingerprint: 389fbab8a2071755}
+  - id: S29
+    title: Crude VAM from the collection vessel
+    from: M202.out
+    to: C202.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 310.41, provenance: assumed, source: "scripts/balance.py: the organic phases S13 and S26 mixed adiabatically in V-201 (D-008)"}
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 25477.6, provenance: calculated, source: 'cheme process propagate: mixer M202 from S13 S26', fingerprint: 4dbeb37bf658fd6a}
+        composition: {basis: mole_fraction, values: {VAM: 0.945944, H2O: 0.0540304, ACOH: 2.5156e-05, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S13 S26', fingerprint: 289a564efd038b9a}
+  - id: S30
+    title: Dewatering column overhead (water and low boilers)
+    from: C202.top
+    to: M203.c202
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 150, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 349.008, provenance: calculated, source: 'cheme process propagate: separator C202 from S29', fingerprint: 578e0d72e5593556}
+        composition: {basis: mole_fraction, values: {VAM: 0.0340779, H2O: 0.965922, ACOH: 0.0, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C202 from S29', fingerprint: 578e0d72e5593556}
+  - id: S31
+    title: Dewatering column bottoms back to the azeotropic column
+    from: C202.bot
+    to: M201.c202
+    template: liquid
+    state:
+      design:
+        temperature: {value: 362.5, provenance: assumed, source: "D-007: bubble point at 170 kPa(a) of VAM with its 0.5 mol% acid (thermo's vapour pressures, Raoult's law)"}
+        pressure: {value: 170, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 126.351, provenance: calculated, source: 'cheme process propagate: recycle C202 from S29 (tear, broyden)', fingerprint: 389fbab8a2071755}
+        composition: {basis: mole_fraction, values: {VAM: 0.994596, H2O: 0.000113619, ACOH: 0.00529, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C202 from S29 (tear, broyden)', fingerprint: 389fbab8a2071755}
+  - id: S32
+    title: Pure VAM side draw
+    from: C202.vam
+    to: E201.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 361.3, provenance: assumed, source: "D-007: a tray liquid at its bubble point, VAM at 165 kPa(a) (thermo's vapour pressure); the column's top (70-80 C in US 8 410 307 B2, SRC-2) is colder, with the water-rich vapour"}
+        pressure: {value: 165, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 25002.2, provenance: calculated, source: 'cheme process propagate: separator C202 from S29', fingerprint: 578e0d72e5593556}
+        composition: {basis: mole_fraction, values: {VAM: 0.999569, H2O: 0.000431219, ACOH: 0.0, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C202 from S29', fingerprint: 578e0d72e5593556}
+  - id: S33
+    title: Vinyl acetate monomer
+    from: E201.out
+    to: VAMP.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 303.15, provenance: assumed, source: "D-007: cooled on cooling water to storage"}
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 25002.2, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S32', fingerprint: fbd075e62c7e8465}
+        composition: {basis: mole_fraction, values: {VAM: 0.999569, H2O: 0.000431219, ACOH: 0.0, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S32', fingerprint: fbd075e62c7e8465}
+  - id: S34
+    title: Aqueous effluent
+    from: M203.out
+    to: WW.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 312.35, provenance: assumed, source: "scripts/balance.py: the aqueous phases S38 and S27 and C-202's top S30 mixed adiabatically (D-008)"}
+        pressure: {value: 150, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 6990.05, provenance: calculated, source: 'cheme process propagate: mixer M203 from S27 S30 S38', fingerprint: fe3e02790a30401b}
+        composition: {basis: mole_fraction, values: {VAM: 0.00315012, H2O: 0.99486, ACOH: 0.00199006, C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M203 from S27 S30 S38', fingerprint: 9bcdee1d6965f445}
+  - id: S35
+    title: Wash water to the slip-gas scrubber
+    from: DMW.out
+    to: C104.wat
+    template: liquid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 1000, provenance: assumed, source: "D-006: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        flow: {value: 540.0, provenance: assumed, source: "D-006: about 6 mol of water per mol of the slip's acid, ASSUMED: an absorption factor of 1.4-2.5 (Dortmund UNIFAC)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-006: demineralised water"}
+  - id: S36
+    title: Washed slip gas to the CO2 absorber
+    from: C104.gas
+    to: A101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 875, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 36426.8, provenance: calculated, source: 'cheme process propagate: separator C104 from S20 S35', fingerprint: 07582b706190fa82}
+        composition: {basis: mole_fraction, values: {C2H4: 0.766187, C2H6: 0.0139483, O2: 0.0477646, AR: 0.0592906, CO2: 0.105507, H2O: 0.00715782, ACOH: 4.13463e-05, VAM: 0.000103122}, provenance: calculated, source: 'cheme process propagate: separator C104 from S20 S35', fingerprint: 07582b706190fa82}
+  - id: S37
+    title: Slip-gas scrubber liquor to the azeotropic column
+    from: C104.liq
+    to: M201.wash
+    template: liquid
+    state:
+      design:
+        temperature: {value: 322.87, provenance: assumed, source: "scripts/balance.py: C-104 adiabatic, the liquor takes the heat of the acid it absorbs (D-008)"}
+        pressure: {value: 875, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        flow: {value: 753.256, provenance: calculated, source: 'cheme process propagate: separator C104 from S20 S35', fingerprint: 07582b706190fa82}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0, H2O: 0.839898, ACOH: 0.160102, VAM: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C104 from S20 S35', fingerprint: 07582b706190fa82}
+  - id: S38
+    title: Aqueous phase of C-101's decanter
+    from: C101.aq
+    to: M203.c101
+    template: liquid
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "D-005: the decanter's temperature"}
+        pressure: {value: 900, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 1129.82, provenance: calculated, source: 'cheme process propagate: separator C101 from S11', fingerprint: 04f84ce34ea1ed11}
+        composition: {basis: mole_fraction, values: {C2H4: 0.0, C2H6: 0.0, O2: 0.0, AR: 0.0, CO2: 0.0, H2O: 0.98931, ACOH: 0.00925515, VAM: 0.00143478}, provenance: calculated, source: 'cheme process propagate: separator C101 from S11', fingerprint: 04f84ce34ea1ed11}
+  # energy streams: Q1 written by propagate (R101's conversion duty, core ADR 0059); the rest
+  # from scripts/balance.py (D-008)
+  - {id: Q1, title: "LP steam raised in R-101 to C-201's reboiler", kind: energy, from: R101.stm, to: C201.rx, state: {design: {duty: {value: 3994.47, provenance: calculated, source: 'cheme process propagate: conversion duty R101 from S9 S10', fingerprint: fc36c65a98fc04b6}}}}
+  - {id: Q2, title: "LP steam raised in R-101 to the acid saturator T-101", kind: energy, from: R101.sat, to: T101.stm, state: {design: {duty: {value: 12844.9, provenance: assumed, source: "scripts/balance.py: T-101's balance, the fresh and recycle acid vaporised into the cycle gas (S6 - S3 - S4 - S5)"}}}}
+  - {id: Q3, title: "Feed/effluent exchanger E-101/E-102", kind: energy, from: E102.fe, to: E101.fe, state: {design: {duty: {value: 1240.2, provenance: assumed, source: "scripts/balance.py: the reactor feed S8 heated to S9"}}}}
+  - {id: Q4, title: "Effluent trim cooler E-102 to cooling water", kind: energy, from: E102.cw, to: CW.e102, state: {design: {duty: {value: 1550.4, provenance: assumed, source: "scripts/balance.py: S10 cooled to S11, less Q3"}}}}
+  - {id: Q5, title: "C-101 overhead condenser", kind: energy, from: C101.cw, to: CW.c101, state: {design: {duty: {value: 15326.3, provenance: assumed, source: "scripts/balance.py: C-101's balance (S11 - S12 - S13 - S14 - S38)"}}}}
+  - {id: Q6, title: "C-102 scrubber and scrub-acid cooler E-202", kind: energy, from: C102.cw, to: CW.c102, state: {design: {duty: {value: 603.9, provenance: assumed, source: "scripts/balance.py: the scrub acid S15 cooled from S28's temperature, and C-102's balance"}}}}
+  - {id: Q7, title: "LP steam raised in R-101 to the carbonate regenerator", kind: energy, from: R101.co2, to: A101.stm, state: {design: {duty: {value: 1727.6, provenance: assumed, source: "scripts/balance.py: 2500 kJ per kg of CO2 stripped (S21), ASSUMED"}}}}
+  - {id: Q8, title: "A-101 regenerator condenser and lean-solution cooler", kind: energy, from: A101.cw, to: CW.a101, state: {design: {duty: {value: 1322.2, provenance: assumed, source: "scripts/balance.py: Q7 rejected, with A-101's gas balance"}}}}
+  - {id: Q9, title: "Imported LP steam to C-201's reboiler", kind: energy, from: LPS.c201, to: C201.stm, state: {design: {duty: {value: 6182.2, provenance: assumed, source: "scripts/balance.py: C-201's reboiler (its balance with the condenser Q10) less R-101's Q1"}}}}
+  - {id: Q10, title: "C-201 overhead condenser", kind: energy, from: C201.cw, to: CW.c201, state: {design: {duty: {value: 10385.7, provenance: assumed, source: "scripts/balance.py: the decanted overhead (S26 + S27) boiled up at 2 mol per mol (reflux 1), ASSUMED"}}}}
+  - {id: Q11, title: "LP steam raised in R-101 to C-202's reboiler", kind: energy, from: R101.c202, to: C202.stm, state: {design: {duty: {value: 5136.8, provenance: assumed, source: "scripts/balance.py: C-202's balance with its condenser Q12"}}}}
+  - {id: Q12, title: "C-202 overhead condenser", kind: energy, from: C202.cw, to: CW.c202, state: {design: {duty: {value: 4425.9, provenance: assumed, source: "scripts/balance.py: the top product S30 at reflux 20, ASSUMED"}}}}
+  - {id: Q13, title: "Product cooler E-201", kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 806.9, provenance: assumed, source: "scripts/balance.py: S32 cooled to S33"}}}}
+  - {id: P1, title: "Cycle-gas compressor K-101", kind: energy, from: POWER.k101, to: K101.pw, state: {design: {duty: {value: 704.2, provenance: assumed, source: "scripts/balance.py: isentropic compression S24 to S2's pressure, efficiency 0.75, drive 0.95, ASSUMED"}}}}
+  - {id: P2, title: "Carbonate solution pumps of A-101", kind: energy, from: POWER.a101, to: A101.pw, state: {design: {duty: {value: 250.0, provenance: assumed, source: "scripts/balance.py: ASSUMED"}}}}
+  - {id: P3, title: "Distillation, acid recycle and reflux pumps", kind: energy, from: POWER.dis, to: C201.pw, state: {design: {duty: {value: 180.0, provenance: assumed, source: "scripts/balance.py: ASSUMED"}}}}
+layout: {bfd: {}, pfd: {}}

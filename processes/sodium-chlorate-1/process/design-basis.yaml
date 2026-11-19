@@ -1,0 +1,46 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Sodium chlorate by electrolysis of brine in undivided cells with dichromate, crystallisation
+# and drying, a continuous plant, issue ChemE-as-Code/process-library#512. Values marked ASSUMED
+# are engineering choices of this concept study, not client or licensor data; every decision is
+# in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: sodium chlorate crystal, dried (98.4 wt% crystal, 1.2 wt% dissolved chlorate from the cake liquor, 0.28 wt% NaCl) to storage at the battery limit
+  sodium_chlorate_t_per_year: 50000      # ASSUMED (D-002): of the order of a Western European site (BREF LVIC-S 2007, Table 7.78)
+  operating_hours_per_year: 8000         # ASSUMED (D-002): continuous operation
+  design_rate_kg_per_h: 6250             # ASSUMED (D-002): crystal in the product stream S20
+feeds:
+  - name: Salt (vacuum or rock salt)
+    source_of_values: "ASSUMED (D-005): pure NaCl, its impurities and their precipitation left out (L-3); 0.559 kg per kg of crystal against BREF's 0.550-0.580"
+    composition: "NaCl 100 %"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Process water (demineralised)
+    source_of_values: "calculated (D-005): the make-up that holds 565 g/L NaClO3 in the cell feed; 0.553 m3 per t of crystal against BREF's 0.4-2.7 m3/t"
+    composition: "water"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 300}
+products:
+  - name: Sodium chlorate crystal
+    purity: "modelled 99.6 wt% NaClO3 and 0.28 wt% NaCl, 0.1 wt% water; no wash modelled (L-5); no source states a product specification here"
+    delivery: {temperature_K: 353.15, pressure_kPa_a: 101.325, battery_limit: storage (bulk or bags)}
+  - name: Hydrogen (co-product)
+    note: "59.5 kg per t of NaClO3 formed (59.3 per t of dried product) with 2.2 mol% O2 (BREF: 60 kg/t, 2-2.5 % O2); 69 % to users as fuel or feedstock after the caustic scrubber, 31 % vented (ASSUMED inside BREF's 53-85 % utilisation, D-008)"
+  - name: Mother-liquor bleed
+    note: "2.6 kg/h to effluent treatment, 0.17 kg NaClO3 per t of crystal (BREF: 10-300 g/t) (D-008)"
+  - name: Dryer exhaust
+    note: "the dryer's water vapour with the drying air, after the dust filter; chlorate dust (BREF 0.3-10 g/t) not modelled"
+utilities:
+  - {name: Electric power, use: "rectifiers 31.12 MW AC, auxiliaries 1.875 MW: 5196 kWh per t of crystal against BREF's 5000-6000 kWh/t (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 450, use: "the dryer's air heater (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "rectifier losses, the cell heat the crystallizer does not take, the crystallizer condenser", note: ASSUMED}
+  - {name: Hot-water loop, use: "3.44 MW of the cell heat to the crystallizer (BREF 7.13.4.3, secondary heat utilisation)", note: ASSUMED}
+site:
+  location: ASSUMED generic chemicals site with salt supply, grid power and a hydrogen user nearby, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: electrolysis of NaCl brine in undivided cells with dichromate as the BREF LVIC-S 2007, section 7.13, and US 5 419 818 A describe it (D-001)."
+  - "Cells at 70 C, 2.5 kA/m2, 3.0 V (ASSUMED inside the BREF's 2.6-3.6 V and 1.0-3.0 kA/m2), current efficiency 0.95 (BREF), 4.5 % of the current to oxygen (ASSUMED, 2.2 mol% O2 in the hydrogen) (D-006)."
+  - "Liquor 565 g/L NaClO3 (US 5 419 818 A) at an ASSUMED density of 1.40 kg/L; NaCl follows from the per-pass conversion at about 121 g/L (D-005)."
+  - "Crystallizer: 15 % of the side stream's water evaporated and the same share of its chlorate crystallised (ASSUMED, no open solubility data, L-5) (D-008)."
+  - "Small auxiliaries (HCl, NaOH, dichromate, soda ash, H2O2, N2) at the middle of the BREF's ranges, as LCA consumables (D-010)."
+  - "All flows are concept estimates; accuracy +/-30 % not demonstrated."

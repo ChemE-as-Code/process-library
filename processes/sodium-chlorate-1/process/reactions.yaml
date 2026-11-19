@@ -1,0 +1,66 @@
+# Reactions of sodium-chlorate-1. Schema cheme/reactions/v1 (`cheme schema reactions`).
+#
+# The chemistry as the sources give it (SRC-1, BREF LVIC-S 2007, 7.13.1.1 and 7.13.2.3; SRC-3,
+# Spasojevic et al. 2018, reactions 1-8): chloride is oxidised to chlorine at the anode, which at
+# pH above 5.8 hydrolyses at once to hypochlorous acid; hypochlorous acid and hypochlorite
+# disproportionate to chlorate in the bulk liquor (2 HOCl + OCl- -> ClO3- + 2 Cl- + 2 H+), fastest
+# at pH 6.1-6.5 and 70-90 C, in the cells and in the reaction tanks; hydrogen forms at the
+# cathode. The loss of current efficiency is mostly oxygen: the anodic discharge of hypochlorite
+# (6 OCl- + 3 H2O -> 2 ClO3- + 4 Cl- + 6 H+ + 1.5 O2 + 6 e-), and cathodic reduction of
+# hypochlorite, which dichromate suppresses.
+#
+# How the flowsheet carries it (DESIGN.md D-004, D-006, D-007):
+# - CHLORATE (6 e-) is the overall reaction of the cell in process/cells.yaml, with WATER_SPLIT
+#   (4 e-) as its oxygen side reaction: `cheme process cell` gives the Faraday, charge and energy
+#   balance and the kWh per t from them;
+# - in the flowsheet the cells form the active chlorine (HYPO, a conversion of the chloride per
+#   pass) and the reaction tanks turn it into chlorate (CHEM) and, for the oxygen share, into
+#   oxygen and chloride (OXY): three HYPO and one CHEM make one CHLORATE; two HYPO and one OXY make
+#   one WATER_SPLIT. The OXY share of the active chlorine is set so that the oxygen per chlorate
+#   is the cell's (D-006). The anodic oxygen is thus booked in the tanks: the same net balance.
+#
+# Heats of reaction (SRC-5): formation enthalpies at 298.15 K from the `chemicals` 1.5.2 package,
+# NaCl(s) -411.2 and NaClO3(s) -365.8 kJ/mol (method CRC, the CRC Handbook's tables as the package
+# bundles them; the handbook not read here) and H2O(l) -285.825 kJ/mol (method ATCT_L, Active
+# Thermochemical Tables). The salts are taken as solids: the heats of solution of NaCl and NaClO3
+# in the liquor are left out (L-2). No open formation enthalpy of the active chlorine species was
+# read, so HYPO, CHEM and OXY carry no heat of reaction; the cell's energy balance carries the
+# whole loop's heat (L-2).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: CHLORATE
+    title: Overall chlorate electrolysis (cell reaction, 6 electrons per NaClO3)
+    equation: NaCl + 3 H2O -> NaClO3 + 3 H2
+    stoichiometry: {NaCl: -1, H2O: -3, NaClO3: 1, H2: 3}
+    phase: mixed
+    heat_of_reaction: {value: 902875, provenance: assumed, source: "SRC-5: -365.8 + 411.2 + 3 x 285.825 = 902.875 kJ/mol from NaClO3(s), NaCl(s) (chemicals 1.5.2, CRC) and H2O(l) (ATcT); solids basis, heats of solution left out (L-2)"}
+    sources: ["SRC-1: BREF LVIC-S 2007, 7.13.1.1 and 7.13.2 (global reaction NaCl + 3 H2O -> NaClO3 + 3 H2)"]
+  - id: WATER_SPLIT
+    title: Oxygen evolution (current-efficiency loss, net water electrolysis)
+    equation: 2 H2O -> 2 H2 + O2
+    stoichiometry: {H2O: -2, H2: 2, O2: 1}
+    phase: mixed
+    heat_of_reaction: {value: 571650, provenance: given, source: "SRC-5: 2 x 285.825 kJ/mol, H2O(l) from chemicals 1.5.2 (ATCT_L)"}
+    sources: ["SRC-1: BREF LVIC-S 2007, 7.13.4.1 (oxygen production lowers the current efficiency; 2-2.5 % O2 in the hydrogen)", "SRC-3: Spasojevic et al. 2018, reactions 5-8"]
+  - id: HYPO
+    title: Anodic chlorine and its hydrolysis to active chlorine (cells)
+    equation: NaCl + H2O -> NaOCl + H2
+    stoichiometry: {NaCl: -1, H2O: -1, NaOCl: 1, H2: 1}
+    phase: mixed
+    conversion: {key: NaCl, value: 0.14683, provenance: assumed, source: "D-006: the chloride converted per pass through the cells that carries the cell's current at the circulation of D-005 (186.8 kmol/h of active chlorine on 1272.1 kmol/h of NaCl in the cell feed)"}
+    sources: ["SRC-1: BREF LVIC-S 2007, 7.13.1.1 (electrochemical part)", "SRC-3: Spasojevic et al. 2018, reactions 1-3"]
+  - id: CHEM
+    title: Disproportionation of active chlorine to chlorate (reaction tanks)
+    equation: 3 NaOCl -> NaClO3 + 2 NaCl
+    stoichiometry: {NaOCl: -3, NaClO3: 1, NaCl: 2}
+    phase: liquid
+    conversion: {key: NaOCl, value: 0.84009, provenance: assumed, source: "D-007: 0.95/0.995 of the 0.87988 of the active chlorine consumed per pass, which leaves 3 g/L active chlorine (as NaOCl) at the tanks' outlet (ASSUMED)"}
+    sources: ["SRC-1: BREF LVIC-S 2007, 7.13.2.3", "SRC-3: Spasojevic et al. 2018, reaction 4 and its third-order rate law"]
+  - id: OXY
+    title: Oxygen from active chlorine (the cell's anodic oxygen, booked in the tanks)
+    equation: 2 NaOCl -> 2 NaCl + O2
+    stoichiometry: {NaOCl: -2, NaCl: 2, O2: 1}
+    phase: mixed
+    conversion: {key: NaOCl, value: 0.039794, provenance: assumed, source: "D-006, D-007: 0.045/0.995 of the 0.87988 consumed per pass, so that the oxygen per chlorate is the cell's side reaction at a current fraction of 0.045 (X_OXY / X_CHEM = 0.045 / 0.95)"}
+    sources: ["SRC-3: Spasojevic et al. 2018, reactions 5-8 (oxygen from hypochlorite, mostly anodic)"]

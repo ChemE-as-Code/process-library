@@ -56,7 +56,7 @@ distillation range) cannot be checked without by-products (D-005).
 ## D-003 Converter type and loop conditions (2026-10-27)
 Decision: boiling-water, steam-raising tubular converter (catalyst in the tubes), feed 498.15 K
 and 8100 kPa(a), outlet 528.15 K and 7900 kPa(a), shell raising MP steam at 2800 kPa(a)
-(saturation 503.4 K, 25 K below the outlet). Circulator 7500 -> 8150 kPa(a); feed/effluent
+(saturation 503.21 K, IAPWS-95; 25 K below the outlet). Circulator 7500 -> 8150 kPa(a); feed/effluent
 exchanger, loop cooler and HP separator at 7500 kPa(a). Pressure drops ASSUMED (50 kPa per
 exchanger side, 200 kPa converter, 300 kPa cooler and separator).
 Reason: a near-isothermal converter keeps the copper catalyst inside its window (cheme's
@@ -120,6 +120,9 @@ departures (2.8 %); Q4 carries the script's value, the difference is the real-ga
 Rejected: typing stream values without a calculation; widening a property package's range.
 
 ## D-007 Recycle ratio and purge (2026-10-27)
+Superseded in part by D-014: the simulated loop holds the purge fraction (2.18 % of the HP
+separator gas), not the ratio, and runs at a recycle ratio of 4.10 with a purge of 10.4 t/h (S11).
+The ratio 4.0 and the 10.6 t/h below are the script's design point that set the fraction.
 Decision: recycle ratio 4.0 (recycle / make-up, molar), giving a purge of 2.18 % of the HP
 separator gas (SPL `split`), 10.6 t/h.
 Reason: ASSUMED typical loop design; with the D-004 gas it gives 63 % CO conversion per pass
@@ -149,8 +152,9 @@ Decision: cooling water 298.15/308.15 K (min approach 5 K), LP steam 450 kPa(a) 
 reboilers, MP steam 2800 kPa(a) raised in the converter, electric drives; all ASSUMED, no site
 chosen. The loop cooler is a cooling-water cooler in the PFD; an air cooler with a trim cooler
 is the usual alternative.
-Note: the reboilers take 106 MW of LP steam against 66 MW of MP steam raised: without the
-reformer's waste heat (outside the boundary) the purification is a net steam importer.
+Note: the reboilers take about 101 MW of LP steam (Q6 + Q8) against about 65 MW of MP steam
+raised (Q4), the simulated duties of D-014 (the script's 106 against 66 MW before it): without
+the reformer's waste heat (outside the boundary) the purification is a net steam importer.
 
 ## D-010 Compression (2026-10-27)
 Decision: make-up compressor K-101 2600 -> 7550 kPa(a) in one casing in the PFD, recycle
@@ -327,8 +331,9 @@ Kept against the simulation (`sim-deviation` warnings, not silenced):
   cooler.
 
 Other findings of the run:
-- `sim-utility-level` (warning; `predictive.exchangers` fails): R-101's MPS (503.4 K
-  saturation at 2800 kPa(a), min approach 10 K) "cannot cool it", because the converter feed
+- `sim-utility-level` (warning; `predictive.exchangers` fails): R-101's MPS (503.21 K
+  saturation at 2800 kPa(a), min approach 10 K; the run record prints the 503.40 K the flowsheet
+  carried before the correction of 2026-11-19, which does not change the finding) "cannot cool it", because the converter feed
   enters at 498.15 K (D-003), below the steam temperature. In a boiling-water converter the
   feed is heated in the tubes by the reaction, so the check is conservative for a cooled reactor,
   but the D-003 pair (inlet 498.15 K, steam 2800 kPa(a)) does not hold a 10 K approach over the
@@ -368,11 +373,14 @@ Rejected: keeping the script's values as `assumed` (every one would stay a `sim-
 against the run); a rigorous C-201 now (needs a third column outlet, a PFD change for review);
 changing V-102 or S18's temperature and pressure to match the run (D-013's open let-down valve
 and product cooler/pump questions stand).
-Follow-up (not done here): `equipment/equipment-list.yaml` and `piping/line-list.yaml` still carry
-the script's sizes (E-102 about 96 MW, K-102 608 t/h, V-101 gas 487 t/h, E-202/E-203/E-204 duties,
-C-202 stages not calculated). FG-116 (DN125) was sized for 1260 kg/h of off-gas; at the simulated
-2337 kg/h it is about 1.9 times over D-011's 20 m/s criterion. A lists-sync pass against these
-values is the next step.
+Follow-up (done in the lists-sync of 2026-11-19): the notes of `equipment/equipment-list.yaml`
+carry these values (K-102, E-102, R-101, V-101, C-201, C-202, E-202, E-203, E-204). FG-116 had
+been sized DN125 for the script's 1260 kg/h of off-gas; the simulated 2337 kg/h (1.9 times the
+flow; ideal gas at 313 K and 150 kPa(a) with S16's composition, about 2.3 kg/m3) gives about
+23 m/s in DN125, above D-011's 20 m/s, so FG-116 is DN150 (about 16 m/s) in the line list and on
+P-04 (scripts/draft_P-04.py). The other PFD lines keep their first-pass DN: their simulated
+flows are lower than the script's or within about 2 % of them (the loop's molar flow +1.9 %),
+not re-checked line by line.
 
 ## D-015 Preliminary gate-to-gate LCI, functional unit and exergy allocation (2026-11-01)
 Numbered D-015 because PR #286 takes D-013 and D-014 here. The exergy values and the dataset
@@ -383,7 +391,8 @@ gate, boundary gate-to-gate as D-001 (no reforming, no storage). Every foregroun
 from the balanced flowsheet: feeds SYNGAS, POWER, LPS; products MEOH, MPS, PURGE, FUELGAS, WW and
 heat to CW. Backgrounds are `missing:` in the study, so its result is a gap list, not a footprint.
 Allocation: **exergy** among three co-products, MEOH 94.95 %, MPS 3.72 %, FUELGAS 1.33 %
-(`scripts/allocation_exergy.py`, values in `lca/lca.yaml`).
+(`scripts/allocation_exergy.py`, values in `lca/lca.yaml`): standard chemical exergies from
+Szargut, Morris and Steward (1988), steam from IAPWS-95 through CoolProp (section 4).
 Purge (I-09, decided by the owner's delegate, the main session, 2026-11-01): **PURGE is not a
 co-product.** It returns to the plant's own reformer fuel, back upstream of feed:SYNGAS, and leaves
 for no third party, so allocating to it would move burden off methanol with nothing receiving it.
@@ -405,7 +414,7 @@ for their off-gases): both have a named fuel use. Rejected: the purge as a co-pr
 Rejected: system expansion (a substitution variant only).
 Two exergy values stand on product:MPS in `lca/dataset.yaml`, each with its own source: the
 allocation uses 1394.0 kJ per kWh of heat (saturated vapour from boiler feed water, the script);
-the exchange's `properties` carry core's generated Carnot value, 1467.8 (isothermal heat at the
+the exchange's `properties` carry core's generated Carnot value, 1467.0 (isothermal heat at the
 saturation temperature), which the study's value overrides and which cannot be set from here. The
 script checks its value against Carnot and the vapour density.
 Assumptions: boiler feed water at 378.15 K for the steam's exergy (ASSUMED, not in the flowsheet);
@@ -552,9 +561,10 @@ failure relief load (about 84 MW of vapour).
 ## D-021 Control philosophy, loops, trips and their basis (2026-11-05)
 Decision: the control records are drafted for the first P&IDs: `control/philosophy.md`
 (objectives OBJ-1..OBJ-6, failures F-AIR, F-POWER, F-CW, F-BFW, F-K102), `process/narrative.md`
-(sections CMP, SYN, SEP, TOP, REF), `control/loops.yaml` (20 loops), `control/cause-effect.yaml`
-(I-101, I-201, I-202, I-301, I-401, I-501), `control/instrument-list.yaml` (44 functions) and
-`piping/special-items.yaml` (8 PSVs). Set points that are design-case pressures and temperatures
+(sections CMP, SYN, SEP, TOP, REF), `control/loops.yaml` (21 loops), `control/cause-effect.yaml`
+(I-101, I-102, I-201, I-202, I-301, I-302, I-401, I-501; I-102 and I-302 added in D-022),
+`control/instrument-list.yaml` (50 functions) and `piping/special-items.yaml` (9 PSVs; PSV-115
+added in D-022). The counts are those of 2026-11-19, after D-022. Set points that are design-case pressures and temperatures
 name their stream; levels 50 % of range and surge margins 10 % are ASSUMED; the two column
 temperatures are unresolved. Fail positions: closed for feed, let-down, product, purge and steam
 valves; open for anti-surge, vents, refluxes, BFW, the converter bypass, the steam drum pressure
@@ -752,12 +762,14 @@ up to 8 MPa, and methanol-water VLE at 100-200 kPa for the columns.
 |---|---|---|---|---|
 | Ott, J. et al. (2012) Methanol, Ullmann's Encyclopedia of Industrial Chemistry, doi:10.1002/14356007.a16_465.pub3 | sections on production and purification | not read in this run (subscription); #118 checked identity and contents | cite only | route description, SN target, two-column purification (to be confirmed with locators, I-01) |
 | cheme reaction library, entry `methanol` | `cheme chemistry library methanol` (cheme-as-code 0.8.0) | read | AGPL-3.0-or-later (core) | reactions, catalyst window (ASSUMED), components |
-| `chemicals` 1.5.2 / `thermo` 0.6.1 (C. Bell et al.) | ATcT and CRC data, Poling heat capacities, ChemSep PR kij | used | MIT | formation data, critical constants, PR flashes and enthalpies |
+| `chemicals` 1.5.2 and `thermo` 0.6.1 (C. Bell et al.; open-source packages, MIT licence for the code only; the versions core pins), through `cheme chemistry thermo` and scripts/loop_balance.py | per component in process/materials.yaml: gas formation enthalpies from chemicals' Active Thermochemical Tables data (`ATCT_G`, all seven components); critical constants and acentric factors from chemicals' `HEOS` constants (`miscdata.heos_data`, the constants of the Helmholtz equations of state as chemicals carries them); standard entropies from chemicals' packaged CRC Handbook table `heat_capacity.CRC_standard_data` (all seven components; CRC Handbook of Chemistry and Physics as chemicals cites it, a licensed book, not read here); ideal-gas cp from chemicals' `heat_capacity.Cp_data_Poling` polynomials (CH3OH, CH4, N2; Poling, Prausnitz and O'Connell, The Properties of Gases and Liquids, 5th ed., a licensed book, not read here), fitted to thermo's TRCIG correlation on chemicals' `heat_capacity.TRC_gas_data` (CO, H2; Kabo and Roganov / TRC, Thermodynamics of Organic Compounds in the Gas State, 1994, as chemicals cites it, not read here) or fitted to thermo's `HEOS_FIT` polynomials (CO2, H2O; fits to Helmholtz equations of state computed with REFPROP, as thermo documents them); Peng-Robinson kij from thermo's bundled ChemSep PR set (scripts/loop_balance.py) | package queried; the underlying works not read | open-source packages queried; single values, facts only; not open data (library ADR 0037) | formation data, critical constants, cp and entropies in process/materials.yaml; PR flashes and enthalpies of the cross-check script (D-006, D-014) |
 | US Federal Specification O-M-232, Methanol, Grade AA | Grade AA requirements | not read in this run | US government specification | product limits (to be verified, I-07) |
 | Vanden Bussche, K.M.; Froment, G.F. (1996) J. Catal. 161, 1-10, doi:10.1006/jcat.1996.0156 | whole paper | citation verified in #118, content not audited | cite only | not used (candidate kinetics) |
 | Slotboom, Y. et al. (2020) Chem. Eng. J. 389, 124181, doi:10.1016/j.cej.2020.124181 | abstract | abstract reviewed in #118 | cite only | guardrail on kinetic models |
 | IRENA and Methanol Institute (2021) Innovation Outlook: Renewable Methanol | chapters 2-3 | inspected in #118 | cite only | not used (other boundaries) |
 | Graaf, G.H. et al. (1986) Chemical equilibria in methanol synthesis, Chem. Eng. Sci. 41 (bibliographic details to be verified) | equilibrium constants | not read | cite only | candidate check of the formation-data K (I-05) |
+| Szargut, J.; Morris, D.R.; Steward, F.R. (1988) Exergy Analysis of Thermal, Chemical, and Metallurgical Processes, Hemisphere | standard chemical exergies (model II): H2, CO, CO2, CH4, N2, H2O through core's exergy table; the element exergies C 410.26, H2 236.09, O2 3.97 kJ/mol in scripts/allocation_exergy.py, as aniline-1 uses them | book not read here; values from core's table and aniline-1 | single values, facts only | exergy allocation: MEOH and FUELGAS exergy (D-015, lca/lca.yaml) |
+| CoolProp (open-source package of core's environment, MIT licence for the code) with its IAPWS-95 formulation of water (Wagner and Pruss (2002), J. Phys. Chem. Ref. Data 31, 387-535) | `PropsSI` for water: saturated steam at 2800 kPa(a), feed water at 378.15 K, the dead state; saturation temperatures at 450 and 2800 kPa(a) | package queried; the paper and the IAPWS release not read here | open-source package queried; single values, facts only | MPS exergy 1394.0 kJ/kWh (D-015, lca/lca.yaml); LP and MP steam saturation temperatures (process/design-basis.yaml, process/flowsheet.yaml, D-003, D-009) |
 
 No table, figure or text of these sources is reproduced here.
 

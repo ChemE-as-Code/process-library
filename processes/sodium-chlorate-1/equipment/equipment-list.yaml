@@ -1,0 +1,28 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the sizes the models and hand balances give (DESIGN.md D-005 to D-009). Design pressures,
+# temperatures and materials are not set yet (basic engineering); the materials named are the
+# usual choices the sources name (titanium anodes, steel cathodes), to be confirmed. All values
+# ASSUMED unless a source is named.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: V-101, type: Vessel, service: "Salt dissolver: solid salt into the mother liquor, the crystallizer condensate and make-up water",
+     notes: "101.8 t/h of strong liquor (S5); brine purification by precipitation (soda ash, NaOH) and filtration is lumped into the LCA consumables (D-005, D-010, L-3)."}
+  - {tag: P-201, type: CentrifugalPump, service: "Electrolyte circulation pumps (with the plant's auxiliary power booked here)",
+     notes: "859 t/h, about 614 m3/h at an ASSUMED 1.40 kg/L (98 m3 per t of chlorate, inside the 75-200 m3/t of US 5 419 818 A); P3 1875 kW lumps every auxiliary drive (D-005, D-009)."}
+  - {tag: T-201, type: Transformer, service: "Transformer-rectifiers for the cell rooms",
+     notes: "30.19 MW DC at 400 x 3.0 V = 1200 V and 25.16 kA; efficiency 0.97 ASSUMED, 934 kW losses to cooling water (D-006, D-009)."}
+  - {tag: EL-201, type: Electrolyser, service: "Undivided chlorate cells, DSA titanium anodes, steel cathodes, dichromate in the liquor",
+     notes: "400 cells in series of 10.06 m2 at 2.5 kA/m2 and 3.0 V, current efficiency 0.95 (BREF LVIC-S 2007), 70 C; 4771 DC kWh per t NaClO3 formed; cell heat 14.6 MW (cheme process cell, D-006)."}
+  - {tag: R-201, type: Vessel, service: "Reaction tanks: active chlorine to chlorate at pH 6.1-6.5 and 70 C",
+     notes: "About 650 m3 of liquor in all, 1.06 h at 614 m3/h: the third-order uncatalysed rate of Spasojevic et al. (2018) at 3.1 g/L active chlorine and pH 6.4 (D-007); dichromate's catalysis would shorten it. Vented to the hydrogen scrubber."}
+  - {tag: V-201, type: Vessel, service: "Cell gas separator: hydrogen and oxygen off the liquor, to the caustic scrubber",
+     notes: "512 kg/h of gas, 2.2 mol% O2 in H2 (inside BREF's 2-2.5 %); the caustic scrubber for chlorine traces is not modelled (D-008, L-4)."}
+  - {tag: E-201, type: HeatExchanger, service: "Electrolyte coolers: cell heat to the crystallizer's hot-water loop and to cooling water",
+     notes: "14.6 MW cell heat, 3.44 MW to the crystallizer (Q3, core's crystallizer energy balance), 1.80 MW kept in the circulating liquor to warm the returned strong liquor to 343.15 K (Q7), 9.37 MW to cooling water (Q4) (D-009)."}
+  - {tag: X-301, type: Crystallizer, service: "Vacuum evaporative crystallizer with centrifuge, heated by the hot-water loop",
+     notes: "101.3 t/h of liquor at 323 K, 7.66 t/h of water evaporated, 6.25 t/h of crystal, centrifuge cake 3 kg liquor per 100 kg crystal (ASSUMED); duty 3.44 MW (cheme process crystallizers, D-008)."}
+  - {tag: E-301, type: HeatExchanger, service: "Crystallizer vapour condenser (indirect), condensate to D-101",
+     notes: "5.07 MW to cooling water (Q5); indirect condensers keep the condensate in the loop (BREF LVIC-S 2007, 7.13.4.5.2) (D-009)."}
+  - {tag: DR-401, type: Dryer, service: "Fluidised-bed dryer with steam-heated air, dust filter",
+     notes: "6.44 t/h of wet crystal to 0.1 wt% water, 86.8 kg/h evaporated, 218.6 kW of LP steam at an efficiency of 0.5 (core's dryer model, ASSUMED parameters); air at about 150 C (BREF LVIC-S 2007, 7.13.2.5) (D-008)."}

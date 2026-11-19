@@ -1,0 +1,16 @@
+# salicylic-acid-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# The preliminary LCI links its four purchased chemicals to their library producers and counts
+# both steam levels as heat delivered (kWh), as oxalyl-chloride-1 does; the water, power,
+# cooling and wastewater backgrounds are gaps (DESIGN.md D-012).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:PHF": {dataset: {path: processes/acetone-1/lca/dataset.yaml, product: "product:PHENOL"}, source: "the Atlas producer acetone-1, phenol from the cumene hydroperoxide process (co-product with acetone, allocated there); kg for kg (D-004)"}
+  "feed:NAOHF": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it (D-004)"}
+  "feed:CO2F": {dataset: {path: processes/carbon-capture-1/lca/datasets/co2-conditioning-ammonia-stripper-vent.yaml, product: "product:CO2"}, source: "the Atlas producer carbon-capture-1, captured CO2 at 99.95 mol% delivered dense-phase at 15.3 MPa; let down at the plant to the 700 kPa(a) the kneader needs, so its compression burden is carried (conservative); kg for kg (D-004, D-012)"}
+  "feed:ACIDF": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, the grade this feed names, counted by mass of the 98.5 wt% acid as the producer counts it (D-004)"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 4100 kPa(a) to the kneader's hot-oil circuit (Q2, D101's dryer model), counted as heat delivered (kWh), D-009"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 350 kPa(a) to the acidifier (Q4), the product dryer (Q6) and the phenol recovery (Q7), counted as heat delivered (kWh), D-009"}

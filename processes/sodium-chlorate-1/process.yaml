@@ -1,0 +1,103 @@
+# Process Atlas manifest of sodium-chlorate-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: sodium-chlorate-1
+title: Sodium chlorate by electrolysis of brine in undivided cells, crystallisation and drying (50 000 t/a, concept)
+summary: >-
+  Sodium chlorate crystal from salt, water and electricity: brine electrolysed in undivided
+  cells with dichromate, the active chlorine turned into chlorate in reaction tanks, a side
+  stream crystallised under vacuum with the cells' heat, centrifuged and dried, the mother
+  liquor recycled; hydrogen a co-product. Concept stage, 4.9 MWh per t at the rectifiers,
+  preliminary gate-to-gate LCI.
+description: |
+  Solid salt is dissolved in the recycled mother liquor and the crystallizer's condensate and
+  joins the circulating electrolyte (about 121 g/L NaCl and 565 g/L NaClO3, 98 m3 per t of
+  chlorate through the cells). 400 undivided cells with titanium anodes and steel cathodes run at
+  70 C, 2.5 kA/m2 and 3.0 V with a current efficiency of 0.95 and 3-5 g/L sodium dichromate:
+  chlorine formed at the anode hydrolyses to hypochlorous acid and hypochlorite, which
+  disproportionate to chlorate in the reaction tanks (about 650 m3, sized from the third-order
+  rate of Spasojevic et al. 2018 at pH 6.4); hydrogen forms at the cathode, with 2.2 mol% oxygen
+  from the efficiency loss. Overall NaCl + 3 H2O -> NaClO3 + 3 H2. A 12 % side stream goes to a
+  vacuum crystallizer at 323 K, heated by the cells' heat through a hot-water loop: 15 % of its
+  water evaporates and 15 % of its chlorate crystallises; the crystal is centrifuged and dried in
+  a fluidised bed; the condensate dissolves the next salt. 69 % of the hydrogen goes to users,
+  the rest is vented.
+
+  cheme process propagate solves the whole flowsheet: the cells and tanks as conversion reactors,
+  core's crystallizer, centrifuge and dryer, the recycle torn at the cell feed and two design
+  specifications (the salt for 6250 kg/h of crystal, the water for 565 g/L of chlorate). The
+  cells' power and heat are core's Faraday balance (cheme process cell): 4771 DC kWh per t of
+  chlorate formed, 48 % of it heat, 59.5 kg of hydrogen per t; each checks against the BREF
+  LVIC-S 2007. The crystallizer's yield is ASSUMED (no open solubility data of NaClO3 in the
+  chloride liquor were read). See DESIGN.md for every assumption.
+families: [inorganic-chemicals, electrolysis]
+keywords: [sodium chlorate, NaClO3, chlorate cell, undivided cell, electrolysis, brine, sodium chloride, sodium dichromate, hypochlorite, hypochlorous acid, disproportionation, reaction tank, crystallisation, vacuum crystallizer, centrifuge, fluidised-bed dryer, hydrogen, chlorine dioxide, pulp bleaching]
+facets:
+  feedstock_basis: [mineral, water, electricity]
+  product_classes: [chemicals]
+  unit_operations: [electrolysis, reaction, crystallization, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, voltage, oxygen share,
+# liquor density, crystallizer yield and centrifuge cake are assumed; the current efficiency,
+# operating ranges and consumptions from the BREF and US 5 419 818 A (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams: 4 blocks and 14 steps within tolerance; the loop converged at the tear S6 with the
+    design specifications rate and liquor). The cells are a conversion of the chloride to active
+    chlorine per pass (HYPO) and the reaction tanks its conversion to chlorate (CHEM) and, for the
+    cell's oxygen, to oxygen (OXY); the conversions are set so that the extents equal core's
+    Faraday balance of process/cells.yaml (one cell-flowsheet warning: the step lists HYPO, the
+    cell the overall CHLORATE, DESIGN.md L-1). Power 30.19 MW DC, heat 14.61 MW, 4771 kWh/t
+    (cheme process cell) against 4700-5200 AC kWh/t in the BREF with an ASSUMED rectifier
+    efficiency of 0.97; hydrogen 59.5 kg/t (BREF: 60); heat 48 % of the power (BREF: about 50 %).
+    The crystallizer is core's model on an imposed, ASSUMED yield and evaporation; its duty
+    (3.44 MW) comes from the cells' heat; the dryer is core's model with ASSUMED parameters. The
+    reaction tanks are sized by hand from the open rate constant (D-007). Heats of solution and
+    dilution are left out (no electrolyte package). Preliminary gate-to-gate LCI with the BREF's
+    auxiliary chemicals as consumables, mass allocation to the hydrogen used; the salt, water,
+    steam and the consumables linked to library producers or shared entries, electricity (in
+    cheme assess lca; the Atlas build links it to the shared grid entry) and dichromate gaps. cheme maturity reaches no level; the claim `maturity: concept` is the
+    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: sodium-chloride, role: feedstock, inventory_key: "feed:SALT", note: "Salt (vacuum or rock salt) as NaCl, 0.550 kg/kg crystal product (BREF: 0.550-0.580 per kg chlorate)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water, 0.545 kg/kg"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "consumable:sodium-hydroxide", note: "Caustic soda 50 wt% (chlor-alkali-1) for pH control and alkalising, 45 g/kg (BREF Table 7.81 middle)"}
+    - {chemical: hydrogen-chloride, role: feedstock, inventory_key: "consumable:hydrochloric-acid", note: "Hydrochloric acid 33 wt% (hydrogen-chloride-1) for pH adjustment, 68 g/kg (BREF Table 7.81 middle)"}
+    - {chemical: sodium-carbonate, role: feedstock, inventory_key: "consumable:sodium-carbonate", note: "Soda ash (soda-ash-1) for the brine treatment, 1.0 g/kg"}
+    - {chemical: hydrogen-peroxide, role: feedstock, inventory_key: "consumable:hydrogen-peroxide", note: "Hydrogen peroxide 50 wt% (hydrogen-peroxide-1) to reduce hypochlorite, 4 g/kg"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for purging, 3.2 g/kg"}
+  outputs:
+    - {chemical: sodium-chlorate, role: main-product, inventory_key: "product:NACLO3P", note: "Sodium chlorate crystal, dried (modelled 99.6 wt% NaClO3, 0.28 wt% NaCl), to storage"}
+    - {chemical: hydrogen, role: co-product, inventory_key: "product:H2P", note: "Hydrogen used as fuel or feedstock, 69 % of the cell gas (40.9 g H2 per kg, with 14.7 g O2); mass allocation 3.9 % (DESIGN.md D-011)"}
+    - {chemical: hydrogen, role: emission, inventory_key: "product:H2V", note: "Hydrogen not used, vented, 18.4 g/kg (BREF: 9-28 g/kg)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:PURGE", note: "Mother-liquor bleed to effluent treatment, 0.41 g/kg"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "5.196 kWh/kg: rectifiers 4.90 (cells 4.75 DC) and auxiliaries 0.30 (BREF: 5.0-6.0 kWh/kg)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) for the dryer's air heater, 0.034 kWh/kg (counted as heat); the crystallizer runs on the cells' heat"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "2.42 kWh/kg removed: the cells' heat not recovered, the crystallizer condenser, the rectifier losses"}
+basis:
+  capacity: "50 000 t/a sodium chlorate crystal, 6250 kg/h (6350.7 kg/h of dried product with the cake liquor's salts) in 8000 h, ASSUMED (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic chemicals site with salt supply, grid power and a hydrogen user nearby (not chosen)
+references:
+  - {title: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry (LVIC-S BREF), section 7.13 Sodium chlorate: process description, Tables 7.78-7.81 (sites, consumptions and emissions per t, electrical energy, auxiliaries), 7.13.4.1 (cell voltage 2.75-3.6 V, current efficiency 95 %, 2-2.5 % O2 in H2, dichromate 3-5 g/L)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic-s_bref_0907.pdf"}
+  - {title: "Eka Nobel AB (1995) Process for the production of alkali metal chlorate. US Patent 5,419,818 A: electrolyte 100-140 g/L NaCl and 500-650 g/L NaClO3 (preferably 110-125 and 550-580), cells at 60-80 C, 75-200 m3 of electrolyte through the cells per t, crystallisation by evaporation with mother-liquor recycle", url: "https://patents.google.com/patent/US5419818A/en"}
+  - {title: "Spasojevic, M.; Markovic, D.; Trisovic, T.; Spasojevic, M. (2018) Mathematical model of the catalytic effect of chromium(VI) on hypochlorite disproportionation in chlorate electrolysis. J. Electrochem. Soc. 165, E8-E19 (peer-reviewed version, CC BY-NC-ND 4.0; facts only): third-order disproportionation, k1 7.19 mol-2 dm6 s-1 at 70 C, maximum rate at pH 6.1-6.5, current efficiency 94-96 %", doi: 10.1149/2.0291802jes}
+  - {title: "Bell, C.; Bell, I.; et al.: chemicals 1.5.2 and thermo 0.6.1 Python packages (formation enthalpies of NaCl(s), NaClO3(s) from the CRC tables and H2O(l) from ATcT; heat of vaporisation of water, HEOS_FIT; single values, ADR 0037)", url: "https://github.com/CalebBell/chemicals"}
+  - {title: "PubChem CID 516902 (sodium chlorate), CID 25408 (sodium dichromate); ChEBI 65242, 39483 (identity)", url: "https://pubchem.ncbi.nlm.nih.gov/"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/sodium-chlorate-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

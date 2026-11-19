@@ -61,7 +61,7 @@ validation:
     flowsheet (no cheme.recipe-basis finding); the recipe sizes R-101 (1.6 m3), its jacket check
     passes, and the still's distillation time comes from its boil-up. Thermal screening (cheme
     process reactor-hazards): dT_ad 94.7 K, accumulation 7.04 %, MTSR 421.9 K against an MTT of
-    471.0 K (hazard.mtt: the boiling point of benzoyl chloride); no criticality class without a
+    471.0 K (core's default since 1.12.0: the boiling point of the product benzoyl chloride); no criticality class without a
     TD24 (1 or 2 if the TD24 lies above the MTSR, 5 if below). At the MTSR the gas leaves at
     107.2 m3/h with the liquid's vapour (0.239 of it), within R-101's off-gas capacity of 130 m3/h
     (ASSUMED, 1.2 times it, no condenser credited); the blocked-vent case needs a relief device
@@ -70,11 +70,17 @@ validation:
     MTSR is 273.2 m3/h (2.10 times it), at k/100 2951 m3/h (22.7 times), so the off-gas system is
     to be sized for the k/10 case (about 330 m3/h) or the dosing rate set from calorimetry (open,
     D-014); 164.3 m3/h and 200 m3/h were those figures for the HCl alone, before core 1.10.0
-    carried the vapour. Preliminary
+    carried the vapour. With the vent blocked the accumulated benzotrichloride's HCl would raise
+    R-101's head space by about 2.7 MPa (5.7 kPa/s at the largest release over the batch), so
+    R-101 gets a relief device on its own line, its area open until a closed-cell test; the vent
+    condenser E-102 can freeze with benzoic acid at the start of each dosing (core 1.12.0's
+    freezing check, a warning kept open); R-101's jacket is a heat-transfer oil loop (no water on
+    R-101), its head space has a nitrogen vacuum breaker against suck-back from the absorber, and
+    the tail scrubber holds its own inventory for the accumulated HCl (DESIGN.md D-016). Preliminary
     gate-to-gate LCI with the per-batch nitrogen; the nitrogen linked to asu-1, the other
     backgrounds gaps; the hydrochloric acid a by-product with shares 1/0. cheme maturity reaches
     no level (assumed feeds, kinetics and separations); the claim `maturity: concept` is the
-    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.10.0.
+    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.12.0.
 chemistry:
   inputs:
     - {chemical: benzotrichloride, role: feedstock, inventory_key: "feed:BTC", note: "Benzotrichloride (no library process; proxy: toluene side-chain photochlorination), 0.716 kg/kg benzoyl chloride"}
@@ -89,7 +95,7 @@ chemistry:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.028 kWh/kg: agitators of M-101, R-101 and the still, vacuum pump (ASSUMED)"}
     - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.048 kWh/kg of MP steam 1100 kPa(a) to the benzoic acid melter"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.294 kWh/kg of LP steam 450 kPa(a) to the still's reboiler at the column's reflux ratio of 2"}
-    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.403 kWh/kg: R-101's tempered-water loop and its reflux condenser, the HCl absorber, the column's condenser and the product cooler"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.403 kWh/kg: R-101's jacket loop (heat-transfer oil, D-016) and its reflux condenser, the HCl absorber, the column's condenser and the product cooler"}
 basis:
   capacity: "2000 t/a distilled benzoyl chloride: 1627.1 batches/a of 1229.18 kg in 7920 h on a dedicated train (252.53 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
   operating_hours_per_year: 7920

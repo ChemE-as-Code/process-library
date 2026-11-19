@@ -13,7 +13,7 @@ with its source; values without one are marked ASSUMED.
 | SRC-1 | US 6,596,251 B2, *Hydrogen cyanide synthesis process* (Degussa, 2003), https://patents.google.com/patent/US6596251 | background; detailed description sections 1-3; Table 2 (runs 1-7) | full text read (web page) | patent, public document; facts only, restated | overall reaction and enthalpy; air-operated converter feed ratios and HCN yield (run 1); gauze type and temperatures; quench outlet range; ammonia scrubbing options; HCN absorption in water to 2-3 wt% and rectification to >99.5 wt%; specific output per gauze area |
 | SRC-2 | US 4,847,062 A, *Process for production of sodium cyanide* (Du Pont, 1989), https://patents.google.com/patent/US4847062A/en | Example 1 (commercial converter gas, wt%); examples 2-8; Tables 1-3 | text read up to Table 3 (the last 22 % of the page, Table 4, not read) | patent, public document; facts only | by-product distribution of the converter gas (NH3, CH4, CO, CO2 per HCN); 50 wt% caustic; free-NaOH practice; crystalliser 70 C / 100 mm Hg; mother liquor NaCN/water ratio; cake moisture range; product impurity levels |
 | SRC-3 | Ullmann's Encyclopedia, *Cyano Compounds, Inorganic*, doi:10.1002/14356007.a08_159.pub2 | - | NOT read in this run (licensed); named in the issue as the route reference lead | citation only | not used for any value |
-| SRC-4 | `cheme chemistry thermo` (chemicals / thermo, offline): ATcT, CRC, TRC, HEOS data | process/materials.yaml `source:` per component | tool output | open packages | ideal-gas formation data and heat capacities to 1500 K |
+| SRC-4 | The `chemicals` and `thermo` packages of core's environment (open-source, MIT; core now pins chemicals 1.5.2 and thermo 0.6.1; the values were queried on 2026-10-28 with cheme 0.8.0), through `cheme chemistry thermo`, offline: ideal-gas formation enthalpies from chemicals' Active Thermochemical Tables data (`ATCT_G`); standard entropies from its packaged CRC Handbook table `heat_capacity.CRC_standard_data` (from the CRC Handbook of Chemistry and Physics as chemicals cites it; a licensed book, not read here); critical constants by its `HEOS` (reference equations of state as packaged, not read here), `IUPAC` and `PSRK` methods; ideal-gas heat capacities fitted by us to thermo's `TRCIG` (TRC Thermodynamic Tables coefficients, not read here), `HEOS_FIT` and `WEBBOOK_SHOMATE` (NIST WebBook Shomate coefficients) correlations | process/materials.yaml `source:` per component | package queried; the underlying works not read | open-source package queried; single values, facts only; not open data (library ADR 0037) | ideal-gas formation data and heat capacities to 1500 K |
 | SRC-5 | `cheme chemistry library hcn_andrussow` | - | tool output | packaged | reaction stoichiometry and catalyst entry (model basis stoichiometry only) |
 
 Searched without a usable number for this design: US EPA, *Inorganic Hydrogen Cyanide Listing
@@ -48,8 +48,9 @@ directly to the neutraliser).
 ## D-002 Capacity and product (2026-10-28)
 Decision: 6.25 t/h solid product (150 t/d, 50 kt/a at 8000 h), 98.0 wt% NaCN, 1.0 wt% free
 NaOH, 1.0 wt% water.
-Reason: a single-train size of the order of the larger published NaCN plants (the Kwinana solid
-plant reported output up to about 39 kt/a, WA EPA performance review 2013-2018); free NaOH is
+Reason: a single-train size ASSUMED to be of the order of the larger NaCN plants (no open plant
+capacity is registered as a source: the WA EPA bulletins on the Kwinana plant were searched
+but not registered with a locator, so no capacity figure is taken from them); free NaOH is
 kept in cyanide liquors to suppress HCN release and polymerisation (SRC-2 keeps 0.1-3 wt% free
 NaOH in the absorber liquor).
 Rejected: a published plant's exact basis (none available as an open source).
@@ -144,8 +145,14 @@ all filtrate returns to the crystalliser, so the free NaOH leaves with the cake 
 indirect steam vacuum dryer (efficiency 0.8) dries the cake to 1 wt% water; the vapours are
 condensed (E-401) and go to wastewater treatment.
 Reason: SRC-2's wet process conditions; recycle of all filtrate avoids a NaCN-bearing purge.
-Rejected: cheme's crystallizer model, which refuses the free NaOH (one solute and one solvent
-only; cheme.process-propagate-crystallizer) - the outlets are the script's values instead (D-011).
+Rejected (2026-10-28): cheme's crystallizer model, which in cheme 0.8.0 refused the free NaOH
+(one solute and one solvent only; cheme.process-propagate-crystallizer) - the outlets are the
+script's values instead (D-011). Update 2026-11-19 (audit): this gate no longer holds for the
+pinned core (1.12.0). Since core 1.8.0 the crystallizer carries other dissolved components
+unchanged through the mother liquor (`crystallizer.spectators`, ADR 0056 of core) and accepts
+a solubility measured in the mother liquor (`solubility.measured_in: mother_liquor`), so the
+0.80 kg/kg filtrate value of SRC-2 with NAOH as a spectator could model CR-401. Not done in
+this fix: the outlets stay the script's until the step is remodelled (next stage, step 2).
 Assumptions: heat of neutralisation about 12 kJ/mol HCN (ASSUMED, weak acid); NaCN hydrolysis to
 formate and ammonia in the hot liquor not modelled (its NH3/HCN traces in the vacuum vent are an
 emission gap); a multiple-effect or MVR crystalliser would cut the 4.5 MW steam (open).
@@ -200,7 +207,9 @@ NaCN/NaOH electrolyte (core electrolyte/speciation and polar benchmarks, as issu
 separations is not evaluable in core; (b) cheme's crystallizer model (solids) handles
 one solute in one solvent and refuses the free NaOH of the liquor. The state of the core issues on electrolytes and solids
 could not be read from this environment (gh: issue not resolvable); the refusal in (b) is the
-evidence for this route. `cheme maturity`: calculation maturity none (feeds assumed, specified
+evidence for this route. Update 2026-11-19 (audit): gate (b) is lifted since core 1.8.0
+(crystallizer spectators and mother-liquor solubility, see D-008); gate (a) still applies to
+the energy closure of the separations. `cheme maturity`: calculation maturity none (feeds assumed, specified
 separations), as for the other concept cases.
 
 ## D-012 Preliminary gate-to-gate LCI (2026-10-28)
@@ -249,16 +258,17 @@ against temperature with NaOH present; NaCN hydrolysis (formate, vent NH3/HCN); 
 NOx and CO factors; the chemical exergy of NaCN (for exergy allocation of the exported steam);
 Ullmann's chapter (SRC-3) not read.
 
-Missing in the shared chemicals registry (`chemicals/chemicals.yaml`, for the consolidated
-PR): `sodium-cyanide` (main product, solid 98 wt%; possibly a solution grade), `hydrogen-cyanide`
-(intermediate), `ammonia` (feed from ammonia-1), `sodium-hydroxide` (feed, 50 wt% solution
-grade, from chlor-alkali-1); for the consumable `platinum` and `rhodium` (gauze). Present and
-used: methane, air, carbon-dioxide, steam, electricity, cooling-water, chilled-water, wastewater.
+Missing in the shared chemicals registry (`chemicals/chemicals.yaml`): `hydrogen-cyanide`
+(intermediate); for the consumable `platinum` and `rhodium` (gauze). Present and used:
+`sodium-cyanide` (main product), `ammonia` (feed from ammonia-1) and `sodium-hydroxide` (feed,
+50 wt% solution from chlor-alkali-1), added by the registry PR #251 (2026-10-31; process.yaml
+`chemistry:`), and methane, air, carbon-dioxide, steam, electricity, cooling-water,
+chilled-water, wastewater.
 
 Recommended next stage: (1) source the converter basis and the downstream recoveries (Ullmann
 SRC-3, open literature on Andrussow reactors, the EPA cyanide NESHAP background), (2) check the
 core electrolyte and solids support for NaCN/NaOH/water and, when qualified, replace the script
-values of C-201/C-202/CR-401 by cheme models (`process props`, `simulate`, the crystallizer with
-a second solute), (3) source the boiler emission factors and the NaCN exergy and map the LCI
+values of C-201/C-202/CR-401 by cheme models (`process props`, `simulate`; CR-401 with the
+crystallizer and NAOH as a spectator, available since core 1.8.0), (3) source the boiler emission factors and the NaCN exergy and map the LCI
 backgrounds (ammonia-1 and chlor-alkali-1 datasets pinned explicitly), (4) then P&IDs and HAZOP
 (HCN toxicity, flammable converter feed, HCN polymerisation).

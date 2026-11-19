@@ -1,0 +1,37 @@
+# Reactions of vinyl-acetate-1 (DESIGN.md D-004). Schema: `cheme schema process-reactions`.
+# Model basis: conversion specifications, not kinetics. R101 converts fixed fractions of the
+# ethylene entering it: to vinyl acetate and, by the side reaction, to CO2 and water. The two
+# fractions come from Wacker's pilot reactor of US 8 765 995 B2 (SRC-1), Table 2 (the
+# comparative 33 mm tube after 400 h: feed 65 mol% ethylene, 12.3 mol% acetic acid, 8.6 mol%
+# oxygen; GHSV 3750 1/h; space-time yield 900 g VAM per litre of catalyst and hour; ethylene
+# selectivity 91.0 %), with the GHSV taken at 273.15 K and 101.325 kPa (22.414 m3/kmol,
+# ASSUMED):
+#   VAM per mol of feed = (900 / 86.09) / (3750 / 22.414) = 0.06248
+#   ethylene converted per mol of feed = 0.06248 / 0.910 = 0.06866
+#   fraction of the inlet ethylene to VAM = 0.06248 / 0.65 = 0.0961, burnt = 0.00618 / 0.65 = 0.0095
+# (together 10.6 %, the "about 10 %" per pass of SRC-1's background). The oxygen these consume,
+# 0.0498 per mol of feed, is 58 % of the 8.6 mol% fed, inside SRC-1's "up to 90 %".
+# Heats of reaction: as US 8 765 995 B2 states them (SRC-1, background), at 298.15 K; R101's
+# duty is written by `cheme process propagate` on the elements basis from the ideal-gas data of
+# process/materials.yaml, which give the same heats (materials header). Negative = exothermic,
+# J/mol.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ACX
+    title: Acetoxylation of ethylene to vinyl acetate (Pd/Au catalyst with potassium acetate)
+    equation: C2H4 + CH3COOH + 0.5 O2 -> CH2=CHOOCCH3 + H2O
+    stoichiometry: {C2H4: -1, ACOH: -1, O2: -0.5, VAM: 1, H2O: 1}
+    phase: vapor
+    catalyst: palladium and gold with potassium acetate on a silica or bentonite support (SRC-1, SRC-2)
+    conversion: {key: C2H4, value: 0.0961, provenance: assumed, source: "D-004: fraction of the inlet ethylene to vinyl acetate from US 8 765 995 B2 Table 2 (STY 900 g/(l h) at GHSV 3750 1/h and 65 mol% ethylene), header"}
+    heat_of_reaction: {value: -176000, provenance: given, source: "US 8 765 995 B2 (SRC-1), background: dH 298 = -176 kJ/mol"}
+    sources: ["US 8 765 995 B2 (Wacker Chemie, 2009), background and Table 2", "US 8 410 307 B2 (Wacker Chemie, 2010), description"]
+  - id: COMB
+    title: Total combustion of ethylene (side reaction)
+    equation: C2H4 + 3 O2 -> 2 CO2 + 2 H2O
+    stoichiometry: {C2H4: -1, O2: -3, CO2: 2, H2O: 2}
+    phase: vapor
+    conversion: {key: C2H4, value: 0.0095, provenance: assumed, source: "D-004: the ethylene burnt at the ethylene selectivity 91.0 % of US 8 765 995 B2 Table 2, header"}
+    heat_of_reaction: {value: -1324000, provenance: given, source: "US 8 765 995 B2 (SRC-1), background: -1324 kJ/mol"}
+    sources: ["US 8 765 995 B2 (Wacker Chemie, 2009), background and Table 2"]

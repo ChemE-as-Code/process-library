@@ -1,0 +1,127 @@
+# Components and templates of acrylic-acid-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Ideal-gas data printed by `cheme chemistry thermo NAME --fit 298.15,1000` (chemicals 1.5.2 and
+# thermo 0.6.1, the method of each value named in its source; single values with their source,
+# not open data, library ADR 0037). The reactors' duties (cheme process propagate) use them.
+# 4-Methoxyphenol (MEHQ) has no ideal-gas heat capacity in thermo over 298-1000 K: it is dosed
+# into the cold product only, where no energy balance needs it. Air is dry air with its argon
+# and CO2 lumped into N2 (DESIGN.md D-004). Normal boiling points from the same packages
+# (acrylic acid also Arkema's data sheet: 141 C), melting points where they matter.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: C3H6
+    name: Propylene
+    formula: C3H6
+    cas: 115-07-1
+    molar_mass: 42.080
+    normal_boiling_point: 225.46
+    critical: {Tc: 364.211, Pc: 4555.0, omega: 0.146, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 20370.0, S_298: 266.71, cp_R: [1.46256, 0.0208551, 5.04321e-06, -1.75395e-08, 7.55921e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.22%)"}
+  - id: C3H8
+    name: Propane
+    formula: C3H8
+    cas: 74-98-6
+    molar_mass: 44.096
+    normal_boiling_point: 231.04
+    critical: {Tc: 369.89, Pc: 4251.2, omega: 0.1521, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -104390.0, S_298: 270.3, cp_R: [1.07954, 0.0249303, 1.06693e-05, -2.73642e-08, 1.16877e-11], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.30%)"}
+  - id: O2
+    name: Oxygen
+    formula: O2
+    cas: 7782-44-7
+    molar_mass: 31.999
+    normal_boiling_point: 90.19
+    critical: {Tc: 154.581, Pc: 5043.0, omega: 0.0222, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 205.2, cp_R: [3.77947, -0.00302881, 1.00439e-05, -9.9971e-09, 3.39951e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1000 K (max deviation 0.06%)"}
+  - id: N2
+    name: Nitrogen
+    formula: N2
+    cas: 7727-37-9
+    molar_mass: 28.013
+    normal_boiling_point: 77.36
+    critical: {Tc: 126.192, Pc: 3395.8, omega: 0.0372, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 0.0, S_298: 191.6, cp_R: [3.73705, -0.00162221, 3.30033e-06, -1.59601e-09, 1.12428e-13], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1000 K (max deviation 0.07%)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.12
+    critical: {Tc: 647.096, Pc: 22064.0, omega: 0.3443, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.15003, -0.00172022, 5.79411e-06, -4.78197e-09, 1.52313e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1000 K (max deviation 0.05%)"}
+  - id: CO2
+    name: Carbon dioxide
+    formula: CO2
+    cas: 124-38-9
+    molar_mass: 44.010
+    normal_boiling_point: 194.67
+    critical: {Tc: 304.128, Pc: 7377.3, omega: 0.22394, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -393474.0, S_298: 213.8, cp_R: [2.13892, 0.0106487, -1.14951e-05, 7.22349e-09, -1.98484e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo HEOS_FIT 298.15-1000 K (max deviation 0.02%)"}
+  - id: ACR
+    name: Acrolein
+    formula: C3H4O
+    cas: 107-02-8
+    molar_mass: 56.063
+    normal_boiling_point: 325.84
+    critical: {Tc: 506.0, Pc: 5167.57, omega: 0.33, source: "chemicals: Tc PSRK, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: -81000.0, S_298: 280.54, cp_R: [0.107868, 0.035975, -2.85891e-05, 1.03518e-08, -9.67622e-13], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 API_TDB_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.17%)"}
+  - id: AA
+    name: Acrylic acid
+    formula: C3H4O2
+    cas: 79-10-7
+    molar_mass: 72.063
+    normal_boiling_point: 414.15
+    critical: {Tc: 615.0, Pc: 5674.2, omega: 0.56, source: "chemicals: Tc PSRK, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: -330583.17, S_298: 307.65, cp_R: [-0.652563, 0.0460937, -4.1755e-05, 1.76731e-08, -2.34849e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 WEBBOOK, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.16%)"}
+  - id: HAC
+    name: Acetic acid
+    formula: C2H4O2
+    cas: 64-19-7
+    molar_mass: 60.052
+    normal_boiling_point: 391.05
+    critical: {Tc: 590.7, Pc: 5780.0, omega: 0.4218, source: "chemicals: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: -432200.0, S_298: 283.5, cp_R: [0.902392, 0.0239812, -1.77221e-06, -1.21707e-08, 5.80576e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.18%)"}
+  - id: TOL
+    name: Toluene
+    formula: C7H8
+    cas: 108-88-3
+    molar_mass: 92.138
+    normal_boiling_point: 383.75
+    critical: {Tc: 591.75, Pc: 4126.3, omega: 0.2657, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 50410.0, S_298: 321.08, cp_R: [-3.45317, 0.0591732, -1.32366e-05, -2.59875e-08, 1.49193e-11], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 ATCT_G, S_298 YAWS, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.34%)"}
+  - id: HQ
+    name: Hydroquinone
+    formula: C6H6O2
+    cas: 123-31-9
+    molar_mass: 110.11
+    critical: {Tc: 820.0, Pc: 6749.97, omega: 0.6598, source: "chemicals: Tc PSRK, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: -265300.0, S_298: 343.1, cp_R: [-4.02834, 0.0855861, -8.69315e-05, 4.44258e-08, -8.64083e-12], temperature_range: [298.15, 1000], source: "chemicals: dHf_298 CRC, S_298 WEBBOOK, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.14%)"}
+  - id: MEHQ
+    name: 4-Methoxyphenol (MEHQ)
+    formula: C7H8O2
+    cas: 150-76-5
+    molar_mass: 124.14
+templates:
+  - {id: propylene, title: Propylene feed, components: [C3H6, C3H8]}
+  - {id: air, title: Air, components: [N2, O2]}
+  - {id: steam, title: Process steam, components: [H2O]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: process_gas, title: Reaction gas, components: [C3H6, C3H8, O2, N2, H2O, CO2, ACR, AA, HAC]}
+  - {id: offgas, title: Absorber off-gas, components: [C3H6, C3H8, O2, N2, H2O, CO2, ACR, AA, HAC]}
+  - {id: flue, title: Oxidiser flue gas, components: [C3H6, C3H8, O2, N2, H2O, CO2, ACR, AA, HAC]}
+  - {id: aqueous_aa, title: Aqueous acrylic acid, components: [C3H6, C3H8, O2, N2, H2O, CO2, ACR, AA, HAC, TOL, HQ, MEHQ]}
+  - {id: organic, title: Acrylic acid with toluene, components: [C3H6, C3H8, O2, N2, H2O, CO2, ACR, AA, HAC, TOL, HQ, MEHQ]}
+  - {id: toluene, title: Toluene, components: [TOL]}
+  - {id: wastewater, title: Aqueous phase, components: [C3H6, C3H8, O2, N2, H2O, CO2, ACR, AA, HAC, TOL, HQ, MEHQ]}
+  - {id: inhibitor, title: Hydroquinone, components: [HQ]}
+  - {id: mehq, title: MEHQ, components: [MEHQ]}
+  - {id: product, title: Glacial acrylic acid, components: [C3H6, C3H8, O2, N2, H2O, CO2, ACR, AA, HAC, TOL, HQ, MEHQ]}
+  - {id: heavies, title: Heavy ends, components: [C3H6, C3H8, O2, N2, H2O, CO2, ACR, AA, HAC, TOL, HQ, MEHQ]}
+# property_method stays a placeholder: no benchmarked property package of core covers the
+# aqueous acids, toluene and the inhibitors (cheme process props --coverage), DESIGN.md L-2.
+property_method:
+  adapter: thermo
+  status: placeholder

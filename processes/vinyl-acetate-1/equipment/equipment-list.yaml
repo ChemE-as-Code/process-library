@@ -1,0 +1,33 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the sizes the balance gives. Design pressures, temperatures and materials are not set yet
+# (basic engineering); materials named are usual choices for wet acetic acid, to be confirmed.
+# All values ASSUMED unless a source is named (DESIGN.md).
+schema: cheme/equipment/v1
+equipment:
+  - {tag: T-101, type: Column, service: "Acetic acid saturator: the cycle gas with fresh ethylene saturated with the fresh and the recycle acid",
+     notes: "Packed or trayed saturator heated by LP steam raised in R-101 (12.84 MW, Q2, scripts/balance.py; the acid vaporised to the ideal-gas monomer, its association in the vapour left out, D-008); gas out at 408 K and 1020 kPa(a) (ASSUMED, D-005); stainless steel for hot acetic acid (to be confirmed); the acid feed and the saturator level control the reactor's acid content (12.3 mol%, D-004)."}
+  - {tag: E-101, type: HeatExchanger, service: "Reactor feed superheater, the cold side of the feed/effluent exchanger",
+     notes: "The mixed feed from 405 to 423 K (1.24 MW, Q3) against the reactor effluent (D-008); the oxygen is mixed upstream of it in a mixing nozzle with flame-arresting design and oxygen-cleaned piping (D-009)."}
+  - {tag: R-101, type: TubularReactor, service: "Acetoxylation reactor: multitubular fixed bed with Pd/Au/potassium acetate catalyst, boiling water on the shell",
+     notes: "About 28 m3 of catalyst at the space-time yield of 900 g VAM per litre and hour of US 8 765 995 B2 Table 2 (291.6 kmol/h of VAM formed, 25.1 t/h), which also gives back that table's GHSV of about 3750 1/h; in tubes of 33 mm inner diameter and 6.3 m (the source's comparative tubes) about 5200 tubes, inside the 2000-6000 tubes of industrial reactors the source names (SRC-1, D-004); 1000 kPa(a), 423 K in, 438 K out (ASSUMED, D-005); 23.7 MW of reaction heat (cheme process propagate, Q1 + Q2 + Q7 + Q11) raise LP steam at 450 kPa(a) (inside the 2.5-5 bar of SRC-1); oxygen-concentration trips on the feed (D-009); the catalyst's replacement is an open gap of the LCI (D-010)."}
+  - {tag: E-102, type: HeatExchanger, service: "Reactor effluent cooler: hot side of the feed/effluent exchanger and a trim cooler on cooling water",
+     notes: "Effluent from 438 to 398 K: 1.24 MW to the feed (Q3) and 1.55 MW to cooling water (Q4), D-008."}
+  - {tag: C-101, type: Column, service: "Preliminary dewatering column at loop pressure with overhead condenser and decanter",
+     notes: "As US 8 410 307 B2 describes it (SRC-2): run at the cycle-gas pressure, bottoms 100-120 C (383 K here), overhead cooled to 308 K and decanted; 15.3 MW to cooling water (Q5); organic phase 98.9 wt% VAM to V-201, aqueous phase (1.13 t/h, SRC-2's take-off, the amount ASSUMED) to the effluent, bottoms (acid, water, VAM) to C-201, uncondensed gas to C-102 (D-005)."}
+  - {tag: C-102, type: Column, service: "Cycle-gas scrubber with recycle acetic acid, with the scrub-acid cooler E-202",
+     notes: "7.5 t/h of recycle acid cooled to 313 K washes the VAM out of the uncondensed gas (VAM left 0.01 mol%); the gas leaves with 0.41 mol% acid, near equilibrium with the lean scrub acid; 0.60 MW to cooling water with E-202 (Q6); bottoms to C-201 (SRC-2, D-005)."}
+  - {tag: C-104, type: Column, service: "Slip-gas water scrubber ahead of the carbonate absorber",
+     notes: "36.6 t/h of the scrubbed cycle gas (the CO2 slip) washed with 540 kg/h of demineralised water (ASSUMED): 99 % of its acid (4.9 kmol/h) to a liquor of 16 mol% acid, about six stages (ASSUMED, Dortmund UNIFAC); adiabatic, the liquor at 323 K to C-201 (US 6 420 595 B1: a scrubber ahead of the carbonate absorber, SRC-3; D-006)."}
+  - {tag: C-103, type: Column, service: "CO2 removal: hot potassium carbonate absorber and regenerator on a slip stream of the cycle gas",
+     notes: "33.7 % of the scrubbed cycle gas, washed in C-104 (36.4 t/h), treated, 45 % of its CO2 removed (US 6 420 595 B1: almost half, SRC-3), 2.49 t/h of CO2 to the vent; regenerator 1.73 MW of LP steam (Q7, 2500 kJ/kg CO2 ASSUMED), solution pumps 250 kW (P2, ASSUMED); potassium acetate from the acid C-104 leaves (0.12 g/kg) kept below 4 wt% by a bleed (SRC-3), its K2CO3 make-up a cut-off input of the LCI, D-006, D-010."}
+  - {tag: K-101, type: Compressor, service: "Cycle-gas compressor",
+     notes: "105.9 t/h from 870 to 1050 kPa(a), suction 323 K (the treated slip and the bypass mixed), 704 kW shaft-and-drive power (P1, isentropic efficiency 0.75, drive 0.95, ASSUMED), discharge 339 K; the inerts purge X101 (0.3 % of the scrubbed gas) upstream of it, to the thermal oxidiser (D-006)."}
+  - {tag: C-201, type: Column, service: "Azeotropic column with overhead decanter: VAM and water overhead, recycle acetic acid at the bottom",
+     notes: "Top at 150 kPa(a) and 343 K (inside the 1.1-1.5 bar(a) and 50-90 C of SRC-2), bottoms 393 K at 140 kPa(a); condenser 10.4 MW to cooling water at a boil-up of 2 mol per mol of the decanted overhead (Q10, ASSUMED); reboiler 10.2 MW, 3.99 MW from R-101's steam (Q1, cheme process propagate) and 6.18 MW imported (Q9); bottoms 25.0 t/h at 93.3 wt% acid, 70 % to T-101 and 30 % to C-102 (X201, ASSUMED); pumps 180 kW (P3, ASSUMED), D-007."}
+  - {tag: V-201, type: Vessel, service: "Collection vessel of the organic phases of C-101 and C-201",
+     notes: "Crude VAM 25.5 t/h at 98.8 wt% VAM to C-202 (SRC-2's collection vessel), D-007."}
+  - {tag: C-202, type: Column, service: "Dewatering column with the pure VAM side draw from the stripping section",
+     notes: "As US 8 410 307 B2 claims (SRC-2): water and low boilers overhead, the product as a side draw at its bubble point (361 K at 165 kPa(a)), the bottoms (0.5 % of the feed, drier than the draw, with the acid) back to C-201; condenser 4.43 MW (Q12, reflux 20 over the 349 kg/h top product, ASSUMED), reboiler 5.14 MW on R-101's steam (Q11); product 99.99 wt% VAM with 90 ppm(wt) water (calculated from the ASSUMED splits), D-007."}
+  - {tag: E-201, type: HeatExchanger, service: "Product cooler on cooling water",
+     notes: "The side draw from 361 to 303 K, 0.81 MW (Q13); to inhibited storage under nitrogen (D-009)."}

@@ -1,0 +1,149 @@
+# Goal and scope of the sodium-chlorate-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-011): every exchange of the plant per
+# kg of dried sodium chlorate crystal, from the flowsheet's design case. The backgrounds are left
+# unmapped (`missing:` with the activity each should connect to), except where lca/mappings.yaml
+# links a library producer or a shared entry: a gap, never zero, and no values from licensed
+# databases. The small auxiliaries the flowsheet does not carry are consumables per year at the
+# middle of the BREF's ranges (D-010).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of sodium chlorate made by electrolysis of salt
+  brine in undivided cells with dichromate, crystallised and dried, at the concept stage: which
+  raw materials, electricity, utilities and emissions the plant exchanges per kg of crystal, as
+  the foreground for a later cradle-to-gate study (and for the chlorine dioxide feed that
+  kraft-pulp-1 records as a gap). Electricity dominates (about 5.2 kWh per kg).
+functional_unit: {product: NACLO3P, amount: 1, unit: kg, source: "1 kg of the dried product, stream S20 (modelled 98.4 wt% crystal, 1.2 wt% chlorate and 0.28 wt% NaCl from the dried cake liquor, 0.1 wt% water) at the plant gate to storage (D-002, D-008, D-011)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as other entries do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Continuous plant: solid salt dissolved in the recycled mother liquor and the crystallizer condensate; 400 undivided cells (DSA titanium anodes, steel cathodes) at 70 C, 2.5 kA/m2 and 3.0 V, current efficiency 0.95, with 3-5 g/L sodium dichromate; reaction tanks of about 650 m3 for the chlorate formation; 15 % of a 101 t/h side stream's chlorate crystallised in a vacuum crystallizer heated with the cells' heat, centrifuged and dried in a fluidised bed; 69 % of the hydrogen used, the rest vented (BREF LVIC-S 2007 section 7.13; US 5 419 818 A)"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  # mass of the contained products: 6350.71 kg/h of dried product (S20) and 259.83 kg/h of H2
+  # in the hydrogen to users (S21, which also carries 93.25 kg/h of O2); 6350.71 / 6610.54
+  method: shares
+  coproducts: [NACLO3P, H2P]
+  shares: {NACLO3P: 0.9607, H2P: 0.0393}
+  source: >-
+    D-011 (agent proposal, for the LCA practitioner to confirm): the hydrogen used as fuel or
+    feedstock (69 % of the 59 kg per t formed, BREF LVIC-S 2007 Table 7.79 and 7.13.3.3) is a
+    co-product in fixed stoichiometric ratio to the chlorate, as in chlor-alkali-1; mass
+    allocation on the contained products (the crystal product, the hydrogen without its oxygen)
+    is used, as chlor-alkali-1 does (its D-013). No prices are sourced.
+  deviation: >-
+    The hydrogen's share is small by mass; an energy or economic basis would give it more (its
+    heating value is high). The conservative bound is all burdens to the chlorate (share 1).
+flows:
+  # raw materials
+  - key: feed:SALT
+    missing: "linked to the shared sodium-chloride entry (lca/mappings.yaml): salt, counted 1:1 as sodium chloride"
+    source: "flowsheet stream S1, set by the design specification for 6250 kg/h of crystal (D-005)"
+  - key: feed:PW
+    missing: "linked to the shared water entry (lca/mappings.yaml): demineralised process water"
+    source: "flowsheet stream S2, set by the design specification for the liquor's 565 g/L NaClO3 (D-005)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet in this folder (D-011; the Atlas build links it through the shared lci/mappings.yaml electricity entry): electricity, medium or high voltage, grid mix of the (undecided) site country; the largest exchange of the inventory"
+    source: "flowsheet energy streams P1 (rectifiers, from cheme process cell's DC power over an ASSUMED 0.97) and P3 (auxiliaries, 300 kWh/t, BREF Table 7.80), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy stream Q6 (the dryer's air heater, core's dryer model), D-009"
+  - key: product:CW
+    missing: "heat rejected to a recirculating cooling-water system (prefer_atlas: processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q1 (rectifier losses), Q4 (cell heat neither recovered to the crystallizer nor kept to warm the returned liquor) and Q5 (crystallizer condenser), D-009"
+  # co-product, wastes and emissions
+  - key: product:PURGE
+    treatment: {kind: waste, route: "mother-liquor bleed to the site's effluent treatment with chlorate reduction (sodium chlorate, chloride and active chlorine; dichromate traces, D-008)"}
+    missing: "not mapped yet (D-011): treatment of chlorate-bearing saline wastewater, per kg"
+    source: "flowsheet stream S18 (D-008)"
+  - key: product:H2V
+    emission: true
+    source: "flowsheet stream S22: the 31 % of the cell gas not used, vented after the scrubber (BREF Table 7.79: 9-28 kg H2 per t; here 18.4 kg/t) (D-008)"
+  - key: product:DRYV
+    emission: true
+    source: "flowsheet stream S19: the dryer's water vapour with its air (D-008)"
+  - key: emission:H2
+    elementary: {compartment: air, subcompartment: unspecified}
+    # origin stays the schema default "fossil": the enum has no inorganic origin; the H2 comes from water
+    source: "hydrogen vented (S22), 18.4 g per kg of product (D-008)"
+  - {key: emission:O2, free: true, source: "the cell gas's oxygen returned to the atmosphere with the vented hydrogen"}
+  - {key: emission:H2O, free: true, source: "water vapour of the dryer exhaust"}
+  - {key: emission:NaCl, missing: "not a flow: 0 kg in the hydrogen vent S22, whose template lists the liquor components; the liquor's chloride, chlorate and active chlorine leave only in the bleed to effluent treatment (D-011)", source: "flowsheet stream S22"}
+  - {key: emission:NaClO3, missing: "not a flow: 0 kg in the hydrogen vent S22, whose template lists the liquor components; the liquor's chloride, chlorate and active chlorine leave only in the bleed to effluent treatment (D-011)", source: "flowsheet stream S22"}
+  - {key: emission:NaClO3_s, missing: "not a flow: 0 kg in the hydrogen vent S22, whose template lists the liquor components; the liquor's chloride, chlorate and active chlorine leave only in the bleed to effluent treatment (D-011)", source: "flowsheet stream S22"}
+  - {key: emission:NaOCl, missing: "not a flow: 0 kg in the hydrogen vent S22, whose template lists the liquor components; the liquor's chloride, chlorate and active chlorine leave only in the bleed to effluent treatment (D-011)", source: "flowsheet stream S22"}
+# What the plant uses that the flowsheet does not carry (D-010, L-3): the BREF's auxiliary
+# chemicals (SRC-1, Table 7.81, and the dichromate and nitrogen of Table 7.79) at the middle of
+# each range, per t of product, times 50 806 t/a (S20 6350.71 kg/h x 8000 h). The BREF's figures
+# are taken per t of chlorate and, for the acids and bases, as the pure substance (ASSUMED);
+# each is counted here by the mass of the solution it is delivered in.
+consumables:
+  - id: sodium-hydroxide
+    title: Caustic soda 50 wt% for pH control, alkalising the crystallizer feed, brine treatment and the scrubbers
+    unit: kg
+    per_year: 2286270
+    source: "22.5 kg NaOH per t (the middle of 15-30 kg/t, SRC-1 Table 7.81) as 45 kg of 50 wt% solution x 50 806 t/a, ASSUMED (D-010)"
+    missing: "linked to processes/chlor-alkali-1 (lca/mappings.yaml): caustic soda 50 wt%"
+  - id: hydrochloric-acid
+    title: Hydrochloric acid 33 wt% for pH adjustment of the cell liquor and the cells' acid wash
+    unit: kg
+    per_year: 3464045
+    source: "22.5 kg HCl per t (the middle of 15-30 kg/t, SRC-1 Table 7.81) as 68.18 kg of 33 wt% acid x 50 806 t/a, ASSUMED (D-010)"
+    missing: "linked to processes/hydrogen-chloride-1 (lca/mappings.yaml): hydrochloric acid 33 wt%"
+  - id: sodium-carbonate
+    title: Soda ash for the brine treatment (calcium precipitated as carbonate)
+    unit: kg
+    per_year: 51822
+    source: "1.02 kg per t (the middle of 0.04-2 kg/t, SRC-1 Table 7.81) x 50 806 t/a, ASSUMED (D-010)"
+    missing: "linked to processes/soda-ash-1 (lca/mappings.yaml): light soda ash"
+  - id: sodium-dichromate
+    title: Sodium dichromate make-up (buffer and cathode film in the liquor)
+    unit: kg
+    per_year: 4064
+    source: "0.08 kg per t (the middle of 0.01-0.15 kg/t, SRC-1 Tables 7.79 and 7.81) x 50 806 t/a, ASSUMED (D-010)"
+    missing: "not mapped yet (D-011); no library process makes sodium dichromate. Connect to: sodium dichromate from chromite ore by oxidative alkaline roasting and acidification, per kg"
+    notes: "leaves with the product, the bleed and the chromium-bearing sludges (SRC-1 Table 7.79: 0.1-1 kg of process sludge with chromium per t, to hazardous-waste disposal; not inventoried, D-011). The BREF's make-up is for a washed crystal: the flowsheet's unwashed cake would carry 73-122 g/t, about the whole make-up, into the product (D-010, L-5)"
+  - id: hydrogen-peroxide
+    title: Hydrogen peroxide 50 wt% to reduce the liquor's hypochlorite before crystallisation
+    unit: kg
+    per_year: 203224
+    source: "2 kg H2O2 per t (the middle of 1-3 kg/t, SRC-1 Table 7.81) as 4 kg of 50 wt% solution x 50 806 t/a, ASSUMED (D-010); reducing the flowsheet's 3 g/L at the crystallizer would take 16 kg/t, its upper bound (D-007)"
+    missing: "linked to processes/hydrogen-peroxide-1 (lca/mappings.yaml): hydrogen peroxide 50 wt%"
+  - id: nitrogen
+    title: Nitrogen for purging the cell gas and hydrogen systems (safety)
+    unit: kg
+    per_year: 162579
+    source: "3.2 kg per t (the middle of 0.4-6 kg/t, SRC-1 Table 7.81) x 50 806 t/a, ASSUMED (D-010)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+emission_exclusions:
+  - id: purge-effluent
+    method: effluent
+    exchange: product:PURGE
+    reason: "the bleed goes to effluent treatment outside the boundary; its chlorate, chloride and dichromate discharges belong to that treatment's background, linked later (D-011)"
+    source: "DESIGN.md D-011"
+  - id: chlorine-and-dust
+    method: storage-tank
+    equipment: [V-201, R-201, DR-401]
+    reason: "chlorine traces in the scrubbed hydrogen and tank vents (SRC-1 Table 7.79: 0.05-1 g/t) and chlorate dust from the dryer and handling (0.3-10 g/t) are not estimated: no scrubber or dust filter is modelled at the concept stage (D-011, L-4)"
+    source: "DESIGN.md D-011"
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic chemicals site with salt, grid power and a hydrogen user nearby, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #512, unreviewed"
