@@ -15,7 +15,9 @@ Run of 2026-10-28 (agent, issue ChemE-as-Code/process-library#176): library base
 | IPCC | 2006 IPCC Guidelines for National GHG Inventories, Vol. 2, Ch. 2, Table 2.3 | natural gas, manufacturing industries: CH4 1 kg/TJ, N2O 0.1 kg/TJ | default values (known table, not re-fetched in this run) | CH4/N2O of the firebox, proxy (D-017) |
 | ULL | Zimmermann, Walzl: Ethylene, Ullmann's, doi:10.1002/14356007.a10_045.pub2 | - | not read (lead from the issue) | none yet |
 | OLE | skill `tech-petchem-olefins` (Speight 2011, ch. 11) | coil outlet 800-880 C, CGC discharge 17-35 bar | skill text | ranges for D-004, D-008 |
-| CORE | `cheme chemistry library ethane_cracking`, `chemicals` package | ideal-gas formation data and Cp of all gas components | tool output | reactor duties, firebox balance |
+| CORE | `cheme chemistry library ethane_cracking --add` (C2H6, C2H4, H2, C3H8, CH4) and `cheme chemistry thermo NAME --fit 298.15,1200` (the others), on the chemicals 1.5.2 and thermo 0.6.1 packages of core's environment (open-source, MIT; the versions core 0e85885 pins): gas formation enthalpies from chemicals' Active Thermochemical Tables 1.112 data (`ATCT_G`; C4H6's from its packaged CRC Handbook table); standard entropies from chemicals' packaged CRC Handbook table `heat_capacity.CRC_standard_data` (CRC Handbook of Chemistry and Physics, 2014 edition as chemicals cites it; a licensed book, not read here) or, for five components, its packaged Yaws table `Hfg_S0g_YAWS_data` (C. L. Yaws, Thermophysical Properties of Chemicals and Hydrocarbons; a licensed book, not read here); critical constants by chemicals' `HEOS` method; ideal-gas cp/R polynomials fitted to thermo's TRCIG correlation (coefficients from Kabo and Roganov, Thermodynamics of Organic Compounds in the Gas State, TRC 1994; not read here), H2O's to thermo's HEOS_FIT, and N2's and O2's to thermo's default for them (HEOS_FIT in thermo 0.6.1; materials.yaml does not print it) | printed per component with its method in process/materials.yaml | open-source packages queried; single values, facts only (library ADR 0037) | reactor duties, firebox balance, all sensible heats of scripts/balance.py |
+| THERMO | thermo 0.6.1 (open-source, MIT; the version core 0e85885 pins), `Chemical(CAS, T).Hvapm` in scripts/balance.py `hvap()`: molar heat of vaporization by thermo's default method, HEOS_FIT for every component and temperature used (checked with `.EnthalpyVaporization.method`, 2026-11-19). HEOS_FIT is thermo's own polynomial fit to the published reference Helmholtz equations of state of each fluid, evaluated, thermo states, with NIST REFPROP; the reference equations were not read here | values used (kJ/mol): H2O 43.344 at 313.15 K (quench, Q201, Q302, Q304); CH4 7.141 at 140 K (demethaniser condenser); C2H6 10.544 at 258.15 K (T501); C2H4 9.200 at 243.15 K (T502); C3H6 12.264 and C4H6 19.590 at 318.15 K (T601/T602, T603); at 200 K for the chilling train: C2H4 12.132, C2H6 14.069, C2H2 15.979, C3H6 19.600, C3H8 20.112, C3H4 21.686, C4H6 25.777, C4H8 25.266, C4H10 25.794, C6H6 39.197 | open-source package queried; single values, facts only (library ADR 0037) | condenser and reboiler duties Q501-Q606, chilling train Q401, quench and interstage condensation (D-007, D-008, D-014), hence feed:LPS, the refrigeration power and part of product:CW |
+| COOLPROP | CoolProp 8.0.0 (open-source, MIT; core's environment), `PropsSI(..., "Water")`: IAPWS-95 (Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31, 387, as CoolProp implements it; not read here) | water saturation pressure and temperature, and enthalpies of BFW, saturated and superheated SHP steam (11500 kPa(a), 520 C) and of the dilution steam, at the conditions in scripts/balance.py | open-source package queried; single values, facts only | SHP steam export Q102/Q103 (product:HPS, D-007), dilution steam generator Q210 (D-004), quench water saturation |
 
 No figure, table or text of a source is copied; values are restated with their locator.
 
@@ -100,8 +102,8 @@ CO2 + 2 NaOH -> Na2CO3 + H2O, complete. Fresh caustic 10 wt% at 3 mol NaOH per m
 caustic goes to treatment outside the boundary. H2S, red oil and dissolved hydrocarbons are not
 modelled. NaOH comes from the library's chlor-alkali-1 (boundary feed).
 The 3:1 ratio has no source: it is an ASSUMED excess (one third of the NaOH leaves unused), and
-the feed CO2 (0.2 mol%, D-003) is ASSUMED too. Together they set about 10 kg NaOH and 95 kg spent
-caustic per t ethylene, so both LCI exchanges (feed:CAUSTIC, product:SPENTCAUSTIC) are flagged
+the feed CO2 (0.2 mol%, D-003) is ASSUMED too. Together they set about 9 kg NaOH and 95 kg spent
+caustic per t ethylene with mass allocation (lca/results.md; 10 kg and 104 kg unallocated), so both LCI exchanges (feed:CAUSTIC, product:SPENTCAUSTIC) are flagged
 in `lca/lca.yaml` as upper-bound assumptions (review #9).
 
 ## D-010 Separation sequence and splits (ASSUMED)
@@ -138,7 +140,7 @@ LHV = 17.6 GJ/t ethylene. There is no fuel gas export: the fuel gas co-product i
 furnaces.
 
 ## D-014 Refrigeration, columns, utility levels (ASSUMED)
-Column duties are (R+1) x distillate x heat of vaporisation (thermo). Reflux ratios: deethaniser
+Column duties are (R+1) x distillate x heat of vaporisation (thermo's HEOS_FIT, source THERMO). Reflux ratios: deethaniser
 1, C2 splitter 4, depropaniser 1, C3 splitter 15, debutaniser 1. The deethaniser,
 depropaniser, C3 splitter and debutaniser reboilers run on LP steam 450 kPa(a). The C2
 splitter (T502) and demethaniser (T401) reboilers are not modelled: in a real cracker they are
@@ -152,7 +154,8 @@ whose overhead is 67 mol% ethylene near its critical point; ethylene for the C2 
 Upper bound (review 2026-10-28-pfd-lci-review#2): the refrigeration shaft power (Q402,
 78.3 MW, about twice the CGC's 40.6 MW, whereas the CGC is normally the largest machine of an
 ethane cracker) is therefore a conservative upper estimate, and so is feed:POWER
-(0.87 kWh/kg). Crediting the T401/T502 reboilers and using mixture latent heats waits for
+(0.87 kWh/kg ethylene with mass allocation, 91.6 %; 0.95 kWh/kg unallocated, i.e. the 3.42 GJ/t
+of D-018). Crediting the T401/T502 reboilers and using mixture latent heats waits for
 the qualified property package (D-012).
 
 ## D-015 Machine drives in the inventory
@@ -171,25 +174,30 @@ nets HPS against POWER (steam-turbine drives) or credits the export by substitut
 
 ## D-016 Preliminary gate-to-gate LCI
 Functional unit 1 kg polymer-grade ethylene at the gate. Every foreground exchange comes from
-the flowsheet (feeds, products, energy streams). Every background is left unmapped
-(`missing:` names the activity to link: ethane from NGL fractionation, natural gas, grid
+the flowsheet (feeds, products, energy streams). In this folder's cheme LCI every background is
+left unmapped (`missing:` names the activity to link: ethane from NGL fractionation, natural gas, grid
 electricity HV, site MP/LP steam from utility-steam-ng-boiler, cooling water from
 utility-cooling-tower, NaOH from chlor-alkali-1, wastewater treatment from utility-wwtp).
 These are gaps, not zeros (ADR 0022). Mass allocation over ethylene, propylene, crude C4 and
 pyrolysis gasoline is proposed (ethylene share 91.6 %). `lca/inventory.csv` is per functional
 unit with the mass allocation applied to the inputs and emissions, while the co-products are
 listed unallocated; `lca/dataset.yaml` (per hour) is the unallocated dataset (corrected after
-review #1). `lca/mappings.yaml` holds only the steam overrides: MPS, LPS and HPS are counted as
-heat in kWh, so they use the library's `steam-heat` entry instead of the mass-based `steam` slug
-(as hda-1 and nitric-acid-1 do). Mass allocation departs from the library's WBCSD price-ratio
+review #1). `lca/mappings.yaml` holds the overrides for the library's Atlas build: the steam
+bought in (MPS, LPS), counted as heat in kWh, uses the library's `steam-heat` entry instead of
+the mass-based `steam` slug (as hda-1 and nitric-acid-1 do), and since the mapping step of
+2026-11-01 (ADR 0026) feed:NATGAS links to the shared `natural-gas` proxy. The exported SHP steam
+(product:HPS) has no override: a positive technosphere exchange is a consumption, so
+`steam-heat` would book the 337 MWh/h export as steam bought in (2.47 kWh/kg ethylene after mass allocation, about 3.7
+times the MPS and LPS the plant buys; corrected 2026-11-19, as acrylonitrile-1 did). It stays a
+reported gap in the Atlas build until the netting or crediting of D-015 is decided. Mass allocation departs from the library's WBCSD price-ratio
 hierarchy because no co-product prices are set at concept stage. The departure is stated as
 `allocation.deviation` in `lca/lca.yaml`, to be re-tested once prices exist. The zero flue-gas
 C2H4 and C2H6 are elementary emissions to air, not `free`. An unburnt hydrocarbon is not
 burden-free, and the library's pass-through list does not hold them. At zero amount they are
 reported gaps without a GWP factor.
-Missing registry entries (for the consolidated chemicals PR): ethylene (polymer grade),
-propylene (polymer grade), ethane, natural-gas, sodium-hydroxide, crude C4 / 1,3-butadiene,
-pyrolysis-gasoline, nitrogen-oxides, carbon-monoxide, dinitrogen-monoxide.
+Registry entries: ethylene, propylene, ethane, sodium-hydroxide, crude-c4, pyrolysis-gasoline,
+carbon-monoxide and nitrous-oxide now exist in chemicals/chemicals.yaml (ADR 0028), and natural
+gas links through the shared proxy of lci/mappings.yaml. Still missing: nitrogen-oxides.
 
 ## D-017 Emissions not carried by streams
 Firebox: activity 2199.3 GJ/h LHV; flue gas 239.3 Nm3 dry at 3 % O2 per GJ (balance script).
