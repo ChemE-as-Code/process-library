@@ -1,15 +1,18 @@
 """hydrogen-fluoride-1 (#513): the folder's stated numbers against its own files.
 
-Fast, without core: the flowsheet's streams (propagated by core) are read as YAML, and the
-statements the folder makes in DESIGN.md, process.yaml, the design basis and lca/lca.yaml are
-checked against them:
+Fast, without core: the flowsheet's streams (propagated by core) are read as YAML. The numbers
+the folder states in DESIGN.md, process.yaml and the design basis are written here as constants
+(the files themselves are not parsed, except the LCA files' allocation and mappings, the
+publication block and a few anchors) and checked against those streams:
 
 - the spar feed and the kiln temperatures are US 6 699 455 B2 Example 4's;
 - the kiln solids keep the patent's CaF2 and free-acid residues;
 - the fluorine balance closes over product, anhydrite and fluorosilicic acid;
 - the spar, H2SO4 equivalent, anhydrite, electricity and steam per t of HF against the BREF;
 - the product purity and the fluorosilicic acid strength;
-- the kiln's hand energy balance and the fired heat against the BREF's fuel and the patent's gas;
+- the kiln's hand energy balance, the natural gas burnt against the patent's gas and the BREF's
+  fuel, and the furnace losses;
+- the anhydrite cooler, and the SO2 slip inside the BREF's alkaline-scrubbing range;
 - the high-boiler column's reboiler is the BREF's 0.6 GJ/t;
 - the LCA allocation and the mappings to library producers;
 - the process is public with CC-BY-4.0 and requires cheme-as-code 1.13.
@@ -121,11 +124,31 @@ def test_kiln_energy_balance_and_fuel(streams, mw):
     q1, q2 = _flow(streams, "Q1"), _flow(streams, "Q2")
     assert q1 == pytest.approx(4800 * 0.956 * 375 / 3600, abs=0.5)
     assert q2 == pytest.approx(944.4 + 336.9 + 354.7 - 478.1 - 258.5, abs=0.2)
-    gj_per_t = (q1 + q2) * 3.6 / _flow(streams, "S17")
-    assert gj_per_t == pytest.approx(2.15, abs=0.01)
-    assert 0.43 <= gj_per_t / 5 and gj_per_t / 4 <= 0.54  # BREF BAT 4-5 GJ/t of fuel
-    lhv = (393.474 + 2 * 241.822 - 74.534) / 22.414  # MJ/m3, D-009
-    assert q2 / (189 * lhv / 3.6) == pytest.approx(0.48, abs=0.005)
+    hf = _flow(streams, "S17")
+    assert (q1 + q2) * 3.6 / hf == pytest.approx(2.15, abs=0.01)  # GJ/t absorbed
+    lhv = 393.474 + 2 * 241.822 - 74.534  # kJ/mol, SRC-4 formation enthalpies
+    kiln_fired = 189 * lhv / 22.414 / 3.6  # kW, SRC-2 Example 4: at most 189 m3/h
+    eta = q2 / kiln_fired
+    assert eta == pytest.approx(0.478, abs=0.001)  # D-009
+    fired = _kg(streams, mw, "S33")["CH4"] / mw["CH4"] * lhv / 3.6  # kW of natural gas burnt
+    assert fired == pytest.approx(kiln_fired + q1 / eta, rel=1e-3)
+    assert 4 <= fired * 3.6 / hf <= 5  # GJ/t, BREF BAT fuel for new AHF plants (Table 6.14)
+    assert _flow(streams, "Q10") == pytest.approx(fired - q1 - q2, abs=0.5)  # flue and shell losses
+    co2 = _kg(streams, mw, "S35")["CO2"]
+    assert co2 == pytest.approx(_flow(streams, "S33") * mw["CO2"] / mw["CH4"], rel=1e-3)
+    o2 = _kg(streams, mw, "S35")["O2"] / mw["O2"]
+    assert o2 == pytest.approx(0.1 * 2 * _flow(streams, "S33") / mw["CH4"], rel=1e-3)  # 10 % excess
+
+
+def test_anhydrite_cooler_and_so2_slip(streams, mw):
+    hf = _flow(streams, "S17")
+    acid = _kg(streams, mw, "S7")["H2SO4"] / mw["H2SO4"]  # kmol/h neutralised by NEU
+    neu = acid * (1434.5 + 285.825 - 634.9 - 814.0) / 3.6  # kW, SRC-4 formation enthalpies
+    cool = 336.9 * (477.15 - 333.15) / (477.15 - 298.15)  # the Q2 solids term scaled, D-009
+    assert _flow(streams, "Q9") == pytest.approx(cool + neu, abs=0.3)
+    assert streams["S9"]["temperature"]["value"] == pytest.approx(333.15)
+    so2 = _kg(streams, mw, "S30")["SO2"] / hf  # kg/kg = t/t
+    assert 0.001e-3 <= so2 <= 0.01e-3  # BREF Table 6.6 and BAT-AEL Table 6.15: 0.001-0.01 kg/t
 
 
 def test_high_boiler_reboiler_is_the_brefs(streams):

@@ -24,8 +24,9 @@ neutralises the anhydrite's free acid.
 
 How core models it:
 
-- `cheme process propagate` solves the whole flowsheet: the kiln (five reactions), the oleum
-  hydration, the neutraliser and the two absorbers as conversion reactors; the kiln discharge,
+- `cheme process propagate` solves the whole flowsheet: the kiln (five reactions), the burners
+  (natural gas with air), the oleum hydration, the neutraliser and the two absorbers as
+  conversion reactors; the kiln discharge,
   the scrubbers, the condensers and the columns as component splits; two recycles torn (the feed
   acid and the final scrubber acid) and two design specifications: the fresh acid for 1.0 wt%
   free acid in the kiln solids and the oleum for 3.0 wt% water in the feed acid (core ADR 0070).
@@ -35,15 +36,18 @@ How core models it:
 
 Headline numbers and their caveats:
 
-- Per kg of AHF: 2.08 kg of spar (BREF: 2.1-2.2 kg CaF2), 2.62 kg of H2SO4 equivalent (BREF:
-  2.6-2.7), 3.63 kg of anhydrite (BREF: about 3.7), 0.225 kWh of electricity (BREF middle), 0.30
-  kg of steam (BREF: 0.15-0.8) and 2.15 GJ/t of fired heat absorbed; with the BREF's 4-5 GJ/t of
-  fuel for new plants and the patent's natural gas, the kilns run at about 48 % furnace
-  efficiency.
+- Per kg of AHF: 2.08 kg of spar, which is 2.03 kg of CaF2, 3 % under the BREF's 2.1-2.2 kg
+  CaF2: the model loses fluorine only in the anhydrite's CaF2 and as SiF4, so it is optimistic;
+  2.62 kg of H2SO4 equivalent (BREF: 2.6-2.7), 3.63 kg of anhydrite (BREF: about 3.7), 0.225 kWh
+  of electricity (BREF middle), 0.30 kg of steam (BREF: 0.15-0.8).
+- Natural gas: 4.50 GJ/t burnt (the patent's 189 m3/h in the kiln, a furnace efficiency of 0.478
+  on the 2.15 GJ/t the charges absorb, ASSUMED the same for the spar preheater), inside the
+  BREF's 4-5 GJ/t for new plants; its CO2 is 0.25 kg per kg of AHF, in the flue gas.
 - The kiln's conversions are ASSUMED so that the anhydrite keeps the patent's 0.8 wt% CaF2 and
   1.0 wt% acid; the scrubbers, condenser and columns are ASSUMED splits (no HF-H2O model).
-- Refrigeration (1.24 GJ/t) is below the BREF's 2-3 GJ/t: quench, storage and dilution cooling
-  are not modelled.
+- Refrigeration (1.24 GJ/t) is below the BREF's 2-3 GJ/t, which the BREF does not break down;
+  the HF association heat left out of the condensers (up to 747 kW) and the quench, storage and
+  dilution cooling the model does not have may explain it (ASSUMED, DESIGN.md D-009).
 - The preliminary LCI gives all burdens to the HF: the anhydrite to landfill, the fluorosilicic
   acid burden-free. Fluorspar and refrigeration are gaps (and electricity in `cheme assess
   lca`; the Atlas build links it to the shared grid entry).

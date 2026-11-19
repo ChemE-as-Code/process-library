@@ -10,10 +10,10 @@ copied from the sources: no tables, figures or text, only single facts in our ow
 
 | id | source | access | used for |
 |---|---|---|---|
-| SRC-1 | European Commission JRC (2007), *Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers* (LVIC-AAF BREF), chapter 6 Hydrofluoric acid, <https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf> | open PDF, read (text extracted), 2026-11-19 | EU capacity about 300 kt/a, plants from below 5 to above 40 kt/a (6.1); main reaction (1) with dH = 59 kJ/mol and side reactions (2)-(9) (6.2.1); acid spar above 97 % CaF2 with SiO2, CaCO3, Fe/Al oxides each below 2 %, flotation fatty acids below 0.3 % (Table 6.2), dried at about 120 C (6.2.2); continuous indirectly heated rotary kilns, feed acid of 90-95 % H2SO4 from fresh acid, oleum and the scrubber acid, the plant under suction (6.2.3); 5-10 m2 of kiln surface per t/d of HF, 2.5-3 with spar calcination, pre-reactor (Table 6.3); process gas at about 150 or 220 C, anhydrite at 200-220 C (6.2.3); pre-purification with concentrated acid to below 100 C, condensation with chilled water or brine, low-boiler column (mainly SO2, SiF4), final H2SO4 scrubber, SiF4 absorber to H2SiF6, the cold acid of the final scrubber heated in the pre-purification column and mixed with fresh acid and oleum to the feed acid, high-boiler column at about 350 kg of steam (0.6 GJ) per t of HF (6.2.4); tail gas water or caustic scrubbing (6.2.5); anhydrite marketed or disposed of (6.2.6, 6.4.3); AHF boils at 19.5 C, stored below 15 C in carbon steel (6.2.7); consumption per t of HF (Table 6.4); dust, SO2 and fluoride emissions (Tables 6.5, 6.6, 6.12); effluent and solid waste, about 3.7 t of CaSO4 per t (Tables 6.7, 6.8); options to improve heat transfer (Table 6.9); kiln shell exit gas up to about 400 C (6.4.2); 25-35 % fluosilicic acid (6.4.4); alkaline absorption at pH 7-9, CO2 not absorbed at pH 8 or less (6.4.7); BAT fuel 4-5 GJ/t for new AHF plants (Table 6.14); the fluosilicic acid process (6.4.10, rejected in D-001) |
+| SRC-1 | European Commission JRC (2007), *Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers* (LVIC-AAF BREF), chapter 6 Hydrofluoric acid, <https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf> | open PDF, read (text extracted), 2026-11-19 | EU capacity about 300 kt/a, plants from below 5 to above 40 kt/a (6.1); main reaction (1) with dH = 59 kJ/mol and side reactions (2)-(9) (6.2.1); acid spar above 97 % CaF2 with SiO2, CaCO3, Fe/Al oxides each below 2 %, flotation fatty acids below 0.3 % (Table 6.2), dried at about 120 C (6.2.2); continuous indirectly heated rotary kilns, feed acid of 90-95 % H2SO4 from fresh acid, oleum and the scrubber acid, the plant under suction (6.2.3); 5-10 m2 of kiln surface per t/d of HF, 2.5-3 with spar calcination, pre-reactor (Table 6.3); process gas at about 150 or 220 C, anhydrite at 200-220 C (6.2.3); pre-purification with concentrated acid to below 100 C, condensation with chilled water or brine, low-boiler column (mainly SO2, SiF4), final H2SO4 scrubber, SiF4 absorber to H2SiF6, the cold acid of the final scrubber heated in the pre-purification column and mixed with fresh acid and oleum to the feed acid, high-boiler column at about 350 kg of steam (0.6 GJ) per t of HF (6.2.4); tail gas water or caustic scrubbing (6.2.5); anhydrite marketed or disposed of (6.2.6, 6.4.3); AHF boils at 19.5 C, stored below 15 C in carbon steel (6.2.7); consumption per t of HF, among them refrigeration 2-3 GJ and fuel 4-10 GJ with no split by duty (Table 6.4); dust (Table 6.5); SO2 0.001-0.01 kg/t with alkaline scrubbing, maximum 0.065, fluorides as HF 0.005-0.015 kg/t, and NO 0.325, NO2 0.056 and CO 0.054 kg/t of one German plant (Table 6.6); fluoride emissions (Table 6.12); the HF scrubber cooling the gas to about 20 C and the strongly exothermic dilution to aqueous grades (6.2.4); effluent and solid waste, about 3.7 t of CaSO4 per t (Tables 6.7, 6.8); options to improve heat transfer (Table 6.9); kiln shell exit gas up to about 400 C (6.4.2); 25-35 % fluosilicic acid (6.4.4); alkaline absorption at pH 7-9, CO2 not absorbed at pH 8 or less (6.4.7); BAT fuel for kiln heating 4-5 GJ/t for new AHF plants (Table 6.14); BAT-AEL SO2 0.001-0.01 kg/t (Table 6.15); the fluosilicic acid process (6.4.10, rejected in D-001) |
 | SRC-2 | Bayer AG (2004), *Process for preparing hydrogen fluoride in a rotary tube furnace*, US 6 699 455 B2 (Lanxess), <https://patents.google.com/patent/US6699455B2/en> | open, read (description, examples, claims), 2026-11-19 | the kiln in three equal zones each heated indirectly by its own combustion chambers, the hottest at the feed end; spar preheated indirectly to 350-450 C, acid heated against the HF gas to 80-180 C, both premixed in a screw mixer; zone wall temperatures (claims 3, 5, 7); Example 4: a 20 m x 2.5 m kiln, 80 kg/min of spar at about 400 C and 109 kg/min of H2SO4 (100 %) at about 120 C, one third straight into zone 1, nine burners, at most 189 m3/h of natural gas, walls 370 C falling to 210 C, HF gas out at 205 C, solids at 204 C with 0.5-1.1 % CaF2 and 0.5-1.7 % H2SO4; prior art with 2-5 % of each; capacity up more than 30 % |
 | SRC-3 | PubChem (CIDs 14917, 84512, 24497, 24682) and ChEBI via EBI OLS (29228, 35437, 31346, 29384) | open, 2026-11-19 | identity of the registry entries hydrogen-fluoride, calcium-fluoride, calcium-sulfate, sulfur-trioxide (the fluorosilicic acid uses the existing entry fluosilicic-acid) |
-| SRC-4 | `chemicals` 1.5.2 and `thermo` 0.6.1 Python packages (C. Bell et al.) | open-source packages queried, 2026-11-19; single values, facts only | single values (library ADR 0037): formation enthalpies CaF2(s) -1228.0, CaSO4(s) -1434.5, H2SO4(l) -814.0, SO3(l) -441.0 kJ/mol (method CRC, the CRC Handbook's tables as the package bundles them, not read here), HF(g) -272.711, H2O(l) -285.825, H2O(g) -241.822, CH4(g) -74.534 kJ/mol (chemicals); normal boiling points HF 293.15, SO2 263.14, SiF4 187.15, SO3 317.65, H2SO4 610.15 K (CRC_INORG, HEOS for SO2) and water 373.12 K (HEOS); heat of vaporisation of HF 7.52 kJ/mol at 292.67 K (thermo, method DIPPR_PERRY_8E: Perry's 8th edition DIPPR fit as the package bundles it, not read here); heats of vaporisation of water 2441.7, 2282.5 and 2120.4 kJ/kg at 298.15, 363.15 and 421 K and of SO2 389.6 kJ/kg at its boiling point (HEOS_FIT); heat capacities: HF ideal gas 1.457 kJ/(kg K) (TRCIG), HF liquid 2.96 kJ/(kg K) at 280.65 K (VDI_TABULAR), CaF2 solid 68.8-79.9 J/(mol K) at 300-650 K (WEBBOOK_SHOMATE, the NIST WebBook's Shomate fit), CaSO4 solid 110.2 J/(mol K) at 400 K (PERRY151), H2SO4 liquid 138.9 J/(mol K) (CRCSTD), water vapour 1.896 kJ/(kg K) at 388 K (HEOS_FIT). These are facts with their source, not open data |
+| SRC-4 | `chemicals` 1.5.2 and `thermo` 0.6.1 Python packages (C. Bell et al.) | open-source packages queried, 2026-11-19 and 2026-11-20; single values, facts only | single values (library ADR 0037), each with the package's method and the work its data come from as the package's documentation names it; none of those works was read here. Formation enthalpies: CaF2(s) -1228.0, CaSO4(s) -1434.5, CaO(s) -634.9, CaCO3(s) -1207.6, Fe2O3(s) -824.2, stearic acid(s) -947.7, H2SO4(l) -814.0, SO3(l) -441.0, SiF4(g) -1615.0, SO2(g) -296.8, Na2SO3(s) -1100.8, NaOH(s) -425.8 kJ/mol (method CRC: the CRC Handbook of Chemistry and Physics); Fe2(SO4)3(s) -2583.0 and SiO2 -902.66 kJ/mol (WEBBOOK: the NIST Chemistry WebBook; the silica value is the package's only one, listed for the liquid); HF(g) -272.711, H2O(g) -241.822, CH4(g) -74.534, CO2(g) -393.474 kJ/mol (ATCT_G) and H2O(l) -285.825, HF(l) -302.43 kJ/mol (ATCT_L): the Active Thermochemical Tables 1.112 (Ruscic et al.). Normal boiling points HF 293.15, SiF4 187.15, SO3 317.65, H2SO4 610.15 K (CRC_INORG: the CRC Handbook's inorganic tables), SO2 263.14 and water 373.12 K (HEOS: values from NIST REFPROP equations of state). Heat of vaporisation of HF 7.52 kJ/mol at 292.67 K (DIPPR_PERRY_8E: the DIPPR fit of Perry's Chemical Engineers' Handbook, 8th edition); of water 2441.7, 2282.5 and 2120.4 kJ/kg at 298.15, 363.15 and 421 K and of SO2 389.6 kJ/kg at its boiling point (HEOS_FIT: fits to NIST REFPROP equations of state). Heat capacities: HF ideal gas 1.457 kJ/(kg K) (TRCIG: the correlation of Kabo and Roganov, Thermodynamics of Organic Compounds in the Gas State, 1994), HF liquid 2.96 kJ/(kg K) at 280.65 K (VDI_TABULAR: the VDI Heat Atlas, 2nd edition), CaF2 solid 68.8-79.9 J/(mol K) at 300-650 K (WEBBOOK_SHOMATE: the NIST WebBook's Shomate fit), CaSO4 solid 110.2 J/(mol K) at 400 K (PERRY151: Perry's Chemical Engineers' Handbook, 8th edition), H2SO4 liquid 138.9 J/(mol K) (CRCSTD: the CRC Handbook), water vapour 1.896 kJ/(kg K) at 388 K (HEOS_FIT). Used in D-009 (the duties, the methane LHV and the omitted heats), process/reactions.yaml (HYD, NEU, COMB), process/materials.yaml (boiling points) and L-2's hand balances. These are facts with their source, not open data |
 
 Sources looked for and not read: an open vapour-liquid equilibrium data set of HF-H2O and of HF
 with SO2 and SiF4, open absorption data of HF and water in sulfuric acid, and an open
@@ -39,7 +39,7 @@ Recorded and rejected:
   the library does not have (phosphoric-acid-1 is a manifest-only entry).
 - *Pre-reactor (kneader) or spar calcination before the kiln* (SRC-1, Tables 6.3 and 6.9): they
   raise a given kiln's capacity. The patent's indirect spar preheating with zoned firing reaches
-  2.9 m2 of kiln shell per t/d of HF without either (R-101 in the equipment list); the variants
+  2.8 m2 of kiln shell per t/d of HF (157 m2 for 55.3 t/d, D-006) without either (R-101 in the equipment list); the variants
   change the kiln's size and fuel, not the balance, and have no open design data.
 - *A fluidised bed reactor* (described in SRC-2 as prior art): the HF must then be separated from
   the fluidising gas and fine spar dust is carried out; no industrial plant is described.
@@ -119,40 +119,74 @@ sulfides (L-3).
   water absorption of SiF4 makes aqueous H2SiF6), conversion 0.9995 (ASSUMED). 200 kg/h of water
   (ASSUMED) give 25.0 wt% H2SiF6 (SRC-1, 6.4.4: 25-35 %) with 14.4 kg/h of precipitated silica,
   which stays in the product acid here (L-3).
-- R402 scrubs 99.9 % of the SO2 with 50 wt% caustic at 2.2 mol NaOH per mol SO2 (ASSUMED); the
-  CO2 passes (SRC-1, 6.4.7). The SO2 slip is 0.024 g per kg of HF, inside SRC-1's 0.001-0.065
-  kg/t with alkaline scrubbing.
+- R402 scrubs 99.98 % of the SO2 with 50 wt% caustic at 2.2 mol NaOH per mol SO2 (ASSUMED,
+  the conversion set so that the slip meets the BREF); the CO2 passes (SRC-1, 6.4.7). The SO2
+  slip is 0.0049 g per kg of HF (0.0049 kg/t), inside SRC-1's 0.001-0.01 kg/t with alkaline
+  scrubbing (Table 6.6, which gives 0.065 kg/t as the maximum) and its BAT-AEL of 0.001-0.01
+  kg/t (Table 6.15).
 - R501 neutralises the anhydrite's free acid with 1.05 mol CaO per mol (49.9 kg/h, ASSUMED); the
-  BREF names lime for the anhydrite and SRC-2 says the free acid otherwise needs lime.
+  BREF names lime for the anhydrite and SRC-2 says the free acid otherwise needs lime. M-501
+  also cools the anhydrite from 204 C to 60 C (ASSUMED) against cooling water, with the
+  neutralisation heat (Q9, D-009).
 - The anhydrite S9 is 3.63 kg per kg of HF (SRC-1, Table 6.8: about 3.7 t/t).
 
 ### D-009 Energy
 
 | stream | kW | from |
 |---|---|---|
-| Q1 spar preheater (fired, absorbed) | 478.1 | 4800 kg/h x 0.956 kJ/(kg K) x 375 K (CaF2, SRC-4) |
-| Q2 kiln (fired, absorbed) | 899.3 | R1 extent 57.623 kmol/h x 59 MJ/kmol (SRC-1) = 944.4 kW; + solids to 477.15 K, 336.9 kW (CaSO4 cp, SRC-4); + gas to 478.15 K with the feed acid's 191.5 kg/h water and 147.4 kg/h HF evaporated, 354.7 kW (SRC-4); - spar from 673.15 K, 478.1 kW; - feed acid from 393.15 K, 258.5 kW |
+| S33 natural gas to the burners B101 | 2879.3 (LHV) | 207.2 kg/h, natural gas taken as methane (ASSUMED) at 802.584 kJ/mol (SRC-4): the kiln's 1879.9 kW and the preheater's 999.4 kW below |
+| Q1 spar preheater (absorbed) | 478.1 | 4800 kg/h x 0.956 kJ/(kg K) x 375 K (CaF2, SRC-4) |
+| Q2 kiln (absorbed) | 899.3 | R1 extent 57.623 kmol/h x 59 MJ/kmol (SRC-1) = 944.4 kW; + solids to 477.15 K, 336.9 kW (CaSO4 cp, SRC-4); + gas to 478.15 K with the feed acid's 191.5 kg/h water and 147.4 kg/h HF evaporated, 354.7 kW (SRC-4); - spar from 673.15 K, 478.1 kW; - feed acid from 393.15 K, 258.5 kW |
+| Q10 furnace losses (flue gas, shells) | 1501.9 | S33 less Q1 and Q2 |
 | P1 auxiliary power | 518.6 | 225 kWh/t x 2.3048 t/h, the middle of SRC-1's 150-300 kWh/t |
 | Q3 pre-purification cooler (CW) | 204.2 | gas 478.15 to 363.15 K with 247.1 kg/h of water condensed (290.8 kW) less the scrubber acid warmed by 40 K (86.6 kW) |
+| Q9 anhydrite cooler (CW) | 334.9 | the solids S7 cooled from 477.15 to 333.15 K (ASSUMED) at the heat capacity of the Q2 solids term (336.9 kW over 179 K): 271.0 kW; + NEU 0.8473 kmol/h x 271.4 kJ/mol (SRC-4): 63.9 kW |
 | Q4 HF condensers (brine) | 383.6 | gas 363.15 to 293.15 K, 2424.5 kg/h HF condensed at 376.0 kJ/kg (253.2 kW), subcooled to 268.15 K, water and SO2 condensed |
 | Q5, Q6 low-boiler column | 25.7 each | boil-up 10 % of the feed (ASSUMED) x 376.0 kJ/kg |
 | Q7, Q8 high-boiler column | 384.1 each | 0.6 GJ per t of HF (SRC-1, 6.2.4); boil-up 3678 kg/h, reflux ratio 0.60 |
 
-Checks: the fired heat absorbed is 1377.4 kW, 2.15 GJ per t of HF. SRC-2's Example 4 burns at
-most 189 m3/h of natural gas in the kiln, 1880 kW at 35.81 MJ/m3 (methane's lower heating value
-from the SRC-4 formation enthalpies at 0 C and 101.325 kPa, natural gas taken as methane,
-ASSUMED), so the kiln's absorbed 899 kW is 48 % of its fuel; the rest leaves with the flue gas
-at up to 400 C (SRC-1, 6.4.2) and through the shell. SRC-1's BAT fuel for new AHF plants, 4-5
-GJ/t, gives 43-54 % for the plant's 2.15 GJ/t. The LCI counts the heat absorbed; the furnace
-efficiency is in the background (lca/mappings.yaml). The formation enthalpies of SRC-4 give R1
-62.1 kJ/mol against the BREF's 59. The hydration heat of the oleum (HYD, 191.5 kW) warms the
-feed acid from 338 to 393 K (141 kW at an ASSUMED 1.45 kJ/(kg K)); the rest and the heats of
-absorption and dilution are left out (L-2). Refrigeration is 793.4 kW, 1.24 GJ/t, below SRC-1's
-2-3 GJ/t: the BREF's figure includes the HF scrubber's quench, product and storage cooling and
-the dilution to aqueous grades, which are not modelled. Steam is 409.8 kW, 0.30 kg of 450 kPa
-steam per kg of HF (SRC-1: 0.15-0.8). `cheme assess lca` reports R102, R401, R402 and R501 as
-exchanging heat without a utility (cheme.boundary-utility-unassigned): their small heats are not
-balanced (L-2).
+The fuel is booked as natural gas burnt, not as the heat the charges absorb. SRC-2's Example 4
+burns at most 189 m3/h of natural gas in the kiln, 1879.9 kW at 35.81 MJ/m3 (methane's lower
+heating value from the SRC-4 formation enthalpies at 0 C and 101.325 kPa, natural gas taken as
+methane, ASSUMED). The kiln absorbs 899.3 kW of it, a furnace efficiency of 0.478; the rest
+leaves with the flue gas at up to 400 C (SRC-1, 6.4.2) and through the shell (Q10). No source
+gives the spar preheater's fuel, so it is fired at the kiln's efficiency (ASSUMED): 478.1 / 0.478
+= 999.4 kW. B101 burns the 207.2 kg/h (2879.3 kW) with 10 % excess oxygen (ASSUMED; the air
+changes no result); the flue gas S35 carries 568.4 kg/h of CO2, 0.247 kg per kg of HF. The fuel
+is 4.50 GJ per t of HF (2.15 GJ/t absorbed), inside SRC-1's BAT range for kiln heating in new AHF
+plants, 4-5 GJ/t (Table 6.14; ASSUMED to include the spar preheating), and at the bottom of the
+4-10 GJ/t reported (Table 6.4). The NO, NO2 and CO of the flue gas are estimated in the LCA
+(D-011). The formation enthalpies of SRC-4 give R1 62.1 kJ/mol against the BREF's 59.
+
+Heats left out of the duties, each with its size (L-2):
+
+- The kiln's side reactions R2 to R5, from the SRC-4 formation enthalpies at their extents: R5
+  +18.0 kW, R2 +3.8 kW (with the package's only silica value, ASSUMED for quartz), R3 -6.4 kW,
+  R4 -1.4 kW, net +13.9 kW, 1.5 % of Q2.
+- The hydration heat of the oleum (HYD, 191.5 kW) warms the feed acid from 338 to 393 K (141 kW
+  at an ASSUMED 1.45 kJ/(kg K)); the remaining 50 kW is left out.
+- The heats of absorption and dilution of the 247.1 kg/h of water and the HF that T201 takes into
+  the acid (released into Q3) and of their desorption from the feed acid in the kiln (taken from
+  Q2): not sized, because no open data on these heats were read (sources looked for, above).
+  They move heat between the cooling water and the fuel and largely cancel over the plant
+  (ASSUMED).
+- The association of HF in the vapour: the monomer gas and the liquid differ by 29.72 kJ/mol at
+  298.15 K (HF(g) -272.711 and HF(l) -302.43 kJ/mol, SRC-4) against the 7.52 kJ/mol latent heat
+  that Q4 uses. If all 121.2 kmol/h of HF condensed in E201 arrived as monomer, Q4 would be up to
+  747 kW higher; how far the gas at 363 K is associated needs a model core does not have, so Q4
+  carries none of it.
+- `cheme assess lca` reports R102, R401 and R402 as exchanging heat without a utility
+  (cheme.boundary-utility-unassigned): R102 is HYD above; R402's SO2 + 2 NaOH -> Na2SO3 + H2O
+  releases about 58 kW (0.877 kmol/h x 238.2 kJ/mol on the solid-phase SRC-4 values; heats of
+  solution left out), which warms the scrubber liquor; R401's SiF4 absorption (0.72 kmol/h) is
+  not sized, as SRC-4 has no formation enthalpy of dissolved H2SiF6.
+
+Refrigeration is 793.4 kW, 1.24 GJ/t, below SRC-1's 2-3 GJ/t. Table 6.4 does not say which duties
+its figure covers, so the gap is not explained by the source. Possible reasons (ASSUMED): the HF
+association heat left out of Q4 (at its upper bound it alone gives 2.41 GJ/t), and cooling duties
+the BREF describes but this model leaves out: the HF scrubber's cooling of the gas to about 20 C
+and the cooling of the dilution to aqueous grades (6.2.4), and the storage below 15 C (6.2.7).
+Steam is 409.8 kW, 0.30 kg of 450 kPa steam per kg of HF (SRC-1: 0.15-0.8).
 
 ### D-010 Auxiliaries not in the flowsheet
 
@@ -169,12 +203,19 @@ outside the boundary (D-011).
   burden-free as a by-product. A mass allocation would put most of the burden on the anhydrite,
   which no source supports; no prices are sourced.
 - Linked: sulfuric acid to sulfuric-acid-1, quicklime to lime-1, caustic to chlor-alkali-1, the
-  oleum's SO3 to the shared sulfur-trioxide entry, water, fired heat (heat from natural gas,
-  counted as heat absorbed), steam heat, inert landfill and waste water to shared entries.
+  oleum's SO3 to the shared sulfur-trioxide entry, water, natural gas (by mass, as burnt, D-009),
+  steam heat, inert landfill and waste water to shared entries. The combustion air is free and
+  the furnace losses (Q10) leave without a burden.
 - Gaps: fluorspar (no library producer, no shared entry), refrigeration, electricity in
-  `cheme assess lca` (the Atlas build links it through the shared entry). Spar and anhydrite dust
-  and fluoride traces are excluded (emission_exclusions; SRC-1 Tables 6.5 and 6.6 give 0.01-0.1
-  and 0.002-0.015 kg/t).
+  `cheme assess lca` (the Atlas build links it through the shared entry).
+- Emissions: the flue gas S35 carries the combustion CO2 (246.6 g per kg of HF). Its NO, NO2 and
+  CO are estimated (emission_estimates kiln-flue-gas) at SRC-1 Table 6.6's figures of one German
+  plant, 0.325, 0.056 and 0.054 kg/t, ASSUMED to be its kiln's flue gas and to apply here. The
+  spar and anhydrite dust and the fluorides to air are cut off with their amounts (cutoff:), at the
+  top of SRC-1's ranges: CaF2 0.05 kg/t of a plant without a drying section and CaSO4 0.1 kg/t
+  (Table 6.5), fluorides 0.015 kg/t as HF (Table 6.6). The feed acid tank V-102 breathes into the
+  kiln gas, which the plant holds under suction (SRC-1, 6.2.3), so it has no loss of its own
+  (emission_exclusions, ASSUMED).
 - CO2 of the spar's carbonate and fatty acids, 15.0 g per kg, is booked fossil (L-3).
 - Downstream: aluminium-1 buys aluminium fluoride, which is made from HF; that link is a later
   change of aluminium-1 (an AlF3 entry), not made here.
@@ -197,8 +238,12 @@ outside the boundary (D-011).
 
 ## Core features used
 
-- `cheme process propagate --fill`: five conversion reactors, eight component separators, two
-  tears with Broyden, two design specifications (core ADR 0070).
+- `cheme process propagate --fill`: six conversion reactors (with the burners B101), eight
+  component separators, two tears and two design specifications (core ADR 0070). With the
+  specifications active, propagate solves them and the tears together by Newton's method with
+  Broyden's update, so the flowsheet's `convergence.method: wegstein` (the only methods the
+  schema takes are wegstein and substitution) is not used; its `max_iterations` and `tolerance`
+  are.
 - `cheme validate`: mass, component and element balances of every step and block.
 - `cheme process build`: BFD and PFD.
 - `cheme assess lca --write`: the gate-to-gate inventory and dataset.
@@ -208,13 +253,14 @@ outside the boundary (D-011).
 | id | limit | effect here |
 |---|---|---|
 | L-1 | No kinetic model of a gas-solid-liquid reaction in a rotary kiln: the conversion reactor applies given conversions; core's furnace model (`cheme process furnace`) covers lime calcination only. | The kiln's conversions are set to the patent's residues (D-006), not predicted from the wall temperature profile or the residence time; the zones are not modelled. |
-| L-2 | No property package for HF (vapour association, HF-H2O azeotrope), sulfuric acid or solids: no flash, no column model, no absorption model; a conversion step's duty needs liquid heat capacities core does not have for solids. | Scrubbers, condenser and columns are ASSUMED component splits; every duty is a hand balance with SRC-4 values (D-009); heats of absorption, dilution and HF association are left out. |
+| L-2 | No property package for HF (vapour association, HF-H2O azeotrope), sulfuric acid or solids: no flash, no column model, no absorption model; a conversion step's duty needs liquid heat capacities core does not have for solids. | Scrubbers, condenser and columns are ASSUMED component splits; every duty is a hand balance with SRC-4 values (D-009); the kiln's side reactions (+13.9 kW) and the HF association (up to 747 kW in Q4) are left out with their size, the heats of absorption and dilution without one (D-009). |
 | L-3 | Lumped spar and products: one stand-in each for the oxides and the fatty acids, no MgCO3, BaSO4, sulfides or phosphates, no dust; the oleum is its free SO3; the silica stays in the fluorosilicic acid. | Minor SO2, H2S and sulfur and the dust emissions are missing; the fatty acids' biogenic CO2 is booked fossil (D-005, D-011). |
 | L-4 | The LCA background for fluorspar and refrigeration does not exist in the library. | Two gaps; the Atlas dataset is preliminary (ADR 0026). |
 
 ## Open items
 
-- A vapour-liquid model for HF-H2O and the low boilers, to replace the splits (L-2).
+- A vapour-liquid model for HF-H2O and the low boilers, to replace the splits (L-2), and with it
+  the HF association heat in Q4 and the absorption and dilution heats of T201 (D-009).
 - Kiln residence time and wall heat flux against the zone temperatures of SRC-2 (L-1).
 - A fluorspar producer for the LCI, and the downstream aluminium fluoride entry that would let
   aluminium-1 close its fluorine balance.

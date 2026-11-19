@@ -58,8 +58,9 @@ flows:
     source: "flowsheet stream S27 (D-008)"
   # utilities
   - key: feed:FUEL
-    missing: "linked as heat from natural gas, counted as the heat absorbed (lca/mappings.yaml)"
-    source: "flowsheet energy streams Q1 (spar preheater) and Q2 (kiln), hand balances, D-009"
+    missing: "linked to the shared natural-gas entry (lca/mappings.yaml): natural gas, high pressure, by mass taken as methane"
+    source: "flowsheet stream S33: the natural gas fired in the spar preheater and the kiln, 2879.3 kW (LHV), the absorbed duties Q1 and Q2 at the furnace efficiency of 0.478 that SRC-2's 189 m3/h gives (D-009)"
+  - {key: feed:AIR, free: true, source: "combustion air for the burners (S34): a resource taken from nature without burden; its N2 and excess O2 leave in the flue gas S35"}
   - key: feed:POWER
     missing: "not mapped yet in this folder (D-011; the Atlas build links it through the shared lci/mappings.yaml electricity entry): electricity, medium voltage, grid mix of the (undecided) site country"
     source: "flowsheet energy stream P1, 225 kWh/t (SRC-1, Table 6.4), D-009"
@@ -68,7 +69,7 @@ flows:
     source: "flowsheet energy streams Q5 and Q7, the column reboilers, D-009"
   - key: product:CW
     missing: "heat rejected to a recirculating cooling-water system (prefer_atlas: processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy stream Q3 (pre-purification scrubber cooler), D-009"
+    source: "flowsheet energy streams Q3 (pre-purification scrubber cooler) and Q9 (anhydrite cooler with the neutralisation heat), D-009"
   - key: product:REF
     missing: "not mapped yet (D-011): no library producer or shared entry for refrigeration. Connect to: brine at 258 K from a compression refrigeration plant, per kWh of cold"
     source: "flowsheet energy streams Q4, Q6 and Q8 (HF condensers and the column condensers), D-009"
@@ -87,14 +88,21 @@ flows:
   - key: product:STACK
     emission: true
     source: "flowsheet stream S30: the tail gas after the alkaline scrubber (D-008)"
+  - key: product:FLUE
+    emission: true
+    source: "flowsheet stream S35: the flue gas of the combustion chambers of the spar preheater and the kiln, to air (D-009)"
+  - {key: product:LOSS, free: true, source: "Q10: the heat lost with the flue gas and through the shells of the fired preheater and kiln (D-009); warm gas and air leave without a burden of their own"}
   - key: emission:CO2
     elementary: {compartment: air, subcompartment: unspecified}
-    source: "CO2 of the spar's carbonate (R3) and flotation fatty acids (R5), 15.0 g per kg of HF; the fatty acids are vegetable (SRC-1, 6.2.2) but lumped with the carbonate as fossil (L-3)"
+    source: "CO2 of the natural gas burnt in the combustion chambers (flue gas S35, 246.6 g per kg of HF) and of the spar's carbonate (R3) and flotation fatty acids (R5) in the tail gas S30 (15.0 g per kg); the fatty acids are vegetable (SRC-1, 6.2.2) but lumped with the carbonate as fossil (L-3)"
   - key: emission:SO2
     elementary: {compartment: air, subcompartment: unspecified}
-    source: "SO2 slip of the alkaline scrubber, 0.024 g per kg of HF (SRC-1, Table 6.6: 0.001-0.065 kg/t with alkaline scrubbing)"
+    source: "SO2 slip of the alkaline scrubber, 0.0049 g per kg of HF, inside SRC-1's 0.001-0.01 kg/t with alkaline scrubbing (Table 6.6, which gives 0.065 kg/t as the maximum) and the BAT-AEL of 0.001-0.01 kg/t (Table 6.15), D-008"
   - {key: emission:SiF4, missing: "not a flow: 0 kg in S30 (the caustic scrubber keeps the SiF4 traces, D-008)", source: "flowsheet stream S30"}
-  - {key: emission:H2O, free: true, source: "water vapour of the tail gas (0 kg in the model: the vapour is left out, D-008)"}
+  - {key: emission:H2O, free: true, source: "water vapour of the flue gas S35 (the tail gas's vapour is left out, D-008)"}
+  - {key: emission:O2, free: true, source: "the excess oxygen of the combustion air in the flue gas S35"}
+  - {key: emission:N2, free: true, source: "the nitrogen of the combustion air in the flue gas S35"}
+  - {key: emission:CH4, missing: "not a flow: 0 kg in S35 (complete combustion, D-009); unburnt methane is not estimated", source: "flowsheet stream S35"}
   # The tail gas S30 shares the process template (materials.yaml), so every other component is
   # listed with 0 kg: none of them leaves to air in the model (D-008, D-011).
   - {key: emission:HF, missing: "not a flow: 0 kg in S30; the HF slip of the final scrubber is absorbed in the fluorosilicic acid (D-008); the fluoride traces of real plants are excluded (emission_exclusions)", source: "flowsheet stream S30"}
@@ -115,12 +123,29 @@ operation:
   hours_per_year: 8000
   life_years: 25
   source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (no take-off)"
+emission_estimates:
+  - id: kiln-flue-gas
+    title: NO, NO2 and CO in the flue gas of the indirectly fired kiln (H-101, R-101)
+    method: combustion
+    equipment: [H-101, R-101]
+    activity: {value: 2.30483, unit: t, source: "the AHF S17, 2304.83 kg/h (D-002)"}
+    factors:
+      "NO": {value: 0.325, unit: kg/t, source: "SRC-1, Table 6.6: the yearly figures of one German HF plant with alkaline scrubbing (German UBA 2000), per t of HF; ASSUMED to be the kiln's flue gas and to apply to this plant (D-011)"}
+      NO2: {value: 0.056, unit: kg/t, source: "SRC-1, Table 6.6, the same plant; ASSUMED as for NO (D-011)"}
+      CO: {value: 0.054, unit: kg/t, source: "SRC-1, Table 6.6, the same plant; ASSUMED as for NO (D-011)"}
+    cas: {"NO": 10102-43-9, NO2: 10102-44-0, CO: 630-08-0}
+    elementary: {compartment: air, subcompartment: unspecified}
+    source: "D-011: the only plant figures the sources give for these gases; the CO2 of the combustion is in the flue gas S35, SO2 and the fluorides of the same table in the tail gas S30 and the cut-off"
 emission_exclusions:
-  - id: dust-and-fluorides
+  - id: feed-acid-tank
     method: storage-tank
-    equipment: [H-101, R-101, M-501, T-402]
-    reason: "the spar and anhydrite dust (SRC-1, Table 6.5: 0.01-0.1 kg/t) and the fluoride traces of the tail gas and the anhydrite handling (Table 6.6: 0.002-0.015 kg/t as HF) are not estimated: no dust filter or anhydrite treatment is modelled at the concept stage, and the flowsheet's fluorine leaves only in the product, the anhydrite and the acids (D-011, L-3)"
+    equipment: [V-102]
+    reason: "the feed acid tank V-102 (oleum, scrubber acid and the high boilers, with dissolved HF) breathes into the kiln gas system, which the whole plant holds under suction (SRC-1, 6.2.3), so its vapours end in the scrubbers the flowsheet carries (ASSUMED); no tank loss leaves the plant apart from the tail gas S30"
     source: "DESIGN.md D-011"
+cutoff:
+  - {id: spar-dust, title: "Fluorspar dust (CaF2) from conveying and storage of the dried spar", direction: output, unit: kg, per_year: 922, cas: 7789-75-5, reason: "not estimated: no dust filter is modelled at the concept stage; the top of SRC-1's 0.01-0.05 kg/t of a plant without a drying section (Table 6.5) x 18 439 t/a (L-3)", source: "D-011"}
+  - {id: anhydrite-dust, title: "Anhydrite dust (CaSO4) from the neutralisation and handling", direction: output, unit: kg, per_year: 1844, cas: 7778-18-9, reason: "not estimated: no anhydrite treatment is modelled; the top of SRC-1's 0.05-0.1 kg/t (Table 6.5) x 18 439 t/a; the lime dust (below 0.001 kg/t) is smaller still (L-3)", source: "D-011"}
+  - {id: fluorides, title: "Fluorides to air (as HF) of the tail gas and the anhydrite handling", direction: output, unit: kg, per_year: 277, cas: 7664-39-3, reason: "the flowsheet's fluorine leaves only in the product, the anhydrite and the acids (the tail gas S30 carries none); the top of SRC-1's 0.005-0.015 kg/t (Table 6.6) x 18 439 t/a", source: "D-011"}
 dataset:
   version: 0.1.0
   classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals

@@ -44,13 +44,14 @@ reactions:
     stoichiometry: {SO3: -1, H2O: -1, H2SO4: 1}
     phase: liquid
     conversion: {key: SO3, value: 1.0, provenance: assumed, source: "D-007: SRC-1, 6.2.1, reaction (9): oleum keeps the feed acid's concentration constant"}
-    heat_of_reaction: {value: -87175, provenance: assumed, source: "formation enthalpies SO3(l) -441.0, H2O(l) -285.825 and H2SO4(l) -814.0 kJ/mol, chemicals 1.5.2 (methods CRC and ATCT_L, SRC-4); heat of dilution in the feed acid left out (L-2)"}
+    heat_of_reaction: {value: -87175, provenance: assumed, source: "formation enthalpies SO3(l) -441.0, H2O(l) -285.825 and H2SO4(l) -814.0 kJ/mol, chemicals 1.5.2 (methods CRC for SO3 and H2SO4, ATCT_L for water, SRC-4); heat of dilution in the feed acid left out (L-2)"}
   - id: NEU
     title: Residual sulfuric acid in the anhydrite neutralised with lime
     equation: CaO(s) + H2SO4 -> CaSO4(s) + H2O
     stoichiometry: {CaO: -1, H2SO4: -1, CaSO4: 1, H2O: 1}
     phase: mixed
     conversion: {key: H2SO4, value: 1.0, provenance: assumed, source: "D-008: the anhydrite's free acid neutralised with a small excess of lime (SRC-1, 6.2.6 and Table 6.5; SRC-2: the acid in the product would otherwise need neutralisation with lime)"}
+    heat_of_reaction: {value: -271425, provenance: assumed, source: "formation enthalpies CaO(s) -634.9, CaSO4(s) -1434.5, H2SO4(l) -814.0 and H2O(l) -285.825 kJ/mol, chemicals 1.5.2 (methods CRC, ATCT_L for water, SRC-4); 63.9 kW in the anhydrite cooler Q9 (D-009)"}
   - id: SIF
     title: Silicon tetrafluoride absorbed in water to fluorosilicic acid and silica
     equation: 3 SiF4 + 2 H2O -> 2 H2SiF6 + SiO2(s)
@@ -62,4 +63,10 @@ reactions:
     equation: SO2 + 2 NaOH -> Na2SO3 + H2O
     stoichiometry: {SO2: -1, NaOH: -2, Na2SO3: 1, H2O: 1}
     phase: mixed
-    conversion: {key: SO2, value: 0.999, provenance: assumed, source: "D-008: alkaline scrubbing of the tail gas (SRC-1, 6.2.5, 6.4.7: SO2 emissions of 0.001-0.01 kg/t HF with alkaline scrubbing)"}
+    conversion: {key: SO2, value: 0.9998, provenance: assumed, source: "D-008: alkaline scrubbing of the tail gas (SRC-1, 6.2.5 and 6.4.7), set so that the SO2 slip, 0.0049 kg/t HF, sits inside SRC-1's 0.001-0.01 kg/t with alkaline scrubbing (Table 6.6) and its BAT-AEL of 0.001-0.01 kg/t (Table 6.15)"}
+  - id: COMB
+    title: Natural gas (as methane) burnt in the combustion chambers of the spar preheater and the kiln
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    phase: vapor
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-009: complete combustion with 10 % excess oxygen (ASSUMED); its heat, the LHV 802.584 kJ/mol from the formation enthalpies CH4(g) -74.534, CO2(g) -393.474 and H2O(g) -241.822 kJ/mol (chemicals 1.5.2, SRC-4), is split by hand into Q1, Q2 and the losses Q10; the CO, NO and NO2 of the flue gas are estimated in lca/lca.yaml (D-011)"}

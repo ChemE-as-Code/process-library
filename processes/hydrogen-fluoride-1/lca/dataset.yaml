@@ -20,13 +20,37 @@ technology: 'Continuous plant: dried acid spar (97.5 wt% CaF2) preheated indirec
   the anhydrite''s free acid neutralised with lime (BREF LVIC-AAF 2007 chapter 6; US 6 699 455 B2)'
 rights: 'CC-BY-4.0: the ChemE-as-Code process library''s own concept design (LICENSE-DATA)'
 cutoff:
-- key: emission-excluded:dust-and-fluorides
-  title: storage-tank emissions of H-101, R-101, M-501, T-402
+- key: cutoff:spar-dust
+  title: Fluorspar dust (CaF2) from conveying and storage of the dried spar
   direction: output
-  reason: 'the spar and anhydrite dust (SRC-1, Table 6.5: 0.01-0.1 kg/t) and the fluoride traces of the
-    tail gas and the anhydrite handling (Table 6.6: 0.002-0.015 kg/t as HF) are not estimated: no dust
-    filter or anhydrite treatment is modelled at the concept stage, and the flowsheet''s fluorine leaves
-    only in the product, the anhydrite and the acids (D-011, L-3)'
+  amount: 0.11525
+  reason: 'not estimated: no dust filter is modelled at the concept stage; the top of SRC-1''s 0.01-0.05
+    kg/t of a plant without a drying section (Table 6.5) x 18 439 t/a (L-3)'
+  cas: 7789-75-5
+  source: D-011
+- key: cutoff:anhydrite-dust
+  title: Anhydrite dust (CaSO4) from the neutralisation and handling
+  direction: output
+  amount: 0.2305
+  reason: 'not estimated: no anhydrite treatment is modelled; the top of SRC-1''s 0.05-0.1 kg/t (Table
+    6.5) x 18 439 t/a; the lime dust (below 0.001 kg/t) is smaller still (L-3)'
+  cas: 7778-18-9
+  source: D-011
+- key: cutoff:fluorides
+  title: Fluorides to air (as HF) of the tail gas and the anhydrite handling
+  direction: output
+  amount: 0.034625
+  reason: the flowsheet's fluorine leaves only in the product, the anhydrite and the acids (the tail gas
+    S30 carries none); the top of SRC-1's 0.005-0.015 kg/t (Table 6.6) x 18 439 t/a
+  cas: 7664-39-3
+  source: D-011
+- key: emission-excluded:feed-acid-tank
+  title: storage-tank emissions of V-102
+  direction: output
+  reason: the feed acid tank V-102 (oleum, scrubber acid and the high boilers, with dissolved HF) breathes
+    into the kiln gas system, which the whole plant holds under suction (SRC-1, 6.2.3), so its vapours
+    end in the scrubbers the flowsheet carries (ASSUMED); no tank loss leaves the plant apart from the
+    tail gas S30
   source: DESIGN.md D-011
 uuid: 03c0e35a-1b90-5b03-a038-027197edb8a3
 version: 0.1.0
@@ -193,24 +217,53 @@ exchanges:
       H2O: H2O
     source: stream table (S27)
 - key: feed:FUEL
-  title: Fired heat (natural gas burners of the spar preheater and the kiln's nine combustion chambers)
+  title: Natural gas (as methane) to the burners of the spar preheater and the kiln's nine combustion
+    chambers
   type: input
-  amount: 1377.4
-  unit: kWh
+  amount: 207.2
+  unit: kg
   link:
-    source: flowsheet energy streams Q1 (spar preheater) and Q2 (kiln), hand balances, D-009
-    missing: linked as heat from natural gas, counted as the heat absorbed (lca/mappings.yaml)
+    source: 'flowsheet stream S33: the natural gas fired in the spar preheater and the kiln, 2879.3 kW
+      (LHV), the absorbed duties Q1 and Q2 at the furnace efficiency of 0.478 that SRC-2''s 189 m3/h gives
+      (D-009)'
+    missing: 'linked to the shared natural-gas entry (lca/mappings.yaml): natural gas, high pressure,
+      by mass taken as methane'
   streams:
-  - Q1
-  - Q2
-  source: flowsheet energy streams Q1 (spar preheater) and Q2 (kiln), hand balances, D-009
+  - S33
+  source: 'flowsheet stream S33: the natural gas fired in the spar preheater and the kiln, 2879.3 kW (LHV),
+    the absorbed duties Q1 and Q2 at the furnace efficiency of 0.478 that SRC-2''s 189 m3/h gives (D-009)'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
-  carrier:
-    kind: heat
-    source: utility of FUEL in process/flowsheet.yaml
+  composition:
+    fractions:
+      CH4: 1.0
+    formulas:
+      CH4: CH4
+    source: stream table (S33)
+- key: feed:AIR
+  title: Combustion air for the burners
+  type: input
+  amount: 3903.5
+  unit: kg
+  free: true
+  streams:
+  - S34
+  source: 'combustion air for the burners (S34): a resource taken from nature without burden; its N2 and
+    excess O2 leave in the flue gas S35'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      O2: 0.232909218
+      N2: 0.767090782
+    formulas:
+      O2: O2
+      N2: N2
+    source: stream table (S34)
 - key: feed:POWER
   title: Electric power (grid)
   type: input
@@ -342,7 +395,7 @@ exchanges:
 - key: product:EFF
   title: Alkaline scrubber effluent to waste-water treatment
   type: output
-  amount: 210.584
+  amount: 210.629
   unit: kg
   provenance: calculated
   link:
@@ -361,10 +414,10 @@ exchanges:
       with lime (SRC-1, 6.4.9)
   composition:
     fractions:
-      H2O: 0.441582058
-      SiF4: 0.000177676
-      NaOH: 0.03364838
-      Na2SO3: 0.524591886
+      H2O: 0.441547752
+      SiF4: 0.000177638
+      NaOH: 0.033374549
+      Na2SO3: 0.524900061
     formulas:
       H2O: H2O
       SiF4: SiF4
@@ -374,7 +427,7 @@ exchanges:
 - key: product:STACK
   title: Tail gas to atmosphere
   type: output
-  amount: 34.5282
+  amount: 34.4831
   unit: kg
   provenance: calculated
   streams:
@@ -386,12 +439,51 @@ exchanges:
   basic_uncertainty: 1.05
   composition:
     fractions:
-      CO2: 0.998372255
-      SO2: 0.001627745
+      CO2: 0.999674027
+      SO2: 0.000325973
     formulas:
       CO2: CO2
       SO2: SO2
     source: stream table (S30)
+- key: product:FLUE
+  title: Flue gas of the spar preheater and the kiln's combustion chambers to atmosphere
+  type: output
+  amount: 4110.7
+  unit: kg
+  provenance: calculated
+  streams:
+  - S35
+  source: 'released to the environment: counted by its emission:* exchanges'
+  pedigree:
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.05
+  composition:
+    fractions:
+      O2: 0.020102203
+      N2: 0.728425771
+      CO2: 0.138270498
+      H2O: 0.113201528
+    formulas:
+      O2: O2
+      N2: N2
+      CO2: CO2
+      H2O: H2O
+    source: stream table (S35)
+- key: product:LOSS
+  title: Heat lost with the flue gas and through the shells of the fired spar preheater and kiln
+  type: output
+  amount: 1501.9
+  unit: kWh
+  free: true
+  streams:
+  - Q10
+  source: 'Q10: the heat lost with the flue gas and through the shells of the fired preheater and kiln
+    (D-009); warm gas and air leave without a burden of their own'
+  pedigree:
+    scores: [4, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (assumed, design maturity concept)
+  basic_uncertainty: 1.05
 - key: product:REF
   title: Refrigeration (brine at 258 K)
   type: output
@@ -418,15 +510,18 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 204.2
+  amount: 539.0999999999999
   unit: kWh
   link:
-    source: flowsheet energy stream Q3 (pre-purification scrubber cooler), D-009
+    source: flowsheet energy streams Q3 (pre-purification scrubber cooler) and Q9 (anhydrite cooler with
+      the neutralisation heat), D-009
     missing: 'heat rejected to a recirculating cooling-water system (prefer_atlas: processes/utility-cooling-tower),
       per kWh removed'
   streams:
   - Q3
-  source: flowsheet energy stream Q3 (pre-purification scrubber cooler), D-009
+  - Q9
+  source: flowsheet energy streams Q3 (pre-purification scrubber cooler) and Q9 (anhydrite cooler with
+    the neutralisation heat), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -458,16 +553,40 @@ exchanges:
     formulas:
       C18H36O2: C18H36O2
     source: stream table (S30)
+- key: emission:CH4
+  title: CH4 to the environment
+  type: emission
+  amount: 0.0
+  unit: kg
+  provenance: calculated
+  link:
+    source: flowsheet stream S35
+    missing: 'not a flow: 0 kg in S35 (complete combustion, D-009); unburnt methane is not estimated'
+  cas: 74-82-8
+  streams:
+  - S35
+  source: flowsheet stream S35
+  pedigree:
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.5
+  composition:
+    fractions:
+      CH4: 1.0
+    formulas:
+      CH4: CH4
+    source: stream table (S35)
 - key: emission:CO2
   title: CO2 to the environment
   type: emission
-  amount: 34.47199689462926
+  amount: 602.8603943671517
   unit: kg
   provenance: calculated
   link:
     elementary: {}
-    source: CO2 of the spar's carbonate (R3) and flotation fatty acids (R5), 15.0 g per kg of HF; the
-      fatty acids are vegetable (SRC-1, 6.2.2) but lumped with the carbonate as fossil (L-3)
+    source: CO2 of the natural gas burnt in the combustion chambers (flue gas S35, 246.6 g per kg of HF)
+      and of the spar's carbonate (R3) and flotation fatty acids (R5) in the tail gas S30 (15.0 g per
+      kg); the fatty acids are vegetable (SRC-1, 6.2.2) but lumped with the carbonate as fossil (L-3)
   cas: 124-38-9
   flow:
   - list: ef-3.1
@@ -479,8 +598,10 @@ exchanges:
     unit: kg
   streams:
   - S30
-  source: CO2 of the spar's carbonate (R3) and flotation fatty acids (R5), 15.0 g per kg of HF; the fatty
-    acids are vegetable (SRC-1, 6.2.2) but lumped with the carbonate as fossil (L-3)
+  - S35
+  source: CO2 of the natural gas burnt in the combustion chambers (flue gas S35, 246.6 g per kg of HF)
+    and of the spar's carbonate (R3) and flotation fatty acids (R5) in the tail gas S30 (15.0 g per kg);
+    the fatty acids are vegetable (SRC-1, 6.2.2) but lumped with the carbonate as fossil (L-3)
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -490,7 +611,7 @@ exchanges:
       CO2: 1.0
     formulas:
       CO2: CO2
-    source: stream table (S30)
+    source: stream table (S30, S35)
 - key: emission:CaCO3
   title: CaCO3 to the environment
   type: emission
@@ -632,14 +753,15 @@ exchanges:
 - key: emission:H2O
   title: H2O to the environment
   type: emission
-  amount: 0.0
+  amount: 465.3375198960737
   unit: kg
   provenance: calculated
   free: true
   cas: 7732-18-5
   streams:
   - S30
-  source: 'water vapour of the tail gas (0 kg in the model: the vapour is left out, D-008)'
+  - S35
+  source: water vapour of the flue gas S35 (the tail gas's vapour is left out, D-008)
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -649,7 +771,7 @@ exchanges:
       H2O: 1.0
     formulas:
       H2O: H2O
-    source: stream table (S30)
+    source: stream table (S30, S35)
 - key: emission:H2SO4
   title: H2SO4 to the environment
   type: emission
@@ -720,6 +842,27 @@ exchanges:
     formulas:
       HF: HF
     source: stream table (S30)
+- key: emission:N2
+  title: N2 to the environment
+  type: emission
+  amount: 2994.339818727085
+  unit: kg
+  provenance: calculated
+  free: true
+  cas: 7727-37-9
+  streams:
+  - S35
+  source: the nitrogen of the combustion air in the flue gas S35
+  pedigree:
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.5
+  composition:
+    fractions:
+      N2: 1.0
+    formulas:
+      N2: N2
+    source: stream table (S35)
 - key: emission:Na2SO3
   title: Na2SO3 to the environment
   type: emission
@@ -766,16 +909,38 @@ exchanges:
     formulas:
       NaOH: NaOH
     source: stream table (S30)
+- key: emission:O2
+  title: O2 to the environment
+  type: emission
+  amount: 82.63412645854211
+  unit: kg
+  provenance: calculated
+  free: true
+  cas: 7782-44-7
+  streams:
+  - S35
+  source: the excess oxygen of the combustion air in the flue gas S35
+  pedigree:
+    scores: [3, 4, 1, 3, 3]
+    rule: cheme default pedigree v1 (calculated, design maturity concept)
+  basic_uncertainty: 1.5
+  composition:
+    fractions:
+      O2: 1.0
+    formulas:
+      O2: O2
+    source: stream table (S35)
 - key: emission:SO2
   title: SO2 to the environment
   type: emission
-  amount: 0.056203105370741024
+  amount: 0.011240551147159428
   unit: kg
   provenance: calculated
   link:
     elementary: {}
-    source: 'SO2 slip of the alkaline scrubber, 0.024 g per kg of HF (SRC-1, Table 6.6: 0.001-0.065 kg/t
-      with alkaline scrubbing)'
+    source: SO2 slip of the alkaline scrubber, 0.0049 g per kg of HF, inside SRC-1's 0.001-0.01 kg/t with
+      alkaline scrubbing (Table 6.6, which gives 0.065 kg/t as the maximum) and the BAT-AEL of 0.001-0.01
+      kg/t (Table 6.15), D-008
   cas: 7446-09-5
   flow:
   - list: ef-3.1
@@ -787,8 +952,9 @@ exchanges:
     unit: kg
   streams:
   - S30
-  source: 'SO2 slip of the alkaline scrubber, 0.024 g per kg of HF (SRC-1, Table 6.6: 0.001-0.065 kg/t
-    with alkaline scrubbing)'
+  source: SO2 slip of the alkaline scrubber, 0.0049 g per kg of HF, inside SRC-1's 0.001-0.01 kg/t with
+    alkaline scrubbing (Table 6.6, which gives 0.065 kg/t as the maximum) and the BAT-AEL of 0.001-0.01
+    kg/t (Table 6.15), D-008
   pedigree:
     scores: [3, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (calculated, design maturity concept)
@@ -868,6 +1034,89 @@ exchanges:
     formulas:
       SiO2: SiO2
     source: stream table (S30)
+- key: emission:NO
+  title: NO to the environment (estimated)
+  type: emission
+  amount: 0.74906975
+  unit: kg
+  provenance: estimated
+  link:
+    elementary: {}
+    source: emission_estimates kiln-flue-gas
+  cas: 10102-43-9
+  streams:
+  - emission_estimates.kiln-flue-gas
+  source: 'estimated (combustion, emission_estimates kiln-flue-gas): D-011: the only plant figures the
+    sources give for these gases; the CO2 of the combustion is in the flue gas S35, SO2 and the fluorides
+    of the same table in the tail gas S30 and the cut-off; NO 0.325 kg/t (SRC-1, Table 6.6: the yearly
+    figures of one German HF plant with alkaline scrubbing (German UBA 2000), per t of HF; ASSUMED to
+    be the kiln''s flue gas and to apply to this plant (D-011))'
+  pedigree:
+    scores: [3, 4, 3, 3, 3]
+    rule: cheme default pedigree v1 (estimated, design maturity concept)
+  basic_uncertainty: 1.5
+  balance_exclusion: 'estimated (emission_estimates kiln-flue-gas): an emission-factor estimate, outside
+    the flowsheet''s mass balance'
+- key: emission:NO2
+  title: NO2 to the environment (estimated)
+  type: emission
+  amount: 0.12907048
+  unit: kg
+  provenance: estimated
+  link:
+    elementary: {}
+    source: emission_estimates kiln-flue-gas
+  cas: 10102-44-0
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: c1b91234-6f24-417b-8309-46111d09c457
+    name: Nitrogen oxides
+    categories:
+    - air
+    unit: kg
+  streams:
+  - emission_estimates.kiln-flue-gas
+  source: 'estimated (combustion, emission_estimates kiln-flue-gas): D-011: the only plant figures the
+    sources give for these gases; the CO2 of the combustion is in the flue gas S35, SO2 and the fluorides
+    of the same table in the tail gas S30 and the cut-off; NO2 0.056 kg/t (SRC-1, Table 6.6, the same
+    plant; ASSUMED as for NO (D-011))'
+  pedigree:
+    scores: [3, 4, 3, 3, 3]
+    rule: cheme default pedigree v1 (estimated, design maturity concept)
+  basic_uncertainty: 1.5
+  balance_exclusion: 'estimated (emission_estimates kiln-flue-gas): an emission-factor estimate, outside
+    the flowsheet''s mass balance'
+- key: emission:CO
+  title: CO to the environment (estimated)
+  type: emission
+  amount: 0.12446082
+  unit: kg
+  provenance: estimated
+  link:
+    elementary: {}
+    source: emission_estimates kiln-flue-gas
+  cas: 630-08-0
+  flow:
+  - list: ef-3.1
+  - list: biosphere3
+    uuid: ba2f3f82-c93a-47a5-822a-37ec97495275
+    name: Carbon monoxide, fossil
+    categories:
+    - air
+    unit: kg
+  streams:
+  - emission_estimates.kiln-flue-gas
+  source: 'estimated (combustion, emission_estimates kiln-flue-gas): D-011: the only plant figures the
+    sources give for these gases; the CO2 of the combustion is in the flue gas S35, SO2 and the fluorides
+    of the same table in the tail gas S30 and the cut-off; CO 0.054 kg/t (SRC-1, Table 6.6, the same plant;
+    ASSUMED as for NO (D-011))'
+  pedigree:
+    scores: [3, 4, 3, 3, 3]
+    rule: cheme default pedigree v1 (estimated, design maturity concept)
+  basic_uncertainty: 5.0
+  balance_exclusion: 'estimated (emission_estimates kiln-flue-gas): an emission-factor estimate, outside
+    the flowsheet''s mass balance'
 allocation:
   method: none
   source: 'D-011 (agent proposal, for the LCA practitioner to confirm): all burdens to the anhydrous HF.
@@ -883,8 +1132,8 @@ provenance:
   plant: Anhydrous hydrogen fluoride from fluorspar and sulfuric acid in a rotary kiln (4800 kg/h fluorspar)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:1e1d66458d5ebdc10d7fedf00d7776d62efbcc599ce409229679cb87c99f7390
-    lca/lca.yaml: sha256:950f322ac8f7cfcb6c4d09970703f295639101d03aa8f80e868c3bb3364240f6
-    process.yaml: sha256:9466fb380513729ffd27e33e049787a26674840102bde6788208d3c8a08e5923
-    process/flowsheet.yaml: sha256:d3f5d690b312a24e70a2bc13fd46c49bbe695ebd6f2be0f1e0d67b42a444e4ad
-    process/materials.yaml: sha256:082db3887eac3d777f87cf00f2399cff5c4116fa7dc9c159dfaa920893a30a1c
+    equipment/equipment-list.yaml: sha256:57b08590538c49cf1aa7836521789129eb7ff3c39546d51ca5fc72208954974c
+    lca/lca.yaml: sha256:b7c7262bbc92c62000288a5d1653eae5fc12bff41d6d2a1e3757343959629cb9
+    process.yaml: sha256:9a856c0d8ca23fe4a8323b88b6e359510918c415a87191d98876bbad1c37c583
+    process/flowsheet.yaml: sha256:5f31173ecdb9cec006fac7f9578358b070b6203945e092892c46412ca907b696
+    process/materials.yaml: sha256:2c4a4c6d14b4583b4ca6060611fded94a338800a63090f9eae7889a11d66118d
