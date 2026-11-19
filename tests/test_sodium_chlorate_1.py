@@ -96,7 +96,7 @@ def test_the_cells_extents_equal_the_flowsheets(streams, mw):
     oxygen = f_o2 * current / (4 * F) * 3.6
     made = _kmol(streams, mw, "S9")["NaClO3"] - _kmol(streams, mw, "S8")["NaClO3"]
     assert made == pytest.approx(chlorate, rel=1e-4)
-    assert _kmol(streams, mw, "S10")["O2"] == pytest.approx(oxygen, rel=1e-3)
+    assert _kmol(streams, mw, "S10")["O2"] == pytest.approx(oxygen, rel=1e-4)
     # L-7: the cells' HYPO (one H2 per extent) is 3 CHLORATE + 2 WATER_SPLIT of the cell model
     hypo = _kmol(streams, mw, "S8")["H2"] - _kmol(streams, mw, "S7")["H2"]
     assert hypo == pytest.approx(3 * chlorate + 2 * oxygen, rel=1e-4)

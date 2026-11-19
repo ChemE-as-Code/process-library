@@ -118,8 +118,9 @@ component: at 3-5 g/L it circulates, and its make-up is a consumable (D-010).
   and one OXY make one WATER_SPLIT. With the conversions of CHEM and OXY in the ratio
   0.95 : 0.045, the extents (CHEM 59.444, OXY 4.2235 kmol/h) equal the cell's (CHLORATE 59.444,
   WATER_SPLIT 4.2237 kmol/h): the flowsheet and the cell model carry the same chemistry. The
-  anodic oxygen is booked in the tanks (L-1). The cell's link names EL201, which lists HYPO, not
-  the cell's CHLORATE: a core limit, accepted (L-7).
+  anodic oxygen is booked in the tanks, because only there a conversion reactor holds the cell's
+  current-fraction ratio (L-7). The cell's link names EL201, which lists HYPO, not the cell's
+  CHLORATE: a core limit, accepted (L-7).
 
 ### D-007 The reaction tanks (sized from the kinetics of SRC-3)
 
@@ -333,7 +334,14 @@ inventory's mass balance as open by that amount (cheme.lci-mass-balance, a recor
   second step. Listing CHLORATE and WATER_SPLIT on EL201 instead would form the chlorate and the
   oxygen in the cells, drop the active chlorine between the cells and the tanks, and with it the
   basis of D-007 (the tanks' conversion, the 3 g/L at the crystallizer). Listing CHLORATE beside
-  HYPO with no extent would silence the warning without being true. Size of the effect: none on
+  HYPO with no extent would silence the warning without being true. Listing WATER_SPLIT beside
+  HYPO on EL201, with CHEM alone in R201, would keep the active chlorine but not the cell's
+  current-fraction ratio: a conversion reactor gives each reaction a conversion of its own key
+  (HYPO of the NaCl, WATER_SPLIT of the water), so on the recirculating feed, whose NaCl-to-water
+  ratio the loop sets, the ratio of the two extents would follow the feed and not the
+  0.95 : 0.045 of the current. In the tanks CHEM and OXY both convert the NaOCl, so conversions
+  in the ratio 0.95 : 0.045 give extents in that ratio whatever the feed; the anodic oxygen is
+  therefore booked there (OXY, D-006). Size of the effect: none on
   the numbers. Core still checks P2 and Q2 against the cell model (30 186.84 kW and 14 607.62
   kW, no `cheme.cell-flowsheet-duty` finding). The extents the warning stands for agree
   (`cheme process reactors` against `cheme process cell`): CHEM 59.4442 against CHLORATE
