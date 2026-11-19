@@ -1,0 +1,127 @@
+# Components and templates of mdi-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol, normal_boiling_point
+# in K at 101.325 kPa.
+#
+# Property sources (DESIGN.md source register SRC-6, library ADR 0037):
+# - molar masses: the IUPAC 2021 abridged standard atomic weights applied to the formula, or the
+#   value `cheme chemistry thermo` prints (chemicals 1.5.2) where it knows the component;
+# - normal boiling points and melting points: chemicals 1.5.2 (`chemicals.Tb`, `chemicals.Tm`),
+#   the method named in each source (CRC_ORG / CRC_INORG are the CRC Handbook tables as packaged
+#   in chemicals, HEOS the CoolProp equations of state, YAWS the packaged Yaws table): single
+#   facts with the package named, not open data; the underlying works were not read;
+# - ideal-gas data where chemicals has them (`cheme chemistry thermo`, copied unchanged with
+#   the method named). chemicals 1.5.2 has no formation enthalpy for MDA, MDI or the
+#   three-ring lumps, so no reactor duty can be calculated by core (DESIGN.md L-1).
+#
+# The MDA and MDI mixtures are lumped (DESIGN.md D-004): MDA stands for the two-ring diamines
+# (4,4'-, 2,4'- and 2,2'-MDA), PMDA for the three-ring and higher polyamines, written as the
+# three-ring triamine C20H21N3; MDI and PMDI are the matching isocyanates. The isomers are not
+# resolved.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: ANL
+    name: Aniline
+    formula: C6H7N
+    cas: 62-53-3
+    molar_mass: 93.126
+    normal_boiling_point: 457.25
+    melting_point: 267.15
+    critical: {Tc: 705, Pc: 5630, omega: 0.382, source: "chemicals 1.5.2: Tc IUPAC, Pc IUPAC, omega PSRK"}
+    ideal_gas: {dHf_298: 87500.0, S_298: 317.9, cp_R: [2.598, 0.019936, 8.438e-05, -1.3368e-07, 5.63e-11], temperature_range: [50, 1000], source: "chemicals 1.5.2: dHf_298 CRC, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: HCHO
+    name: Formaldehyde
+    formula: CH2O
+    cas: 50-00-0
+    molar_mass: 30.026
+    normal_boiling_point: 254.05
+    critical: {Tc: 408, Pc: 6586.12, omega: 0.2484, source: "chemicals 1.5.2: Tc PSRK, Pc PSRK, omega PSRK"}
+    ideal_gas: {dHf_298: -109160.0, S_298: 218.8, cp_R: [3.96137, -0.00377287, 2.16401e-05, -2.1261e-08, 6.89138e-12], temperature_range: [298.15, 1000], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.12%)"}
+  - id: CH3OH
+    name: Methanol
+    formula: CH4O
+    cas: 67-56-1
+    molar_mass: 32.042
+    normal_boiling_point: 337.63
+    critical: {Tc: 513.38, Pc: 8215.85, omega: 0.5625, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -200700.0, S_298: 239.9, cp_R: [4.714, -0.006986, 4.211e-05, -4.443e-08, 1.535e-11], temperature_range: [50, 1000], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: H2O
+    name: Water
+    formula: H2O
+    cas: 7732-18-5
+    molar_mass: 18.015
+    normal_boiling_point: 373.124
+    critical: {Tc: 647.096, Pc: 22064, omega: 0.3443, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -241822.0, S_298: 188.8, cp_R: [4.395, -0.004186, 1.405e-05, -1.564e-08, 6.32e-12], temperature_range: [50, 1000], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: HCL
+    name: Hydrogen chloride
+    formula: HCl
+    cas: 7647-01-0
+    molar_mass: 36.461
+    normal_boiling_point: 188.17
+    critical: {Tc: 324.68, Pc: 8313.5, omega: 0.129, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.827, -0.002936, 8.79e-06, -1.031e-08, 4.39e-12], temperature_range: [50, 1000], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R Poling (5th ed.)"}
+  - id: NAOH
+    name: Sodium hydroxide
+    formula: NaOH
+    cas: 1310-73-2
+    molar_mass: 39.997
+    normal_boiling_point: 1661.15
+    phase: solid
+  - id: NACL
+    name: Sodium chloride
+    formula: NaCl
+    cas: 7647-14-5
+    molar_mass: 58.443
+    normal_boiling_point: 1738.15
+    phase: solid
+  - id: MDA
+    name: "Methylenedianiline, two-ring isomers (4,4'-MDA lump)"
+    formula: C13H14N2
+    cas: 101-77-9
+    molar_mass: 198.269
+    normal_boiling_point: 652.15
+    melting_point: 364.4
+  - id: PMDA
+    name: "Polymethylene polyphenylene polyamine, three-ring and higher (lumped as C20H21N3)"
+    formula: C20H21N3
+    molar_mass: 303.409
+  - id: COCL2
+    name: Phosgene
+    formula: CCl2O
+    cas: 75-44-5
+    molar_mass: 98.916
+    normal_boiling_point: 280.65
+    critical: {Tc: 455, Pc: 5674.2, omega: 0.204, source: "chemicals 1.5.2: Tc MATTHEWS, Pc MATTHEWS, omega PSRK"}
+    ideal_gas: {dHf_298: -219030.0, S_298: 283.5, cp_R: [2.46941, 0.0233063, -3.49947e-05, 2.65187e-08, -8.00153e-12], temperature_range: [298.15, 1000], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1000 K (max deviation 0.12%)"}
+  - id: MCB
+    name: Monochlorobenzene
+    formula: C6H5Cl
+    cas: 108-90-7
+    molar_mass: 112.56
+    normal_boiling_point: 405.21
+    critical: {Tc: 632.35, Pc: 4520.6, omega: 0.2532, source: "chemicals 1.5.2: Tc HEOS, Pc HEOS, omega HEOS"}
+    ideal_gas: {dHf_298: 52220.0, S_298: 314.04, cp_R: [0.104, 0.038288, 1.808e-05, -5.732e-08, 2.718e-11], temperature_range: [200, 1000], source: "chemicals 1.5.2: dHf_298 ATCT_G, S_298 YAWS, cp_R Poling (5th ed.)"}
+  - id: MDI
+    name: "Methylene diphenyl diisocyanate, two-ring isomers (4,4'-MDI lump)"
+    formula: C15H10N2O2
+    cas: 101-68-8
+    molar_mass: 250.257
+    normal_boiling_point: 609.0
+    melting_point: 310.75
+  - id: PMDI
+    name: "Polymethylene polyphenyl polyisocyanate, three-ring and higher (lumped as C23H15N3O3)"
+    formula: C23H15N3O3
+    molar_mass: 381.391
+templates:
+  - {id: aniline, title: Aniline, components: [ANL, H2O]}
+  - {id: formalin, title: Formalin 50 wt%, components: [HCHO, CH3OH, H2O]}
+  - {id: acid, title: Hydrochloric acid, components: [HCL, H2O]}
+  - {id: caustic, title: Caustic soda solution, components: [NAOH, H2O]}
+  - {id: water, title: Process water, components: [H2O]}
+  - {id: process, title: "Process streams: MDA section, phosgenation, distillation, HCl", components: [ANL, HCHO, CH3OH, H2O, HCL, NAOH, NACL, MDA, PMDA, COCL2, MCB, MDI, PMDI]}
+  - {id: mcb, title: Monochlorobenzene, components: [MCB]}
+  - {id: phosgene, title: Phosgene, components: [COCL2]}
+property_method:
+  adapter: thermo
+  status: placeholder

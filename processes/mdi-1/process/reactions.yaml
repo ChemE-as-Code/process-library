@@ -1,0 +1,41 @@
+# Reactions of mdi-1 (DESIGN.md D-004, D-005). Schema: `cheme schema process-reactions`.
+# The reactors are conversion models with the selectivity of flowsheet.yaml, not kinetics: no
+# open rate law was found for the acid-catalysed condensation or the phosgenation. No heat of
+# reaction is given: chemicals 1.5.2 has no formation enthalpy for MDA, MDI or the three-ring
+# lumps, and no open value was read (DESIGN.md L-1); the duties are ASSUMED in the flowsheet.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: MDA_FORM
+    equation: 2 C6H5NH2 + CH2O -> H2N-C6H4-CH2-C6H4-NH2 + H2O
+    stoichiometry: {ANL: -2, HCHO: -1, MDA: 1, H2O: 1}
+    reversible: false
+    sources: ["EU JRC (2017) LVOC BREF, Section 10.2.2.2.1 (the condensation of aniline with formaldehyde, HCl-catalysed)"]
+    # The two-ring diamines (4,4'-, 2,4'-, 2,2'-MDA) as one lump; the aminal and the
+    # aminobenzylanilines it rearranges through are not resolved (D-004).
+  - id: PMDA_FORM
+    equation: 3 C6H5NH2 + 2 CH2O -> C20H21N3 + 2 H2O
+    stoichiometry: {ANL: -3, HCHO: -2, PMDA: 1, H2O: 2}
+    reversible: false
+    sources: ["EU JRC (2017) LVOC BREF, Section 10.2.2.2.1 (n+1 aniline + n formaldehyde to the oligomeric PMDA)"]
+    # The three-ring and higher polyamines lumped as the three-ring triamine (D-004).
+  - id: NEUT
+    equation: HCl + NaOH -> NaCl + H2O
+    stoichiometry: {HCL: -1, NAOH: -1, NACL: 1, H2O: 1}
+    reversible: false
+    conversion: {key: HCL, value: 1.0, provenance: assumed, source: "D-003: the acid neutralised completely by the 10 % caustic excess"}
+    sources: ["EU JRC (2017) LVOC BREF, Sections 10.2.2.2.1 and 10.3.2.5 (neutralisation with caustic soda, brine)"]
+  - id: MDI_FORM
+    equation: H2N-C6H4-CH2-C6H4-NH2 + 2 COCl2 -> OCN-C6H4-CH2-C6H4-NCO + 4 HCl
+    stoichiometry: {MDA: -1, COCL2: -2, MDI: 1, HCL: 4}
+    reversible: false
+    conversion: {key: MDA, value: 1.0, provenance: assumed, source: "D-005: the amine phosgenated completely with the phosgene excess; side products (ureas, carbodiimides) not resolved"}
+    sources: ["EU JRC (2017) LVOC BREF, Section 10.2.2.2.2 (phosgenation of MDA in monochlorobenzene)"]
+    # The carbamoyl chloride and amine hydrochloride intermediates of the cold stage are not
+    # resolved (D-005).
+  - id: PMDI_FORM
+    equation: C20H21N3 + 3 COCl2 -> C23H15N3O3 + 6 HCl
+    stoichiometry: {PMDA: -1, COCL2: -3, PMDI: 1, HCL: 6}
+    reversible: false
+    conversion: {key: PMDA, value: 1.0, provenance: assumed, source: "D-005: as MDI_FORM"}
+    sources: ["EU JRC (2017) LVOC BREF, Section 10.2.2.2.2 (the PMDA oligomers phosgenated to PMDI)"]

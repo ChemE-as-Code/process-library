@@ -1,0 +1,1004 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# MDI and polymeric MDI from aniline, formaldehyde and phosgene (DESIGN.md D-001): HCl-catalysed
+# condensation of aniline with formalin to the MDA mixture, neutralisation with caustic soda,
+# washing and aniline recovery; liquid-phase phosgenation of the MDA in monochlorobenzene (MCB),
+# HCl and phosgene separation, phosgene absorption in MCB and recycle, solvent recovery;
+# distillation of monomeric MDI from the crude, the bottoms polymeric MDI; part of the HCl
+# absorbed in water as the condensation's acid (the HCl recycle), the rest exported as gas.
+# Where the values come from:
+# - feeds, ratios, temperatures and pressures: the design basis and decisions D-002..D-010,
+#   from US 10 640 455 B1 (condensation) and US 10 364 214 B1 (phosgenation) where they give
+#   them, ASSUMED otherwise;
+# - every flow and composition is calculated by `cheme process propagate --fill`: conversion
+#   reactors (selectivity), component separators (`recovery:`, ASSUMED splits), splitters and
+#   mixers, the five recycles torn and converged, and seven design specifications that set the
+#   fresh aniline, caustic, phosgene, MCB make-up and absorber water feeds and the two splits
+#   from the sourced ratios (D-003, D-005, D-006);
+# - every duty is an ASSUMED estimate whose arithmetic is in its source (D-009): core has no
+#   formation enthalpies for MDA or MDI and no property package for these mixtures (L-1, L-2).
+schema: cheme/process/v1
+kind: flowsheet
+title: MDI and polymeric MDI by aniline-formaldehyde condensation and liquid-phase phosgenation (178 kt/a crude MDI)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 6144 kg/h of 50 wt% formalin (3.07 t/h formaldehyde, the nameplate of US 10 640 455 B1) to about 22.2 t/h of crude MDI, 8000 h/a (D-002)", default: true}
+tolerance: {abs: 0.5, rel: 0.002}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+tears:
+  - stream: S3
+    initial: {flow: 5400.0, unit: kg/h, basis: mass_fraction, composition: {ANL: 0.95, H2O: 0.045, CH3OH: 0.005}}
+  - stream: S17
+    initial: {flow: 600.0, unit: kg/h, basis: mass_fraction, composition: {H2O: 0.95, ANL: 0.04, CH3OH: 0.01}}
+  - stream: S4
+    initial: {flow: 2800.0, unit: kg/h, basis: mass_fraction, composition: {HCL: 0.30, H2O: 0.70}}
+  - stream: S31
+    initial: {flow: 115000.0, unit: kg/h, basis: mass_fraction, composition: {MCB: 1.0}}
+  - stream: S23
+    initial: {flow: 86000.0, unit: kg/h, basis: mass_fraction, composition: {COCL2: 0.22, MCB: 0.775, HCL: 0.005}}
+convergence: {method: wegstein, max_iterations: 500, tolerance: {abs: 1.0e-4, rel: 1.0e-8}}
+specs:
+  - id: SP-ANILINE
+    vary: {stream: S1, initial: 15500.0, low: 10000.0, high: 25000.0}
+    target: {stream: S5, component: ANL, quantity: ratio, basis: mole, per: {stream: S5, component: HCHO}, value: 2.25}
+    provenance: assumed
+    source: "D-003: 2.25 mol aniline per mol formaldehyde at the condensation's inlet, the nameplate ratio of US 10 640 455 B1 (description of the starting state)"
+  - id: SP-PROTONATION
+    vary: {node: X301, port: abs, initial: 0.065, low: 0.0, high: 1.0}
+    target: {stream: S5, component: HCL, quantity: ratio, basis: mole, per: {stream: S5, component: ANL}, value: 0.10}
+    provenance: assumed
+    source: "D-003: protonation level 10 %, 0.10 mol HCl per mol of amino groups, US 10 640 455 B1 (nameplate)"
+  - id: SP-ACID
+    vary: {stream: S40, initial: 1960.0, low: 500.0, high: 5000.0}
+    target: {stream: S4, component: HCL, quantity: fraction, basis: mass, value: 0.30}
+    provenance: assumed
+    source: "D-003: 30 % aqueous hydrochloric acid as the condensation's catalyst, US 10 640 455 B1"
+  - id: SP-CAUSTIC
+    vary: {stream: S7, initial: 2030.0, low: 500.0, high: 5000.0}
+    target: {stream: S7, component: NAOH, quantity: ratio, basis: mole, per: {stream: S6, component: HCL}, value: 1.10}
+    provenance: assumed
+    source: "D-003: caustic soda at 1.10 mol per mol HCl, US 10 640 455 B1 (neutralisation of the starting state)"
+  - id: SP-PHOSGENE
+    vary: {stream: S24, initial: 17500.0, low: 10000.0, high: 40000.0}
+    target: {stream: S25, component: COCL2, quantity: ratio, basis: mass, per: {stream: S14}, value: 2.0588}
+    provenance: assumed
+    source: "D-005: 42 t/h of phosgene per 20.4 t/h of MDA (120 t/h of 35 % phosgene solution), US 10 364 214 B1 (nameplate example): 42 / 20.4 = 2.0588 kg/kg, about 2.08 mol per amino group"
+  - id: SP-MCB-MDA
+    vary: {stream: S20, initial: 6.0, low: 0.0, high: 500.0}
+    target: {stream: S22, component: MCB, quantity: fraction, basis: mass, value: 0.729}
+    provenance: assumed
+    source: "D-005: 27.1 % MDA solution in MCB (20.4 t/h MDA in 55.0 t/h MCB), US 10 364 214 B1"
+  - id: SP-PHOSGENE-SOLUTION
+    vary: {node: X201, port: mda, initial: 0.42, low: 0.05, high: 0.95}
+    target: {stream: S25, component: COCL2, quantity: fraction, basis: mass, value: 0.35}
+    provenance: assumed
+    source: "D-005: 35.0 % phosgene solution in MCB, US 10 364 214 B1"
+
+feeds:
+  - {id: ANLF, title: Aniline (aniline-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: HCHOF, title: Formalin 50 wt% (formaldehyde-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOHF, title: Caustic soda 50 wt% (chlor-alkali-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PHOSF, title: Liquid phosgene (phosgene-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: MCBF, title: Monochlorobenzene make-up (no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: PW
+    title: Process water (MDA wash, HCl absorber)
+    category: raw_material
+    ports:
+      - {id: w101, direction: out}
+      - {id: a301, direction: out}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: d203, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 600 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 600, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 432.0, provenance: given, source: "saturation at 600 kPa(a), IAPWS-IF97 (431.98 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: r101, direction: out, kind: energy}
+      - {id: t102, direction: out, kind: energy}
+      - {id: r201, direction: out, kind: energy}
+      - {id: d201, direction: out, kind: energy}
+      - {id: d202, direction: out, kind: energy}
+  - id: HPS
+    title: HP steam 4000 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: HP
+      pressure: {value: 4000, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 523.5, provenance: given, source: "saturation at 4000 kPa(a), IAPWS-IF97 (523.51 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: d101, direction: out, kind: energy}
+      - {id: d203, direction: out, kind: energy}
+products:
+  - {id: MDIP, title: Monomeric MDI (two-ring isomers) to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: PMDIP, title: Polymeric MDI to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: HCLG, title: Hydrogen chloride gas to an adjacent consumer, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: BRINE, title: MDA brine (NaCl) to wastewater treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: MEOH, title: Methanol-rich condensate to the site's thermal oxidiser (fuel), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: RESID, title: Distillation lights and residue (MCB) to incineration, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: Absorber vent to the phosgene destruction and thermal oxidiser, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: d101, direction: in, kind: energy}
+      - {id: t102, direction: in, kind: energy}
+      - {id: d202, direction: in, kind: energy}
+      - {id: d203, direction: in, kind: energy}
+      - {id: a301, direction: in, kind: energy}
+  - id: REFR
+    title: Refrigerated brine return (253 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 248.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 253.15, provenance: assumed, source: "design basis (D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009"}
+    ports:
+      - {id: t201, direction: in, kind: energy}
+
+blocks:
+  - id: MDA
+    title: MDA synthesis (condensation, neutralisation, washing, aniline recovery)
+    class: ReactingChemicals
+    ports:
+      - {id: anl, direction: in}
+      - {id: hcho, direction: in}
+      - {id: acid, direction: in}
+      - {id: naoh, direction: in}
+      - {id: water, direction: in}
+      - {id: mda, direction: out}
+      - {id: brine, direction: out}
+      - {id: meoh, direction: out}
+      - {id: lps, direction: in, kind: energy}
+      - {id: lps2, direction: in, kind: energy}
+      - {id: hps, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: PHOSG
+    title: Phosgenation, phosgene and HCl recovery, solvent recovery
+    class: ReactingChemicals
+    ports:
+      - {id: mda, direction: in}
+      - {id: phosgene, direction: in}
+      - {id: mcb, direction: in}
+      - {id: crude, direction: out}
+      - {id: hcl, direction: out}
+      - {id: lps, direction: in, kind: energy}
+      - {id: lps2, direction: in, kind: energy}
+      - {id: lps3, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: refr, direction: out, kind: energy}
+  - id: PURIF
+    title: MDI distillation (monomeric MDI and polymeric MDI)
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: crude, direction: in}
+      - {id: mdi, direction: out}
+      - {id: pmdi, direction: out}
+      - {id: resid, direction: out}
+      - {id: hps, direction: in, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: HCLREC
+    title: HCl recycle (absorption to the condensation's acid) and HCl export
+    class: Absorbing
+    ports:
+      - {id: hcl, direction: in}
+      - {id: water, direction: in}
+      - {id: acid, direction: out}
+      - {id: export, direction: out}
+      - {id: vent, direction: out}
+      - {id: cw, direction: out, kind: energy}
+
+steps:
+  # --- MDA ---------------------------------------------------------------------------------------
+  - id: M101
+    block: MDA
+    title: Aniline, formalin and acid mixing (aminal stage)
+    class: Mixing
+    symbol: STATIC_MIXER_SHAPE
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: anl, direction: in, delegates: anl}
+      - {id: rec, direction: in}
+      - {id: hcho, direction: in, delegates: hcho}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: out, direction: out}
+  - id: R101
+    block: MDA
+    title: Condensation and rearrangement cascade
+    class: ReactingChemicals
+    reactions: [MDA_FORM, PMDA_FORM]
+    reactor: conversion
+    selectivity: {key: HCHO, conversion: 1.0, products: {MDA: 0.44333, PMDA: 0.278335}, provenance: assumed, source: "D-004: formaldehyde converted completely; the split fixes the MDA mixture at 51.0 wt% two-ring diamines (US 10 640 455 B1, nameplate: 45.2 % 4,4'-, 5.5 % 2,4'-, 0.3 % 2,2'-MDA), the rest lumped as the three-ring triamine: per kmol formaldehyde 0.44333 kmol MDA and 0.278335 kmol PMDA (0.51 / 198.269 and 0.49 / 303.409 kmol per kg, 1 and 2 formaldehyde each, normalised to the formaldehyde converted)"}
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: lps}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: R102
+    block: MDA
+    title: Neutralisation with caustic soda
+    class: ReactingChemicals
+    reactions: [NEUT]
+    reactor: conversion
+    conversion: {NEUT: 1.0}
+    links: [{target: equipment, ref: R-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out}
+  - id: V101
+    block: MDA
+    title: Neutralisation separator
+    class: SeparatingByGravity
+    recovery:
+      outlets:
+        org: {MDA: 0.999, PMDA: 0.999, ANL: 0.95, H2O: 0.03, CH3OH: 0.2, NACL: 0.001, NAOH: 0.001}
+      provenance: assumed
+      source: "D-006: ASSUMED phase split at 388 K; the polyamines stay organic, the aniline about 5 % with the brine, the organic phase holds about 3 % of the water and entrains 0.1 % of the salt"
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: org, direction: out}
+      - {id: brine, direction: out}
+  - id: W101
+    block: MDA
+    title: MDA washing with process water
+    class: SeparatingByGravity
+    recovery:
+      outlets:
+        org: {MDA: 1.0, PMDA: 1.0, ANL: 0.99, H2O: 0.08, CH3OH: 0.5, NACL: 0.02, NAOH: 0.02}
+      provenance: assumed
+      source: "D-006: ASSUMED wash efficiency: 98 % of the entrained salt and 92 % of the water leave with the wash water"
+    links: [{target: equipment, ref: W-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: org, direction: out}
+      - {id: wash, direction: out}
+  - id: D101
+    block: MDA
+    title: MDA column (water and aniline off, vacuum)
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets:
+        ovhd: {ANL: 0.9995, H2O: 1.0, CH3OH: 1.0}
+      provenance: assumed
+      source: "D-006: ASSUMED: water and methanol overhead, the MDA bottoms with 0.05 % of the aniline fed; the polyamines and the salt traces stay in the bottoms"
+    links: [{target: equipment, ref: D-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: ovhd, direction: out}
+      - {id: btm, direction: out, delegates: mda}
+      - {id: q, direction: in, kind: energy, delegates: hps}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: T102
+    block: MDA
+    title: Brine stripper with methanol draw
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets:
+        ovhd: {ANL: 0.995, H2O: 0.03, CH3OH: 0.04}
+        meoh: {CH3OH: 0.95, ANL: 0.0005, H2O: 0.001}
+      provenance: assumed
+      source: "D-006: ASSUMED: 99.5 % of the dissolved aniline stripped overhead with 3 % of the water, the methanol taken as a side draw (LVOC BREF 10.4.4.2: recovered and burnt as fuel); the salt, the caustic excess and the polyamine traces leave with the brine"
+    links: [{target: equipment, ref: T-102}]
+    ports:
+      - {id: brine, direction: in}
+      - {id: wash, direction: in}
+      - {id: aq, direction: in}
+      - {id: ovhd, direction: out}
+      - {id: meoh, direction: out, delegates: meoh}
+      - {id: btm, direction: out, delegates: brine}
+      - {id: q, direction: in, kind: energy, delegates: lps2}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: V102
+    block: MDA
+    title: Aniline-water decanter
+    class: SeparatingByGravity
+    recovery:
+      outlets:
+        org: {ANL: 0.98, H2O: 0.05, CH3OH: 0.3}
+      provenance: assumed
+      source: "D-006: ASSUMED liquid-liquid split at 313 K: 2 % of the aniline dissolved in the water phase, which returns to T-102"
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: mda, direction: in}
+      - {id: brine, direction: in}
+      - {id: org, direction: out}
+      - {id: aq, direction: out}
+  # --- PHOSG -------------------------------------------------------------------------------------
+  - id: M201
+    block: PHOSG
+    title: MDA solution make-up (MDA in MCB)
+    class: Mixing
+    symbol: STATIC_MIXER_SHAPE
+    links: [{target: equipment, ref: M-201}]
+    ports:
+      - {id: mda, direction: in, delegates: mda}
+      - {id: mcb, direction: in}
+      - {id: makeup, direction: in, delegates: mcb}
+      - {id: out, direction: out}
+  - id: M202
+    block: PHOSG
+    title: Phosgene solution make-up
+    class: Mixing
+    links: [{target: equipment, ref: M-202}]
+    ports:
+      - {id: rec, direction: in}
+      - {id: fresh, direction: in, delegates: phosgene}
+      - {id: out, direction: out}
+  - id: R201
+    block: PHOSG
+    title: Mixing nozzle and phosgenation tower
+    class: ReactingChemicals
+    reactions: [MDI_FORM, PMDI_FORM]
+    reactor: conversion
+    conversion: {MDI_FORM: 1.0, PMDI_FORM: 1.0}
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: amine, direction: in}
+      - {id: phosgene, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: lps}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: V201
+    block: PHOSG
+    title: Tower top gas-liquid separation
+    class: SeparatingByFlash
+    recovery:
+      outlets:
+        gas: {HCL: 0.9, COCL2: 0.4, MCB: 0.03}
+      provenance: assumed
+      source: "D-007: ASSUMED split at the tower top (384 K, 160 kPa(a), US 10 364 214 B1): 90 % of the HCl and 40 % of the phosgene leave as gas with 3 % of the MCB"
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out}
+  - id: D201
+    block: PHOSG
+    title: Dephosgenation column
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets:
+        ovhd: {HCL: 1.0, COCL2: 1.0, MCB: 0.05}
+      provenance: assumed
+      source: "D-007: ASSUMED: the remaining HCl and phosgene overhead with 5 % of the MCB (top 389 K, 160 kPa(a), US 10 364 214 B1)"
+    links: [{target: equipment, ref: D-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: ovhd, direction: out}
+      - {id: btm, direction: out}
+      - {id: q, direction: in, kind: energy, delegates: lps2}
+  - id: T201
+    block: PHOSG
+    title: Phosgene absorber (phosgene into MCB, HCl gas overhead)
+    class: Absorbing
+    recovery:
+      outlets:
+        gas: {HCL: 0.99, COCL2: 1.0e-5, MCB: 1.0e-6}
+      provenance: assumed
+      source: "D-007: ASSUMED: 1 % of the HCl dissolves in the cold absorbent and returns with the phosgene; the HCl gas keeps 10 ppm of the phosgene and 1 ppm of the MCB fed (the LVOC BREF 10.2.2.1.3 cites under 5 ppmv phosgene and 1 ppmv solvent in HCl from a pressure process)"
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: gas1, direction: in}
+      - {id: gas2, direction: in}
+      - {id: mcb, direction: in}
+      - {id: gas, direction: out, delegates: hcl}
+      - {id: liq, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: refr}
+  - id: D202
+    block: PHOSG
+    title: Solvent column (MCB off, to recycle)
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets:
+        ovhd: {MCB: 0.99995}
+      provenance: assumed
+      source: "D-008: ASSUMED: 99.995 % of the MCB recovered overhead (600 mbar top, then a countercurrent evaporator at 20 mbar, US 10 364 214 B1); the rest leaves with the crude"
+    links: [{target: equipment, ref: D-202}]
+    ports:
+      - {id: in, direction: in}
+      - {id: ovhd, direction: out}
+      - {id: btm, direction: out, delegates: crude}
+      - {id: q, direction: in, kind: energy, delegates: lps3}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: X201
+    block: PHOSG
+    title: MCB recycle split (MDA solution / phosgene absorbent)
+    class: SplittingMaterial
+    symbol: junction
+    ports:
+      - {id: in, direction: in}
+      - {id: mda, direction: out}
+      - {id: abs, direction: out}
+  # --- PURIF -------------------------------------------------------------------------------------
+  - id: D203
+    block: PURIF
+    title: Monomeric MDI column (vacuum)
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets:
+        lights: {MCB: 1.0}
+        mdi: {MDI: 0.391, PMDI: 0.0005}
+      provenance: assumed
+      source: "D-008: ASSUMED: 39.1 % of the two-ring MDI taken overhead as monomeric MDI, about a fifth of the crude (LVOC BREF 10.1: polymeric to pure MDI about 4:1 in 2013); the MCB residue to the lights cut; the rest is polymeric MDI"
+    links: [{target: equipment, ref: D-203}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: lights, direction: out, delegates: resid}
+      - {id: mdi, direction: out, delegates: mdi}
+      - {id: pmdi, direction: out, delegates: pmdi}
+      - {id: q, direction: in, kind: energy, delegates: hps}
+      - {id: power, direction: in, kind: energy, delegates: power}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # --- HCLREC ------------------------------------------------------------------------------------
+  - id: X301
+    block: HCLREC
+    title: HCl gas split (to the absorber / export)
+    class: SplittingMaterial
+    symbol: junction
+    ports:
+      - {id: in, direction: in, delegates: hcl}
+      - {id: abs, direction: out}
+      - {id: export, direction: out, delegates: export}
+  - id: A301
+    block: HCLREC
+    title: HCl absorber (30 % hydrochloric acid)
+    class: Absorbing
+    recovery:
+      outlets:
+        acid: {HCL: 1.0, H2O: 1.0}
+      provenance: assumed
+      source: "D-007: ASSUMED: the HCl absorbed completely in the water fed; the phosgene and MCB traces leave by the vent"
+    links: [{target: equipment, ref: A-301}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in, delegates: water}
+      - {id: acid, direction: out, delegates: acid}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+
+streams:
+  # --- MDA synthesis -----------------------------------------------------------------------------
+  - id: S1
+    title: Fresh aniline
+    from: ANLF.out
+    to: M101.anl
+    template: aniline
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "battery limit (D-002)"}
+        temperature: {value: 313.15, provenance: assumed, source: "aniline-1 product cooled to storage (D-002)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        composition: {basis: mass_fraction, values: {ANL: 0.9995, H2O: 0.0005}, provenance: assumed, source: "D-002: aniline-1's product (99.7 mol% aniline, water, diphenylamine traces), its diphenylamine lumped with the aniline"}
+        flow: {value: 16416.4, provenance: calculated, source: 'cheme process propagate: spec SP-ANILINE (S5 ANL per S5 HCHO (mole) 2.25)', fingerprint: 5946021d27857041}
+  - id: S2
+    title: Formalin 50 wt%
+    from: HCHOF.out
+    to: M101.hcho
+    template: formalin
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "formaldehyde-1 product (its stream S14)"}
+        temperature: {value: 333.15, provenance: assumed, source: "formaldehyde-1 product, kept warm (its stream S14)"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 6144.0, basis: mass, provenance: assumed, source: "D-002: the 3072 kg/h of formaldehyde of US 10 640 455 B1's nameplate (9.60 t/h of 32 % solution) as 50 wt% formalin"}
+        composition: {basis: mass_fraction, values: {HCHO: 0.5, CH3OH: 0.0028, H2O: 0.4972}, provenance: assumed, source: "formaldehyde-1 product: 50.0 wt% formaldehyde, 0.28 wt% methanol (its stream S14)"}
+  - id: S3
+    title: Recovered aniline (recycle)
+    from: V102.org
+    to: M101.rec
+    template: process
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "recycle pump (D-010)"}
+        temperature: {value: 313.15, provenance: assumed, source: "decanter (D-006)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 5060.64, provenance: calculated, source: 'cheme process propagate: recycle V102 from S15 S16 (tear, broyden)', fingerprint: 8001c132ae599759}
+        composition: {basis: mole_fraction, values: {ANL: 0.969233, HCHO: 0.0, CH3OH: 0.000422162, H2O: 0.0303447, HCL: 0.0, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle V102 from S15 S16 (tear, broyden)', fingerprint: 8001c132ae599759}
+  - id: S4
+    title: Hydrochloric acid 30 % (HCl recycle)
+    from: A301.acid
+    to: M101.acid
+    template: process
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "acid pump (D-010)"}
+        temperature: {value: 313.15, provenance: assumed, source: "absorber outlet, cooling water (D-007)"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 2797.78, provenance: calculated, source: 'cheme process propagate: recycle A301 from S38 S40 (tear, broyden)', fingerprint: 8001c132ae599759}
+        composition: {basis: mole_fraction, values: {ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.825251, HCL: 0.174749, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle A301 from S38 S40 (tear, broyden)', fingerprint: 8001c132ae599759}
+  - id: S5
+    title: Aminal mixture to the cascade
+    from: M101.out
+    to: R101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 140.0, provenance: assumed, source: "aminal stage 1.40 bar(a), US 10 640 455 B1"}
+        temperature: {value: 363.15, provenance: assumed, source: "aminal stage 90 C, US 10 640 455 B1"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 30418.8, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S4', fingerprint: f6823fd6faff10e9}
+        composition: {basis: mole_fraction, values: {ANL: 0.361654, H2O: 0.440564, HCHO: 0.160735, CH3OH: 0.000880442, HCL: 0.0361655, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2 S3 S4', fingerprint: bbe1d02dff347e5e}
+  - id: S6
+    title: Acidic MDA reaction mixture
+    from: R101.out
+    to: R102.in
+    template: process
+    state:
+      design:
+        pressure: {value: 700.0, provenance: assumed, source: "D-010: last cascade reactor kept liquid above the water's vapour pressure at 429 K"}
+        temperature: {value: 429.15, provenance: assumed, source: "last cascade reactor 156 C, US 10 640 455 B1"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 30418.8, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 224b0850fc32a055}
+        composition: {basis: mole_fraction, values: {ANL: 0.101186, HCHO: 0.0, CH3OH: 0.00104906, H2O: 0.71646, HCL: 0.0430919, NAOH: 0.0, NACL: 0.0, MDA: 0.0849061, PMDA: 0.0533064, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 68b211aa1db800e1}
+  - id: S7
+    title: Caustic soda 50 wt%
+    from: NAOHF.out
+    to: R102.naoh
+    template: caustic
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site caustic header (D-003)"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-003"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: "chlor-alkali-1's 50 wt% product (D-003)"}
+        flow: {value: 2025.58, provenance: calculated, source: 'cheme process propagate: spec SP-CAUSTIC (S7 NAOH per S6 HCL (mole) 1.1)', fingerprint: 5946021d27857041}
+  - id: S8
+    title: Neutralised mixture
+    from: R102.out
+    to: V101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 140.0, provenance: assumed, source: "neutralisation 1.40 bar(a), US 10 640 455 B1"}
+        temperature: {value: 388.15, provenance: assumed, source: "neutralisation 115 C, US 10 640 455 B1"}
+        phase: {value: liquid, provenance: assumed, source: "two liquid phases"}
+        flow: {value: 32444.4, provenance: calculated, source: 'cheme process propagate: reactor R102 from S6 S7', fingerprint: 39c25097bc4cd9e0}
+        composition: {basis: mole_fraction, values: {ANL: 0.0877862, HCHO: 0.0, CH3OH: 0.000910136, H2O: 0.75027, HCL: 0.0, NAOH: 0.00373854, NACL: 0.0373854, MDA: 0.0736622, PMDA: 0.0462472, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S6 S7', fingerprint: eadf4d081781a19c}
+  - id: S9
+    title: Crude MDA (organic phase)
+    from: V101.org
+    to: W101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 140.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 368.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 22652.0, provenance: calculated, source: 'cheme process propagate: separator V101 from S8', fingerprint: abe440b383509f5d}
+        composition: {basis: mole_fraction, values: {ANL: 0.369147, HCHO: 0.0, CH3OH: 0.000805724, H2O: 0.0996297, HCL: 0.0, NAOH: 1.65482e-05, NACL: 0.000165482, MDA: 0.325732, PMDA: 0.204504, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S8', fingerprint: abe440b383509f5d}
+  - id: S10
+    title: Brine from the neutralisation separator
+    from: V101.brine
+    to: T102.brine
+    template: process
+    state:
+      design:
+        pressure: {value: 140.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 368.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 9792.41, provenance: calculated, source: 'cheme process propagate: separator V101 from S8', fingerprint: abe440b383509f5d}
+        composition: {basis: mole_fraction, values: {ANL: 0.00567034, HCHO: 0.0, CH3OH: 0.000940609, H2O: 0.940161, HCL: 0.0, NAOH: 0.00482481, NACL: 0.0482481, MDA: 9.51607e-05, PMDA: 5.97446e-05, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S8', fingerprint: abe440b383509f5d}
+  - id: S11
+    title: Wash water
+    from: PW.w101
+    to: W101.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site water header"}
+        temperature: {value: 353.15, provenance: assumed, source: "D-006: condensate quality, warm"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 3000.0, basis: mass, provenance: assumed, source: "D-006: ASSUMED, about 0.17 kg per kg of MDA (US 10 640 455 B1 washes with condensate but gives no amount)"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
+  - id: S12
+    title: Washed MDA
+    from: W101.org
+    to: D101.in
+    template: process
+    state:
+      design:
+        pressure: {value: 140.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 363.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 22611.3, provenance: calculated, source: 'cheme process propagate: separator W101 from S9 S11', fingerprint: c3dce82bbeebae5a}
+        composition: {basis: mole_fraction, values: {ANL: 0.365515, HCHO: 0.0, CH3OH: 0.000402927, H2O: 0.103757, HCL: 0.0, NAOH: 3.31018e-07, NACL: 3.31018e-06, MDA: 0.325785, PMDA: 0.204537, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator W101 from S9 S11', fingerprint: c3dce82bbeebae5a}
+  - id: S13
+    title: Spent wash water
+    from: W101.wash
+    to: T102.wash
+    template: process
+    state:
+      design:
+        pressure: {value: 140.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 363.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 3040.72, provenance: calculated, source: 'cheme process propagate: separator W101 from S9 S11', fingerprint: c3dce82bbeebae5a}
+        composition: {basis: mole_fraction, values: {ANL: 0.0030832, HCHO: 0.0, CH3OH: 0.000336479, H2O: 0.996431, HCL: 0.0, NAOH: 1.3545e-05, NACL: 0.00013545, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator W101 from S9 S11', fingerprint: c3dce82bbeebae5a}
+  - id: S14
+    title: MDA (bottoms) to the phosgenation
+    from: D101.btm
+    to: M201.mda
+    template: process
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "bottoms pump (D-010)"}
+        temperature: {value: 473.15, provenance: assumed, source: "D-006: MDA column bottoms under vacuum, ASSUMED"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 17617.6, provenance: calculated, source: 'cheme process propagate: separator D101 from S12', fingerprint: 0ddefcf9e551b75d}
+        composition: {basis: mole_fraction, values: {ANL: 0.000344495, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.0, NAOH: 6.23964e-07, NACL: 6.23964e-06, MDA: 0.6141, PMDA: 0.385549, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D101 from S12', fingerprint: 0ddefcf9e551b75d}
+  - id: S15
+    title: MDA column overhead (water, aniline)
+    from: D101.ovhd
+    to: V102.mda
+    template: process
+    state:
+      design:
+        pressure: {value: 101.3, provenance: assumed, source: "condensate receiver (D-010)"}
+        temperature: {value: 313.15, provenance: assumed, source: "condensed (D-006)"}
+        phase: {value: liquid, provenance: assumed, source: "condensate"}
+        flow: {value: 4993.68, provenance: calculated, source: 'cheme process propagate: separator D101 from S12', fingerprint: 0ddefcf9e551b75d}
+        composition: {basis: mole_fraction, values: {ANL: 0.778143, HCHO: 0.0, CH3OH: 0.000858219, H2O: 0.220998, HCL: 0.0, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D101 from S12', fingerprint: 0ddefcf9e551b75d}
+  - id: S16
+    title: Brine stripper overhead (aniline, water)
+    from: T102.ovhd
+    to: V102.brine
+    template: process
+    state:
+      design:
+        pressure: {value: 101.3, provenance: assumed, source: "D-010"}
+        temperature: {value: 313.15, provenance: assumed, source: "condensed (D-006)"}
+        phase: {value: liquid, provenance: assumed, source: "condensate"}
+        flow: {value: 750.093, provenance: calculated, source: 'cheme process propagate: separator T102 from S10 S13 S17', fingerprint: 7d3283f666ee893e}
+        composition: {basis: mole_fraction, values: {ANL: 0.18126, HCHO: 0.0, CH3OH: 0.000943691, H2O: 0.817796, HCL: 0.0, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T102 from S10 S13 S17', fingerprint: 7d3283f666ee893e}
+  - id: S17
+    title: Decanter water phase back to the stripper
+    from: V102.aq
+    to: T102.aq
+    template: process
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 683.149, provenance: calculated, source: 'cheme process propagate: recycle V102 from S15 S16 (tear, broyden)', fingerprint: 8001c132ae599759}
+        composition: {basis: mole_fraction, values: {ANL: 0.0331153, HCHO: 0.0, CH3OH: 0.00164912, H2O: 0.965236, HCL: 0.0, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle V102 from S15 S16 (tear, broyden)', fingerprint: 8001c132ae599759}
+  - id: S18
+    title: Methanol-rich draw to fuel
+    from: T102.meoh
+    to: MEOH.in
+    template: process
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 313.15, provenance: assumed, source: "condensed (D-006)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 28.8659, provenance: calculated, source: 'cheme process propagate: separator T102 from S10 S13 S17', fingerprint: 7d3283f666ee893e}
+        composition: {basis: mole_fraction, values: {ANL: 0.00183036, HCHO: 0.0, CH3OH: 0.450383, H2O: 0.547787, HCL: 0.0, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T102 from S10 S13 S17', fingerprint: 7d3283f666ee893e}
+  - id: S19
+    title: Stripped brine to wastewater treatment
+    from: T102.btm
+    to: BRINE.in
+    template: process
+    state:
+      design:
+        pressure: {value: 200.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 313.15, provenance: assumed, source: "cooled against the stripper feed, ASSUMED (D-006)"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 12737.3, provenance: calculated, source: 'cheme process propagate: separator T102 from S10 S13 S17', fingerprint: 7d3283f666ee893e}
+        composition: {basis: mole_fraction, values: {ANL: 2.98237e-05, HCHO: 0.0, CH3OH: 8.58302e-06, H2O: 0.960987, HCL: 0.0, NAOH: 0.00353282, NACL: 0.0353282, MDA: 6.96103e-05, PMDA: 4.37033e-05, COCL2: 0.0, MCB: 0.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T102 from S10 S13 S17', fingerprint: 7d3283f666ee893e}
+  # --- phosgenation ------------------------------------------------------------------------------
+  - id: S20
+    title: MCB make-up
+    from: MCBF.out
+    to: M201.makeup
+    template: mcb
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "battery limit (D-005)"}
+        temperature: {value: 303.15, provenance: assumed, source: "storage"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        composition: {basis: mass_fraction, values: {MCB: 1.0}, provenance: assumed, source: "merchant MCB (D-005)"}
+        flow: {value: 5.34849, provenance: calculated, source: 'cheme process propagate: spec SP-MCB-MDA (S22 MCB mass fraction 0.729)', fingerprint: 5946021d27857041}
+  - id: S21
+    title: MCB to the MDA solution
+    from: X201.mda
+    to: M201.mcb
+    template: process
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 303.15, provenance: assumed, source: "MCB at 30 C, US 10 364 214 B1"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 47386.7, provenance: calculated, source: 'cheme process propagate: splitter X201 from S31', fingerprint: 78599ec026d87610}
+        composition: {basis: mole_fraction, values: {ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.0, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 1.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X201 from S31', fingerprint: 4684b8d22ff9f2c2}
+  - id: S22
+    title: MDA solution 27.1 % in MCB
+    from: M201.out
+    to: R201.amine
+    template: process
+    state:
+      design:
+        pressure: {value: 2000.0, provenance: assumed, source: "D-010: to the mixing nozzle, ASSUMED"}
+        temperature: {value: 333.15, provenance: assumed, source: "D-005: hot MDA dissolved in MCB at 303 K, ASSUMED mixed temperature"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 65009.6, provenance: calculated, source: 'cheme process propagate: mixer M201 from S14 S20 S21', fingerprint: ac7aa9edadaf35e2}
+        composition: {basis: mole_fraction, values: {ANL: 5.13692e-05, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.0, NAOH: 9.3042e-08, NACL: 9.3042e-07, MDA: 0.0915711, PMDA: 0.0574909, COCL2: 0.0, MCB: 0.850886, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S14 S20 S21', fingerprint: c3158ba3bbcedd19}
+  - id: S23
+    title: Phosgene-rich absorbent (phosgene recycle)
+    from: T201.liq
+    to: M202.rec
+    template: process
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 278.15, provenance: assumed, source: "D-007: absorber bottoms warmed by the heat of absorption, ASSUMED; mixed with the 253 K fresh phosgene it gives about the 273 K of the phosgene solution"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 86225.7, provenance: calculated, source: 'cheme process propagate: recycle T201 from S27 S29 S32 (tear, broyden)', fingerprint: 8001c132ae599759}
+        composition: {basis: mole_fraction, values: {ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.00449096, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.240938, MCB: 0.754571, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle T201 from S27 S29 S32 (tear, broyden)', fingerprint: 8001c132ae599759}
+  - id: S24
+    title: Fresh liquid phosgene
+    from: PHOSF.out
+    to: M202.fresh
+    template: phosgene
+    state:
+      design:
+        pressure: {value: 340.0, provenance: assumed, source: "phosgene-1 product (its stream S7)"}
+        temperature: {value: 253.15, provenance: assumed, source: "phosgene-1 product (its stream S7)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        composition: {basis: mass_fraction, values: {COCL2: 1.0}, provenance: assumed, source: "phosgene-1 product, its 35 ppm(wt) chlorine left out (D-005)"}
+        flow: {value: 17406.1, provenance: calculated, source: 'cheme process propagate: spec SP-PHOSGENE (S25 COCL2 per S14 (mass) 2.0588)', fingerprint: 5946021d27857041}
+  - id: S25
+    title: Phosgene solution 35 % in MCB
+    from: M202.out
+    to: R201.phosgene
+    template: process
+    state:
+      design:
+        pressure: {value: 2000.0, provenance: assumed, source: "D-010: to the mixing nozzle, ASSUMED"}
+        temperature: {value: 273.15, provenance: assumed, source: "phosgene solution at 0 C, US 10 364 214 B1"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 103632.0, provenance: calculated, source: 'cheme process propagate: mixer M202 from S23 S24', fingerprint: afe43252dbb73889}
+        composition: {basis: mole_fraction, values: {ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.00367417, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.378991, MCB: 0.617334, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M202 from S23 S24', fingerprint: 0ef6cbb7f86c11e3}
+  - id: S26
+    title: Phosgenation tower outlet
+    from: R201.out
+    to: V201.in
+    template: process
+    state:
+      design:
+        pressure: {value: 160.0, provenance: assumed, source: "tower top 1.6 bar(a), US 10 364 214 B1"}
+        temperature: {value: 384.15, provenance: assumed, source: "tower top 111 C, US 10 364 214 B1"}
+        phase: {value: two-phase, provenance: assumed, source: "HCl gas and the crude solution"}
+        flow: {value: 168642.0, provenance: calculated, source: 'cheme process propagate: reactor R201 from S22 S25', fingerprint: 4709057563dda5a9}
+        composition: {basis: mole_fraction, values: {ANL: 1.5515e-05, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.216983, NAOH: 2.81015e-08, NACL: 2.81015e-07, MDA: 0.0, PMDA: 0.0, COCL2: 0.116412, MCB: 0.621568, MDI: 0.0276572, PMDI: 0.017364}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S22 S25', fingerprint: e6bb6b7c8587dadc}
+  - id: S27
+    title: Tower top gas (HCl, phosgene)
+    from: V201.gas
+    to: T201.gas1
+    template: process
+    state:
+      design:
+        pressure: {value: 160.0, provenance: assumed, source: "US 10 364 214 B1"}
+        temperature: {value: 384.15, provenance: assumed, source: "US 10 364 214 B1"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 22650.2, provenance: calculated, source: 'cheme process propagate: separator V201 from S26', fingerprint: 2c8a2c9946ba895d}
+        composition: {basis: mole_fraction, values: {MDA: 0.0, PMDA: 0.0, COCL2: 0.178754, MCB: 0.0715827, HCL: 0.749663, MDI: 0.0, PMDI: 0.0, NACL: 0.0, NAOH: 0.0, ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V201 from S26', fingerprint: 2c8a2c9946ba895d}
+  - id: S28
+    title: Crude MDI solution to dephosgenation
+    from: V201.liq
+    to: D201.in
+    template: process
+    state:
+      design:
+        pressure: {value: 160.0, provenance: assumed, source: "US 10 364 214 B1"}
+        temperature: {value: 384.15, provenance: assumed, source: "US 10 364 214 B1"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 145992.0, provenance: calculated, source: 'cheme process propagate: separator V201 from S26', fingerprint: 2c8a2c9946ba895d}
+        composition: {basis: mole_fraction, values: {MDA: 0.0, PMDA: 0.0, COCL2: 0.0944515, MCB: 0.815305, HCL: 0.0293417, MDI: 0.0373997, PMDI: 0.0234806, NACL: 3.80005e-07, NAOH: 3.80005e-08, ANL: 2.09803e-05, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V201 from S26', fingerprint: 2c8a2c9946ba895d}
+  - id: S29
+    title: Dephosgenation overhead
+    from: D201.ovhd
+    to: T201.gas2
+    template: process
+    state:
+      design:
+        pressure: {value: 160.0, provenance: assumed, source: "top 1.6 bar(a), US 10 364 214 B1"}
+        temperature: {value: 389.15, provenance: assumed, source: "top 116 C, US 10 364 214 B1"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 18174.6, provenance: calculated, source: 'cheme process propagate: separator D201 from S28', fingerprint: 28fb16feb6dca1ff}
+        composition: {basis: mole_fraction, values: {MDA: 0.0, PMDA: 0.0, COCL2: 0.573969, MCB: 0.247725, HCL: 0.178306, MDI: 0.0, PMDI: 0.0, NACL: 0.0, NAOH: 0.0, ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D201 from S28', fingerprint: 28fb16feb6dca1ff}
+  - id: S30
+    title: Dephosgenated crude solution
+    from: D201.btm
+    to: D202.in
+    template: process
+    state:
+      design:
+        pressure: {value: 170.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 428.15, provenance: assumed, source: "155 C to the solvent distillation, US 10 364 214 B1"}
+        phase: {value: liquid, provenance: assumed, source: "solution"}
+        flow: {value: 127817.0, provenance: calculated, source: 'cheme process propagate: separator D201 from S28', fingerprint: 28fb16feb6dca1ff}
+        composition: {basis: mole_fraction, values: {MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.927102, HCL: 0.0, MDI: 0.0447664, PMDI: 0.0281056, NACL: 4.54855e-07, NAOH: 4.54855e-08, ANL: 2.51128e-05, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D201 from S28', fingerprint: 28fb16feb6dca1ff}
+  - id: S31
+    title: Recovered MCB (recycle)
+    from: D202.ovhd
+    to: X201.in
+    template: process
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 303.15, provenance: assumed, source: "condensed and cooled (D-008)"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 105620.0, provenance: calculated, source: 'cheme process propagate: recycle D202 from S30 (tear, broyden)', fingerprint: 8001c132ae599759}
+        composition: {basis: mole_fraction, values: {ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.0, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 1.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle D202 from S30 (tear, broyden)', fingerprint: 8001c132ae599759}
+  - id: S32
+    title: MCB absorbent to the phosgene absorber
+    from: X201.abs
+    to: T201.mcb
+    template: process
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 258.15, provenance: assumed, source: "D-007: chilled absorbent, ASSUMED"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 58233.3, provenance: calculated, source: 'cheme process propagate: splitter X201 from S31 S21', fingerprint: 8e1c2d516a875d14}
+        composition: {basis: mole_fraction, values: {ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.0, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 1.0, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X201 from S31', fingerprint: 4684b8d22ff9f2c2}
+  - id: S33
+    title: HCl gas from the phosgene absorber
+    from: T201.gas
+    to: X301.in
+    template: process
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 258.15, provenance: assumed, source: "D-007: cold absorber top, ASSUMED"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 12832.1, provenance: calculated, source: 'cheme process propagate: separator T201 from S27 S29 S32', fingerprint: 6bf185e72997b30c}
+        composition: {basis: mole_fraction, values: {ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0, HCL: 0.999993, NAOH: 0.0, NACL: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 5.41918e-06, MCB: 1.69716e-06, MDI: 0.0, PMDI: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T201 from S27 S29 S32', fingerprint: 6bf185e72997b30c}
+  - id: S34
+    title: Crude MDI
+    from: D202.btm
+    to: D203.in
+    template: process
+    state:
+      design:
+        pressure: {value: 2.0, provenance: assumed, source: "countercurrent evaporator 20 mbar, US 10 364 214 B1"}
+        temperature: {value: 443.15, provenance: assumed, source: "top 170 C, US 10 364 214 B1"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 22197.0, provenance: calculated, source: 'cheme process propagate: separator D202 from S30', fingerprint: 1a9e1b76395f1269}
+        composition: {basis: mole_fraction, values: {MDA: 0.0, PMDA: 0.0, COCL2: 0.0, MCB: 0.000635489, HCL: 0.0, MDI: 0.613709, PMDI: 0.385304, NACL: 6.23568e-06, NAOH: 6.23568e-07, ANL: 0.000344275, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D202 from S30', fingerprint: 1a9e1b76395f1269}
+  # --- MDI distillation --------------------------------------------------------------------------
+  - id: S35
+    title: Lights (MCB residue) to incineration
+    from: D203.lights
+    to: RESID.in
+    template: process
+    state:
+      design:
+        pressure: {value: 101.3, provenance: assumed, source: "D-010"}
+        temperature: {value: 303.15, provenance: assumed, source: "cold trap, ASSUMED"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 5.28128, provenance: calculated, source: 'cheme process propagate: separator D203 from S34', fingerprint: cdad625aac627919}
+        composition: {basis: mole_fraction, values: {MDI: 0.0, PMDI: 0.0, MCB: 1.0, NACL: 0.0, NAOH: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, HCL: 0.0, ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D203 from S34', fingerprint: cdad625aac627919}
+  - id: S36
+    title: Monomeric MDI
+    from: D203.mdi
+    to: MDIP.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 318.15, provenance: assumed, source: "D-008: above the 310.75 K melting point of 4,4'-MDI (CRC via chemicals 1.5.2), kept molten to storage"}
+        phase: {value: liquid, provenance: assumed, source: "melt"}
+        flow: {value: 4439.19, provenance: calculated, source: 'cheme process propagate: separator D203 from S34', fingerprint: cdad625aac627919}
+        composition: {basis: mole_fraction, values: {MDI: 0.999198, PMDI: 0.000802206, MCB: 0.0, NACL: 0.0, NAOH: 0.0, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, HCL: 0.0, ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D203 from S34', fingerprint: cdad625aac627919}
+  - id: S37
+    title: Polymeric MDI
+    from: D203.pmdi
+    to: PMDIP.in
+    template: process
+    state:
+      design:
+        pressure: {value: 300.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 323.15, provenance: assumed, source: "D-008: cooled to storage, ASSUMED"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        flow: {value: 17752.5, provenance: calculated, source: 'cheme process propagate: separator D203 from S34', fingerprint: cdad625aac627919}
+        composition: {basis: mole_fraction, values: {MDI: 0.492286, PMDI: 0.507252, MCB: 0.0, NACL: 8.21337e-06, NAOH: 8.21337e-07, MDA: 0.0, PMDA: 0.0, COCL2: 0.0, HCL: 0.0, ANL: 0.000453464, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator D203 from S34', fingerprint: cdad625aac627919}
+  # --- HCl recycle and export --------------------------------------------------------------------
+  - id: S38
+    title: HCl gas to the absorber
+    from: X301.abs
+    to: A301.gas
+    template: process
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 258.15, provenance: assumed, source: "D-007"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 839.352, provenance: calculated, source: 'cheme process propagate: splitter X301 from S33', fingerprint: 3e845d1f63b2deca}
+        composition: {basis: mole_fraction, values: {MDA: 0.0, PMDA: 0.0, COCL2: 5.41918e-06, MCB: 1.69716e-06, HCL: 0.999993, MDI: 0.0, PMDI: 0.0, NACL: 0.0, NAOH: 0.0, ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X301 from S33', fingerprint: 7bbed9482310082f}
+  - id: S39
+    title: HCl gas export
+    from: X301.export
+    to: HCLG.in
+    template: process
+    state:
+      design:
+        pressure: {value: 150.0, provenance: assumed, source: "D-007: to the consumer's compressor, ASSUMED"}
+        temperature: {value: 258.15, provenance: assumed, source: "D-007"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 11992.7, provenance: calculated, source: 'cheme process propagate: splitter X301 from S33 S38', fingerprint: dca6458fa8aa8df1}
+        composition: {basis: mole_fraction, values: {MDA: 0.0, PMDA: 0.0, COCL2: 5.41918e-06, MCB: 1.69716e-06, HCL: 0.999993, MDI: 0.0, PMDI: 0.0, NACL: 0.0, NAOH: 0.0, ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X301 from S33', fingerprint: 7bbed9482310082f}
+  - id: S40
+    title: Absorber water
+    from: PW.a301
+    to: A301.water
+    template: water
+    state:
+      design:
+        pressure: {value: 400.0, provenance: assumed, source: "site water header"}
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        phase: {value: liquid, provenance: assumed, source: "liquid"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
+        flow: {value: 1958.45, provenance: calculated, source: 'cheme process propagate: spec SP-ACID (S4 HCL mass fraction 0.3)', fingerprint: 5946021d27857041}
+  - id: S41
+    title: Absorber vent
+    from: A301.vent
+    to: VENT.in
+    template: process
+    state:
+      design:
+        pressure: {value: 110.0, provenance: assumed, source: "D-010"}
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        phase: {value: vapor, provenance: assumed, source: "gas"}
+        flow: {value: 0.0167375, provenance: calculated, source: 'cheme process propagate: separator A301 from S38 S40', fingerprint: '3091196276120248'}
+        composition: {basis: mole_fraction, values: {HCL: 0.0, COCL2: 0.761512, MCB: 0.238488, MDA: 0.0, PMDA: 0.0, MDI: 0.0, PMDI: 0.0, NACL: 0.0, NAOH: 0.0, ANL: 0.0, HCHO: 0.0, CH3OH: 0.0, H2O: 0.0}, provenance: calculated, source: 'cheme process propagate: separator A301 from S38 S40', fingerprint: '3091196276120248'}
+  # --- energy ------------------------------------------------------------------------------------
+  - {id: Q1, title: Cascade heating, kind: energy, from: LPS.r101, to: R101.q, state: {design: {duty: {value: 1560.0, provenance: assumed, source: "D-009: ASSUMED: the 30.42 t/h of S5 heated from 363 to 429 K at an ASSUMED 2.8 kJ/(kg K) (water-rich), 1561 kW; the heat of the condensation is not counted (no sourced value, L-1)"}}}}
+  - {id: Q2, title: MDA column reboiler, kind: energy, from: HPS.d101, to: D101.q, state: {design: {duty: {value: 2370.0, provenance: assumed, source: "D-009: ASSUMED: S15 boiled off (4732 kg/h aniline x 479.4 kJ/kg + 260 kg/h water x 2256 kJ/kg, heats of vaporization at Tb from thermo 0.6.1, 793 kW) at an ASSUMED reflux of 0.5 (1190 kW), plus the 17.62 t/h of MDA heated from 363 to 473 K at an ASSUMED 2.2 kJ/(kg K) (1184 kW)"}}}}
+  - {id: Q3, title: MDA column condenser, kind: energy, from: D101.cw, to: CW.d101, state: {design: {duty: {value: 1190.0, provenance: assumed, source: "D-009: ASSUMED: the overhead vapour of Q2 (793 kW at reflux 0.5) condensed"}}}}
+  - {id: Q4, title: Brine stripper reboiler, kind: energy, from: LPS.t102, to: T102.q, state: {design: {duty: {value: 480.0, provenance: assumed, source: "D-009: ASSUMED: S16 boiled off (400 kg/h aniline x 479.4 + 350 kg/h water x 2256 kJ/kg, 273 kW) at 1.5 times for the stripping vapour (410 kW), plus the 13.5 t/h of brine heated 5 K at an ASSUMED 3.9 kJ/(kg K) (73 kW)"}}}}
+  - {id: Q5, title: Brine stripper condenser, kind: energy, from: T102.cw, to: CW.t102, state: {design: {duty: {value: 410.0, provenance: assumed, source: "D-009: ASSUMED: the stripper's vapour of Q4 (410 kW) condensed"}}}}
+  - {id: Q6, title: Phosgenation tower heating, kind: energy, from: LPS.r201, to: R201.q, state: {design: {duty: {value: 5350.0, provenance: assumed, source: "D-009: ASSUMED upper estimate: S22 (65.01 t/h) from 333 K and S25 (103.63 t/h) from 274 K heated to the tower top's 384 K at an ASSUMED 1.3 kJ/(kg K) (MCB 1.48 kJ/(kg K) at 360 K, thermo 0.6.1), 5350 kW; the heat the phosgenation releases is not counted (no sourced heat of reaction, L-1), nor the HCl desorption"}}}}
+  - {id: Q7, title: Dephosgenation reboiler, kind: energy, from: LPS.d201, to: D201.q, state: {design: {duty: {value: 1540.0, provenance: assumed, source: "D-009: ASSUMED: S29 boiled off (11.32 t/h phosgene x 249.5 + 5.56 t/h MCB x 315.6 kJ/kg, heats of vaporization at Tb from thermo 0.6.1, 1272 kW), plus the 146 t/h of S28 heated 5 K at an ASSUMED 1.3 kJ/(kg K) (264 kW); no reflux"}}}}
+  - {id: Q8, title: Phosgene absorber refrigeration, kind: energy, from: T201.q, to: REFR.t201, state: {design: {duty: {value: 3400.0, provenance: assumed, source: "D-009: ASSUMED: the phosgene of S27 and S29 absorbed (18.87 t/h x 249.5 kJ/kg, 1308 kW) and their MCB condensed (9.0 t/h x 315.6 kJ/kg, 789 kW), and the 40.8 t/h of gas cooled from about 386 to 258 K at an ASSUMED 0.9 kJ/(kg K) (1306 kW), all on refrigeration; a cooling-water pre-condenser would take part of it"}}}}
+  - {id: Q9, title: Solvent column reboiler, kind: energy, from: LPS.d202, to: D202.q, state: {design: {duty: {value: 9260.0, provenance: assumed, source: "D-009: ASSUMED: the 105.62 t/h of MCB in S31 boiled off at 315.6 kJ/kg (thermo 0.6.1 at Tb), 9259 kW, single effect, no heat integration; the reflux taken as covered by the 428 K feed's superheat"}}}}
+  - {id: Q10, title: Solvent column condenser, kind: energy, from: D202.cw, to: CW.d202, state: {design: {duty: {value: 12550.0, provenance: assumed, source: "D-009: ASSUMED: the MCB vapour of Q9 condensed (9259 kW, an air condenser in US 10 364 214 B1) and the 105.62 t/h of recycle MCB cooled from about 383 to 303 K at 1.4 kJ/(kg K) (3286 kW)"}}}}
+  - {id: Q12, title: MDI column reboiler, kind: energy, from: HPS.d203, to: D203.q, state: {design: {duty: {value: 1140.0, provenance: assumed, source: "D-009: ASSUMED: the 4439 kg/h of monomeric MDI taken overhead at an ASSUMED 300 kJ/kg under vacuum (thermo 0.6.1 gives 262 kJ/kg at the 609 K Tb) and reflux 1 (740 kW), plus the 22.2 t/h of crude heated 40 K at an ASSUMED 1.6 kJ/(kg K) (395 kW)"}}}}
+  - {id: Q13, title: MDI column condensers and product coolers, kind: energy, from: D203.cw, to: CW.d203, state: {design: {duty: {value: 2460.0, provenance: assumed, source: "D-009: ASSUMED: the MDI column's overhead of Q12 condensed (740 kW), the monomeric MDI cooled from about 480 to 318 K and the polymeric MDI from about 500 to 323 K at an ASSUMED 1.6 kJ/(kg K) (1716 kW)"}}}}
+  - {id: Q14, title: HCl absorber cooling, kind: energy, from: A301.cw, to: CW.a301, state: {design: {duty: {value: 450.0, provenance: assumed, source: "D-009: ASSUMED: 23.0 kmol/h of HCl (S38) absorbed to 30 wt% at an ASSUMED integral heat of solution of 70 kJ/mol"}}}}
+  - {id: P1, title: Cascade agitators and pumps, kind: energy, from: POWER.r101, to: R101.power, state: {design: {duty: {value: 200.0, provenance: assumed, source: "D-009: ASSUMED allowance: agitators of the seven cascade reactors and the MDA section's pumps"}}}}
+  - {id: P2, title: Phosgenation feed pumps and circulation, kind: energy, from: POWER.r201, to: R201.power, state: {design: {duty: {value: 300.0, provenance: assumed, source: "D-009: ASSUMED allowance: the high-pressure feed pumps of the mixing nozzle and the phosgenation circulation"}}}}
+  - {id: P3, title: Vacuum systems and product pumps, kind: energy, from: POWER.d203, to: D203.power, state: {design: {duty: {value: 200.0, provenance: assumed, source: "D-009: ASSUMED allowance: the vacuum systems of D-101, D-202 and D-203 and the product pumps"}}}}
+layout: {bfd: {}, pfd: {}}

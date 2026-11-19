@@ -1,0 +1,96 @@
+# Process Atlas manifest of mdi-1. Schema: schemas/process.schema.json (cheme-as-code/process/v1).
+# plant.yaml stays the engineering manifest; sheets and results are derived from the
+# ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: mdi-1
+title: MDI and polymeric MDI by aniline-formaldehyde condensation and liquid-phase phosgenation (178 kt/a crude MDI)
+summary: >-
+  Aniline and formalin condensed over hydrochloric acid to MDA, neutralised and worked up; the
+  MDA phosgenated in monochlorobenzene, HCl and phosgene recovered, the solvent recycled;
+  monomeric MDI distilled off the crude, the bottoms polymeric MDI; part of the HCl recycled as
+  the condensation's acid, the rest exported. Concept stage, sourced ratios, preliminary LCI.
+description: |
+  Aniline (aniline-1) and 50 wt% formalin (formaldehyde-1), 2.25 mol per mol, are condensed with
+  30 % hydrochloric acid (0.10 mol HCl per mol of amino groups) in a seven-reactor cascade from
+  323 to 429 K to the MDA mixture (51 wt% two-ring diamines, the rest lumped as the three-ring
+  triamine), neutralised with caustic soda (chlor-alkali-1, 1.10 mol per mol HCl), washed and
+  freed of water and the excess aniline, which is recycled; the brine is stripped of aniline and
+  methanol and goes to wastewater treatment. The MDA, as a 27.1 % solution in MCB, meets a 35 %
+  phosgene solution (2.06 kg phosgene per kg MDA; liquid phosgene from phosgene-1) in a mixing
+  nozzle and a phosgenation tower (384 K, 160 kPa(a)); HCl and phosgene are separated, the
+  phosgene is absorbed in chilled MCB and recycled, the MCB is distilled off and recycled, and
+  monomeric MDI is distilled off the crude under vacuum (a fifth of the crude), the bottoms
+  polymeric MDI. 6.5 % of the HCl is absorbed to the condensation's acid, the rest leaves as gas.
+  The ratios and conditions are the nameplate examples of US 10 640 455 B1 (MDA) and
+  US 10 364 214 B1 (phosgenation), the route that of the EU LVOC BREF (2017, Chapter 10).
+
+  Every flow and composition is calculated by cheme process propagate: conversion reactors,
+  component separators with ASSUMED recovery fractions, five recycles converged at tears and
+  seven design specifications that set the fresh aniline, caustic, phosgene, MCB make-up and
+  absorber water and the two splits from the sourced ratios. The duties are ASSUMED estimates
+  with their arithmetic in the flowsheet (core has no formation enthalpies for MDA or MDI and no
+  property package for these mixtures; DESIGN.md L-1, L-2). Phosgene is 0.784 kg per kg of crude
+  MDI, as the BREF's example plant (0.78). Preliminary gate-to-gate LCI with mass allocation
+  between monomeric MDI, polymeric MDI and HCl gas; the aniline, formalin, caustic soda and
+  phosgene linked to their library producers, the other backgrounds gaps. TDI is left for
+  another entry. Needs cheme-as-code 1.12.0.
+families: [nitrogen-organics]
+keywords: [MDI, methylene diphenyl diisocyanate, polymeric MDI, PMDI, isocyanates, MDA, methylenedianiline, aniline, formaldehyde, phosgene, phosgenation, monochlorobenzene, hydrogen chloride, polyurethanes]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [chemicals, polymers]
+  unit_operations: [reaction, distillation, absorption]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Ratios are sourced from patents,
+# the separator splits and duties are assumed (DESIGN.md D-003..D-009).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    propagate: five tears and seven specifications converged). Ratios and conditions from
+    US 10 640 455 B1 and US 10 364 214 B1; MDA and MDI lumped as two-ring and three-ring
+    components; separator splits and duties ASSUMED. Preliminary gate-to-gate LCI. cheme maturity
+    reaches no level (assumed separations and duties). Not reviewed.
+chemistry:
+  inputs:
+    - {chemical: aniline, role: feedstock, inventory_key: "feed:ANLF", note: "Aniline (aniline-1), 0.740 kg per kg of crude MDI"}
+    - {chemical: formaldehyde, role: feedstock, inventory_key: "feed:HCHOF", note: "Formalin 50 wt% (formaldehyde-1), counted by mass of the solution, 0.277 kg per kg of crude MDI"}
+    - {chemical: phosgene, role: feedstock, inventory_key: "feed:PHOSF", note: "Liquid phosgene (phosgene-1), 0.784 kg per kg of crude MDI"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOHF", note: "Caustic soda 50 wt% (chlor-alkali-1), counted by mass of the solution, 0.091 kg per kg of crude MDI"}
+    - {chemical: chlorobenzene, role: feedstock, inventory_key: "feed:MCBF", note: "Monochlorobenzene make-up (no library process), 0.24 g per kg of crude MDI"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water for the MDA wash and the HCl absorber, 0.223 kg per kg of crude MDI"}
+  outputs:
+    - {chemical: methylene-diphenyl-diisocyanate, role: main-product, inventory_key: "product:MDIP", note: "Monomeric MDI (two-ring isomers, not separated), 4.44 t/h, a fifth of the crude"}
+    - {chemical: polymeric-mdi, role: co-product, inventory_key: "product:PMDIP", note: "Polymeric MDI, 17.75 t/h, about 40 wt% two-ring MDI; mass allocation, 51.9 % of the burdens"}
+    - {chemical: hydrogen-chloride, role: co-product, inventory_key: "product:HCLG", note: "Anhydrous HCl gas to an adjacent consumer, 0.540 kg per kg of crude MDI; mass allocation, 35.1 % of the burdens"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:BRINE", note: "MDA brine, 0.574 kg per kg of crude MDI, 10.6 wt% NaCl, to treatment"}
+    - {chemical: methanol, role: waste, inventory_key: "product:MEOH", note: "Methanol-rich condensate from the formalin, 1.3 g per kg of crude MDI, burnt as fuel"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.032 kWh per kg of crude MDI, ASSUMED allowances"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.819 kWh of LP steam heat per kg of crude MDI (ASSUMED estimates), the solvent column 9.3 of 18.2 MW"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "0.158 kWh of HP steam heat per kg of crude MDI (ASSUMED estimates)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.769 kWh removed per kg of crude MDI"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:REFR", note: "Refrigerated brine at 248 K for the phosgene absorber, 0.153 kWh removed per kg of crude MDI"}
+basis:
+  capacity: "22.2 t/h crude MDI (about 178 kt/a): 4.44 t/h monomeric MDI and 17.75 t/h polymeric MDI, set by 3.07 t/h formaldehyde, the nameplate of US 10 640 455 B1 (ASSUMED, DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic (not chosen), integrated with aniline, formaldehyde, phosgene and chlor-alkali plants
+references:
+  - {title: "European Commission JRC (2017) Best Available Techniques Reference Document for the Production of Large Volume Organic Chemicals, EUR 28882 EN, Chapter 10 (TDI and MDI)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/JRC109279_LVOC_Bref.pdf"}
+  - {title: "Knauf, T. et al. (Covestro Deutschland AG, 2020) US 10 640 455 B1: Method of producing diamines and polyamines of the diphenylmethane series (nameplate MDA plant)", url: "https://patents.google.com/patent/US10640455B1/en"}
+  - {title: "Covestro Deutschland AG (2019) US 10 364 214 B1: Method for producing isocyanates (nameplate MDI phosgenation)", url: "https://patents.google.com/patent/US10364214B1/en"}
+  - {title: "Müller, H.-H. et al. (Bayer MaterialScience AG, 2007) US 7 186 857 B2: Process for the preparation of di- and polyamines of the diphenylmethane series", url: "https://patents.google.com/patent/US7186857B2/en"}
+  - {title: "Sphera for ISOPA / PlasticsEurope (2021) Eco-profile and EPD: TDI and MDI (reference year 2018)", url: "https://www.pu-europe.eu/wp-content/uploads/2023/06/ISOPA_Eco-profile_TDI_MDI_2021.pdf"}
+  - {title: "Franklin Associates for the American Chemistry Council (2022) Cradle-to-gate life cycle analysis of methylene diphenyl diisocyanate (MDI)", url: "https://americanchemistry.com/content/download/11831/file/Cradle-to-Gate-Life-Cycle-Analysis-of-Methylene-Diphenyl-Diisocyanate-Resin-Precursor.pdf"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/mdi-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
