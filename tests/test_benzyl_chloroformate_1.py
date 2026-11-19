@@ -344,8 +344,10 @@ def test_core_screens_the_gas_release_above_the_vent(fs):
     report = screen(PROCESS)
     entry = next(e for e in report.entries if e.node == "R101")
     assert entry.counted_reactions == ["PHOSG", "CARB", "CLBN"]
-    assert entry.mtsr == pytest.approx(357.1, abs=0.05)
-    assert entry.mtt == pytest.approx(280.65)
+    # core 1.12.0 (D-016): hazard.potential network counts CARB on PHOSG's product, and
+    # hazard.mtt_from bubble-point gives the worst-moment content's bubble point at 50 kPa(a)
+    assert entry.mtsr == pytest.approx(361.4, abs=0.05)
+    assert entry.mtt == pytest.approx(419.7, abs=0.05)
     assert entry.adiabatic_rise == pytest.approx(494.0, abs=0.05)
     assert entry.per_reaction["PHOSG"]["mtsr"] == pytest.approx(294.1, abs=0.05)
     assert entry.per_reaction["CLBN"]["mtsr"] == pytest.approx(306.5, abs=0.05)
@@ -355,12 +357,13 @@ def test_core_screens_the_gas_release_above_the_vent(fs):
     assert solution["adiabatic_rise_K"] == pytest.approx(102.6, abs=0.05)
     assert solution["in_mtsr"] is False
     gas = entry.gas_release
-    assert gas["per_batch"] and gas["rate_m3_h"] == pytest.approx(3219, abs=0.5)
+    assert gas["per_batch"] and gas["rate_m3_h"] == pytest.approx(3823, abs=0.5)
     assert gas["vent_capacity_m3_h"] == 173.0
-    assert round(gas["capacity_ratio"], 1) == 18.6
+    assert round(gas["capacity_ratio"], 1) == 22.1
     rules = {f.rule for f in report.findings if f.level in ("warning", "error")}
-    # both are design findings recorded in DESIGN.md (D-011, D-014); nothing else may warn
-    assert rules == {"cheme.reactor-hazard-mtsr", "cheme.reactor-hazard-vent"}, rules
+    # the vent finding is recorded in DESIGN.md (D-011, D-014, D-016); the content does not boil
+    # at the MTSR on core 1.12.0 (D-016), so the MTSR warning is gone; nothing else may warn
+    assert rules == {"cheme.reactor-hazard-vent"}, rules
 
 
 def test_r101_source_names_the_dosing_time(fs):

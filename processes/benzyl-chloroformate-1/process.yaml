@@ -33,14 +33,17 @@ description: |
   phosgene's heat of solution is the dose's (core ADR 0063), the heats of reaction on the
   dissolved basis. Thermal screening: dT_ad 494 K (the side reaction to benzyl chloride run on all
   the alcohol, with the dose's heat of solution; 323.4 K for the main reaction alone), accumulation
-  at most 17 % (the deliberate phosgene excess, at the end of the dosing), MTSR 357 K (set by the
-  side reaction to dibenzyl carbonate, counted on purpose; 294.1 K for the main reaction alone)
-  against an MTT of 281 K (the boiling point of phosgene, which the excess would boil off). The
-  gas a cooling failure releases at the MTSR, 3219 m3/h by the screening, is 18.6 times what the
-  vacuum pump vents (173 m3/h), and 21.9 times (3788 m3/h, phosgene vapour 0.15 of it) with the
-  liquid's vapour on a trial with core 1.10.0's vent vapour: a design finding for a dosing
-  interlock and an emergency relief to the scrubber. The vent and scrubber are the
-  safety-critical path; no class without a TD24. See DESIGN.md for every assumption.
+  at most 17 % (the deliberate phosgene excess, at the end of the dosing; 4.4 % of it can still
+  react), MTSR 361 K (the reactions as a network, the side reaction to dibenzyl carbonate on the
+  product, counted on purpose; 294.1 K for the main reaction alone) against an MTT of 420 K, the
+  content's bubble point at 50 kPa(a): a cooling failure does not boil the content, it releases
+  gas. That gas, 3823 m3/h at the MTSR by the core 1.12.0 screening (3219 m3/h on 1.10.0), is
+  22.1 times what the vacuum pump vents (173 m3/h), 26.1 times (4519 m3/h, phosgene vapour 0.16
+  of it) with the liquid's vapour on a trial; with the vent blocked the head space would reach
+  some MPa even without that side reaction: a design finding for a dosing interlock and an
+  emergency relief to a catch tank and scrubber, sized by DIERS on calorimetry. The vent and
+  scrubber are the safety-critical path; no class without a TD24. See DESIGN.md for every
+  assumption.
 families: [chlorinated-organics]
 keywords: [benzyl chloroformate, Cbz-Cl, Z-Cl, chloroformate, benzyl alcohol, phosgene, phosgenation, semi-batch, batch, dosing, gas evolution, HCl vent, degassing, caustic scrubber, fine chemicals, protecting group reagent]
 facets:
@@ -65,24 +68,30 @@ validation:
     T101 (Q4, 1.177 kW) are the models' year averages written by cheme process propagate (core
     ADR 0059); Q2 holds the heat of solution of the absorbed phosgene (the dose's
     heat_of_solution, assumed, with the heats of reaction on the dissolved basis, core ADR 0063;
-    D-015). Thermal screening (cheme process reactor-hazards): dT_ad 494.0 K (with the dose's
-    heat of solution, 102.6 K), accumulation 0.173, MTSR 357.1 K against an MTT of 280.65 K
-    (phosgene's boiling point, hazard.mtt), all set by the side reactions, every reaction
-    counted on purpose (hazard.reactions, CARB included as the conservative choice; CLBN's heat
-    for the dT_ad, CARB for the MTSR); the main reaction PHOSG alone gives dT_ad 323.4 K (220.8
-    K without the heat of solution) and MTSR 294.1 K, still above the MTT (DESIGN.md D-011). The
-    gas release at the MTSR, 3219 m3/h at 357.1 K and 50 kPa(a), is 18.6 times the vent
-    capacity of 173 m3/h (the vacuum pump, hazard.vent_capacity, assumed); with the phosgene
-    vapour (vent.vapour, core ADR 0062, on a scratch copy, not adopted) it is 3788 m3/h, 21.9
-    times, and the relief is to be sized on that (DESIGN.md D-014, D-015). The
-    two warnings cheme.reactor-hazard-mtsr and -vent are design findings, kept (D-011, D-014);
+    D-015). Thermal screening (cheme process reactor-hazards, core 1.12.0, DESIGN.md D-016):
+    dT_ad 494.0 K (with the dose's heat of solution, 102.6 K), accumulation 0.173 (of it 0.044
+    still able to react), MTSR 361.4 K from the counted reactions as a network
+    (hazard.potential, CARB on PHOSG's product; 357.1 K for CARB alone on 1.10.0) against an MTT
+    of 419.7 K, the content's bubble point at 50 kPa(a) (hazard.mtt_from; the hand MTT of
+    280.65 K, phosgene's normal boiling point, replaced: with its dissolved phosgene the content
+    boils 33.9 K or more above the MTSR at every moment), every reaction counted on purpose
+    (hazard.reactions, CARB included as the conservative choice); the main reaction PHOSG alone
+    gives dT_ad 323.4 K (220.8 K without the heat of solution) and MTSR 294.1 K (DESIGN.md
+    D-011). The gas release at the MTSR, 3823 m3/h at 361.4 K and 50 kPa(a), the largest over
+    the batch, is 22.1 times the vent capacity of 173 m3/h (the vacuum pump,
+    hazard.vent_capacity, assumed; 3219 m3/h and 18.6 times on core 1.10.0); with the phosgene
+    vapour (vent.vapour, on a scratch copy, not adopted) 4519 m3/h, 26.1 times, the relief's
+    screening basis (D-014, D-016). The warning cheme.reactor-hazard-vent is a design finding,
+    kept; cheme.reactor-hazard-mtsr is gone with the bubble-point MTT (D-016); the info
+    cheme.reactor-hazard-dissolved names up to 214.7 kg of phosgene held in the liquid per batch;
     no criticality class without a TD24 from calorimetry. The kinetics are assumed: the
     accumulation rests on that assumption (k/10 and k/100 in DESIGN.md D-011). Preliminary
     gate-to-gate LCI with the nitrogen purges as a per-batch consumable; benzyl alcohol,
     phosgene, caustic soda and nitrogen linked to benzyl-alcohol-1, phosgene-1, chlor-alkali-1
     and asu-1, the other backgrounds gaps. cheme maturity reaches no level (assumed feeds, kinetics and separations);
     the claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
-    reviewed. Needs cheme-as-code 1.10 (the dose's heat_of_solution, ADR 0063; from 1.9 the
+    reviewed. Needs cheme-as-code 1.12 (hazard.mtt_from and hazard.potential, ADR 0069; from 1.10
+    the dose's heat_of_solution, ADR 0063; from 1.9 the
     model duties and energy_port, ADR 0059, hazard.reactions and vent_capacity, ADR 0058; and
     from 1.8 batch.vent, dosing.absorbed, still:, recipe units:, ADRs 0054, 0055, 0057).
 chemistry:
