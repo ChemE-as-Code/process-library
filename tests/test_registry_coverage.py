@@ -75,6 +75,8 @@ CONSUMER_STREAM = "a component of the consumer's stream the utility treats (wast
 
 #: Feeds and products without a registry identity, each with the reason.
 NO_REGISTRY_IDENTITY = {
+    "4-aminophenol-1/consumable:catalyst-pt-c": CATALYST,
+    "4-aminophenol-1/consumable:surfactant": "a dimethylalkylamine oxide surfactant of mixed alkyl chains (C8 to C20, mostly dodecyl), not one substance",
     "acrylonitrile-1/consumable:ammox-catalyst": CATALYST,
     "aniline-1/consumable:hydrogenation-catalyst": CATALYST,
     "asu-1/consumable:lube-oil": ARTICLE,

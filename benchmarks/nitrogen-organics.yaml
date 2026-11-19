@@ -23,6 +23,13 @@
 # 1.9 (tests/test_caprolactam_1.py), which no exchange expression can isolate. No open source
 # gives a plant's cyclohexanone use; the stoichiometric floor (98.145 / 113.160 = 0.867 kg/kg) is
 # a limit, not a range.
+#
+# 4-Aminophenol (4-aminophenol-1, #506): benchmarks must be independent of the dataset
+# (docs/benchmarks.md). The dataset takes its ratios and selectivity from US 3 383 416 A's and
+# US 4 307 249 A's examples, so they are not bound. US 3 953 509 A's yields (about 78 % crude
+# 4-aminophenol) are for another route (sulfided catalysts at 132 to 155 C and 1.4 to 3.4 MPa)
+# and are not bound either. The stoichiometric floor of the nitrobenzene, 1.128 kg/kg, is a
+# limit, not a range.
 schema: cheme-as-code/benchmarks/v1
 family: nitrogen-organics
 
@@ -159,6 +166,15 @@ kpis:
     unit: kg/kg
     no_open_reference: "No open source with a plant's cyclohexanone use per kg of caprolactam found (searched 2026-11-19: Google Patents for oximation and Beckmann rearrangement, US 4,031,139, US 4,804,754, US 7,339,056 B2 read; the LVOC BREF 2017 section 2.1.4.7.1; Wikipedia). Only the stoichiometric floor, 0.867 kg/kg, is known."
 
+  pap-specific-nitrobenzene:
+    title: Nitrobenzene consumption per kg of 4-aminophenol
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's nitrobenzene use per kg of 4-aminophenol found (searched 2026-11-19: Google Patents US 3 383 416 A, US 4 307 249 A and US 3 953 509 A read; PubChem CID 403). US 3 383 416 A's examples are the dataset's own source (73 to 79 % of the nitrobenzene reduced isolated); US 3 953 509 A is another route; the stoichiometric floor is 1.128 kg/kg."
+  pap-specific-wastewater:
+    title: Wastewater (ammonium sulfate mother liquor, wash and condensates) per kg of 4-aminophenol
+    unit: kg/kg
+    no_open_reference: "No open source with the liquor volume of 4-aminophenol manufacture found (searched 2026-11-19 as for pap-specific-nitrobenzene); the patents give laboratory charges (about 7 g of water per g of nitrobenzene in US 3 383 416 A Example 1(A)), no plant figure."
+
 datasets:
   - process: caprolactam-1
     dataset: caprolactam-from-cyclohexanone-oxime-by-beckmann-rearrangement-in-oleum-100-kt-a
@@ -202,3 +218,9 @@ datasets:
         per: product:ACNP
         reference: ipcc-2006-acn-co2-recovered
         out_of_range_reason: "Fewer carbon oxides: the dataset's catalyst sends 11.2 % of the propylene carbon to CO and CO2 (US 6 596 897 B1), the reference rests on the 2003 BREF plants at about 70 % acrylonitrile yield; the dataset's figure also includes the support fuel's CO2 (0.014 t/t), which the reference excludes (DESIGN.md D-004, D-008)."
+  - process: 4-aminophenol-1
+    dataset: 4-aminophenol-by-batch-hydrogenation-of-nitrobenzene-in-dilute-sulfuric-acid-bamberger-route
+    conditions: {technology: "Pt/C hydrogenation of nitrobenzene in dilute sulfuric acid with the Bamberger rearrangement, semi-batch at 358 K stopped at 0.88 conversion on a recycled heel, ammonia neutralisation, aniline distillation, two crops crystallised", basis: "concept balance, ratios from US 3 383 416 A and ASSUMED (DESIGN.md D-004, D-008)"}
+    kpis:
+      pap-specific-nitrobenzene: {expression: feed:NBF / product:PAPP, per: product:PAPP}
+      pap-specific-wastewater: {expression: product:WW / product:PAPP, per: product:PAPP}
