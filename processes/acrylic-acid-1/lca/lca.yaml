@@ -1,0 +1,148 @@
+# Goal and scope of the acrylic-acid-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit
+# those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the
+# continuous plant per kg of glacial acrylic acid, from the flowsheet's design case. The
+# backgrounds are left unmapped (`missing:` with the activity each should connect to), except
+# where lca/mappings.yaml links a library producer or a shared entry (propylene to
+# propylene-pdh-1, toluene to btx-1, the reboiler steam as heat from steam): a gap, never zero,
+# and no values from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of glacial acrylic acid made by two-stage
+  catalytic oxidation of propylene with air and steam, quench absorption in water, azeotropic
+  dehydration with toluene and vacuum distillation, at the concept stage (issue #475): which raw
+  materials, utilities, emissions and wastes the plant exchanges per kg of acrylic acid, as the
+  foreground for a later cradle-to-gate study. No impact results: most backgrounds are not
+  mapped yet (D-012).
+functional_unit: {product: PRODUCT, amount: 1, unit: kg, source: "1 kg of glacial acrylic acid (model 99.92 wt%, 200 ppm MEHQ) at the plant gate to storage, stream S27 (D-002, D-009, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as oxalyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Continuous plant: propylene oxidised with air and steam in two multitubular fixed-bed reactors (Mo-Bi oxide at 583 K to acrolein, Mo-V oxide at 538 K to acrylic acid), the reaction heat raising HP steam through molten salt; the gas quenched and absorbed in water to 55 wt% acrylic acid; the off-gas burnt in a catalytic oxidiser; the water removed by azeotropic distillation with toluene at 24 kPa(a), acetic acid and toluene in a second vacuum column, glacial acrylic acid distilled at 8 kPa(a) with hydroquinone in the columns and 200 ppm MEHQ in the product; 100 kt/a in 8000 h"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  method: exergy
+  coproducts: [PRODUCT, STMX]
+  properties:
+    PRODUCT:
+      exergy: 19647.0
+      source: >-
+        scripts/allocation_exergy.py: standard chemical exergy of liquid S27 (acrylic acid with
+        0.057 wt% acetic acid) from the ideal-gas formation data of process/materials.yaml and
+        Szargut's element exergies (Szargut, Morris and Steward 1988), less the Gibbs energy of
+        condensation at 298.15 K; MEHQ counted at acrylic acid's value; physical exergy neglected
+    STMX:
+      exergy: 1373.4
+      source: >-
+        scripts/allocation_exergy.py: exergy added per kWh of heat raised in the reactors' salt
+        coolers, saturated steam at 2500 kPa(a) from boiler feed water at 378.15 K (ASSUMED),
+        dead state 298.15 K, 101.325 kPa, IAPWS-95 (thermo)
+  compare: [none]
+  source: >-
+    D-012 (agent proposal, for the LCA practitioner to confirm): the HP steam the reactors raise
+    and export is a co-product of acrylic acid. The library allocates exported steam by energy
+    or exergy, never by credit (docs/system-model.md section 2); exergy weighs the steam by its
+    work potential and the acid by its chemical exergy on one basis, as cumene-1 and methanol-1
+    do. Acrylic acid carries about 84 % of the burdens and the steam about 16 %. The unallocated
+    result is kept in the comparison.
+  deviation: >-
+    The steam is raised by the reactors' heat, not separated from a joint product; the WBCSD
+    price-ratio rule is not applied, as no prices are sourced at the concept stage and the steam
+    is counted in kWh. Exergy is the library's rule for exported steam (D-012).
+flows:
+  # raw materials
+  - key: feed:C3
+    missing: "linked to processes/propylene-pdh-1 (lca/mappings.yaml): propylene by propane dehydrogenation, per kg of the feed (its 0.5 mol% propane counted with it)"
+    source: "flowsheet stream S1 (D-003)"
+  - key: feed:AIR
+    missing: "atmospheric air, no upstream burden; its compression is the electricity of K-101"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:STM
+    missing: "linked to processes/utility-steam-ng-boiler (lca/mappings.yaml): steam 11 bar(a) from the natural-gas boiler, by mass"
+    source: "flowsheet streams S4 and S9 (D-004)"
+  - key: feed:PW
+    missing: "not mapped yet (D-012); connect to: process (demineralised) water from the site water treatment"
+    source: "flowsheet stream S13 (D-007)"
+  - key: feed:HQ
+    missing: "not mapped yet (D-012); no library process makes hydroquinone. Connect to: hydroquinone (e.g. from phenol and hydrogen peroxide or by diisopropylbenzene oxidation), per kg"
+    source: "flowsheet stream S16 (D-008)"
+  - key: feed:TOL
+    missing: "linked to processes/btx-1 (lca/mappings.yaml): toluene from reformate extraction"
+    source: "flowsheet stream S19 (D-008)"
+  - key: feed:MEHQ
+    missing: "not mapped yet (D-012); no library process makes 4-methoxyphenol. Connect to: 4-methoxyphenol (hydroquinone methylated), per kg"
+    source: "flowsheet stream S26 (D-009)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped yet (D-012); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy stream Q1 (K-101, D-006)"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q6, Q8, Q10 (the reboilers, scripts/aa_balance.py, D-008, D-009)"
+  - key: product:CW
+    missing: "not mapped yet (D-012); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q4, Q5, Q7, Q9, Q11 (D-007 to D-010)"
+  # wastes
+  - key: product:WW
+    treatment: {kind: waste, route: "biological treatment of the aqueous phase (water with 0.18 wt% acetic acid, 0.09 wt% acrylic acid and toluene traces) at the site's wastewater treatment (D-008)"}
+    missing: "not mapped yet (D-012); connect to: treatment of industrial wastewater with organic acids, per kg (processes/utility-wwtp is a candidate)"
+    source: "flowsheet stream S17 (D-008)"
+  - key: product:ACW
+    treatment: {kind: waste, route: "incineration of the acetic acid side draw (74 wt% acetic acid, 24 wt% acrylic acid, 1 wt% toluene) as a liquid organic waste; recovering the acetic acid is an open option (D-008)"}
+    missing: "not mapped yet (D-012); connect to: incineration of liquid organic (non-halogenated) waste, per kg"
+    source: "flowsheet stream S22 (D-008)"
+  - key: product:HEAVY
+    treatment: {kind: waste, route: "incineration of the heavy ends (acrylic acid, its dimer and hydroquinone) as a liquid organic waste; dimer cracking or use as a fuel are open options (D-009)"}
+    missing: "not mapped yet (D-012); connect to: incineration of liquid organic (non-halogenated) waste, per kg"
+    source: "flowsheet stream S25 (D-009)"
+  # emissions: the oxidiser flue gas to the stack (D-011)
+  - {key: product:STACK, emission: true, source: "catalytic oxidiser flue gas to atmosphere through the stack, stream S30 (D-011)"}
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: non-urban-high-stack, origin: fossil}
+    source: "CO2 of the by-product combustion in the reactors and of the organics burnt in the oxidiser; the carbon comes from fossil propylene (D-005, D-011), stream S30"
+  - key: emission:C3H6
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "propylene slip: 1 % of the off-gas's propylene passes the oxidiser (99 % ASSUMED, D-011), stream S30"
+  - key: emission:C3H8
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "propane slip, 1 % (D-011), stream S30"
+  - key: emission:ACR
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "acrolein slip, 1 % (D-011), stream S30"
+  - key: emission:AA
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "acrylic acid slip, 1 % (D-011), stream S30"
+  - key: emission:HAC
+    elementary: {compartment: air, subcompartment: non-urban-high-stack}
+    source: "acetic acid slip, 1 % (D-011), stream S30"
+  - {key: emission:N2, free: true, source: "atmospheric N2 of the process air returned"}
+  - {key: emission:O2, free: true, source: "excess atmospheric O2 of the process air returned"}
+  - {key: emission:H2O, free: true, source: "water vapour (process steam, reaction water) leaving with the flue gas"}
+operation:
+  hours_per_year: 8000
+  life_years: 25
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 25 a service life ASSUMED; no construction inventory at this stage (D-012)"
+emission_exclusions:
+  - {id: fugitive-leaks, method: equipment-leaks, reason: "fugitive propylene, acrolein, acrylic acid and toluene from flanges, seals and valves are not estimated, not claimed negligible: an equipment-leak estimate needs the P&ID component counts, which do not exist at the concept stage (D-012)"}
+  - {id: vacuum-vents, method: effluent, equipment: [C-401, C-402, C-404], reason: "the vacuum systems of the three columns vent the inhibitor air and leaked air with traces of toluene and acids; not quantified (no vacuum system designed); to the oxidiser X-401 in a real plant (D-012)"}
+  - {id: storage-tanks, method: storage-tank, reason: "acrylic acid, toluene and crude storage are outside the battery limit or not designed: their breathing losses are not estimated (D-012)"}
+  - {id: oxidiser-nox-co, method: combustion, equipment: [X-401], reason: "the CO and NOx a catalytic oxidiser forms at 480 to 600 K are not estimated (no open emission factor read for it); the flowsheet carries its CO2, water and the 1 % of the organics it does not burn (D-011)"}
+  - {id: catalyst-change, method: non-routine, equipment: [R-101, R-201, X-401], reason: "the Mo-Bi and Mo-V catalysts and the oxidiser's catalyst are replaced every few years; no open charge or life figure was read for this design (D-012)"}
+cutoff:
+  - {id: pumps-power, title: "Pumps, the absorber's pump-around and the vacuum systems' power", unit: kWh, per_year: 4000000, reason: "about 500 kW x 8000 h/a (ASSUMED order of magnitude, not sized; D-010); not in the flowsheet's power feed", source: "D-010"}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic petrochemical site with a propylene supply and a steam header, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #475, unreviewed"

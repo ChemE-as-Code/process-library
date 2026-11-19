@@ -1,0 +1,39 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the duties of the flowsheet. Sizes, design pressures, temperatures and materials are not
+# set yet (basic engineering); the materials named are the usual choices for hot acrylic and
+# acetic acid (stainless steel), to be confirmed (open input). All values ASSUMED.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: K-101, type: Compressor, service: "Process air compressor, 101.3 to 230 kPa(a)",
+     notes: "60.4 t/h of air, 1751 kW at an isentropic efficiency of 0.80 (scripts/aa_balance.py, D-006); 63 % to the first stage, 37 % to the second."}
+  - {tag: M-101, type: Mixer, service: "First-stage feed mixer: propylene, primary air and steam",
+     notes: "Mixed at 381 K, below the 200 C of US 4 873 368 A; the mixture (12 % propylene in air and steam) lies inside propylene's flammable range: the mixing point, the feed ratio trips and flame arrestors are a hazard of the design (D-013)."}
+  - {tag: R-101, type: TubularReactor, service: "First-stage reactor: multitubular, Mo-Bi oxide catalyst, molten nitrate salt at 583 K, after-cooling zone to 533 K",
+     notes: "Tubes of 15 to 40 mm and 2 to 8 m (US 4 873 368 A); 23.7 MW to the salt (Q2, calculated by core), which raises HP steam at 2500 kPa(a) in a salt cooler; the cooling zone after the catalyst bed keeps the acrolein below 280 C, where it oxidises by itself (US 4 873 368 A, Table 3). Tube count and catalyst volume not sized (L-1)."}
+  - {tag: M-201, type: Mixer, service: "Second-stage feed mixer: secondary air and steam into the acrolein gas",
+     notes: "Mixed at 495 K (D-006)."}
+  - {tag: R-201, type: TubularReactor, service: "Second-stage reactor: multitubular, Mo-V oxide catalyst, molten salt at 538 K",
+     notes: "11.5 MW to the salt (Q3, calculated by core), HP steam raised as for R-101; not sized (L-1)."}
+  - {tag: E-301, type: HeatExchanger, service: "Reaction gas cooler, 538 to 443 K",
+     notes: "2578 kW to cooling water (Q4); a boiler-feed-water preheater would recover it (open option, D-010); kept above the gas's dew point to avoid acrylic acid condensing without inhibitor."}
+  - {tag: T-301, type: Column, service: "Quench absorber: the gas cooled and the acids absorbed in inhibited water, pump-around cooler",
+     notes: "Off-gas out at 313 K and 130 kPa(a), bottoms 55 wt% acrylic acid at 333 K; 12.2 MW to cooling water in the pump-around (Q5); inhibitor in the water (US 4 873 368 A); stainless steel."}
+  - {tag: X-401, type: Furnace, service: "Catalytic oxidiser of the absorber off-gas, recuperative",
+     notes: "53.6 t/h of off-gas; 99 % of the propylene, propane, acrolein and acids burnt; net adiabatic with a recuperator (outlet 483 K in the model); start-up and support fuel excluded (D-011)."}
+  - {tag: C-401, type: Column, service: "Azeotropic dehydration column with toluene, 24 kPa(a) top, 363 K bottoms",
+     notes: "About 15 theoretical stages (US 5 910 607 A, Example 1; 5 to 20 in its description); reboiler E-401 13.3 MW on LP steam (Q6), condenser E-402 13.3 MW to cooling water (Q7); hydroquinone fed at the top, air bled in at the bottom for the inhibitor (not modelled); bottoms kept at 6 to 15 wt% toluene and at most 0.5 wt% water against polymer fouling (US 5 910 607 A)."}
+  - {tag: V-401, type: Vessel, service: "Overhead decanter of C-401: toluene phase to reflux, aqueous phase to wastewater",
+     notes: "Decanter at 322 K (D-008)."}
+  - {tag: C-402, type: Column, service: "Acetic acid and toluene column, 13.3 kPa(a), side draw",
+     notes: "Overhead toluene and water back to C-401 (S21), acetic acid side draw to incineration, bottoms to C-404; reboiler E-403 559 kW, condenser E-404 559 kW (Q8, Q9) at an ASSUMED reflux ratio of 3."}
+  - {tag: C-404, type: Column, service: "Glacial acrylic acid column, 8 kPa(a) top",
+     notes: "Glacial acid overhead, heavy ends with the hydroquinone at the bottom to incineration; reboiler E-405 4.4 MW on LP steam, condenser and subcooler E-406 4.4 MW (Q10, Q11) at an ASSUMED reflux ratio of 1; bottoms at 352 K, kept low by the vacuum against dimer and polymer formation (D-009, D-013)."}
+  - {tag: E-401, type: HeatExchanger, service: "C-401 reboiler on LP steam", notes: "13.3 MW (Q6), scripts/aa_balance.py; not sized."}
+  - {tag: E-402, type: HeatExchanger, service: "C-401 overhead condenser on cooling water", notes: "13.3 MW (Q7), scripts/aa_balance.py; not sized."}
+  - {tag: E-403, type: HeatExchanger, service: "C-402 reboiler on LP steam", notes: "559 kW (Q8), scripts/aa_balance.py; not sized."}
+  - {tag: E-404, type: HeatExchanger, service: "C-402 overhead condenser on cooling water", notes: "559 kW (Q9), scripts/aa_balance.py; not sized."}
+  - {tag: E-405, type: HeatExchanger, service: "C-404 reboiler on LP steam", notes: "4.4 MW (Q10), scripts/aa_balance.py; not sized."}
+  - {tag: E-406, type: HeatExchanger, service: "C-404 condenser and product subcooler on cooling water", notes: "4.4 MW (Q11), scripts/aa_balance.py; not sized."}
+  - {tag: M-405, type: Mixer, service: "MEHQ dosing into the glacial acid",
+     notes: "200 ppm MEHQ (Arkema data sheet, D-009)."}
