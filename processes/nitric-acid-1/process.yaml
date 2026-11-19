@@ -19,9 +19,12 @@ description: |
   N2O to the IPCC default for plants with tail-gas N2O destruction (2.5 kg per t HNO3) and
   reduces NOx with ammonia; the expander drives the compressor train.
 
-  All values are concept estimates from an independent balance script whose property method is
-  not qualified by ChemE-as-Code for nitrous gas and aqueous nitric acid; see
-  DESIGN.md of the engineering files for every assumption and gated step.
+  All values are concept estimates. The gas-phase part (ammonia evaporators, air compressor,
+  burner, heat recovery, the NOx-gas exchanger and cooler) is a DWSIM simulation with
+  Peng-Robinson; the acid section (cooler-condenser, separator, absorber, bleacher) and the
+  machines and tail-gas train after it stay with an independent balance script. Neither property method is qualified by ChemE-as-Code for nitrous
+  gas and aqueous nitric acid; see DESIGN.md of the engineering files for every assumption and
+  gated step.
 families: [nitric-acid]
 keywords: [nitric acid, Ostwald process, ammonia oxidation, dual pressure, platinum-rhodium gauze, absorption, bleaching, N2O abatement, tertiary abatement, SCR, tail-gas expander, weak acid]
 facets:
@@ -39,24 +42,28 @@ validation:
     Concept PFD with closed mass, component and element balances (cheme validate, cheme process
     streams: every block and step closes, reaction extents explain every composition change).
     cheme maturity reaches no level: the capacity, feeds and the burner NO selectivity are
-    assumed, and the separator, absorber and bleacher outlets and all duties come from the
-    independent script scripts/hno3_balance.py (ideal-gas enthalpies, assumed heat of mixing of
-    the acid), which core cannot qualify (no property package for nitrous gas with water or
-    aqueous nitric acid, no reactive-absorption model: core's property-package qualification and electrolyte support). Energy closure is not
-    evaluable in core; the script closes its own energy balance to 7 kW of 62 MW. The N2O
+    assumed. The outlet streams and duties of the gas-phase steps (Q01, Q05, Q06, Q08, Q11, Q12,
+    including the exported HP steam Q05 + Q06) come from a DWSIM 9.0.5 run with Peng-Robinson
+    (cheme process simulate, DESIGN.md D-016), a method core does not qualify for this mixture
+    (nor for liquid ammonia). The cooler-condenser, separator, absorber and bleacher outlets and
+    their duties come from the independent script scripts/hno3_balance.py (ideal-gas enthalpies,
+    assumed heat of mixing of the acid), which core cannot qualify either (no property package
+    for nitrous gas with water or aqueous nitric acid, no reactive-absorption model: core's
+    property-package qualification and electrolyte support). The simulated part closes its
+    energy balance in DWSIM (9e-5 kW); the script closes its own balance to 7 kW of 62 MW. The N2O
     formation and abated emission rest on the IPCC 2006 default factors (Table 3.3), not on
     plant data. Preliminary cradle-to-gate LCI with every background open (foreground only,
     gaps), see DESIGN.md D-014. Not reviewed. Main products and feeds are listed under chemistry
     with their chemicals registry entries (issue #251).
 chemistry:
   inputs:
-    - {chemical: ammonia, role: feedstock, note: "feed:NH3: liquid ammonia from storage (e.g. ammonia-1), 0.285 kg/kg HNO3"}
+    - {chemical: ammonia, role: feedstock, inventory_key: "feed:NH3", note: "Liquid ammonia from storage (e.g. ammonia-1), 0.285 kg/kg HNO3"}
     - {chemical: air, role: feedstock, inventory_key: "feed:AIR", note: "Ambient air, 1 mol% humidity (ASSUMED)"}
     - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised process water to the absorber"}
   outputs:
     - {chemical: nitric-acid, role: main-product, inventory_key: "product:ACID", note: "Weak nitric acid 60 wt% to storage, counted by mass of the acid (1.667 kg per kg HNO3)"}
     - {chemical: steam, role: co-product, inventory_key: "product:HPS", note: "HP steam 4000 kPa(a), 673 K exported (0.71 kWh heat per kg HNO3)"}
-    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Treated tail gas (N2 with 3 mol% O2); its N2O (2.5 g/kg HNO3) and NO (0.22 g/kg) have no registry entries yet"}
+    - {chemical: nitrogen, role: emission, inventory_key: "product:STACK", note: "Treated tail gas (N2 with 3 mol% O2); its N2O (2.5 g/kg HNO3, registry nitrous-oxide) and NO (0.22 g/kg, no registry entry yet)"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "Compressor-train motor deficit and pump (ASSUMED electric motor on the train)"}
     - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "LP steam 450 kPa(a) to the SCR ammonia vaporiser"}
