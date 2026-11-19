@@ -31,17 +31,21 @@ Headline numbers and their caveats (per kg of the CO2 product, 97.0 wt% CO2):
 - 0.756 kg of CO2 from the air (112.2 t/h from 251 000 t/h of air) and 0.244 kg from burning
   0.079 kg of natural gas (5.23 GJ LHV per t of air CO2) in 0.345 kg of oxygen; 77.6 % of the
   product's carbon comes from the air (D-007, D-011).
-- 0.239 kWh of grid power (315 kWh per t of air CO2, from Keith et al.'s per-unit figures; their
+- 0.235 kWh of grid power (310 kWh per t of air CO2, from Keith et al.'s per-unit figures; their
   scenario C states 366 kWh/t with the oxygen plant and without this entry's missing slaker
-  power credit) and 0.264 kWh to cooling water (hand estimate) (D-009).
-- 3.57 kg of process water, mostly the 4.7 t evaporated per t of CO2 captured at 20 C and
-  64 % RH, which depends strongly on the climate (D-003); 16.3 g of KOH and 24.3 g of CaCO3 seed
-  make-up scaled from NETL, and 60.6 g of filter cake purge (D-005).
-- The liquor's density, the complete causticisation, the purge cake and the hand duties are
-  ASSUMED; the product holds 1.5 wt% N2 and 1.5 wt% O2 from the oxidant and is not a 99.95 mol%
-  pipeline grade (D-008).
+  power credit) (D-009). The CO2 train's cooling (0.261 kWh, hand estimate) goes to the
+  contactor basins, where the air takes it up with the evaporation: no cooling tower (D-003,
+  D-009).
+- 3.67 kg of process water, mostly the 4.7 t evaporated per t of CO2 captured at 20 C and
+  64 % RH, which depends strongly on the climate and on the heat rejected to the contactors
+  (D-003); 13.5 g of KOH and 20.2 g of CaCO3 seed make-up scaled from NETL, 28.8 g of filter
+  cake purge and 0.124 kg of liquor bleed (D-005).
+- The liquor's density, the complete causticisation, the purge cake, the bleed and the hand
+  energy balances are ASSUMED; the product holds 1.5 wt% N2 and 1.5 wt% O2 from the oxidant and
+  is not a 99.95 mol% pipeline grade (D-008).
 - The preliminary LCI books the air's CO2 as a resource (`Carbon dioxide, in air`); oxygen is
-  linked to asu-1, natural gas, KOH, limestone and the purge's landfill to shared entries. It
+  linked to asu-1, natural gas, KOH, limestone, the purge's landfill, the process water (a
+  conservative proxy) and the condensate's and the bleed's treatment to shared entries. It
   makes no net-removal claim: storage and the backgrounds are not assessed (D-011).
 
 ## What is here

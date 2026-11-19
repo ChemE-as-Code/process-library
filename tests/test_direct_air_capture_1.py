@@ -8,11 +8,15 @@ lca/lca.yaml are checked against them:
 - the lean liquor holds 1.10 mol/L KOH and 0.45 mol/L K2CO3 at the stated density, and the
   carbonate swing is 0.21 mol/L;
 - the calcium loop closes: CaCO3 calcined at 98 %, CaO slaked at 85 %, the purge's calcium equal
-  to the seed's, the purge's potassium equal to the make-up's;
+  to the seed's, the potassium of the purge cake's liquor and the bleed equal to the make-up's,
+  both at the lean liquor's strength;
+- the make-ups follow SRC-2's consumables per t of CO2 its liquor takes up;
 - the calciner's gas follows 5.25 GJ per t of CO2 calcined, the oxidant its ratio and purity;
 - the product holds 97.0 wt% CO2 and 0.01 wt% water, and its declared air-carbon fraction is the
   calcined carbon over the product's carbon;
-- the power streams are the source's specific consumptions times the flows;
+- the power streams are the source's specific consumptions times the flows, and Q1 is the sum
+  of its stated parts;
+- the declared biogenic fractions of the purge and the bleed follow their carbon;
 - the stated specific figures per kg of product follow from the streams;
 - every energy stream reaches the LCI, the air is a resource and the CO2 product a registry grade;
 - the process is public with CC-BY-4.0 and requires cheme-as-code 1.13.
@@ -97,8 +101,17 @@ def test_calcium_loop_closes(kg):
     slaked = kmol(lime, "CAOH2")
     assert slaked / kmol(cao, "CAO") == pytest.approx(0.85, rel=1e-3)
     assert kmol(purge, "CACO3") == pytest.approx(kmol(seed, "CACO3"), rel=1e-3)
-    k_purge = kmol(purge, "KOH") + 2 * kmol(purge, "K2CO3")
-    assert k_purge == pytest.approx(kmol(kg("S3"), "KOH"), rel=1e-3)
+    bleed = kg("S23")
+    k_out = sum(kmol(d, "KOH") + 2 * kmol(d, "K2CO3") for d in (purge, bleed))
+    assert k_out == pytest.approx(kmol(kg("S3"), "KOH"), rel=1e-3)
+    # the cake holds 30 wt% liquor, and the cake's liquor and the bleed are lean liquor
+    lean = kg("S11")
+    salts = {c: lean[c] / sum(lean.values()) for c in ("KOH", "K2CO3", "H2O")}
+    cake_liquor = sum(purge.values()) - purge["CACO3"]
+    assert cake_liquor / sum(purge.values()) == pytest.approx(0.30, rel=1e-3)
+    for c, w in salts.items():
+        assert purge[c] / cake_liquor == pytest.approx(w, rel=1e-3), c
+        assert bleed[c] / sum(bleed.values()) == pytest.approx(w, rel=1e-3), c
     # the washed pellets carry 11 wt% water and 1.8 kg K2CO3 per 100 kg CaCO3
     washed = kg("S15")
     assert washed["H2O"] / sum(washed.values()) == pytest.approx(0.11, rel=1e-3)
@@ -106,6 +119,14 @@ def test_calcium_loop_closes(kg):
     # 30 wt% Ca(OH)2 slurry
     slurry = kg("S13")
     assert slurry["CAOH2"] / sum(slurry.values()) == pytest.approx(0.30, rel=1e-3)
+
+
+def test_make_ups_per_t_of_co2_taken_up_by_the_liquor(kg):
+    liquor_co2 = (909_225 + 187_131) / (8760 * 0.85)          # SRC-2 Exhibit 5-2, t/h
+    captured = (kg("S1")["CO2"] - kg("S10")["CO2"]) / 1000
+    short_ton = 0.90718474
+    assert kg("S3")["KOH"] / 1000 == pytest.approx(69.8 * short_ton / 24 / liquor_co2 * captured, rel=1e-3)
+    assert kg("S5")["CACO3"] / 1000 == pytest.approx(104 * short_ton / 24 / liquor_co2 * captured, rel=1e-3)
 
 
 def test_calciner_fuel_and_oxidant(kg):
@@ -122,7 +143,7 @@ def test_product_and_air_carbon_fraction(kg):
     total = sum(prod.values())
     assert prod["CO2"] / total == pytest.approx(0.970, abs=0.001)
     assert prod["H2O"] / total == pytest.approx(0.0001, rel=1e-2)
-    assert total / 1000 == pytest.approx(148.4, abs=0.1)
+    assert total / 1000 == pytest.approx(148.5, abs=0.1)
     air_c = kmol(kg("S18"), "CAO")
     frac = air_c / kmol(prod, "CO2")
     lca = _load("lca/lca.yaml")
@@ -131,16 +152,31 @@ def test_product_and_air_carbon_fraction(kg):
     assert "77.6 %" in _text("README.md")
 
 
+def test_purge_and_bleed_biogenic_fractions(kg):
+    content = _load("lca/lca.yaml")["carbon_accounting"]["content"]
+    purge, bleed = kg("S22"), kg("S23")
+    air_c = kmol(purge, "K2CO3")
+    assert content["product:PURGE"]["biogenic_fraction"] == pytest.approx(
+        air_c / (air_c + kmol(purge, "CACO3")), abs=2e-4)
+    assert kmol(bleed, "CACO3") == 0
+    assert content["product:BLEED"]["biogenic_fraction"] == 1.0
+
+
 def test_power_streams_follow_the_specific_consumptions(streams, kg):
     duty = {s: streams[s]["duty"]["value"] for s in ("P1", "P2", "P3", "P4")}
     captured = (kg("S1")["CO2"] - kg("S10")["CO2"]) / 1000
     calcined = kmol(kg("S18"), "CAO") * MW["CO2"] / 1000
     product = sum(kg("S20").values()) / 1000
+    product_co2 = kg("S20")["CO2"] / 1000
     assert duty["P1"] == pytest.approx((61 + 21) * captured, rel=1e-3)
     assert duty["P2"] == pytest.approx(27 * captured, rel=1e-3)
     assert duty["P3"] == pytest.approx(32 * calcined, rel=1e-3)
-    assert duty["P4"] == pytest.approx(132 * product, rel=1e-3)
-    assert sum(duty.values()) / captured == pytest.approx(315, abs=1)
+    assert duty["P4"] == pytest.approx(132 * product_co2, rel=1e-3)   # SRC-1 Table 1: per t of CO2
+    assert sum(duty.values()) / captured == pytest.approx(310, abs=1)
+    # Q1: the compression work, the condensation and the gas cooling it states
+    q1 = streams["Q1"]["duty"]["value"]
+    cond = sum(kg("S21").values())
+    assert q1 == pytest.approx(duty["P4"] + cond * 2400 / 3600 + 0.85 * product * 1000 * 60 / 3600, rel=1e-4)
 
 
 def test_stated_specific_figures(kg, streams):
@@ -154,9 +190,10 @@ def test_stated_specific_figures(kg, streams):
         "water": sum(sum(kg(s).values()) for s in ("S2", "S4", "S8")) / product,
         "power": sum(streams[s]["duty"]["value"] for s in ("P1", "P2", "P3", "P4")) / product,
         "purge": sum(kg("S22").values()) / product * 1000,
+        "bleed": sum(kg("S23").values()) / product,
     }
-    stated = {"air CO2": 0.756, "gas": 0.079, "oxygen": 0.345, "KOH": 16.3, "seed": 24.3,
-              "water": 3.57, "power": 0.239, "purge": 60.6}
+    stated = {"air CO2": 0.756, "gas": 0.079, "oxygen": 0.345, "KOH": 13.5, "seed": 20.2,
+              "water": 3.67, "power": 0.235, "purge": 28.8, "bleed": 0.124}
     for key, value in stated.items():
         assert per[key] == pytest.approx(value, rel=5e-3), key
 
@@ -188,7 +225,7 @@ def test_product_grade_in_registry():
 def test_balance_script_cited_and_public():
     flowsheet = (PROCESS / "process" / "flowsheet.yaml").read_text(encoding="utf-8")
     cited = set(re.findall(r"- id: (S\d+)", flowsheet))
-    assert len(cited) == 20
+    assert len(cited) == 21
     assert flowsheet.count('source: "scripts/dac_balance.py:') == 2 * len(cited)
     proc = _load("process.yaml")
     assert proc["publication"] == {"status": "public", "license": "CC-BY-4.0"}

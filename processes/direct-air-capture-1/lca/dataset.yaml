@@ -25,8 +25,11 @@ cutoff:
   direction: output
   reason: 'The calciner is fired in oxygen and its whole off-gas (CO2, water, excess O2 and N2) goes to
     the CO2 product through K-501 (S19, S20): the flowsheet carries it. NOx, CO and the SO2 of the gas''s
-    odorant leave with the product, not to air (SRC-2 section 5.1.1 puts the calciner''s SO2 at the CO2
-    dryer vent, 0.2 kg/h for a larger plant); not estimated at the concept stage (D-012).'
+    odorant are taken to leave with the product (ASSUMED, D-008), a departure from SRC-2: its Case 1 sulfur
+    balance (Exhibit 5-6) has 0.2 kg/h of sulfur (about 0.4 kg/h as SO2) in the calciner''s gas leaving
+    through the CO2 dryer vent, a release to air, and its carbon balance (Exhibit 5-5) a dryer-vent outflow
+    of 13 kg C/h, for a plant capturing 909 kt/a from the air; not estimated at the concept stage (D-008,
+    D-012).'
 - key: emission-excluded:lime-mix-tank
   title: storage-tank emissions of TK-302
   direction: output
@@ -42,7 +45,7 @@ valid_until: 2031
 system_model: cutoff
 technology_level: new
 production_volume:
-  amount: 1169969832.0
+  amount: 1170734580.0
   unit: kg/a
   source: product:CO2P per hour x operation.hours_per_year (7884 h/a)
 classification:
@@ -83,7 +86,7 @@ exchanges:
 - key: feed:KOHF
   title: Potassium hydroxide make-up (as 100 % KOH)
   type: input
-  amount: 2424.58
+  amount: 2010.45
   unit: kg
   link:
     source: flowsheet stream S3 (D-005)
@@ -108,7 +111,7 @@ exchanges:
 - key: feed:SEED
   title: Calcium carbonate seed make-up (ground limestone)
   type: input
-  amount: 3612.74
+  amount: 2995.51
   unit: kg
   link:
     source: flowsheet stream S5 (D-005)
@@ -134,12 +137,14 @@ exchanges:
 - key: feed:PW
   title: Process water (pellet wash, slaker, lime slurry)
   type: input
-  amount: 529847.02
+  amount: 544669.11
   unit: kg
   link:
     source: flowsheet streams S2 (pellet washers), S8 (slaker) and S4 (lime slurry), D-003 to D-006
-    missing: 'not mapped yet (D-011); connect to: process water from a municipal or ground-water supply
-      after basic treatment (softened), per kg; SRC-2 takes half municipal and half ground water'
+    missing: 'linked in the Atlas build to the shared water entry (lca/mappings.yaml), a conservative
+      proxy: demineralised water (the Atlas market of demineralised-water-1) for process water that needs
+      only basic treatment (softened municipal or ground water; SRC-2 takes half municipal and half ground
+      water), per kg (D-011)'
   streams:
   - S2
   - S8
@@ -161,7 +166,7 @@ exchanges:
 - key: feed:NG
   title: Natural gas to the calciner (as methane)
   type: input
-  amount: 11735.8
+  amount: 11743.4
   unit: kg
   link:
     source: flowsheet stream S6, the calciner's fuel, 5.25 GJ (LHV) per t of CO2 calcined (D-007); its
@@ -189,7 +194,7 @@ exchanges:
 - key: feed:OXY
   title: Oxygen 95.6 wt% from an air separation unit
   type: input
-  amount: 51234.4
+  amount: 51268.0
   unit: kg
   link:
     source: flowsheet stream S7 (D-007)
@@ -216,7 +221,7 @@ exchanges:
 - key: feed:POWER
   title: Electric power (grid)
   type: input
-  amount: 35394.6
+  amount: 34823.9
   unit: kWh
   link:
     source: flowsheet energy streams P1 to P4 (D-009)
@@ -238,7 +243,7 @@ exchanges:
 - key: product:CO2P
   title: CO2 product, dense phase at 15.1 MPa, to pipeline
   type: product
-  amount: 148398.0
+  amount: 148495.0
   unit: kg
   streams:
   - S20
@@ -255,9 +260,9 @@ exchanges:
   carbon:
     total: 0.264764891
     biogenic_fraction: 0.7764
-    source: 'D-011: of the product''s 3271.21 kmol/h of carbon, 2539.69 come from the air (the CO2 calcined,
+    source: 'D-011: of the product''s 3273.34 kmol/h of carbon, 2541.35 come from the air (the CO2 calcined,
       which equals the carbonate precipitated from the liquor; the seed''s carbon leaves with the purge)
-      and 731.52 from the natural gas burnt in oxygen: 2539.69 / 3271.21 = 0.7764 (scripts/dac_balance.py)'
+      and 732.00 from the natural gas burnt in oxygen: 2541.35 / 3273.34 = 0.7764 (scripts/dac_balance.py)'
   composition:
     fractions:
       CO2: 0.970113903
@@ -298,14 +303,14 @@ exchanges:
       H2O: H2O
     source: stream table (S10)
 - key: product:PURGE
-  title: Filter cake purge (CaCO3 with potassium salts) to disposal
+  title: Filter cake purge (the seed's CaCO3 with lean liquor) to disposal
   type: output
-  amount: 8985.81
+  amount: 4279.3
   unit: kg
   link:
     source: flowsheet stream S22 (D-005)
     missing: linked to the shared inert-waste-landfill entry (lca/mappings.yaml); ASSUMED inert, the alkaline
-      potassium salts may need a residual-material landfill instead
+      liquor in the cake may need a residual-material landfill instead
   streams:
   - S22
   source: flowsheet stream S22 (D-005)
@@ -314,19 +319,20 @@ exchanges:
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
   carbon:
-    total: 0.061245552
-    biogenic_fraction: 0.960613273
-    source: composition and formulas
+    total: 0.085478842
+    biogenic_fraction: 0.0172
+    source: 'D-011: the cake''s 365.79 kg C/h are the seed''s CaCO3 (359.48 kg C/h, fossil like feed:SEED)
+      and the K2CO3 of its lean liquor (6.31 kg C/h, carbon from the air): 6.31 / 365.79 = 0.0172 (scripts/dac_balance.py,
+      stream S22)'
   treatment:
     kind: waste
-    route: landfill of the filter cake purge (CaCO3 with potassium hydroxide and carbonate, 30 wt% water),
-      D-005
+    route: landfill of the filter cake purge (the seed's CaCO3 with 30 wt% lean liquor), D-005
   composition:
     fractions:
-      H2O: 0.2999997
-      KOH: 0.148402852
-      K2CO3: 0.14954785
-      CACO3: 0.402049598
+      H2O: 0.266207027
+      KOH: 0.016831502
+      K2CO3: 0.016961402
+      CACO3: 0.70000007
     formulas:
       H2O: H2O
       KOH: KOH
@@ -336,12 +342,13 @@ exchanges:
 - key: product:COND
   title: Condensate from the CO2 compression and drying
   type: output
-  amount: 26341.8
+  amount: 26359.0
   unit: kg
   link:
     source: flowsheet stream S21 (D-008)
-    missing: 'not mapped yet (D-011); connect to: treatment of a clean condensate, or its reuse as make-up
-      water (not designed)'
+    missing: linked in the Atlas build to the shared wastewater entry (lca/mappings.yaml), treatment by
+      mass, a conservative screening link for a clean condensate whose reuse as make-up water is not designed
+      (D-011)
   streams:
   - S21
   source: flowsheet stream S21 (D-008)
@@ -362,36 +369,55 @@ exchanges:
     formulas:
       H2O: H2O
     source: stream table (S21)
-- key: product:CW
-  title: Cooling water return
+- key: product:BLEED
+  title: Liquor bleed (KOH and K2CO3 solution) to treatment
   type: output
-  amount: 39190.0
-  unit: kWh
+  amount: 18424.7
+  unit: kg
   link:
-    source: flowsheet energy stream Q1, the CO2 train's coolers (hand estimate, D-009)
-    missing: 'linked by default to processes/utility-cooling-tower in the Atlas build: heat rejected to
-      a recirculating cooling-water system, per kWh removed'
+    source: flowsheet stream S23 (D-005)
+    missing: linked in the Atlas build to the shared wastewater entry (lca/mappings.yaml), treatment by
+      mass; the neutralisation of the alkaline liquor is not represented (screening, as co2-electrolysis-bpm-1's
+      bleed, D-011)
   streams:
-  - Q1
-  source: flowsheet energy stream Q1, the CO2 train's coolers (hand estimate, D-009)
+  - S23
+  source: flowsheet stream S23 (D-005)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
   basic_uncertainty: 1.05
-  carrier:
-    kind: cold
-    temperature: 25.0
-    source: utility of CW in process/flowsheet.yaml
+  carbon:
+    total: 0.004913591
+    biogenic_fraction: 1.0
+    source: 'D-011: the bleed''s carbon is the K2CO3 of the lean liquor, carbon taken from the air (90.53
+      kg C/h, stream S23)'
+  treatment:
+    kind: waste
+    route: the lean-liquor bleed (KOH and K2CO3, about 11 wt% salts) to treatment; its neutralisation
+      is not designed (D-005)
+  composition:
+    fractions:
+      H2O: 0.887357
+      KOH: 0.056105
+      K2CO3: 0.056538
+    formulas:
+      H2O: H2O
+      KOH: KOH
+      K2CO3: K2CO3
+    source: stream table (S23)
 - key: product:AMBIENT
-  title: 'Calciner heat not taken by the calcination: hot lime, off-gas heat recovery and losses (lumped)'
+  title: 'Heat not used in the plant: the calciner''s beyond the calcination and the slaker''s surplus
+    (lumped)'
   type: output
-  amount: 37210.0
+  amount: 53442.5
   unit: kWh
   free: true
   streams:
   - Q2
-  source: 'flowsheet energy stream Q2: the calciner''s heat beyond the calcination, recovered inside the
-    plant or lost to the ambient; no utility (D-007)'
+  - Q3
+  source: 'flowsheet energy streams Q2 (the calciner''s heat not taken by the calcination or its outlets,
+    D-007) and Q3 (the steam slaker''s surplus, D-006): recovered inside the plant or lost to the ambient;
+    no utility'
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -656,8 +682,8 @@ provenance:
   plant: Carbon dioxide by direct air capture, KOH solvent and calcium loop (1.17 Mt/a, 15 MPa)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:a75044c2ea8ee10439c11912d88feec1af4388b892486f4ba246d592b88a3f84
-    lca/lca.yaml: sha256:94e7294a04ca6a0720b9b2df8a299d5029f7c553ddf09f5be45b0223cf83291d
-    process.yaml: sha256:ae604115d8e10f075bbd4c75170303778292719bda3aa419081c595f782ec641
-    process/flowsheet.yaml: sha256:da6c61f1c88fa5e95da156d097e8e3258c3f0bda8a4c3b9da306f0f89a9dc2ee
+    equipment/equipment-list.yaml: sha256:b89f4a1a0c3980357df5bfe05122f9ecac1b8a9c28bf68135c39168202ea7ae1
+    lca/lca.yaml: sha256:21f7494ab8eafc1d098296fde7d1edc73be7104f27fd89494c8c6bab7a435925
+    process.yaml: sha256:c89bb3c2cdf7972d079342acfec6b7da34f00649c206b86761baf97d6adb7896
+    process/flowsheet.yaml: sha256:7a76e3a44c3276e09ccfc481a1e3fa1e6d79c7c1ac488c3745cf8337b05e04d1
     process/materials.yaml: sha256:c11ecff651645e892508a6cb237d74a38031b88b67940a0668aed6126a4724f8

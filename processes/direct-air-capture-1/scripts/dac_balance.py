@@ -47,9 +47,15 @@ EVAP = 4.7                    # t water evaporated per t CO2 captured, 20 C / 64
 LEAN_M = {"KOH": 1.10, "K2CO3": 0.45}   # mol/L lean liquor (SRC-1 Fig. 2: 2.00 K+, 1.10 OH-, 0.45 CO3--), D-003
 SWING = 0.21                  # mol/L carbonate swing, lean 0.45 to rich 0.66 (SRC-1 Fig. 2 reading), D-003
 RHO_LIQ = 1.10                # kg/L lean liquor, ASSUMED (D-003)
-KOH_MAKEUP = 0.02161          # t KOH per t CO2 captured: SRC-2 69.8 short ton/d / 122.1 t/h air CO2 (D-005)
-SEED = 0.03220                # t CaCO3 seed per t CO2 captured: SRC-2 104 short ton/d / 122.1 t/h (D-005)
-CAKE_WATER = 0.30             # water mass fraction of the purge filter cake, ASSUMED (D-005)
+# Make-ups (D-005): SRC-2's consumables per t of CO2 its KOH liquor takes up, which in SRC-2 Case 1
+# is the air's CO2 (909 225 t/a gross) and the NGCC flue gas CO2 of its absorber on the same liquor
+# (187 131 t/a), both at an 85 % capacity factor (8760 x 0.85 = 7446 h/a): 147.24 t/h. Here the
+# liquor takes up the air's CO2 only, so the rates are applied per t of CO2 captured from the air.
+SHORT_TON = 0.90718474        # t per US short ton
+SRC2_LIQUOR_CO2 = (909_225 + 187_131) / (8760 * 0.85)        # t/h CO2 taken up by SRC-2's liquor
+KOH_MAKEUP = 69.8 * SHORT_TON / 24 / SRC2_LIQUOR_CO2         # t KOH per t CO2 (SRC-2 Exhibit 5-11)
+SEED = 104 * SHORT_TON / 24 / SRC2_LIQUOR_CO2                # t CaCO3 seed per t CO2 (SRC-2 Exhibit 5-11)
+CAKE_LIQUOR = 0.30            # mass fraction of lean liquor in the drained purge filter cake, ASSUMED (D-005)
 K2CO3_CARRY = 0.018           # kg K2CO3 per kg CaCO3 in the pellets (SRC-1 Fig. 2: 5.4 / 300 t/h), D-004
 PELLET_WATER = 0.11           # mass fraction of water in the washed pellets (SRC-1 Table 1), D-004
 SLAKE_CONV = 0.85             # CaO slaked in the steam slaker (SRC-1 Table 1), D-006
@@ -95,14 +101,19 @@ def balance():
     seed = SEED * a_t * 1000                       # kg/h CaCO3
     seed_n = seed / MW["CACO3"]
 
-    # purge: the seed's Ca as CaCO3 and the make-up's K in the lean liquor's K split
-    fk_koh = LEAN_M["KOH"] / (LEAN_M["KOH"] + 2 * LEAN_M["K2CO3"])
-    purge_n = {"CACO3": seed_n, "KOH": fk_koh * k_m, "K2CO3": (1 - fk_koh) * k_m / 2}
-    purge = kmol_to_kg(purge_n)
-    purge["H2O"] = total(purge) * CAKE_WATER / (1 - CAKE_WATER)
+    # purge: the seed's Ca as CaCO3 in a drained filter cake whose liquid is lean liquor (S22);
+    # the make-up's K that the cake liquor does not carry leaves as a lean-liquor bleed (S23)
+    lean_w = {k: v / total(lean) for k, v in lean.items()}
+    k_per_kg = lean_w["KOH"] / MW["KOH"] + 2 * lean_w["K2CO3"] / MW["K2CO3"]   # kmol K per kg liquor
+    cake_liq = seed * CAKE_LIQUOR / (1 - CAKE_LIQUOR)                           # kg/h liquor in the cake
+    bleed_liq = (k_m - cake_liq * k_per_kg) / k_per_kg                          # kg/h liquor bled
+    assert bleed_liq > 0, "the cake liquor carries more potassium than the make-up"
+    purge = {"CACO3": seed, **{k: cake_liq * w for k, w in lean_w.items()}}
+    bleed = {k: bleed_liq * w for k, w in lean_w.items()}
+    k2co3_out = (purge["K2CO3"] + bleed["K2CO3"]) / MW["K2CO3"]                 # kmol/h
 
     # calcium loop
-    P = A - purge_n["K2CO3"]                       # kmol/h CaCO3 precipitated (= CO2 calcined)
+    P = A - k2co3_out                              # kmol/h CaCO3 precipitated (= CO2 calcined)
     X = P / CALC_CONV                              # kmol/h CaCO3 to the calciner
     cao = CALC_CONV * X
     pel = {"CACO3": X * MW["CACO3"]}
@@ -152,12 +163,14 @@ def balance():
     slurry["H2O"] = s["S4"]["H2O"]
     s["S13"] = slurry
 
-    # pellet reactor R201: rich S12 + slurry S13 + seed S5 + wash water S2 -> lean S11 + pellets S15 + purge S22
+    # pellet reactor R201: rich S12 + slurry S13 + seed S5 + wash water S2
+    #   -> lean S11 + pellets S15 + purge S22 + bleed S23
     s["S5"] = {"CACO3": seed}
     s["S22"] = purge
+    s["S23"] = bleed
     slake_pr = (1 - SLAKE_CONV) * cao              # kmol/h CaO slaked in the reactor
     w_in = rich["H2O"] + slurry["H2O"]
-    w_out = lean["H2O"] + pel["H2O"] + purge["H2O"] + slake_pr * MW["H2O"]
+    w_out = lean["H2O"] + pel["H2O"] + purge["H2O"] + bleed["H2O"] + slake_pr * MW["H2O"]
     s["S2"] = {"H2O": w_out - w_in}
     assert s["S2"]["H2O"] > 0
 
@@ -168,14 +181,17 @@ def balance():
     s["S21"] = {"H2O": offgas["H2O"] - prod["H2O"]}
 
     figures = {"A_kmol_h": A, "captured_t_h": a_t, "evap_kg_h": evap, "lean_m3_h": vol,
-               "P_kmol_h": P, "X_kmol_h": X, "ch4_kg_h": ch4, "oxidant_kg_h": ox,
-               "product_t_h": total(prod) / 1000}
+               "P_kmol_h": P, "X_kmol_h": X, "cao_kmol_h": cao, "slake_sl_kmol_h": need,
+               "slake_pr_kmol_h": slake_pr, "ch4_kg_h": ch4, "oxidant_kg_h": ox,
+               "koh_kg_h": koh, "seed_kg_h": seed, "k2co3_out_kmol_h": k2co3_out,
+               "product_t_h": total(prod) / 1000, "product_co2_t_h": prod["CO2"] / 1000,
+               "condensate_kg_h": s["S21"]["H2O"]}
     return s, figures
 
 
 STEPS = {  # step: (inputs, outputs)
     "C101": (["S1", "S11", "S3"], ["S10", "S12"]),
-    "R201": (["S12", "S13", "S5", "S2"], ["S11", "S15", "S22"]),
+    "R201": (["S12", "S13", "S5", "S2"], ["S11", "S15", "S22", "S23"]),
     "SL301": (["S15", "S18", "S8"], ["S17", "S16"]),
     "M302": (["S16", "S4"], ["S13"]),
     "F401": (["S17", "S6", "S7"], ["S18", "S19"]),
@@ -196,7 +212,86 @@ def power(s, f):
     calc_t = f["P_kmol_h"] * MW["CO2"] / 1000
     return {"fans": KWH_FAN * a_t, "contactor_pumps": KWH_CONTACTOR_PUMP * a_t,
             "pellet": KWH_PELLET * a_t, "slaker": KWH_SLAKER * calc_t,
-            "compressor": KWH_COMP * f["product_t_h"]}
+            "compressor": KWH_COMP * f["product_co2_t_h"]}   # per t of CO2 (SRC-1 Table 1 note)
+
+
+# --- hand energy balances (DESIGN.md D-003, D-006, D-007, D-009; printed, not cited as values) ---
+# Stream temperatures as the flowsheet gives them (K); round heat capacities, kJ/(kg K), ASSUMED
+# (no property package covers the liquor or the solids, L-1, L-4); the reaction heats of SRC-1
+# Fig. 1 (process/reactions.yaml), kJ/mol; psychrometric constants of moist air, ASSUMED round.
+T_AIR, T_FEEDS, T_RICH, T_SLURRY, T_CAO, T_SLAKER = 293.15, 293.15, 294.15, 333.15, 947.15, 573.15
+T_OFFGAS = 373.15
+CP = {"H2O": 4.18, "KOH": 1.0, "K2CO3": 1.0, "CACO3": 0.95, "CAO": 0.9, "CAOH2": 1.3}
+CP_GAS = {"CO2": 0.85, "H2O": 1.9, "O2": 0.92, "N2": 1.04, "CH4": 2.2}
+DH = {"ABS": 95.8, "CAUST": 5.8, "SLAKE": 63.9, "CALC": 178.3}      # heat released (+) or taken (CALC)
+CP_DRY_AIR, CP_VAPOUR, H_VAP_0C = 1.006, 1.86, 2501.0               # kJ/(kg K), kJ/(kg K), kJ/kg
+H2O_LATENT_CO2_TRAIN, CP_CO2_GAS, DT_CO2_GAS = 2400.0, 0.85, 60.0   # Q1 round properties (D-009)
+
+
+def sensible(d, t, t_ref=298.15):
+    """kW of a liquid or solid stream {component: kg/h} at t relative to t_ref."""
+    return sum(kg * CP[k] for k, kg in d.items()) * (t - t_ref) / 3600
+
+
+def energy(s, f, p):
+    e = {}
+    kw = 1000 / 3600                               # kmol/h x kJ/mol -> kW
+    # Q1, CO2 train coolers (D-009): compression work + combustion water condensed + gas cooled
+    e["Q1_compressor_kW"] = p["compressor"]
+    e["Q1_condensation_kW"] = f["condensate_kg_h"] * H2O_LATENT_CO2_TRAIN / 3600
+    e["Q1_gas_cooling_kW"] = CP_CO2_GAS * f["product_t_h"] * 1000 * DT_CO2_GAS / 3600
+    e["Q1_kW"] = e["Q1_compressor_kW"] + e["Q1_condensation_kW"] + e["Q1_gas_cooling_kW"]
+    # Q2, F401's heat not taken by the calcination or carried by its outlets (D-007): the fired heat
+    # (LHV, the combustion water as vapour) and the pellets' heat at 300 C, less the calcination,
+    # the hot lime to the slaker at 674 C and the off-gas at 373 K
+    e["Q2_fired_kW"] = f["ch4_kg_h"] * LHV_CH4 * 1000 / 3600
+    e["Q2_calcination_kW"] = f["P_kmol_h"] * DH["CALC"] * kw
+    e["Q2_pellets_in_kW"] = sensible(s["S17"], T_SLAKER)
+    e["Q2_hot_lime_out_kW"] = sensible(s["S18"], T_CAO)
+    gas = lambda d, t: sum(kg * CP_GAS[k] for k, kg in d.items()) * (t - 298.15) / 3600
+    e["Q2_offgas_out_kW"] = gas(s["S19"], T_OFFGAS)
+    e["Q2_feeds_in_kW"] = gas(s["S6"], T_FEEDS) + gas(s["S7"], T_FEEDS)
+    e["Q2_kW"] = (e["Q2_fired_kW"] + e["Q2_pellets_in_kW"] + e["Q2_feeds_in_kW"] - e["Q2_calcination_kW"]
+                  - e["Q2_hot_lime_out_kW"] - e["Q2_offgas_out_kW"])
+    # R201 (D-004): causticisation and the slaking of the CaO left, plus the warm slurry, raise the
+    # outlets (lean liquor, pellets, purge, bleed) to one temperature
+    e["R201_caust_kW"] = f["P_kmol_h"] * DH["CAUST"] * kw
+    e["R201_slake_kW"] = f["slake_pr_kmol_h"] * DH["SLAKE"] * kw
+    h_in = (sensible(s["S12"], T_RICH) + sensible(s["S13"], T_SLURRY)
+            + sensible(s["S5"], T_FEEDS) + sensible(s["S2"], T_FEEDS))
+    cp_out = sum(sensible(s[o], 299.15) for o in ("S11", "S15", "S22", "S23"))   # kW per K
+    e["R201_outlet_K"] = 298.15 + (h_in + e["R201_caust_kW"] + e["R201_slake_kW"]) / cp_out
+    e["R201_heat_to_liquor_kW"] = sensible(s["S11"], e["R201_outlet_K"], T_RICH)
+    # SL301 (D-006): the slaking heat and the hot lime against the pellets and lime leaving at 300 C
+    e["SL301_slake_kW"] = f["slake_sl_kmol_h"] * DH["SLAKE"] * kw
+    e["SL301_hot_lime_in_kW"] = sensible(s["S18"], T_CAO)
+    e["SL301_surplus_kW"] = (sensible(s["S15"], e["R201_outlet_K"]) + sensible(s["S8"], T_FEEDS)
+                             + e["SL301_hot_lime_in_kW"] + e["SL301_slake_kW"]
+                             - sensible(s["S17"], T_SLAKER) - sensible(s["S16"], T_SLAKER))
+    # C101 (D-003): the air takes up the absorption heat, the fans' and pumps' power, the heat the
+    # lean liquor brings from R201 and the CO2 train's cooling water (Q1, cooled in the basin);
+    # the moist-air enthalpy h = cp_a t + w (h_v0 + cp_v t) per kg dry air, t in degC, liquid at 0 C
+    e["C101_abs_kW"] = f["A_kmol_h"] * DH["ABS"] * kw
+    e["C101_power_kW"] = p["fans"] + p["contactor_pumps"]
+    e["C101_liquor_kW"] = (sensible(s["S11"], e["R201_outlet_K"], 273.15) + sensible(s["S3"], T_FEEDS, 273.15)
+                           - sensible(s["S12"], T_RICH, 273.15))
+    e["C101_heat_kW"] = e["C101_abs_kW"] + e["C101_power_kW"] + e["C101_liquor_kW"] + e["Q1_kW"]
+
+    def moist(d):
+        dry = total(d) - d["H2O"]
+        return dry, d["H2O"] / dry
+
+    dry_in, w_in = moist(s["S1"])
+    dry_out, w_out = moist(s["S10"])
+    t_in = T_AIR - 273.15
+    h_in = dry_in * (CP_DRY_AIR * t_in + w_in * (H_VAP_0C + CP_VAPOUR * t_in)) / 3600
+    h_out = (h_in + e["C101_heat_kW"]) * 3600 / dry_out                            # kJ/kg dry air
+    e["C101_w_in"], e["C101_w_out"] = w_in, w_out
+    e["C101_air_out_K"] = 273.15 + (h_out - w_out * H_VAP_0C) / (CP_DRY_AIR + w_out * CP_VAPOUR)
+    t_19 = 19.0
+    e["C101_heat_for_19C_kW"] = (dry_out * (CP_DRY_AIR * t_19 + w_out * (H_VAP_0C + CP_VAPOUR * t_19))
+                                 / 3600 - h_in)
+    return e
 
 
 def write_balance_output(cases):
@@ -236,6 +331,8 @@ def main():
         for k, v in p.items():
             print(f"power {k}: {v:.1f} kW")
         print(f"power total: {sum(p.values()):.1f} kW = {sum(p.values()) / f['captured_t_h']:.1f} kWh/t air CO2")
+        for k, v in energy(s, f, p).items():
+            print(f"energy {k}: {v:.6g}")
         for st, (ins, outs) in STEPS.items():
             ei = elements({c: sum(s[i].get(c, 0) for i in ins) for c in COMPS})
             eo = elements({c: sum(s[o].get(c, 0) for o in outs) for c in COMPS})
