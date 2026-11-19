@@ -252,8 +252,36 @@ would resolve the exchange through the registry slug and link it to a background
 Atlas process, which is a change of the LCI that each process decides with its own mapping
 review. Main products carry their `inventory_key` where the process had no reason against it,
 so that the LCI export names the chemical in the reference product and the catalog labels the
-functional unit with the product's name (issue #249). The catalog build warns for a process
-without a main product.
+functional unit with the product's name (issue #249). A main product left without an
+`inventory_key` must start its note with the key, `product:<id>` followed by a character that
+cannot continue the id (a space, `,` or `:`; not a letter, digit, `_` or `-`), e.g.
+`product:GLYC, refined ...`; the catalog then names the functional unit from it
+([ADR 0040](adr/0040-functional-unit-named-from-the-main-product-note.md)), and
+`tests/test_build_catalog.py` fails a process whose LCA functional unit matches neither an
+`inventory_key` nor such a note. The catalog build warns for a process without a main product.
+
+## Feeds and products a process does not name yet
+
+`tests/test_registry_coverage.py` checks every feed (`feed:`, `input:` and `consumable:` inputs
+in kg) and every product (in kg) of each process's LCI datasets. Each must be named by the
+process's `chemistry`, with that `inventory_key` or in a note that names the key, or be listed
+in the test. A note names a key when it starts with it (or with a key list), or mentions it in a
+sentence that does not say the flow has no registry entry: "Activated carbon (feed:ACF) has no
+registry entry yet" does not name `feed:ACF`. The flows are:
+
+- `UNNAMED_REGISTRY_FLOWS`: the substance is in the registry (nitrogen for inerting, propane
+  from cumene-1, activated carbon, MDEA, DMDS, ...), but the process does not name it yet.
+  Naming it links the process to the substance's producers in the Atlas graph. That is the
+  process's own change (CONTRIBUTING.md), and its entry is then removed from the test;
+- `NO_REGISTRY_IDENTITY`: no registry identity, with the reason (a catalyst charge, a sorbent,
+  an article such as a membrane, a residue of no fixed composition sent to fuel, a natural brine).
+
+A new process whose dataset has a feed or product of neither kind fails the test, which names
+the flow: name it under `chemistry` (adding the substance to the registry if it is missing),
+or list it with its reason. An entry that is named, or whose flow is gone, fails too.
+`activated-carbon`, `n-methyldiethanolamine` and `dimethyl-disulfide` were added for this check.
+Their identifiers come from PubChem PUG REST and EBI OLS (ChEBI), queried 2026-11-19, and are
+checked as in the next section.
 
 ## Build-time checks
 
