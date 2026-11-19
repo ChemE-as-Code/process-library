@@ -121,7 +121,10 @@ def test_every_identified_substance_has_a_formula_and_cas() -> None:
 #: Polymers (docs/registry.md, Polymers) carry the polymer's CAS and the repeat-unit formula, which
 #: the package cannot confirm: it resolves polyethylene's CAS 9002-88-4 to the monomer ethene and
 #: does not hold those of polypropylene (9003-07-0) or PET (25038-59-9); each CAS is checked
-#: against the ChEBI polymer entry instead (EBI OLS, 2026-11-05).
+#: against the ChEBI polymer entry instead (EBI OLS, 2026-11-05). pvc-1 (#461) added two more:
+#: the package resolves polyvinyl chloride's CAS 9002-86-2 to the monomer vinyl chloride and
+#: polyvinyl alcohol's 9002-89-5 to ethenol; checked against CHEBI:53243 and CHEBI:17246
+#: (EBI OLS, 2026-11-19).
 CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate", "polyethylene", "polyethylene-terephthalate", "polypropylene", "polyvinyl-alcohol", "polyvinyl-chloride"}
 
 

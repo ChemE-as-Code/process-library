@@ -24,9 +24,10 @@ The VCM of the venting and the stripper is compressed and condensed, and 99.8 % 
 the charge: core converges that recycle at a tear stream (ADR 0060), and the venting, the
 stripper and the recovery are component separators (ADR 0070).
 
-`process/recipe.yaml` gives the cycle: 7.79 h per autoclave, a batch every 1.9465 h, 4110
-batches a year of 41 794 kg, 172 kt/a. It also gives the autoclave's jacket check and its
-heat-up (`cheme process recipe`). `cheme process reactor-hazards` screens the closed batch. Needs
+`process/recipe.yaml` gives the cycle: 7.66 h per autoclave, a batch every 1.9145 h, 4179
+batches a year of 41 794 kg, 175 kt/a. It also gives the autoclave's jacket check
+(`cheme process recipe`). The heat-up's time and heat are worked by hand from the charge,
+because core heats the end-of-batch content when nothing is dosed (D-003, L-6). `cheme process reactor-hazards` screens the closed batch. Needs
 cheme-as-code 1.12.0. DESIGN.md lists the core features used and the core limits hit.
 
 Headline numbers and their caveats:
@@ -35,21 +36,24 @@ Headline numbers and their caveats:
 - The rate is ASSUMED: zero order, calibrated so that the patent's charge reaches 90 % in 3.71 h
   at its mean heat removal (17 250 MJ/h). The heat of polymerisation is the patent's 1539.7
   kJ/kg (D-005).
-- The jacket and the cooled baffles remove 3.14 MW of the 5.44 MW peak. The autoclave needs its
-  reflux condenser for the rest (42 %), as the patent's autoclave has. Core's closed batch has no
-  reflux condenser, so the recipe's jacket check warns, and all of the heat is booked to chilled
-  water (D-008, L-3).
-- Thermal screening: dT_ad 227.6 K and an MTSR of 557.7 K, against an MTT of 357.1 K. The MTT is
+- The jacket and the cooled baffles remove 3.89 MW, the duty the patent shows for them, against
+  the model's 5.44 MW peak. The zero-order rate puts that peak at the start of the batch, where
+  the patent's reflux condenser is not yet running, so the recipe's jacket check warns and the
+  warning stays open: the rate's profile is front-loaded, while the patent's heat release rises
+  through the batch (D-005, D-008). Later in the batch the reflux condenser takes 26 to 45 % of
+  the heat. Core's closed batch has none, so all of the heat is booked to chilled water (L-3).
+- Thermal screening: dT_ad 227.5 K and an MTSR of 557.7 K, against an MTT of 357.1 K. The MTT is
   the temperature at which the charge's vapour pressure reaches the ASSUMED relief set pressure
-  of 1700 kPa(a). If the cooling fails at the start, the mass reaches the MTT in about 11 min.
+  of 1700 kPa(a). If the cooling fails at the start, the mass reaches the MTT in about 11.5 min.
   Short-stop injection, emergency cooling, agitation on emergency power and a controlled
   emergency vent to the recovery are therefore design requirements. There is no criticality
   class without a TD24 (D-010).
-- Steam is 0.90 t/t of resin (the BREF's example plant uses 0.879 t/t) and thermal energy
-  2.0 GJ/t (BREF 2 to 3 GJ/t). Electricity is 139 kWh/t without the chiller (D-008).
-  Wastewater is 1.29 t/t (BREF 1 to 4 m3/t, D-009).
+- Steam is 0.91 t/t of resin (the BREF's example plant uses 0.879 t/t) and thermal energy
+  2.0 GJ/t (BREF 2 to 3 GJ/t). Electricity is 139 kWh/t without the chiller. Wastewater is
+  1.28 t/t (BREF 1 to 4 m3/t). All three cross-checks are in D-008.
 - The preliminary LCI links the VCM to vcm-1. The suspending agent, the initiator, the
-  short-stop, the chilled water and the vent treatment are gaps (D-011).
+  short-stop, the chilled water and the vent treatment are gaps, and so is the dryer's VCM to
+  air, which has no biosphere flow identity yet: six gaps (D-011).
 
 | path | what |
 |---|---|
@@ -57,7 +61,7 @@ Headline numbers and their caveats:
 | `pid/` | P&ID sheets (DEXPI 2.0.1 XML); none yet |
 | `process/design-basis.yaml` | capacity, feeds, products, utilities, site |
 | `process/materials.yaml`, `process/flowsheet.yaml`, `process/reactions.yaml` | components, blocks, steps, streams and the polymerisation: the source of the generated BFD and PFD (`process/*.xml`, `cheme process build`) |
-| `process/recipe.yaml` | the batch recipe: batch size, the autoclave's unit procedure over four steps on four autoclaves, its vessel, jacket and heat-up (`cheme process recipe`) |
+| `process/recipe.yaml` | the batch recipe: batch size, the autoclave's unit procedure over four steps on four autoclaves, its vessel, jacket and the heat-up's time by hand (`cheme process recipe`) |
 | `equipment/equipment-list.yaml`, `piping/line-list.yaml`, `control/instrument-list.yaml` | lists, consistent with the P&IDs |
 | `safety/` | HAZOP studies (`safety/hazop/<id>/study.yaml`) and the risk matrix they rate against; `safety/README.md` says how |
 | `lca/` | the preliminary gate-to-gate LCI (`lca/lca.yaml`, `lca/mappings.yaml`; the rest written by `cheme assess lca --write`) |
@@ -86,7 +90,7 @@ cheme check                     # engineering-step gates (--write only at sign-o
 cheme process build             # BFD and PFD from process/*.yaml
 cheme process streams           # stream table with provenance, block balances
 cheme process propagate --fill  # the batch, the separators, the VCM recycle, the centrifuge and dryer
-cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year, vessel, jacket, heat-up (--svg)
+cheme process recipe            # batch cycle: occupancy, bottleneck, batches per year, vessel, jacket (--svg)
 cheme process reactor-hazards   # thermal screening of the polymerisation
 cheme process crystallizers     # the centrifuge and the dryer: cake, moisture, the dryer's duty
 cheme assess lca --write        # the preliminary LCI

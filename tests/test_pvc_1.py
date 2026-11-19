@@ -11,7 +11,9 @@ makes in DESIGN.md, README.md and process.yaml are checked against them:
   kinetic scheme's;
 - the recipe's batch size equals the dried resin over the cycle, the stated capacity follows;
 - the resin keeps less VCM than the ECVM limit the BREF quotes (1 g/t);
-- the MTT is where VCM's and water's vapour pressures reach the stated relief set pressure;
+- the MTT is where VCM's and water's vapour pressures reach the stated relief set pressure
+  (recomputed with the `chemicals` package, no thermo needed);
+- the heat-up's time and Q1 are the charge's, the jacket the patent's demonstrated duty;
 - the LCI's specific consumptions are those README.md and DESIGN.md state; the steam and
   wastewater cross-checks against the BREF;
 - every flow of the inventory has a background or a recorded gap;
@@ -67,7 +69,8 @@ def recipe() -> dict:
     return _load("process/recipe.yaml")
 
 
-CYCLE_H = 7.7860916 / 4  # cheme process recipe: one autoclave's occupancy over four autoclaves
+CYCLE_H = 8000 / 4178.6368  # cheme process recipe: 4178.6 batches in 8000 h (7.658 h per autoclave, four autoclaves)
+HEAT_UP_H = 0.946  # process/recipe.yaml, by hand (D-003, L-6)
 
 
 def test_charge_follows_the_patent_example_over_the_cycle(streams) -> None:
@@ -104,9 +107,9 @@ def test_recipe_batch_size_is_the_resin_over_the_cycle(streams, recipe) -> None:
     resin = streams["S23"]["flow"]["value"]
     assert recipe["batch_size"]["value"] == pytest.approx(resin * CYCLE_H, rel=1e-3)
     capacity = recipe["batch_size"]["value"] * recipe["hours_per_year"]["value"] / CYCLE_H / 1000
-    assert capacity == pytest.approx(171_769, rel=1e-3)
-    assert "171.8 kt/a" in _text("process.yaml")
-    assert "172 kt/a" in _text("README.md")
+    assert capacity == pytest.approx(174_642, rel=1e-3)
+    assert "174.6 kt/a" in _text("process.yaml")
+    assert "175 kt/a" in _text("README.md")
     up = recipe["unit_procedures"][0]
     assert up["parallel"] == 4 and up["vessel"]["volume"] == 130
 
@@ -120,14 +123,41 @@ def test_mtt_is_the_relief_set_pressure_on_the_vapour_pressures(sheet) -> None:
     r101 = next(s for s in sheet["steps"] if s["id"] == "R101")
     mtt = r101["hazard"]["mtt"]
     assert mtt == pytest.approx(357.10, abs=0.01)
-    try:
-        from thermo import VaporPressure
-    except ImportError:
-        pytest.skip("thermo not installed")
-    vcm = VaporPressure(CASRN="75-01-4")
-    vcm.method = "DIPPR_PERRY_8E"
-    water = VaporPressure(CASRN="7732-18-5")
-    assert (vcm(mtt) + water(mtt)) / 1e3 == pytest.approx(1700, rel=2e-3)
+    # the stated values: VCM 1644 kPa and water 56 kPa add up to the relief set pressure
+    assert 1644 + 56 == 1700
+    assert "relief set at 1700 kPa(a)" in _text("equipment/equipment-list.yaml")
+    assert "VCM 1644 kPa and water 56 kPa at 357.10 K" in _text("DESIGN.md")
+    # and recomputed with the `chemicals` package the library's tests install (the coefficients
+    # thermo's DIPPR_PERRY_8E method and its IAPWS_PSAT water line use, SRC-6)
+    from chemicals.dippr import EQ101
+    from chemicals.iapws import iapws95_Psat
+    from chemicals.vapor_pressure import Psat_data_Perrys2_8
+
+    c = Psat_data_Perrys2_8.loc["75-01-4"]
+    vcm = EQ101(mtt, c["C1"], c["C2"], c["C3"], c["C4"], c["C5"])
+    assert vcm / 1e3 == pytest.approx(1644, rel=1e-3)
+    assert iapws95_Psat(mtt) / 1e3 == pytest.approx(56, rel=1e-2)
+    assert (vcm + iapws95_Psat(mtt)) / 1e3 == pytest.approx(1700, rel=2e-3)
+
+
+def test_heat_up_is_the_charges_not_the_end_contents(recipe, sheet) -> None:
+    """The heat-up's time and Q1 by hand from the charge (core 0e85885 heats the end-of-batch
+    content when nothing is dosed, L-6): the charge's components over 32 K, with the metal."""
+    mat = {c["id"]: c for c in _load("process/materials.yaml")["components"]}
+    kmol = {"VCM": 46_300 / MW["VCM"], "H2O": 56_800 / MW["H2O"]}
+    charge = sum(n * mat[k]["liquid_heat_capacity"] for k, n in kmol.items())  # kJ/K
+    assert charge == pytest.approx(313_356, rel=5e-4)  # with the additives, D-003
+    vessel = recipe["unit_procedures"][0]["vessel"]
+    jacket, metal = vessel["jacket"], vessel["metal_heat_capacity"]
+    ua = jacket["u"] * jacket["area"] / 1000  # kW/K
+    hours = (313_356 + metal) / ua * math.log((353.15 - 298.15) / (353.15 - 330.15)) / 3600
+    assert hours == pytest.approx(HEAT_UP_H, abs=5e-4)
+    heat = next(op for op in recipe["unit_procedures"][0]["operations"] if op["id"] == "heat")
+    assert heat["duration"]["value"] == HEAT_UP_H and "temperatures" not in heat
+    q1 = next(s for s in sheet["streams"] if s["id"] == "Q1")["state"]["design"]["duty"]["value"]
+    assert q1 == pytest.approx((313_356 + metal) * 32 / 1000 / CYCLE_H / 3.6, rel=1e-3)
+    # the jacket and baffles remove what the patent's Table 1 reports for them at 80 % (3889 kW)
+    assert ua * (330.15 - jacket["coolant_temperature"]) == pytest.approx(14_000 / 3.6, rel=2e-3)
 
 
 def test_lci_specifics_are_the_stated_ones() -> None:
@@ -135,14 +165,17 @@ def test_lci_specifics_are_the_stated_ones() -> None:
         per_fu = {row["key"]: float(row["quantity"]) for row in csv.DictReader(fh)}
     assert per_fu["feed:VCMF"] == pytest.approx(0.997, abs=6e-4)
     assert per_fu["feed:POWER"] == pytest.approx(0.139, abs=5e-4)
-    assert per_fu["feed:LSTM"] == pytest.approx(0.179, abs=6e-4)
-    assert per_fu["product:WW"] == pytest.approx(1.29, abs=6e-3)
-    assert per_fu["product:CHW"] == pytest.approx(0.440, abs=6e-4)
-    # steam: LP heat at about 2.12 MJ/kg plus the live steam, about 0.90 t/t (BREF example 0.879)
+    assert per_fu["feed:LSTM"] == pytest.approx(0.170, abs=6e-4)
+    assert per_fu["feed:LPS"] == pytest.approx(0.434, abs=6e-4)
+    assert per_fu["product:WW"] == pytest.approx(1.28, abs=6e-3)
+    assert per_fu["product:CHW"] == pytest.approx(0.452, abs=6e-4)
+    assert per_fu["emission:VCM"] * 1e6 == pytest.approx(0.16, abs=6e-3)  # g per t
+    # steam: LP heat at about 2.12 MJ/kg plus the live steam, about 0.91 t/t (BREF example 0.879)
     steam = per_fu["feed:LPS"] * 3.6 / 2.12 + per_fu["feed:LSTM"]
-    assert steam == pytest.approx(0.90, abs=0.02)
+    assert steam == pytest.approx(0.91, abs=0.02)
     for text in (_text("README.md"), _text("DESIGN.md")):
-        assert "0.90 t" in text and "139 kWh/t" in text
+        assert "0.91 t" in text and "139 kWh/t" in text and "1.28 t" in text
+    assert "0.16 g per t" in _text("lca/lca.yaml")
 
 
 def test_every_inventory_flow_has_a_background_or_a_gap() -> None:

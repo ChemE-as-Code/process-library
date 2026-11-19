@@ -8,7 +8,8 @@
 # demineralised water and the steam to the shared entries; the electricity, the cooling water
 # and the wastewater go to the library defaults. The suspending agent, the initiator, the
 # short-stop, the chilled water and the vent treatment are gaps with the activity each should
-# connect to: a gap, never zero, and no values from licensed databases.
+# connect to, and the dryer's VCM to air has no biosphere3 flow identity (not in
+# lci/mappings.yaml biosphere): six gaps, never zero, and no values from licensed databases.
 schema: cheme/lca/v1
 kind: lca
 goal: >-
@@ -25,7 +26,7 @@ boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Suspension PVC in four 130 m3 batch autoclaves: water, suspending agent, VCM and a peroxydicarbonate initiator charged, polymerised at 330 K to the pressure drop at 90 % conversion, short-stopped, the unreacted VCM vented to a compress-and-condense recovery and recycled; the slurry stripped continuously with live steam, centrifuged and dried in a fluid bed on LP steam; 41 794 kg per batch, 4110 batches a year"
+technology: "Suspension PVC in four 130 m3 batch autoclaves: water, suspending agent, VCM and a peroxydicarbonate initiator charged, polymerised at 330 K to the pressure drop at 90 % conversion, short-stopped, the unreacted VCM vented to a compress-and-condense recovery and recycled; the slurry stripped continuously with live steam, centrifuged and dried in a fluid bed on LP steam; 41 794 kg per batch, 4179 batches a year"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 flows:
@@ -54,13 +55,13 @@ flows:
     source: "flowsheet energy streams P1 to P4: 139 kWh per t of resin (EU Polymers BREF 2007, Table 5.10), D-008"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (processes/utility-steam-ng-boiler), per kWh of condensing heat"
-    source: "flowsheet energy streams Q1 (the charge heated, cheme process recipe) and Q3 (the dryer, core's dryer model), D-008, D-009"
+    source: "flowsheet energy streams Q1 (the charge and the autoclave's metal heated, by hand, D-003, L-6) and Q3 (the dryer, core's dryer model), D-008, D-009"
   - key: product:CW
     missing: "the library default: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
     source: "flowsheet energy streams Q4 (slurry cooler) and Q5 (stripper condenser), D-007, D-009"
   - key: product:CHW
     missing: "not mapped yet (D-011); connect to: cold from an electric chiller at 283 K (processes/utility-chiller makes chilled water at 6 C), per kWh of heat removed: compressor electricity at its COP, condenser cooling water, refrigerant losses"
-    source: "flowsheet energy streams Q2 (the polymerisation heat, from core's batch model; in the plant 26 to 45 % of it goes to the reflux condenser on cooling water, L-3) and Q6 (the recovery's condensers), D-006, D-008"
+    source: "flowsheet energy streams Q2 (the polymerisation heat, from core's batch model; in the plant 26 to 45 % of it goes to the reflux condenser on cooling water, L-3) and Q6 (the recovery's condensers with the compressor's shaft power), D-006, D-008"
   # wastes and emissions
   - key: product:WW
     treatment: {kind: waste, route: "the site's wastewater stripper (VCM back to the recovery), flocculation of the PVC fines and biological treatment (EU Polymers BREF 2007, 5.2.8 and BAT 5 of 13.4)"}
@@ -78,7 +79,7 @@ flows:
     source: "water vapour evaporated from the wet cake, to air"
   - key: emission:VCM
     elementary: {compartment: air, subcompartment: unspecified}
-    source: "the VCM the dryer drives off the stripped resin, 0.14 g per t of resin (D-007, D-009)"
+    source: "the VCM the dryer drives off the stripped resin, 0.16 g per t of resin (D-007, D-009); no biosphere3 flow identity for vinyl chloride to air in lci/mappings.yaml biosphere yet, a gap (D-011)"
 operation:
   hours_per_year: 8000
   life_years: 20
@@ -87,7 +88,7 @@ emission_exclusions:
   - {id: fugitive-vcm, method: equipment-leaks, equipment: [R-101, T-301, T-401, K-401, C-301], reason: "No P&ID yet: the fugitive VCM of seals, connections and the gas holder is not estimated; the EU Polymers BREF 2007 associates 18 to 45 g of total VCM per t of S-PVC with BAT (Table 13.9), all sources included (D-011)."}
   - {id: tank-breathing, method: storage-tank, equipment: [T-301, T-401, T-701], reason: "The slurry tank and the wastewater tank vent to the gas holder, the gas holder to the recovery (EU Polymers BREF 2007, 5.2.7); their losses past the recovery are in the fugitive VCM, not estimated (D-011)."}
   - {id: autoclave-opening, method: storage-tank, equipment: [R-101], reason: "The VCM released when an autoclave is opened (closed-reactor practice: less than once in 100 batches, EU Polymers BREF 2007, 5.2.3.2) is not estimated (D-011)."}
-  - {id: pvc-dust, method: equipment-leaks, equipment: [D-601], reason: "The PVC dust leaving the dryer's cyclones (10 to 40 g/t associated with BAT, EU Polymers BREF 2007, Table 13.9) is not in the balance (D-009)."}
+  - {id: pvc-dust, method: equipment-leaks, equipment: [DR-601], reason: "The PVC dust leaving the dryer's cyclones (10 to 40 g/t associated with BAT, EU Polymers BREF 2007, Table 13.9) is not in the balance (D-009)."}
 dataset:
   version: 0.1.0
   classification: {isic: "2013"}   # ISIC Rev.4 2013 Manufacture of plastics and synthetic rubber in primary forms

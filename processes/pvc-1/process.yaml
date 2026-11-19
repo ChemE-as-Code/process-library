@@ -3,11 +3,11 @@
 # files by the catalog builder and not repeated here.
 schema: cheme-as-code/process/v1
 id: pvc-1
-title: Polyvinyl chloride by batch suspension polymerisation with VCM recovery, steam stripping and drying (172 kt/a)
+title: Polyvinyl chloride by batch suspension polymerisation with VCM recovery, steam stripping and drying (175 kt/a)
 summary: >-
   Suspension PVC in four 130 m3 batch autoclaves: VCM (vcm-1) polymerised in water at 330 K to
   the pressure drop at 90 % conversion, the unreacted VCM recovered and recycled, the slurry
-  steam-stripped, centrifuged and dried. Concept stage, 41.8 t per batch every 1.95 h, thermal
+  steam-stripped, centrifuged and dried. Concept stage, 41.8 t per batch every 1.91 h, thermal
   screening of the closed batch, preliminary gate-to-gate LCI.
 description: |
   Each of four autoclaves of 130 m3 is charged with demineralised water and the suspending agent,
@@ -27,14 +27,16 @@ description: |
   pressure drop) with the activation energy of an open kinetic scheme, the heat of
   polymerisation of the example (1539.7 kJ/kg), the recovery's recycle converged at a tear
   stream (ADR 0060), component separators for the venting, the stripper and the recovery (ADR
-  0070), core's centrifuge and dryer models (ADR 0057), and the batch recipe (ADRs 0051, 0052,
-  0063): four autoclaves in turn, 7.79 h each, a cycle of 1.9465 h, 4110 batches of 41 794 kg
-  a year (172 kt/a). The jacket and cooled baffles remove 3.14 MW of the 5.44 MW peak: the
-  autoclave needs its reflux condenser for 42 % of the heat, as the example's has (core's
-  closed batch has none). The thermal screening of the closed batch gives dT_ad 227.6 K and an
-  MTSR of 557.7 K against an MTT of 357.1 K, the temperature at which the charge's vapour
-  pressure reaches the relief set pressure; a loss of cooling at the start reaches it in about
-  11 min: short-stop injection, emergency cooling, agitation on emergency power and a
+  0070), core's centrifuge and dryer models (ADR 0057), and the batch recipe (ADRs 0051,
+  0052): four autoclaves in turn, 7.66 h each, a cycle of 1.9145 h, 4179 batches of 41 794 kg
+  a year (175 kt/a); the heat-up's time and heat by hand from the charge (core heats the
+  end-of-batch content when nothing is dosed). The jacket and cooled baffles remove 3.89 MW, the
+  duty the example shows for them, against the model's 5.44 MW peak; the zero-order rate puts
+  that peak at the start, before the example's reflux condenser runs, so the jacket check's
+  warning stays open (core's closed batch has no reflux condenser). The thermal screening of
+  the closed batch gives dT_ad 227.5 K and an MTSR of 557.7 K against an MTT of 357.1 K, the
+  temperature at which the charge's vapour pressure reaches the relief set pressure; a loss of
+  cooling at the start reaches it in about 11.5 min: short-stop injection, emergency cooling, agitation on emergency power and a
   controlled emergency vent to the recovery are design requirements. See DESIGN.md for every
   assumption.
 families: [polymers]
@@ -57,18 +59,20 @@ validation:
     330.15 K), the venting DG101, the stripper ST301, its condenser CN301 and the recovery
     REC401 (ASSUMED component splits), the centrifuge CF501 (cake 0.30 kg/kg, ASSUMED) and the
     dryer DR601 (to 0.3 wt%, efficiency 0.55, ASSUMED) are calculated by cheme process
-    propagate, which writes R101's duty Q2 (9543 kW year average); the dryer's duty Q3 is its
-    model's (cheme process crystallizers); the heat-up Q1 is the recipe's (core ADR 0063, the
-    autoclave's ASSUMED metal); Q4 to Q6 and the motors' power (139 kWh/t, the EU Polymers
-    BREF's example plant) by hand. The recipe's year-average rate of the resin agrees with the
-    flowsheet (no cheme.recipe-basis finding); its jacket check warns (cheme.recipe-jacket):
-    the jacket and baffles remove 3138 of the 5438 kW peak, the rest is the reflux condenser's
-    (L-3). Thermal screening (cheme process reactor-hazards): R101 dT_ad 227.6 K,
+    propagate, which writes R101's duty Q2 (9309 kW year average); the dryer's duty Q3 is its
+    model's (cheme process crystallizers); the heat-up's time and Q1 by hand from the charge and
+    the autoclave's ASSUMED metal (the recipe heats the end-of-batch content when nothing is
+    dosed, L-6); Q4 to Q6 (Q6 with the compressor's shaft power) and the motors' power (139
+    kWh/t, the EU Polymers BREF's example plant) by hand. The recipe's year-average rate of the
+    resin agrees with the flowsheet (no cheme.recipe-basis finding); its jacket check warns
+    (cheme.recipe-jacket): the jacket and baffles remove 3887 of the 5438 kW peak, which the
+    zero-order rate puts at the start, before the reflux condenser runs (D-005, D-008). Thermal
+    screening (cheme process reactor-hazards): R101 dT_ad 227.5 K,
     accumulation 1 (a batch), MTSR 557.7 K against an MTT of 357.10 K (the relief set pressure
     1700 kPa(a), ASSUMED); no criticality class without a TD24 (3, 4 or 5). Preliminary
     gate-to-gate LCI, single product: the VCM linked to vcm-1, the water and the steam to the
-    shared entries, the suspending agent, the initiator, the short-stop, the chilled water and
-    the vent treatment gaps. Not reviewed. Needs cheme-as-code 1.12.0.
+    shared entries; the suspending agent, the initiator, the short-stop, the chilled water, the
+    vent treatment and the dryer's VCM to air (no biosphere flow identity) are gaps. Not reviewed. Needs cheme-as-code 1.12.0.
 chemistry:
   inputs:
     - {chemical: vinyl-chloride, role: feedstock, inventory_key: "feed:VCMF", note: "Vinyl chloride monomer (vcm-1), 0.997 kg per kg of resin; 1.11 kg charged per kg, 0.11 kg of it recovered and recycled"}
@@ -77,14 +81,14 @@ chemistry:
     - {chemical: di-2-ethylhexyl-peroxydicarbonate, role: feedstock, inventory_key: "feed:INITF", note: "Initiator, 0.54 g/kg"}
   outputs:
     - {chemical: polyvinyl-chloride, role: main-product, inventory_key: "product:PVCP", note: "Suspension PVC resin, 0.3 wt% volatiles, below 1 g/t VCM, to sieving and silos"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "1.29 kg/kg: centrate, stripper condensate and the recovery's water to the wastewater stripper and the site's treatment"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "1.28 kg/kg: centrate, stripper condensate and the recovery's water to the wastewater stripper and the site's treatment"}
   utilities:
     - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.139 kWh/kg: agitators, the recovery compressor, the centrifuge, the dryer's fans and conveying (the EU Polymers BREF's example plant, without utilities)"}
-    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.427 kWh/kg of LP steam heat: the autoclaves' heat-up and the dryer (core's dryer model), plus 0.179 kg/kg of live steam to the stripper (feed:LSTM)"}
-    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.440 kWh/kg removed by chilled water at 283 K: the polymerisation heat (core's batch model; in the plant 26 to 45 % goes to the reflux condenser on cooling water) and the recovery's condensers"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.434 kWh/kg of LP steam heat: the autoclaves' heat-up (by hand) and the dryer (core's dryer model), plus 0.170 kg/kg of live steam to the stripper (feed:LSTM)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "0.452 kWh/kg removed by chilled water at 283 K: the polymerisation heat (core's batch model; in the plant 26 to 45 % goes to the reflux condenser on cooling water) and the recovery's condensers with the compressor's heat"}
     - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.104 kWh/kg removed by cooling water: the slurry cooler and the stripper's condenser"}
 basis:
-  capacity: "171.8 kt/a of dried suspension PVC: 4110 batches/a of 41 794 kg in 8000 h on four autoclaves (21.47 t/h year average), the batch from US 6 825 288 B2, Example 1, the plant's size ASSUMED (DESIGN.md D-002, D-003)"
+  capacity: "174.6 kt/a of dried suspension PVC: 4179 batches/a of 41 794 kg in 8000 h on four autoclaves (21.83 t/h year average), the batch from US 6 825 288 B2, Example 1, the plant's size ASSUMED (DESIGN.md D-002, D-003)"
   operating_hours_per_year: 8000
   location: generic site beside a VCM plant, with a wastewater treatment and a vent incinerator (not chosen)
 references:
