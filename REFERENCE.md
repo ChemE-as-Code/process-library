@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 131 public process folders: 91 engineering projects (a `plant.yaml` with a process
+The table lists 132 public process folders: 92 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -77,6 +77,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`cumene-1`](processes/cumene-1/) | Cumene by zeolite alkylation of benzene with propylene (272 kt/a, transalkylation, LP steam export) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, DWSIM simulation, LCI dataset) |
 | [`demineralised-water-1`](processes/demineralised-water-1/) | Demineralised water by media filtration, two-stage reverse osmosis and mixed-bed ion exchange regenerated with HCl and NaOH (50 m3/h site utility) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`di-tert-butyl-dicarbonate-1`](processes/di-tert-butyl-dicarbonate-1/) | Di-tert-butyl dicarbonate (Boc2O) by semi-batch carbonation and phosgenation of potassium tert-butoxide in hexane with a CO2 vent through a vent condenser, hexane strip, wash and vacuum distillation (500 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
+| [`direct-air-capture-1`](processes/direct-air-capture-1/) | Carbon dioxide by direct air capture: aqueous KOH in cross-flow contactors, causticisation in pellet reactors, steam slaker and oxy-fired calciner on natural gas, CO2 compressed to 15 MPa, grid power (885 kt/a from the air, continuous) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`dmf-1`](processes/dmf-1/) | N,N-Dimethylformamide by carbonylation of dimethylamine (50 kt/a, sodium methoxide in methanol) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`e-fuels-1`](processes/e-fuels-1/) | Fischer-Tropsch e-fuel from CO2 and hydrogen by RWGS and cobalt FT (one open simulation) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`ethanol-1`](processes/ethanol-1/) | Ethanol by direct hydration of ethylene (100 000 t/a anhydrous, phosphoric acid catalyst) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
