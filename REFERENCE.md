@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 113 public process folders: 73 engineering projects (a `plant.yaml` with a process
+The table lists 114 public process folders: 74 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -98,6 +98,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`kraft-pulp-1`](processes/kraft-pulp-1/) | Bleached softwood kraft pulp with chemical recovery (1000 ADt/d market pulp, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`lime-1`](processes/lime-1/) | Quicklime by calcination of limestone in a natural-gas-fired parallel flow regenerative kiln (CLM BREF ranges) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`lng-terminal-1`](processes/lng-terminal-1/) | LNG export marine terminal (2 x 225,000 m3 tanks, 2 berths, 28 MTPA; LNG Canada reference) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, 8 P&IDs, 3D layout, HAZOP draft; agent reviews only, no stage signed off, #362) |
+| [`mdi-1`](processes/mdi-1/) | MDI and polymeric MDI by aniline-formaldehyde condensation and liquid-phase phosgenation in MCB, HCl recycle and HCl gas export, monomeric MDI distilled off the polymeric MDI (178 kt/a crude MDI) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methanesulfonyl-chloride-1`](processes/methanesulfonyl-chloride-1/) | Methanesulfonyl chloride by semi-batch reaction of methanesulfonic acid with thionyl chloride, an SO2/HCl vent and batch vacuum distillation (1000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`methanol-1`](processes/methanol-1/) | Methanol synthesis loop and purification (2500 t/d Grade AA, natural-gas syngas) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methylamines-1`](processes/methylamines-1/) | Methylamines (MMA, DMA, TMA) from methanol and ammonia | concept (calculation maturity: balanced, report from core 0.8.0, re-checked with core v1.2.1; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
