@@ -27,8 +27,15 @@ into hydrazoic acid (toxic, explosive), and so does hydrazine with nitrous acid 
 hydrazine limit on the methanol recycled to the acid vessel, and the purge's hydrazine oxidised
 before its azide is destroyed); azide forms explosive heavy-metal azides with copper and lead.
 The still's concentrated azide / hydrazine liquor ends at about 360 K, its TD24 unknown. A blocked
-vent would pressurise R-101 or R-102; the design calls for (ASSUMED, not yet designed or in the
-C&E) a trip of the acid dosing on either reactor's pressure and a relief device on each (D-017).
+vent would pressurise R-101 or R-102. The design calls for the following, ASSUMED and not yet on
+a P&ID or in the C&E (D-017, D-018):
+- a trip of the acid dosing at 50 kPa(g) in either reactor;
+- a relief device on each reactor: R-101's at 70 kPa(g), below where methyl nitrite would
+  condense on its chilled wall; R-102's at 1.0 MPa(g);
+- a design pressure of 1.0 MPa(g) for both reactors.
+
+Sizing the reliefs and confirming the design pressure still need calorimetry with gas
+measurement.
 DESIGN.md D-015 lists what the design rests on.
 
 | path | what |

@@ -26,12 +26,18 @@
 #   CO2 9.5 kJ/mol), standing for their unknown heats of desorption from the crude (D-006);
 #   minus phosgene's is R101's dose heat_of_solution and HCl's the retained share's dissolution
 #   in the heats of reaction (core ADR 0063, D-015).
+# - heat_of_vaporization, kJ/kmol, of benzyl alcohol, benzyl chloroformate and benzyl chloride at
+#   their normal boiling points: `cheme chemistry props --source Thermo -p heat_of_vaporization
+#   --temperature <Tb>` (48.56, 46.16, 41.38 kJ/mol); with the normal boiling point they give the
+#   vapour pressure by Clausius-Clapeyron for R101's bubble-point MTT at 50 kPa(a) (core ADR
+#   0069, hazard.mtt_from, D-016). They are non-volatile in the degassing T101 (no latent heat
+#   of theirs is used there).
 # The scrubber species (NaOH, NaCl, Na2CO3 dissolved) are molecular pseudo-components of the
 # aqueous liquor, an inventory basis, not a speciation (no property package of core covers it).
 schema: cheme/process/v1
 kind: materials
 components:
-  - {id: BNOH, name: Benzyl alcohol, formula: C7H8O, cas: 100-51-6, molar_mass: 108.140, normal_boiling_point: 478.45, liquid_molar_volume: 0.10228, liquid_heat_capacity: 171.0}
+  - {id: BNOH, name: Benzyl alcohol, formula: C7H8O, cas: 100-51-6, molar_mass: 108.140, normal_boiling_point: 478.45, heat_of_vaporization: 48557, liquid_molar_volume: 0.10228, liquid_heat_capacity: 171.0}
   - id: COCL2
     name: Phosgene
     formula: CCl2O
@@ -54,9 +60,9 @@ components:
     heat_of_vaporization: 10910
     critical: {Tc: 324.68, Pc: 8313.5, omega: 0.129, source: "chemicals: Tc HEOS, Pc HEOS, omega HEOS"}
     ideal_gas: {dHf_298: -92173.0, S_298: 186.9, cp_R: [3.72699, -0.00134502, 2.41915e-06, -1.18644e-09, 1.87246e-13], temperature_range: [298.15, 1500], source: "chemicals: dHf_298 ATCT_G, S_298 CRC, cp_R fitted to thermo TRCIG 298.15-1500 K (as processes/phosgene-1)"}
-  - {id: BCF, name: Benzyl chloroformate, formula: C8H7ClO2, cas: 501-53-1, molar_mass: 170.592, normal_boiling_point: 425.15, liquid_molar_volume: 0.13979, liquid_heat_capacity: 207.6}
+  - {id: BCF, name: Benzyl chloroformate, formula: C8H7ClO2, cas: 501-53-1, molar_mass: 170.592, normal_boiling_point: 425.15, heat_of_vaporization: 46158, liquid_molar_volume: 0.13979, liquid_heat_capacity: 207.6}
   - {id: DBC, name: Dibenzyl carbonate, formula: C15H14O3, cas: 3459-92-5, molar_mass: 242.274, liquid_molar_volume: 0.2107, liquid_heat_capacity: 330.0}
-  - {id: BNCL, name: Benzyl chloride, formula: C7H7Cl, cas: 100-44-7, molar_mass: 126.583, normal_boiling_point: 447.15, liquid_molar_volume: 0.11390, liquid_heat_capacity: 169.1}
+  - {id: BNCL, name: Benzyl chloride, formula: C7H7Cl, cas: 100-44-7, molar_mass: 126.583, normal_boiling_point: 447.15, heat_of_vaporization: 41384, liquid_molar_volume: 0.11390, liquid_heat_capacity: 169.1}
   - id: CO2
     name: Carbon dioxide
     formula: CO2
