@@ -7,17 +7,18 @@ title: Demineralised water by media filtration, reverse osmosis and mixed-bed io
 summary: >-
   Fresh surface water through dual-media filters, a two-stage brackish-water reverse osmosis at
   75 % recovery and mixed beds regenerated with hydrochloric acid (hydrogen-chloride-1) and
-  caustic soda (chlor-alkali-1); effluent neutralised, wastewater to the site's treatment.
+  caustic soda (chlor-alkali-1); effluent neutralised, wastewater discharged under permit.
   Concept stage, 50 m3/h, assumed basis.
 description: |
   Raw surface water is pumped through dual-media pressure filters (2.8 % of the filtered water
   goes to backwash) and cartridge filters to a high-pressure pump and a two-stage reverse
-  osmosis of brackish-water elements in a 2:1 array at 75 % recovery and 12.5 bar(a), with the
-  feed pressure estimated from the element's tested permeability. The permeate, about 9 mg/kg
-  of dissolved solids, is polished in two mixed beds (one in service) to below 0.1 uS/cm. The
-  beds are regenerated in place every 72 h with 5 wt-% hydrochloric acid and 4 wt-% caustic
-  soda; the effluent is neutralised with trim acid and joins the filter backwash and the RO
-  concentrate in a sump to the site's biological wastewater treatment.
+  osmosis of brackish-water elements in a 2:1 array (10 vessels of six, 7:3) at 75 % recovery
+  and 12.5 bar(a), with the feed pressure estimated from the element's tested permeability. The
+  permeate, about 9 mg/kg of dissolved solids, is polished in two mixed beds of 2.5 m3 (one in
+  service) to below 1 uS/cm, the quality of a mixed bed on RO permeate. The beds are regenerated
+  in place every 36 h with 5 wt-% hydrochloric acid and 4 wt-% caustic soda; the effluent is
+  neutralised with trim acid and joins the filter backwash and the RO concentrate in a sump
+  that discharges to surface water under the site's permit.
 
   All values are concept estimates. Core has no membrane or ion-exchange model: the RO and the
   mixed beds are component separators with specified splits, and the regenerant doses, rinse
@@ -42,18 +43,19 @@ validation:
     neutralisation (a conversion step whose heat cheme writes); two design specifications set
     the raw water for 50 m3/h of product and the regeneration water. The splits, regenerant
     doses, RO feed pressure and pump powers are from scripts/balance.py on sourced or ASSUMED
-    inputs. The preliminary gate-to-gate LCI closes in mass; the chemicals, the electricity
-    and the wastewater link library producers in the Atlas build. Not reviewed.
+    inputs. The preliminary gate-to-gate LCI closes in mass; the chemicals and the electricity
+    link library producers in the Atlas build, and the discharge is counted as emissions to
+    water. Not reviewed.
 chemistry:
   inputs:
-    - {chemical: water, role: feedstock, inventory_key: "resource:H2O", note: "Fresh surface water withdrawn (feed:RAW, a water resource), 1.380 kg per kg of product, with 500 mg/kg dissolved solids taken as NaCl"}
-    - {chemical: hydrogen-chloride, role: feedstock, inventory_key: "feed:HCL", note: "Hydrochloric acid 33 wt-% from hydrogen-chloride-1, counted by mass of the acid: 0.0634 kg per m3 (regeneration and trim acid)"}
-    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt-% from chlor-alkali-1, counted by mass of the solution: 0.0458 kg per m3"}
+    - {chemical: water, role: feedstock, inventory_key: "resource:H2O", note: "Fresh surface water withdrawn (feed:RAW, a water resource), 1.405 kg per kg of product, with 500 mg/kg dissolved solids taken as NaCl"}
+    - {chemical: hydrogen-chloride, role: feedstock, inventory_key: "feed:HCL", note: "Hydrochloric acid 33 wt-% from hydrogen-chloride-1, counted by mass of the acid: 0.253 kg per m3 (regeneration and trim acid)"}
+    - {chemical: sodium-hydroxide, role: feedstock, inventory_key: "feed:NAOH", note: "Caustic soda 50 wt-% from chlor-alkali-1, counted by mass of the solution: 0.183 kg per m3"}
   outputs:
-    - {chemical: water/demineralised, role: main-product, inventory_key: "product:DEMIN", note: "Demineralised water below 0.1 uS/cm at 5 bar(a), 50 m3/h"}
-    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Filter backwash, RO concentrate and neutralised regeneration effluent to the site's treatment, 0.380 kg per kg of product with about 0.72 g of salts"}
+    - {chemical: water/demineralised, role: main-product, inventory_key: "product:DEMIN", note: "Demineralised water below 1 uS/cm (a mixed bed on RO permeate, SRC-3) at 5 bar(a), 50 m3/h"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Filter backwash, RO concentrate and neutralised regeneration effluent, discharged to surface water under the site's permit (its water and salt emissions to water in the LCI, not a treatment service), 0.405 kg per kg of product with about 0.84 g of salts"}
   utilities:
-    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.98 kWh per m3: RO high-pressure pump 0.56, mixed-bed feed pump 0.20, raw water pump 0.16, auxiliaries 0.06"}
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.99 kWh per m3: RO high-pressure pump 0.57, mixed-bed feed pump 0.20, raw water pump 0.17, auxiliaries 0.06"}
 basis:
   capacity: "50 m3/h (50 000 kg/h) demineralised water, 400 000 m3/a (ASSUMED)"
   operating_hours_per_year: 8000

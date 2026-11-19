@@ -14,7 +14,7 @@
 #   pump powers, given here as ASSUMED with the script as source; its inputs are sourced
 #   (SRC-n) or ASSUMED in DESIGN.md;
 # - temperatures and the other pressures are design choices (D-002, D-007), ASSUMED.
-# Year averages: the mixed bed runs 72 h between regenerations (D-005); its chemicals, rinse
+# Year averages: the mixed bed runs 36 h between regenerations (D-005); its chemicals, rinse
 # water and the salt it holds are spread over the run.
 schema: cheme/process/v1
 kind: flowsheet
@@ -48,8 +48,8 @@ feeds:
       - {id: p201, direction: out, kind: energy}
       - {id: u201, direction: out, kind: energy}
 products:
-  - {id: DEMIN, title: "Demineralised water to the site header (below 0.1 uS/cm)", category: product, ports: [{id: in, direction: in}]}
-  - {id: WW, title: "Wastewater to the site's treatment: filter backwash, RO concentrate and neutralised regeneration effluent", category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: DEMIN, title: "Demineralised water to the site header (below 1 uS/cm)", category: product, ports: [{id: in, direction: in}]}
+  - {id: WW, title: "Wastewater discharged to surface water under the site's permit: filter backwash, RO concentrate and neutralised regeneration effluent", category: wastewater, ports: [{id: in, direction: in}]}
   - id: AMBIENT
     title: Heat of neutralisation left in the pit's water (to the ambient)
     category: utility
@@ -173,7 +173,7 @@ steps:
       outlets:
         prod: {H2O: 1.0, NaCl: 0.002}
       provenance: assumed
-      source: "D-005: all water to the product; 0.2 % of the permeate's salt slips through (about 0.02 mg/kg, within the below 0.1 uS/cm of a mixed bed, SRC-3), ASSUMED"
+      source: "D-005: all water to the product; 0.2 % of the permeate's salt slips through (about 0.02 mg/kg, ASSUMED); the product's conductivity is set by the CO2 the model does not carry (L-2): at most 1 uS/cm for a mixed bed on RO permeate (SRC-3)"
     links: [{target: equipment, ref: X-201}]
     ports:
       - {id: in, direction: in}
@@ -215,7 +215,7 @@ steps:
       - {id: heat, direction: out, kind: energy, delegates: heat}
   - id: M301
     block: NEU
-    title: Wastewater sump (to the site's wastewater treatment)
+    title: Wastewater sump (to the site's permitted discharge)
     class: Mixing
     links: [{target: equipment, ref: T-302}]
     ports:
@@ -234,9 +234,9 @@ specs:
     source: "D-002: 50 m3/h of demineralised water, ASSUMED"
   - id: REGEN_WATER
     vary: {node: SP101, port: regen, initial: 0.006}
-    target: {stream: S9, quantity: flow, value: 298.555}
+    target: {stream: S9, quantity: flow, value: 1194.221}
     provenance: assumed
-    source: "scripts/balance.py: dilution of the acid to 5 wt-% (11.78 kg/h) and of the caustic to 4 wt-% (26.35 kg/h), and 15 bed volumes of backwash, displacement and rinse water per regeneration (260.42 kg/h), D-005"
+    source: "scripts/balance.py: dilution of the acid to 5 wt-% (47.14 kg/h) and of the caustic to 4 wt-% (105.42 kg/h), and 15 bed volumes of backwash, displacement and rinse water per regeneration (1041.67 kg/h), D-005"
 
 # Material streams. Flows and compositions downstream of the feeds are calculated by cheme;
 # temperatures and pressures are design choices (D-002, D-007), ASSUMED.
@@ -251,7 +251,7 @@ streams:
         temperature: {value: 298.15, provenance: assumed, source: "D-002: 25 degC, the membranes' rating temperature (SRC-1 p. 22)"}
         pressure: {value: 101.325, provenance: assumed, source: "D-002: from the raw-water tank"}
         composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: assumed, source: "D-002: 500 mg/kg dissolved solids, taken as NaCl, ASSUMED"}
-        flow: {value: 69015.4, provenance: calculated, source: 'cheme process propagate: spec PRODUCT_RATE (S11 flow kg/h 50000)', fingerprint: 43169a3e1bcc9177}
+        flow: {value: 70244.3, provenance: calculated, source: 'cheme process propagate: spec PRODUCT_RATE (S11 flow kg/h 50000)', fingerprint: c9f0bdfee68458e0}
   - id: S2
     title: Raw water to the filters
     from: P101.out
@@ -261,8 +261,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 400.0, provenance: assumed, source: 'D-003: pressure filters (SRC-1 p. 60: 2 to above 4 bar available)'}
-        flow: {value: 69015.4, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S1', fingerprint: cf5b30196b6bbffd}
-        composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S1', fingerprint: cf5b30196b6bbffd}
+        flow: {value: 70244.3, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S1', fingerprint: 81220b123366511c}
+        composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S1', fingerprint: 81220b123366511c}
   - id: S3
     title: Filtered water to the RO
     from: F101.filt
@@ -272,8 +272,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 200.0, provenance: assumed, source: 'D-003: after the media and cartridge filters'}
-        flow: {value: 67098.3, provenance: calculated, source: 'cheme process propagate: splitter F101 from S2 S4', fingerprint: 0fa703acf07393e9}
-        composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: calculated, source: 'cheme process propagate: splitter F101 from S2', fingerprint: 91f2f8589ebe8f47}
+        flow: {value: 68293.1, provenance: calculated, source: 'cheme process propagate: splitter F101 from S2 S4', fingerprint: 88c461aa3245a0d7}
+        composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: calculated, source: 'cheme process propagate: splitter F101 from S2', fingerprint: fb488aef491e2e94}
   - id: S4
     title: Filter backwash and rinse water
     from: F101.bw
@@ -283,8 +283,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 101.325, provenance: assumed, source: D-003}
-        flow: {value: 1917.1, provenance: calculated, source: 'cheme process propagate: splitter F101 from S2', fingerprint: 55e1b0fb9aad8078}
-        composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: calculated, source: 'cheme process propagate: splitter F101 from S2', fingerprint: 91f2f8589ebe8f47}
+        flow: {value: 1951.23, provenance: calculated, source: 'cheme process propagate: splitter F101 from S2', fingerprint: e2a22b5be762bf02}
+        composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: calculated, source: 'cheme process propagate: splitter F101 from S2', fingerprint: fb488aef491e2e94}
   - id: S5
     title: RO feed
     from: P102.out
@@ -294,8 +294,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 1250.8, provenance: assumed, source: 'scripts/balance.py: net driving pressure 8.85 bar for 23.8 L/(m2 h) at the element''s tested permeability x 0.85, + mean osmotic pressure 0.65 bar + half the 3 bar array pressure drop + 0.5 bar permeate back-pressure (D-004)'}
-        flow: {value: 67098.3, provenance: calculated, source: 'cheme process propagate: pass-through P102 from S3', fingerprint: e13d6eea0a7165e6}
-        composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: calculated, source: 'cheme process propagate: pass-through P102 from S3', fingerprint: e13d6eea0a7165e6}
+        flow: {value: 68293.1, provenance: calculated, source: 'cheme process propagate: pass-through P102 from S3', fingerprint: a4b07f4151f05ce2}
+        composition: {basis: mass_fraction, values: {H2O: 0.9995, NaCl: 0.0005}, provenance: calculated, source: 'cheme process propagate: pass-through P102 from S3', fingerprint: a4b07f4151f05ce2}
   - id: S6
     title: RO permeate
     from: M101.perm
@@ -305,8 +305,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 151.3, provenance: assumed, source: 'D-004: 0.5 bar(g) back-pressure to the permeate tank'}
-        flow: {value: 50299.0, provenance: calculated, source: 'cheme process propagate: separator M101 from S5', fingerprint: e4b093f9d07b9ac2}
-        composition: {basis: mole_fraction, values: {H2O: 0.999997, NaCl: 2.85023e-06, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator M101 from S5', fingerprint: e4b093f9d07b9ac2}
+        flow: {value: 51194.7, provenance: calculated, source: 'cheme process propagate: separator M101 from S5', fingerprint: 43dabd0d37e30c85}
+        composition: {basis: mole_fraction, values: {H2O: 0.999997, NaCl: 2.85023e-06, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator M101 from S5', fingerprint: 43dabd0d37e30c85}
   - id: S7
     title: RO concentrate
     from: M101.conc
@@ -316,8 +316,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 101.325, provenance: assumed, source: 'D-004: let down to the sump'}
-        flow: {value: 16799.3, provenance: calculated, source: 'cheme process propagate: separator M101 from S5', fingerprint: e4b093f9d07b9ac2}
-        composition: {basis: mole_fraction, values: {H2O: 0.999392, NaCl: 0.000607886, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator M101 from S5', fingerprint: e4b093f9d07b9ac2}
+        flow: {value: 17098.4, provenance: calculated, source: 'cheme process propagate: separator M101 from S5', fingerprint: 43dabd0d37e30c85}
+        composition: {basis: mole_fraction, values: {H2O: 0.999392, NaCl: 0.000607886, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator M101 from S5', fingerprint: 43dabd0d37e30c85}
   - id: S8
     title: Permeate to the mixed beds
     from: SP101.svc
@@ -327,8 +327,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 101.325, provenance: assumed, source: 'D-005: from the atmospheric permeate tank'}
-        flow: {value: 50000.4, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S6 S9', fingerprint: c8783eb9525617f7}
-        composition: {basis: mole_fraction, values: {H2O: 0.999997, NaCl: 2.85023e-06, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S6', fingerprint: 483510d8d208f47b}
+        flow: {value: 50000.5, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S6 S9', fingerprint: 5c5e254fa0818e62}
+        composition: {basis: mole_fraction, values: {H2O: 0.999997, NaCl: 2.85023e-06, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S6', fingerprint: 357712ab45e27bda}
   - id: S9
     title: Regeneration water (dilution and rinse)
     from: SP101.regen
@@ -338,8 +338,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 300.0, provenance: assumed, source: D-005}
-        flow: {value: 298.555, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S6', fingerprint: dfddf6c9020d98d1}
-        composition: {basis: mole_fraction, values: {H2O: 0.999997, NaCl: 2.85023e-06, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S6', fingerprint: 483510d8d208f47b}
+        flow: {value: 1194.22, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S6', fingerprint: 76d87acbf435ac5b}
+        composition: {basis: mole_fraction, values: {H2O: 0.999997, NaCl: 2.85023e-06, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter SP101 from S6', fingerprint: 357712ab45e27bda}
   - id: S10
     title: Mixed-bed feed
     from: P201.out
@@ -349,8 +349,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 600.0, provenance: assumed, source: 'D-007: 1 bar over the bed to a 5 bar(a) header'}
-        flow: {value: 50000.4, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S8', fingerprint: c60d48e57d1b6170}
-        composition: {basis: mole_fraction, values: {H2O: 0.999997, NaCl: 2.85023e-06, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S8', fingerprint: c60d48e57d1b6170}
+        flow: {value: 50000.5, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S8', fingerprint: 0aa38f8882af1fc6}
+        composition: {basis: mole_fraction, values: {H2O: 0.999997, NaCl: 2.85023e-06, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through P201 from S8', fingerprint: 0aa38f8882af1fc6}
   - id: S11
     title: Demineralised water to the header
     from: X201.prod
@@ -360,8 +360,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 500.0, provenance: assumed, source: 'D-002: site header 5 bar(a)'}
-        flow: {value: 49999.9, provenance: calculated, source: 'cheme process propagate: separator X201 from S10', fingerprint: 9687a84a2766d218}
-        composition: {basis: mole_fraction, values: {H2O: 1.0, NaCl: 5.70048e-09, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X201 from S10', fingerprint: 9687a84a2766d218}
+        flow: {value: 50000.0, provenance: calculated, source: 'cheme process propagate: separator X201 from S10', fingerprint: 349a22656e5b614b}
+        composition: {basis: mole_fraction, values: {H2O: 1.0, NaCl: 5.70048e-09, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X201 from S10', fingerprint: 349a22656e5b614b}
   - id: S12
     title: 'Salt held on the resins, released at regeneration (year average)'
     from: X201.load
@@ -371,8 +371,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 101.325, provenance: assumed, source: 'D-005: not a physical stream: the bed''s load carried to its regeneration'}
-        flow: {value: 0.461402, provenance: calculated, source: 'cheme process propagate: separator X201 from S10', fingerprint: 9687a84a2766d218}
-        composition: {basis: mole_fraction, values: {H2O: 0.0, NaCl: 1.0, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X201 from S10', fingerprint: 9687a84a2766d218}
+        flow: {value: 0.461403, provenance: calculated, source: 'cheme process propagate: separator X201 from S10', fingerprint: 349a22656e5b614b}
+        composition: {basis: mole_fraction, values: {H2O: 0.0, NaCl: 1.0, HCl: 0.0, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator X201 from S10', fingerprint: 349a22656e5b614b}
   - id: S13
     title: Hydrochloric acid 33 wt-% to regeneration
     from: HCL.regen
@@ -382,7 +382,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 300.0, provenance: assumed, source: 'D-005: dosing pump'}
-        flow: {value: 2.1044, basis: mass, provenance: assumed, source: 'scripts/balance.py: 100 g HCl per L of the 0.5 m3 cation resin per regeneration (SRC-2: 80-120 g/L) every 72 h (D-005)'}
+        flow: {value: 8.4175, basis: mass, provenance: assumed, source: 'scripts/balance.py: 100 g HCl per L of the 1.0 m3 cation resin per regeneration (SRC-2: 80-120 g/L) every 36 h (D-005)'}
         composition: {basis: mass_fraction, values: {HCl: 0.33, H2O: 0.67}, provenance: assumed, source: 'scripts/balance.py: hydrogen-chloride-1''s product acid, 33 wt-%'}
   - id: S14
     title: Caustic soda 50 wt-% to regeneration
@@ -393,7 +393,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 300.0, provenance: assumed, source: 'D-005: dosing pump'}
-        flow: {value: 2.2917, basis: mass, provenance: assumed, source: 'scripts/balance.py: 110 g NaOH per L of the 0.75 m3 anion resin per regeneration (SRC-2: 80-140 g/L) every 72 h (D-005)'}
+        flow: {value: 9.1667, basis: mass, provenance: assumed, source: 'scripts/balance.py: 110 g NaOH per L of the 1.5 m3 anion resin per regeneration (SRC-2: 80-140 g/L) every 36 h (D-005)'}
         composition: {basis: mass_fraction, values: {NaOH: 0.5, H2O: 0.5}, provenance: assumed, source: 'scripts/balance.py: chlor-alkali-1''s product caustic, 50 wt-%'}
   - id: S15
     title: Spent regenerants and rinse water
@@ -404,8 +404,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 101.325, provenance: assumed, source: D-006}
-        flow: {value: 303.413, provenance: calculated, source: 'cheme process propagate: mixer M201 from S9 S12 S13 S14', fingerprint: 187f79962d181046}
-        composition: {basis: mole_fraction, values: {H2O: 0.996682, NaCl: 0.000473594, HCl: 0.00113575, NaOH: 0.00170832}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S9 S12 S13 S14', fingerprint: 97f0148743497171}
+        flow: {value: 1212.27, provenance: calculated, source: 'cheme process propagate: mixer M201 from S9 S12 S13 S14', fingerprint: 8080e792864862ec}
+        composition: {basis: mole_fraction, values: {H2O: 0.997034, NaCl: 0.000120554, HCl: 0.00113614, NaOH: 0.0017089}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S9 S12 S13 S14', fingerprint: 7ef75de834d70044}
   - id: S16
     title: Trim acid to the neutralisation pit
     from: HCL.trim
@@ -415,7 +415,7 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 300.0, provenance: assumed, source: 'D-006: dosing pump'}
-        flow: {value: 1.064, basis: mass, provenance: assumed, source: 'scripts/balance.py: acid equivalents brought to 1.001 x the caustic''s (SRC-5), D-006'}
+        flow: {value: 4.2562, basis: mass, provenance: assumed, source: 'scripts/balance.py: acid equivalents brought to 1.001 x the caustic''s (SRC-5), D-006'}
         composition: {basis: mass_fraction, values: {HCl: 0.33, H2O: 0.67}, provenance: assumed, source: 'scripts/balance.py: hydrogen-chloride-1''s product acid, 33 wt-%'}
   - id: S17
     title: Neutralised regeneration effluent
@@ -424,12 +424,12 @@ streams:
     template: water
     state:
       design:
-        temperature: {value: 298.15, provenance: assumed, source: 'D-006: the heat of neutralisation (about 0.44 kW) is left in the pit'}
+        temperature: {value: 298.15, provenance: assumed, source: 'D-006: the heat of neutralisation is left in the pit (D-007: under 1 K on a regeneration''s effluent)'}
         pressure: {value: 101.325, provenance: assumed, source: D-006}
-        flow: {value: 304.477, provenance: calculated, source: 'cheme process propagate: reactor R301 from S15 S16', fingerprint: 1dad769b34434068}
-        composition: {basis: mole_fraction, values: {H2O: 0.997823, NaCl: 0.00217553, HCl: 1.66693e-06, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S15 S16', fingerprint: e390c2ce49c41a16}
+        flow: {value: 1216.53, provenance: calculated, source: 'cheme process propagate: reactor R301 from S15 S16', fingerprint: 0239fa0386464e0b}
+        composition: {basis: mole_fraction, values: {H2O: 0.998174, NaCl: 0.0018241, HCl: 1.70552e-06, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S15 S16', fingerprint: de8fbddff0e49c19}
   - id: S18
-    title: Wastewater to treatment
+    title: Wastewater to the permitted discharge
     from: M301.out
     to: WW.in
     template: water
@@ -437,8 +437,8 @@ streams:
       design:
         temperature: {value: 298.15, provenance: assumed, source: D-002}
         pressure: {value: 101.325, provenance: assumed, source: D-006}
-        flow: {value: 19020.9, provenance: calculated, source: 'cheme process propagate: mixer M301 from S4 S7 S17', fingerprint: cec2e31cb8084380}
-        composition: {basis: mole_fraction, values: {H2O: 0.999413, NaCl: 0.000587118, HCl: 2.65887e-08, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S4 S7 S17', fingerprint: fb1b4852a51a8a81}
+        flow: {value: 20266.2, provenance: calculated, source: 'cheme process propagate: mixer M301 from S4 S7 S17', fingerprint: 969b94cc1b1a9d87}
+        composition: {basis: mole_fraction, values: {H2O: 0.999363, NaCl: 0.000636968, HCl: 1.02107e-07, NaOH: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S4 S7 S17', fingerprint: 0fd921f0792dac8e}
   # Energy streams: pump powers from scripts/balance.py (D-007)
   - id: E1
     title: Raw water pump power
@@ -447,7 +447,7 @@ streams:
     to: P101.power
     state:
       design:
-        duty: {value: 8.18, provenance: assumed, source: 'scripts/balance.py: raw water 1.013 to 4 bar(a), pump and motor efficiency 0.70 (D-007)'}
+        duty: {value: 8.325, provenance: assumed, source: 'scripts/balance.py: raw water 1.013 to 4 bar(a), pump and motor efficiency 0.70 (D-007)'}
   - id: E2
     title: RO high-pressure pump power
     kind: energy
@@ -455,7 +455,7 @@ streams:
     to: P102.power
     state:
       design:
-        duty: {value: 27.978, provenance: assumed, source: 'scripts/balance.py: filtered water 2.0 to 12.51 bar(a), efficiency 0.70, no energy recovery (D-004, D-007)'}
+        duty: {value: 28.476, provenance: assumed, source: 'scripts/balance.py: filtered water 2.0 to 12.51 bar(a), efficiency 0.70, no energy recovery (D-004, D-007)'}
   - id: E3
     title: Mixed-bed feed pump power
     kind: energy
@@ -471,12 +471,12 @@ streams:
     to: U201.aux
     state:
       design:
-        duty: {value: 3.0, provenance: assumed, source: 'scripts/balance.py: 3 kW year average, ASSUMED (D-007)'}
+        duty: {value: 3.0, provenance: assumed, source: 'scripts/balance.py: 3 kW year average, ASSUMED; also taken to cover the filters'' backwash pump P-103 (about 0.19 kW year average) and air scour (D-007)'}
   - id: E5
     title: Heat of neutralisation (warms the effluent, lost to the ambient)
     kind: energy
     from: R301.heat
     to: AMBIENT.r301
     state:
-      design: {duty: {value: 0.444171, provenance: calculated, source: 'cheme process propagate: conversion duty R301 from S15 S16 S17', fingerprint: 65819405a664a75c}}
+      design: {duty: {value: 1.77748, provenance: calculated, source: 'cheme process propagate: conversion duty R301 from S15 S16 S17', fingerprint: 4241d9e6a5778830}}
 layout: {bfd: {}, pfd: {}}

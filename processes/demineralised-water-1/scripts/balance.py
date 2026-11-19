@@ -51,9 +51,13 @@ P_ATM = 1.01325             # bar(a)
 P_SUCTION = 2.0             # bar(a) at the high-pressure pump after filters and cartridge filters, ASSUMED
 
 # --- mixed bed (D-005, SRC-2, SRC-3, SRC-4) -----------------------------------------------
-SV = 40.0                   # bed volumes per hour in service, ASSUMED
+SV = 20.0                   # bed volumes per hour in service, ASSUMED (set with RUN_MB by the capacity check, D-005)
 CATION_SHARE = 0.4          # cation resin share of the bed volume, ASSUMED
-RUN_MB = 72.0               # h service run between regenerations, ASSUMED (SRC-3: one or a few days on RO permeate)
+RUN_MB = 36.0               # h service run between regenerations, ASSUMED (SRC-3: one or a few days on RO permeate)
+CAP_SAC = (0.6, 1.7)        # eq/L operating capacity of strong acid cation resin (SRC-4)
+CAP_SBA = (0.4, 0.9)        # eq/L operating capacity of strong base anion resin (SRC-4)
+SALT_SHARE_MAX = 0.5        # the salt may use at most this share of the low-end operating capacity; the rest
+                            # is kept for the CO2 and silica the model does not carry (L-2), ASSUMED (D-005)
 HCL_LEVEL = 100.0           # g HCl per L cation resin (SRC-2: 80-120 g/L in mixed beds)
 NAOH_LEVEL = 110.0          # g NaOH per L anion resin (SRC-2: 80-140 g/L in mixed beds)
 HCL_CONC = 0.05             # regenerant strength (SRC-2: HCl 5 %)
@@ -68,7 +72,13 @@ TRIM = 1.001                # acid equivalents per caustic equivalent after the 
 P_RAW_OUT = 4.0             # bar(a) raw-water pump discharge (SRC-1 p. 60: pressure filters 2 to >4 bar), ASSUMED
 P_PRODUCT = 6.0             # bar(a) mixed-bed feed / forwarding pump: 1 bar over the bed to a 5 bar(a) header, ASSUMED
 ETA = 0.70                  # pump and motor efficiency, ASSUMED
-AUX_KW = 3.0                # dosing, regeneration and air-mixing blower, instruments, year average, ASSUMED
+AUX_KW = 3.0                # dosing, regeneration and air-mixing blower, filter backwash pump and air scour,
+                            # instruments, year average, ASSUMED (D-007)
+A_FILTER = 2.5              # m2 per filter, three filters, two in service (equipment list F-101), ASSUMED
+N_FILTERS = 3
+P_BW = 2.0                  # bar rise of the backwash pump P-103, ASSUMED
+CP_WATER = 4.18             # kJ/(kg K), liquid water at 25 degC (D-007; chemicals 1.5.2, see DESIGN.md)
+DH_NEUT = -285.830 - (-230.015 + 0.0)  # kJ/mol, H+(aq) + OH-(aq) -> H2O(l) (SRC-6)
 
 
 def pump_kw(flow_kg_h: float, p_in: float, p_out: float) -> float:
@@ -124,6 +134,15 @@ def design() -> dict:
     r["ionic_eq"] = r["ions"] / M["NaCl"]                 # kmol/h of NaCl held on the bed
     r["ratio_hcl"] = n_hcl_regen / r["ionic_eq"]
     r["ratio_naoh"] = n_naoh / r["ionic_eq"]
+    # capacity check (D-005): the salt taken up in one run (kmol = keq for NaCl) against the
+    # operating capacity of each resin (eq/L x m3 = keq / 1000 x 1000)
+    r["salt_run_kmol"] = r["ionic_eq"] * RUN_MB
+    r["use_sba_low"] = r["salt_run_kmol"] / (CAP_SBA[0] * v_an)
+    r["use_sba_high"] = r["salt_run_kmol"] / (CAP_SBA[1] * v_an)
+    r["use_sac_low"] = r["salt_run_kmol"] / (CAP_SAC[0] * v_cat)
+    r["use_sac_high"] = r["salt_run_kmol"] / (CAP_SAC[1] * v_cat)
+    r["run_max"] = SALT_SHARE_MAX * min(CAP_SBA[0] * v_an, CAP_SAC[0] * v_cat) / r["ionic_eq"]
+    assert RUN_MB <= r["run_max"], "the run exceeds the salt's share of the resins' operating capacity (D-005)"
 
     # RO feed pressure from the element's permeability at test
     pi_feed = PI_2000 * TDS_RAW * 1e6 / 2000.0
@@ -132,7 +151,12 @@ def design() -> dict:
     p_feed_g = ndp + pi_feed * cf + DP_FEED / 2 + P_PERM  # bar(g)
     p_feed = p_feed_g + P_ATM
     elements = math.ceil(r["perm"] / RHO * 1000 / FLUX / AREA)
-    r.update(pi_feed=pi_feed, a_test=a_test, ndp=ndp, p_feed=p_feed, elements=elements)
+    # installed: whole vessels of six; the feed pressure stays at the design flux, a margin (D-004)
+    vessels = math.ceil(elements / 6)
+    flux_inst = r["perm"] / RHO * 1000 / (6 * vessels * AREA)
+    ndp_inst = flux_inst / (a_test * FOULING)
+    r.update(pi_feed=pi_feed, a_test=a_test, ndp=ndp, p_feed=p_feed, elements=elements,
+             vessels=vessels, flux_inst=flux_inst, ndp_inst=ndp_inst)
 
     # pumps
     r["E1"] = pump_kw(r["raw"], P_ATM, P_RAW_OUT)
@@ -140,6 +164,20 @@ def design() -> dict:
     r["E3"] = pump_kw(r["perm"] * (1 - r["split_regen"]), P_ATM, P_PRODUCT)
     r["E4"] = AUX_KW
     r["kwh_m3"] = (r["E1"] + r["E2"] + r["E3"] + r["E4"]) / (PRODUCT / RHO)
+
+    # flows not in the energy balance, sized for D-007 (all inside E4 or left as heat in the water)
+    r["filter_area"] = r["raw"] / RHO / V_FILT                        # m2 in service
+    r["bw_flow"] = V_BW * A_FILTER                                     # m3/h, one filter at a time
+    r["bw_pump_kw"] = r["bw_flow"] / 3600 * P_BW * 100 / ETA          # kW while backwashing
+    r["bw_pump_avg"] = r["bw_pump_kw"] * N_FILTERS * T_BW / RUN_FILT   # kW year average
+    r["dt_letdown"] = (p_feed - DP_FEED - P_ATM) * 100 / (RHO * CP_WATER / 1000) / 1000  # K, concentrate throttled
+    n_neut = min(HCL_LEVEL * v_cat / M["HCl"], NAOH_LEVEL * v_an / M["NaOH"])  # kmol per regeneration
+    r["q_neut_regen"] = -DH_NEUT * n_neut                              # MJ per regeneration
+    effluent_regen = (r["regen_water"] + acid_regen + caustic + acid_trim + r["ions"]) * RUN_MB  # kg
+    r["effluent_regen"] = effluent_regen
+    r["dt_pit"] = r["q_neut_regen"] * 1000 / (effluent_regen * CP_WATER)  # K, the pit's whole batch
+    regenerants = (hcl_regen / HCL_CONC + naoh / NAOH_CONC) * RUN_MB  # kg of the two dilute regenerants
+    r["dt_regenerants"] = r["q_neut_regen"] * 1000 / (regenerants * CP_WATER)  # K, if they meet alone
     return r
 
 

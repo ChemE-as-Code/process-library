@@ -4,9 +4,11 @@
 #
 # Preliminary gate-to-gate foreground inventory (DESIGN.md D-008): every exchange of the plant
 # per kg of demineralised water, from the flowsheet's year averages (the mixed beds'
-# regenerations spread over their 72 h runs, D-005). The raw water is a water resource; the
-# hydrochloric acid, the caustic soda and the wastewater link library producers in the Atlas
-# build (lca/mappings.yaml); the electricity links the shared grid entry. Here, in the plant's
+# regenerations spread over their 36 h runs, D-005). The raw water is a water resource; the
+# hydrochloric acid and the caustic soda link library producers in the Atlas build
+# (lca/mappings.yaml); the electricity links the shared grid entry. The wastewater carries no
+# organics and is discharged under the site's permit: its water and salt are emissions to
+# fresh surface water, not a treatment service (D-006, D-008). Here, in the plant's
 # own assessment, they stay gaps (`missing:` with the activity each connects to): never zero,
 # and no values from licensed databases.
 schema: cheme/lca/v1
@@ -14,25 +16,25 @@ kind: lca
 goal: >-
   Preliminary gate-to-gate life cycle inventory of demineralised water made from fresh surface
   water by media filtration, two-stage reverse osmosis and mixed-bed ion exchange at the concept
-  stage: the water withdrawn, the regeneration chemicals, the electricity and the wastewater per
+  stage: the water withdrawn, the regeneration chemicals, the electricity and the discharge per
   kg of demineralised water, as the foreground of the library's demineralised water utility for
   boilers and processes. No impact results in the plant's own assessment: its backgrounds are
   linked in the Atlas build only (D-008).
-functional_unit: {product: DEMIN, amount: 1, unit: kg, source: "1 kg of demineralised water (below 0.1 uS/cm) at 5 bar(a) into the site header, stream S11 (D-002, D-008)"}
+functional_unit: {product: DEMIN, amount: 1, unit: kg, source: "1 kg of demineralised water (below 1 uS/cm, SRC-3) at 5 bar(a) into the site header, stream S11 (D-002, D-008)"}
 # The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
 # being mapped free (the schema's gate-to-gate maps every feed free), as oxalyl-chloride-1 does.
 boundary: cradle-to-gate
 case: design
 year: 2026
 location: GLO
-technology: "Raw surface water pumped through dual-media pressure filters (backwash 2.8 % of the filtered water), a two-stage brackish-water reverse osmosis at 75 % recovery and 12.5 bar(a) without energy recovery, and two mixed beds (1.25 m3 of resin, one in service) regenerated in place every 72 h with 5 wt-% hydrochloric acid and 4 wt-% caustic soda; the regeneration effluent neutralised with trim acid, all wastewater (backwash, RO concentrate, effluent) to the site's biological treatment; 50 m3/h, 8000 h/a"
+technology: "Raw surface water pumped through dual-media pressure filters (backwash 2.8 % of the filtered water), a two-stage brackish-water reverse osmosis at 75 % recovery and 12.5 bar(a) without energy recovery, and two mixed beds (2.5 m3 of resin, one in service) regenerated in place every 36 h with 5 wt-% hydrochloric acid and 4 wt-% caustic soda; the regeneration effluent neutralised with trim acid, all wastewater (backwash, RO concentrate, effluent) discharged to surface water under the site's permit; 50 m3/h, 8000 h/a"
 rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
 system_model: cutoff
 flows:
   # raw water from nature: each component a resource:<component> flow
   - key: feed:RAW
     resource: true
-    source: "flowsheet stream S1 (D-002): fresh surface water withdrawn, 1.380 kg per kg of product"
+    source: "flowsheet stream S1 (D-002): fresh surface water withdrawn, 1.405 kg per kg of product"
   - key: resource:H2O
     elementary: {compartment: resource, subcompartment: in-water, flow: water-river}
     source: "the raw water's water, withdrawn from a river (ASSUMED source, D-002)"
@@ -58,23 +60,36 @@ flows:
     source: "flowsheet energy streams E1 to E4 (the raw-water, RO high-pressure and mixed-bed pumps, the regeneration auxiliaries), D-007"
   # wastes
   - key: product:WW
-    treatment: {kind: waste, route: "the site's biological wastewater treatment (processes/utility-wwtp); the dissolved salts (about 0.72 g per kg of product) pass it unchanged (D-006)"}
-    missing: "linked to processes/utility-wwtp in the Atlas build (process.yaml inventory_key, chemical wastewater): treatment of wastewater per kg"
-    source: "flowsheet stream S18 (backwash S4, RO concentrate S7, neutralised effluent S17), D-006"
+    emission: true
+    source: "flowsheet stream S18 (backwash S4, RO concentrate S7, neutralised effluent S17), neutral (pH 6 to 9, SRC-5) and without organics, discharged to fresh surface water under the site's permit (D-006). Not sent to processes/utility-wwtp: its dataset assumes 1 kg COD per m3, which would charge about 0.29 kg of fossil CO2 and 0.16 kWh per m3 of product for organics S18 does not carry (D-008)"
+  # compartments: the discharge goes to fresh surface water
+  - key: emission:H2O
+    elementary: {compartment: water, subcompartment: fresh-surface, flow: water-to-water}
+    source: "S18: the water of the discharge returned to fresh surface water, 0.404 kg per kg of product; with the withdrawal (resource:H2O) it gives the plant's net water use"
+  - key: emission:NaCl
+    elementary: {compartment: water, subcompartment: fresh-surface}
+    source: "S18: the raw water's dissolved solids (lumped as NaCl, D-002) and the salt the neutralisation forms, about 0.84 g per kg of product, to fresh surface water; the library build links it as dissolved solids by mass (lci/mappings.yaml biosphere)"
+  - key: emission:HCl
+    free: true
+    source: "S18: about 4 g/h (0.08 mg per kg of product), the trim's 0.1 % acid excess (SRC-5), neutralised by the receiving water's alkalinity; below cut-off, not counted"
+  - key: emission:NaOH
+    free: true
+    source: "0 kg: the effluent is neutralised (R301)"
   - key: product:AMBIENT
     free: true
-    source: "flowsheet energy stream E5: the heat of neutralisation (0.44 kW, core's conversion model) warms the effluent and is lost to the ambient; no utility (D-006)"
+    source: "flowsheet energy stream E5: the heat of neutralisation (1.78 kW, core's conversion model) warms the effluent and is lost to the ambient; no utility (D-006)"
 operation:
   hours_per_year: 8000
   life_years: 20
   source: "design basis operating_hours_per_year 8000 (ASSUMED, D-002); 20 a service life ASSUMED"
 emission_exclusions:
+  - {id: discharge-traces, method: effluent, exchange: product:WW, reason: "what the balance does not carry in the discharge: the suspended solids the filters take out of the river water and return with the backwash (D-003), the raw water's hardness, alkalinity, silica and CO2 (lumped as NaCl, L-2), and the residues of antiscalant and dechlorination dosing, which are outside the boundary (D-001); to be estimated with a raw-water analysis (D-008)"}
   - {id: water-tanks, method: storage-tank, equipment: [T-101, T-301, T-302], reason: "Tanks of water, dilute salt solutions and the neutralised effluent at 25 degC: no volatile component (the regenerants are diluted and neutralised; HCl over 5 wt-% acid has a negligible vapour pressure, and the 33 wt-% acid is stored in a vented tank with a scrubber outside this flowsheet's tanks); the RO permeate tank vents only dissolved CO2, which the flowsheet does not carry (L-2). Negligible (D-008)."}
 dataset:
   version: 0.1.0
   classification: {isic: "3600"}   # ISIC Rev.4 3600 Water collection, treatment and supply
   modelling: {principle: attributional}
-  geography: {description: "Generic chemical site with fresh surface water, a hydrochloric acid and caustic soda supply and a biological wastewater treatment, not chosen (GLO); one design case"}
+  geography: {description: "Generic chemical site with fresh surface water, a hydrochloric acid and caustic soda supply and a permit to discharge the RO concentrate and the neutralised effluent to surface water, not chosen (GLO); one design case"}
   system_model: cutoff
   technology_level: current
   review: {type: none}

@@ -11,9 +11,12 @@ the equipment list and the LCI are checked against them:
 - the RO's water recovery and the product's residual salt are the stated ones;
 - the trim acid brings the acid equivalents to 1.001 times the caustic's, and the neutralised
   effluent carries no caustic;
+- the mixed bed's salt load of a run stays within half of the resins' low-end operating
+  capacity (DESIGN.md D-005, in kmol);
 - the pump powers are V dP / eta at the stated pressures;
 - the LCI's inventory is the flowsheet's per kg of product, the raw water is a water resource,
-  the acid and the caustic link library producers whose datasets exist;
+  the acid and the caustic link library producers whose datasets exist, and the wastewater is a
+  discharge (water and salt to fresh surface water), not utility-wwtp's treatment;
 - the registry grade and the market of the product exist;
 - the process is public with CC-BY-4.0 and requires cheme-as-code 1.12.
 """
@@ -83,21 +86,21 @@ def test_the_product_rate_and_the_specific_numbers(balance, design, streams):
     assert product == pytest.approx(50000.0, rel=1e-5)
     raw = streams["S1"]["flow"]["value"]
     assert raw == pytest.approx(design["raw"], rel=1e-5)
-    assert raw / product == pytest.approx(1.380, abs=5e-4)
+    assert raw / product == pytest.approx(1.405, abs=5e-4)
     ww = streams["S18"]["flow"]["value"]
-    assert ww / product == pytest.approx(0.380, abs=5e-4)
+    assert ww / product == pytest.approx(0.405, abs=5e-4)
     acid = streams["S13"]["flow"]["value"] + streams["S16"]["flow"]["value"]
-    assert acid / (product / 1000) == pytest.approx(0.0634, abs=5e-5)
-    assert streams["S14"]["flow"]["value"] / (product / 1000) == pytest.approx(0.0458, abs=5e-5)
+    assert acid / (product / 1000) == pytest.approx(0.2535, abs=5e-5)
+    assert streams["S14"]["flow"]["value"] / (product / 1000) == pytest.approx(0.1833, abs=5e-5)
     power = sum(streams[e]["duty"]["value"] for e in ("E1", "E2", "E3", "E4"))
-    assert power == pytest.approx(49.05, abs=0.01)
-    assert power / (product / 1000) == pytest.approx(0.98, abs=0.005)
+    assert power == pytest.approx(49.70, abs=0.01)
+    assert power / (product / 1000) == pytest.approx(0.99, abs=0.005)
     readme, design_md, manifest = _text("README.md"), _text("DESIGN.md"), _text("process.yaml")
     for text in (readme, manifest):
-        assert "0.98 kWh per m3" in text
-    assert "1.380 kg of raw water" in design_md and "0.380 kg per kg of product" in design_md
+        assert "0.99 kWh per m3" in text
+    assert "1.405 kg of raw water" in design_md and "0.405 kg per kg of product" in design_md
     salt = _kg(balance, streams, "S18")["NaCl"] / product * 1000
-    assert salt == pytest.approx(0.72, abs=0.005)  # g per kg of product, DESIGN.md D-006
+    assert salt == pytest.approx(0.84, abs=0.005)  # g per kg of product, DESIGN.md D-006
 
 
 def test_the_splits_are_the_scripts(balance, design, sheet, streams):
@@ -129,8 +132,23 @@ def test_the_trim_acid_neutralises_the_caustic(balance, design, streams):
     assert effluent["NaOH"] == 0.0
     assert effluent["HCl"] < 0.01 * streams["S16"]["flow"]["value"] * 0.33
     # the regenerants' equivalents against the salt the beds take up (DESIGN.md D-005)
-    assert design["ratio_hcl"] == pytest.approx(2.4, abs=0.05)
-    assert design["ratio_naoh"] == pytest.approx(3.6, abs=0.05)
+    assert design["ratio_hcl"] == pytest.approx(9.6, abs=0.05)
+    assert design["ratio_naoh"] == pytest.approx(14.5, abs=0.05)
+
+
+def test_the_mixed_bed_run_is_within_its_operating_capacity(balance, design, streams):
+    """DESIGN.md D-005: the salt of one run, in kmol (= keq for NaCl), uses at most half of the
+    low-end operating capacity of either resin (SRC-4), the rest held for CO2 and silica."""
+    salt_kg_h = streams["S12"]["flow"]["value"]
+    salt_run = salt_kg_h / balance.M["NaCl"] * balance.RUN_MB
+    assert salt_run == pytest.approx(design["salt_run_kmol"], rel=1e-4)
+    assert salt_run == pytest.approx(0.284, abs=0.001)
+    for cap, volume in ((balance.CAP_SBA[0], design["v_an"]), (balance.CAP_SAC[0], design["v_cat"])):
+        assert salt_run / (cap * volume) <= balance.SALT_SHARE_MAX
+    assert design["use_sba_low"] == pytest.approx(0.47, abs=0.005)
+    assert balance.RUN_MB <= design["run_max"]
+    text = _text("DESIGN.md")
+    assert "0.284 kmol in a 36 h run" in text and "uses 47 %" in text
 
 
 def test_the_pump_powers(balance, design, streams):
@@ -147,7 +165,7 @@ def test_the_pump_powers(balance, design, streams):
 
 def test_the_neutralisation_heat_reaches_the_lci(streams):
     assert streams["E5"]["duty"]["provenance"] == "calculated"
-    assert streams["E5"]["duty"]["value"] == pytest.approx(0.44, abs=0.01)
+    assert streams["E5"]["duty"]["value"] == pytest.approx(1.78, abs=0.01)
     keys = {f["key"] for f in _load("lca/lca.yaml")["flows"]}
     assert {"feed:RAW", "resource:H2O", "feed:HCL", "feed:NAOH", "feed:POWER", "product:WW", "product:AMBIENT"} <= keys
 
@@ -179,6 +197,12 @@ def test_the_library_links_exist():
     keys = {f["inventory_key"]: f["chemical"] for group in manifest["chemistry"].values() for f in group if "inventory_key" in f}
     assert keys["product:DEMIN"] == "water/demineralised"
     assert keys["product:WW"] == "wastewater" and keys["feed:POWER"] == "electricity"
+    # the wastewater is discharged, not treated: no utility-wwtp link, water and salt to water
+    assert "product:WW" not in mappings
+    flows = {f["key"]: f for f in _load("lca/lca.yaml")["flows"]}
+    assert flows["product:WW"].get("emission") is True and "treatment" not in flows["product:WW"]
+    assert flows["emission:H2O"]["elementary"] == {"compartment": "water", "subcompartment": "fresh-surface", "flow": "water-to-water"}
+    assert flows["emission:NaCl"]["elementary"]["compartment"] == "water"
 
 
 def test_the_grade_and_the_market_exist():

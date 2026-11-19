@@ -13,13 +13,15 @@ checked by [`cheme-as-code`](https://github.com/ChemE-as-Code/core).
 A site utility plant that makes 50 m3/h of demineralised water from fresh surface water. The
 raw water is pumped through dual-media pressure filters, whose backwash takes 2.8 % of the
 filtered water, and through cartridge filters to a high-pressure pump. A two-stage reverse
-osmosis of brackish-water elements in a 2:1 array recovers 75 % of the water at 12.5 bar(a).
+osmosis of brackish-water elements in a 2:1 array (10 vessels of six, 7:3) recovers 75 % of the
+water at 12.5 bar(a).
 The feed pressure is estimated from the element's tested permeability. The permeate, about
-9 mg/kg of dissolved solids, is polished in two mixed beds, one in service, to below 0.1 uS/cm.
-Every 72 h a bed is regenerated in place with 5 wt-% hydrochloric acid (33 wt-% acid from
-hydrogen-chloride-1) and 4 wt-% caustic soda (50 wt-% from chlor-alkali-1). The effluent is
-neutralised with trim acid and joins the filter backwash and the RO concentrate in a sump that
-drains to the site's biological wastewater treatment.
+9 mg/kg of dissolved solids, is polished in two mixed beds of 2.5 m3, one in service, to below
+1 uS/cm, the quality of a mixed bed on RO permeate, whose CO2 limits it (SRC-3). Every 36 h a bed
+is regenerated in place with 5 wt-% hydrochloric acid (33 wt-% acid from hydrogen-chloride-1)
+and 4 wt-% caustic soda (50 wt-% from chlor-alkali-1). The effluent is neutralised with trim
+acid and joins the filter backwash and the RO concentrate in a sump that discharges to surface
+water under the site's permit.
 
 Core has no membrane or ion-exchange model, so the RO and the mixed beds are component
 separators with specified splits (core ADR 0070). Core calculates every flow from the feeds,
@@ -29,17 +31,23 @@ and pump powers come from `scripts/balance.py`. Needs cheme-as-code 1.12.0. DESI
 core features used and the core limits hit.
 
 Headline numbers and their caveats:
-- Per m3 of product: 1.38 m3 of raw water, 0.063 kg of 33 wt-% hydrochloric acid, 0.046 kg of
-  50 wt-% caustic soda, 0.98 kWh per m3 of electricity (0.56 of it the RO pump) and 0.38 m3 of
-  wastewater with 0.72 kg of salts (D-005 to D-007).
+- Per m3 of product: 1.40 m3 of raw water, 0.25 kg of 33 wt-% hydrochloric acid, 0.18 kg of
+  50 wt-% caustic soda, 0.99 kWh per m3 of electricity (0.57 of it the RO pump) and 0.41 m3 of
+  wastewater with 0.84 kg of salts (D-005 to D-007).
 - The dissolved solids are lumped as 500 mg/kg of NaCl. Hardness, alkalinity, silica and CO2
   are not carried, though they set the RO's scaling limit and the beds' anion load (L-2). The
-  72 h run and the rinse volumes are ASSUMED (D-005).
+  36 h run is set so that the salt uses at most half of the beds' operating capacity at the low
+  end of the published range, the rest held for the CO2 (D-005). The run and the rinse volumes
+  are ASSUMED; a longer run, which a measured CO2 might allow, cuts the acid and caustic per m3
+  in proportion.
 - The design is at 25 degC. Colder water needs a higher RO feed pressure (D-004).
-- All wastewater goes to biological treatment, which does not remove the salt. That is the
-  LCI's conservative choice, since RO concentrate often goes to a sewer under a permit (D-006).
-- The library links its `water` inputs to this plant's market by default (prefer_atlas). The
-  shared vocabulary already read those inputs as deionised water (D-008).
+- The wastewater carries salts but no organics, so it is discharged to surface water under the
+  site's permit, and the LCI counts its water and salt as emissions to water. Sending it to the
+  library's activated-sludge dataset would add about 0.29 kg of fossil CO2 per m3 for organics
+  it does not carry (D-006).
+- The library links its `water` inputs to this plant's market by default (prefer_atlas): 96
+  inputs of 55 processes. The shared vocabulary already read those inputs as deionised water
+  (D-008).
 
 | path | what |
 |---|---|
