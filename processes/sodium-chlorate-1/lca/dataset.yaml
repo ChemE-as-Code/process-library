@@ -111,8 +111,9 @@ exchanges:
   link:
     source: flowsheet energy streams P1 (rectifiers, from cheme process cell's DC power over an ASSUMED
       0.97) and P3 (auxiliaries, 300 kWh/t, BREF Table 7.80), D-009
-    missing: 'not mapped yet (D-011): electricity, medium or high voltage, grid mix of the (undecided)
-      site country; the largest exchange of the inventory'
+    missing: 'not mapped yet in this folder (D-011; the Atlas build links it through the shared lci/mappings.yaml
+      electricity entry): electricity, medium or high voltage, grid mix of the (undecided) site country;
+      the largest exchange of the inventory'
   streams:
   - P1
   - P3
@@ -277,19 +278,19 @@ exchanges:
 - key: product:CW
   title: Cooling water return
   type: output
-  amount: 17173.86
+  amount: 15371.68
   unit: kWh
   link:
-    source: flowsheet energy streams Q1 (rectifier losses), Q4 (cell heat not recovered) and Q5 (crystallizer
-      condenser), D-009
+    source: flowsheet energy streams Q1 (rectifier losses), Q4 (cell heat neither recovered to the crystallizer
+      nor kept to warm the returned liquor) and Q5 (crystallizer condenser), D-009
     missing: 'heat rejected to a recirculating cooling-water system (prefer_atlas: processes/utility-cooling-tower),
       per kWh removed'
   streams:
   - Q1
   - Q4
   - Q5
-  source: flowsheet energy streams Q1 (rectifier losses), Q4 (cell heat not recovered) and Q5 (crystallizer
-    condenser), D-009
+  source: flowsheet energy streams Q1 (rectifier losses), Q4 (cell heat neither recovered to the crystallizer
+    nor kept to warm the returned liquor) and Q5 (crystallizer condenser), D-009
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -515,7 +516,9 @@ exchanges:
     missing: 'not mapped yet (D-011); no library process makes sodium dichromate. Connect to: sodium dichromate
       from chromite ore by oxidative alkaline roasting and acidification, per kg'
     notes: 'leaves with the product, the bleed and the chromium-bearing sludges (SRC-1 Table 7.79: 0.1-1
-      kg of process sludge with chromium per t, to hazardous-waste disposal; not inventoried, D-011)'
+      kg of process sludge with chromium per t, to hazardous-waste disposal; not inventoried, D-011).
+      The BREF''s make-up is for a washed crystal: the flowsheet''s unwashed cake would carry 73-122 g/t,
+      about the whole make-up, into the product (D-010, L-5)'
   source: 0.08 kg per t (the middle of 0.01-0.15 kg/t, SRC-1 Tables 7.79 and 7.81) x 50 806 t/a, ASSUMED
     (D-010)
   pedigree:
@@ -529,10 +532,12 @@ exchanges:
   unit: kg
   link:
     source: 2 kg H2O2 per t (the middle of 1-3 kg/t, SRC-1 Table 7.81) as 4 kg of 50 wt% solution x 50
-      806 t/a, ASSUMED (D-010)
+      806 t/a, ASSUMED (D-010); reducing the flowsheet's 3 g/L at the crystallizer would take 16 kg/t,
+      its upper bound (D-007)
     missing: 'linked to processes/hydrogen-peroxide-1 (lca/mappings.yaml): hydrogen peroxide 50 wt%'
   source: 2 kg H2O2 per t (the middle of 1-3 kg/t, SRC-1 Table 7.81) as 4 kg of 50 wt% solution x 50 806
-    t/a, ASSUMED (D-010)
+    t/a, ASSUMED (D-010); reducing the flowsheet's 3 g/L at the crystallizer would take 16 kg/t, its upper
+    bound (D-007)
   pedigree:
     scores: [4, 4, 1, 3, 3]
     rule: cheme default pedigree v1 (assumed, design maturity concept)
@@ -571,8 +576,8 @@ provenance:
     kg/h)
   case: design
   files:
-    equipment/equipment-list.yaml: sha256:da0ee3e8926724a459ba0191db7f0ec575a02ee1e549c1af80c393453d2239f9
-    lca/lca.yaml: sha256:bcb5853a6753dfd8c0abde74ea22d649e7f38cb52b96302bfabd61e0057673cf
-    process.yaml: sha256:d07527b590f65c48ce20cb28ed9933a62517c889fb815742bd00d06e8af9c343
-    process/flowsheet.yaml: sha256:a0ed2b67f01e665dd44460d7a96bfdd541fbf6d156200ed1a755fd412a62fd23
+    equipment/equipment-list.yaml: sha256:0450786b23c05759a155c1ac2958f86e0a024bbcf36b415d0d17e708fd8673e8
+    lca/lca.yaml: sha256:45188f5ba929e6eade86cfd6b85c4bbfe24d4bdef661d360204914fa0614c1de
+    process.yaml: sha256:124cd0ea9ec94f96615f3956b9e46152c6f4b30783d63ce09e97e6ec5a453a14
+    process/flowsheet.yaml: sha256:bafa1643cea25037076a328110005fe7117c804d99ce6123e1797ea22e238b4c
     process/materials.yaml: sha256:33db9f852cbd3611b62425a43d34adb03cef7ff83076b812277e6adcd5b4bf24

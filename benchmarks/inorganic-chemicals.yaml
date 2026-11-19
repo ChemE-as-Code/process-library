@@ -35,8 +35,10 @@
 # 0.856 kg dichlorodimethylsilane per kg TBSCl; they are limits, not ranges of real plants.
 # Sodium chlorate (sodium-chlorate-1, #512): the BREF LVIC-S 2007, Table 7.79 and Table 7.80, gives
 # the specific salt, process water and electricity of European plants; the dataset takes its
-# current efficiency and operating ranges from the same BREF, but not these consumptions, which
-# follow from its own balance.
+# current efficiency and operating ranges from the same BREF. Salt and water follow from its own
+# balance. Electricity does only in part: the cells' power follows from the balance, but the
+# auxiliaries (0.30 of the 5.196 kWh/kg) are the midpoint of the BREF's own 100-500 kWh/t, so
+# that part of the electricity check is not independent of the dataset.
 schema: cheme-as-code/benchmarks/v1
 family: inorganic-chemicals
 
@@ -176,7 +178,7 @@ kpis:
       - id: bref-lvics-2007-naclo3-electricity
         range: [5.0, 6.0]
         basis: unallocated
-        note: "5000-6000 AC kWh per t in total, typical use, depending on the current density: 4700-5200 for the electrolysis and 100-500 for other equipment."
+        note: "5000-6000 AC kWh per t in total, typical use, depending on the current density: 4700-5200 for the electrolysis and 100-500 for other equipment. Not fully independent of the dataset, whose auxiliary power (0.30 kWh/kg) is the midpoint of the 100-500 kWh/t; without it the dataset's 4.90 kWh/kg would be below this range."
         conditions: {technology: "electrolysis of NaCl brine in chlorate cells at 1.0-3.0 kA/m2 and 2.6-3.6 V, European plants", region: EU, year: 2004}
         source:
           citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Solids and Others industry"

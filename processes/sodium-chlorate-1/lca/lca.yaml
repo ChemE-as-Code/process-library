@@ -51,14 +51,14 @@ flows:
     source: "flowsheet stream S2, set by the design specification for the liquor's 565 g/L NaClO3 (D-005)"
   # utilities
   - key: feed:POWER
-    missing: "not mapped yet (D-011): electricity, medium or high voltage, grid mix of the (undecided) site country; the largest exchange of the inventory"
+    missing: "not mapped yet in this folder (D-011; the Atlas build links it through the shared lci/mappings.yaml electricity entry): electricity, medium or high voltage, grid mix of the (undecided) site country; the largest exchange of the inventory"
     source: "flowsheet energy streams P1 (rectifiers, from cheme process cell's DC power over an ASSUMED 0.97) and P3 (auxiliaries, 300 kWh/t, BREF Table 7.80), D-009"
   - key: feed:LPS
     missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 450 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
     source: "flowsheet energy stream Q6 (the dryer's air heater, core's dryer model), D-009"
   - key: product:CW
     missing: "heat rejected to a recirculating cooling-water system (prefer_atlas: processes/utility-cooling-tower), per kWh removed"
-    source: "flowsheet energy streams Q1 (rectifier losses), Q4 (cell heat not recovered) and Q5 (crystallizer condenser), D-009"
+    source: "flowsheet energy streams Q1 (rectifier losses), Q4 (cell heat neither recovered to the crystallizer nor kept to warm the returned liquor) and Q5 (crystallizer condenser), D-009"
   # co-product, wastes and emissions
   - key: product:PURGE
     treatment: {kind: waste, route: "mother-liquor bleed to the site's effluent treatment with chlorate reduction (sodium chlorate, chloride and active chlorine; dichromate traces, D-008)"}
@@ -110,12 +110,12 @@ consumables:
     per_year: 4064
     source: "0.08 kg per t (the middle of 0.01-0.15 kg/t, SRC-1 Tables 7.79 and 7.81) x 50 806 t/a, ASSUMED (D-010)"
     missing: "not mapped yet (D-011); no library process makes sodium dichromate. Connect to: sodium dichromate from chromite ore by oxidative alkaline roasting and acidification, per kg"
-    notes: "leaves with the product, the bleed and the chromium-bearing sludges (SRC-1 Table 7.79: 0.1-1 kg of process sludge with chromium per t, to hazardous-waste disposal; not inventoried, D-011)"
+    notes: "leaves with the product, the bleed and the chromium-bearing sludges (SRC-1 Table 7.79: 0.1-1 kg of process sludge with chromium per t, to hazardous-waste disposal; not inventoried, D-011). The BREF's make-up is for a washed crystal: the flowsheet's unwashed cake would carry 73-122 g/t, about the whole make-up, into the product (D-010, L-5)"
   - id: hydrogen-peroxide
     title: Hydrogen peroxide 50 wt% to reduce the liquor's hypochlorite before crystallisation
     unit: kg
     per_year: 203224
-    source: "2 kg H2O2 per t (the middle of 1-3 kg/t, SRC-1 Table 7.81) as 4 kg of 50 wt% solution x 50 806 t/a, ASSUMED (D-010)"
+    source: "2 kg H2O2 per t (the middle of 1-3 kg/t, SRC-1 Table 7.81) as 4 kg of 50 wt% solution x 50 806 t/a, ASSUMED (D-010); reducing the flowsheet's 3 g/L at the crystallizer would take 16 kg/t, its upper bound (D-007)"
     missing: "linked to processes/hydrogen-peroxide-1 (lca/mappings.yaml): hydrogen peroxide 50 wt%"
   - id: nitrogen
     title: Nitrogen for purging the cell gas and hydrogen systems (safety)

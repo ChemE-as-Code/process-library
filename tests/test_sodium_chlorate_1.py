@@ -9,7 +9,8 @@ are checked against them:
   extents, and the cell gas holds the stated oxygen;
 - the cell feed's chlorate and chloride content and the circulation against US 5 419 818 A;
 - the reaction-tank volume of D-007 from the open rate constant;
-- the energy streams' arithmetic (rectifiers, heat recovery, condenser);
+- the energy streams' arithmetic (rectifiers, heat recovery, the returned liquor's reheat,
+  condenser) and the hypochlorite at the crystallizer against the BREF's H2O2;
 - the hydrogen per t and the vent against the BREF;
 - the allocation shares are the contained products' masses, the consumables' per-year amounts
   their per-t rates;
@@ -128,15 +129,37 @@ def test_the_reaction_tank_volume_from_the_rate_constant(streams, mw):
     assert "648 m3" in _text("DESIGN.md") and "1.06 h" in _text("DESIGN.md")
 
 
-def test_the_energy_streams(streams):
+def test_the_energy_streams(streams, mw):
     p1, p2, q1 = _flow(streams, "P1"), _flow(streams, "P2"), _flow(streams, "Q1")
     assert p1 == pytest.approx(p2 / 0.97, abs=0.01) and q1 == pytest.approx(p1 - p2, abs=0.01)
-    q2, q3, q4 = _flow(streams, "Q2"), _flow(streams, "Q3"), _flow(streams, "Q4")
-    assert q4 == pytest.approx(q2 - q3, abs=0.01)
+    q2, q3, q4, q7 = (_flow(streams, q) for q in ("Q2", "Q3", "Q4", "Q7"))
+    # the crystallizer's duty nets the side stream's cooling from 343.15 to 323.15 K
+    assert q3 == pytest.approx(_flow(streams, "S17") * 2382 / 3600 - _flow(streams, "S13") * 2.9 * 20 / 3600, abs=0.5)
+    # Q7: the returned liquor and the make-up brought back to the loop's 343.15 K (D-009)
+    t = {s: streams[s]["temperature"]["value"] for s in ("S1", "S2", "S3", "S4", "S5", "S6")}
+    cp = {"S1": 0.872, "S2": 4.18, "S3": 2.9, "S4": 4.18}
+    reheat = sum(_flow(streams, s) * cp[s] * (t["S6"] - t[s]) for s in cp)  # kJ/h
+    assert q7 == pytest.approx(reheat / 3600, abs=0.01)
+    assert t["S5"] == pytest.approx(t["S6"] - reheat / (_flow(streams, "S5") * 2.9), abs=0.01)
+    assert q4 == pytest.approx(q2 - q3 - q7, abs=0.01)
     assert _flow(streams, "Q5") == pytest.approx(_flow(streams, "S17") * 2382 / 3600, abs=0.01)
     assert q2 / p2 == pytest.approx(0.484, abs=0.001)  # the BREF: about 50 % of the energy
-    formed = 59.444169 * 106.437  # kg/h of NaClO3 formed (CHEM's extent)
+    formed = (_kmol(streams, mw, "S9")["NaClO3"] - _kmol(streams, mw, "S8")["NaClO3"]) * mw["NaClO3"]
     assert p1 / formed * 1000 == pytest.approx(4919, abs=1) and 4700 <= p1 / formed * 1000 <= 5200
+    cw = (q1 + q4 + _flow(streams, "Q5")) / _flow(streams, "S20")
+    assert cw == pytest.approx(2.42, abs=0.005) and "2.42 kWh/kg" in _text("process.yaml")
+
+
+def test_the_hypochlorite_at_the_crystallizer(streams, mw):
+    # D-007: reducing the side stream's 3 g/L takes 16 kg H2O2 per t, against the BREF's 2 kg/t
+    product_t = _flow(streams, "S20") / 1000
+    naocl = _kmol(streams, mw, "S13")["NaOCl"]
+    assert naocl == pytest.approx(3.01, abs=0.005)
+    h2o2 = naocl * 34.0147  # kg/h, one H2O2 per NaOCl
+    assert h2o2 == pytest.approx(102.3, abs=0.05) and h2o2 / product_t == pytest.approx(16.1, abs=0.05)
+    bref = 2.0 * product_t / 34.0147 * mw["NaOCl"] / _flow(streams, "S13") * RHO * 1000  # g/L
+    assert bref == pytest.approx(0.38, abs=0.005)
+    assert "16.1 kg per t" in _text("DESIGN.md") and "about 0.38 g/L" in _text("DESIGN.md")
 
 
 def test_hydrogen_per_t_and_the_vent(streams, mw):
@@ -188,7 +211,7 @@ def test_requires_core_1_12():
 # ---- with core ----------------------------------------------------------------------------
 
 
-def test_core_cell_gives_the_flowsheets_power_and_heat(streams):
+def test_core_cell_gives_the_flowsheets_power_and_heat(streams, mw):
     pytest.importorskip("chemeascode")
     import json
 
@@ -198,4 +221,5 @@ def test_core_cell_gives_the_flowsheets_power_and_heat(streams):
     cell = report["cells"][0]
     assert cell["power_kw"] == pytest.approx(_flow(streams, "P2"), abs=0.05)
     assert cell["heat_duty_kw"] == pytest.approx(_flow(streams, "Q2"), abs=0.05)
-    assert cell["extents"]["CHLORATE"] == pytest.approx(59.4442, abs=1e-3)
+    made = _kmol(streams, mw, "S9")["NaClO3"] - _kmol(streams, mw, "S8")["NaClO3"]
+    assert cell["extents"]["CHLORATE"] == pytest.approx(made, rel=1e-4)

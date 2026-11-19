@@ -48,7 +48,8 @@ Headline numbers and their caveats:
   (D-006, L-2).
 - The BREF's auxiliary chemicals (HCl, NaOH, dichromate, soda ash, H2O2, nitrogen) are LCA
   consumables, not streams (D-010). The preliminary LCI allocates 3.9 % to the hydrogen used, by
-  mass; electricity and dichromate are gaps (D-011).
+  mass; electricity (in `cheme assess lca`; the Atlas build links it to the shared grid entry) and
+  dichromate are gaps (D-011).
 - Hazards (D-012): hydrogen with oxygen in the cell gas, the hydrogen vent, chlorine on a pH drop,
   sodium chlorate as an oxidiser with organic dust, hexavalent chromium, the DC cell line.
 
