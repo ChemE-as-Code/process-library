@@ -26,7 +26,12 @@ screening compares the HCl a cooling failure releases with an ASSUMED vent capac
 (the normal peak rounded up; no vent sized yet): at the end of R-101's salt addition it uses 0.97
 of it (about 3 % margin), at a ten times slower rate all of it, at a hundred times slower 8.7
 times it (a design finding: dosing interlocks and an emergency relief sized from calorimetry are
-required, not yet designed; DESIGN.md D-011, D-014).
+required, not yet designed; DESIGN.md D-011, D-014). Core 1.12.0 reproduces these numbers.
+DESIGN.md D-017 settles what a model can settle. The 3 % margin is the margin of the normal salt
+addition, so the salt feeder's delivery is limited to the design rate. The interlocks stop the
+salt before about 2.7 % of it and the toluene before about 8.5 % of it has accumulated (model
+limits on the ASSUMED rate laws). The relief, the criticality class and the interlocks' set
+points still need calorimetry, a DIERS-type adiabatic test, a TD24 and a HAZOP/LOPA.
 Needs cheme-as-code 1.10.0. DESIGN.md lists the core features used and the core limits hit.
 
 Two headline numbers carry caveats. The modelled product is 99.7 wt% p-TsCl, an upper bound:

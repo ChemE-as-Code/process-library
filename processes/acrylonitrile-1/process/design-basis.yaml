@@ -1,0 +1,56 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Acrylonitrile by SOHIO propylene ammoxidation, issue ChemE-as-Code/process-library#460. Values
+# marked ASSUMED are engineering choices of this concept study, not client or licensor data; every
+# decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: acrylonitrile product to storage (stream S27 of process/flowsheet.yaml, incl. its water and acetonitrile traces)
+  product_kg_per_h: 15000.0           # ASSUMED (D-002): 120 kt/a, the capacity of the open whole-plant design of Li, Dimian and Kiss (2025)
+  product_t_per_a: 120000
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked (fluid-bed velocity limits)
+feeds:
+  - name: Propylene (boundary feed, from processes/propylene-pdh-1)
+    source_of_values: "ASSUMED (D-003): taken as pure propylene; EPA-450/4-84-007a (p. 16) gives refinery grade of 90+ % purity as acceptable"
+    conditions: {pressure_kPa_a: 350, temperature_K: 298.15}   # ASSUMED, vaporised at the battery limit
+    flow: set by the product rate (spec SP-RATE)
+  - name: Ammonia (boundary feed, from processes/ammonia-1)
+    source_of_values: "ASSUMED (D-003): pure; 1.2 mol per mol propylene (US 6 596 897 B1 test feed; Li et al. 2025)"
+    conditions: {pressure_kPa_a: 350, temperature_K: 298.15}   # ASSUMED, vaporised at the battery limit
+  - name: Process air
+    source_of_values: "ASSUMED (D-003): dry air N2 78.12 / O2 20.95 / Ar 0.93 mol%; 9.8 mol per mol propylene (US 6 596 897 B1)"
+    conditions: {pressure_kPa_a: 101.325, temperature_K: 298.15}
+  - name: Sulfuric acid 98.5 wt% (from processes/sulfuric-acid-1)
+    source_of_values: "ASSUMED (D-005): 5 % excess over the unconverted ammonia (spec SP-ACID)"
+  - name: Natural gas (support fuel of the thermal oxidiser, taken as methane)
+    source_of_values: "ASSUMED (D-008): 0.005 kg per kg propylene"
+products:
+  - name: Acrylonitrile
+    purity: "modelled 99.75 wt% (water 0.21, acetonitrile 0.04 wt%); target above 99.5 wt% ASSUMED (Li et al. 2025: 99.4 wt%; EPA-450/4-84-007a p. 19: 99+ %). Stabiliser (MEHQ) dosing not modelled"
+    delivery: {pressure_kPa_a: 300, temperature_K: 303.15, battery_limit: "product tanks (outside the boundary)"}
+  - name: Hydrogen cyanide co-product
+    purity: "modelled 99.7 wt% (D-007); used on site or by an adjacent plant (e.g. processes/sodium-cyanide-1 consumes HCN)"
+  - name: Acetonitrile co-product
+    purity: "modelled 99.5 wt% (D-007)"
+  - name: Quench liquor (ammonium sulfate solution) and process wastewater
+    use: "to ammonium sulfate recovery or treatment, and to biological treatment (D-005, D-007)"
+  - name: HP steam export
+    use: to the site header, 4100 kPa(a) (D-009)
+utilities:
+  - {name: Electric power, use: "air compressor, absorber water chiller, pumps", note: "ASSUMED electric drives (D-009)"}
+  - {name: LP steam, pressure_kPa_a: 700, use: "column reboilers", note: "lump scaled from Li et al. (2025) base case (D-009), ASSUMED"}
+  - {name: HP steam raised, pressure_kPa_a: 4100, use: export, note: "ASSUMED level (D-009); reactor coils, effluent boiler, oxidiser boiler"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: "ASSUMED (D-009): the library cooling tower utility-cooling-tower, 25/35 C (Li et al. 2025 use 20-25 C)"}
+  - {name: Refrigeration, note: "absorber lean water to 278 K; electric chiller COP 4.0 ASSUMED (D-009)"}
+site:
+  location: ASSUMED generic site (not chosen), integrated with propylene, ammonia and sulfuric acid supply
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325   # ASSUMED
+assumptions:
+  - "Route: SOHIO propylene ammoxidation in a fluidised bed over a multicomponent bismuth molybdate catalyst (D-001)."
+  - "Reactor model: conversion step with the propylene conversion (97.5 %) and the single-pass carbon yields of US 6 596 897 B1 (evaluation 1, example 1, 440 C, 0.14 MPa), normalised to the conversion; NH3 conversion 96.5 %, the excess over the nitriles burnt to N2 (D-004). Not kinetics."
+  - "ASSUMED reactor 713.15 K and 200 kPa(a) (Li et al. 2025), feed mixture at 373.15 K (D-004)."
+  - "ASSUMED quench: all ammonia neutralised, 5 % acid excess, 10 % of the water and all acrylic acid to the liquor (D-005)."
+  - "ASSUMED absorber water 4.0 mol per mol of inlet at 278 K and the separator splits of the absorber and the columns (D-006, D-007): specified, not predicted (core ADR 0070)."
+  - "ASSUMED thermal oxidiser: 99 % destruction (EPA-450/4-84-007a: 98 % or more), stack 473 K, support fuel 0.005 kg/kg propylene, combustion air 2.0 mol per mol propylene (D-008)."
+  - "ASSUMED column steam and cooling-water lumps scaled from the base case of Li et al. (2025); compressor and chiller power from our own calculation (D-009)."

@@ -3,9 +3,9 @@
 #
 # Sodium nitrite by absorption of nitrous gas from ammonia oxidation in soda solution, with
 # evaporation, NaNO2 crystallisation and drying, and inversion of the mother-liquor purge to
-# sodium nitrate with nitric acid (DESIGN.md D-001..D-003). Ammonia (ammonia-1), soda ash
-# (soda-ash-1) and 60 wt-% nitric acid (nitric-acid-1) are boundary feeds made by other
-# library processes.
+# sodium nitrate with nitric acid (DESIGN.md D-001..D-003). Ammonia (ammonia-1), dense soda ash
+# (soda-ash-1 makes light ash; densification lies outside both boundaries) and 60 wt-% nitric
+# acid (nitric-acid-1) are boundary feeds made by other library processes.
 # Where the values come from:
 # - the burner outlet S5 is calculated by cheme (conversion reactor R101, D-005) from the
 #   feeds S2 and S4; its temperature after the waste heat boiler is assumed;
@@ -30,7 +30,7 @@ tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in
 feeds:
   - {id: NH3, title: "Liquid ammonia from ammonia-1 (battery limit, 1600 kPa(a))", category: raw_material, ports: [{id: out, direction: out}]}
   - {id: AIR, title: Ambient air, category: raw_material, ports: [{id: out, direction: out}]}
-  - {id: SODA, title: "Soda ash, dense, from soda-ash-1", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SODA, title: "Soda ash, dense", category: raw_material, ports: [{id: out, direction: out}]}
   - {id: HNO3, title: "Nitric acid 60 wt-% from nitric-acid-1", category: raw_material, ports: [{id: out, direction: out}]}
   - id: POWER
     title: Electric power (AC, grid)
@@ -52,7 +52,7 @@ feeds:
       kind: steam
       level: LP
       pressure: {value: 450, provenance: assumed, source: "D-010: site LP header, as nitric-acid-1's LP level"}
-      supply_temperature: {value: 420.8, provenance: assumed, source: "saturation at 450 kPa(a) (IAPWS-IF97), D-010"}
+      supply_temperature: {value: 421.06, provenance: assumed, source: "saturation at 450 kPa(a) (IAPWS-IF97, SRC-10), D-010"}
       min_approach: {value: 10, provenance: assumed, source: D-010}
     ports:
       - {id: e101, direction: out, kind: energy}

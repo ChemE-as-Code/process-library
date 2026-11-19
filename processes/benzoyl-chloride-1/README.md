@@ -25,7 +25,7 @@ reactor-hazards`, `cheme process stills`). The duties of the reactor (Q2), of it
 (Q8) and of the still's reboiler (Q4) and condenser (Q5) are written by `cheme process propagate
 --fill` from the models (core ADRs 0059, 0061, 0062); the feeds for 2000 t/a, the absorber
 water and the melter's, absorber's and product cooler's duties come from `scripts/balance.py`.
-Needs cheme-as-code 1.10.0.
+Needs cheme-as-code 1.12.0.
 
 | path | what |
 |---|---|

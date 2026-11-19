@@ -1,0 +1,51 @@
+# Reactions of the dry-grind corn ethanol plant (DESIGN.md D-004 to D-006). Schema: `cheme
+# schema process-reactions`.
+#
+# Conversion models, not kinetics: the extents follow from the conversions given here (a
+# fraction of the key component's inlet flow of the step), sourced or ASSUMED per value in
+# DESIGN.md. The starch hydrolysis is the enzymes' net reaction (alpha-amylase and
+# glucoamylase); the fermentation is yeast's (Saccharomyces cerevisiae) net reactions with yeast
+# growth not represented (L-3). Heats of reaction from formation enthalpies at 298.15 K: ethanol
+# (l), water (l), glycerol (l), acetic acid (l) and CO2 (g) and methane (g) from the `chemicals`
+# 1.5.2 package (Hfl / Hfg, its default methods: ATCT_L and ATCT_G, the Active Thermochemical
+# Tables as packaged, and for glycerol CRC, the CRC Handbook table as packaged; the underlying
+# works not read here; single values with their source, library ADR 0037, DESIGN.md SRC-3); glucose (s) -1271 kJ/mol from the infobox of the Wikipedia article "Glucose" (read
+# 2026-11-19, a secondary source, so ASSUMED); the glucose's heat of solution is left out.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HYD
+    title: Enzymatic hydrolysis of starch to glucose (liquefaction and saccharification, net)
+    equation: "STARCH + H2O -> GLC"
+    stoichiometry: {STARCH: -1, H2O: -1, GLC: 1}
+    phase: liquid
+    conversion: {key: STARCH, value: 0.99, provenance: assumed, source: "SRC-1 p. 10: the two enzymes convert essentially all the starch of finely ground, properly cooked corn; 1 % left to the DDGS ASSUMED (D-005)"}
+    catalyst: "purchased alpha-amylase (liquefaction, pH 6, 88 C) and glucoamylase (saccharification, pH 4.4, 60 C), SRC-1 pp. 6-7"
+    sources: ["SRC-1 pp. 6-7, 10"]
+  - id: FERM
+    title: Ethanol fermentation of glucose by yeast
+    equation: "GLC -> 2 ETOH + 2 CO2B"
+    stoichiometry: {GLC: -1, ETOH: 2, CO2B: 2}
+    phase: liquid
+    conversion: {key: GLC, value: 0.9416, provenance: assumed, source: "calibrated so the ethanol leaving the plant is SRC-1's 8959 kg/h of pure ethanol from 633 dry short tons of corn a day (appendix input sheet, PDF p. 41: 23 746 631 gal/a at 68 F and 0.7894 kg/L), D-005"}
+    heat_of_reaction: {value: -70008, provenance: assumed, source: "formation enthalpies at 298.15 K: 2 x ethanol(l) -277.03 and 2 x CO2(g) -393.474 kJ/mol (chemicals 1.5.2) less glucose(s) -1271 kJ/mol (Wikipedia 'Glucose' infobox, ASSUMED); per kmol glucose; chemicals 1.5.2 by ATCT_L and ATCT_G (SRC-3)"}
+    catalyst: "Saccharomyces cerevisiae (purchased yeast), 32-34 C, pH above 3.5 (SRC-1 p. 7)"
+    sources: ["SRC-1 pp. 2, 7, 18"]
+  - id: GLYC
+    title: Glycerol and acetate by-product formation (redox-balanced net reaction)
+    equation: "2 GLC + H2O -> 2 GLY + HAC + ETOH + 2 CO2B"
+    stoichiometry: {GLC: -2, H2O: -1, GLY: 2, HAC: 1, ETOH: 1, CO2B: 2}
+    phase: liquid
+    conversion: {key: GLC, value: 0.03, provenance: assumed, source: "ASSUMED 3 % of the glucose to the by-products (D-005); the net reaction is a bookkeeping choice that balances the elements and the yeast's redox (NADH from acetate formation reoxidised by glycerol formation), not a mechanism; SRC-1 Table 2 lists glycerol and other organics among the DDG's 6 % 'other'"}
+    heat_of_reaction: {value: -58933, provenance: assumed, source: "formation enthalpies at 298.15 K: 2 x glycerol(l) -669.6 (chemicals 1.5.2 by CRC, the CRC Handbook table as packaged, not read here), acetic acid(l) -483.58, ethanol(l) -277.03, 2 x CO2(g) -393.474 (chemicals 1.5.2 by ATCT_L and ATCT_G) less 2 x glucose(s) -1271 (Wikipedia, ASSUMED) and water(l) -285.825 kJ/mol; per kmol of reaction as written"}
+    catalyst: "Saccharomyces cerevisiae"
+    sources: ["D-005"]
+  - id: COMB
+    title: Combustion of natural gas in the dryer's burner
+    equation: "CH4 + 2 O2 -> CO2 + 2 H2O"
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    phase: vapor
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "complete combustion (D-009)"}
+    heat_of_reaction: {value: -802584, provenance: assumed, source: "formation enthalpies at 298.15 K, ideal gas: CO2 -393.474, 2 x H2O -241.822, CH4 -74.534 kJ/mol (chemicals 1.5.2 by ATCT_G, SRC-3); lower heating value"}
+    catalyst: none (combustion)
+    sources: ["stoichiometry"]

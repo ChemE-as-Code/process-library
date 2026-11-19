@@ -7,8 +7,9 @@ of this run: library `11d50ef`, `cheme` as installed in this environment (cheme-
 
 ## Source register
 
-All sources were read for this run in the parts cited; facts are restated in our own words, no
-table, figure or text is reproduced.
+BREF, EPA91 and NIST were read for this run in the parts cited. ULL was not read (no access). The
+`chemicals` row is two open-source packages queried, not the works behind their values, which
+were not read. Facts are restated in our own words; no table, figure or text is reproduced.
 
 | id | source | locator | access, terms | used for |
 |---|---|---|---|---|
@@ -16,7 +17,7 @@ table, figure or text is reproduced.
 | EPA91 | US EPA (1991), *Locating and Estimating Air Emissions from Sources of Formaldehyde (Revised)*, EPA-450/4-91-012, https://www.epa.gov/sites/default/files/2020-11/documents/formaldehyde.pdf | pp. 10 and 17 of the report (PDF pp. 17 and 24): metal oxide process description | US government work, public domain | reactor feed 5-10 vol% methanol, O2 below 10.9 % in the feed, converter about 345 C, yield 91-93 %, product methanol about 0.8 % |
 | ULL | Reuss, G. et al., *Formaldehyde*, Ullmann's Encyclopedia of Industrial Chemistry, doi:10.1002/14356007.a11_619 | not read in this run (no access) | licensed | route reference lead only; no value taken |
 | NIST | NIST Chemistry WebBook, SRD 69 | water and methanol enthalpy of vaporisation at 298 K; saturated steam at 1500 kPa(a) | US government, facts | liquid-side enthalpies of the balance script |
-| chemicals | `cheme chemistry thermo` (Python `chemicals`: ATcT formation enthalpies, CRC entropies, Poling 5th ed. heat capacities) | `process/materials.yaml` source fields | MIT package, facts | ideal-gas enthalpies, reaction heats |
+| chemicals | chemicals 1.5.2 and thermo 0.6.1 packages of core's environment (open-source, MIT; the versions core pins), through `cheme chemistry thermo`. Gas formation enthalpies from chemicals' Active Thermochemical Tables data (`ATCT_G`, all components). Standard entropies from its packaged CRC Handbook table (`CRC`, all components); the CRC Handbook of Chemistry and Physics is a licensed book, not read here. Ideal-gas cp from chemicals' Poling polynomials (`Poling`: methanol, N2, Ar, CO, CO2, DME; Poling, Prausnitz and O'Connell, The Properties of Gases and Liquids, 5th ed., a licensed book, not read here), or fitted by core to thermo's `HEOS_FIT` correlation (O2, water: thermo's fits to the CoolProp reference equations of state) or to thermo's `TRCIG` correlation (formaldehyde: TRC ideal-gas coefficients). Critical constants from chemicals' `HEOS` data (the CoolProp reference equations of state; all but formaldehyde) and `PSRK` table (formaldehyde; Horstmann et al. 2005, the PSRK revision as chemicals cites it). The ATcT, CoolProp, TRC and PSRK works behind these values were not read either. | printed per component in `process/materials.yaml` (source fields name the method) | open-source packages queried; single values, facts only; not open data (library ADR 0037) | ideal-gas enthalpies, reaction heats, critical constants |
 
 ## D-001 Route and boundary: metal oxide (Formox type) process, methanol as boundary feed (2026-10-28)
 Decision: Formaldehyde by partial oxidation of methanol with excess air over an iron
@@ -88,12 +89,14 @@ air (1200.7 kmol/h dry) and the recycle (71.2 % of the off-gas). The reactor inl
 9.7 mol% O2. Blower 100.5 -> 150 kPa(a); reactor inlet 145, outlet 128, absorber inlet 124, top
 112 kPa(a). Reactor outlet 553.15 K; the methanol is vaporised and the feed heated to 399 K
 against the reaction gas (E-101), which leaves for the absorber at 403.15 K. Humid air: 1.0 mol%
-water; the 0.04 % CO2 of air is neglected (about 1.5 % of the stack CO2).
+water; the 0.04 % CO2 of air is neglected (0.48 kmol/h, about 2 % of the 23.3 kmol/h stack
+CO2).
 Reason: EPA91 gives 5-10 vol% methanol in the feed and O2 below 10.9 % in the feed so that the
 methanol stays below the lower explosion limit (pp. 10, 17); the BREF gives 5-7 % O2 in the
 absorber off-gas (Table 6.6), atmospheric pressure and 270-430 C on the catalyst (s. 6.2.3), and
 names the reaction gas as the usual heat source of the vaporiser (s. 6.2.3). The result,
-2414 Nm3 vent gas per t HCHO, matches the BREF's 2300-2400 Nm3/t (Table 6.6), an independent check.
+2414 Nm3 vent gas per t HCHO, is just above the upper end of the BREF's 2300-2400 Nm3/t
+(Table 6.6, 0.6 % over), an independent check.
 Rejected: steam-heated vaporisation (would import LP steam).
 Assumptions: the feed enters the tubes at 399 K, below the catalyst window (543-703 K): it is
 heated to reaction temperature on the hot oil in the inert-ring section at the tube inlet
@@ -165,9 +168,15 @@ is the LCA practitioner's decision and is left open (cheme's default puts 100 % 
 the only material product). Catalysts, oil and filters are consumables from the BREF waste
 rates; NOx from the ECS is an emission estimate; fugitives, storage and wastewater are
 excluded with their reasons; paraformaldehyde residue is cut off (7 g/t formalin).
-Reason: the run's scope (preliminary inventory, backgrounds as gaps, ADR 0022). The one
-override in `lca/mappings.yaml` counts the steam export in kWh on the library's `steam-heat`
-entry, as the other cases do; without it the Atlas build stops on a unit mismatch.
+Reason: the run's scope (preliminary inventory, backgrounds as gaps, ADR 0022). The steam
+export (terminal `MPS`, exchange `product:MPS`) is also left open in the library's Atlas build:
+`lca/mappings.yaml` has no override and the steam row of `process.yaml` chemistry has no
+`inventory_key`, so the build reports the export as a gap. An earlier override mapped it to the
+library's `steam-heat` entry; a positive technosphere exchange is a consumption, so that booked
+the exported steam as 2.02 MJ of steam heat bought in per kg formalin (the `steam-heat` cases of
+hda-1, nitric-acid-1, chlor-alkali-1 and soda-ash-1 are steam inputs, not exports). The terminal
+was called `STEAM` before; that key resolved to the registry slug `steam`, counted in kg, and the
+build stopped on the kWh/kg unit mismatch, hence the new name (2026-11-19, audit fix).
 
 ### LCI result (per kg formalin 50 wt%, design case)
 
@@ -178,7 +187,7 @@ entry, as the other cases do; without it the Atlas build stops on a unit mismatc
 | demineralised water in (feed:PW) | 0.18555 kg | S9 |
 | electricity in (feed:POWER) | 0.084495 kWh | Q1 + Q2 |
 | Fe-Mo catalyst / ECS catalyst / oil and filters | 3.0e-5 / 7.5e-6 / 3.0e-5 kg | BREF Table 6.11 |
-| MP steam exported (product:STEAM, co-product) | 0.561275 kWh (2.02 MJ) | Q3 + Q4 |
+| MP steam exported (product:MPS, co-product) | 0.561275 kWh (2.02 MJ) | Q3 + Q4 |
 | heat to cooling water (product:CW) | 0.65496 kWh (2.36 MJ) | Q5 |
 | stack gas (product:STACK) | 1.50884 kg | S13 |
 | of which CO2 (fossil) | 0.0511593 kg | S13 (cheme, R301) |
@@ -199,7 +208,11 @@ and the formalin: it is not an energy balance of the plant.
 Coverage (`cheme assess lca --coverage`): partial screening, 14 gaps (9 exchanges without a
 background, 5 emissions outside the climate method). The 0.051 kg CO2-eq it prints is only the
 direct fossil CO2 of the stack: no footprint is claimed. The library LCI build
-(`scripts/build_lci.py --strict` into build/) lists 8 gaps for this process and no error.
+(`scripts/build_lci.py` into a scratch folder, library at the 2026-11-19 audit fix) lists 6 gaps
+for this process and no error: methanol (feed:MEOH), the exported steam (product:MPS), the two
+catalysts, the oil and filters and their disposal. The emissions now link to the library's
+biosphere identities; the 8 gaps of 2026-10-28 counted the emissions without one and booked the
+steam on the override.
 
 ## Open inputs and gated steps
 

@@ -120,9 +120,13 @@ def test_every_identified_substance_has_a_formula_and_cas() -> None:
 #: 1:1 salt H5NO5S, while the CAS names bis(hydroxylammonium) sulfate H8N2O6S (PubChem CID 24846).
 #: Polymers (docs/registry.md, Polymers) carry the polymer's CAS and the repeat-unit formula, which
 #: the package cannot confirm: it resolves polyethylene's CAS 9002-88-4 to the monomer ethene and
+#: polystyrene's CAS 9003-53-6 to the monomer styrene (InChIKey PPBRXRYQALVLMV-UHFFFAOYSA-N), and
 #: does not hold those of polypropylene (9003-07-0) or PET (25038-59-9); each CAS is checked
-#: against the ChEBI polymer entry instead (EBI OLS, 2026-11-05).
-CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate", "polyethylene", "polyethylene-terephthalate", "polypropylene"}
+#: against the ChEBI polymer entry instead (EBI OLS, 2026-11-05; polystyrene, CHEBI:53276,
+#: 2026-11-19). pvc-1 (#461) added two more: the package resolves polyvinyl chloride's CAS
+#: 9002-86-2 to the monomer vinyl chloride and polyvinyl alcohol's 9002-89-5 to ethenol; checked
+#: against CHEBI:53243 and CHEBI:17246 (EBI OLS, 2026-11-19).
+CHEMICALS_PACKAGE_EXCEPTIONS = {"hydroxylammonium-sulfate", "polyethylene", "polyethylene-terephthalate", "polypropylene", "polystyrene", "polyvinyl-alcohol", "polyvinyl-chloride"}
 
 
 def test_registry_identities_agree_with_the_chemicals_package() -> None:
