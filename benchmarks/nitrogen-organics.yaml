@@ -14,10 +14,24 @@
 # reference. The anhydride KPI is bound to the only other open figure found (Chemcess, a secondary
 # summary of Ullmann's): a single yield for another variant, the co-current tube with excess
 # ammonia, so the dataset sits outside it with a reason.
+#
+# Paracetamol (paracetamol-1, #481): benchmarks must be independent of the dataset
+# (docs/benchmarks.md). The dataset takes its ratios and yields from US 3 917 695 A's examples
+# (110 to 140 g of product from 109 g of 4-aminophenol, 0.78 to 0.99 kg aminophenol per kg), so
+# they are not bound; no other open figure for a plant's aminophenol use or liquor volume was
+# found. The stoichiometric floor of the aminophenol, 0.722 kg/kg, is a limit, not a range.
 schema: cheme-as-code/benchmarks/v1
 family: nitrogen-organics
 
 kpis:
+  paracetamol-specific-aminophenol:
+    title: 4-Aminophenol consumption per kg of paracetamol
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's 4-aminophenol use per kg of paracetamol found (searched 2026-11-19: Google Patents for the preparation of N-acetyl-p-aminophenol, US 3 917 695 A, US 4 565 890 A and US 4 524 217 A read; web search for paracetamol production yields and LCI). US 3 917 695 A's examples are the dataset's own source; the stoichiometric floor is 0.722 kg/kg."
+  paracetamol-specific-wastewater:
+    title: Wastewater (mother liquor purge, wash and condensate) per kg of paracetamol
+    unit: kg/kg
+    no_open_reference: "No open source with the liquor volume of paracetamol manufacture found (searched 2026-11-19 as for paracetamol-specific-aminophenol); US 4 565 890 A says the mother liquor is saturated with the product and holds much acetic acid, no amount per kg."
   nbs-specific-bromine:
     title: Bromine consumption per kg of N-bromosuccinimide
     unit: kg/kg
@@ -110,3 +124,9 @@ datasets:
       phthalimide-specific-ammonia: {expression: feed:ammonia / product:phthalimide, per: product:phthalimide}
       phthalimide-specific-electricity: {expression: feed:electricity / product:phthalimide, per: product:phthalimide}
       phthalimide-specific-heat: {expression: feed:heat / product:phthalimide, per: product:phthalimide}
+  - process: paracetamol-1
+    dataset: paracetamol-by-semi-batch-acetylation-of-4-aminophenol-in-aqueous-acetic-acid-2000-t-a
+    conditions: {technology: "acetylation of 4-aminophenol in aqueous acetic acid, semi-batch at 313 K, cooling crystallisation, centrifuge, vacuum drying, half the mother liquor recycled", basis: "concept balance, ratios from US 3 917 695 A and ASSUMED (DESIGN.md D-004, D-007)"}
+    kpis:
+      paracetamol-specific-aminophenol: {expression: feed:PAPF / product:APAP, per: product:APAP}
+      paracetamol-specific-wastewater: {expression: product:WW / product:APAP, per: product:APAP}
