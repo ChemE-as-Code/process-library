@@ -399,6 +399,47 @@ kpis:
     title: tert-Butanol consumption per kg of potassium tert-butoxide
     unit: kg/kg
     no_open_reference: "No open source with a plant's tert-butanol use per kg of potassium tert-butoxide found (searched 2026-11-06, the sources named under kotbu-specific-potassium; US 4 577 045 A says the alcohol is recycled almost completely, without a figure). The stoichiometric floor is 0.6606 kg/kg; the losses to the vent, the purge and the sieve's regeneration are this design's ASSUMED values (potassium-tert-butoxide-1, DESIGN.md D-006, D-007)."
+  ma-specific-butane:
+    title: n-Butane consumption per kg of maleic anhydride (fixed bed, VPO)
+    unit: kg/kg
+    references:
+      - id: us5688970-butane
+        range: [0.970, 1.061]
+        basis: unallocated
+        note: >-
+          The butane fed per kg of MA in US 5 688 970 A's two examples of the same fixed-bed plant
+          with dibutyl phthalate recovery: 3289 kg/h for 3100 kg/h once through (Example 2, 86.5 %
+          conversion, 65 % selectivity) and 3008 kg/h with the off-gas recycled (Example 1); our
+          division. The 3100 kg/h is the MA recovered from the solvent (line 30), after the
+          absorber and the stripping (about 99.4 % of the about 3120 kg/h its conversion and
+          selectivity give in the reactor gas, our arithmetic) and before any refining; the
+          summary tables call it the MA produced.
+        conditions: {technology: "n-butane oxidation in air over VPO, fixed bed, molten-salt cooled, dibutyl phthalate absorption; once through and with off-gas recycle", capacity: "3100 kg/h of MA", year: 1997}
+        source:
+          citation: "Ruggieri, R.; Cassarino, S. (Italiana Serie Acetica Sintetica) (1997) Process to recycle exhaust gases from n-butane conversion into maleic anhydride. US patent 5,688,970 A"
+          url: https://patents.google.com/patent/US5688970A/en
+          locator: Examples 1 and 2
+          kind: other
+          accessed: "2026-11-19"
+  ma-specific-electricity:
+    title: Electricity per kg of maleic anhydride (fixed bed, VPO)
+    unit: kWh/kg
+    references:
+      - id: us5688970-compression
+        range: [0.730, 1.059]
+        basis: unallocated
+        note: >-
+          The compression power per kg of MA of US 5 688 970 A's examples: 3283 kW once through
+          (Example 2, air to 3.55 bar in two stages) and 2264 kW with the off-gas recycled
+          (Example 1), each for 3100 kg/h; our division. Compression only: the pumps, vacuum pumps
+          and fans are not in the figures.
+        conditions: {technology: "n-butane oxidation in air over VPO, fixed bed, dibutyl phthalate absorption; once through and with off-gas recycle", capacity: "3100 kg/h of MA", year: 1997}
+        source:
+          citation: "Ruggieri, R.; Cassarino, S. (Italiana Serie Acetica Sintetica) (1997) Process to recycle exhaust gases from n-butane conversion into maleic anhydride. US patent 5,688,970 A"
+          url: https://patents.google.com/patent/US5688970A/en
+          locator: Examples 1 and 2
+          kind: other
+          accessed: "2026-11-19"
 
   vam-specific-ethylene:
     title: Ethylene consumption per kg of vinyl acetate (gas-phase acetoxylation)
@@ -548,3 +589,17 @@ datasets:
         reference: us8765995-ethylene-selectivity
         out_of_range_reason: "The reference is a reactor's selectivity; the dataset's 0.370 kg/kg adds the ethylene of the 0.3 % purge (9.1 g/kg) and of the CO2 vent (1.0 g/kg) and the vinyl acetate lost to the effluent (0.41 %), all ASSUMED (vinyl-acetate-1 DESIGN.md D-006, D-007). At the reactor alone its 91.0 % gives 0.3581 kg/kg, inside the range."
       vam-specific-acetic-acid: {expression: feed:ACF / product:VAMP, per: product:VAMP}
+  - process: maleic-anhydride-1
+    dataset: maleic-anhydride-by-n-butane-oxidation-over-vpo-in-a-fixed-bed-molten-salt-cooling-with-steam-raising-dibutyl-phthalate-absorption-and-vacuum-distillation-25-kt-a
+    conditions: {technology: "n-butane oxidation in air over VPO in a molten-salt cooled fixed bed, once through, dibutyl phthalate absorption, vacuum stripping and distillation, off-gas oxidiser", basis: "concept balance, conversion and selectivity of US 7 589 217 B2 (DESIGN.md D-004 to D-010)"}
+    kpis:
+      ma-specific-butane:
+        expression: feed:BUTF / product:MAP
+        per: product:MAP
+        reference: us5688970-butane
+        out_of_range_reason: "The dataset's 1.068 kg/kg is 0.7 % above the once-through example's 1.061. At the reactor the two agree: 1.053 kg of butane per kg of MA in the gas here, about 1.054 from the patent's 86.5 % conversion and 65 % selectivity (the same per-pass yield as US 7 589 217 B2's 81 % and 69.5 %, from which the dataset's conversion and selectivity come, so the reference stays independent of the value). The gap is the losses the patent's figure leaves out: its 3100 kg/h, the MA recovered from the solvent, is about 99.4 % of its reactor's MA, the absorber's loss only, before any refining, while the dataset also loses MA with the stripper's lights and in the refining column's lights and residue (98.6 % of the reactor's MA reaches the product, D-007)."
+      ma-specific-electricity:
+        expression: feed:POWER / product:MAP
+        per: product:MAP
+        reference: us5688970-compression
+        out_of_range_reason: "The dataset's 1.072 kWh/kg includes the pumps, vacuum pumps and the oxidiser's fan (0.100 kWh/kg); its air compressor alone, 0.971 kWh/kg to 260 kPa(a) at an ASSUMED isentropic efficiency of 0.80, lies inside the range."

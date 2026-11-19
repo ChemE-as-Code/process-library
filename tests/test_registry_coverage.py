@@ -122,6 +122,7 @@ NO_REGISTRY_IDENTITY = {
     "isobutene-1/product:HEAVIES": FUEL_RESIDUE,
     "lng-terminal-1/feed:INVDRAW": "LNG drawn from the terminal's own tank inventory, not a supply",
     "lng-terminal-1/feed:SHIPVAP": "vapour returned from the carrier the terminal loads, not a supply",
+    "maleic-anhydride-1/consumable:vpo-catalyst": CATALYST,
     "natural-gas-processing-1/consumable:MOLSIEVE": SORBENT,
     "nitric-acid-1/consumable:pt-rh-gauze-loss": PRECIOUS_METAL_LOSS,
     "pet-1/input:catalyst": "antimony compounds, not named in the dataset",
