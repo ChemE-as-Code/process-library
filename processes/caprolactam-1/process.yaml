@@ -1,0 +1,120 @@
+# Process Atlas manifest of caprolactam-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: caprolactam-1
+title: Caprolactam from cyclohexanone oxime by Beckmann rearrangement in oleum, ammonium sulfate co-product (100 kt/a)
+summary: >-
+  The conventional route: cyclohexanone oximated with hydroxylamine-1's hydroxylammonium sulfate
+  solution and ammonia, the oxime rearranged in oleum, the mixture neutralised with ammonia, the
+  lactam extracted with benzene and distilled; 2.48 kg ammonium sulfate per kg. Concept stage,
+  closed balances with three recycles, preliminary gate-to-gate LCI.
+description: |
+  Cyclohexanone reacts counter-currently at 363 K with the hydroxylammonium sulfate solution of
+  hydroxylamine-1 (its whole output, 30 kt/a NH2OH), ammonia neutralising the liberated acid to
+  pH about 5: (NH3OH)2SO4 + 2 C6H10O + 2 NH3 -> 2 C6H11NO + (NH4)2SO4 + 2 H2O. The oxime melt
+  (4.6 wt% water, 0.6 wt% cyclohexanone, as in US 4,031,139) is fed with oleum of 32 wt% SO3,
+  1.17 kg per kg, into a circulating rearrangement loop at 388 K (US 4,804,754), where the
+  Beckmann rearrangement gives caprolactam at an ASSUMED 98.9 % yield (transferred from US
+  7,339,056 B2, the staged comparative experiment with a wet oxime). The acid mixture and liquid
+  ammonia (the patent passes in gas; ASSUMED) go into a circulating ammonium sulfate solution
+  (pH 4 to 5): the crude lactam (30 wt% water) separates from a 40 wt%
+  ammonium sulfate solution. The crude lactam is extracted with benzene (22 wt% extract),
+  back-extracted into water (28 wt%), evaporated in three effects and distilled under vacuum to
+  12.52 t/h caprolactam (100.1 kt/a). The neutraliser's solution, the oximation liquor and the
+  raffinate give 31.0 t/h of ammonium sulfate crystals in a three-effect crystalliser, whose
+  condensate dilutes the neutraliser; a purge takes the impurities.
+
+  The reactors are cheme-as-code conversion steps with their duties from formation enthalpies
+  (core ADR 0059), the separators specified splits, and the benzene, back-extraction water and
+  condensate recycles converge at tear streams (ADR 0060), with the feeds and the condensate
+  split set by design specifications (ADR 0070). The oximation, rearrangement and
+  neutralisation release 3.5 (an upper bound), 5.8 and 12.0 MW to cooling water; the
+  evaporators, the dryer and the column take 23.0 MW of steam (ASSUMED three effects), and a
+  balance script closes the energy balance of every other step (47.4 MW to cooling water in
+  all). Per kg of caprolactam: 0.897 kg cyclohexanone,
+  2.93 kg hydroxylammonium sulfate solution (0.300 kg NH2OH), 0.640 kg ammonia, 1.267 kg oleum;
+  2.478 kg ammonium sulfate crystals; 1.82 kg of ammonium sulfate per kg is formed from the
+  rearrangement's acid (US 3,852,273 states 1.7 to 1.9). See DESIGN.md for every assumption, the route choice against the HPO and gas-phase
+  Beckmann processes, and the core limits met.
+families: [nitrogen-organics]
+keywords: [caprolactam, epsilon-caprolactam, cyclohexanone oxime, oximation, Beckmann rearrangement, oleum, sulfur trioxide, hydroxylammonium sulfate, hydroxylamine, ammonium sulfate, neutralisation, benzene extraction, back-extraction, vacuum distillation, crystallisation, nylon 6, polyamide 6]
+facets:
+  feedstock_basis: [fossil, mineral, water]
+  product_classes: [chemicals, fertilizers]
+  unit_operations: [reaction, extraction, evaporation, distillation, crystallization, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Selectivity of the rearrangement
+# from one comparative experiment, separators' recoveries, evaporator economies and power
+# assumed (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances in every block and step (cheme
+    validate, cheme process streams: 6 blocks and 15 steps within tolerance). The oximation R101,
+    the rearrangement R201 and the neutraliser R301 are conversion steps calculated by cheme
+    process propagate from process/reactions.yaml (the hydroxylamine converted completely,
+    ASSUMED; the rearrangement's 98.9 % yield transferred from US 7,339,056 B2 Comparative
+    Experiment A, ASSUMED; the loss represented as hydrolysis to cyclohexanone, ASSUMED), which
+    also writes their duties Q1 to Q3 from formation enthalpies of the chemicals 1.5.2 package on
+    a solid-salt basis (no heats of solution, dilution or protonation, ASSUMED; Q1 an upper
+    bound, the heat of forming hydroxylammonium sulfate left out). The separators are component
+    separators with specified recoveries set on US 4,031,139, US 4,804,754 and US 6,448,395 B1
+    or ASSUMED; four feed flows and the condensate split are design specifications, solved with
+    the benzene, back-extraction water and crystalliser condensate recycles at the tears S14, S19
+    and S32. A balance script (scripts/energy_balance.py) closes the energy balance of every
+    non-reacting step on the same heat capacities: the coolers, the evaporators' and the column's
+    duties and two adiabatic temperatures; the evaporator economies, the reflux, the dryer and
+    every power draw are ASSUMED; no property package of core covers the salt solutions, the
+    lactam in oleum or the lactam/benzene/water system.
+    Preliminary gate-to-gate LCI: economic allocation between caprolactam and ammonium sulfate
+    at an ASSUMED relative price; the hydroxylammonium sulfate solution linked to
+    hydroxylamine-1, the ammonia to ammonia-1, the steam as heat; cyclohexanone and oleum gaps
+    with recorded proxies, the other backgrounds gaps. cheme maturity reaches no level; the
+    claim `maturity: concept` is the lowest value of the schema, not an evidenced level. Not
+    reviewed. Needs cheme-as-code 1.12.0.
+chemistry:
+  inputs:
+    - {chemical: cyclohexanone, role: feedstock, inventory_key: "feed:CHNF", note: "Cyclohexanone (no library process; proxy phenol hydrogenation or cyclohexane oxidation recorded, D-012), 0.897 kg/kg caprolactam, 0.73 % above the hydroxylamine"}
+    - {chemical: hydroxylammonium-sulfate, role: feedstock, inventory_key: "feed:HASF", note: "Hydroxylammonium sulfate solution 25.4 wt% (hydroxylamine-1, its whole output), 2.931 kg/kg, counted by mass of the solution (0.300 kg NH2OH)"}
+    - {chemical: ammonia, role: feedstock, inventory_key: "feed:NH3F", note: "Liquid ammonia (ammonia-1), 0.640 kg/kg: 0.170 to the oximation, 0.470 to the neutraliser"}
+    - {chemical: oleum, role: feedstock, inventory_key: "feed:OLEF", note: "Oleum 32 wt% SO3 (no library process; proxy sulfuric-acid-1 acid with SO3 recorded, D-012), 1.267 kg/kg, 1.17 kg per kg oxime melt (US 4,804,754)"}
+    - {chemical: benzene, role: feedstock, inventory_key: "feed:BZF", note: "Benzene make-up of the extraction, 1.8 g/kg (ASSUMED loss); supplier not decided"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Demineralised water make-up of the back-extraction loop, 0.010 kg/kg"}
+  outputs:
+    - {chemical: caprolactam, role: main-product, inventory_key: "product:PROD", note: "Distilled caprolactam, modelled pure, molten to storage; 85.2 % of the burdens (economic allocation, ASSUMED relative price, D-012)"}
+    - {chemical: ammonium-sulfate, role: co-product, note: "product:ASP: ammonium sulfate crystals, 2.478 kg/kg caprolactam (98 % of the salt formed: 1.82 kg/kg from the rearrangement's acid, 0.71 kg/kg from the oximation and the hydroxylamine solution's acid and salt); 14.8 % of the burdens; no inventory_key, so it is not offered as an Atlas producer beside ammonium-sulfate-1 (D-012)"}
+    - {chemical: wastewater, role: waste, note: "product:PURGE: mother-liquor purge 0.144 kg/kg (ammonium, hydroxylammonium and nitrate salts, lactam) to biological treatment; product:COND: surplus condensate 2.09 kg/kg to the site's water system"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.152 kWh/kg: agitators, circulation pumps, extraction, vacuum, centrifuges, dryer fans (ASSUMED estimates)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "1.523 kWh/kg of LP steam 500 kPa(a): the lactam evaporator and the ammonium sulfate crystalliser, three effects each, and the salt dryer (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:MPS", note: "0.313 kWh/kg of MP steam 1500 kPa(a): the lactam column's reboiler at reflux 1 (ASSUMED)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "3.791 kWh/kg removed: the three reactors (core's conversion-step duties; the oximation's an upper bound), the condensers and the coolers (scripts/energy_balance.py)"}
+basis:
+  capacity: "100.1 kt/a caprolactam (12.52 t/h) and 248 kt/a ammonium sulfate at 8000 h/a, set by hydroxylamine-1's whole output (ASSUMED, DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic chemicals site beside a hydroxylamine plant, with oleum, ammonia and cyclohexanone supply (not chosen)
+references:
+  - {title: "De Decker, E.; Oostvogels, J.; Van Wauwe, G.; Neubauer, G. (BASF, priority 1986) US 4,804,754 A: Preparation of caprolactam from cyclohexanone oxime by Beckmann rearrangement (oleum 24 to 35 wt% SO3 at 1.1 to 1.8 kg per kg oxime, circulating loop at 70 to 130 C; Example: 32 wt% SO3, 1.17 kg/kg, 115 C; neutralised with ammonia to pH 4 to 5 in 35 to 45 wt% ammonium sulfate solution; crude lactam about 30 % water, benzene extraction, vacuum distillation)", url: "https://patents.google.com/patent/US4804754A/en"}
+  - {title: "Rapp, G.; Fuchs, H.; Thomas, E. (BASF, priority 1975) US 4,031,139 A: Manufacture of cyclohexanone oxime (counter-current oximation with hydroxylammonium/ammonium sulfate solution at 90 C; Example: oxime with 0.6 % cyclohexanone and 4.6 % water)", url: "https://patents.google.com/patent/US4031139A/en"}
+  - {title: "Fuchs, H.; Agab, D.; Neubauer, G.; Ritz, J. (BASF, priority 1988) US 4,931,592 A: Storability of molten cyclohexanone oxime (ammonia-neutralised oximation and wash at pH 4.5 to 5.8 with 10 to 42 wt% ammonium sulfate)", url: "https://patents.google.com/patent/US4931592A/en"}
+  - {title: "Lemmens, J. A. W.; Mostert, F.; Smeets, T. M. (DSM, priority 2003) US 7,339,056 B2: Continuous process for preparing caprolactam (Comparative Experiment A: oxime with 4.7 wt% water, three stages, yield 98.9 %; Examples 2 to 4 with dry oxime 99.3 to 99.5 %)", url: "https://patents.google.com/patent/US7339056B2/en"}
+  - {title: "Simons, A. J. F.; Groot Zevert, L. A. (DSM, priority 1997) US 6,448,395 B1: Process for purifying caprolactam (benzene extraction to about 22 wt% lactam, yields 99.5 to 99.8 %; back-extraction into water to about 28 wt%, yields 99.0 to 99.9 %)", url: "https://patents.google.com/patent/US6448395B1/en"}
+  - {title: "De Rooij, A. H. (Stamicarbon, priority 1971) US 3,852,273 A: Process for preparing and recovering lactams (1.7 to 1.9 t ammonium sulfate per t lactam from the rearrangement, 2.5 to 2.7 t from oximation with Raschig hydroxylamine, 4.2 to 4.6 t in total)", url: "https://patents.google.com/patent/US3852273A/en"}
+  - {title: "Holderich, W. F.; Dahlhoff, G.; Ichihashi, H.; Sugita, K. (Sumitomo Chemical, priority 2000) EP 1 193 251 A2: Method for producing epsilon-caprolactam (gas-phase Beckmann rearrangement on a zeolite with methanol, 300 to 400 C; Example 3: conversion 99.7 to 100 % and selectivity 96.2 to 97.6 % over the first 20 h, conversion 98.5 to 99.7 % after a regeneration with nitrogen)", url: "https://patents.google.com/patent/EP1193251A2/en"}
+  - {title: "Echegaray, D. F.; Velloso, A. A. M.; Wagner, M. L. (Praxair, filed 1998) US 6,333,411 B1: Method for production of hydroxylammonium phosphate in the synthesis of caprolactam (description of the HPO process)", url: "https://patents.google.com/patent/US6333411B1/en"}
+  - {title: "Falcke, H. et al. (2017) Best Available Techniques (BAT) Reference Document for the Production of Large Volume Organic Chemicals, JRC, EUR 28882 EN, section 2.1.4.7.1 Caprolactam (p. 45)", url: "https://eippcb.jrc.ec.europa.eu/sites/default/files/inline-files/JRC109279LvocBref.pdf"}
+  - {title: "NIST Chemistry WebBook, SRD 69: caprolactam (C105602), enthalpy of vaporization (Steele et al. 2002)", url: "https://webbook.nist.gov/cgi/cbook.cgi?ID=C105602&Mask=4"}
+  - {title: "Wikipedia, Caprolactam (production routes, properties, hazards, N2O)", url: "https://en.wikipedia.org/wiki/Caprolactam"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/caprolactam-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

@@ -236,8 +236,10 @@ def main():
     q_cell = p_dc - (X["e_el"] * 334880 + X["e_ws"] * 571660) * kw
     p_ac = p_dc / 0.97
     q_rect = p_ac - p_dc
-    # X-501: cooling 333 -> 303 K, cp 3.4, crystallisation heat 43.56 kJ/mol released
-    q_x501 = (tot(S["cell"]) * 3.4 * (333 - 303) + X["cryst"] / M["KMnO4"] * 43560) * kw
+    # X-501: cooling 333 -> 303 K, cp 3.4, crystallisation heat 43.42 kJ/mol released
+    # (minus the heat of solution from the NBS formation enthalpies already used for REDKM and ELEC,
+    # SRC-7: K+(aq) -252.38 + MnO4-(aq) -541.4 - KMnO4(s) -837.2 = +43.42 kJ/mol, D-009)
+    q_x501 = (tot(S["cell"]) * 3.4 * (333 - 303) + X["cryst"] / M["KMnO4"] * 43420) * kw
     # E-601: double effect, 2400 kJ/kg vapour, economy 1.8; last-effect condenser = steam heat
     q_e601 = X["evap"] * 2400 / 1.8 * kw
     q_e601c = q_e601
