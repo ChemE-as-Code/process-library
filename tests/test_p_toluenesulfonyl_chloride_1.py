@@ -203,7 +203,14 @@ def test_quench_jacket_peak_with_the_dilution_heat(model):
     assert vessel.peak_duty == pytest.approx(190.5, abs=0.1)
     assert vessel.removable == pytest.approx(210.3, abs=0.1)
     assert vessel.peak_duty < vessel.removable
-    assert not [f for f in result.findings if f.level in ("warning", "error")]
+    # core 1.13.0 (ADR 0073): R102's intake fills the given 4 m3 just over its ASSUMED 0.8, a
+    # warning left open, not silenced (DESIGN.md L-1); nothing else may warn
+    found = [f for f in result.findings if f.level in ("warning", "error")]
+    assert [(f.level, f.rule, f.ids) for f in found] == [
+        ("warning", "cheme.recipe-vessel", ["CHLOROSULFONATE", "R102"])
+    ]
+    assert "takes in 3.202 m3" in found[0].message and "80.04%" in found[0].message
+    assert "80.04 %" in _text("DESIGN.md") and "3.202 m3" in _text("process/recipe.yaml")
 
 
 def test_every_energy_flow_reaches_the_brine(model):
