@@ -9,8 +9,11 @@ them and against the source's Example 2 (EP 0 723 951 A1, method B):
 - the conversion split is Example 2's (45 g of oligomers per 300 g PET), and the stated yield,
   purity and specific consumptions follow from the streams;
 - the crystallizers sit at the source's temperatures, the second crop at BHET's water solubility;
-- the recipe's batch makes the flowsheet's year-average rate;
+- the recipe's batch makes the flowsheet's year-average rate at the cycle DESIGN.md states, which
+  the dryer sets;
 - the heating media sit above the temperatures they heat, the MTT at the glycol's boiling point;
+- the charge's water leaves in the heat-up (the wet charge would boil below 470 K, the
+  glycolysate R101 holds stays liquid), and the quench's duty is its inlets' own heat;
 - every energy stream has a duty, every flowsheet terminal reaches the LCI;
 - the process is public with CC-BY-4.0, requires cheme-as-code 1.13 and is in the registry,
   coverage and REFERENCE.md.
@@ -19,6 +22,7 @@ them and against the source's Example 2 (EP 0 723 951 A1, method B):
 from __future__ import annotations
 
 import csv
+import re
 from pathlib import Path
 
 import pytest
@@ -98,8 +102,9 @@ def test_yield_purity_and_consumptions(streams, mw):
     assert _bhet(streams, mw, "S22") / total == pytest.approx(0.998, abs=5e-4)
     pet = _kg(streams, mw, "S1")["PET"]
     molar_yield = (_bhet(streams, mw, "S22") / M_BHET) / (pet / M_PET)
-    assert molar_yield == pytest.approx(0.978, abs=5e-4)
-    assert "97.8 %" in _text("process.yaml") and "97.8 %" in _text("README.md")
+    stated = f"{100 * molar_yield:.1f} %"
+    assert stated == "97.7 %"
+    assert stated in _text("process.yaml") and stated in _text("README.md") and stated in _text("DESIGN.md")
     per_kg = {
         "flake": streams["S1"]["flow"]["value"] / total,
         "glycol": streams["S2"]["flow"]["value"] / total,
@@ -129,25 +134,85 @@ def test_crystallizers_at_the_source_temperatures(sheet, streams, mw):
     assert s16.get("BHET_S", 0.0) == pytest.approx(0.0, abs=1e-6)
 
 
+def _durations(procedure: dict) -> float:
+    return sum(op["duration"]["value"] for op in procedure["operations"] if "duration" in op)
+
+
 def test_recipe_matches_the_flowsheet_rate(streams):
     recipe = _load("process/recipe.yaml")
     assert recipe["batch_size"]["stream"] == "S22"
     rate = streams["S22"]["flow"]["value"]
-    cycle = 6.248  # h, the recipe's cycle (cheme process recipe)
-    assert recipe["batch_size"]["value"] / cycle == pytest.approx(rate, rel=2e-3)
+    batch = recipe["batch_size"]["value"]
+    cycle = batch / rate  # h: the flowsheet holds the recipe's year averages
     assert rate * recipe["hours_per_year"]["value"] / 1000 == pytest.approx(5000, rel=1e-3)
-    assert "1268 batches" in _text("process.yaml")
+    batches = recipe["hours_per_year"]["value"] / cycle
+    assert f"{round(batches)} batches" in _text("process.yaml")
+    # the cycle DESIGN.md states is the one the recipe's batch and the flowsheet's rate give
+    design = _text("DESIGN.md")
+    stated = re.search(r"one batch of ([\d.]+) kg of BHET every ([\d.]+) h", design)
+    assert stated and float(stated.group(1)) == pytest.approx(batch)
+    assert float(stated.group(2)) == pytest.approx(cycle, abs=0.002)
+    # the dryer sets it: its fixed operations and the drying time the recipe reports fill the
+    # cycle, and every other procedure fits inside it (cheme process recipe: bottleneck DRY)
+    procedures = {p["id"]: p for p in recipe["unit_procedures"]}
+    drying = re.search(r"with ([\d.]+) h of drying", design)
+    assert drying and _durations(procedures["DRY"]) + float(drying.group(1)) == pytest.approx(cycle, abs=0.01)
+    for pid, procedure in procedures.items():
+        if pid != "DRY":
+            assert _durations(procedure) < cycle
+    assert "bottleneck DRY" in _text("process/recipe.yaml")
 
 
-def test_heating_media_and_mtt(sheet):
+def test_heating_media_and_mtt(sheet, streams):
     feeds = {f["id"]: f for f in sheet["feeds"]}
-    hps = feeds["HPS"]["utility"]["supply_temperature"]["value"]
-    lps = feeds["LPS"]["utility"]["supply_temperature"]["value"]
-    assert hps > 470.15 + feeds["HPS"]["utility"]["min_approach"]["value"]
-    assert lps > 353.15 + feeds["LPS"]["utility"]["min_approach"]["value"]
+    hps, lps = (feeds[f]["utility"] for f in ("HPS", "LPS"))
+    # the hottest user of each steam level, read from the flowsheet: R101's outlet for the HP
+    # steam, the redissolution CR203 (the hottest of the quench, the redissolution and the dryer)
+    # for the LP steam
+    r101 = streams["S5"]["temperature"]["value"]
+    lp_users = [_step(sheet, s)["crystallizer"]["temperature"] for s in ("CR201", "CR203")]
+    lp_users.append(_step(sheet, "D201")["dryer"]["temperature"])
+    assert hps["supply_temperature"]["value"] > r101 + hps["min_approach"]["value"]
+    assert lps["supply_temperature"]["value"] > max(lp_users) + lps["min_approach"]["value"]
     hazard = _step(sheet, "R101")["hazard"]
     eg = next(c for c in _load("process/materials.yaml")["components"] if c["id"] == "EG")
     assert hazard["mtt"] == pytest.approx(eg["normal_boiling_point"])
+    assert hazard["mtt"] >= r101
+
+
+# Vapour pressures at 470.15 K (kPa): water by IAPWS-95 (chemicals 1.5.2 iapws95_Psat), ethylene
+# glycol by thermo 0.6.1 HEOS_FIT, as X101's source states them.
+P_WATER_470, P_EG_470 = 1459.7, 100.83
+
+
+def _raoult_kpa(streams, sid: str) -> float:
+    x = streams[sid]["composition"]["values"]
+    return x["H2O"] * P_WATER_470 + x["EG"] * P_EG_470
+
+
+def test_the_charges_water_leaves_in_the_heat_up(streams, mw):
+    """The wet charge could not be liquid at 470 K and 1 atm; the glycolysate R101 holds can."""
+    assert streams["S5"]["temperature"]["value"] == pytest.approx(470.15)
+    assert _raoult_kpa(streams, "S4") > 101.325  # it boils below 470 K: the water must leave
+    assert _raoult_kpa(streams, "S5") < 101.325  # the dewatered glycolysate stays liquid
+    distillate = _kg(streams, mw, "S33")
+    charge = _kg(streams, mw, "S4")
+    assert distillate["H2O"] / charge["H2O"] == pytest.approx(0.99, rel=1e-3)
+    assert distillate["H2O"] / sum(distillate.values()) > 0.95
+    assert "4.3 wt%" in _text("DESIGN.md")
+    assert charge["H2O"] / sum(charge.values()) == pytest.approx(0.043, abs=5e-4)
+
+
+def test_quench_duty_is_the_inlets_own_heat(sheet, streams):
+    """CR201's mean heat capacity at its feed temperature gives Q2 (L-7's work-around)."""
+    energy = _step(sheet, "CR201")["crystallizer"]["energy"]
+    mass = streams["S7"]["flow"]["value"] + streams["S19"]["flow"]["value"]
+    t_feed = energy["feed_temperature"]
+    assert streams["S19"]["temperature"]["value"] < t_feed < streams["S7"]["temperature"]["value"]
+    q2 = mass * energy["heat_capacity"] * (343.15 - t_feed) / 3600
+    duties = {s["id"]: s["state"]["design"]["duty"]["value"] for s in sheet["streams"] if s.get("kind") == "energy"}
+    assert duties["Q2"] == pytest.approx(q2, rel=2e-3)
+    assert "130.9 kW" in _text("DESIGN.md")
 
 
 def test_energy_streams_have_duties_and_the_lci_is_complete(sheet):
@@ -162,12 +227,20 @@ def test_energy_streams_have_duties_and_the_lci_is_complete(sheet):
     assert (KIT / mappings["feed:WATF"]["dataset"]["path"]).exists()
 
 
-def test_column_dominates_the_heat(streams):
+def test_column_dominates_the_heat(sheet, streams):
     with (PROCESS / "lca" / "inventory.csv").open(encoding="utf-8") as fh:
         rows = {row["key"]: float(row["quantity"]) for row in csv.DictReader(fh)}
     heat = rows["feed:HPS"] + rows["feed:LPS"]
-    assert heat == pytest.approx(7.58, abs=0.01)
-    assert "7.6 kWh" in _text("README.md") and "6.7 kWh" in _text("README.md")
+    duties = {s["id"]: s["state"]["design"]["duty"]["value"] for s in sheet["streams"] if s.get("kind") == "energy"}
+    rate = streams["S22"]["flow"]["value"]
+    # the inventory's steam is the sum of the flowsheet's steam duties per kg
+    steam = [s["id"] for s in sheet["streams"] if s.get("kind") == "energy" and s["from"].split(".")[0] in ("HPS", "LPS")]
+    assert sum(duties[q] for q in steam) / rate == pytest.approx(heat, rel=1e-4)
+    reboiler = duties["Q8"] / rate  # kWh per kg BHET
+    share = reboiler / heat
+    assert f"{heat:.1f} kWh" in _text("README.md") and f"{reboiler:.1f} kWh" in _text("README.md")
+    assert f"{100 * share:.0f} % of the heat" in _text("DESIGN.md")
+    assert share > 0.8
 
 
 def test_manifest_publication_and_shared_rows():
