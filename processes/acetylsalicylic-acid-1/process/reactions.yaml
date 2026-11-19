@@ -1,0 +1,37 @@
+# Reactions of acetylsalicylic-acid-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# The route is the acetylation of salicylic acid with acetic anhydride in acetic acid with a
+# sulfuric acid catalyst (DESIGN.md D-001): C7H6O3 + (CH3CO)2O -> C9H8O4 + CH3COOH, the
+# phenolic OH esterified, acetic acid the co-product. US 2 731 492 A (Kamlet, 1956, read)
+# describes it in an acetic-acid diluent at 50-120 C, preferably 85-95 C, with sulfuric acid or
+# sulfonic acids as an optional catalyst (0.5 h with a catalyst, up to 24 h without), Example I
+# in a 6000 L enamelled reactor; US 2 987 539 A (Dow, 1961, read) runs it uncatalysed at 85 C for
+# 1.5 h with the mother liquor recycled.
+# - ACET in R101 (semi-batch: the acetic anhydride dosed into the salicylic acid in the recycled
+#   liquor at 358 K, D-005). Aspirin is carried dissolved in the semi-batch (core's semi-batch is
+#   liquid only) and crystallised by CR101 at its solubility in the mother liquor (core ADR 0056).
+# No open kinetics of the catalysed reaction in acetic acid were found (searched 2026-11-19):
+# the rate law is ASSUMED (D-005), and D-011 screens it at k/10 and k/100. The heat of reaction
+# follows from NIST WebBook data by Hess's law (D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ACET
+    title: Acetylation of salicylic acid with acetic anhydride
+    equation: C7H6O3 + C4H6O3 -> C9H8O4 + C2H4O2
+    stoichiometry: {SA: -1, AC2O: -1, ASA: 1, ACOH: 1}
+    phase: liquid
+    heat_of_reaction: {value: -29010, provenance: given, source: "Hess's law on NIST WebBook (SRD 69) data, our arithmetic (D-005): acetic anhydride hydrolysis (CH3CO)2O(l) + H2O(l) -> 2 CH3COOH(l) from the formation enthalpies -625.0 (acetic anhydride, liquid, Guthrie 1974 reanalysed by Pedley et al.), -285.83 (water, liquid, CODATA) and -483.52 kJ/mol (acetic acid, liquid, Steele et al. 1997): 2 x -483.52 + 625.0 + 285.83 = -56.21 kJ/mol; less aspirin's heat of hydrolysis, solid phase, -27.2 kJ/mol (Nelander 1964, the WebBook's reaction data for aspirin): -56.21 + 27.2 = -29.01 kJ/mol from solid salicylic acid to solid aspirin; the heats of solution of salicylic acid and of aspirin in the liquor taken as equal (ASSUMED), so the same value stands for the dissolved acids: the salicylic acid's dissolution and the aspirin's crystallisation, of opposite sign, then cancel over the batch, and neither is in a step's duty (M101/Q1 and CR101/Q3 leave them out, D-005, L-1)"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order, in salicylic acid and acetic anhydride, Ea 60 kJ/mol: A = 8.687e5 m3/(kmol s)
+      # gives k = 8.687e5 x exp(-60000 / (8.314 x 358.15)) = 8.687e5 / 5.637e8 = 1.541e-3 at 358.15 K
+      k: {A: 8.687e5, Ea: 60000}
+      orders: {SA: 1, AC2O: 1}
+      temperature_range: [333.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED effective rate with the sulfuric acid catalyst at about 0.1 wt% (D-005): no open kinetics found (2026-11-19); set so that the 1.5 h dosing at 358 K is dosing-controlled (at most 19.3 % of the dosed anhydride accumulated, cheme process reactor-hazards) and R-101's jacket holds the start, when the recycled liquor's anhydride meets the salicylic acid; slower than US 2 731 492 A's 'about 1/2 hour with a catalyst' at 85-95 C (the post-reaction takes longer here, conservative for the cycle); to be replaced by reaction calorimetry; D-011 screens k/10 and k/100"
+    sources: ["US 2 731 492 A (J. Kamlet, 1956): acetylation in glacial acetic acid at 85-95 C with sulfuric acid, Example I", "US 2 987 539 A (W. C. Stoesser, W. R. Surine, Dow Chemical, 1961): 85 C for 1.5 h with excess acetic anhydride in acetic acid, mother liquor recycled", "NIST WebBook (SRD 69): formation enthalpies and aspirin's heat of hydrolysis"]

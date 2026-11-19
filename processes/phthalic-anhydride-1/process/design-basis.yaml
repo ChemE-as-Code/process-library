@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Phthalic anhydride by o-xylene oxidation over V2O5/TiO2, issue
+# ChemE-as-Code/process-library#480. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: pure phthalic anhydride melt to the product tanks (stream S13)
+  reactor_tubes: 15000                # ASSUMED (D-002): one reactor; Jara et al. 2005 model 13 500 tubes for 4950 kg/h
+  air_nm3_per_h_per_tube: 4.0         # US 8 859 459 B2 (description): about 4 Nm3/h per tube
+  o_xylene_loading_g_per_nm3: 80      # ASSUMED (D-004) within US 8 859 459 B2 (up to 100) and EP 0 574 855 A2 (40-130)
+  o_xylene_kg_per_h: 4800             # 60 000 Nm3/h x 80 g/Nm3
+  phthalic_anhydride_kg_per_h: 5055   # cheme process propagate (stream S13); about 40.4 kt/a at 8000 h
+  operating_hours_per_year: 8000      # ASSUMED (D-002)
+  turndown_percent: 60                # ASSUMED, not checked
+feeds:
+  - name: o-Xylene (bought in; no library process makes it, btx-1 exports mixed xylenes only)
+    source_of_values: ASSUMED (D-003)
+    composition: "taken as pure o-xylene; commercial specification (purity, m-/p-xylene, ethylbenzene, sulfur) an open input"
+    conditions: {temperature_K: 303.15, pressure_kPa_a: 400}
+  - name: Process air (filtered ambient air)
+    composition_dry_mol_percent: {N2: 78.12, O2: 20.95, Ar: 0.93}   # CO2 lumped into N2; humidity not counted (D-004)
+products:
+  - name: Phthalic anhydride, molten
+    purity: "99.99 wt% PA in the balance (maleic anhydride 3 ppm, benzoic acid 82 ppm); AP-42 6.5 states 99.8 wt% pure product from the vacuum distillation, US 5 730 844 A about 99.7 wt%"
+    delivery: {temperature_K: 433.15, pressure_kPa_a: 300, battery_limit: "product tanks under dry nitrogen (AP-42 6.5: liquid PA held at 150 C), flaking and bagging outside"}
+  - name: Light ends and distillation residue
+    note: "maleic anhydride, benzoic acid and PA, kept molten, to an outside hazardous-waste incinerator (D-009)"
+  - name: Oxidiser flue gas
+    note: "CO2, residual CO and organics after 95 % destruction (AP-42 6.5), explicit in stream S16 and the LCI (D-009)"
+  - name: Steam export
+    note: "HP steam 6000 kPa(a) from the salt bath and LP steam 400 kPa(a) from the gas cooler and the PA column's condenser; the plant uses part of the HP steam itself and exports the rest, net (D-008)"
+utilities:
+  - {name: Electric power, use: "air blower, salt circulation pump, vacuum systems and melt pumps (D-010)"}
+  - {name: HP steam, use: "air preheater, switch-condenser melt-out, pre-treatment, PA column reboiler; from the salt bath's own steam generator, netted against the export, none bought (D-008)", note: "6000 kPa(a), saturated, ASSUMED"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "switch-condenser oil cooler, light-ends condenser via tempered water", note: ASSUMED}
+  - {name: Nitrogen, use: "blanketing of the PA tanks (outside the flowsheet)", note: "not counted (D-012)"}
+site:
+  location: ASSUMED generic site with an o-xylene supply, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED one reactor of 15 000 tubes (25 mm), 4 Nm3/h air and 80 g/Nm3 o-xylene per tube (D-002, D-004)."
+  - "ASSUMED conversion model in R101 (D-005): 99.9 % of the o-xylene converted, 79.0 % to PA, 3.5 % to maleic anhydride, 0.5 % to benzoic acid, 9.4 % to CO2 and 7.5 % to CO (the CO share set to AP-42 6.5's uncontrolled CO factor)."
+  - "ASSUMED reactor gas 433 K in, 643 K out, salt bath about 633 K (AP-42 6.5: 340-385 C), heat to HP steam (D-005, D-008)."
+  - "ASSUMED switch condensers recover 97 % of the PA, 10 % of the maleic anhydride and 50 % of the benzoic acid, off-gas at 333 K (D-007)."
+  - "ASSUMED pre-treatment at 523 K and two vacuum columns with recoveries and reflux ratios of D-009."
+  - "ASSUMED thermal oxidiser with a recuperative feed/effluent exchanger, 95 % destruction of CO and organics (AP-42 6.5), autothermal, adiabatic overall (D-009)."
+  - "All duties other than R101's are hand calculations (DESIGN.md D-006 to D-010); accuracy +/-30 % not demonstrated."

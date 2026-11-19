@@ -1,0 +1,16 @@
+# acrylic-acid-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, names a
+# library producer's dataset, or says `atlas: false`.
+#
+# The preliminary LCI leaves most backgrounds unmapped (DESIGN.md D-012): the build reports each
+# as a gap (lci/gaps.json). Linked here: the propylene to propylene-pdh-1, the toluene make-up to
+# btx-1, the process steam (kg) to utility-steam-ng-boiler's 11 bar(a) steam and the reboiler steam
+# counted as heat delivered (kWh). Hydroquinone and MEHQ stay gaps: no library process makes them.
+# The exported HP steam is not offered as an Atlas steam producer (process.yaml, no inventory_key).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:C3": {dataset: {path: processes/propylene-pdh-1/lca/datasets/propylene-propane-dehydrogenation.yaml, product: "product:propylene"}, source: "the Atlas producer propylene-pdh-1, propylene by propane dehydrogenation; this plant takes chemical grade with 0.5 mol% propane, counted kg for kg with the propylene (D-003)"}
+  "feed:TOL": {dataset: {path: processes/btx-1/lca/datasets/btx-reformate-extraction.yaml, product: "product:toluene"}, source: "the Atlas producer btx-1, toluene from the solvent extraction of catalytic reformate, as benzyl-bromide-1 links it; the entrainer's make-up (D-008)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the reboilers of C-401, C-402 and C-404 (Q6, Q8, Q10), counted as heat delivered (kWh), D-010"}
+  "feed:STM": {dataset: {path: processes/utility-steam-ng-boiler/lca/datasets/steam-mp-11bara-natural-gas-boiler.yaml, product: "product:steam"}, source: "process steam 1100 kPa(a) from the site boiler: the library's natural-gas boiler at 11 bar(a), the grade of the feed (D-004), as styrene-1 links its dilution steam; the steam exports of ammonia-1 and hydrogen-1 are not this plant's supply"}

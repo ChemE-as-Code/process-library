@@ -1,0 +1,50 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Biogas from cattle slurry and hygienised biowastes (FNR model plant VII) with membrane
+# upgrading to biomethane, issue ChemE-as-Code/process-library#462. Values marked ASSUMED are
+# engineering choices of this concept study, not client or vendor data; every decision is in
+# DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: raw biogas of FNR's model plant VII (Guide to Biogas 2010, Table 8.7), upgraded to biomethane at the battery limit
+  substrates_t_per_year: 22100           # FNR Table 8.3, plant VII: 4000 cattle slurry, 8000 catering waste, 4600 grease trap waste, 5500 biowaste
+  operating_hours_per_year: 8000         # FNR Table 8.4 (full-load hours of the model plants)
+  raw_biogas_Nm3_per_h: 216.93           # dry; FNR Table 8.7 gives 1 735 468 m3/a for plant VII (reproduced, D-004)
+  biomethane_kg_per_h: 87.99             # 98.0 mol% CH4, from the flowsheet (S19)
+feeds:
+  - name: Cattle slurry (from the farm's slurry store)
+    source_of_values: "FNR Table 8.2: DM 8 %, VS 80 % of DM, 370 Nm3 biogas per t VS at 55 % CH4; 4000 t/a (Table 8.3)"
+    composition: "lumped: water, ash, digestible carbohydrate and fat, inert VS (D-004)"
+    conditions: {temperature_K: 283.15, pressure_kPa_a: 101.325}   # ASSUMED
+  - name: Catering waste, average fat content (hygienised before delivery)
+    source_of_values: "FNR Table 8.2: DM 16 %, VS 87 %, 680 Nm3/t VS at 60 % CH4; 8000 t/a"
+    conditions: {temperature_K: 283.15, pressure_kPa_a: 101.325}   # ASSUMED
+  - name: Grease trap waste (hygienised before delivery)
+    source_of_values: "FNR Table 8.2: DM 5 %, VS 90 %, 1000 Nm3/t VS at 68 % CH4; 4600 t/a"
+    conditions: {temperature_K: 283.15, pressure_kPa_a: 101.325}   # ASSUMED
+  - name: Biowaste (hygienised before delivery)
+    source_of_values: "FNR Table 8.2: DM 40 %, VS 50 %, 615 Nm3/t VS at 60 % CH4; 5500 t/a"
+    conditions: {temperature_K: 283.15, pressure_kPa_a: 101.325}   # ASSUMED
+products:
+  - name: Biomethane
+    purity: "98.0 mol% CH4, 2.0 mol% CO2, dry (SGC Rapport 2013:270, section 3.1: the purity most membrane suppliers guarantee); the grid's Wobbe index and the odorant are set at the injection station, outside the boundary (D-006)"
+    delivery: {temperature_K: 303.15, pressure_kPa_a: 1550, battery_limit: "grid injection station (metering, odorisation, any further compression)"}   # pressure ASSUMED
+  - name: Digestate
+    note: "whole digestate stored six months in a gas-tight covered store, spread on farmland as fertiliser (D-010)"
+  - name: Membrane off-gas to atmosphere
+    note: "CO2 with 0.5 % of the methane (SGC section 3.3) and the water vapour; no post-oxidation in this concept (D-006)"
+  - name: Boiler flue gas to atmosphere
+utilities:
+  - {name: Electric power, use: "upgrading 0.25 kWh/Nm3 raw biogas (SGC section 2.3.3); the gas chiller's refrigeration unit (COP 3.0, ASSUMED); agitators and pumps of the digestion (FNR Table 8.4) (D-007, D-009)"}
+  - {name: Chilled water, use: "the gas chiller E-300 that removes the biogas's water before compression (SGC section 2.3.1), from a packaged refrigeration unit (D-007)", note: "internal, no import"}
+  - {name: Hot water, use: "the substrate's heat exchanger and the digesters' heating coils, from the biogas boiler (D-008)", note: "internal, no import"}
+site:
+  location: ASSUMED generic agricultural biogas site in Germany next to a livestock farm, with a gas-grid connection, not chosen
+  design_ambient_K: 283.15            # ASSUMED annual mean
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "FNR model plant VII (Guide to Biogas 2010, Tables 8.1 to 8.7): its substrates, two-stage mesophilic wet digestion, retention time and volumes; its gas upgraded instead of burnt in a CHP engine (D-001, D-002)."
+  - "The substrates' VS lumped into digestible carbohydrate and fat, calibrated to each substrate's standard biogas yield and methane content (FNR Table 8.2) by Buswell's stoichiometry; the rest inert (D-004). ASSUMED model, not an analysis."
+  - "Digesters at 313.15 K (40 C, FNR's mesophilic range 37-43 C); substrates and air at 283.15 K (ASSUMED)."
+  - "Membrane upgrading with design (iii) of SGC Rapport 2013:270: 99.5 % methane recovery, 98 mol% product, 0.25 kWh/Nm3 raw biogas, feed 1600 kPa(a) (ASSUMED within 6-20 bar(a)); the water removed by chilling to 283.15 K before compression (ASSUMED temperature); H2S removed by activated carbon, not in the balance (D-006, D-007)."
+  - "The digesters' heat from a biogas boiler (15 % excess air, flue gas 423.15 K, ASSUMED); losses from 10 cm insulation and an ASSUMED membrane roof (D-008)."
+  - "All flows are design-point averages over 8000 h; duties and powers concept estimates; accuracy +/-30 % not demonstrated."

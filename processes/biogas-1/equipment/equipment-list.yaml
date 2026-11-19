@@ -1,0 +1,33 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# sized from FNR model plant VII (Guide to Biogas 2010, Tables 8.4 and 8.7) and the flowsheet.
+# Design pressures, temperatures and materials are not set yet (basic engineering). All values
+# ASSUMED unless a source is named.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: T-101, type: Tank, service: "Intake pit: the pumpable hygienised wastes and the cattle slurry mixed before feeding",
+     notes: "Concrete, stirred, covered and vented to the biogas system; about one day of substrate (66 t/d, 2762.5 kg/h); the wastes delivered hygienised and pumpable, as FNR assumes for plant VII (section 8.1.3), D-003."}
+  - {tag: E-101, type: HeatExchanger, service: "Substrate heat exchanger (tube-in-tube, hot water) and the digesters' heating coils",
+     notes: "135.8 kW from the boiler (Q1): 96.2 kW to warm the substrate from 283.15 to 313.15 K, 30.5 kW for the digesters' losses and 9.1 kW for the water that evaporates into the biogas (scripts/balance.py, D-008)."}
+  - {tag: R-101, type: StirredTankReactor, service: "Digester, first stage: mesophilic (313.15 K), stirred, gas-tight double-membrane roof as gas store",
+     notes: "1700 m3 gross, half of plant VII's 3400 m3 (FNR Table 8.7; two-stage, section 8.1.3), about 19.0 m diameter and 6 m high (ASSUMED), concrete, insulated with 10 cm of mineral fibre (FNR Tables 3.30, 3.31); agitators 25 W/m3 installed (FNR Table 8.4: 20-30 W/m3); hydraulic retention time of both stages 51 d (FNR Table 8.7; 51.3 d on the flowsheet's feed at 1000 kg/m3); organic loading rate 2.4 kg VS/(m3 d) (FNR Table 8.7); over- and underpressure safety device on the roof; emergency flare (D-003, D-011)."}
+  - {tag: R-102, type: StirredTankReactor, service: "Digester, second stage (post-digester), as R-101",
+     notes: "1700 m3 gross as R-101; agitators 15 W/m3 installed (FNR Table 8.4: 10-20 W/m3); its gas space joined to R-101's (D-003)."}
+  - {tag: T-201, type: Tank, service: "Digestate store with gas-tight cover, its gas to the biogas system",
+     notes: "Six months of digestate plus 10 % (FNR Table 8.4): 11 000 m3 on the flowsheet's 2499 kg/h at 1000 kg/m3; FNR gives 11 400 m3 for plant VII (Table 8.7); walls not insulated (ASSUMED): the digestate cools to about 288.15 K and gives about 72 kW to ambient (D-010); receives the upgrading's condensates; the residual gas of the digestate is counted in the digesters' conversion (D-010)."}
+  - {tag: B-101, type: Furnace, service: "Hot-water boiler fired with biogas (digester heating)",
+     notes: "146 kW biogas input (LHV), 135.8 kW to the hot-water circuit at 93.3 % on LHV (flue gas 423.15 K, 15 % excess air, ASSUMED); 11.1 % of the raw biogas (FNR gives 5 % for its drier plant X, Table 8.8), D-008."}
+  - {tag: E-300, type: HeatExchanger, service: "Gas chiller: the biogas cooled to 283.15 K before compression, with a packaged chilled-water refrigeration unit",
+     notes: "9.8 kW taken from the gas (Q3: 313.15 to 283.15 K and the condensation of 10.2 kg/h of water), 3.3 kW of electricity for the refrigeration unit at a COP of 3.0 (W3, ASSUMED); the water removed before compression so that none condenses in the compressor (SGC Rapport 2013:270, section 2.3.1); the gas's dew point at 1600 kPa(a) is then 59 C, below the compressor's 80 C outlet (scripts/balance.py, D-007)."}
+  - {tag: V-300, type: Vessel, service: "Condensate separator after E-300",
+     notes: "The water condensed at 283.15 K and 101.5 kPa(a) (10.2 kg/h) drained to the digestate store (D-007)."}
+  - {tag: A-301, type: Vessel, service: "Activated carbon filter (H2S removal) with particle filter, ahead of the compressor",
+     notes: "Two beds in lead-lag; H2S, siloxanes and particles are not in the balance (SGC Rapport 2013:270, section 2.3.1: H2S removed before the membranes, commonly with activated carbon), D-007."}
+  - {tag: C-301, type: Compressor, service: "Oil-injected screw compressor to 1600 kPa(a), with the recycle of the membrane stages",
+     notes: "48.2 kW for the whole membrane unit at 0.25 kWh/Nm3 raw biogas (SGC section 2.3.3: 0.20-0.30), including the recycle of stage 2's permeate and stage 3's retentate (design iii, SGC section 2.3.1); takes the chilled gas from E-300 and A-301 (283.15 K, dew point 59 C at 1600 kPa(a)), so no water condenses in the machine or its oil; oil separator after it (D-007, D-009)."}
+  - {tag: E-301, type: HeatExchanger, service: "After-cooler (air) to 303.15 K",
+     notes: "47.5 kW to the air (Q2): the whole upgrading power taken to end as heat in the after-coolers and the compressor's oil cooler (ASSUMED), less the gas's warming from 283.15 to 303.15 K, plus the condensation of 1.5 kg/h of water (scripts/balance.py, D-007)."}
+  - {tag: V-301, type: Vessel, service: "Condensate separator after E-301",
+     notes: "The water condensed at 1600 kPa(a) and 303.15 K (1.5 kg/h) drained to the digestate store (D-007)."}
+  - {tag: M-301, type: Vessel, service: "Membrane unit, three stages of hollow-fibre modules (design iii of SGC Rapport 2013:270)",
+     notes: "Stage 1 retentate polished in stage 2 to the product, stage 1 permeate polished in stage 3 to the off-gas; stage 2's permeate and stage 3's retentate recycled to C-301 (SGC section 2.3.1; Evonik's US 8 999 038 B2, Examples 1 to 4); 99.5 % CH4 recovery (SGC sections 2.3.4, 3.3) to 98.0 mol% CH4 (section 3.1), D-006."}
