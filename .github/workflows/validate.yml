@@ -50,8 +50,17 @@ jobs:
       - name: LCA scenario records current
         run: if [ -d lca/scenarios ]; then cheme assess lca-scenarios --check; fi
       # Stage gates report progress (e.g. no design review recorded yet); they do not fail the build.
+      # Bound this optional report separately: check can repeat expensive validation and otherwise
+      # exhaust the whole job's timeout even with continue-on-error. A timeout is not a gate pass.
       - name: Engineering-step gates (informational)
-        run: cheme check --no-write
+        run: |
+          status=0
+          timeout --kill-after=30s 5m cheme check --no-write || status=$?
+          if [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
+            echo "::warning::Engineering-step gates exceeded their time budget; review incomplete, not passed. Required validation ran separately."
+            printf '%s\n' "Engineering-step gates: INCOMPLETE (time limit). No stage sign-off was written. Run cheme check --no-write locally for the full report." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
         continue-on-error: true
 
   # The library contract: manifests, chemical registry, catalog and LCI database build strictly;
