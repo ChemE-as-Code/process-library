@@ -4,8 +4,9 @@ ranges from cited open sources, and their evaluation on the LCI datasets.
 ``benchmarks/<family>.yaml`` (schema ``schemas/benchmarks.schema.json``) names per family its
 KPIs, each with a unit and either reference ranges (a range, the conditions it holds for, the
 source) or a recorded ``no_open_reference``, and the datasets they apply to, each KPI as an
-expression over the dataset's exchanges (``feed:POWER / product:GOXP``). Rules in
-docs/benchmarks.md.
+expression over the dataset's exchanges (``feed:POWER / product:GOXP``) and the binding's named
+constants (``feed:NG * const:ng-lhv / product:NH3``: a heating value or enthalpy with its unit and
+source, ADR 0040). Rules in docs/benchmarks.md.
 
 - :func:`load` reads and checks the registry: schema, the family against the taxonomy, every
   binding naming a KPI and a reference that exist, every expression readable;
@@ -42,6 +43,11 @@ REPORT_SCHEMA = "cheme-as-code/benchmark-report/v1"
 #: Inventory units of core's datasets as Pint reads them; ``ea`` and ``tkm`` have no Pint
 #: spelling, so a KPI over them must be stated in the expression's own unit.
 PINT_SPELLING = {"kg": "kg", "kWh": "kWh", "m": "m", "m2": "m**2", "m3": "m**3"}
+#: The units a binding's constant may be stated in (``MJ/kg``, ``kJ/kg``), as Pint reads them:
+#: the inventory units and the usual mass and energy units of heating values and enthalpies.
+UNIT_SPELLING = PINT_SPELLING | {"g": "g", "t": "t", "kJ": "kJ", "MJ": "MJ", "GJ": "GJ", "MWh": "MWh", "mol": "mol", "kmol": "kmol"}
+#: the prefix of a constant in an expression: ``const:<name>`` names the binding's ``constants``
+CONSTANT = "const:"
 TOKEN = re.compile(r"\s*(?:(?P<key>[a-z][a-z-]*:[A-Za-z0-9_.\-]+)|(?P<number>\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)|(?P<op>[-+*/()]))")
 
 
@@ -84,10 +90,32 @@ def tokens(expression: str) -> list[tuple[str, str]]:
 Quantity = tuple[float, dict[str, int]]  # value, unit exponents ({"kWh": 1, "kg": -1})
 
 
-def compute(expression: str, amounts: dict[str, tuple[float, str]] | None = None) -> Quantity:
+def constant_units(unit: str) -> dict[str, int]:
+    """``MJ/kg`` -> ``{"MJ": 1, "kg": -1}``: the unit of a binding's constant, units of
+    :data:`UNIT_SPELLING` joined by ``*`` and ``/``; raise ExpressionError otherwise."""
+    if not re.fullmatch(r"[A-Za-z0-9]+(?:[*/][A-Za-z0-9]+)*", unit):
+        raise ExpressionError(f"unit {unit!r}: write units joined by * and /, e.g. MJ/kg")
+    units: dict[str, int] = {}
+    for sign, name in re.findall(r"([*/]?)([A-Za-z0-9]+)", unit):
+        if name not in UNIT_SPELLING:
+            raise ExpressionError(f"unit {unit!r}: {name!r} is not one of {', '.join(UNIT_SPELLING)}")
+        units[name] = units.get(name, 0) + (-1 if sign == "/" else 1)
+    return {u: p for u, p in units.items() if p}
+
+
+def constants_used(expression: str) -> list[str]:
+    """The names of the constants (``const:<name>``) an expression uses, in order, each once."""
+    names = [text.removeprefix(CONSTANT) for kind, text in tokens(expression) if kind == "key" and text.startswith(CONSTANT)]
+    return list(dict.fromkeys(names))
+
+
+def compute(expression: str, amounts: dict[str, tuple[float, str]] | None = None, constants: dict[str, tuple[float, str]] | None = None) -> Quantity:
     """The expression's value and unit, the keys taken from *amounts* (``key -> (amount,
-    unit)``). With *amounts* None, only the syntax is checked: every key counts as 1, and a
-    divisor that is zero there (``product:A - product:B``) is not an error."""
+    unit)``) and a ``const:<name>`` from *constants* (``name -> (value, unit)``, the unit as
+    :func:`constant_units` reads it). With *amounts* None, only the syntax is checked: every key
+    and constant counts as 1, and a divisor that is zero there (``product:A - product:B``) is not
+    an error. Terms added or subtracted in different units are converted to the first term's
+    unit through core (:func:`convert`); units that do not convert are an error."""
     items = tokens(expression)
     position = 0
 
@@ -115,6 +143,12 @@ def compute(expression: str, amounts: dict[str, tuple[float, str]] | None = None
         if kind == "key":
             if amounts is None:
                 return 1.0, {}
+            if text.startswith(CONSTANT):
+                name = text.removeprefix(CONSTANT)
+                if name not in (constants or {}):
+                    raise ExpressionError(f"the binding has no constant {name}")
+                value, unit = constants[name]
+                return float(value), constant_units(unit)
             if text not in amounts:
                 raise ExpressionError(f"the dataset has no exchange {text}")
             value, unit = amounts[text]
@@ -149,7 +183,7 @@ def compute(expression: str, amounts: dict[str, tuple[float, str]] | None = None
             _, op = take()
             other, other_unit = product()
             if amounts is not None and other_unit != unit:
-                raise ExpressionError(f"{expression!r}: adds {unit_text(unit)} and {unit_text(other_unit)}")
+                other *= _factor(other_unit, unit, f"{expression!r}: adds {unit_text(unit)} and {unit_text(other_unit)}")
             value = value + other if op == "+" else value - other
         return value, unit
 
@@ -157,6 +191,18 @@ def compute(expression: str, amounts: dict[str, tuple[float, str]] | None = None
     if peek() is not None:
         raise ExpressionError(f"{expression!r}: unexpected {peek()[1]!r}")
     return result
+
+
+def _factor(units: dict[str, int], target: dict[str, int], message: str) -> float:
+    """The factor that turns a value in *units* into *target* (both linear units), through
+    core; raise ExpressionError with *message* when they do not convert or core is missing."""
+    try:
+        factor = convert(1.0, units, unit_text(target, UNIT_SPELLING) if target else "dimensionless")
+    except ExpressionError as failure:
+        raise ExpressionError(message) from failure
+    if factor is None:
+        raise ExpressionError(f"{message}, which needs core's foundation.units (pip install 'cheme-as-code[units]')")
+    return factor
 
 
 def unit_text(units: dict[str, int], spelling: dict[str, str] | None = None) -> str:
@@ -177,14 +223,14 @@ def convert(value: float, units: dict[str, int], target: str) -> float | None:
     the units differ and core is not installed; raise ExpressionError when they do not convert."""
     if unit_text(units) == target:
         return value
-    if any(u not in PINT_SPELLING for u in units):
+    if any(u not in UNIT_SPELLING for u in units):
         raise ExpressionError(f"{unit_text(units)} does not convert (state the KPI in {unit_text(units)})")
     try:
         from chemeascode.foundation.units import UnitError, convert_units
     except ImportError:
         return None
     try:
-        return convert_units(value, unit_text(units, PINT_SPELLING) if units else "dimensionless", target)
+        return convert_units(value, unit_text(units, UNIT_SPELLING) if units else "dimensionless", target)
     except UnitError as failure:
         raise ExpressionError(f"{unit_text(units)} does not convert to {target}: {failure}") from failure
 
@@ -242,8 +288,16 @@ def load(folder: Path, schema_path: Path, families: dict[str, dict]) -> tuple[Re
                     problems.append(f"{at}: kpis.{kid}: out_of_range_reason, but the KPI has no range (no_open_reference)")
                 try:
                     compute(evaluation["expression"])
+                    for name in constants_used(evaluation["expression"]):
+                        if name not in binding.get("constants", {}):
+                            problems.append(f"{at}: kpis.{kid}: the binding has no constant {name}")
                 except ExpressionError as failure:
                     problems.append(f"{at}: kpis.{kid}: {failure}")
+            for name, constant in binding.get("constants", {}).items():
+                try:
+                    constant_units(constant["unit"])
+                except ExpressionError as failure:
+                    problems.append(f"{at}: constants.{name}: {failure}")
             registry.bindings.setdefault(target, []).append((family, binding))
         registry.families[family] = data
     return registry, problems
@@ -255,6 +309,7 @@ def evaluate(registry: Registry, pid: str, dataset: dict, shares: dict[str, floa
     amounts = {e["key"]: (e["amount"], e["unit"]) for e in dataset.get("exchanges", []) if isinstance(e, dict) and "key" in e}
     results, warnings = [], []
     for family, binding in registry.bindings.get((pid, dataset.get("id")), []):
+        constants = {name: (c["value"], c["unit"]) for name, c in binding.get("constants", {}).items()}
         for kid, evaluation in sorted(binding["kpis"].items()):
             kpi = registry.families[family]["kpis"][kid]
             at = f"benchmarks/{family}.yaml datasets {pid}/{dataset['id']} kpis.{kid}"
@@ -267,6 +322,9 @@ def evaluate(registry: Registry, pid: str, dataset: dict, shares: dict[str, floa
                 "value": None,
                 "reference": None,
             }
+            used = constants_used(evaluation["expression"])
+            if used:  # each constant with its value, unit and source, so a reader can redo the KPI
+                result["constants"] = {name: binding["constants"][name] for name in used if name in binding.get("constants", {})}
             reference = next((r for r in kpi.get("references", []) if r["id"] == evaluation.get("reference")), None)
             if reference:
                 result["reference"] = reference
@@ -274,7 +332,7 @@ def evaluate(registry: Registry, pid: str, dataset: dict, shares: dict[str, floa
                 result["no_open_reference"] = " ".join(kpi["no_open_reference"].split())
             reason = " ".join(evaluation.get("out_of_range_reason", "").split())
             try:
-                raw, units = compute(evaluation["expression"], amounts)
+                raw, units = compute(evaluation["expression"], amounts, constants)
                 value = convert(raw, units, kpi["unit"])
                 if value is None:
                     raise ExpressionError(f"{unit_text(units)} to {kpi['unit']} needs core's foundation.units (pip install 'cheme-as-code[units]')")

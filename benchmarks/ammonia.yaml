@@ -297,9 +297,10 @@ kpis:
 
 # Binding added 2026-10-30 after the design was final (basic stage signed off on main, tag
 # nh3-run-S5). The values were computed blind by a separate job (processes/ammonia-1/runs/
-# benchmark-kpis.md) that saw no range of this file. Only the two CO2 indicators can be expressed
-# over the dataset's exchanges: the energy KPIs need heating values and steam enthalpies, which
-# the dataset does not carry, and the loop pressure, conversion and NOx have no exchange. Their
+# benchmark-kpis.md) that saw no range of this file. The two CO2 indicators are bound over the
+# dataset's exchanges; the four energy indicators were bound on 2026-11-19 (#272, ADR 0040) with
+# the natural gas heating value and the steam enthalpy of that blind job as named constants,
+# since the dataset carries neither. The loop pressure, conversion and NOx have no exchange: their
 # blind values and the comparison with these ranges are in processes/ammonia-1/runs/benchmark-kpis.md
 # and process-library#304.
 datasets:
@@ -312,7 +313,78 @@ datasets:
       capacity: 1500 t/d
       region: EU (Netherlands site basis)
       year: 2026
+      energy_basis: LHV at 298.15 K; electricity as delivered energy (3.6 GJ/MWh, no primary-energy factor); steam at its enthalpy above the make-up water
+    constants:
+      ng-lhv:
+        value: 49.0858
+        unit: MJ/kg
+        provenance: calculated
+        source: >-
+          processes/ammonia-1/runs/benchmark-kpis.md, Common basis, Heating values: lower heating
+          value at 298.15 K (water as vapour) of the natural gas S1 (= feed:NG, D-040
+          composition, M 16.8555 kg/kmol) from the ideal-gas formation enthalpies dHf_298 of
+          process/materials.yaml; reproduced by cheme run scripts/benchmark_kpis.py ("natural gas
+          S1: ... LHV 49.0858 MJ/kg").
+      mp-steam-enthalpy:
+        value: 3.09848
+        unit: MJ/kg
+        provenance: calculated
+        source: >-
+          processes/ammonia-1/runs/benchmark-kpis.md, Common basis, Steam: enthalpy of the MP
+          steam S68 (= product:STEAM, 4600 kPa(a), 673.15 K, 3203.78 kJ/kg) above the
+          demineralised make-up water S70 (500 kPa(a), 298.15 K, 105.30 kJ/kg), IAPWS-IF97;
+          reproduced by cheme run scripts/benchmark_kpis.py ("steam export above DMW ...
+          (3.09848 MJ/kg)"). No boiler-efficiency equivalent.
     kpis:
+      specific-energy-net:
+        # natural gas feed plus fuel (LHV) plus electricity (kWh converted at 3.6 MJ/kWh) minus
+        # the exported MP steam; no steam is imported
+        expression: (feed:NG * const:ng-lhv + feed:POWER - product:STEAM * const:mp-steam-enthalpy) / product:NH3
+        per: product:NH3
+        reference: bref-lvic-aaf-bat-energy
+        out_of_range_reason: >-
+          0.6 GJ/t below the BREF BAT range because the drives are electric (D-016 in
+          processes/ammonia-1/DESIGN.md): no natural gas is fired for compressor drives, and the
+          imported power (2.12 GJ/t) is counted as delivered energy at 3.6 GJ/MWh with no
+          power-plant or primary-energy factor (processes/ammonia-1/runs/benchmark-kpis.md,
+          Common basis); the furnace fires only for the reformer's radiant duty (D-014). Steam
+          turbine drives, which D-016 names the common integrated practice, would turn most of
+          the steam export into shaft power (a design alternative, I-09).
+      specific-energy-gross:
+        expression: (feed:NG * const:ng-lhv + feed:POWER) / product:NH3
+        per: product:NH3
+        reference: iea-2021-smr-bat-gross
+        out_of_range_reason: >-
+          Below the IEA single BAT value because the drives are electric (D-016 in
+          processes/ammonia-1/DESIGN.md): the power (2.12 GJ/t) is counted as delivered energy at
+          3.6 GJ/MWh, with no power-plant or primary-energy factor, in place of the natural gas a
+          plant with steam turbine drives fires for them; the furnace fuel follows the radiant
+          balance only (D-014). Feed gas alone is 21.78 GJ/t
+          (processes/ammonia-1/runs/benchmark-kpis.md).
+      natural-gas-feed-plus-fuel:
+        expression: feed:NG * const:ng-lhv / product:NH3
+        per: product:NH3
+        reference: iea-2021-smr-bat-feed-fuel
+        out_of_range_reason: >-
+          Below the IEA BAT sum (feed 21.0 plus fuel 11.1 GJ/t) in the fuel only: the design's
+          process feed is 21.78 GJ/t, its furnace fuel 6.23 GJ/t
+          (processes/ammonia-1/runs/benchmark-kpis.md, KPI 3). The furnace fires only for the
+          reformer's radiant duty (D-014) and no gas is fired for machine drives, which are all
+          electric with the power imported (D-016 in processes/ammonia-1/DESIGN.md); that power
+          is outside this KPI.
+      steam-net-export:
+        expression: product:STEAM * const:mp-steam-enthalpy / product:NH3
+        per: product:NH3
+        reference: iea-2021-smr-bat-steam
+        out_of_range_reason: >-
+          Below the IEA single value: the design raises its steam at one MP level from waste
+          heat only, the steam system U801 is not fired (D-015 in processes/ammonia-1/DESIGN.md,
+          processes/ammonia-1/runs/benchmark-kpis.md KPI 10), and its furnace fires only for the
+          reformer's radiant duty, leaving 0.6 MW of flue-gas heat for steam after the process
+          coils (D-014); its fuel is 6.23 GJ/t against 11.1 GJ/t in the IEA BAT row. The export
+          is credited at its enthalpy above the make-up water, 3.0985 MJ/kg, without a
+          boiler-efficiency equivalent (benchmark-kpis.md, Common basis and KPI 6); whether the
+          IEA row values steam the same way was not checked.
       process-co2:
         # CO2 vented from the CO2 removal (product:CO2V) times its CO2 mass fraction 0.978874
         # (stream S87 composition); flue-gas CO2 excluded.

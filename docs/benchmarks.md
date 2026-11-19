@@ -72,9 +72,31 @@ datasets:
   operation) cancels in a ratio.
 - **Units come from the exchanges.** `feed:POWER / product:GOXP` is in kWh/kg. It is converted
   to the KPI's unit by core's `foundation.units` (`convert_units`, through Pint), which is the
-  package's single unit system. Adding exchanges of different units is an error. Without core
-  installed (`cheme-as-code[units]`), a KPI whose unit differs from its expression's unit is
-  `unchecked`. That is a warning, so `--strict` builds need core.
+  package's single unit system. Terms that are added or subtracted are converted to the unit of
+  the first term (kWh to MJ); terms whose units do not convert (kWh and kg) are an error. Without
+  core installed (`cheme-as-code[units]`), a KPI whose unit differs from its expression's unit,
+  or that adds different units, is `unchecked`. That is a warning, so `--strict` builds need core.
+- **Constants.** A number in an expression has no unit. A quantity the dataset does not carry,
+  such as a fuel's heating value or a steam enthalpy, is a named constant of the binding, with
+  its value, unit, provenance and source, and the expression uses it as `const:<name>`
+  ([ADR 0040](adr/0040-benchmark-constants-with-units-and-sources.md)):
+
+  ```yaml
+      constants:
+        ng-lhv:
+          value: 49.0858
+          unit: MJ/kg
+          provenance: calculated   # or sourced (a cited publication), assumed
+          source: processes/ammonia-1/runs/benchmark-kpis.md, Common basis, Heating values ...
+      kpis:
+        natural-gas-feed-plus-fuel: {expression: feed:NG * const:ng-lhv / product:NH3, per: product:NH3, reference: iea-2021-smr-bat-feed-fuel}
+  ```
+
+  The unit is units joined by `*` and `/`, each one of kg, kWh, m, m2, m3, g, t, kJ, MJ, GJ,
+  MWh, mol, kmol. A constant belongs to its binding, because it describes that dataset's stream
+  (the composition of its gas, the state of its steam). The registry check refuses a
+  `const:` that the binding does not define and a unit it cannot read; a pure unit conversion
+  (3.6 MJ/kWh) is never a constant, since core converts units.
 - `per` names the product the KPI refers to. It must be a `product:` exchange of the dataset;
   otherwise the build warns. `build_lci.py` records `allocated`, the value times that product's
   allocation share. A KPI that is not per unit of a product (a recovery, a yield) has no `per`. ASU-1's GOX carries about 70 % of the burdens under exergy
@@ -109,7 +131,8 @@ in `families`.
 
 - `build_lci.py`: per dataset in `datapackage.json`, `benchmarks`: each KPI with `value`,
   `allocated`, `status`, the chosen `reference` (range, conditions, source) or
-  `no_open_reference`, and the `reason` of an explained value.
+  `no_open_reference`, the `reason` of an explained value, and the `constants` its expression
+  uses (each with its value, unit, provenance and source).
 - `build_catalog.py`: per process in `processes/<id>.json`, `benchmarks` (the same results,
   unallocated, each with its `dataset` id); in `catalog.json`, the summary's `benchmarks` counts
   them by status. The Atlas process page shows the position in the range (website#37).

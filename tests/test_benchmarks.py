@@ -381,3 +381,89 @@ def test_report_sorts_and_counts() -> None:
     report = bm.report(rows, "preview", {"commit": None, "dirty": None})
     assert [(r["process"], r["kpi"]) for r in report["results"]] == [("a", "x"), ("a", "y"), ("b", "x")]
     assert report["summary"] == {"kpis": 3, "by_status": {"inside": 2, "outside": 1}, "processes": {"a": {"inside": 2}, "b": {"outside": 1}}}
+
+
+# --- named constants (ADR 0040, #272) ---------------------------------------------------------
+
+LHV = {"ng-lhv": (50.0, "MJ/kg"), "steam": (3.0, "MJ/kg")}
+ENERGY = {"feed:NG": (2.0, "kg"), "feed:POWER": (10.0, "kWh"), "product:STEAM": (4.0, "kg"), "product:NH3": (1.0, "kg")}
+
+
+def test_constant_units_are_read_from_known_units() -> None:
+    assert bm.constant_units("MJ/kg") == {"MJ": 1, "kg": -1}
+    assert bm.constant_units("kJ*kg/kg/kmol") == {"kJ": 1, "kmol": -1}
+    with pytest.raises(bm.ExpressionError, match="'BTU' is not one of"):
+        bm.constant_units("BTU/kg")
+    with pytest.raises(bm.ExpressionError, match="joined by"):
+        bm.constant_units("MJ / kg")
+
+
+def test_a_constant_carries_its_unit_into_the_expression() -> None:
+    assert bm.constants_used("(feed:NG * const:ng-lhv - product:STEAM * const:steam) / product:NH3 * const:ng-lhv") == ["ng-lhv", "steam"]
+    assert bm.compute("feed:NG * const:ng-lhv / product:NH3", ENERGY, LHV) == (100.0, {"MJ": 1, "kg": -1})
+    assert bm.compute("feed:NG * const:ng-lhv - product:STEAM * const:steam", ENERGY, LHV) == (88.0, {"MJ": 1})
+    assert bm.compute("feed:NG * const:nope") == (1.0, {})  # the syntax check counts every key and constant as 1
+    with pytest.raises(bm.ExpressionError, match="no constant nope"):
+        bm.compute("feed:NG * const:nope", ENERGY, LHV)
+    with pytest.raises(bm.ExpressionError, match="adds MJ and kg"):
+        bm.compute("feed:NG * const:ng-lhv + feed:NG", ENERGY, LHV)
+
+
+@needs_core
+def test_added_terms_convert_to_the_first_terms_unit() -> None:
+    # 100 MJ of gas plus 10 kWh (36 MJ) of power minus 12 MJ of steam, per kg: GJ/t numerically
+    value, units = bm.compute("(feed:NG * const:ng-lhv + feed:POWER - product:STEAM * const:steam) / product:NH3", ENERGY, LHV)
+    assert value == pytest.approx(124.0) and units == {"MJ": 1, "kg": -1}
+    assert bm.convert(value, units, "GJ/t") == pytest.approx(124.0)
+    value, units = bm.compute("feed:POWER + feed:NG * const:ng-lhv", ENERGY, LHV)
+    assert value == pytest.approx(10.0 + 100.0 / 3.6) and units == {"kWh": 1}
+    with pytest.raises(bm.ExpressionError, match="adds kWh and kg"):
+        bm.compute("feed:POWER + feed:NG", ENERGY, LHV)
+
+
+def test_without_core_adding_different_units_names_core(monkeypatch) -> None:
+    monkeypatch.setitem(sys.modules, "chemeascode.foundation.units", None)  # import raises ImportError
+    with pytest.raises(bm.ExpressionError, match="adds MJ and kWh, which needs core's foundation.units"):
+        bm.compute("feed:NG * const:ng-lhv + feed:POWER", ENERGY, LHV)
+
+
+def _ng_constant(d: dict, **change) -> None:
+    binding = d["datasets"][0]
+    binding["constants"] = {"ng-lhv": {"value": 50.0, "unit": "MJ/kg", "provenance": "assumed", "source": "ASSUMED for the registry test, no source", **change}}
+    binding["kpis"]["cooling-duty-gox"]["expression"] = "product:CW / product:GOXP * const:ng-lhv"
+
+
+@pytest.mark.parametrize(
+    "change, message",
+    [
+        (lambda d: _ng_constant(d, unit="BTU/kg"), "constants.ng-lhv: unit 'BTU/kg': 'BTU' is not one of"),
+        (lambda d: _ng_constant(d, provenance="memory"), "'memory' is not one of ['calculated', 'sourced', 'assumed']"),
+        (lambda d: (_ng_constant(d), d["datasets"][0]["constants"]["ng-lhv"].pop("source")), "'source' is a required property"),
+        (lambda d: (_ng_constant(d), d["datasets"][0]["constants"].clear()), "kpis.cooling-duty-gox: the binding has no constant ng-lhv"),
+    ],
+)
+def test_constant_problems(tmp_path: Path, change, message: str) -> None:
+    library = _library(tmp_path)
+    _edit_benchmarks(library, change)
+    _, problems = bm.load(library / "benchmarks", SCHEMA, FAMILIES)
+    assert any(message in p for p in problems), problems
+
+
+@needs_core
+def test_ammonia_energy_kpis_are_bound_with_their_constants() -> None:
+    """#272: the four energy KPIs of ammonia-1 reproduce the blind run's values
+    (processes/ammonia-1/runs/benchmark-kpis.md) and report the constants they use."""
+    registry, problems = bm.load(KIT / "benchmarks", SCHEMA, FAMILIES)
+    assert problems == []
+    dataset = yaml.safe_load((KIT / "processes" / "ammonia-1" / "lca" / "dataset.yaml").read_text(encoding="utf-8"))
+    results, warnings = bm.evaluate(registry, "ammonia-1", dataset)
+    assert warnings == []
+    kpis = {r["kpi"]: r for r in results}
+    blind = {"specific-energy-net": 26.97, "specific-energy-gross": 30.13, "natural-gas-feed-plus-fuel": 28.01, "steam-net-export": 3.16}
+    for kid, value in blind.items():
+        assert kpis[kid]["value"] == pytest.approx(value, abs=0.005), kid
+        assert kpis[kid]["status"] == "explained", kid
+    assert set(kpis["specific-energy-net"]["constants"]) == {"ng-lhv", "mp-steam-enthalpy"}
+    assert kpis["natural-gas-feed-plus-fuel"]["constants"]["ng-lhv"]["unit"] == "MJ/kg"
+    assert "runs/benchmark-kpis.md" in kpis["steam-net-export"]["constants"]["mp-steam-enthalpy"]["source"]
+    assert "constants" not in kpis["process-co2"]
