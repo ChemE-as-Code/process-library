@@ -1,0 +1,48 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Carbon dioxide by direct air capture with aqueous KOH and a calcium caustic recovery loop
+# (Keith et al. 2018, SRC-1), gas-fired calciner, grid power; issue
+# ChemE-as-Code/process-library#518. Values marked ASSUMED are engineering choices of this
+# concept study, not licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: CO2 captured from the air (and the CO2 of the calciner's fuel) delivered dense phase at the battery limit
+  air_co2_captured_t_per_h: 112.2          # D-002: 74.5 % of the CO2 in 251 000 t/h of air (SRC-1 Fig. 2 and Table 1)
+  co2_product_t_per_h: 148.5               # D-002: 97.0 wt% CO2, the calciner's fuel CO2 included
+  operating_hours_per_year: 7884           # D-002: 90 % utilisation (SRC-1 Table 2 note), ASSUMED for this plant
+  co2_product_t_per_year: 1170000          # 148.5 t/h x 7884 h
+  air_co2_captured_t_per_year: 885000      # 112.2 t/h x 7884 h
+feeds:
+  - name: Ambient air
+    source_of_values: "D-002, D-003: 20 C, 64 % relative humidity (SRC-1 p. 1581), mass fractions CO2 0.060 %, O2 23.00 %, N2 75.96 %, H2O 0.98 % (SRC-1 Fig. 2)"
+    conditions: {temperature_K: 293.15, pressure_kPa_a: 101.325}
+  - name: Natural gas (as methane) to the calciner
+    source_of_values: "D-007: 5.25 GJ (LHV) per t of CO2 calcined (SRC-1 p. 1580); pipeline gas modelled as methane as SRC-1 Fig. 2 does"
+  - name: Oxygen 95.6 wt% (balance N2 and Ar), 120 kPa
+    source_of_values: "D-007: 4.37 t per t of CH4 (SRC-1 Fig. 2); from an air separation unit (asu-1 as the library producer, a higher-purity proxy, D-011)"
+  - name: Potassium hydroxide make-up
+    source_of_values: "D-005: 0.0179 t per t of CO2 taken up by the liquor (SRC-2, 69.8 short ton/d for 147.2 t/h of air and flue gas CO2), applied to the CO2 captured, as 100 % KOH"
+  - name: Calcium carbonate seed (ground limestone)
+    source_of_values: "D-005: 0.0267 t per t of CO2 taken up by the liquor (SRC-2, 104 short ton/d for 147.2 t/h), applied to the CO2 captured"
+  - name: Process water
+    source_of_values: "D-003 to D-005: about 4.7 t evaporated per t of CO2 captured at 20 C and 64 % RH (SRC-1 p. 1581), with the heat the contactors take up; 4.85 t/t of fresh water in all, with the cake, the bleed and the slaking"
+products:
+  - name: CO2 product, dense phase
+    purity: "97.0 wt% CO2, 1.5 wt% N2, 1.5 wt% O2, 0.01 wt% water (SRC-1 Fig. 2: 97.12 % CO2), D-008; not the 99.95 mol% pipeline grade of carbon-capture-1"
+    delivery: {temperature_K: 313.15, pressure_kPa_a: 15100, battery_limit: CO2 pipeline}
+  - name: CO2-depleted air
+    note: "25.5 % of the air's CO2 left in it, 4.7 t of water picked up per t of CO2 captured, about 17 C and close to saturation, to atmosphere (D-003)"
+  - name: Filter cake purge
+    note: "the seed's CaCO3 with 30 wt% lean liquor, about 4.3 t/h (ASSUMED), to disposal (D-005)"
+  - name: Liquor bleed
+    note: "lean liquor (11.3 wt% KOH and K2CO3) carrying the make-up's potassium out, about 18.4 t/h (ASSUMED route), to treatment (D-005)"
+  - name: Condensate
+    note: "the calciner's combustion water knocked out in the CO2 train, 26.4 t/h (D-008)"
+utilities:
+  - {name: Electric power (grid), use: "contactor fans and pumps, pellet reactor pumps, slaker, CO2 compressor (D-009)", note: "SRC-1 Table 1 specific consumptions; no on-site generation (D-001)"}
+  - {name: Cooling water (closed circuit), supply_K: 298.15, return_K: 308.15, use: "CO2 compressor intercoolers, aftercooler, knock-out; cooled in exchangers in the contactor basins, no cooling tower (D-003, D-009)", note: ASSUMED}
+site:
+  location: "generic site with a natural gas grid connection and CO2 pipeline or storage access, not chosen; ambient 20 C and 64 % RH as SRC-1"
+assumptions:
+  - "The two chemical loops are at steady state and closed by stoichiometry in scripts/dac_balance.py (D-003); no electrolyte, crystallisation or mass-transfer model (L-1, L-2), ASSUMED."
+  - "The KOH and CaCO3 make-ups scale with the CO2 the liquor takes up from SRC-2's values (D-005), ASSUMED."
+  - "Off-gas heat recovery, the slaker's steam cycle and the power island of SRC-1 scenario A are outside the boundary (D-001, D-006), ASSUMED."

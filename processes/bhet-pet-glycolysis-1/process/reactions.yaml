@@ -1,0 +1,64 @@
+# Reactions of bhet-pet-glycolysis-1. Schema cheme/reactions/v1 (`cheme schema
+# process-reactions`).
+#
+# The route is the zinc-acetate-catalysed glycolysis of waste PET with excess ethylene glycol at
+# atmospheric reflux of EP 0 723 951 A1 (Pilati et al., 1996), method B, Example 2 (DESIGN.md
+# D-001). All of it happens in R101, a conversion step (D-005):
+# - GLY: the repeat unit transesterified by ethylene glycol to BHET;
+# - OLF: the share of the repeat units left as oligomers at the end of the batch, lumped as the
+#   BHET dimer; GLY and OLF together convert all the PET (SRC-1: 100 % conversion; SRC-3: the
+#   hot filtration takes off only coarse impurities);
+# - DEP and DSO: the oligomers recycled from the oligomer filter F-201: 0.87 of them glycolysed
+#   to BHET as the fresh PET is (DEP), the rest dissolved back into the glycolysate as oligomer
+#   (DSO, a phase change, no heat);
+# - DEG: the glycol etherified to diethylene glycol and water, the side reaction SRC-4 measures.
+# The split GLY 0.87 / OLF 0.13 is SRC-3 Example 2's arithmetic: 300 g PET (1.561 mol of repeat
+# units) gave 45 g of a solid "consisting mainly of oligomers", as the dimer 0.101 mol or
+# 0.202 mol of repeat units, 12.9 % (D-005).
+#
+# No open kinetics, calorimetry or formation enthalpy of BHET or PET was found (searched
+# 2026-11-19), and the conversion step needs none. Every heat of reaction is ASSUMED 0: the
+# glycolysis exchanges one ethylene ester of the chain for another (the same bonds on both
+# sides), and the etherification is a minor side reaction (D-005, D-011).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: GLY
+    title: Glycolysis of the PET repeat unit to BHET
+    equation: C10H8O4 + C2H6O2 -> C12H14O6
+    stoichiometry: {PET: -1, EG: -1, BHET: 1}
+    phase: liquid
+    conversion: {key: PET, value: 0.87, provenance: assumed, source: "EP 0 723 951 A1 Example 2 (SRC-3): 12.9 % of the repeat units left in 45 g of oligomer solid, so 0.87 of the PET to BHET; SRC-1 reports 95 % BHET yield at 100 % conversion with ZnO at 210 C (D-005)"}
+    heat_of_reaction: {value: 0.0, provenance: assumed, source: "ASSUMED (D-005): an ester interchange, the same bonds on both sides; no open calorimetry or formation enthalpy of BHET found"}
+    sources: ["EP 0 723 951 A1, description and claim 1: waste PET with excess EG and a transesterification catalyst (Zn, Ca or Co acetates) at 190 to 210 C for 2 to 3 h; Example 1: 300 g PET flake, 0.45 g ZnAc2 and 600 g EG refluxed at atmospheric pressure for 2 h", "Luo et al. 2023 (NSF public-access copy): 100 % PET conversion and 95 % BHET yield in 10 min over ZnO at 210 C (microwave)"]
+  - id: OLF
+    title: Repeat units left as oligomers (lumped as the BHET dimer)
+    equation: 2 C10H8O4 + C2H6O2 -> C22H22O10
+    stoichiometry: {PET: -2, EG: -1, OLIG: 1}
+    phase: liquid
+    conversion: {key: PET, value: 0.13, provenance: assumed, source: "the rest of the PET: SRC-3 Example 2's 45 g of oligomer solid per 300 g PET, 12.9 % of the repeat units as the dimer (D-005)"}
+    heat_of_reaction: {value: 0.0, provenance: assumed, source: "ASSUMED as GLY (D-005)"}
+    sources: ["EP 0 723 951 A1 Examples 2 and 4: 45 g of a solid mainly of oligomers filtered at 70 C after 1000 g of water; the higher oligomers insoluble near the boiling point, dimers and trimers soluble to 80 to 90 C"]
+  - id: DEP
+    title: Glycolysis of the recycled oligomers to BHET
+    equation: C22H22O10 + C2H6O2 -> 2 C12H14O6
+    stoichiometry: {OLIG_S: -1, EG: -1, BHET: 2}
+    phase: liquid
+    conversion: {key: OLIG_S, value: 0.87, provenance: assumed, source: "ASSUMED: the recycled oligomers glycolysed to the same share as the fresh PET (SRC-3: the oligomers are recycled to the first stage; claim 6: over 90 % overall yield with the oligomers recycled; D-005)"}
+    heat_of_reaction: {value: 0.0, provenance: assumed, source: "ASSUMED as GLY (D-005)"}
+    sources: ["EP 0 723 951 A1: the oligomers of the second filtration recycled with PET and EG to the reactor of the first stage"]
+  - id: DSO
+    title: Recycled oligomers that stay oligomers (dissolved back into the glycolysate)
+    equation: C22H22O10 -> C22H22O10
+    stoichiometry: {OLIG_S: -1, OLIG: 1}
+    phase: liquid
+    conversion: {key: OLIG_S, value: 0.13, provenance: assumed, source: "the rest of the recycled oligomers, so that no solid oligomer reaches the hot filter (D-005)"}
+    heat_of_reaction: {value: 0.0, provenance: assumed, source: "ASSUMED, the heat of solution of the oligomers not counted (D-005)"}
+  - id: DEG
+    title: Etherification of ethylene glycol to diethylene glycol
+    equation: 2 C2H6O2 -> C4H10O3 + H2O
+    stoichiometry: {EG: -2, DEG: 1, H2O: 1}
+    phase: liquid
+    conversion: {key: EG, value: 0.0006, provenance: assumed, source: "ASSUMED (D-005): about 0.2 mol of DEG per 100 mol of repeat units a batch, the low end of US 4 078 143 A's 0.08 to 0.35 mol % per hour at 225 to 235 C taken for 2 h at 470 K: 2 x 0.002 x 5.20 mol units per kg PET over the about 33 mol of glycol per kg PET charged"}
+    heat_of_reaction: {value: 0.0, provenance: assumed, source: "ASSUMED: a minor side reaction (D-005)"}
+    sources: ["US 4 078 143 A, Table I: diethylene glycol formed at 0.08 to 0.35 mol % per hour at 225 to 235 C, less with sodium acetate and water; Table II: 1.7 to 3.3 mol % DEG in the polymer"]

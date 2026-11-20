@@ -1,7 +1,7 @@
 # Design decisions
 
 e-Methane (synthetic natural gas), concept stage (issue ChemE-as-Code/process-library#520,
-coverage item `e-methane`, provisional rank 127). One entry per decision: what was decided, why,
+coverage item `e-methane`, provisional rank 134). One entry per decision: what was decided, why,
 what was rejected, and what it assumes. The numbers live in the YAML files and in
 `scripts/balance.py`; this file keeps the reasons.
 

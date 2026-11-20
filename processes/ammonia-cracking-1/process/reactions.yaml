@@ -1,0 +1,44 @@
+# Reactions of ammonia-cracking-1 (DESIGN.md D-004, D-006). Schema: `cheme schema process-reactions`.
+#
+# NH3_CRACK: the catalytic decomposition of ammonia, the reverse of the synthesis. R101 holds it
+# at chemical equilibrium (`reactor: equilibrium`) at its outlet, 773.15 K and 1100 kPa(a): the
+# basis on which every example of Air Products' EP 4 337 600 A1 is calculated ("equilibrium for
+# the cracking reaction at 11 bar and 500 C", SRC-1). From the ideal-gas data of
+# process/materials.yaml (chemicals 1.5.2 / thermo 0.6.1, SRC-5) the equilibrium constant of
+# NH3 -> 0.5 N2 + 1.5 H2 at 773.15 K is 266.7 (standard pressure 100 kPa), so a pure ammonia feed
+# is 97.42 % cracked at 1100 kPa(a) and the outlet holds 1.30 mol% ammonia. SRC-1's reference
+# example 2 implies 97.04 % (its 77.05 % hydrogen recovery from the ammonia over its 79.4 % PSA
+# recovery), within 0.4 points: the difference is of the order of the real-gas correction and
+# the source's pressure drop (D-004). The duty follows from the same data: 53.0 kJ per mol of
+# ammonia cracked at 773.15 K (45.56 kJ/mol at 298.15 K, the formation enthalpy of ammonia).
+#
+# COMB_NH3 and COMB_H2: the burners of H-101 fire the PSA tail gas (hydrogen, nitrogen and the
+# ammonia the PSA retains) with air. Complete combustion to N2 and water, ASSUMED (D-006): the
+# share of the fuel ammonia that leaves as NO, and the unburnt ammonia slip, are not modelled
+# (L-3); their emission is an open point of the LCI (D-010).
+# Heats of reaction are not given: cheme takes them from the formation data (materials.yaml).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: NH3_CRACK
+    title: Catalytic ammonia decomposition (cracking)
+    equation: 2 NH3 <=> N2 + 3 H2
+    stoichiometry: {NH3: -2, N2: 1, H2: 3}
+    reversible: true
+    phase: vapor
+    catalyst: "nickel on a refractory support (ASSUMED, D-004; EP 4 337 600 A1 allows any conventional cracking catalyst: nickel, iron, ruthenium, rhodium, iridium, metal amides and imides)"
+    sources: ["EP 4 337 600 A1 (Air Products, 2021), examples: equilibrium at 11 bar and 500 C", "JRC (2022) EUR 31199, section 2.3 (PDF p. 19): endothermic reverse of the synthesis, high conversion above 400 C, equilibrium conversion falls with pressure"]
+  - id: COMB_NH3
+    title: Combustion of the ammonia in the PSA tail gas
+    equation: 4 NH3 + 3 O2 -> 2 N2 + 6 H2O
+    stoichiometry: {NH3: -1, O2: -0.75, N2: 0.5, H2O: 1.5}
+    reversible: false
+    phase: vapor
+    conversion: {key: NH3, value: 1.0, provenance: assumed, source: "complete combustion to N2 and water, D-006 (NO formation and ammonia slip not modelled, L-3)"}
+  - id: COMB_H2
+    title: Combustion of the hydrogen in the PSA tail gas
+    equation: 2 H2 + O2 -> 2 H2O
+    stoichiometry: {H2: -1, O2: -0.5, H2O: 1}
+    reversible: false
+    phase: vapor
+    conversion: {key: H2, value: 1.0, provenance: assumed, source: "complete combustion, D-006"}
