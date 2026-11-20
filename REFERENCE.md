@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 137 public process folders: 97 engineering projects (a `plant.yaml` with a process
+The table lists 138 public process folders: 98 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -83,6 +83,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`direct-air-capture-1`](processes/direct-air-capture-1/) | Carbon dioxide by direct air capture: aqueous KOH in cross-flow contactors, causticisation in pellet reactors, steam slaker and oxy-fired calciner on natural gas, CO2 compressed to 15 MPa, grid power (885 kt/a from the air, continuous) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`dmf-1`](processes/dmf-1/) | N,N-Dimethylformamide by carbonylation of dimethylamine (50 kt/a, sodium methoxide in methanol) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`e-fuels-1`](processes/e-fuels-1/) | Fischer-Tropsch e-fuel from CO2 and hydrogen by RWGS and cobalt FT (one open simulation) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`e-methane-1`](processes/e-methane-1/) | e-Methane (synthetic natural gas) by two-stage catalytic CO2 methanation of electrolytic hydrogen after the STORE&GO Falkenhagen demonstration: honeycomb reactor (92 %), knock-out, polishing fixed bed to equilibrium, adsorption drying, grid injection; CO2 from carbon-capture-1 (289 t/a SNG, 98.99 mol% CH4) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ethanol-1`](processes/ethanol-1/) | Ethanol by direct hydration of ethylene (100 000 t/a anhydrous, phosphoric acid catalyst) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ethylbenzene-1`](processes/ethylbenzene-1/) | Ethylbenzene by liquid-phase zeolite alkylation of benzene with ethylene, with transalkylation (400 kt/a, DWSIM-simulated concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`ethylene-1`](processes/ethylene-1/) | Ethylene and propylene by ethane steam cracking (1000 kt/a ethylene, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
