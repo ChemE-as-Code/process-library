@@ -1,0 +1,56 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Methyl tert-butyl ether by catalytic distillation of a C4 raffinate with methanol, issue
+# ChemE-as-Code/process-library#509. The column's feeds and capacity are the open simulation
+# basis of Murat, Mohamed and Bhatia (2003; DESIGN.md SRC-1); values marked ASSUMED are
+# engineering choices of this concept study, not owner, licensor or vendor data.
+schema: cheme/design_basis/v1
+capacity:
+  basis: MTBE from the bottoms of the catalytic distillation column, cooled to storage
+  product_t_per_d: 1494                 # 62.27 t/h
+  product_kg_per_h: 62270               # 99.1 wt% MTBE; Murat et al. (2003): 197 mol/s, 500 000 t/a
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage; a closely similar column has multiple steady states (D-009)
+feeds:
+  - name: C4 raffinate (raffinate-1), its isobutene
+    terminal: IBC
+    source_of_values: "Murat et al. (2003) Table 1 (SRC-1): 549 mol/s of butenes with 0.356 isobutene, 703.6 kmol/h; booked apart from its inert C4 for the LCI (D-010)"
+    composition_mol_percent: {isobutene: 100}
+    conditions: {pressure_kPa_a: 1300, temperature_K: 298.15}   # ASSUMED liquid from storage
+  - name: C4 raffinate (raffinate-1), its inert C4
+    terminal: C4I
+    source_of_values: "Murat et al. (2003) Table 1 and section 3.2 (SRC-1): 0.644 of the butenes, 1-butene standing for the n-butenes and butanes, 1272.8 kmol/h"
+    composition_mol_percent: {1-butene: 100}
+    conditions: {pressure_kPa_a: 1300, temperature_K: 298.15}   # ASSUMED liquid from storage
+  - name: Methanol
+    terminal: MEOH
+    source_of_values: "library process methanol-1 (Grade AA), taken as pure (D-003); flow solved for 206 mol/s to the column with the recycle (SRC-1)"
+    composition_wt_percent: {methanol: 100}
+  - name: Demineralised make-up water
+    terminal: DMW
+    source_of_values: "the site's demineralised water, solved for 0.15 kg of wash water per kg of distillate (ASSUMED, D-006)"
+    composition_wt_percent: {water: 100}
+products:
+  - name: MTBE
+    terminal: MTBEP
+    purity: "MTBE 99.10 wt% (98.6 mol%) with 0.90 wt% C4, as Murat et al. (2003) Table 2 gives the bottoms (SRC-1)"
+  - name: Raffinate-2
+    terminal: RAF2
+    use: "the washed C4, depleted of isobutene (0.28 wt% left) with about 10 ppm(wt) methanol, back to the C4 supplier (to alkylation, 1-butene recovery or the cracker), D-006, D-010"
+  - name: Wash-water purge
+    terminal: WW
+    use: "2 % of the wash water, to biological treatment (ASSUMED, D-007)"
+utilities:
+  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: "C-101's reboiler (423.8 K bottoms)", note: ASSUMED level}
+  - {name: LP steam, pressure_kPa_a: 450, saturation_K: 421.1, use: "raffinate vaporiser E-104, methanol heater E-103, C-202's reboiler", note: ASSUMED level}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-008)}
+  - {name: Electric power, use: "pumps (electric drives ASSUMED, D-008)"}
+site:
+  location: ASSUMED generic site beside a steam cracker or a refinery that supplies the C4 raffinate and takes the raffinate-2 back, not chosen
+  atmospheric_pressure_kPa: 101.325
+  design_ambient_K: 288.15
+assumptions:
+  - "The column of Murat et al. (2003), their model of Nijhuis et al.'s (1993) configuration: 17 stages, reactive stages 3-10 with 6400 kg of resin, 11 bar, reflux ratio 7, feeds on stage 10; 99.5 % isobutene conversion; condenser 49.7 MW, reboiler 39.3 MW (SRC-1, D-004, D-005, D-008)."
+  - "The C4 raffinate is the source's two-component surrogate: isobutene and 1-butene for every inert C4 (SRC-1); real raffinate's butanes, 2-butenes and butadiene traces are not modelled (D-003)."
+  - "Water wash and methanol column are ASSUMED splits after US 4 918 243 A and US 5 336 841 A (SRC-3, SRC-4), D-006, D-007."
+  - "Side reactions (diisobutene, tert-butanol, dimethyl ether) left out, as the sources do (D-004)."
+  - "Duties other than the column's from scripts/balance.py on liquid heat capacities integrated over each stream's temperature range and pure-component heats of vaporization, ASSUMED (D-008, L-2)."

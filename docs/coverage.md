@@ -235,7 +235,13 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 124 | `salicylic-acid` | Salicylic acid | oxygenates | n/a, to be sourced | n/a | - | - | 2 | salicylic-acid-1 (T2) |
 | 125 | `sodium-chlorate` | Sodium chlorate | inorganic-chemicals | 1-10 (spasojevic-2018) | n/a | - | kraft-pulp | 2 | sodium-chlorate-1 (T2) |
 | 126 | `biodiesel` | Biodiesel (fatty acid methyl esters) | bio-based-chemicals | n/a, to be sourced | n/a | - | - | 2 | biodiesel-1 (T2) |
-| 127 | `bisphenol-a` | Bisphenol A | oxygenates | n/a, to be sourced | n/a | resin-adduct, hcl-catalysed | - | 2 | bisphenol-a-1 (T2) |
+| 127 | `methyl-tert-butyl-ether` | Methyl tert-butyl ether (MTBE) | oxygenates | n/a, to be sourced | n/a | - | isobutene | 2 | mtbe-1 (T2) |
+| 128 | `direct-air-capture` | Carbon dioxide by direct air capture (liquid solvent) | carbon-capture | n/a, to be sourced | high | - | e-fuels | 2 | direct-air-capture-1 (T2) |
+| 129 | `hydrogen-from-ammonia` | Hydrogen from ammonia (ammonia cracking) | hydrogen | n/a, to be sourced | n/a | - | - | 2 | ammonia-cracking-1 (T2) |
+| 130 | `potassium-chloride` | Potassium chloride (muriate of potash) | fertilizers | n/a, to be sourced | n/a | - | npk-fertilizers, potassium-tert-butoxide | 2 | potassium-chloride-1 (T2) |
+| 131 | `bhet` | Bis(2-hydroxyethyl) terephthalate (BHET) from PET waste | chemical-recycling | n/a, to be sourced | n/a | - | pet | 2 | bhet-pet-glycolysis-1 (T2) |
+| 132 | `hydrogen-fluoride` | Hydrogen fluoride (anhydrous) | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | hydrogen-fluoride-1 (T2) |
+| 133 | `bisphenol-a` | Bisphenol A | oxygenates | n/a, to be sourced | n/a | resin-adduct, hcl-catalysed | - | 2 | bisphenol-a-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

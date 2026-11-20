@@ -1,0 +1,45 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Potassium chloride (muriate of potash) from crushed sylvinite ore by hot leaching and vacuum
+# cooling crystallisation, a continuous plant, issue ChemE-as-Code/process-library#514. Values
+# marked ASSUMED are engineering choices of this concept study, not client or licensor data;
+# every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: potassium chloride crystal in the dried product (98.6 wt% crystal, 0.4 wt% KCl and 0.8 wt% NaCl from the dried cake liquor, 0.1 wt% water) to compaction, screening and storage
+  kcl_crystal_t_per_year: 1200000        # ASSUMED (D-002): one of the two trains of SRC-1's 2.44 Mt/a design capacity
+  operating_hours_per_year: 8000         # ASSUMED (D-002): continuous operation; SRC-2 plans 8100 h
+  design_rate_kg_per_h: 150000           # ASSUMED (D-002): KCl crystal in the product stream S16
+feeds:
+  - name: Crushed sylvinite ore (below 4 mm)
+    source_of_values: "ASSUMED (D-003): 27.3 wt% KCl, the life-of-mine plant feed of SRC-1; the rest split as SRC-1's 2014 averaged grades (NaCl, CaSO4, insolubles with the minor sulfates, moisture); 4.0 t of ore per t of product"
+    composition: "KCl 27.3, NaCl 58.81, CaSO4 7.22, insolubles and minor sulfates 6.37, water 0.3 wt%"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Process make-up water
+    source_of_values: "calculated (D-005): the make-up that holds the hot brine at 14.19 wt% KCl; 0.31 t per t of product"
+    composition: "water"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 300}
+products:
+  - name: Potassium chloride (MOP)
+    purity: "modelled 99.07 wt% KCl (98.63 crystal), 0.83 wt% NaCl, 0.1 wt% water: above the 95 % of SRC-1 and the 98.1 % design grade of SRC-2, because no ore fines or insolubles report to the product here (L-4)"
+    delivery: {temperature_K: 423.15, pressure_kPa_a: 101.325, battery_limit: "dryer outlet; compaction, screening, cooling and anti-caking outside the model (D-009)"}
+  - name: Salt tailings
+    note: "480 t/h, 3.15 t per t of product: halite, anhydrite, insolubles, 1.34 wt% undissolved sylvite and 10 wt% brine, to the tailings pile and underground backfill (SRC-1)"
+  - name: Brine purge
+    note: "19.1 t/h of mother liquor (0.5 %, ASSUMED) to deep-well injection (SRC-1), against the build-up of the ore's soluble impurities (D-006)"
+  - name: Dryer exhaust
+    note: "the dryer's water vapour with the combustion gas and air, after cyclones and wet scrubbers (SRC-2); dust not modelled"
+utilities:
+  - {name: Electric power, use: "all drives lumped, 141.3 kWh per t of product (D-008)", note: "ASSUMED from SRC-1's process load list (Table 128) per t"}
+  - {name: LP steam, pressure_kPa_a: 450, use: "the mother-liquor heater, 75.9 MW, 1.80 GJ per t of product (D-008)", note: "ASSUMED; SRC-1 raises its steam in electrode boilers (section 15.2.7)"}
+  - {name: Natural gas, use: "the dryer's air heater, 9.66 MW taken up by the drying air (D-008)", note: "SRC-1 (section 18.6.4.3.2) and SRC-2: gas-fired dryers"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 305.15, use: "the crystallizer's surface condensers (the vapour the preheaters cannot take), 65.8 MW", note: "ASSUMED; a 7 K rise so that the last stage's vapour, condensing at about 312.3 K, keeps a 7 K approach"}
+site:
+  location: ASSUMED generic potash mine site with the plant next to the shaft or pit, the ore crushed below 4 mm at the mine, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: hot leaching of crushed sylvinite in reheated mother liquor at about 90 C and vacuum cooling crystallisation in seven stages to about 45 C, the mother liquor reheated and returned (SRC-1 section 1.10, SRC-3) (D-001)."
+  - "The hot brine leaves the leach saturated in KCl at 363.15 K: 0.2148 kg KCl (taken as 14.19 wt% in the brine) and 0.2995 kg NaCl per kg water, from SRC-2's 60 C cavern brine (148 g/L KCl, 254 g/L NaCl at an ASSUMED 1.25 kg/L) carried to 90 C by a KCl solubility linear in temperature that doubles from 20 to 110 C (SRC-3); no open solubility data of the KCl-NaCl-water system were read (D-004, L-3)."
+  - "Crystallizer per-pass yield 0.2685, the equilibrium on the same linear solubility, the mother liquor holding the hot brine's water and the make-up water (the flashed water returned as dilution water) (D-007)."
+  - "Leach dissolves 96.13 % of the sylvite, tailings hold 10 wt% brine, 0.5 % purge: together the 90.8 % recovery of SRC-1 (D-005, D-006)."
+  - "All flows are concept estimates; accuracy +/-30 % not demonstrated."
