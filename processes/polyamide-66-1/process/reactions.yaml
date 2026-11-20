@@ -1,0 +1,53 @@
+# Reactions of polyamide-66-1. Schema cheme/reactions/v1 (`cheme schema process-reactions`).
+#
+# Polyamide 66 by melt polycondensation of AH salt (nylon salt) in a batch autoclave (EU POL
+# BREF 2006, section 9.2.2.3, SRC-1; DESIGN.md D-001):
+# - NEUT (R101): adipic acid neutralised by hexamethylenediamine in water to the AH salt, the
+#   salt dissolving to the 52 % solution of SRC-1; the diamine is dosed into the acid slurry
+#   (D-005);
+# - POLY (R201): the salt polycondensed to the polyamide, two amide links and two waters per
+#   repeat unit (SRC-1, section 9.1: the AA-BB type; SRC-2: A + C <-> L + W, an amine and a
+#   carboxyl end group forming a link and a water), lumped per repeat unit (materials.yaml).
+#   The reaction is equilibrium-limited by the water in the melt (SRC-2: Steppan's
+#   activity-based K_app, 422.5 at 553.15 K and a water mole fraction of 0.18); the autoclave
+#   drives it by bleeding steam. The conversion to repeat units is a design input (D-006): core
+#   has no step-growth model with the end-group equilibrium and the water removal together (L-1).
+# No open kinetics or calorimetry of the neutralisation was found (searched 2026-11-19), so its
+# rate law and heat are ASSUMED. The polycondensation's heat is Steppan's apparent amidation
+# enthalpy at Nisoli's example point (SRC-2), ASSUMED to hold for the salt, whose dissociation
+# into free amine and acid is not counted (no open value; D-006). It is the most exothermic value
+# of SRC-2's correlation (eq. 24), which turns endothermic above a water mole fraction of 0.536
+# (D-006 gives the range of Q4 this spans).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: NEUT
+    title: Neutralisation of adipic acid with hexamethylenediamine to AH salt (in water)
+    equation: C6H10O4 + C6H16N2 -> C12H26N2O4
+    stoichiometry: {AA: -1, HMDA: -1, AHSALT: 1}
+    phase: liquid
+    heat_of_reaction: {value: -100000, provenance: assumed, source: "ASSUMED (D-005): no open calorimetric value or formation enthalpy of the AH salt found (searched 2026-11-19); two carboxylic acid-amine proton transfers taken at about -50 kJ/mol each, the acid's heat of dissolution not counted; set high so that the thermal screening of R101 is not optimistic"}
+    rate:
+      form: power_law
+      basis: volume
+      driving: concentration
+      # second order: k = 1.0 m3/(kmol s) at 338.15 K, Ea 20 kJ/mol: A = exp(20000 / (8.314 x 338.15))
+      k: {A: 1228.5, Ea: 20000}
+      orders: {AA: 1, HMDA: 1}
+      temperature_range: [313.15, 373.15]
+      provenance: assumed
+      source: "ASSUMED fast effective rate of a proton transfer (D-005): no open kinetics found (2026-11-19); the dosing of the diamine controls the heat; the acid's dissolution carried pseudo-homogeneously (L-2)"
+    sources: ["EU POL BREF (2006) section 9.2.2.1: the AH salt from hexamethylenediamine and adipic acid as a 52 to 53 % aqueous solution kept under nitrogen; Wikipedia, Nylon 66: equivalent amounts of the diamine and the acid combined in water"]
+  - id: POLY
+    title: Polycondensation of AH salt to polyamide 66 (per repeat unit) and water
+    equation: C12H26N2O4 -> C12H22N2O2 (repeat unit) + 2 H2O
+    stoichiometry: {AHSALT: -1, PA66: 1, H2O: 2}
+    phase: liquid
+    conversion: {key: AHSALT, value: 0.995, provenance: assumed, source: "ASSUMED (D-006): 0.995 of the salt's amide links formed, so 0.5 % of the salt is left as unlinked chain ends; by Carothers' relation a number-average degree of polymerisation of 1 / (1 - 0.995) = 200 structural units, Mn about 22 600 g/mol (100 repeat units of 226.32); no open target molar mass of a moulding or fibre grade was read; the finishing pressure and time set it in the plant (SRC-1)"}
+    heat_of_reaction:
+      # -7870 cal/mol per amide link x 4.184 J/cal x 2 links per repeat unit = -65 856 kJ/kmol
+      value: -65856
+      temperature: 548.15
+      provenance: assumed
+      source: "SRC-2 (Nisoli, Doherty and Malone 2004, Table 1): the apparent enthalpy of Steppan's activity-based amidation equilibrium, -7870 cal/mol of links at 553.15 K and a water mole fraction of 0.18; two links per repeat unit; ASSUMED to hold for the salt, its dissociation to free amine and acid not counted (no open value), taken at the autoclave's 548.15 K. Not a bound: SRC-2's eq. 24 (p. 430) gives the apparent enthalpy as a function of the water mole fraction, about -7.9 kcal/mol at most near x_W 0.2, zero at 0.536 and +3.2 kcal/mol at R201's inlet (x_W 0.61); the value is the most exothermic end, conservative for the thermal screening and low for the hot oil (up to about 114 kW if the inlet value held throughout; D-006)"
+    sources: ["EU POL BREF (2006) section 9.2.2.3: the batch autoclave cycle, water bled off as steam at constant pressure, the mass taken to about 275 C, depressurised to atmospheric and finished; Nisoli, Doherty and Malone (2004) Ind. Eng. Chem. Res. 43, 428-440: the activity-based amidation model of Steppan et al. (E_app 21.4 kcal/mol, K0 and dH_app functions of the water and carboxyl mole fractions)"]

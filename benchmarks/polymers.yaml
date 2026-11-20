@@ -1,4 +1,4 @@
-# Benchmarks of polymers: PET, general-purpose polystyrene (GPPS) and suspension PVC. Schema: schemas/benchmarks.schema.json; rules:
+# Benchmarks of polymers: PET, general-purpose polystyrene (GPPS), suspension PVC and batch polyamide 66. Schema: schemas/benchmarks.schema.json; rules:
 # docs/benchmarks.md. Ranges are facts from the cited source, in our own form.
 #
 # How independent these are:
@@ -10,6 +10,10 @@
 #   ethylbenzene in the reactor feed) and devolatilisation recoveries, not from the BREF; only the
 #   vent's 86 g/t is set to the BREF's VOC level, a 0.01 % effect. Its process water and nitrogen
 #   are the BREF's figures by construction and so are not bound.
+# - The PA66 monomers (polyamide-66-1) are the salt's stoichiometry with the assumed conversion and
+#   the diamine stripped with the steam, which is set from the same BREF table's COD; the salt per t
+#   is not fitted to the range and falls 0.6 % below it (out_of_range_reason). The PA66 energy is
+#   the flowsheet's evaporation and heating duties with ASSUMED powers, independent of the range.
 # A PET total energy KPI is not bound: the natural gas is in kg, and an expression cannot add kg to kWh
 # (docs/benchmarks.md). By hand, the dataset's 230 kWh/t of electricity (828 MJ) and 42.0 kg/t of
 # natural gas at an LHV of 50.01 MJ/kg (2100 MJ) give about 2930 MJ/t for melt phase and SSP together.
@@ -123,6 +127,32 @@ kpis:
           kind: bref
           accessed: "2026-11-19"
 
+  pa66-specific-monomers:
+    title: Adipic acid and hexamethylenediamine (as AH salt) per t of batch polyamide 66
+    unit: t/t
+    references:
+      - id: bref-pol-pa66-batch-ah-salt
+        range: [1.165, 1.167]
+        basis: unallocated
+        note: "Table 9.3's AH salt consumption of the batch PA66 process (Italian data, 2004); the stoichiometric salt per t of polymer is 1.159 t/t. Table 9.8 (APME, batch PA66) gives 1.16 to 1.18 t/t. The source's salt is the dry salt in its 52 to 53 % solution."
+        conditions: {technology: "batch autoclave polycondensation of AH salt solution", region: EU, year: 2004}
+        source: &bref-pol-2006-pa
+          citation: "European Commission JRC/EIPPCB (2006) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), October 2006 (INERIS AIDA mirror)"
+          url: https://aida.ineris.fr/sites/aida/files/documents-bref/pol_bref_1006.pdf
+          locator: "chapter 9, Table 9.3, p. 154, and Table 9.8, p. 157"
+          kind: bref
+          accessed: "2026-11-19"
+  pa66-specific-energy:
+    title: Total energy per t of batch polyamide 66
+    unit: GJ/t
+    references:
+      - id: bref-pol-pa66-batch-energy
+        range: [3.3, 7.7]
+        basis: unallocated
+        note: "Table 9.8's total energy of the batch PA66 process (APME data), 3300 to 7700 MJ/t, the range due to speciality products and reactors; Table 9.3 gives 5050 to 7250 MJ/t for the batch process. The source does not say how it adds fuel and power."
+        conditions: {technology: "batch autoclave polycondensation of AH salt solution", region: EU, year: 2004}
+        source: *bref-pol-2006-pa
+
 datasets:
   - process: pet-1
     dataset: pet-pta-continuous-ssp
@@ -139,6 +169,19 @@ datasets:
         per: product:pet
         reference: iea-2009-pet-electricity
         out_of_range_reason: "The dataset's 230 kWh/t is NAPCOR's figure for US bottle-grade plants of 2015 (melt phase with SSP, some MTR), 4 % above the IEA's Western European average, which is itself the best-practice value plus 20 % (Table 13, footnote 1) rather than plant data."
+  - process: polyamide-66-1
+    dataset: polyamide-66-by-batch-autoclave-polycondensation-of-ah-salt-8000-t-a
+    conditions: {technology: "AH salt made on site, batch autoclave: concentration to 70 wt%, polycondensation to 548 K with the steam bled at 1750 kPa(a), depressurisation, finishing, strand pelletising; no additives", basis: "concept flowsheet (core propagate with a balance script for the evaporation heats), ASSUMED conversion, cycle and powers (DESIGN.md D-003 to D-009)"}
+    kpis:
+      pa66-specific-monomers:
+        expression: (feed:AAF + feed:HMDAF) / product:PA66
+        per: product:PA66
+        reference: bref-pol-pa66-batch-ah-salt
+        out_of_range_reason: "D-004 in processes/polyamide-66-1/DESIGN.md: the dataset's 1.159 t/t is the stoichiometric salt for 99.2 wt% polymer with 0.58 wt% unlinked ends and 0.2 wt% water, plus the diamine stripped with the steam (2.69 kg/t, from the BREF's COD); it leaves out the plants' yield losses (off-grade, start-ups, polymer waste of 0 to 0.2 kg/t and purges), which the BREF's 1.165 to 1.167 t/t carries, so it sits 0.6 % below the range."
+      pa66-specific-energy:
+        expression: (feed:POWER + feed:HOTOIL + feed:LPS) / product:PA66
+        per: product:PA66
+        reference: bref-pol-pa66-batch-energy
   - process: polystyrene-1
     dataset: general-purpose-polystyrene-by-continuous-bulk-polymerisation-100-kt-a-concept
     conditions: {technology: "continuous bulk polymerisation initiated by heat (stirred prepolymeriser and tower reactors), two-stage vacuum devolatilisation, underwater pelletising; no mineral oil or additives in the product", basis: concept flowsheet (core propagate with an independent balance script)}

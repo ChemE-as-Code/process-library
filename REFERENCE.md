@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 141 public process folders: 101 engineering projects (a `plant.yaml` with a process
+The table lists 142 public process folders: 102 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -138,6 +138,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`phthalic-anhydride-1`](processes/phthalic-anhydride-1/) | Phthalic anhydride by o-xylene oxidation over V2O5/TiO2, switch condensers and vacuum distillation (40 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`phthalimide-1`](processes/phthalimide-1/) | Phthalimide by continuous reaction of molten phthalic anhydride with ammonia (patent yield, Tier 0 energy defaults) | concept (Tier 0 form, stoichiometric screening with some sourced values; not reviewed) | no (manifest and LCI dataset only) |
 | [`plastic-pyrolysis-1`](processes/plastic-pyrolysis-1/) | Raw pyrolysis oil by continuous thermal pyrolysis of mixed polyolefin waste (JRC 2026 yield and heat, US survey electricity) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
+| [`polyamide-66-1`](processes/polyamide-66-1/) | Polyamide 66 by batch melt polycondensation of AH salt in an autoclave: salt dissolver with the diamine dosed into the acid, concentration, polycondensation with the steam bled off, depressurisation and finishing, strand pelletising (8000 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`polyethylene-1`](processes/polyethylene-1/) | High-density polyethylene by low-pressure polymerisation (Plastics Europe eco-profile averages, POL BREF checks) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`polypropylene-1`](processes/polypropylene-1/) | Polypropylene by bulk loop and gas-phase polymerisation of propylene (US plant data, ACC 2021) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`polystyrene-1`](processes/polystyrene-1/) | General-purpose polystyrene by continuous bulk polymerisation of styrene: stirred prepolymeriser boiling under vacuum, tower reactors, two-stage vacuum devolatilisation with monomer recycle and purge, underwater pelletising (100 kt/a, concept) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
