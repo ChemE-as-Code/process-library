@@ -1,0 +1,26 @@
+# The batch recipe of lactic-acid-1 (schema cheme/recipe/v1, `cheme process recipe`, DESIGN.md
+# D-003). Only the fermentation is batch: 16 fermenters (R-201) take batches in turn on a
+# dedicated train (library ADR 0035), and everything from the broth hold tank on runs
+# continuously at the year-average rates of process/flowsheet.yaml. One batch is the broth one
+# fermenter harvests (stream S8).
+# - The fermentation time is the titer over the volumetric productivity of SRC-1 (130 g/L at
+#   0.89 g/(L h), `_units.py` CoFermentation): 146.07 h.
+# - The turnaround between batches is SRC-1's 12 h (CoFermentation.tau_batch_turnaround, "the
+#   same as the seed train"), split here into filling, harvesting and cleaning in place,
+#   ASSUMED (D-003).
+# The seed train is not modelled apart (limit L-3); its fermenters would run on the same cycle.
+schema: cheme/recipe/v1
+kind: recipe
+title: Lactic acid fermentation in 16 batch fermenters
+batch_size: {value: 1105.99, unit: t, stream: S8, provenance: assumed, source: "one fermenter's harvest: the broth S8 at its year-average 111.951 t/h times the cycle of 158.07 h / 16 fermenters = 9.879 h (D-003); about 1033 m3 at 1070 kg/m3 (ASSUMED, D-005)"}
+hours_per_year: {value: 8000, provenance: assumed, source: "D-002: 8000 h/a"}
+unit_procedures:
+  - id: FERMENT
+    unit: R201
+    parallel: 16
+    title: Fill, ferment with lime at 323 K and pH 5 to 6, harvest to the broth tank, clean (R-201 A to P)
+    operations:
+      - {id: fill, kind: charge, title: Fill with sterile medium and inoculum, duration: {value: 4, provenance: assumed, source: "D-003: part of SRC-1's 12 h turnaround, ASSUMED"}}
+      - {id: ferment, kind: react, title: Ferment to 130 g/L with milk of lime dosed on pH, duration: {value: 146.07, provenance: given, source: "D-003: 130 g/L / 0.89 g/(L h) (SRC-1 `_units.py` CoFermentation: target_titer 130, productivity 0.89)"}}
+      - {id: harvest, kind: transfer, title: Harvest the broth to the broth tank, duration: {value: 4, provenance: assumed, source: "D-003: part of SRC-1's 12 h turnaround, ASSUMED"}}
+      - {id: cip, kind: clean, title: Clean in place and sterilise, duration: {value: 4, provenance: assumed, source: "D-003: part of SRC-1's 12 h turnaround, ASSUMED"}}

@@ -1,0 +1,25 @@
+# Reactions of e-methane-1. Schema: `cheme schema process-reactions`. DESIGN.md D-004, D-005.
+# CO2 methanation (Sabatier) and the reverse water-gas shift, the two independent reactions that
+# STORE&GO D8.3 (section on catalytic methanation, after Xu and Froment 1989 and Zoss et al.
+# 2016) names with CO methanation as the third, which is their sum. Heats of reaction: standard
+# formation enthalpies at 298.15 K of process/materials.yaml (ATcT), water as vapour.
+# The honeycomb reactor R-101 is a conversion model at the measured 92 % (D-004); the polishing
+# reactor R-102 a conversion model at the ideal-gas equilibrium conversion of both reactions at
+# its outlet (scripts/balance.py, checked by `cheme process reactors`, D-005). RWGS is in no
+# step: at R-102's equilibrium it leaves 0.4 ppm CO, below what the flowsheet carries (D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: SAB
+    equation: CO2 + 4 H2 <=> CH4 + 2 H2O
+    stoichiometry: {CO2: -1.0, H2: -4.0, CH4: 1.0, H2O: 2.0}
+    reversible: true
+    conversion: {key: CO2, value: 0.92, provenance: given, source: "STORE&GO D5.9 Table 4-1: honeycomb conversion 92 % (measured and ASPEN); R-102 overrides it with its equilibrium conversion (process/flowsheet.yaml, D-005)"}
+    heat_of_reaction: {value: -164704.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+    sources: ["STORE&GO D8.3 (University of Groningen, 2018), section 'Methanation': reactions R1 to R3 and the nickel catalyst; STORE&GO D5.9 (DVGW, 2020), section 2.1: the Sabatier reaction on catalysts in two stages at Falkenhagen"]
+  - id: RWGS
+    equation: CO2 + H2 <=> CO + H2O
+    stoichiometry: {CO2: -1.0, H2: -1.0, CO: 1.0, H2O: 1.0}
+    reversible: true
+    heat_of_reaction: {value: 41127.0, provenance: given, source: "standard formation enthalpies, 298.15 K (process/materials.yaml)"}
+    sources: ["STORE&GO D8.3 (University of Groningen, 2018), section 'Methanation': reaction R2, the reverse water-gas shift"]

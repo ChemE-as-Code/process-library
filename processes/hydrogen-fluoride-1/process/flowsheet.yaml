@@ -1,0 +1,769 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Anhydrous hydrogen fluoride from acid-grade fluorspar and sulfuric acid in an indirectly fired
+# rotary kiln with three heating zones, gas purification, refrigerated condensation and two
+# distillations; anhydrite and fluorosilicic acid as co-products; 4800 kg/h of fluorspar, the feed
+# of US 6 699 455 B2 Example 4 (DESIGN.md D-001, D-002).
+# Where the values come from:
+# - cheme process propagate solves every stream: the kiln, the oleum hydration, the anhydrite
+#   neutraliser and the two tail-gas absorbers are conversion reactors (process/reactions.yaml),
+#   the kiln discharge, the scrubbers, the condenser and the columns component separators with
+#   ASSUMED splits (L-2), the rest mixers; the acid loop (kiln gas -> pre-purification scrubber ->
+#   feed acid -> kiln) is torn at the feed acid S3, and two design specifications set the fresh
+#   acid for 1.0 wt% free acid in the kiln solids and the oleum for 3.0 wt% water in the feed
+#   acid (D-006, D-007);
+# - the duties are hand balances on the propagated streams (D-009), every one marked ASSUMED;
+# - small auxiliaries (coagulants, the effluent lime) are not streams (L-3).
+schema: cheme/process/v1
+kind: flowsheet
+title: Anhydrous hydrogen fluoride from fluorspar and sulfuric acid in a rotary kiln (4800 kg/h fluorspar)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: 4800 kg/h acid-grade fluorspar to one rotary kiln, about 2.3 t/h anhydrous HF (D-002)"
+    default: true
+    capacity: 4800 kg/h fluorspar
+    provenance: given
+    source: "SRC-2, US 6 699 455 B2, Example 4: 80 kg/min of fluorspar to a 20 m x 2.5 m rotary kiln with nine burners in three zones"
+tolerance: {abs: 0.05, rel: 0.0005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+tears:
+  - stream: S3
+    initial:
+      flow: 6400
+      basis: mass_fraction
+      composition: {H2SO4: 0.95, H2O: 0.03, HF: 0.02}
+  - stream: S21
+    initial:
+      flow: 5400
+      basis: mass_fraction
+      composition: {H2SO4: 0.976, H2O: 0.015, HF: 0.009}
+convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 0.0001, rel: 1.0e-9}}
+specs:
+  - id: acid
+    vary: {stream: S20, initial: 5350}
+    target: {stream: S7, component: H2SO4, quantity: fraction, basis: mass, value: 0.010}
+    provenance: assumed
+    source: "D-006: 1.0 wt% free sulfuric acid in the kiln solids, inside the 0.5-1.7 wt% of SRC-2 (US 6 699 455 B2, Examples 3 and 4)"
+  - id: oleum
+    vary: {stream: S31, initial: 640}
+    target: {stream: S3, component: H2O, quantity: fraction, basis: mass, value: 0.030}
+    provenance: assumed
+    source: "D-007: feed acid with 3.0 wt% water, i.e. about 95 % H2SO4 with the dissolved HF, the upper end of the 90-95 % of SRC-1 (6.2.3)"
+
+feeds:
+  - {id: SPAR, title: "Acid-grade fluorspar, dried", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: ACID, title: Sulfuric acid 98.5 wt% (sulfuric-acid-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: OLEUM, title: "Oleum (as its free SO3)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: LIME, title: Quicklime for the anhydrite, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: PW, title: Process water to the SiF4 absorber, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: Caustic soda 50 wt% to the tail-gas scrubber, category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: FUEL, title: "Natural gas (as methane) to the burners of the spar preheater and the kiln's nine combustion chambers", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: AIR, title: Combustion air for the burners, category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power (grid)
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: aux, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 450 kPa(a) (column reboilers; condensate returned)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 421.0, provenance: assumed, source: "saturation at 450 kPa(a), D-009"}
+      min_approach: {value: 10, provenance: assumed, source: D-009}
+    ports:
+      - {id: c301, direction: out, kind: energy}
+      - {id: c302, direction: out, kind: energy}
+products:
+  - {id: AHF, title: Anhydrous hydrogen fluoride to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: ANH, title: Neutralised anhydrite (co-product or landfill), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: FSA, title: Fluorosilicic acid solution (with its precipitated silica), category: by_product, ports: [{id: in, direction: in}]}
+  - {id: EFF, title: Alkaline scrubber effluent to waste-water treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - {id: STACK, title: Tail gas to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: FLUE, title: Flue gas of the spar preheater and the kiln's combustion chambers to atmosphere, category: off_gas, ports: [{id: in, direction: in}]}
+  - id: LOSS
+    title: Heat lost with the flue gas and through the shells of the fired spar preheater and kiln
+    category: utility
+    utility: {kind: other}
+    ports: [{id: b101, direction: in, kind: energy}]
+  - id: REF
+    title: Refrigeration (brine at 258 K)
+    category: utility
+    utility:
+      kind: refrigerant
+      level: brine -15 C
+      supply_temperature: {value: 258.15, provenance: assumed, source: "design basis, D-009: chilled water or brine on the HF condensers (SRC-1, 6.2.4)"}
+      return_temperature: {value: 263.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: e201, direction: in, kind: energy}
+      - {id: c301, direction: in, kind: energy}
+      - {id: c302, direction: in, kind: energy}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+      min_approach: {value: 5, provenance: assumed, source: D-009}
+    ports:
+      - {id: t201, direction: in, kind: energy}
+      - {id: r501, direction: in, kind: energy}
+
+blocks:
+  - id: KLN
+    title: Spar preheating, rotary kiln and anhydrite
+    class: ReactingChemicals
+    ports:
+      - {id: spar, direction: in}
+      - {id: acid, direction: in}
+      - {id: lime, direction: in}
+      - {id: gas, direction: out}
+      - {id: anh, direction: out}
+      - {id: fuel, direction: in}
+      - {id: air, direction: in}
+      - {id: flue, direction: out}
+      - {id: loss, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: GAS
+    title: Gas purification, HF condensation and the acid loop
+    class: SeparatingByPhaseSeparation
+    ports:
+      - {id: gas, direction: in}
+      - {id: acid, direction: in}
+      - {id: oleum, direction: in}
+      - {id: hb, direction: in}
+      - {id: feedacid, direction: out}
+      - {id: crude, direction: out}
+      - {id: lb, direction: in}
+      - {id: tail, direction: out}
+      - {id: cw, direction: out, kind: energy}
+      - {id: ref, direction: out, kind: energy}
+  - id: DST
+    title: HF distillation (low and high boilers)
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: lb, direction: out}
+      - {id: ahf, direction: out}
+      - {id: hb, direction: out}
+      - {id: steam1, direction: in, kind: energy}
+      - {id: steam2, direction: in, kind: energy}
+      - {id: ref1, direction: out, kind: energy}
+      - {id: ref2, direction: out, kind: energy}
+  - id: TGT
+    title: SiF4 absorption and alkaline tail-gas scrubbing
+    class: Absorbing
+    ports:
+      - {id: gas, direction: in}
+      - {id: water, direction: in}
+      - {id: naoh, direction: in}
+      - {id: fsa, direction: out}
+      - {id: eff, direction: out}
+      - {id: stack, direction: out}
+
+steps:
+  # D-009: natural gas burnt with air in the combustion chambers that heat the spar preheater and
+  # the kiln indirectly; the heat the charges absorb goes to H101 and R101, the rest is lost
+  - id: B101
+    block: KLN
+    title: Burners and combustion chambers of the spar preheater and the kiln (natural gas)
+    class: ReactingChemicals
+    reactions: [COMB]
+    reactor: conversion
+    links: [{target: equipment, ref: H-101}, {target: equipment, ref: R-101}]
+    ports:
+      - {id: fuel, direction: in, delegates: fuel}
+      - {id: air, direction: in, delegates: air}
+      - {id: flue, direction: out, delegates: flue}
+      - {id: heat1, direction: out, kind: energy}
+      - {id: heat2, direction: out, kind: energy}
+      - {id: loss, direction: out, kind: energy, delegates: loss}
+  # D-004: the dried acid spar is preheated indirectly to about 400 C (SRC-2: 350-450 C)
+  - id: H101
+    block: KLN
+    title: Fluorspar preheater (indirectly fired)
+    class: HeatingInFurnace
+    links: [{target: equipment, ref: H-101}]
+    ports:
+      - {id: in, direction: in, delegates: spar}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: P101
+    block: KLN
+    title: Feed acid pumps (with the plant's auxiliary power, lumped)
+    class: Pumping
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in, delegates: acid}
+      - {id: out, direction: out}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  # D-006: two thirds of the acid premixed with the hot spar in a screw mixer, one third straight
+  # into zone 1 (SRC-2); one mixing point in the model
+  - id: M101
+    block: KLN
+    title: Screw mixer (spar and feed acid)
+    class: Mixing
+    links: [{target: equipment, ref: M-101}]
+    ports:
+      - {id: spar, direction: in}
+      - {id: acid, direction: in}
+      - {id: out, direction: out}
+  - id: R101
+    block: KLN
+    title: Rotary kiln, indirectly fired in three zones
+    class: ReactingChemicals
+    reactions: [R1, R2, R3, R4, R5]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: heat, direction: in, kind: energy}
+  - id: V101
+    block: KLN
+    title: Kiln discharge (process gas off the solids)
+    class: SeparatingByPhaseSeparation
+    recovery:
+      outlets: {sol: {CaF2: 1.0, SiO2: 1.0, CaCO3: 1.0, Fe2O3: 1.0, C18H36O2: 1.0, CaSO4: 1.0, Fe2SO43: 1.0, H2SO4: 1.0, H2O: 0.0, HF: 0.0, SiF4: 0.0, CO2: 0.0, SO2: 0.0, SO3: 0.0}}
+      provenance: assumed
+      source: "D-006: the solids keep the free acid; the gases and vapours leave the kiln completely; the dust carried with the gas is left out (L-3)"
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: sol, direction: out}
+      - {id: gas, direction: out, delegates: gas}
+  # D-008: the free acid of the anhydrite neutralised with quicklime, the anhydrite cooled (D-009)
+  - id: R501
+    block: KLN
+    title: Anhydrite neutraliser (lime mixer) and anhydrite cooler
+    class: ReactingChemicals
+    reactions: [NEU]
+    reactor: conversion
+    links: [{target: equipment, ref: M-501}]
+    ports:
+      - {id: in, direction: in}
+      - {id: lime, direction: in, delegates: lime}
+      - {id: out, direction: out, delegates: anh}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # D-007: pre-purification column with the cold acid from the final scrubber: water, the acid
+  # vapour and the dust out of the gas, the gas cooled below 100 C (SRC-1, 6.2.4)
+  - id: T201
+    block: GAS
+    title: Pre-purification scrubber (sulfuric acid)
+    class: Absorbing
+    recovery:
+      outlets: {liq: {H2SO4: 1.0, SO3: 1.0, H2O: 0.98, HF: 0.03, SiF4: 0.0, CO2: 0.0, SO2: 0.0}}
+      provenance: assumed
+      source: "D-007: all acid and 98 % of the water to the liquid, 3 % of the HF dissolved in the hot acid back to the kiln; no open absorption data read (L-2)"
+    links: [{target: equipment, ref: T-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: acid, direction: in}
+      - {id: gasout, direction: out}
+      - {id: liq, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: M102
+    block: GAS
+    title: Feed acid mixer (scrubber acid, high boilers, oleum)
+    class: Mixing
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: scr, direction: in}
+      - {id: hb, direction: in, delegates: hb}
+      - {id: so3, direction: in, delegates: oleum}
+      - {id: out, direction: out}
+  - id: R102
+    block: GAS
+    title: Feed acid tank (oleum's SO3 binds the water)
+    class: ReactingChemicals
+    reactions: [HYD]
+    reactor: conversion
+    links: [{target: equipment, ref: V-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: feedacid}
+  # D-007: refrigerated condensation of the crude HF (SRC-1, 6.2.4: chilled water or brine)
+  - id: E201
+    block: GAS
+    title: HF condensers (brine)
+    class: SeparatingByThermalProcess
+    recovery:
+      outlets: {liq: {HF: 0.985, H2O: 1.0, H2SO4: 1.0, SO2: 0.5, SiF4: 0.05, CO2: 0.02}}
+      provenance: assumed
+      source: "D-007: 98.5 % of the HF condensed with the water and the acid traces, half of the SO2, some SiF4 and CO2 dissolved; no open vapour-liquid data of the mixture read (L-2)"
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liq, direction: out, delegates: crude}
+      - {id: gas, direction: out}
+      - {id: ref, direction: out, kind: energy, delegates: ref}
+  - id: M301
+    block: GAS
+    title: Condenser vent and low boilers to the final scrubber
+    class: Mixing
+    ports:
+      - {id: cond, direction: in}
+      - {id: lb, direction: in, delegates: lb}
+      - {id: out, direction: out}
+  # D-007: fresh acid takes the HF out of the residual gas and carries it to the pre-purification
+  # column (SRC-1, 6.2.4)
+  - id: T301
+    block: GAS
+    title: Final sulfuric acid scrubber (fresh acid)
+    class: Absorbing
+    recovery:
+      outlets: {liq: {H2SO4: 1.0, SO3: 1.0, H2O: 1.0, HF: 0.99, SiF4: 0.0, CO2: 0.0, SO2: 0.0}}
+      provenance: assumed
+      source: "D-007: 99 % of the HF to the cold acid (SRC-1, 6.2.4: most of the HF is recovered); no open absorption data read (L-2)"
+    links: [{target: equipment, ref: T-301}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: acid, direction: in, delegates: acid}
+      - {id: liq, direction: out}
+      - {id: gas_out, direction: out, delegates: tail}
+  # D-007: low boilers (SO2, SiF4, CO2) off the crude HF
+  - id: C301
+    block: DST
+    title: Low-boiler column
+    class: Distilling
+    recovery:
+      outlets: {top: {HF: 0.02, SO2: 1.0, SiF4: 1.0, CO2: 1.0, H2O: 0.0, H2SO4: 0.0}}
+      provenance: assumed
+      source: "D-007: SO2, SiF4 and CO2 to the top with 2 % of the HF (SRC-1, 6.2.4: the low boilers, mainly SO2 and SiF4); a split, no column model (L-2)"
+    links: [{target: equipment, ref: C-301}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: top, direction: out, delegates: lb}
+      - {id: bot, direction: out}
+      - {id: reb, direction: in, kind: energy, delegates: steam1}
+      - {id: cond, direction: out, kind: energy, delegates: ref1}
+  # D-007: high boilers (water, acid) off the HF; the product is the top (SRC-1, 6.2.4)
+  - id: C302
+    block: DST
+    title: High-boiler column (anhydrous HF at the top)
+    class: Distilling
+    recovery:
+      outlets: {top: {HF: 0.97, H2O: 0.01, H2SO4: 0.0, SO2: 1.0, SiF4: 1.0, CO2: 1.0}}
+      provenance: assumed
+      source: "D-007: 97 % of the HF and 1 % of the water to the top; the bottoms (3 % of the HF, the water and the acid) back to the feed acid; a split, no column model (L-2)"
+    links: [{target: equipment, ref: C-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out, delegates: ahf}
+      - {id: bot, direction: out, delegates: hb}
+      - {id: reb, direction: in, kind: energy, delegates: steam2}
+      - {id: cond, direction: out, kind: energy, delegates: ref2}
+  # D-008: SiF4 absorbed in water to fluorosilicic acid (SRC-1, 6.2.4, 6.4.4)
+  - id: R401
+    block: TGT
+    title: SiF4 absorber (water)
+    class: ReactingChemicals
+    reactions: [SIF]
+    reactor: conversion
+    links: [{target: equipment, ref: T-401}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: water, direction: in, delegates: water}
+      - {id: out, direction: out}
+  - id: V401
+    block: TGT
+    title: SiF4 absorber liquid outlet
+    class: SeparatingByPhaseSeparation
+    recovery:
+      outlets: {liq: {H2SiF6: 1.0, SiO2: 1.0, H2O: 1.0, HF: 1.0, SiF4: 0.0, CO2: 0.0, SO2: 0.0}}
+      provenance: assumed
+      source: "D-008: the acid, the silica and the HF slip to the liquid; the water vapour in the tail gas left out (L-3)"
+    links: [{target: equipment, ref: T-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liq, direction: out, delegates: fsa}
+      - {id: gas, direction: out}
+  # D-008: alkaline scrubbing of SO2 (SRC-1, 6.2.5, 6.4.7)
+  - id: R402
+    block: TGT
+    title: Alkaline tail-gas scrubber
+    class: ReactingChemicals
+    reactions: [SOX]
+    reactor: conversion
+    links: [{target: equipment, ref: T-402}]
+    ports:
+      - {id: gas, direction: in}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: out, direction: out}
+  - id: V402
+    block: TGT
+    title: Alkaline scrubber liquid outlet
+    class: SeparatingByPhaseSeparation
+    recovery:
+      outlets: {liq: {NaOH: 1.0, Na2SO3: 1.0, H2O: 1.0, SiF4: 1.0, SO2: 0.0, CO2: 0.0}}
+      provenance: assumed
+      source: "D-008: the caustic liquor keeps the sulfite, the excess caustic and the SiF4 traces; the CO2 is not absorbed below pH 8 (SRC-1, 6.4.7) and leaves with the SO2 slip"
+    links: [{target: equipment, ref: T-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: liq, direction: out, delegates: eff}
+      - {id: gas, direction: out, delegates: stack}
+
+streams:
+  - id: S1
+    title: Fluorspar (dried acid spar)
+    from: SPAR.out
+    to: H101.in
+    template: spar
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "from the spar silo (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {CaF2: 0.975, SiO2: 0.010, CaCO3: 0.010, Fe2O3: 0.004, C18H36O2: 0.001}, provenance: assumed, source: "D-004: inside the acid-spar limits of SRC-1, Table 6.2 (CaF2 above 97 %, SiO2, CaCO3 and the Fe and Al oxides below 2 % each, flotation chemicals below 0.3 %); dried, MgCO3, BaSO4, sulfides and phosphates left out (L-3)"}
+        flow: {value: 4800, provenance: given, source: "SRC-2, US 6 699 455 B2, Example 4: 80 kg/min"}
+  - id: S2
+    title: Preheated fluorspar
+    from: H101.out
+    to: M101.spar
+    template: spar
+    state:
+      design:
+        temperature: {value: 673.15, provenance: given, source: "SRC-2, Example 4: fluorspar at about 400 C"}
+        flow: {value: 4800.0, provenance: calculated, source: 'cheme process propagate: pass-through H101 from S1', fingerprint: 5d752cb8b485c074}
+        composition: {basis: mass_fraction, values: {CaF2: 0.975, SiO2: 0.01, CaCO3: 0.01, Fe2O3: 0.004, C18H36O2: 0.001}, provenance: calculated, source: 'cheme process propagate: pass-through H101 from S1', fingerprint: 5d752cb8b485c074}
+  - id: S3
+    title: Feed acid
+    from: R102.out
+    to: P101.in
+    template: process
+    state:
+      design:
+        temperature: {value: 393.15, provenance: given, source: "SRC-2, Example 4: sulfuric acid at about 120 C (D-006)"}
+        flow: {value: 6382.71, provenance: calculated, source: 'cheme process propagate: recycle R102 from S32 (tear, broyden)', fingerprint: 78f3b6059224aafe}
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.773971, SO3: 0.0, H2O: 0.13349, HF: 0.0925386, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle R102 from S32 (tear, broyden)', fingerprint: 78f3b6059224aafe}
+  - id: S4
+    title: Feed acid to the kiln
+    from: P101.out
+    to: M101.acid
+    template: process
+    state:
+      design:
+        temperature: {value: 393.15, provenance: given, source: "SRC-2, Example 4: sulfuric acid at about 120 C"}
+        pressure: {value: 400, provenance: assumed, source: "design basis"}
+        flow: {value: 6382.71, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S3', fingerprint: b351b254f6816a4e}
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.773971, SO3: 0.0, H2O: 0.13349, HF: 0.0925386, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S3', fingerprint: b351b254f6816a4e}
+  - id: S5
+    title: Kiln charge
+    from: M101.out
+    to: R101.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.425182, SiO2: 0.00566663, CaCO3: 0.00340176, Fe2O3: 0.000852839, C18H36O2: 0.000119679, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.437121, SO3: 0.0, H2O: 0.0753921, HF: 0.0522637, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S4', fingerprint: ef8149556952394d}
+        flow: {value: 11182.7, provenance: calculated, source: 'cheme process propagate: mixer M101 from S2 S4', fingerprint: d35796dd9dae229d}
+  - id: S6
+    title: Kiln outlet (solids and process gas)
+    from: R101.out
+    to: V101.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.00439679, SiO2: 0.000398346, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.296884, Fe2SO43: 0.000599518, CaO: 0.0, H2SO4: 0.00422485, SO3: 0.0, H2O: 0.0702474, HF: 0.611384, SiF4: 0.00358511, CO2: 0.00390567, SO2: 0.00437478, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 81ae778f92b4385d}
+        flow: {value: 11182.7, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: c9e5934405778e73}
+  - id: S7
+    title: Kiln solids (crude anhydrite)
+    from: V101.sol
+    to: R501.in
+    template: process
+    state:
+      design:
+        temperature: {value: 477.15, provenance: given, source: "SRC-2, Example 4: solid reaction product at 204 C"}
+        flow: {value: 8310.36, provenance: calculated, source: 'cheme process propagate: separator V101 from S6', fingerprint: 7291bba1b31a0a25}
+        composition: {basis: mole_fraction, values: {CaF2: 0.014345, SiO2: 0.00129965, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.968615, Fe2SO43: 0.00195599, CaO: 0.0, H2SO4: 0.013784, SO3: 0.0, H2O: 0.0, HF: 0.0, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S6', fingerprint: 7291bba1b31a0a25}
+  - id: S8
+    title: Quicklime
+    from: LIME.out
+    to: R501.lime
+    template: lime
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {CaO: 1.0}, provenance: assumed, source: "D-008: pure CaO"}
+        flow: {value: 49.9, provenance: assumed, source: "D-008: 1.05 kmol CaO per kmol of free H2SO4 in S7 (83.10 kg/h, 0.8473 kmol/h x 1.05 x 56.077 kg/kmol), ASSUMED"}
+  - id: S9
+    title: Neutralised anhydrite
+    from: R501.out
+    to: ANH.in
+    template: process
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-009: the anhydrite cooled to 60 C in M-501 for handling and landfill (ASSUMED)"}
+        composition: {basis: mole_fraction, values: {CaF2: 0.0141403, SiO2: 0.00128111, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.968381, Fe2SO43: 0.00192808, CaO: 0.000682223, H2SO4: 0.0, SO3: 0.0, H2O: 0.0135873, HF: 0.0, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R501 from S7 S8', fingerprint: a542561b9f95f8f0}
+        flow: {value: 8360.26, provenance: calculated, source: 'cheme process propagate: reactor R501 from S7 S8', fingerprint: 7d48b3425f7fe990}
+  - id: S10
+    title: Kiln process gas
+    from: V101.gas
+    to: T201.gas
+    template: process
+    state:
+      design:
+        temperature: {value: 478.15, provenance: given, source: "SRC-2, Example 4: hydrogen fluoride gas at 205 C at the kiln outlet"}
+        flow: {value: 2872.34, provenance: calculated, source: 'cheme process propagate: separator V101 from S6', fingerprint: 7291bba1b31a0a25}
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.101294, HF: 0.881596, SiF4: 0.00516961, CO2: 0.00563185, SO2: 0.00630829, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S6', fingerprint: 7291bba1b31a0a25}
+  - id: S11
+    title: Scrubbed gas to the HF condensers
+    from: T201.gasout
+    to: E201.in
+    template: process
+    state:
+      design:
+        temperature: {value: 363.15, provenance: assumed, source: "D-007: below 100 C (SRC-1, 6.2.4)"}
+        flow: {value: 2633.65, provenance: calculated, source: 'cheme process propagate: separator T201 from S10 S21', fingerprint: 03b9c5a0e70309bc}
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.00294809, HF: 0.978134, SiF4: 0.00571605, CO2: 0.00622715, SO2: 0.00697509, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T201 from S10 S21', fingerprint: 03b9c5a0e70309bc}
+  - id: S12
+    title: Pre-purification acid to the feed acid mixer
+    from: T201.liq
+    to: M102.scr
+    template: process
+    state:
+      design:
+        temperature: {value: 338.15, provenance: assumed, source: "D-009: the cold acid of the final scrubber warmed by the kiln gas (SRC-1, 6.2.4), ASSUMED"}
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.709671, SO3: 0.0, H2O: 0.240057, HF: 0.0502718, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T201 from S10 S21', fingerprint: 03b9c5a0e70309bc}
+        flow: {value: 5671.65, provenance: calculated, source: 'cheme process propagate: separator T201 from S10 S21', fingerprint: 03b9c5a0e70309bc}
+  - id: S13
+    title: Crude liquid HF
+    from: E201.liq
+    to: C301.in
+    template: process
+    state:
+      design:
+        temperature: {value: 268.15, provenance: assumed, source: "D-009: condensed against brine at 258 K"}
+        flow: {value: 2463.75, provenance: calculated, source: 'cheme process propagate: separator E201 from S11', fingerprint: 12adca7468e0fcc6}
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.0030383, HF: 0.992945, SiF4: 0.000294548, CO2: 0.000128354, SO2: 0.00359427, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E201 from S11', fingerprint: 12adca7468e0fcc6}
+  - id: S14
+    title: Condenser vent gas
+    from: E201.gas
+    to: M301.cond
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.0, HF: 0.494133, SiF4: 0.182883, CO2: 0.205528, SO2: 0.117456, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator E201 from S11', fingerprint: 12adca7468e0fcc6}
+        flow: {value: 169.896, provenance: calculated, source: 'cheme process propagate: separator E201 from S11', fingerprint: 12adca7468e0fcc6}
+  - id: S15
+    title: Low boilers
+    from: C301.top
+    to: M301.lb
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.0, HF: 0.831749, SiF4: 0.0123365, CO2: 0.00537584, SO2: 0.150539, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S13', fingerprint: 69886388390173f3}
+        flow: {value: 81.0231, provenance: calculated, source: 'cheme process propagate: separator C301 from S13', fingerprint: 69886388390173f3}
+  - id: S16
+    title: HF after the low-boiler column
+    from: C301.bot
+    to: C302.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.00311262, HF: 0.996887, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C301 from S13', fingerprint: 69886388390173f3}
+        flow: {value: 2382.73, provenance: calculated, source: 'cheme process propagate: separator C301 from S13', fingerprint: 69886388390173f3}
+  - id: S17
+    title: Anhydrous hydrogen fluoride
+    from: C302.top
+    to: AHF.in
+    template: process
+    state:
+      design:
+        temperature: {value: 283.15, provenance: assumed, source: "D-009: stored below 15 C (SRC-1, 6.2.7)"}
+        flow: {value: 2304.83, provenance: calculated, source: 'cheme process propagate: separator C302 from S16', fingerprint: 891ad2a36a7dad3e}
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 3.2188e-05, HF: 0.999968, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S16', fingerprint: 891ad2a36a7dad3e}
+  - id: S18
+    title: High boilers to the feed acid
+    from: C302.bot
+    to: M102.hb
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.0934123, HF: 0.906588, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S16', fingerprint: 891ad2a36a7dad3e}
+        flow: {value: 77.8952, provenance: calculated, source: 'cheme process propagate: separator C302 from S16', fingerprint: 891ad2a36a7dad3e}
+  - id: S19
+    title: Residual gas to the final scrubber
+    from: M301.out
+    to: T301.gas
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.0, HF: 0.642102, SiF4: 0.108136, CO2: 0.117806, SO2: 0.131955, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S14 S15', fingerprint: db3ed11116912854}
+        flow: {value: 250.919, provenance: calculated, source: 'cheme process propagate: mixer M301 from S14 S15', fingerprint: ea3841394910fd53}
+  - id: S20
+    title: Fresh sulfuric acid
+    from: ACID.out
+    to: T301.acid
+    template: acid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        pressure: {value: 400, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2SO4: 0.985, H2O: 0.015}, provenance: assumed, source: "the product of sulfuric-acid-1, 98.5 wt% (SRC-1, 6.2.3: fresh acid of 95-99 %)"}
+        flow: {value: 5348.4, provenance: calculated, source: 'cheme process propagate: spec acid (S7 H2SO4 mass fraction 0.01)', fingerprint: 177a2892628fc3da}
+  - id: S21
+    title: Final scrubber acid (with the recovered HF) to the pre-purification column
+    from: T301.liq
+    to: T201.acid
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.860892, SO3: 0.0, H2O: 0.0713698, HF: 0.0677379, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle T301 from S19 S20 (tear, broyden)', fingerprint: 78f3b6059224aafe}
+        flow: {value: 5432.96, provenance: calculated, source: 'cheme process propagate: recycle T301 from S19 S20 (tear, broyden)', fingerprint: 78f3b6059224aafe}
+  - id: S22
+    title: Gas to the SiF4 absorber
+    from: T301.gas_out
+    to: R401.gas
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.0, HF: 0.0176248, SiF4: 0.296818, CO2: 0.32336, SO2: 0.362197, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator T301 from S19 S20', fingerprint: 9dfefa279808548d}
+        flow: {value: 166.36, provenance: calculated, source: 'cheme process propagate: separator T301 from S19 S20', fingerprint: 9dfefa279808548d}
+  - id: S23
+    title: Process water
+    from: PW.out
+    to: R401.water
+    template: water
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "process water"}
+        flow: {value: 200.0, provenance: assumed, source: "D-008: for 25 wt% H2SiF6 in the product acid (SRC-1, 6.4.4: 25-35 %), ASSUMED"}
+  - id: S24
+    title: SiF4 absorber outlet
+    from: R401.out
+    to: V401.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0183629, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.814309, HF: 0.00327276, SiF4: 2.75582e-05, CO2: 0.0600449, SO2: 0.0672566, H2SiF6: 0.0367258, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R401 from S22 S23', fingerprint: 604adf5c7682f755}
+        flow: {value: 366.36, provenance: calculated, source: 'cheme process propagate: reactor R401 from S22 S23', fingerprint: d9363b45093df408}
+  - id: S25
+    title: Fluorosilicic acid
+    from: V401.liq
+    to: FSA.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0210422, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.933123, HF: 0.00375028, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0420844, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V401 from S24', fingerprint: fabbcc0b54c7015f}
+        flow: {value: 275.648, provenance: calculated, source: 'cheme process propagate: separator V401 from S24', fingerprint: fabbcc0b54c7015f}
+  - id: S26
+    title: Gas to the alkaline scrubber
+    from: V401.gas
+    to: R402.gas
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.0, HF: 0.0, SiF4: 0.000216433, CO2: 0.471573, SO2: 0.528211, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V401 from S24', fingerprint: fabbcc0b54c7015f}
+        flow: {value: 90.712, provenance: calculated, source: 'cheme process propagate: separator V401 from S24', fingerprint: fabbcc0b54c7015f}
+  - id: S27
+    title: Caustic soda 50 wt%
+    from: NAOH.out
+    to: R402.naoh
+    template: caustic
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {NaOH: 0.5, H2O: 0.5}, provenance: assumed, source: "caustic soda 50 wt% (chlor-alkali-1)"}
+        flow: {value: 154.4, provenance: assumed, source: "D-008: 2.2 kmol NaOH per kmol SO2 in S26 (56.20 kg/h, 0.8773 kmol/h x 2.2 x 39.997 kg/kmol = 77.2 kg/h NaOH; 10 % excess over SOX), ASSUMED"}
+  - id: S28
+    title: Alkaline scrubber outlet
+    from: R402.out
+    to: V402.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.737577, HF: 0.0, SiF4: 5.13624e-05, CO2: 0.11191, SO2: 2.50703e-05, H2SiF6: 0.0, NaOH: 0.0251103, Na2SO3: 0.125326}, provenance: calculated, source: 'cheme process propagate: reactor R402 from S26 S27', fingerprint: a09c568af6cedee1}
+        flow: {value: 245.112, provenance: calculated, source: 'cheme process propagate: reactor R402 from S26 S27', fingerprint: 97c2f7800a3c9d0a}
+  - id: S29
+    title: Scrubber effluent
+    from: V402.liq
+    to: EFF.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.830544, HF: 0.0, SiF4: 5.78363e-05, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0282753, Na2SO3: 0.141123}, provenance: calculated, source: 'cheme process propagate: separator V402 from S28', fingerprint: 4c60ca6f56f0ee01}
+        flow: {value: 210.629, provenance: calculated, source: 'cheme process propagate: separator V402 from S28', fingerprint: 4c60ca6f56f0ee01}
+  - id: S30
+    title: Tail gas
+    from: V402.gas
+    to: STACK.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.0, SO3: 0.0, H2O: 0.0, HF: 0.0, SiF4: 0.0, CO2: 0.999776, SO2: 0.000223972, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V402 from S28', fingerprint: 4c60ca6f56f0ee01}
+        flow: {value: 34.4831, provenance: calculated, source: 'cheme process propagate: separator V402 from S28', fingerprint: 4c60ca6f56f0ee01}
+  - id: S31
+    title: Oleum (free SO3)
+    from: OLEUM.out
+    to: M102.so3
+    template: acid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "design basis"}
+        composition: {basis: mass_fraction, values: {SO3: 1.0}, provenance: assumed, source: "D-007: the oleum counted as its free SO3; its H2SO4 part is in the fresh acid (L-3)"}
+        flow: {value: 633.168, provenance: calculated, source: 'cheme process propagate: spec oleum (S3 H2O mass fraction 0.03)', fingerprint: 177a2892628fc3da}
+  - id: S33
+    title: Natural gas to the burners
+    from: FUEL.out
+    to: B101.fuel
+    template: fuel
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "battery limit (design basis)"}
+        pressure: {value: 200, provenance: assumed, source: "burner supply, ASSUMED"}
+        composition: {basis: mass_fraction, values: {CH4: 1.0}, provenance: assumed, source: "D-009: natural gas taken as methane, ASSUMED"}
+        flow: {value: 207.2, provenance: assumed, source: "D-009: 2879.3 kW (LHV) fired = 12.915 kmol/h x 802.584 kJ/mol (methane's LHV from the SRC-4 formation enthalpies) x 16.043 kg/kmol: the kiln's 1879.9 kW, SRC-2 Example 4's at most 189 m3/h (at 35.81 MJ/m3, 0 C and 101.325 kPa), and the spar preheater's 478.1 kW absorbed at the kiln's furnace efficiency of 0.478 (999.4 kW, ASSUMED)"}
+  - id: S34
+    title: Combustion air
+    from: AIR.out
+    to: B101.air
+    template: air
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "ambient (design basis)"}
+        pressure: {value: 101.325, provenance: assumed, source: "ambient"}
+        composition: {basis: mole_fraction, values: {O2: 0.21, N2: 0.79}, provenance: assumed, source: "dry air as O2 and N2, ASSUMED"}
+        flow: {value: 3903.5, provenance: assumed, source: "D-009: 10 % excess oxygen over the methane's 2 mol per mol (28.413 kmol/h O2 with 106.888 kmol/h N2), ASSUMED"}
+  - id: S35
+    title: Flue gas to atmosphere
+    from: B101.flue
+    to: FLUE.in
+    template: flue
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CH4: 0.0, O2: 0.0174238, N2: 0.721161, CO2: 0.0871385, H2O: 0.174277}, provenance: calculated, source: 'cheme process propagate: reactor B101 from S33 S34', fingerprint: 0151052836bc8769}
+        flow: {value: 4110.7, provenance: calculated, source: 'cheme process propagate: reactor B101 from S33 S34', fingerprint: 3552eee184f79eaf}
+  - id: S32
+    title: Mixed feed acid
+    from: M102.out
+    to: R102.in
+    template: process
+    state:
+      design:
+        composition: {basis: mole_fraction, values: {CaF2: 0.0, SiO2: 0.0, CaCO3: 0.0, Fe2O3: 0.0, C18H36O2: 0.0, CaSO4: 0.0, Fe2SO43: 0.0, CaO: 0.0, H2SO4: 0.613686, SO3: 0.0903546, H2O: 0.211783, HF: 0.0841773, SiF4: 0.0, CO2: 0.0, SO2: 0.0, H2SiF6: 0.0, NaOH: 0.0, Na2SO3: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M102 from S12 S18 S31', fingerprint: a247dc104c27b478}
+        flow: {value: 6382.71, provenance: calculated, source: 'cheme process propagate: mixer M102 from S12 S18 S31', fingerprint: c8fa94d7987e042d}
+  - {id: Q1, title: Fired heat absorbed by the spar in the preheater, kind: energy, from: B101.heat1, to: H101.heat, state: {design: {duty: {value: 478.1, provenance: assumed, source: "D-009: S1 4800 kg/h x 0.956 kJ/(kg K) (CaF2, thermo 0.6.1 WEBBOOK_SHOMATE, mean of 300-650 K, SRC-4; impurities at the same value, ASSUMED) x (673.15 - 298.15) K / 3600, heat absorbed"}}}}
+  - {id: Q2, title: Fired heat absorbed by the kiln charge, kind: energy, from: B101.heat2, to: R101.heat, state: {design: {duty: {value: 899.3, provenance: assumed, source: "D-009: hand balance on 298.15 K: R1 57.623 kmol/h x 59 MJ/kmol (944.4 kW) + solids S7 to 477.15 K (336.9) + gas S10 to 478.15 K with the feed acid's water and HF evaporated (354.7) - spar S2 from 673.15 K (478.1) - feed acid S4 from 393.15 K (258.5); the side reactions R2-R5 (+13.9 kW) and the desorption heats of the feed acid left out (D-009, L-2); the furnace losses are Q10"}}}}
+  - {id: P1, title: "Auxiliary power (kiln drive, pumps, fans, conveying; lumped)", kind: energy, from: POWER.aux, to: P101.power, state: {design: {duty: {value: 518.6, provenance: assumed, source: "D-009: 225 kWh per t HF x 2.3048 t/h, the middle of the 150-300 kWh/t of SRC-1 (Table 6.4)"}}}}
+  - {id: Q3, title: Pre-purification scrubber cooler, kind: energy, from: T201.cw, to: CW.t201, state: {design: {duty: {value: 204.2, provenance: assumed, source: "D-009: the gas cooled from 478.15 to 363.15 K with 247.1 kg/h of water condensed (290.8 kW) less the scrubber acid S21 warmed from 298.15 to 338.15 K (86.6 kW); heats of absorption and dilution left out (L-2)"}}}}
+  - {id: Q9, title: Anhydrite cooler and neutralisation heat, kind: energy, from: R501.cw, to: CW.r501, state: {design: {duty: {value: 334.9, provenance: assumed, source: "D-009: the kiln solids S7 (8310.4 kg/h) cooled from 477.15 to 333.15 K at the heat capacity of the Q2 solids term (336.9 kW over 179 K): 271.0 kW; + NEU 0.8473 kmol/h x 271.4 kJ/mol (formation enthalpies CaO(s) -634.9, CaSO4(s) -1434.5, H2SO4(l) -814.0, H2O(l) -285.825 kJ/mol, SRC-4): 63.9 kW; the lime's own sensible heat and the water formed left out (L-2)"}}}}
+  - {id: Q10, title: Flue gas and shell losses of the fired spar preheater and kiln, kind: energy, from: B101.loss, to: LOSS.b101, state: {design: {duty: {value: 1501.9, provenance: assumed, source: "D-009: the natural gas fired (S33, 2879.3 kW LHV) less the heat the charges absorb (Q1 478.1 + Q2 899.3 kW): a furnace efficiency of 0.478, the kiln's in SRC-2 Example 4, taken for the preheater too (ASSUMED); the flue gas leaves at up to 400 C (SRC-1, 6.4.2)"}}}}
+  - {id: Q4, title: HF condensers, kind: energy, from: E201.ref, to: REF.e201, state: {design: {duty: {value: 383.6, provenance: assumed, source: "D-009: S11 gas cooled from 363.15 to 293.15 K, 2424.5 kg/h HF condensed at 376.0 kJ/kg (253.2 kW) and subcooled to 268.15 K, the water and half the SO2 condensed; the heat of HF association in the vapour left out, up to about 750 kW more if the gas at 363 K were all monomer (D-009, L-2)"}}}}
+  - {id: Q5, title: Low-boiler column reboiler, kind: energy, from: LPS.c301, to: C301.reb, state: {design: {duty: {value: 25.7, provenance: assumed, source: "D-009: boil-up 10 % of the feed S13 (246 kg/h) x 376.0 kJ/kg, ASSUMED"}}}}
+  - {id: Q6, title: Low-boiler column condenser, kind: energy, from: C301.cond, to: REF.c301, state: {design: {duty: {value: 25.7, provenance: assumed, source: "D-009: equal to the reboiler (total condenser, constant molar overflow), ASSUMED"}}}}
+  - {id: Q7, title: High-boiler column reboiler, kind: energy, from: LPS.c302, to: C302.reb, state: {design: {duty: {value: 384.1, provenance: assumed, source: "D-009: 0.6 GJ per t HF (SRC-1, 6.2.4: about 350 kg of steam per t) x 2.3048 t/h; a boil-up of 3678 kg/h at 376.0 kJ/kg, reflux ratio 0.60"}}}}
+  - {id: Q8, title: High-boiler column condenser, kind: energy, from: C302.cond, to: REF.c302, state: {design: {duty: {value: 384.1, provenance: assumed, source: "D-009: equal to the reboiler (total condenser), ASSUMED"}}}}
+layout: {bfd: {}, pfd: {}}

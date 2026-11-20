@@ -53,6 +53,8 @@ UNNAMED_REGISTRY_FLOWS = {
     "hydrogen-peroxide-1/consumable:sodium-hydroxide": "sodium-hydroxide",
     "iodine-1/feed:AIR": "air",
     "iodomethane-1/consumable:activated-carbon": "activated-carbon",
+    "lactic-acid-1/consumable:cip-caustic": "sodium-hydroxide",  # the cleaning in place's NaOH make-up
+    "lactic-acid-1/consumable:cip-water": "water",  # the fermenters' cleaning rinse
     "n-bromosuccinimide-1/consumable:rinse-water": "water",
     "natural-gas-processing-1/consumable:MDEA": "n-methyldiethanolamine",
     "natural-gas-processing-1/consumable:TEG": "triethylene-glycol",
@@ -103,6 +105,8 @@ NO_REGISTRY_IDENTITY = {
     "ethanol-1/consumable:molecular-sieve": SORBENT,
     "ethylbenzene-1/product:flux_oil": FUEL_RESIDUE,
     "ethylene-glycol-1/consumable:eo-catalyst": CATALYST,
+    "ibuprofen-1/consumable:palladium-chloride": CATALYST,
+    "ibuprofen-1/consumable:raney-nickel": CATALYST,
     "glycerol-1/product:FAL": "the fatty-acid layer to the biodiesel plant, a mixture of no fixed composition",
     "fcc-1/input:catalyst": CATALYST,
     "formaldehyde-1/consumable:ecs-catalyst": CATALYST,

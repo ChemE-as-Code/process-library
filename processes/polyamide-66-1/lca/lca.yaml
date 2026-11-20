@@ -1,0 +1,93 @@
+# Goal and scope of the polyamide-66-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit those
+# by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of polyamide 66 pellets, from the flowsheet's year averages of the
+# recipe (D-003). The adipic acid is linked to its library producer (adipic-acid-1), the hot oil
+# counted as heat from natural gas, the LP steam as heat, the nitrogen linked to asu-1
+# (lca/mappings.yaml); the water, power, cooling water and condensate are linked by the shared
+# lci/mappings.yaml in the library's Atlas build; the diamine, which no library entry makes yet,
+# and the nitrogen's disposal stay gaps there (`missing:` with the activity to connect to): a
+# gap, never zero, and no values from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of polyamide 66 pellets made by batch melt
+  polycondensation of AH salt in an autoclave (adipic acid and hexamethylenediamine neutralised
+  to a 52 wt% salt solution, concentrated, polycondensed to 548 K with the steam bled off,
+  finished, extruded and pelletised) at the concept stage: which raw materials, utilities and
+  wastes the batch plant exchanges per kg of polyamide 66, as the foreground of a cradle-to-gate
+  study and the first library consumer of adipic acid as a polymer. The diamine and the
+  nitrogen's disposal are not mapped yet (D-012).
+functional_unit: {product: PA66, amount: 1, unit: kg, source: "1 kg of polyamide 66 pellets (modelled 99.22 wt% polymer, 0.58 wt% unlinked ends, 0.2 wt% water) at the plant gate to the silos, stream S11 (D-002, D-007, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as oxalyl-chloride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: adipic acid slurried in demineralised water, molten hexamethylenediamine dosed into it at 338 K to a 52 wt% AH salt solution with a 0.52 % diamine excess; the solution concentrated to 70 wt% in the autoclave at about 383 K, heated on hot oil to 548 K with the steam bled at 1750 kPa(a), depressurised, finished at atmospheric pressure, extruded with nitrogen, water-quenched and cut to pellets; the vapours condensed to the wastewater treatment; 5303.03 kg per batch, 1508.6 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # raw materials
+  - key: feed:AAF
+    missing: "linked to processes/adipic-acid-1 (lca/mappings.yaml): adipic acid from cyclohexane via KA oil and nitric acid oxidation, with catalytic N2O decomposition"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:HMDAF
+    missing: "not mapped yet (D-012): no library entry makes hexamethylenediamine; connect to: hexamethylenediamine from the hydrogenation of adiponitrile (e.g. a future library entry), per kg"
+    source: "flowsheet stream S4 (D-004)"
+  - key: feed:DW
+    missing: "background: demineralised water from the site water treatment, per kg; the shared entry `water` links it in the library's Atlas build (market for water, deionised, with processes/demineralised-water-1 as the Atlas producer) (D-012)"
+    source: "flowsheet stream S2 (D-004)"
+  # utilities
+  - key: feed:POWER
+    missing: "background: electricity, medium voltage, market for the site's grid (site not chosen), per kWh; the shared entry `electricity` links it (D-012)"
+    source: "flowsheet energy streams P1 to P4 (the dissolver's agitator, the autoclave's agitator, the pelletising line and conveying, the condensate pump), D-009"
+  - key: feed:HOTOIL
+    missing: "linked as heat from natural gas (lca/mappings.yaml); connect to: heat from a natural-gas-fired hot-oil heater, per kWh absorbed by the oil (its efficiency and combustion emissions in the background)"
+    source: "flowsheet energy streams Q3 (concentration, scripts/balance.py), Q4 (heating and polycondensation, core's conversion duty) and Q5 (steam bleed and finishing, scripts/balance.py), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler, per kWh of condensing heat"
+    source: "flowsheet energy stream Q2 (the dissolver's warming, scripts/balance.py), D-009"
+  - key: product:CW
+    missing: "background: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed; the shared entry `cooling-water` links it (D-012)"
+    source: "flowsheet energy streams Q1 (the neutralisation, core's semi-batch model), Q6 (the vapour condenser E-201) and Q7 (the strand quench water), scripts/balance.py, D-009"
+  # waste
+  - key: product:COND
+    treatment: {kind: waste, route: "site biological wastewater treatment with nitrification and denitrification of the process condensate carrying the stripped diamine (EU POL BREF section 9.3.3.3) (D-010)"}
+    missing: "background: treatment of a process condensate with dissolved amine in an industrial wastewater treatment plant, per kg (1 m3 = 1000 kg); the shared entry `wastewater` links it (processes/utility-wwtp in the Atlas) (D-012)"
+    source: "flowsheet stream S13 (D-010)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): nitrogen for the tanks' blankets, the autoclave's purge before heating and its
+# pressurisation for the extrusion, and the pellets' inerting.
+consumables:
+  - id: nitrogen
+    title: "Nitrogen for the blankets, the autoclave's purge and extrusion, and the pellets"
+    unit: kg
+    per_batch: 70
+    source: "ASSUMED 70 kg a batch, ideal gas, M 28.014: the extrusion, the autoclave R-201 (16 m3) pressurised to about 5 bar(a) (ASSUMED) at the melt's 548 K and full of nitrogen once the melt is pressed out, 49 kg, then vented (the headspace before it is steam after the let-down); the purge of the charged autoclave's free volume (16 m3 less the 10.7 m3 charge, D-003) with one volume at 101.325 kPa and 298 K, 6 kg; the tanks' and the pellets' blankets about 15 kg; SRC-1 names nitrogen for the salt, the autoclave and the drying (D-012)"
+    missing: "linked to processes/asu-1 (lca/mappings.yaml): gaseous nitrogen to the battery limit"
+    disposal:
+      kind: waste
+      route: "with the autoclave's and the tanks' vents through the scrubber to air, unchanged (SRC-1, section 9.2.2.3) (D-010)"
+      source: "the blanket, purge and extrusion nitrogen leaves with the vents (D-010)"
+      missing: "not mapped yet (D-012); connect to: the scrubber's throughput of inert gas"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: scrubber-vent, method: storage-tank, equipment: [T-101, R-101, T-102, R-201, E-201], reason: "No P&ID yet: the diamine and salt tanks' breathing, the autoclave's purge and let-down and the condensate tank's vent carry diamine, ammonia and cyclopentanone (EU POL BREF section 9.3.3.3) through the water scrubber to air; the BREF's VOC to air of the batch process (15 to 40 g/t, Table 9.3) not taken up as an emission yet (D-010)."}
+  - {id: hot-oil-heater, method: equipment-leaks, reason: "The hot-oil heater's combustion emissions are in the background heat activity (feed:HOTOIL as heat from natural gas, D-009)."}
+  - {id: pellet-dust, method: equipment-leaks, equipment: [X-301], reason: "Polymer fines and dust of the cutter and the pneumatic conveying are not estimated (D-007)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2013"}   # ISIC Rev.4 2013 Manufacture of plastics and synthetic rubber in primary forms
+  modelling: {principle: attributional}
+  geography: {description: "Generic polymer site with adipic acid and diamine supply, hot oil and nitrogen, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #521, unreviewed"

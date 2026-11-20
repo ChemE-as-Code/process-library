@@ -1,0 +1,102 @@
+# Process Atlas manifest of direct-air-capture-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: direct-air-capture-1
+title: Carbon dioxide by direct air capture with aqueous KOH and a calcium loop (1.17 Mt/a at 15 MPa)
+summary: >-
+  Liquid-solvent direct air capture: aqueous KOH takes 74.5 % of the air's CO2 in cross-flow
+  contactors, pellet reactors causticise it with lime, and an oxy-fired calciner on natural gas
+  releases it for compression to 15 MPa; grid power. Concept stage, 112.2 t/h of CO2 from the
+  air, preliminary LCI.
+description: |
+  Ambient air (20 C, 64 % RH) is blown through cross-flow contactors over packing wetted with a
+  lean liquor of 1.10 mol/L KOH and 0.45 mol/L K2CO3, which absorbs 74.5 % of its CO2 (CO2 +
+  2 KOH -> K2CO3 + H2O) and loses 4.7 t of water per t of CO2 captured (Keith et al. 2018,
+  Joule 2, 1573, the Carbon Engineering process). In fluidised pellet reactors the rich liquor
+  meets a 30 wt% slurry of slaked lime, which precipitates the carbonate onto CaCO3 pellets and
+  regenerates the KOH. The washed pellets are dried in a steam slaker at 300 C, whose heat comes
+  from slaking 85 % of the hot quicklime, and calcined at 900 C (98 %) in a circulating fluidised
+  bed fired with natural gas in 95.6 wt% oxygen, so that the fuel's CO2 joins the product. The
+  off-gas is cooled, compressed to 15.1 MPa and dried with glycol: 148.5 t/h of 97.0 wt% CO2, of
+  which 112.2 t/h came from the air. Make-ups of KOH and CaCO3 seed follow the NETL re-evaluation
+  of the same process (DOE/NETL-2021/2864); a filter cake purge carries the seed's calcium out and
+  a bleed of the liquor the make-up's potassium. The CO2 train's cooling water is cooled in the
+  contactor basins, so the air takes up that heat with the evaporation.
+
+  This is the configuration with grid electricity and a gas-fired calciner (Keith et al.'s
+  scenario C), without the on-site gas turbine and its flue-gas absorber. The two chemical loops
+  are closed by stoichiometry in scripts/dac_balance.py, whose steady state every stream cites
+  (library ADR 0027): core has no electrolyte, crystallisation or gas-liquid mass-transfer model
+  for this chemistry. Per kg of CO2 product: 0.756 kg of CO2 from the air, 0.079 kg of natural
+  gas (5.23 GJ LHV per t of air CO2), 0.345 kg of oxygen, 13.5 g of KOH, 20.2 g of CaCO3 seed,
+  3.67 kg of process water and 0.235 kWh of grid power (310 kWh per t of air CO2, the oxygen's
+  own power not included). See DESIGN.md for every assumption.
+families: [carbon-capture]
+keywords: [direct air capture, DAC, carbon dioxide removal, CO2 capture, potassium hydroxide, KOH, causticisation, pellet reactor, calcium looping, calciner, oxy-fuel combustion, steam slaker, quicklime, CO2 compression, negative emissions, Carbon Engineering]
+facets:
+  feedstock_basis: [atmospheric, fossil, mineral, water, electricity]
+  product_classes: [industrial-gases]
+  unit_operations: [absorption, reaction, crystallization, calcination, combustion, compression, drying]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. The capture fraction, conversions,
+# carry-overs and specific energies are from Keith et al. 2018; make-ups scaled from NETL 2022;
+# the loop closure and its liquor density, the purge cake, the bleed and the hand energy
+# balances ASSUMED (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept continuous PFD with closed mass and element balances (cheme validate clean; cheme
+    process streams: 4 blocks and 6 steps within tolerance; extents ABS 2549, CAUST 2541, SLAKE
+    2160 + 380, CALC 2541, COMB 732 kmol/h). Every material stream is the steady state of
+    scripts/dac_balance.py (ADR 0027), the two loops (KOH liquor, calcium) closed by stoichiometry:
+    the capture fraction 74.5 %, the evaporation 4.7 t/t, the liquor 1.10 / 0.45 mol/L, the
+    K2CO3 and water carry-over of the pellets, the 85 % slaking, the 98 % calcination, the
+    5.25 GJ per t of CO2 calcined and the oxidant ratio from Keith et al. (2018); the KOH and
+    CaCO3 make-ups from NETL (2022) per t of CO2 its liquor takes up (air and flue gas), applied
+    to the CO2 captured; the liquor density, the complete causticisation, the purge cake's liquor
+    and the liquor bleed ASSUMED. Power from Keith et al.'s Table 1 specific consumptions; the CO2
+    train's cooling (to the contactor basins), the calciner's and the slaker's remaining heat and
+    the temperatures of the lean liquor and the depleted air are hand energy balances with round
+    heat capacities. No conversion duties, stream properties or heat integration
+    (no package of core covers the electrolyte or the solids). Preliminary gate-to-gate LCI per
+    kg of CO2 product: the air's CO2 as a resource (Carbon dioxide, in air), the product's carbon
+    declared 77.6 % from the air, the purge's 1.7 % and the bleed's 100 %; oxygen linked to
+    asu-1, natural gas, KOH, limestone, the purge's landfill, the process water (a conservative
+    proxy) and the condensate's and the bleed's treatment to shared entries. cheme maturity
+    reaches no level; the claim `maturity: concept` is the lowest value of the schema. Not
+    reviewed. Needs cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: carbon-dioxide, role: feedstock, note: "resource:CO2, the CO2 of ambient air (Carbon dioxide, in air): 1.015 kg/kg product drawn through the contactors, 0.756 kg/kg captured (74.5 %), the rest returned with the depleted air (D-003); no inventory_key, since it is a resource of the air feed feed:AIR (free of burden), not a purchased feed"}
+    - {chemical: methane, role: feedstock, inventory_key: "feed:NG", note: "Natural gas to the calciner, modelled as methane, 0.0791 kg/kg (5.25 GJ LHV per t of CO2 calcined, D-007); its CO2 goes into the product"}
+    - {chemical: oxygen, role: feedstock, inventory_key: "feed:OXY", note: "Oxygen 95.6 wt% (rest N2 and Ar) at 120 kPa, 0.345 kg/kg; asu-1's GOX as a higher-purity proxy (D-011)"}
+    - {chemical: potassium-hydroxide, role: feedstock, inventory_key: "feed:KOHF", note: "KOH make-up as 100 % KOH, 13.5 g/kg (NETL 2022 scaled, D-005)"}
+    - {chemical: calcium-carbonate, role: feedstock, inventory_key: "feed:SEED", note: "CaCO3 seed make-up (ground limestone), 20.2 g/kg (NETL 2022 scaled, D-005)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:PW", note: "Process water to the pellet washers, the slaker and the lime slurry, 3.67 kg/kg (4.85 t per t of air CO2: mostly the 4.7 t/t evaporated at 20 C and 64 % RH, D-003)"}
+  outputs:
+    - {chemical: carbon-dioxide/dense-151bara-97, role: main-product, inventory_key: "product:CO2P", note: "CO2 product 97.0 wt% (1.5 wt% N2, 1.5 wt% O2, 0.01 wt% water) at 15.1 MPa and 313 K, to pipeline; 77.6 % of its carbon from the air, 22.4 % from the calciner's natural gas (D-008, D-011)"}
+    - {chemical: calcium-carbonate, role: waste, inventory_key: "product:PURGE", note: "Filter cake purge: the seed's CaCO3 with 30 wt% lean liquor (ASSUMED), 28.8 g/kg, to landfill (D-005)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:BLEED", note: "Liquor bleed (KOH and K2CO3, 11.3 wt% salts) carrying the make-up's potassium out, 0.124 kg/kg, to treatment (D-005)"}
+    - {chemical: water, role: waste, inventory_key: "product:COND", note: "Condensate of the CO2 train (the calciner's combustion water), 0.178 kg/kg (D-008)"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.235 kWh/kg from the grid: contactor fans and pumps, pellet reactor pumps, slaker, CO2 compressor (Keith et al. 2018, Table 1; D-009)"}
+basis:
+  capacity: "112.2 t/h of CO2 captured from 251 000 t/h of air (Keith et al. 2018, Fig. 2), 148.5 t/h of CO2 product; 885 kt/a from the air and 1.17 Mt/a of product in 7884 h/a (90 % utilisation, ASSUMED), DESIGN.md D-002"
+  operating_hours_per_year: 7884
+  location: generic site with natural gas and CO2 pipeline access (not chosen); ambient 20 C, 64 % RH
+references:
+  - {title: "Keith, D. W.; Holmes, G.; St. Angelo, D.; Heidel, K. (2018) A Process for Capturing CO2 from the Atmosphere. Joule 2, 1573-1594 (CC BY-NC-ND 4.0): Fig. 1 chemistry and enthalpies, Fig. 2 heat and mass balance, Table 1 unit data, Table 2 configurations, pp. 1576-1582", doi: 10.1016/j.joule.2018.05.006, url: "https://www.jefftk.com/keith2018.pdf"}
+  - {title: "NETL (2022) Direct Air Capture Case Studies: Solvent System. DOE/NETL-2021/2864, National Energy Technology Laboratory (US government report): Exhibits 3-2, 5-2 to 5-8, the equipment list (account 15) and the operating costs (consumables)", url: "https://netl.doe.gov/projects/files/DirectAirCaptureCaseStudiesSolventSystem_083122.pdf"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/direct-air-capture-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

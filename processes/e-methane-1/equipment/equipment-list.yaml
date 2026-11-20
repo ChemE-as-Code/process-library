@@ -1,0 +1,37 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# after the Falkenhagen methanation unit (STORE&GO D5.9 sections 2.1, 4.1 and 8.4; D8.3) and the
+# flowsheet. Design pressures, temperatures and materials are not set yet (basic engineering).
+# All values ASSUMED unless a source is named.
+schema: cheme/equipment/v1
+equipment:
+  - {tag: K-101, type: ReciprocatingCompressor, service: "Hydrogen compressor, two stages with intercooler and aftercooler, 120 to 1530 kPa(a)",
+     notes: "9.0045 kmol/h (200 Nm3/h) dry hydrogen; 28.1 kW shaft power at an isentropic efficiency of 0.70 (ASSUMED), stage outlet up to about 510 K before each cooler; the coolers reject 27.4 kW (Q0) (scripts/balance.py, D-006). Hydrogen service: materials resistant to hydrogen embrittlement, the casing purged with nitrogen before start-up (D-010)."}
+  - {tag: E-100, type: HeatExchanger, service: "CO2 let-down heater (thermal oil) with the pressure control valve, dense CO2 at 15.3 MPa to gas at 1.53 MPa",
+     notes: "6.8 kW (Q1), heated before and after the valve so the CO2 stays gaseous: isenthalpic let-down from 303.15 K would end at about 245 K, two-phase (Span-Wagner, CoolProp 8.0.0; scripts/balance.py, D-003). The pipeline side rated for 15.3 MPa; relief on the low-pressure side for a failed-open control valve (D-010)."}
+  - {tag: E-101, type: HeatExchanger, service: "Feed/effluent exchanger: feed 313.15 to 523.15 K against the honeycomb reactor's effluent 623.15 to 442.3 K",
+     notes: "20.8 kW (Q2, scripts/balance.py, D-004, D-007). The effluent (58 mol% water) reaches its dew point, 445.5 K at 1440 kPa(a), inside the exchanger and leaves two-phase with 0.67 of its 4.14 kmol/h of water condensed (IAPWS-95): a condensing hot side. Start-up heats the loop with circulated hydrogen and the oil heater (STORE&GO D5.9 section 4.1.1), not shown on the PFD."}
+  - {tag: R-101, type: TubularReactor, service: "Honeycomb methanation reactor: metallic honeycombs coated with a nickel catalyst in parallel tubes, thermal oil on the shell side",
+     notes: "92 % CO2 conversion at 623.15 K (about 350 C) and 1.46-1.49 MPa(a) (STORE&GO D5.9 Table 4-1 and appendix 8.4); GHSV 732 1/h as built at this point (D5.9 Table 4-1), so about 0.34 m3 of honeycomb for the 250 Nm3/h feed; 93.0 kW reaction heat to the oil (Q3, cheme process propagate); the outlet temperature held by the oil's flow (D5.9 section 2.1), D-004."}
+  - {tag: E-102, type: AirCooledHeatExchanger, service: "Air cooler of the honeycomb reactor's effluent to 333.15 K",
+     notes: "49.2 kW of Q4 (55.5 kW with E-103): the two-phase effluent from 442.3 K to 333.15 K, condensing 3.43 kmol/h, so that 4.10 of the 4.14 kmol/h of reaction water is liquid at its outlet (scripts/balance.py; D5.9 section 2.1: air cooler to 60 C, and p. 39: the condensation heat at 60 C a usable heat source), D-007."}
+  - {tag: E-103, type: HeatExchanger, service: "Water cooler of the first stage's gas to 283.15 K (chilled water)",
+     notes: "6.3 kW of Q4 (scripts/balance.py); the chilled water from a packaged refrigeration unit whose power is in W2 (D5.9 section 2.1: water cooler to 10 C), D-007."}
+  - {tag: V-101, type: Separator, service: "First knock-out drum (reaction water)",
+     notes: "74.8 kg/h condensate at 283.15 K and 1420 kPa(a), with 0.15 kg/h CO2 and 0.02 kg/h CH4 dissolved (Henry's law); the gas leaves saturated (0.0866 mol% water), D-007."}
+  - {tag: E-104, type: ElectricHeater, service: "Electric preheater of the polishing reactor's feed, 283.15 to 513.15 K",
+     notes: "7.21 kW (W3); electric as at Falkenhagen (D5.9 appendix 8.4: the only electric heating of the ASPEN model), D-005."}
+  - {tag: R-102, type: TubularReactor, service: "Polishing reactor: tubular fixed bed of nickel catalyst pellets, thermal oil on the shell side, isothermal",
+     notes: "At 513.15 K (about 240 C, D5.9 appendix 8.4) and 1400 kPa(a) the CO2 left after R-101 reaches its equilibrium conversion, 98.95 % (scripts/balance.py, solved on this reactor's feed; cheme process reactors: ln(Q/K) -0.0003); overall 99.77 % of the hydrogen converted; 8.5 kW to the oil (Q5); overall GHSV 500 1/h as built (D5.9 Table 4-1), D-005."}
+  - {tag: E-105, type: HeatExchanger, service: "Product gas coolers (air, then chilled water) to 283.15 K",
+     notes: "11.0 kW (Q6): 9.1 kW by air to 333.15 K and 1.9 kW by chilled water to 283.15 K (scripts/balance.py); D5.9 section 2.1: two exchangers to 10 C, D-007."}
+  - {tag: V-102, type: Separator, service: "Second knock-out drum",
+     notes: "6.31 kg/h condensate at 283.15 K and 1380 kPa(a), with its dissolved gases (Henry's law), D-007."}
+  - {tag: H-301, type: Pump, service: "Thermal oil circuit: circulation pumps, expansion vessel, start-up heater and oil air cooler",
+     notes: "Takes 101.5 kW from R-101 and R-102 at about 180-200 C (D5.9 Table 4-1: heat used at 184 C), gives 6.8 kW to E-100 and rejects 94.7 kW in its air cooler (Q8) at the generic site without a heat user (D-009); pump power in W2."}
+  - {tag: A-201, type: Vessel, service: "Adsorption dryers, two vessels (one adsorbing, one regenerating by heating)",
+     notes: "Removes the 0.036 kg/h of water left after V-102 to the grid's dew point (D5.9 section 2.1: two parallel drying vessels to the DVGW rules); regeneration in a closed loop (ASSUMED), D-008."}
+  - {tag: K-201, type: ReciprocatingCompressor, service: "Grid injection compressor with aftercooler, 1350 to 5000 kPa(a)",
+     notes: "50.8 Nm3/h SNG; 5.1 kW at 0.1 kWh/Nm3 (D5.9 Table 4-2); its coolers reject 4.4 kW (Q9: the work less the gas's warming from 283.15 to 313.15 K, scripts/balance.py); at Falkenhagen the existing hydrogen injection compressors were used (D8.3), D-008."}
+  - {tag: T-101, type: Tank, service: "Condensate tank, atmospheric, vented",
+     notes: "81.1 kg/h of condensate let down from V-101, V-102 and the dryers; the gases dissolved in it at 1.38-1.42 MPa(a), 0.177 kg/h (0.151 CO2, 0.025 CH4), are released through its vent (counted as an emission, D-007, L-4)."}

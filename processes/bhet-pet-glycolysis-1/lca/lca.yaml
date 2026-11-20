@@ -1,0 +1,96 @@
+# Goal and scope of the bhet-pet-glycolysis-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme
+# assess lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never
+# edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-012): every exchange of the batch
+# plant with its amount per kg of dried BHET, from the flowsheet's year averages of the recipe
+# (D-003). The fresh glycol and the make-up water are linked to their library producers
+# (lca/mappings.yaml: ethylene-glycol-1, demineralised-water-1) and the steam is counted as heat
+# delivered; core's assessment leaves the other backgrounds unmapped (`missing:` says what each
+# should connect to): a gap, never zero, and no values from licensed databases. The Atlas LCI
+# (scripts/build_lci.py) also links power, cooling water and the wastewater through the shared
+# lci/mappings.yaml, so six of these stay Atlas gaps (D-012).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of bis(2-hydroxyethyl) terephthalate (BHET) made
+  by chemical recycling of post-consumer PET: zinc-acetate-catalysed glycolysis of washed flake
+  with ethylene glycol at atmospheric reflux, removal of the oligomers, crystallisation and
+  recrystallisation from water, drying, and recovery of water and glycol by distillation, at the
+  concept stage: which raw materials, utilities and wastes the batch plant exchanges per kg of
+  BHET, as the foreground for a cradle-to-gate study and a recycled feed of PET polycondensation.
+  Most utility backgrounds are not mapped yet (D-012).
+functional_unit: {product: BHET, amount: 1, unit: kg, source: "1 kg of dried BHET (modelled 99.8 wt%) at the plant gate to packing, stream S22 (D-002, D-008, D-012)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as the other batch entries do.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant: washed PET flake glycolysed with ethylene glycol (2 kg per kg PET) and zinc acetate (1.5 g per kg PET) for 2 h at the glycol's reflux at 470 K, hot-filtered, quenched with the second mother liquor to 343 K and filtered of the oligomers (90 % recycled), crude BHET crystallised at 288 K and centrifuged, redissolved in 6 kg of water per kg at 353 K, recrystallised at 288 K, centrifuged and vacuum-dried at 343 K; the first mother liquor distilled, the water (95 %) and the glycol with its BHET and catalyst (95 %) recycled; 3944.66 kg per batch, 1268 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # raw materials
+  - key: feed:PETF
+    missing: "not mapped yet (D-012): under the cut-off model the post-consumer PET carries no burden of its first life; what remains is its collection, sorting, washing and grinding to clean flake, which no library process makes yet; connect to: sorting and washing of post-consumer PET bottles to flake, per kg"
+    source: "flowsheet stream S1, the washed flake with 0.5 wt% non-PET solids (D-004)"
+  - key: feed:EGF
+    missing: "linked to processes/ethylene-glycol-1 (lca/mappings.yaml): MEG by ethylene oxide hydration, per kg"
+    source: "flowsheet stream S2, the fresh glycol (D-004)"
+  - key: feed:CATF
+    missing: "not mapped yet (D-012); connect to: zinc acetate (from zinc oxide and acetic acid), per kg; about 0.06 g per kg BHET"
+    source: "flowsheet stream S3, the catalyst make-up (D-004)"
+  - key: feed:WATF
+    missing: "linked to processes/demineralised-water-1 (lca/mappings.yaml): demineralised water, per kg"
+    source: "flowsheet stream S31, the make-up water (D-004, D-007)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped in core's assessment (no Brightway background here); the Atlas LCI links it through the shared lci/mappings.yaml entry `electricity` (market for electricity, medium voltage), so it is no Atlas gap (D-012)"
+    source: "flowsheet energy streams P1 to P6 (agitators, filters, centrifuges, the dryer's drive and vacuum pump, the column's pumps), D-009"
+  - key: feed:HPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 4100 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q1 (R-101's heat-up, core's conversion duty), Q10 (R-101's heat-up distillation and reflux boil-up, by hand) and Q8 (the column's reboiler, by hand), D-009"
+  - key: feed:LPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 350 kPa(a), from a natural-gas-fired site boiler, per kWh of condensing heat"
+    source: "flowsheet energy streams Q2 and Q4 (core's crystallizer duties) and Q6 (core's dryer model), D-009"
+  - key: product:CW
+    missing: "not mapped in core's assessment; the Atlas LCI links it through the shared lci/mappings.yaml entry `cooling-water` (the screening proxy per kWh of heat rejected), so it is no Atlas gap (D-012)"
+    source: "flowsheet energy streams Q11 (R-101's overhead condenser), Q7 (the dryer's condenser) and Q9 (the column's condenser), by hand, and Q12 (the dryer's product cooling, core's dryer model), D-009"
+  - key: product:CHW
+    missing: "not mapped yet (D-012); connect to: refrigeration at 278 K (chilled water) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
+    source: "flowsheet energy streams Q3 and Q5 (both crystallisations, core's crystallizer duties), D-009"
+  # wastes
+  - key: product:RES
+    treatment: {kind: waste, route: "incineration of the hot-filter residue: polyolefin and label fragments wetted with glycolysate (D-010)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a mixed organic process waste with energy recovery (e.g. processes/waste-incineration-1), per kg"
+    source: "flowsheet stream S6 (D-008, D-010)"
+  - key: product:OPURGE
+    treatment: {kind: waste, route: "incineration of the oligomer purge, a wet cake of PET oligomers with glycol and water (D-010)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a wet organic process waste (e.g. processes/waste-incineration-1), per kg"
+    source: "flowsheet stream S10 (D-006, D-010)"
+  - key: product:GPURGE
+    treatment: {kind: waste, route: "incineration of the glycol residue purge: glycol with DEG, BHET, oligomers and zinc acetate (D-010)"}
+    missing: "not mapped yet (D-012); connect to: incineration of a liquid organic process waste containing zinc (e.g. processes/waste-incineration-1), per kg"
+    source: "flowsheet stream S28 (D-008, D-010)"
+  - key: product:WW
+    treatment: {kind: waste, route: "site wastewater treatment of the distillate purge: water with about 0.04 wt% glycol (D-010)"}
+    missing: "not mapped in core's assessment; the Atlas LCI links it through the shared lci/mappings.yaml entry `wastewater` (the proxy per kg of wastewater to treatment), so it is no Atlas gap (D-012)"
+    source: "flowsheet stream S30 (D-008, D-010)"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: glycol-vents, method: storage-tank, equipment: [R-101, T-303], reason: "No P&ID yet: the nitrogen purge of R-101's reflux condenser and the breathing of the glycol tank carry glycol vapour (low at ambient temperature); vented through the site's scrubber, not estimated (D-010, D-011)."}
+  - {id: dryer-dust, method: equipment-leaks, reason: "BHET dust in the dryer's vacuum vent and in packing is not estimated (D-008, D-010)."}
+  - {id: column-vent, method: storage-tank, equipment: [T-301, T-302, T-304], reason: "The column's and the liquor tanks' vents (T-304: the second mother liquor at 288 K, 98 % water) carry water vapour with traces of glycol and of the acetic acid the catalyst may release; not estimated (D-010)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2013"}   # ISIC Rev.4 2013 Manufacture of plastics and synthetic rubber in primary forms
+  modelling: {principle: attributional}
+  geography: {description: "Generic chemical-recycling site next to a PET bottle sorting and washing plant, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #516, unreviewed"

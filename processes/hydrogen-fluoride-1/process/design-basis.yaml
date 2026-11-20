@@ -1,0 +1,51 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Anhydrous hydrogen fluoride from fluorspar and sulfuric acid in a rotary kiln, a continuous
+# plant, issue ChemE-as-Code/process-library#513. Values marked ASSUMED are engineering choices
+# of this concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: anhydrous hydrogen fluoride (modelled 99.997 wt% HF) to storage at the battery limit
+  fluorspar_feed_kg_per_h: 4800          # given (D-002): US 6 699 455 B2, Example 4 (80 kg/min to one kiln)
+  ahf_kg_per_h: 2304.8                   # calculated by cheme process propagate (stream S17)
+  ahf_t_per_year: 18439                  # ASSUMED 8000 h/a x 2.3048 t/h (D-002)
+  operating_hours_per_year: 8000         # ASSUMED (D-002): continuous operation
+feeds:
+  - name: Acid-grade fluorspar, dried
+    source_of_values: "ASSUMED (D-004): 97.5 wt% CaF2, 1.0 SiO2, 1.0 CaCO3, 0.4 Fe2O3 (iron and aluminium oxides), 0.1 flotation fatty acids, inside the BREF LVIC-AAF 2007 Table 6.2 limits; 4800 kg/h at about 400 C after the preheater (US 6 699 455 B2)"
+    composition: "CaF2 97.5 wt%"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Sulfuric acid 98.5 wt% (sulfuric-acid-1)
+    source_of_values: "calculated (D-006): set by the design specification for 1.0 wt% free acid in the kiln solids; 2.32 kg per kg AHF"
+    composition: "H2SO4 98.5 wt%, water"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 400}
+  - name: Oleum (counted as its free SO3)
+    source_of_values: "calculated (D-007): set by the design specification for 3.0 wt% water in the feed acid; 0.275 kg SO3 per kg AHF"
+    composition: "SO3"
+    conditions: {temperature_K: 313.15}
+  - name: Quicklime, process water, caustic soda 50 wt%
+    source_of_values: "ASSUMED (D-008): lime 1.05 x the anhydrite's free acid; water for 25 wt% H2SiF6; caustic 2.2 mol per mol SO2"
+products:
+  - name: Anhydrous hydrogen fluoride
+    purity: "modelled 99.997 wt% HF, 29 ppm water; the low boilers fully removed by the split (L-2); no open product specification read"
+    delivery: {temperature_K: 283.15, pressure_kPa_a: 101.325, battery_limit: "carbon-steel storage tanks below 15 C (BREF LVIC-AAF 2007, 6.2.7)"}
+  - name: Anhydrite (neutralised)
+    note: "3.63 kg per kg AHF (BREF: about 3.7 t per t), 98.3 wt% CaSO4, 0.8 wt% CaF2 before neutralisation (US 6 699 455 B2: 0.5-1.1 %); to landfill or to cement and floor screed (D-011)"
+  - name: Fluorosilicic acid
+    note: "25 wt% H2SiF6 with its precipitated silica, 0.12 kg per kg AHF (BREF 6.4.4: 25-35 %) (D-008)"
+  - name: Scrubber effluent and tail gas
+    note: "alkaline effluent with the sulfite to waste-water treatment; tail gas with the carbonate's CO2 and 0.0049 g SO2 per kg AHF, inside the BREF's 0.001-0.01 kg/t (D-008); flue gas of the burners with 0.25 kg CO2 per kg AHF (D-009)"
+utilities:
+  - {name: Natural gas (fuel), use: "207 kg/h (2879 kW LHV, 4.50 GJ per t AHF, inside the BREF's 4-5 GJ/t) for the spar preheater (478 kW absorbed) and the kiln (899 kW absorbed of the patent's at most 189 m3/h): a furnace efficiency of 0.478 (D-009)", note: ASSUMED}
+  - {name: Electric power, use: "auxiliaries 225 kWh per t AHF, the middle of the BREF's 150-300 kWh/t (D-009)", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 450, use: "column reboilers, 410 kW (the high-boiler column 0.6 GJ/t, BREF 6.2.4)", note: ASSUMED}
+  - {name: Refrigeration (brine 258 K), use: "HF condensers and column condensers, 794 kW, 1.24 GJ per t AHF (BREF: 2-3 GJ/t)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "pre-purification scrubber 204 kW, anhydrite cooler 335 kW", note: ASSUMED}
+site:
+  location: ASSUMED generic chemicals site with fluorspar supply, natural gas and a sulfuric acid plant nearby, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: fluorspar and sulfuric acid in an indirectly fired rotary kiln, gas purification, condensation and distillation as the BREF LVIC-AAF 2007, chapter 6, and US 6 699 455 B2 describe it (D-001)."
+  - "Kiln: R1 converts 0.9613 of the CaF2, R2 0.90 of the silica (ASSUMED); 0.8 wt% CaF2 and 1.0 wt% H2SO4 left in the kiln solids (US 6 699 455 B2: 0.5-1.1 and 0.5-1.7 %) (D-005, D-006)."
+  - "Scrubbers, condenser and columns are component splits (ASSUMED, L-2); no HF-H2O vapour-liquid model (D-007)."
+  - "All flows are concept estimates; accuracy +/-30 % not demonstrated."

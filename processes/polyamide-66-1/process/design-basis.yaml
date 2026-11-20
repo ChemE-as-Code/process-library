@@ -1,0 +1,45 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Polyamide 66 by batch melt polycondensation of AH salt in an autoclave, issue
+# ChemE-as-Code/process-library#521. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: polyamide 66 pellets to the silos at the battery limit
+  polyamide_66_t_per_year: 8000          # ASSUMED (D-002): one autoclave train for speciality grades (SRC-1: batch autoclaves suit speciality polyamides)
+  operating_hours_per_year: 7920         # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batches: "from the recipe (process/recipe.yaml, D-003); the autoclave R-201 is the bottleneck"
+feeds:
+  - name: Adipic acid (adipic-acid-1, crystals)
+    source_of_values: ASSUMED (D-004)
+    composition: "adipic acid 100 % (impurities not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Hexamethylenediamine (bought in, molten)
+    source_of_values: "ASSUMED molten from heated storage (D-004); the excess over the acid is the diamine stripped with the steam (D-004, D-010)"
+    composition: "hexamethylenediamine 100 %"
+    conditions: {temperature_K: 333.15, pressure_kPa_a: 101.325}
+  - name: Demineralised water (salt solution)
+    source_of_values: "EU POL BREF section 9.2.2.1: the salt solution at 52 to 53 %, ASSUMED 52.0 wt% (D-004)"
+products:
+  - name: Polyamide 66 pellets
+    purity: "the model's pellets are 99.22 wt% polymer (repeat units), 0.58 wt% unlinked chain ends counted as salt and 0.2 wt% water (ASSUMED, D-006, D-007); molar mass, end-group balance, viscosity and additives (molecular weight regulator, antifoam, delustrant) not modelled"
+    delivery: {temperature_K: 323.15, pressure_kPa_a: 101.325, battery_limit: pellet silos (not in the boundary)}
+  - name: Process condensate to wastewater treatment
+    note: "the water evaporated in the autoclave with the diamine stripped from it (2.69 kg per t of pellets, from the BREF's COD before treatment, D-010)"
+utilities:
+  - {name: Electric power, use: "agitators, condensate pump, strand cutter, quench water pump, conveying (D-009)"}
+  - {name: Hot oil, supply_K: 593.15, return_K: 573.15, use: "the autoclave's jacket and coils; the heater fired on natural gas (D-009)", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 350, use: "the dissolver's warming (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the neutralisation, the vapour condenser E-201, the strand quench water", note: ASSUMED}
+  - {name: Nitrogen, use: "blankets of the diamine and salt tanks, the autoclave's purge and extrusion pressure, the pellet silos (consumable per batch, D-012)", note: ASSUMED}
+site:
+  location: ASSUMED generic polymer site with adipic acid and diamine supply, hot oil and nitrogen, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: melt polycondensation of the 52 wt% AH salt solution in a batch autoclave, the cycle of EU POL BREF section 9.2.2.3: concentration to about 70 %, polycondensation with the steam bled at constant pressure up to about 275 C, depressurisation, finishing, extrusion, quench and cutting (D-001)."
+  - "ASSUMED steam-bleed pressure 1750 kPa(a), the BREF's continuous tubular reactor's about 18 bar (no batch pressure stated) (D-006)."
+  - "ASSUMED 0.995 of the salt's amide links formed (Mn about 22 600 g/mol by Carothers' relation), 0.2 wt% water left in the melt (D-006)."
+  - "ASSUMED heats of reaction: the neutralisation -100 kJ/mol (no open value), the polycondensation -65.9 kJ per mol of repeat units (Steppan's apparent amidation enthalpy as given by Nisoli et al.) (D-005, D-006)."
+  - "ASSUMED diamine stripped with the steam: the BREF's COD before treatment of the batch process (5300 to 7300 g/t, mid 6300) taken as diamine at its theoretical oxygen demand, 2.69 kg per t of pellets, made up by the diamine's excess in the salt (D-004, D-010)."
+  - "ASSUMED autoclave cycle 5.25 h (charge 0.5, concentration 1.0, polycondensation 1.5, depressurisation 1.0, finishing 0.5, extrusion 0.75 h); the BREF gives no times (D-003)."
+  - "All flows are year averages of the recipe (D-003); duties from core's models (R101, R201) and scripts/balance.py (the warming, the evaporation heats, the condenser, the quench), the drives' power concept estimates (D-009); accuracy +/-30 % not demonstrated."

@@ -1,7 +1,9 @@
 # Benchmarks of oxygenated intermediates: purified terephthalic acid, adipic acid and propylene
 # oxide, and vinyl acetate (vinyl-acetate-1: the ethylene KPI is bound to the reactor
 # selectivity of the patent the dataset takes its own selectivity from, so it tests the plant's
-# losses beside the reactor, not new data; the acetic acid KPI has no open reference). Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
+# losses beside the reactor, not new data; the acetic acid KPI has no open reference), and MTBE
+# (mtbe-1: the isobutene KPI is bound to the industrial and Nijhuis et al.'s conversions that
+# the dataset's source reports beside its own model's; the methanol KPI has no open reference). Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts
 # from the cited source, in our own form.
 #
 # terephthalic-acid-1:
@@ -59,6 +61,9 @@
 # Example 5, and it leaves out the losses of the separation (the dataset's whole-plant figure sits
 # inside it). The steam KPIs record no_open_reference (searched 2026-11-19, DESIGN.md source
 # register and D-012).
+#
+# ibuprofen-1 (#508; an aryl propionic acid, filed among the oxygenates): no open source gives a
+# plant's consumptions independent of the dataset's patents; both KPIs record no_open_reference.
 #
 # salicylic-acid-1 (#507; a hydroxy acid, filed among the oxygenates): benchmarks must be
 # independent of the dataset (docs/benchmarks.md). The dataset takes its charge, CO2 dose and
@@ -466,6 +471,14 @@ kpis:
     title: Wastewater (mother liquor after phenol recovery, wash filtrate, condensates) per kg of salicylic acid
     unit: kg/kg
     no_open_reference: "No open source with the liquor volume of salicylic acid manufacture independent of the dataset found (searched 2026-11-19 as for salicylic-acid-specific-phenol); US 4 376 867 A's 8 to 10 t of water per t of sodium salicylate is the dataset's own source."
+  eh-specific-propylene:
+    title: Propylene consumption per kg of 2-ethylhexanol (oxo route, aqueous Rh hydroformylation)
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's propylene use per kg of 2-ethylhexanol found (searched 2026-11-19: US 4 684 750 A, the dataset's own source, gives the crude's composition and the yield on n-butanal, not on propylene; US 4 523 036 A and US 4 148 830 A read, no consumption per product). The stoichiometric floor at the crude's 95 % n-selectivity is 0.680 kg/kg (2 x 42.081 / 130.231 / 0.95)."
+  eh-specific-hydrogen:
+    title: Hydrogen consumption (hydrogenation) per kg of 2-ethylhexanol
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's hydrogen use per kg of 2-ethylhexanol found (searched 2026-11-19 as for eh-specific-propylene; US 4 684 750 A gives the hydrogenation's conditions and LHSV, not its hydrogen per product). The stoichiometric floor is 0.0310 kg/kg (2 x 2.016 / 130.231)."
 
   vam-specific-ethylene:
     title: Ethylene consumption per kg of vinyl acetate (gas-phase acetoxylation)
@@ -589,6 +602,42 @@ kpis:
     title: Acetic anhydride consumption per kg of acetylsalicylic acid
     unit: kg/kg
     no_open_reference: "No open source with a plant's acetic anhydride use per kg of aspirin found (searched 2026-11-19: US 2 731 492 A read, which regenerates the anhydride from the liquor's acetic acid with ketene, so its anhydride use is not a consumption; US 2 987 539 A read, laboratory charges with the excess recycled in the liquor; US 6 278 014 B1 read, a solvent-free route). The stoichiometric floor is 0.5667 kg/kg (102.089 / 180.159), a limit, not a range of real plants."
+  mtbe-specific-isobutene:
+    title: Isobutene consumed per kg of MTBE (catalytic distillation of a C4 raffinate)
+    unit: kg/kg
+    references:
+      - id: bao-2002-isobutene-conversion
+        range: [0.6389, 0.6462]
+        basis: unallocated
+        note: "Our conversion of the isobutene conversions an open study reports for MTBE catalytic distillation columns into isobutene per kg of MTBE (56.106 / 88.148 = 0.6365 kg/kg at full conversion, divided by the conversion): 99.62 % in Bao et al.'s industrial column (0.6389), 98.5 % in Nijhuis et al.'s simulation (0.6462), both as Murat et al. (2003) report them (Tables 2 and 4). The isobutene not converted leaves with the raffinate-2."
+        conditions: {technology: "catalytic distillation of a C4 raffinate with methanol over acidic ion-exchange resin, with or without a pre-reactor", region: generic, year: 2003}
+        source: &murat-2003
+          citation: "Murat, M.N.; Mohamed, A.R.; Bhatia, S. (2003) Modeling of a reactive distillation column: methyl tertiary butyl ether (MTBE) simulation studies. IIUM Engineering Journal 4(2), 13-30"
+          url: https://journals.iium.edu.my/ejournal/index.php/iiumej/article/download/371/319/1573
+          locator: "Table 2 (Nijhuis et al.'s column), Tables 3 and 4 (Bao et al.'s industrial column)"
+          kind: peer-reviewed
+          accessed: "2026-11-19"
+  mtbe-specific-methanol:
+    title: Methanol consumed per kg of MTBE
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's methanol use per kg of MTBE found (searched 2026-11-19: Murat et al. 2003 and Svandova et al. 2007 read, which model the column with its methanol feed but not the recovery; US 4 918 243 A and US 5 336 841 A read, which recover the excess methanol and give no consumption). The stoichiometric floor is 0.3635 kg/kg (32.042 / 88.148), a limit, not a range of real plants."
+  bpa-specific-phenol:
+    title: Fresh phenol consumption per kg of bisphenol A (resin route, adduct crystallization)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's phenol use per kg of bisphenol A found (searched 2026-11-19: US 4 391 997 A, US 5 723 688 A, US 6 960 697 B2, US 4 950 806 A and US 4 950 804 A read on Google Patents, and the EU risk assessment of bisphenol A, EUR 24588 EN; none states a consumption). The stoichiometric floor is 0.8245 kg/kg (2 x 94.111 / 228.286); the dataset's excess is the cracking-still residue and the wastewater of bisphenol-a-1 (DESIGN.md D-008, D-014)."
+  bpa-specific-acetone:
+    title: Fresh acetone consumption per kg of bisphenol A (resin route, adduct crystallization)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's acetone use per kg of bisphenol A found (searched 2026-11-19, the sources named under bpa-specific-phenol). The stoichiometric floor is 0.2544 kg/kg (58.079 / 228.286); bisphenol-a-1's excess is the acetone bound in the bisphenol A, the isomer and the by-products left in the cracking-still residue (the bisphenol A itself the largest share), the acetone in the wastewater and the impurities in the product (DESIGN.md D-005, D-008)."
+
+  ibuprofen-specific-isobutylbenzene:
+    title: Isobutylbenzene consumption per kg of ibuprofen (BHC route)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's isobutylbenzene use per kg of ibuprofen independent of the dataset found (searched 2026-11-19: US 4 981 995 A and US 5 151 551 A, the dataset's own sources, give laboratory conversions and selectivities per step; the US EPA 1997 Green Chemistry award page gives atom utilisation, about 80 %, not a consumption). The stoichiometric floor is 0.651 kg/kg (134.222 / 206.285), a limit, not a range."
+  ibuprofen-specific-acetic-anhydride:
+    title: Acetic anhydride consumption per kg of ibuprofen (BHC route)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's acetic anhydride use per kg of ibuprofen found (searched 2026-11-19 as for ibuprofen-specific-isobutylbenzene); US 4 981 995 A Example 1 charges 2 mol per mol of isobutylbenzene in a laboratory batch, the dataset's own source. The stoichiometric floor is 0.495 kg/kg (102.089 / 206.285)."
 datasets:
   - process: terephthalic-acid-1
     dataset: pta-px-air-oxidation
@@ -776,3 +825,31 @@ datasets:
     kpis:
       salicylic-acid-specific-phenol: {expression: feed:PHF / product:SA, per: product:SA}
       salicylic-acid-specific-wastewater: {expression: product:WW / product:SA, per: product:SA}
+  - process: mtbe-1
+    dataset: methyl-tert-butyl-ether-by-catalytic-distillation-of-a-c4-raffinate-with-methanol-500-kt-a
+    conditions: {technology: "catalytic distillation of a C4 raffinate (35.6 mol% isobutene, the inert C4 as 1-butene) with methanol at 11 bar over acidic ion-exchange resin on 8 of 17 stages, reflux 7, water wash of the raffinate-2, low-pressure methanol column", basis: "concept balance on Murat et al. (2003) Tables 1 and 2 (99.5 % conversion, the bottoms composition, the column's duties); ASSUMED wash and methanol column splits (mtbe-1 DESIGN.md D-004 to D-008)"}
+    kpis:
+      mtbe-specific-isobutene:
+        expression: feed:IBC / product:MTBEP
+        per: product:MTBEP
+        reference: bao-2002-isobutene-conversion
+        out_of_range_reason: "The KPI is per kg of the product, 99.10 wt% MTBE with 0.90 wt% C4 (Murat et al.'s bottoms, 1.4 mol% C4): 0.634 kg/kg. Per kg of the MTBE it holds, 0.6397 kg/kg, at the dataset's 99.5 % conversion (Murat et al.'s own model), inside the range. The reference's source is also the dataset's, for its own model's conversion; the bound figures are the other two columns it reports."
+      mtbe-specific-methanol: {expression: feed:MEOH / product:MTBEP, per: product:MTBEP}
+  - process: bisphenol-a-1
+    dataset: bisphenol-a-from-phenol-and-acetone-over-a-promoted-sulfonated-resin-8.75-t-h-70-kt-a
+    conditions: {technology: "phenol and acetone (10 mol/mol) over a mercaptoamine-promoted sulfonated resin in three adiabatic fixed beds, adduct crystallization without distillation by vacuum-evaporative cooling, phenol displacement wash, melting and vacuum phenol stripping, mother liquor isomerised and recycled with a purge to a phenol-recovery still", basis: "concept balance, the laboratory conversion and selectivities of US 4 391 997 A and the crystallizer's yield, recoveries and splits ASSUMED (DESIGN.md D-005 to D-009)"}
+    kpis:
+      bpa-specific-phenol: {expression: feed:PH / product:BPAP, per: product:BPAP}
+      bpa-specific-acetone: {expression: feed:AC / product:BPAP, per: product:BPAP}
+  - process: 2-ethylhexanol-1
+    dataset: 2-ethylhexanol-by-propylene-hydroformylation-aldol-condensation-and-hydrogenation-120-kt-a
+    conditions: {technology: "propylene hydroformylation with an aqueous Rh/TPPTS catalyst at 5 MPa and 393 K, n/iso-butanal column, aldol condensation with aqueous NaOH, gas-phase Cu and liquid-phase Ni hydrogenation, three columns", basis: "concept balance, the crude, purities, caustic and overall yield of US 4 684 750 A, ASSUMED per-pass conversion, splits, purges and duties (DESIGN.md D-004 to D-009)"}
+    kpis:
+      eh-specific-propylene: {expression: feed:C3 / product:EHP, per: product:EHP}
+      eh-specific-hydrogen: {expression: feed:H2F / product:EHP, per: product:EHP}
+  - process: ibuprofen-1
+    dataset: ibuprofen-by-the-bhc-route-hf-acylation-hydrogenation-and-pd-carbonylation-3500-t-a
+    conditions: {technology: "BHC route: acylation of isobutylbenzene with acetic anhydride in anhydrous HF (semi-batch, HF recycled), Raney nickel hydrogenation, Pd-catalysed carbonylation with CO in aqueous HCl; water washes, vacuum distillation, crystallisation from hexane; batch, 3500 t/a", region: generic, year: 2026}
+    kpis:
+      ibuprofen-specific-isobutylbenzene: {expression: feed:IBBF / product:IBU, per: product:IBU}
+      ibuprofen-specific-acetic-anhydride: {expression: feed:AC2OF / product:IBU, per: product:IBU}

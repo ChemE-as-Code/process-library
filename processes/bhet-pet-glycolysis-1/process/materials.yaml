@@ -1,0 +1,49 @@
+# Components and templates of bhet-pet-glycolysis-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula: C 12.011, H 1.008, O 15.999,
+# Zn 65.38), normal_boiling_point in K at 101.325 kPa.
+#
+# PET is carried as its repeat unit, ethylene terephthalate C10H8O4 (192.17 kg/kmol), as the
+# sources count it (SRC-1 defines the yield per mole of repeat unit, 192 u). The glycolysis
+# oligomers are lumped as the BHET dimer C22H22O10 (two repeat units and one glycol; DESIGN.md
+# D-005): dissolved in the hot glycolysate (OLIG), precipitated as a solid when water is added
+# at 343 K (OLIG_S). BHET is dissolved (BHET) or crystals (BHET_S). The non-PET solids of the
+# washed flake (cap and label fragments) are one inert solid, IMP, lumped as polyethylene
+# (D-004). The zinc acetate catalyst (ZNAC) is carried as a dissolved molecule, an inventory
+# basis, not a speciation.
+#
+# Property sources (DESIGN.md SRC-7, with SRC-2 for the check of BHET's melting point; library ADR 0037: single facts with the package and
+# method named, not open data; the underlying works were not read):
+# - normal boiling points from chemicals 1.5.2: water and ethylene glycol method HEOS (its
+#   CoolProp-based value), diethylene glycol method CRC_ORG (the CRC Handbook tables it
+#   packages); BHET's melting point 382.65 K (CRC_ORG), consistent with SRC-2's 106 to 110 C;
+# - liquid densities and heat capacities from thermo 0.6.1: water 75.3 kJ/(kmol K) (as
+#   salicylic-acid-1); ethylene glycol 1109.9 kg/m3 at 298.15 K and 163.1 kJ/(kmol K) at
+#   343.15 K (method HEOS_FIT, a fit to the CoolProp equation of state); diethylene glycol
+#   1114.2 kg/m3 at 298.15 K (method "Fit 2023") and 264.8 kJ/(kmol K) at 343.15 K (method
+#   ZABRANSKY_SPLINE: Zabransky et al., heat capacities of liquids, not read);
+# - BHET: 1260 kg/m3 at 298.15 K (thermo 0.6.1 method YEN_WOODS_SAT) and 417.0 kJ/(kmol K) at
+#   343.15 K (method DADGOSTAR_SHAW): both corresponding-states or group-contribution
+#   estimates, not measurements (ASSUMED as such); the crystals take the same values;
+# - ASSUMED, no open value read: PET 1380 kg/m3 and 1.2 kJ/(kg K) (230.6 kJ/(kmol K)); the
+#   oligomers 1350 kg/m3 and 1.2 kJ/(kg K); zinc acetate 1800 kg/m3 and 170 kJ/(kmol K); the
+#   non-PET solids 930 kg/m3 and 2.0 kJ/(kg K) (polyolefin-like). Dissolved solids take their
+#   solids' volumes (ideal mixing, no partial molar volumes).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01802, liquid_heat_capacity: 75.3}
+  - {id: EG, name: Ethylene glycol (MEG), formula: C2H6O2, cas: 107-21-1, molar_mass: 62.068, normal_boiling_point: 470.31, liquid_molar_volume: 0.05592, liquid_heat_capacity: 163.1}
+  - {id: DEG, name: Diethylene glycol, formula: C4H10O3, cas: 111-46-6, molar_mass: 106.121, normal_boiling_point: 518.65, liquid_molar_volume: 0.09524, liquid_heat_capacity: 264.8}
+  - {id: PET, name: "Poly(ethylene terephthalate), as its repeat unit (washed flake)", formula: C10H8O4, cas: 25038-59-9, molar_mass: 192.17, phase: solid, liquid_molar_volume: 0.13926, liquid_heat_capacity: 230.6}
+  - {id: BHET, name: "Bis(2-hydroxyethyl) terephthalate (dissolved)", formula: C12H14O6, cas: 959-26-2, molar_mass: 254.238, liquid_molar_volume: 0.20178, liquid_heat_capacity: 417.0}
+  - {id: BHET_S, name: "Bis(2-hydroxyethyl) terephthalate (crystals)", formula: C12H14O6, cas: 959-26-2, molar_mass: 254.238, phase: solid, liquid_molar_volume: 0.20178, liquid_heat_capacity: 417.0}
+  - {id: OLIG, name: "PET oligomers, lumped as the BHET dimer (dissolved in the hot glycolysate)", formula: C22H22O10, molar_mass: 446.408, liquid_molar_volume: 0.33067, liquid_heat_capacity: 535.7}
+  - {id: OLIG_S, name: "PET oligomers, lumped as the BHET dimer (precipitated)", formula: C22H22O10, molar_mass: 446.408, phase: solid, liquid_molar_volume: 0.33067, liquid_heat_capacity: 535.7}
+  - {id: ZNAC, name: Zinc acetate (dissolved catalyst), formula: C4H6O4Zn, cas: 557-34-6, molar_mass: 183.468, liquid_molar_volume: 0.10193, liquid_heat_capacity: 170.0}
+  - {id: IMP, name: "Non-PET solids of the flake (cap and label fragments, lumped as polyethylene)", formula: C2H4, molar_mass: 28.054, phase: solid, liquid_molar_volume: 0.03017, liquid_heat_capacity: 56.1}
+templates:
+  - {id: all, title: "Flake, glycol, glycolysate, liquors, slurries and cakes", components: [H2O, EG, DEG, PET, BHET, BHET_S, OLIG, OLIG_S, ZNAC, IMP]}
+property_method:
+  adapter: thermo
+  status: placeholder

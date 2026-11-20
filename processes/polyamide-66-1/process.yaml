@@ -1,0 +1,110 @@
+# Process Atlas manifest of polyamide-66-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: polyamide-66-1
+title: Polyamide 66 by batch autoclave polycondensation of AH salt (8000 t/a)
+summary: >-
+  Adipic acid and hexamethylenediamine are neutralised in water to a 52 wt% AH salt solution,
+  which a batch autoclave concentrates, polycondenses to 548 K with the steam bled off,
+  depressurises and finishes; the melt is extruded, water-quenched and cut to pellets. Concept
+  stage, 5303 kg per batch every 5.25 h, thermal screening, preliminary gate-to-gate LCI.
+description: |
+  Adipic acid is slurried in demineralised water in a dissolver, warmed to 338 K, and molten
+  hexamethylenediamine is dosed into it over 2 h: the neutralisation gives the AH (nylon) salt
+  as the 52 wt% solution the EU POL BREF (2006, section 9.2.2) describes, with a 0.52 % excess of
+  the diamine that makes up what the steam strips later. The batch autoclave runs the BREF's
+  cycle: it evaporates water to 70 wt% salt at about 383 K, heats the mass on hot oil to 548 K
+  (the BREF's about 275 C) while the salt polycondenses and the steam is bled off at a constant
+  1750 kPa(a) (ASSUMED, the BREF's continuous reactor's about 18 bar), lets the pressure down to
+  atmospheric and finishes the melt. The melt is pressed out with nitrogen as strands, quenched
+  in water and cut to pellets. The vapours are condensed and go with the stripped diamine to the
+  site's biological wastewater treatment.
+
+  The batch is modelled with cheme-as-code's semi-batch for the neutraliser (reactor:
+  semibatch, core ADR 0050), a conversion step for the polycondensation (0.995 of the salt's
+  amide links, ASSUMED: Mn about 22 600 g/mol by Carothers' relation), component separators with
+  a specified split for the concentration and the steam bleed (core ADR 0070), one design
+  specification that sizes the acid for 8000 t/a with the water and the diamine following at
+  fixed ratios, and the batch recipe (core ADRs 0051, 0052, 0057): the autoclave is the
+  bottleneck (cycle 5.25 h, ASSUMED phase times, 1508.6 batches a year). Core writes the
+  neutraliser's and the polycondensation's duties; scripts/balance.py the warming, the
+  evaporation heats, the condenser and the strand quench. The thermal screening gives MTSRs of
+  338.6 K (neutraliser, MTT 373.15 K) and 548.5 K (autoclave, MTT 573.15 K ASSUMED); the hot oil's
+  supply above the autoclave's MTT calls for a high-temperature trip (open input). See
+  DESIGN.md for every assumption.
+families: [polymers]
+keywords: [polyamide 66, nylon 66, nylon 6.6, PA66, PA 66, poly(hexamethylene adipamide), AH salt, nylon salt, hexamethylenediammonium adipate, adipic acid, hexamethylenediamine, HMDA, polycondensation, step-growth polymerisation, melt polycondensation, autoclave, batch, semi-batch, steam bleed, depressurisation, finishing, strand pelletising, engineering plastics, fibres]
+facets:
+  feedstock_basis: [fossil]
+  product_classes: [polymers]
+  unit_operations: [reaction, polymerisation, evaporation, extrusion, pelletising]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, the cycle's times, the
+# conversion, the neutralisation's heat and kinetics and the steam-bleed pressure are assumed;
+# the route, the salt concentrations and the final temperature are the BREF's (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 3 blocks and 9 steps within tolerance). The feeds are sized by one design
+    specification: the adipic acid for 8000 t/a of pellets, with the water (52 wt% salt, EU POL
+    BREF section 9.2.2.1) and the diamine (1.005247 mol per mol of acid, its excess the 2.69 kg
+    per t stripped with the steam, taken from the BREF's COD before treatment) following at
+    fixed ratios. The semi-batch R101, the conversion step R201, the component separators X201
+    (to 70 wt% salt) and X202 (to 0.2 wt% water in the melt), the mixers and the pass-through
+    steps are calculated by cheme process propagate, which writes R101's and R201's duties (Q1,
+    Q4); the warming, the evaporation heats, the condenser and the strand quench (Q2, Q3, Q5 to
+    Q7) come from scripts/balance.py (checked by scripts/check_balance_scripts.py). The recipe's
+    rate agrees with the flowsheet (no cheme.recipe-basis finding); it sizes R-101 (16 m3); the
+    autoclave R-201 (16 m3) is sized by hand. Thermal screening (cheme process reactor-hazards):
+    R101 dT_ad 69.3 K, accumulation 0.87 %, MTSR 338.6 K against an MTT of 373.15 K; R201 dT_ad
+    73.1 K (from the most exothermic apparent heat of the source's correlation), MTSR 548.5 K
+    against an ASSUMED MTT of 573.15 K; the hot oil's 593 K supply lies above the MTT, so a
+    high-temperature trip on the hot oil is required (open input) and R-201's design temperature
+    is 623 K (ASSUMED); no decomposition data (TD24), no criticality class. Preliminary
+    gate-to-gate LCI: the adipic acid linked to adipic-acid-1, the nitrogen to asu-1, the hot oil
+    as heat from natural gas, the steam as heat; the water, power, cooling water and condensate
+    linked by the library's shared mappings; the diamine and the nitrogen's disposal are gaps.
+    Specific heat 0.859 kWh/kg (3.09 MJ/kg) of hot oil (water's evaporation enthalpies by
+    IAPWS-95), 0.058 kWh/kg of steam and 0.059 kWh/kg of power, 3.52 MJ/kg together, inside the
+    BREF's batch PA66 range of total energy (Table 9.8: 3.3 to 7.7 GJ/t) and below its Table 9.3
+    (5.05 to 7.25 GJ/t), whose basis the BREF does not state. cheme maturity reaches no level (assumed kinetics, heats and
+    splits); the claim `maturity: concept` is the lowest value of the schema, not an evidenced
+    level. Not reviewed. Needs cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: adipic-acid, role: feedstock, inventory_key: "feed:AAF", note: "Adipic acid (adipic-acid-1), 0.644 kg/kg polyamide 66"}
+    - {chemical: hexamethylenediamine, role: feedstock, inventory_key: "feed:HMDAF", note: "Hexamethylenediamine, molten, bought in (no library producer yet), 0.515 kg/kg, 0.52 % above the acid on a molar basis to make up the 2.69 kg per t stripped with the steam"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DW", note: "Demineralised water for the 52 wt% salt solution, 1.064 kg/kg, all evaporated again in the autoclave"}
+    - {chemical: nitrogen, role: feedstock, inventory_key: "consumable:nitrogen", note: "Nitrogen (asu-1) for the blankets, the autoclave's purge and extrusion and the pellets, 70 kg a batch (ASSUMED), 0.0132 kg/kg"}
+  outputs:
+    - {chemical: polyamide-66, role: main-product, inventory_key: "product:PA66", note: "Polyamide 66 pellets, modelled 99.22 wt% polymer, 0.58 wt% unlinked chain ends counted as salt and 0.2 wt% water, no additives, 1010.1 kg/h year average"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:COND", note: "Process condensate of the autoclave, 1.223 kg/kg, with 0.22 wt% of the stripped diamine, to biological wastewater treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.059 kWh/kg: agitators, condensate pump, strand cutter, quench water pump, surface dryer, conveying (ASSUMED powers)"}
+    - {chemical: methane, role: utility, inventory_key: "feed:HOTOIL", note: "0.859 kWh/kg of heat from a natural-gas-fired hot-oil heater to the autoclave (concentration, polycondensation, steam bleed and finishing), counted as heat absorbed"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.058 kWh/kg of LP steam 350 kPa(a) to the dissolver's warming"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "1.200 kWh/kg removed: the neutralisation (core's semi-batch model), the vapour condenser E-201 and the strand quench water (scripts/balance.py)"}
+basis:
+  capacity: "8000 t/a polyamide 66 pellets: 1508.6 batches/a of 5303.03 kg in 7920 h on a dedicated train (1010.10 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic polymer site with adipic acid and diamine supply, hot oil and nitrogen (not chosen)
+references:
+  - {title: "European Commission JRC/EIPPCB (2006) Reference Document on Best Available Techniques in the Production of Polymers (POL BREF), chapter 9 Polyamides: section 9.2.2 (PA66: the 52 to 53 % AH salt solution under nitrogen; the continuous route's concentrator at 110 C to 72 %, preheat to 212 C, tubular reactor at about 18 bar and 212 to 250 C, flasher, finisher at 285 C; the batch autoclave's cycle: concentration to about 70 %, steam bled at constant pressure, about 275 C, depressurisation, finishing, extrusion, quench, cutting, drying under nitrogen), section 9.3.3 (condensate with diamine and cyclopentanone, about 1.2 t of water per t of salt, against the model's 1.06 t/t from the 52 % solution, DESIGN.md D-010; vents through a scrubber) and Tables 9.3 and 9.8 (consumptions and emissions of batch and continuous PA66). Mirror of INERIS AIDA", url: "https://aida.ineris.fr/sites/aida/files/documents-bref/pol_bref_1006.pdf"}
+  - {title: "Nisoli, A.; Doherty, M. F.; Malone, M. F. (2004) Feasible Regions for Step-Growth Melt Polycondensation Systems. Ind. Eng. Chem. Res. 43(2), 428-440 (the activity-based nylon 6,6 amidation model of Steppan et al.; facts only, author-hosted copy read)", doi: 10.1021/ie030220w}
+  - {title: "Wikipedia, Nylon 66 (synthesis from equivalent amounts of the diamine and the acid in water, melting point 264 C, density 1.14 g/mL), Hexamethylenediamine (density 0.84 g/mL, melting point 39 to 42 C, hazards) and Adipic acid (density 1.36 g/cm3, solubility in water)", url: "https://en.wikipedia.org/wiki/Nylon_66"}
+  - {title: "The chemicals 1.5.2 and thermo 0.6.1 Python packages, open-source packages queried for single values (facts only, the underlying works not read; library ADR 0037): chemicals' CRC_ORG and OPEN_NTBKM boiling and melting points, IAPWS-95 (HEOS, iapws95_properties) for water's saturation and its enthalpies in the evaporation and condenser duties; thermo's HEOS_FIT (IAPWS-95 fit) for water's latent heat at 373.15 K and heat capacity, the estimation methods MORGAN_KOBAYASHI (the diamine's latent heat), DADGOSTAR_SHAW (the diamine's liquid heat capacity) and LASTOVKA_S (the acid's solid heat capacity)", url: "https://github.com/CalebBell/chemicals"}
+  - {title: "Stoessel, F. (2008) Thermal Safety of Chemical Processes, Wiley-VCH (accumulation and MTSR of a semi-batch; method reference, not data)", doi: 10.1002/9783527621606}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/polyamide-66-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

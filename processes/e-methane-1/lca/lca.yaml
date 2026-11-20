@@ -1,0 +1,89 @@
+# Goal and scope of the e-methane-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit those
+# by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-011): every exchange of the plant
+# per kg of SNG, from the flowsheet's design case. The hydrogen stays an open gap: the library
+# has no electrolysis entry (hydrogen-1 is steam methane reforming, the wrong supply for an
+# e-fuel), as in e-fuels-1. The CO2 is linked in the Atlas build to carbon-capture-1's
+# dense-phase product (lca/mappings.yaml); core's study here names no background for it. The
+# electricity is linked to the shared library entry by lca/mappings.yaml for the Atlas build,
+# and screened here with the packaged open UK factor (a proxy geography, D-011).
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of synthetic natural gas (e-methane) from
+  electrolytic hydrogen and captured CO2 by two-stage catalytic methanation (the STORE&GO
+  Falkenhagen design), at the concept stage: which feeds, utilities and emissions the plant
+  exchanges per kg of grid-quality SNG, as the foreground for a cradle-to-gate study once an
+  electrolytic hydrogen supply is in the library, with a screening carbon footprint of the
+  methanation unit's own electricity from cradle to gate.
+functional_unit: {product: SNG, amount: 1, unit: kg, source: "1 kg of SNG, 98.99 mol% CH4 (0.9965 kg CH4 per kg), dry, 5000 kPa(a), at the grid connection, stream S18 (D-008, D-011); 50.0 MJ LHV per kg (501.6 kW LHV for 36.13 kg/h, registry LHVs of methane and hydrogen)"}
+# The boundary key stays cradle-to-gate so that the purchased feeds and electricity remain open
+# links instead of being mapped free (the schema's gate-to-gate maps every feed free).
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: DE
+technology: "Two-stage catalytic CO2 methanation on nickel after the STORE&GO Falkenhagen demonstration: dry electrolytic hydrogen compressed to 1.53 MPa(a), CO2 let down from a 15.3 MPa dense-phase pipeline, mixed 4:1, preheated to 523 K, an oil-cooled honeycomb reactor at 623 K (92 % conversion), cooling to 283 K with water knock-out (the condensate degassed in an atmospheric tank), an electric preheater and an oil-cooled fixed-bed polishing reactor at 513 K to equilibrium (99.77 % hydrogen conversion overall), cooling and knock-out, two adsorption dryers and an injection compressor to 5.0 MPa(a); the reaction heat rejected through the thermal oil cooler at a site without a heat user"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # raw materials
+  - key: feed:H2
+    missing: "not mapped yet (D-011); no library process makes electrolytic hydrogen (hydrogen-1 is steam methane reforming, the wrong supply for an e-fuel). Connect to: hydrogen, gaseous, low pressure, from water electrolysis (alkaline or PEM) on renewable electricity, at plant; a library electrolysis entry would close it. It dominates the footprint: 0.50 kg H2 and about 31 kWh of electrolyser power per kg of SNG at Falkenhagen's measured 22.4 kWh per Nm3 SNG (STORE&GO D5.9 Table 4-2)"
+    source: "flowsheet stream S1 (D-002, D-003)"
+  - key: feed:CO2
+    co2_source: fossil-point-source
+    missing: "linked in the Atlas build to processes/carbon-capture-1 (lca/mappings.yaml): dense-phase CO2, 99.95 mol%, 15.3 MPa, from an ammonia plant's CO2 stripper vent (fossil carbon)"
+    source: "flowsheet stream S3 (D-003)"
+  # utilities
+  - key: feed:POWER
+    factor: desnz-ghg-2026:electricity-gb
+    proxy: "UK grid electricity (DESNZ 2026) for the undecided site's grid (DE assumed); the Atlas build links the library's shared entry `electricity` (medium voltage, site country) instead (lca/mappings.yaml)"
+    source: "flowsheet energy streams W1 (hydrogen compressor), W2 (chiller, fans and pumps), W3 (electric preheater) and W4 (injection compressor): computed part by part in scripts/balance.py with ASSUMED efficiencies (41.8 kW for the methanation unit, against STORE&GO D5.9's 41 kW measured as built, Table 4-1) and 0.1 kWh/Nm3 for the injection (D5.9 Table 4-2), D-006, D-008"
+  - {key: product:AMBIENT, free: true, source: "heat rejected to air and cooling water by the hydrogen compressor's coolers (Q0), the product coolers (Q4, Q6), the thermal oil cooler (Q8) and the injection compressor's coolers (Q9), D-006 to D-009: no burden; Q8 is the heat a user at about 180 C could take (D-009)"}
+  # outputs
+  - key: product:COND
+    treatment: {kind: waste, route: "process condensate (the reaction water, degassed in the condensate tank; its dissolved gases are counted in product:VENT) to the site's wastewater treatment; its reuse as electrolyser feed water after polishing is an option not taken in this case (D-007)"}
+    missing: "not mapped in core's study; the Atlas build links the shared entry `wastewater` by mass (lca/mappings.yaml)"
+    source: "flowsheet stream S15 (D-007)"
+  # emissions: the gases dissolved in the knock-outs' condensate, released at the condensate tank
+  - {key: product:VENT, emission: true, source: "stream S20: CO2, CH4 and H2 dissolved in the condensate at 1.38-1.42 MPa(a) by Henry's law (scripts/balance.py, ChemSep Henry constants in thermo 0.6.1) and released at atmospheric pressure, all of it counted (ASSUMED), D-007, L-4"}
+  - key: emission:CO2
+    elementary: {compartment: air, subcompartment: unspecified, origin: fossil}
+    source: "CO2 of the feed (carbon-capture-1's, fossil) dissolved in the condensate, S20 (D-007, D-011)"
+  - key: emission:CH4
+    elementary: {compartment: air, subcompartment: unspecified, origin: fossil}
+    source: "methane made from that CO2, dissolved in the condensate, S20 (D-007, D-011)"
+  - {key: emission:H2, elementary: {compartment: air, subcompartment: unspecified}, source: "hydrogen dissolved in the condensate, S20 (D-007)"}
+  - {key: emission:CO, elementary: {compartment: air, subcompartment: unspecified, origin: fossil}, source: "a component of the vent's template, zero in it (the flowsheet carries no CO, L-2)"}
+  - {key: emission:H2O, free: true, source: "a component of the vent's template, zero in it (S20)"}
+
+# Carbon by origin (D-011): the CO2 of carbon-capture-1 comes from natural gas (an ammonia plant's
+# stripper vent), so the SNG's carbon is fossil; burning it later emits fossil CO2 (outside this
+# cradle-to-gate boundary). Besides the product, carbon leaves only as the CO2 and CH4 released
+# from the condensate (product:VENT, fossil). feed:CO2 also declares co2_source, so the product's
+# carbon is reported as carbon from captured CO2 (CCU).
+carbon_accounting:
+  trace_emissions: false
+  source: "D-011: the only carbon feed is carbon-capture-1's CO2, of fossil origin (natural gas reformed in an ammonia plant)"
+  content:
+    feed:CO2: {biogenic_fraction: 0.0, source: "carbon-capture-1: the CO2 stripper vent of a natural-gas ammonia plant, fossil carbon (its process.yaml)"}
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED full-load equivalent, STORE&GO D5.9's scale-up basis); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: start-up-flaring, method: combustion, equipment: [R-101, R-102], reason: "Off-spec gas flared during start-up until the injection quality is reached (STORE&GO D5.9 section 4.1.1: about 33 Nm3 per start from hot standby at the demonstration, whose large dead volume an industrial design would avoid) is not estimated: continuous operation at the design point is assumed (D-002, L-6)."}
+  - {id: fugitive-methane, method: storage-tank, equipment: [K-201, A-201], reason: "Fugitive methane from the injection compressor's seals, the dryers' switching and flanges is not estimated: no open measured rate was read for this concept (D-011, L-6)."}
+  - {id: dryer-regeneration, method: storage-tank, equipment: [A-201], reason: "The dryers' regeneration is a closed loop (ASSUMED); its heat and any purge are not counted (D-008, L-5)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "3520"}   # ISIC Rev.4 3520 Manufacture of gas; distribution of gaseous fuels through mains
+  modelling: {principle: attributional}
+  geography: {description: "Generic site in Germany at a transport gas grid and a dense-phase CO2 pipeline, next to an electrolysis plant, not chosen (DE); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #520, unreviewed"

@@ -1,0 +1,21 @@
+# e-methane-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, links an
+# Atlas `dataset`, gives the exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Linked here (DESIGN.md D-011): the CO2 to carbon-capture-1's dense-phase product, the
+# electricity to the library default, the condensate to the shared wastewater entry by mass.
+# The hydrogen stays a reported gap on purpose: no library process makes electrolytic hydrogen,
+# and the shared `hydrogen` entry and hydrogen-1 (steam methane reforming) are the wrong supply
+# for an e-fuel; a correct gap is better than a doubtful link (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:H2":
+    atlas: false
+    source: >-
+      Electrolytic hydrogen, dry, at 120 kPa(a), supplier not decided (D-003, D-011). hydrogen-1 is
+      the SMR variant, and the shared background is merchant hydrogen, so neither is linked. A
+      library water-electrolysis entry would be the candidate (as for e-fuels-1's feed:H2).
+  "feed:CO2": {dataset: {path: processes/carbon-capture-1/lca/datasets/co2-conditioning-ammonia-stripper-vent.yaml, product: "product:CO2"}, source: "the Atlas producer carbon-capture-1, dense-phase CO2 99.95 mol% at 15.3 MPa (grade carbon-dioxide/dense-153bara-99.95), let down to 1.53 MPa(a) in E-100 with heat from the thermal oil (D-003); kg for kg, its 500 ppm water counted with the CO2"}
+  "feed:POWER": {use: electricity, source: "the library default (medium voltage, the site country's grid): the hydrogen compressor (W1), the balance of plant (W2), the electric preheater (W3) and the injection compressor (W4), D-006, D-008"}
+  "product:COND": {use: wastewater, source: "process condensate (reaction water) to treatment by mass, as the shared unit proxy converts it (1 m3 = 1000 kg), D-007"}
