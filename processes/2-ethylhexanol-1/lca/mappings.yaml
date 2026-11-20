@@ -1,0 +1,18 @@
+# 2-ethylhexanol-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Linked here: the propylene, hydrogen and caustic soda to their Atlas producers, the make-up
+# water to deionised water and the MP steam counted as heat delivered (kWh). Electricity,
+# cooling water and the effluent are linked by the shared lci/mappings.yaml (its electricity,
+# cooling-water and wastewater proxies). The synthesis gas (no library producer of a 1:1 H2/CO
+# gas), the off-gas, the light ends and the heavies to the site's fuel stay gaps; lca/lca.yaml
+# names the activity each should connect to (DESIGN.md D-010).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:C3": {dataset: {path: processes/propylene-pdh-1/lca/datasets/propylene-propane-dehydrogenation.yaml, product: "product:propylene"}, source: "the Atlas producer propylene-pdh-1, propylene by propane dehydrogenation; this plant takes chemical grade with 0.5 mol% propane, counted kg for kg with the propylene, as acrylic-acid-1 links it (D-003)"}
+  "feed:H2F": {dataset: {path: processes/hydrogen-1/lca/dataset.yaml, product: "product:H2"}, source: "the Atlas producer hydrogen-1, hydrogen 99.9 mol% at 2850 kPa(a), the delivery pressure R-302 takes (D-003)"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt%, per kg of solution as this exchange counts it (D-003)"}
+  "feed:DMW": {use: water, source: "demineralised make-up water of the aqueous catalyst phase by mass: the shared entry is water, deionised (D-004)"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1500 kPa(a) to E-301 and the reboilers of C-401 to C-403, counted as heat delivered (kWh), D-009"}

@@ -1,0 +1,23 @@
+# hydrogen-fluoride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, a `dataset` (an Atlas producer), `atlas: false`, or a
+# `properties_reason`.
+#
+# Linked here (DESIGN.md D-011): the sulfuric acid to sulfuric-acid-1, the quicklime to lime-1,
+# the caustic soda to chlor-alkali-1, the oleum's SO3 to the shared sulfur-trioxide entry, the
+# process water to the shared water entry, the natural gas to the burners by mass (the shared
+# natural-gas entry) and the LP steam as heat delivered (kWh), the anhydrite to inert landfill and the scrubber effluent to
+# waste-water treatment. The fluorspar, the refrigeration and (in cheme assess lca) the
+# electricity stay gaps (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:ACID": {dataset: {path: processes/sulfuric-acid-1/lca/dataset.yaml, product: "product:ACID"}, source: "the Atlas producer sulfuric-acid-1, sulfuric acid 98.5 wt%, per kg of acid as this exchange counts it (D-006)"}
+  "feed:LIME": {dataset: {path: processes/lime-1/lca/datasets/quicklime-pfrk-natural-gas.yaml, product: "product:quicklime"}, source: "the Atlas producer lime-1, quicklime counted as CaO, as this exchange counts it (D-008)"}
+  "feed:NAOH": {dataset: {path: processes/chlor-alkali-1/lca/dataset.yaml, product: "product:NAOH"}, source: "the Atlas producer chlor-alkali-1, caustic soda 50 wt-%, per kg of solution as this exchange counts it (D-008)"}
+  "feed:OLEUM": {use: sulfur-trioxide, source: "the oleum's free SO3, counted as SO3 (D-007); the library's sulfuric-acid-1 makes no oleum"}
+  "feed:PW": {use: water, chemical: water, source: "process water to the SiF4 absorber (D-008)"}
+  "feed:FUEL": {use: natural-gas, atlas: false, source: "natural gas to the burners of the spar preheater and the kiln (S33), by mass taken as methane (the shared unit proxy); its combustion is in the flowsheet (S35) and the estimate kiln-flue-gas (D-009, D-011). Not linked to an Atlas producer of the slug methane, which is hda-1's fuel gas"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the column reboilers (Q5, Q7), counted as heat delivered (kWh), D-009"}
+  "product:ANH": {use: inert-waste-landfill, source: "neutralised anhydrite to landfill (waste treatment without recovery stays in the system), as the BREF says most excess anhydrite is (D-011)"}
+  "product:EFF": {use: wastewater, source: "alkaline scrubber effluent to waste-water treatment, per kg (D-011)"}

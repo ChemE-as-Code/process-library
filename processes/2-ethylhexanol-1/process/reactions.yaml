@@ -1,0 +1,111 @@
+# Reactions of 2-ethylhexanol-1 (DESIGN.md D-004 to D-006). Schema: `cheme schema
+# process-reactions`. Model basis: conversion specifications, not kinetics. Each conversion is
+# the fraction of the key component entering the step that the reaction converts; reactions of
+# one step with the same key are parallel fractions of the same inlet.
+#
+# Hydroformylation (R101, aqueous Rh/TPPTS, US 4 684 750 A, SRC-1): the crude holds 94.0 wt%
+# n-butanal, 5.0 wt% isobutanal and 1.0 wt% higher boilers. With 90.0 % of the inlet propylene
+# converted to aldehydes per pass (ASSUMED, D-004; no open source read gives the per-pass
+# conversion) the n/iso split of the crude gives 0.9 x 94/99 = 0.85455 to n-butanal and
+# 0.9 x 5/99 = 0.04545 to isobutanal. Propane formation, 0.5 % of the inlet propylene, is
+# ASSUMED (D-004). The higher boilers are formed in the same vessel (R102, a second conversion
+# step of R-101): 1.0 wt% of the crude, as the Tishchenko ester of n-butanal standing for them
+# (materials.yaml header): 1.0 / 95.0 = 0.01053 of the n-butanal formed (the ester's mass is
+# the aldehyde's).
+#
+# Aldol condensation (R201, aqueous NaOH, SRC-1): 97.9 % of the n-butanal to 2-ethylhexenal and
+# 0.4 % to heavies, ASSUMED so that the plant's overall yield on n-butanal is SRC-1's 97.74 % of
+# theory (DESIGN.md D-005); the organic phase then holds more than 93 wt% 2-ethylhexenal, as
+# SRC-1 states. Isobutanal is not condensed (its cross-aldol is not modelled, L-4).
+#
+# Hydrogenation (SRC-1): gas phase over Cu (R301, conversion and selectivity above 99 %), then
+# liquid phase over Ni (R302, "virtually quantitative"): 99 % of the inlet of each step,
+# ASSUMED inside the source's statements (D-006). 2-ethylhexanal, the intermediate, is not a
+# component; the residual aldehydes are hydrogenated to n- and isobutanol.
+#
+# Heats of reaction at 298.15 K, J/mol, on the states of the step (liquid organics, gaseous
+# propylene, propane, CO and hydrogen), from the formation enthalpies of `chemicals` 1.5.2
+# (SRC-6; D-009): liquid n-butanal -239.2, isobutanal -247.3 (CRC), 2-ethylhexenal -261.3
+# (NIST WebBook as packaged), 2-ethylhexanol -432.8, n-butanol -327.3, isobutanol -334.7 (CRC),
+# water -285.825 (ATcT); gas propylene 20.37, propane -104.39, CO -110.525 (ATcT); butyl butyrate
+# gas -524.9 (Yaws) less its heat of vaporization at 298.15 K, 48.39 by the Pitzer correlation of
+# `chemicals` (Tc 612.1 K, omega 0.4852), so liquid -573.29 kJ/mol. Negative = exothermic.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: HYN
+    title: Hydroformylation of propylene to n-butanal
+    equation: CH2=CHCH3 + CO + H2 -> CH3CH2CH2CHO
+    stoichiometry: {C3H6: -1, CO: -1, H2: -1, NBAL: 1}
+    phase: mixed
+    catalyst: rhodium with tris(m-sulfophenyl)phosphine trisodium salt (TPPTS) in water, about 400 mg Rh per litre (SRC-1)
+    conversion: {key: C3H6, value: 0.85455, provenance: assumed, source: "D-004: 90.0 % of the inlet propylene to aldehydes per pass (ASSUMED) at the 94.0 : 5.0 n/iso split of the crude of US 4 684 750 A (SRC-1), header"}
+    heat_of_reaction: {value: -149045, provenance: assumed, source: "chemicals 1.5.2 formation enthalpies (SRC-6): liquid n-butanal -239.2 (CRC) - gas propylene 20.37 (ATcT) + CO 110.525 (ATcT) kJ/mol"}
+    sources: ["US 4 684 750 A (Ruhrchemie, 1985), example: hydroformylation of propene", "US 4 523 036 A (Ruhrchemie, 1982), examples"]
+  - id: HYI
+    title: Hydroformylation of propylene to isobutanal
+    equation: CH2=CHCH3 + CO + H2 -> (CH3)2CHCHO
+    stoichiometry: {C3H6: -1, CO: -1, H2: -1, IBAL: 1}
+    phase: mixed
+    catalyst: rhodium with TPPTS in water (SRC-1)
+    conversion: {key: C3H6, value: 0.04545, provenance: assumed, source: "D-004: the isobutanal share of the crude of US 4 684 750 A (SRC-1, 5.0 of 99 wt% aldehydes) at 90.0 % per pass, header"}
+    heat_of_reaction: {value: -157145, provenance: assumed, source: "chemicals 1.5.2 (SRC-6): liquid isobutanal -247.3 (CRC) - propylene 20.37 + CO 110.525 kJ/mol"}
+    sources: ["US 4 684 750 A (Ruhrchemie, 1985), example: raw hydroformylation product"]
+  - id: HYD
+    title: Hydrogenation of propylene to propane (side reaction)
+    equation: CH2=CHCH3 + H2 -> CH3CH2CH3
+    stoichiometry: {C3H6: -1, H2: -1, C3H8: 1}
+    phase: mixed
+    conversion: {key: C3H6, value: 0.005, provenance: assumed, source: "D-004: ASSUMED, no open source read gives the propane formed"}
+    heat_of_reaction: {value: -124760, provenance: assumed, source: "chemicals 1.5.2 (SRC-6): gas propane -104.39 - propylene 20.37 kJ/mol (ATcT)"}
+    sources: ["ASSUMED (D-004)"]
+  - id: TISH
+    title: Heavy by-products of n-butanal, as its Tishchenko ester (oxo and aldol steps)
+    equation: 2 CH3CH2CH2CHO -> CH3CH2CH2COOCH2CH2CH2CH3
+    stoichiometry: {NBAL: -2, BUBU: 1}
+    phase: liquid
+    conversion: {key: NBAL, value: 0.01053, provenance: assumed, source: "D-004: 1.0 wt% higher boilers in the crude of US 4 684 750 A (SRC-1), 1.0 / 95.0 of the n-butanal formed, in R102 (R-101); the heavies' composition is not given, butyl butyrate stands for them (ASSUMED)"}
+    heat_of_reaction: {value: -94890, provenance: assumed, source: "chemicals 1.5.2 (SRC-6): liquid butyl butyrate -573.29 (Yaws gas -524.9 less Pitzer's heat of vaporization 48.39) - 2 x n-butanal -239.2 kJ/mol"}
+    sources: ["US 4 684 750 A (Ruhrchemie, 1985), example (1.0 wt% higher boilers)"]
+  - id: TISH2
+    title: Heavy by-products of the aldol step, as the Tishchenko ester of n-butanal
+    equation: 2 CH3CH2CH2CHO -> CH3CH2CH2COOCH2CH2CH2CH3
+    stoichiometry: {NBAL: -2, BUBU: 1}
+    phase: liquid
+    conversion: {key: NBAL, value: 0.004, provenance: assumed, source: "D-005: ASSUMED with ALD so that the yield on n-butanal is the 97.74 % of theory of US 4 684 750 A (SRC-1)"}
+    heat_of_reaction: {value: -94890, provenance: assumed, source: "as TISH"}
+    sources: ["ASSUMED (D-005)"]
+  - id: ALD
+    title: Aldol condensation of n-butanal to 2-ethyl-2-hexenal
+    equation: 2 CH3CH2CH2CHO -> CH3CH2CH2CH=C(C2H5)CHO + H2O
+    stoichiometry: {NBAL: -2, EPA: 1, H2O: 1}
+    phase: liquid
+    catalyst: aqueous sodium hydroxide, 1-2 wt% in the recycled aqueous phase (SRC-1)
+    conversion: {key: NBAL, value: 0.979, provenance: assumed, source: "D-005: ASSUMED so that the yield on n-butanal is the 97.74 % of theory of US 4 684 750 A (SRC-1) and the organic phase above 93 wt% 2-ethylhexenal, as SRC-1 states"}
+    heat_of_reaction: {value: -68725, provenance: assumed, source: "chemicals 1.5.2 (SRC-6): liquid 2-ethylhexenal -261.3 (WebBook) + water -285.825 (ATcT) - 2 x n-butanal -239.2 (CRC) kJ/mol"}
+    sources: ["US 4 684 750 A (Ruhrchemie, 1985), example: aldol condensation"]
+  - id: HEPA
+    title: Hydrogenation of 2-ethylhexenal to 2-ethylhexanol (through 2-ethylhexanal, not modelled)
+    equation: CH3CH2CH2CH=C(C2H5)CHO + 2 H2 -> CH3(CH2)3CH(C2H5)CH2OH
+    stoichiometry: {EPA: -1, H2: -2, EH: 1}
+    phase: mixed
+    catalyst: copper on silica (gas phase, R301), then nickel on silica (liquid phase, R302) (SRC-1)
+    conversion: {key: EPA, value: 0.99, provenance: assumed, source: "D-006: US 4 684 750 A (SRC-1): above 99 % conversion and selectivity over Cu, the Ni stage virtually quantitative; 99 % of each stage's inlet, ASSUMED"}
+    heat_of_reaction: {value: -171500, provenance: assumed, source: "chemicals 1.5.2 (SRC-6): liquid 2-ethylhexanol -432.8 (CRC) - 2-ethylhexenal -261.3 (WebBook) kJ/mol"}
+    sources: ["US 4 684 750 A (Ruhrchemie, 1985), example: hydrogenation of 2-ethylhexenal"]
+  - id: HNB
+    title: Hydrogenation of residual n-butanal to n-butanol
+    equation: CH3CH2CH2CHO + H2 -> CH3CH2CH2CH2OH
+    stoichiometry: {NBAL: -1, H2: -1, NBOL: 1}
+    phase: mixed
+    conversion: {key: NBAL, value: 0.99, provenance: assumed, source: "D-006: ASSUMED as HEPA"}
+    heat_of_reaction: {value: -88100, provenance: assumed, source: "chemicals 1.5.2 (SRC-6): liquid n-butanol -327.3 - n-butanal -239.2 kJ/mol (CRC)"}
+    sources: ["ASSUMED (D-006)"]
+  - id: HIB
+    title: Hydrogenation of residual isobutanal to isobutanol
+    equation: (CH3)2CHCHO + H2 -> (CH3)2CHCH2OH
+    stoichiometry: {IBAL: -1, H2: -1, IBOL: 1}
+    phase: mixed
+    conversion: {key: IBAL, value: 0.99, provenance: assumed, source: "D-006: ASSUMED as HEPA"}
+    heat_of_reaction: {value: -87400, provenance: assumed, source: "chemicals 1.5.2 (SRC-6): liquid isobutanol -334.7 - isobutanal -247.3 kJ/mol (CRC)"}
+    sources: ["ASSUMED (D-006)"]

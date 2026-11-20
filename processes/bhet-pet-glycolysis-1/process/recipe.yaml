@@ -1,0 +1,53 @@
+# The batch recipe of bhet-pet-glycolysis-1 (schema cheme/recipe/v1, `cheme process recipe`,
+# DESIGN.md D-003). One batch makes the dried BHET of stream S22; the flowsheet's rates are the
+# year averages: batch x batches per year / 7920 h. The glycolysis is a conversion step, so its
+# durations are given here (SRC-3: 2 h at reflux; the heat-up and the charging ASSUMED); the
+# product's drying takes its time from D201's drying rate on D-201's heated area (core ADR
+# 0057); every other duration is ASSUMED (D-003). D-201's drying sets the cycle (6.248 h,
+# `cheme process recipe`: bottleneck DRY), with R-101's 6 h close behind. D-201 is sized from one batch's wet cake (core ADR 0057); R-101 and the vessels
+# of the crystallisation train by hand (D-003; core sizes no vessel from a conversion step or a
+# crystallizer, L-5). `cheme process recipe --svg build/gantt.svg` draws one batch.
+schema: cheme/recipe/v1
+kind: recipe
+title: BHET by batch glycolysis of PET flake
+batch_size: {value: 3944.66, unit: kg, stream: S22, provenance: assumed, source: "one batch of dried BHET: 5000 t/a over the batches the cycle allows (D-002, D-003; the fixed point of batch size = rate x cycle that cheme.recipe-basis names, since the drying time grows with the batch)"}
+hours_per_year: {value: 7920, provenance: assumed, source: "330 days of 24 h (D-002)"}
+unit_procedures:
+  - id: GLYCOLYSE
+    units: [M101, X101, R101, F101]
+    title: Glycolysis and hot filtration (R-101, F-101)
+    operations:
+      - {id: charge_glycol, kind: charge, title: "Charge the recovered and fresh glycol and the catalyst solution", duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: charge_flake, kind: charge, title: "Charge the PET flake and the recycled oligomer cake into the warm glycol", duration: {value: 1.0, provenance: assumed, source: "D-003: SRC-3 allows the PET added to glycol already heated"}}
+      - {id: heat, kind: heat, title: "Heat to the glycol's reflux at 470 K (HP steam), the charge's water distilled off through E-101 to T-301 on the way (X101)", duration: {value: 1.5, provenance: assumed, source: "D-003, D-005, D-009"}}
+      - {id: react, kind: react, title: "Hold 2 h at reflux under nitrogen, E-101 returning the glycol (GLY, OLF, DEP, DSO, DEG)", duration: {value: 2.0, provenance: given, source: "SRC-3 Example 1: refluxed for 2 h at atmospheric pressure; claim 1: 2 to 3 h"}}
+      - {id: transfer, kind: transfer, title: "Hot-filter the glycolysate (F-101) into the quench vessel V-201", duration: {value: 1.0, provenance: assumed, source: D-003}}
+  - id: QUENCH
+    units: [CR201, F201, SP201]
+    title: Quench and oligomer filtration (V-201, F-201)
+    operations:
+      - {id: receive_water, kind: charge, title: "Receive the second mother liquor of the batch before last from T-304 (C-204 of the last batch runs after this quench)", duration: {value: 0.5, provenance: assumed, source: "D-003, D-006"}}
+      - {id: quench, kind: transfer, title: "Run the hot glycolysate into it to 343 K, LP-steam hot water on the jacket (the cold liquor outweighs the glycolysate's heat, Q2)", duration: {value: 1.0, provenance: assumed, source: "D-003, D-006"}}
+      - {id: hold, kind: hold, title: "Hold at 343 K, the oligomers precipitate", duration: {value: 0.5, provenance: assumed, source: D-006}}
+      - {id: filter, kind: filter, title: "Filter the oligomers at 343 K (F-201) into V-202", duration: {value: 1.5, provenance: assumed, source: D-006}}
+  - id: CRUDE
+    units: [CR202, F202]
+    title: First crop (V-202, C-202)
+    operations:
+      - {id: cool, kind: cool, title: "Cool to 288 K on chilled water", duration: {value: 3.0, provenance: assumed, source: "D-003, D-007: SRC-2 crystallises 3 h, SRC-3 samples after about 3 h"}}
+      - {id: centrifuge, kind: filter, title: "Centrifuge the crude BHET (C-202)", duration: {value: 2.0, provenance: assumed, source: D-008}}
+  - id: RECRYST
+    units: [M302, CR203, CR204, F204]
+    title: Redissolution and second crop (V-203, C-204)
+    operations:
+      - {id: dissolve, kind: heat, title: "Dissolve the crude cake in hot water at 353 K (LP steam)", duration: {value: 1.0, provenance: assumed, source: "D-003, D-007"}}
+      - {id: cool, kind: cool, title: "Cool slowly to 288 K on chilled water, needle crystals form", duration: {value: 3.0, provenance: assumed, source: "D-003, D-007"}}
+      - {id: centrifuge, kind: filter, title: "Centrifuge the pure BHET (C-204), the second mother liquor to T-304", duration: {value: 2.0, provenance: assumed, source: "D-006, D-008"}}
+  - id: DRY
+    unit: D201
+    title: Vacuum drying of the product (D-201)
+    vessel: {fill_fraction: 0.6, aspect_ratio: 1.0, provenance: assumed, source: "a horizontal paddle vacuum dryer (D-008); the aspect ratio 1.0 a placeholder for the vessel's volume and heated area, its shell longer than wide in fact (open input)"}
+    operations:
+      - {id: charge, kind: charge, title: Charge the centrifuged cake, duration: {value: 0.5, provenance: assumed, source: D-003}}
+      - {id: dry, kind: dry, title: Dry at 343 K and 10 kPa(a) (D201), from: D201}
+      - {id: discharge, kind: transfer, title: "Cool to 313 K on cooling water (Q12) and discharge to packing", duration: {value: 1.0, provenance: assumed, source: "D-003, D-008"}}

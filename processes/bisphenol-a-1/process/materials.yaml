@@ -1,0 +1,51 @@
+# Components and templates of bisphenol-a-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol,
+# normal_boiling_point in K at 101.325 kPa.
+#
+# Lumps (DESIGN.md D-005): the reactor's by-products are carried as two components, the o,p
+# isomer of bisphenol A (OPBPA) and the chroman named in US 5 723 688 A,
+# 2,2,4-trimethyl-4-(4-hydroxyphenyl)chroman (Dianin's compound, DIANIN), which stands for every
+# "other" by-product of US 4 391 997 A's Table I (trisphenols, spiro compounds, IPP dimers,
+# chromans). The 1:1 adduct of bisphenol A with phenol is the crystal (ADDUCT, phase solid), its
+# formula the solute's plus one phenol, as core's crystallizer takes a solvate (D-007).
+#
+# Molar masses, CAS numbers, formulas and normal boiling points from chemicals 1.5.2 (its
+# `search_chemical` and `Tb`: phenol CRC_ORG, acetone and water HEOS, bisphenol A YAWS, the o,p
+# isomer and the chroman JOBACK, an estimate). liquid_heat_capacity, kJ/(kmol K), at 338.15 K,
+# used by propagate for the conversion steps' duties (D-006): single values computed with thermo
+# 0.6.1 / chemicals 1.5.2 (MIT), library ADR 0037, not open data:
+# - acetone 131.14 and water 75.44: thermo HEOS_FIT (fits to CoolProp's reference equations of
+#   state as thermo bundles them; the underlying works not read);
+# - phenol 192.6 and bisphenol A 494.1: chemicals' Rowlinson-Bondi corresponding-states method
+#   on the ideal-gas heat capacity (phenol: thermo TRCIG; bisphenol A: the Joback group
+#   contribution, an estimate), with Tc and omega from chemicals (phenol IUPAC and PSRK,
+#   bisphenol A YAWS). thermo's VDI_TABULAR liquid value for phenol (919 at 338.15 K) is
+#   about 4.8 times the Rowlinson-Bondi one and was not used (L-3);
+# - the o,p isomer ASSUMED equal to bisphenol A; the chroman ASSUMED 590.5, bisphenol A's value
+#   scaled by the ratio of their Joback ideal-gas heat capacities at 338.15 K (396.16 / 331.47).
+# - the adduct (a solid) ASSUMED 686.7, the sum of its melt's components (bisphenol A 494.1 and
+#   phenol 192.6): no heat capacity of the crystals was read; it enters only the melter's
+#   sensible heat (D-009), the crystallizer using its own energy data (D-007).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: PHENOL, name: Phenol, formula: C6H6O, cas: 108-95-2, molar_mass: 94.111, normal_boiling_point: 454.95, liquid_heat_capacity: 192.6}
+  - {id: ACETONE, name: Acetone, formula: C3H6O, cas: 67-64-1, molar_mass: 58.079, normal_boiling_point: 329.22, liquid_heat_capacity: 131.14}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_heat_capacity: 75.44}
+  - {id: BPA, name: "Bisphenol A (p,p')", formula: C15H16O2, cas: 80-05-7, molar_mass: 228.286, normal_boiling_point: 633.65, liquid_heat_capacity: 494.1}
+  - {id: OPBPA, name: "o,p'-Bisphenol A (2,4'-isomer)", formula: C15H16O2, cas: 837-08-1, molar_mass: 228.286, normal_boiling_point: 754.17, liquid_heat_capacity: 494.1}
+  - {id: DIANIN, name: "By-products (lump with the formula of Dianin's compound, a chroman)", formula: C18H20O2, cas: 472-41-3, molar_mass: 268.35, normal_boiling_point: 784.17, liquid_heat_capacity: 590.5}
+  - {id: ADDUCT, name: "Bisphenol A-phenol adduct (1:1 crystals)", formula: C21H22O3, molar_mass: 322.397, phase: solid, liquid_heat_capacity: 686.7}
+templates:
+  - id: liquor
+    title: Reactor feed and effluent, mother liquor and phenol streams
+    components: [PHENOL, ACETONE, H2O, BPA, OPBPA, DIANIN]
+  - id: slurry
+    title: Crystallizer slurry and adduct cake
+    components: [PHENOL, ACETONE, H2O, BPA, OPBPA, DIANIN, ADDUCT]
+# No benchmarked property package of core covers bisphenol A, its isomer or the adduct, or the
+# solid-liquid equilibrium of the adduct in phenol (L-1, L-3): the separators are component
+# separators with ASSUMED recoveries and the crystallizer an imposed yield (D-007).
+property_method:
+  adapter: thermo
+  status: placeholder
