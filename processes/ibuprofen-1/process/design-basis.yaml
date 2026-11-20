@@ -1,0 +1,55 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Ibuprofen by the BHC three-step route, a batch plant on a dedicated train, issue
+# ChemE-as-Code/process-library#508. Values marked ASSUMED are engineering choices of this
+# concept study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: dried ibuprofen crystals (one crystallisation from hexane, before any milling or pharmacopoeial release) to packing at the battery limit
+  ibuprofen_t_per_year: 3500             # ASSUMED (D-002): the order of SRC-3's Bishop plant, 7.7 Mlb/a
+  operating_hours_per_year: 7920         # ASSUMED (D-002): 330 days of 24 h, batch operation
+  batch_kg: 3977.01                      # ASSUMED (D-003): one batch of dried product every 9.0 h
+  batches_per_year: 880                  # from the recipe (process/recipe.yaml, D-003)
+feeds:
+  - name: Isobutylbenzene (merchant; no library process)
+    source_of_values: ASSUMED (D-004)
+    composition: "isobutylbenzene 100 % (impurities not modelled)"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 101.325}
+  - name: Acetic anhydride (acetic-anhydride-1)
+    source_of_values: ASSUMED (D-004)
+    composition: "acetic anhydride 99.5 wt%, acetic acid 0.5 wt%"
+  - name: Anhydrous hydrogen fluoride (make-up; catalyst and solvent of the acylation)
+    source_of_values: "SRC-1 Example 1 (49.5 mol per mol of IBB), SRC-3 (>99.9 % recovered); D-004"
+  - name: Hydrogen (hydrogen-1)
+    source_of_values: "ASSUMED 5 % above its use (D-004)"
+  - name: Carbon monoxide (merchant; no library process)
+    source_of_values: "ASSUMED: its use plus the CO left in R-301's head space at 16.65 MPa, vented on let-down (D-004)"
+  - name: Hydrochloric acid 33 wt% (hydrogen-chloride-1), make-up of the carbonylation's acid phase
+    source_of_values: "SRC-1 Example 100 (H+/IBPE 0.75); D-004"
+  - name: Process water (melt washes) and n-hexane (crystallisation solvent, make-up)
+    source_of_values: "SRC-2 Examples 1 and 2; D-007, D-008"
+  - name: Raney nickel and the Pd(II) triphenylphosphine catalyst (per batch, not in the balance)
+    source_of_values: "SRC-1 Examples 3A, 100 and 106; lca/lca.yaml consumables (D-010)"
+products:
+  - name: Ibuprofen
+    purity: "99.56 wt% ibuprofen (crystals and the dried cake liquor's), 0.22 wt% 3-IPPA, 0.1 wt% hexane (model, D-008); SRC-2's recrystallised product assays 99.7 to 99.8 %: one crystallisation here (L-4)"
+    delivery: {temperature_K: 323.15, pressure_kPa_a: 101.325, battery_limit: packing (drums; not in the boundary)}
+  - name: Acetic acid co-product
+    note: "95.6 wt% acetic acid with 4.4 wt% acetic anhydride, to acetic acid recovery (SRC-3: the by-product acetic acid is recovered); 0.456 kg/kg"
+  - name: Organic residues to incineration
+    note: "the acylation residue (by-product lump), the distillation's lights and residue and the mother liquor purge, 0.512 kg/kg"
+  - name: Wastewater
+    note: "the acid phase's purge and the wash water, 3.62 kg/kg, 0.53 wt% HCl, to neutralisation and biological treatment"
+utilities:
+  - {name: Electric power, use: "agitators, HF and dosing pumps, the CO compressor, vacuum pumps, filter and dryer (D-009)"}
+  - {name: MP steam, pressure_kPa_a: 1100, use: "R-101's heat-up, the reboilers of C-101, C-102, C-401 and C-402, the dryer, the wash water, the dissolver and the dose (D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "the reactors' heat, the carbonylated mass's cooling, the condensers of C-102, C-401 and C-402 (D-009)", note: ASSUMED}
+  - {name: Brine, supply_K: 263.15, return_K: 268.15, use: "C-101's HF condenser, the crystallisation to 278 K, the dryer's condenser (D-009)", note: "ASSUMED; from a refrigeration unit outside the boundary"}
+site:
+  location: ASSUMED generic fine-chemicals site with an HF-qualified bay, a hydrogen and CO supply and a biological wastewater treatment, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route of US 4 981 995 A (SRC-1): acylation in HF (Example 1), hydrogenation over Raney nickel (Example 3A), carbonylation in aqueous HCl over Pd (Example 100); purification on the sequence of US 5 151 551 A Example 2 with Example 1's hexane (SRC-2) (D-001)."
+  - "ASSUMED kinetics of the acylation calibrated to SRC-1 Example 1, and the heats of reaction from formation enthalpies and analogues (D-005)."
+  - "ASSUMED recoveries of the distillations, the decanter and the washes; an ASSUMED 80 % crystallisation yield (no open solubility of ibuprofen in hexane read) (D-007, D-008, L-4)."
+  - "All flows are year averages of the recipe (D-003); duties of the reactors, crystalliser and dryer from cheme's models, the separators' and the sensible heats of the washes, the dissolver, the dose and the let-down by hand (D-009); accuracy +/-30 % not demonstrated."

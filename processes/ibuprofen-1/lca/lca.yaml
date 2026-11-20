@@ -1,0 +1,152 @@
+# Goal and scope of the ibuprofen-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess lca
+# --inventory --write` and `--coverage` (lca/inventory.csv, gaps.csv, dataset.yaml,
+# manifest.json); never edit those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-010): every exchange of the batch
+# plant with its amount per kg of dried ibuprofen, from the flowsheet's year averages of the
+# recipe (D-003). Per batch: multiply by 3977.01 kg. Each exchange names the activity it should
+# connect to (`missing:`); the Atlas build links the acetic anhydride, the hydrogen, the
+# hydrochloric acid and the MP steam through lca/mappings.yaml, and water, electricity, cooling
+# water and the wastewater through the shared lci/mappings.yaml; the rest is a gap, never zero,
+# and no values from licensed databases.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of ibuprofen made by the BHC three-step route
+  (acylation of isobutylbenzene in HF, hydrogenation, Pd-catalysed carbonylation) in a batch
+  plant at the concept stage: which raw materials, utilities and wastes the plant exchanges per
+  kg of dried ibuprofen, as the foreground for a later cradle-to-gate study. No complete impact
+  result: isobutylbenzene, HF, CO, hexane, the brine's refrigeration, the catalysts and the
+  incineration have no background yet (D-010).
+functional_unit: {product: IBU, amount: 1, unit: kg, source: "1 kg of dried ibuprofen (99.56 wt%, one crystallisation from hexane) at the plant gate to packing, stream S33 (D-002, D-010)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as paracetamol-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "Batch plant on the BHC route: isobutylbenzene acetylated in anhydrous HF at 353 K (acetic anhydride dosed, semi-batch), HF stripped and recycled, acetic acid cut as a co-product; IBAP hydrogenated neat over Raney nickel at 343 K; IBPE carbonylated with CO in aqueous HCl over a Pd(II) phosphine catalyst at 403 K and 16.6 MPa; the melt washed, vacuum-distilled and crystallised from hexane at 278 K, filtered and vacuum-dried; 3977 kg per batch, 880 batches a year on a dedicated train"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+allocation:
+  # Economic allocation written as its shares (D-010): the products' values per hour at ASSUMED
+  # relative prices per kg (ibuprofen 1, the acetic acid co-product 0.05).
+  method: shares
+  coproducts: [IBU, HOAC]
+  # S33 441.89 x 1 and S11 201.33 x 0.05 kg/h give 441.89 and 10.07
+  shares: {IBU: 0.9777, HOAC: 0.0223}
+  source: >-
+    D-010 (agent proposal, for the LCA practitioner to confirm): the plant makes 0.456 kg of
+    acetic acid (95.6 wt%, with acetic anhydride) per kg of ibuprofen, recovered as SRC-3 says
+    the BHC process does. No physical relationship applies (none is a fuel), and the price ratio
+    of an active pharmaceutical ingredient to a bulk acid is far above 5, so the WBCSD rule of
+    docs/system-model.md gives economic allocation. No prices are sourced at the concept stage:
+    the relative prices per kg 1 : 0.05 are ASSUMED.
+  deviation: >-
+    The shares rest on ASSUMED relative prices. The conservative bound is all burdens to the
+    ibuprofen; mass allocation would leave it 69 %. Sourced prices replace the ratio.
+flows:
+  # raw materials
+  - key: feed:IBBF
+    missing: "not mapped yet (D-010); no library process makes isobutylbenzene. Connect to: isobutylbenzene by the side-chain alkylation of toluene with propylene over an alkali metal catalyst (background); no proxy linked"
+    source: "flowsheet stream S1 (D-004)"
+  - key: feed:AC2OF
+    missing: "linked to processes/acetic-anhydride-1 (lca/mappings.yaml): acetic anhydride 99.5 wt%"
+    source: "flowsheet stream S2 (D-004)"
+  - key: feed:HFF
+    missing: "not mapped yet (D-010); no library process makes hydrogen fluoride. Connect to: anhydrous hydrogen fluoride from fluorspar and sulfuric acid"
+    source: "flowsheet stream S6, the HF make-up (D-004)"
+  - key: feed:H2F
+    missing: "linked to processes/hydrogen-1 (lca/mappings.yaml): hydrogen by steam methane reforming"
+    source: "flowsheet stream S13 (D-004)"
+  - key: feed:HCLF
+    missing: "linked to processes/hydrogen-chloride-1 (lca/mappings.yaml): hydrochloric acid 33 wt%"
+    source: "flowsheet stream S17 (D-004)"
+  - key: feed:COF
+    missing: "not mapped yet (D-010); no library process exports carbon monoxide. Connect to: carbon monoxide from synthesis gas by cold-box separation"
+    source: "flowsheet stream S18 (D-004)"
+  - key: feed:WASHW
+    missing: "no background in this study; the Atlas build links it as deionised water through the shared lci/mappings.yaml (D-010); connect to: process water from the site water treatment"
+    source: "flowsheet stream S25 (D-007)"
+  - key: feed:HEXF
+    missing: "not mapped yet (D-010); no library process makes n-hexane. Connect to: hexane, solvent grade, from naphtha"
+    source: "flowsheet stream S35, the hexane make-up (D-008)"
+  # utilities
+  - key: feed:POWER
+    missing: "no background in this study; the Atlas build links it as medium-voltage electricity through the shared lci/mappings.yaml (D-010); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams P1 to P4 (D-009)"
+  - key: feed:MPS
+    missing: "linked as heat from steam (lca/mappings.yaml); connect to: steam in the chemical industry, 1100 kPa(a), from a natural-gas-fired site boiler (e.g. processes/utility-steam-ng-boiler), per kWh of condensing heat"
+    source: "flowsheet energy streams Q2, Q3, Q5, Q10, Q13, Q15, Q17, Q19 and Q20 (D-009)"
+  - key: product:CW
+    missing: "no background in this study; the Atlas build links it to the cooling-water proxy per kWh removed through the shared lci/mappings.yaml (D-010); connect to: heat rejected to a recirculating cooling-water system (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q1, Q6, Q7, Q9, Q11, Q16 and Q18 (D-009)"
+  - key: product:BRINE
+    missing: "not mapped yet (D-010); connect to: refrigeration at 263 K (brine) from an electric vapour-compression unit (e.g. processes/utility-chiller), per kWh of heat removed"
+    source: "flowsheet energy streams Q4 (C-101's HF condenser), Q12 (the crystalliser) and Q14 (the dryer's condenser), D-009"
+  # wastes (the acetic acid co-product S11 is allocated, allocation: above)
+  - key: product:HFS
+    treatment: {kind: waste, route: "caustic scrubber: the HF not recovered neutralised with sodium or potassium hydroxide to a fluoride solution (D-011)"}
+    missing: "not mapped yet (D-010); connect to: neutralisation of hydrogen fluoride in a caustic scrubber, per kg of HF, with the alkali used and the fluoride effluent"
+    source: "flowsheet stream S10 (D-007)"
+  - key: product:VENT
+    treatment: {kind: waste, route: "thermal oxidiser: the vented hydrogen and carbon monoxide burnt to water and CO2: the vent's CO (S21, 26.50 kg/h) gives 26.50 x 44.01 / 28.01 = 41.6 kg/h of CO2, 0.094 kg per kg of ibuprofen before allocation, not counted here (D-010)"}
+    missing: "not mapped yet (D-010); connect to: thermal oxidation of a hydrogen and carbon monoxide vent, per kg, with the CO2 it emits"
+    source: "flowsheet stream S47 (D-004)"
+  - key: product:WW
+    treatment: {kind: waste, route: "neutralisation and biological treatment of the acid purge and the wash water (0.53 wt% HCl, traces of organics)"}
+    missing: "no background in this study; the Atlas build links it to the wastewater treatment proxy per kg through the shared lci/mappings.yaml (D-010); connect to: neutralisation and treatment of an acidic process effluent in an industrial wastewater treatment plant, per kg"
+    source: "flowsheet stream S39 (D-007)"
+  - key: product:RES
+    treatment: {kind: waste, route: "hazardous-waste incineration of the organic residues: the acylation residue (isomers), the distillation's lights and residue and the mother liquor purge (D-008)"}
+    missing: "not mapped yet (D-010); connect to: incineration of a liquid organic hazardous waste (aromatic ketones, alcohols and acids, traces of chloride), per kg (e.g. processes/waste-incineration-1)"
+    source: "flowsheet stream S46 (D-008)"
+# What the batch plant uses per batch and the flowsheet does not carry (library ADR 0035, core
+# ADR 0053): the catalysts' losses (SRC-1), converted with the recipe's 880 batches a year.
+consumables:
+  - id: raney-nickel
+    title: Raney nickel lost from R-201's catalyst charge
+    unit: kg
+    per_batch: 8.0
+    source: "ASSUMED 2 % of the charge lost per batch; the charge 10 wt% of the IBAP (SRC-1 Example 3A: 22.5 g on 225 g) x 4002 kg of IBAP a batch (444.68 kg/h x 9.0 h) = 400 kg (D-010)"
+    missing: "not mapped yet (D-010); connect to: Raney nickel catalyst (nickel-aluminium alloy leached with sodium hydroxide)"
+    disposal:
+      kind: waste
+      route: "spent nickel catalyst to metal recovery or hazardous-waste landfill (D-010)"
+      source: "as lost"
+      missing: "not mapped yet (D-010); connect to: treatment of spent nickel catalyst, per kg"
+  - id: palladium-chloride
+    title: Palladium lost from R-301's catalyst (as PdCl2)
+    unit: kg
+    per_batch: 0.0078
+    source: "SRC-1 Example 100: PdCl2 0.56 mmol per 8.43 mol of IBPE; 22.14 kmol of IBPE a batch (438.52 kg/h x 9.0 h / 178.275) need 1.471 mol = 0.261 kg; Example 106 recovers 81 % as the complex and 16 % as metal, the 3 % left lost (D-010)"
+    missing: "not mapped yet (D-010); connect to: palladium(II) chloride from refined palladium"
+  - id: triphenylphosphine
+    title: Triphenylphosphine of R-301's catalyst, not recovered
+    unit: kg
+    per_batch: 4.75
+    source: "SRC-1 Example 100: PPh3 6.9 mmol per 8.43 mol of IBPE x 22.14 kmol a batch = 18.1 mol x 262.29 g/mol = 4.75 kg, ASSUMED lost each batch to the residues (D-010)"
+    missing: "not mapped yet (D-010); connect to: triphenylphosphine from phosphorus trichloride, chlorobenzene and sodium"
+    disposal:
+      kind: waste
+      route: "with the distillation residue and the mother liquor purge (as triphenylphosphine and its oxide) to hazardous-waste incineration (D-010)"
+      source: "as charged; not carried in the flowsheet's components (D-006)"
+      missing: "not mapped yet (D-010); connect to: incineration of a liquid organic hazardous waste, per kg"
+operation:
+  hours_per_year: 7920
+  life_years: 20
+  source: "design basis operating_hours_per_year 7920 (ASSUMED, the recipe's hours); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: reactor-vent, method: storage-tank, equipment: [R-101, C-101, T-101, V-101], reason: "No P&ID yet: the nitrogen pad of R-101 and T-101 and the inerts displaced while charging carry HF vapour to the caustic scrubber; not estimated beyond the 0.1 % HF loss of S10 (open for basic engineering, D-011)."}
+  - {id: gas-reactors, method: storage-tank, equipment: [R-201, R-301], reason: "The hydrogen and CO the reactors give off are carried (S15, S21, to the thermal oxidiser S47); the organics' vapour in them, and the purges before opening, are not estimated (D-011)."}
+  - {id: acid-and-residue-tanks, method: storage-tank, equipment: [T-301, T-403, T-404], reason: "The breathing of the aqueous HCl tank (HCl vapour to a water scrubber) and of the residue tanks is not estimated (D-011)."}
+  - {id: hexane-breathing, method: storage-tank, equipment: [CR-401, F-401, D-401, T-402], reason: "Hexane vapour from the crystalliser, filter, dryer vacuum pump and tank breathing (nitrogen-blanketed, to a vent condenser) not estimated; the make-up S35 covers the losses the balance counts (D-008, D-011)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2100"}   # ISIC Rev.4 2100 Manufacture of basic pharmaceutical products and pharmaceutical preparations
+  modelling: {principle: attributional}
+  geography: {description: "Generic fine-chemicals site with HF handling, hydrogen and CO supply and a biological wastewater treatment, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #508, unreviewed"

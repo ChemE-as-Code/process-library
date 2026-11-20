@@ -7,7 +7,9 @@
 # (library ADR on LCI gaps), never 0. The shared vocabulary has no entry yet for softwood chips,
 # sodium hydroxide 50 %, oxygen, chlorine dioxide water, hydrogen peroxide 50 %, sodium sulfate,
 # quicklime or pulp mill effluent treatment; each is described in lca/lca.yaml (`missing:`) and
-# listed in DESIGN.md section 5 for the consolidated registry/mappings PR.
+# listed in DESIGN.md section 5 for the consolidated registry/mappings PR. It has no process
+# (non-deionised) water entry either: feed:FW links the deionised `water` entry meanwhile, a
+# stated conservative proxy (below).
 schema: cheme-as-code/lci-process-mappings/v1
 exchanges:
   "feed:H2SO4":
@@ -23,11 +25,14 @@ exchanges:
       Green liquor dregs, slaker grits and lime mud purge (streams S32, S34, S41): mineral,
       alkaline, non-hazardous residues to landfill, per kg wet.
   "feed:FW":
-    atlas: false
+    use: water
     source: >-
-      Process water from surface water, mechanically and chemically treated at the mill. The
-      shared entry `water` is deionised water (boiler feedwater) and would overstate it; it stays
-      a gap until a process-water entry exists.
+      Process water from surface water, mechanically and chemically treated at the mill, linked
+      to the shared entry `water` (deionised water; with prefer_atlas the Atlas market of
+      water/demineralised) as a conservative proxy until a process-water entry exists:
+      deionisation overstates the treatment this water needs (D-014, revised 2026-11-19). It was
+      `atlas: false` before, meant to keep it a gap, but that flag only stops the Atlas link: the
+      build linked the exchange by its slug to the background deionised water all the same.
   # Mapping step of 2026-11-01 (ADR 0026): each entry below uses a reference the library already
   # holds. Notes above that call these exchanges unmapped describe the state before it. What is
   # still unmapped is a gap (lci/gaps.json), and this process is marked preliminary.

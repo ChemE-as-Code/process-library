@@ -1,0 +1,61 @@
+# Components and templates of 2-ethylhexanol-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# conventional atomic weights applied to the formula), normal_boiling_point in K at 101.325 kPa
+# (the CRC Handbook values as packaged in `chemicals` 1.5.2; the light gases from the HEOS
+# reference equations packaged there).
+#
+# Property sources (DESIGN.md source register SRC-6): every value is a single fact as the
+# `chemicals` 1.5.2 or `thermo` 0.6.1 package gives it, with the package and its method named,
+# not open data (library ADR 0037); no table is copied. The formation enthalpies, heats of
+# vaporization and heat capacities the duties use are in scripts/balance.py with their methods
+# (D-009); liquid_heat_capacity here is the same constant, kJ/(kmol K), at 350 K where it is a
+# fit: n-butanal 163.7 (CRCSTD, the only measured value thermo packages); water 75.4,
+# n-butanol 218.5, isobutanol 229.5, 2-ethylhexanol 385 (thermo's HEOS and Zabransky fits);
+# NaOH 87.5 (WEBBOOK_SHOMATE, the liquid). thermo packages no measured liquid heat capacity of
+# 2-ethylhexenal, butyl butyrate or isobutanal: the first two are thermo's Dadgostar-Shaw
+# estimates at 350 K (an estimation method, so ASSUMED in effect), and isobutanal takes its
+# isomer n-butanal's 163.7, ASSUMED (the Dadgostar-Shaw estimate gives both butanals the same
+# value). No benchmarked property package of core covers these liquids or the oxo gas (DESIGN.md
+# L-2).
+#
+# Modelling choices (DESIGN.md D-004 to D-007):
+# - N2 stands for all the inerts of the synthesis gas and the hydrogen (methane, CO2, argon,
+#   nitrogen), ASSUMED.
+# - BUBU (n-butyl butyrate, the Tishchenko ester of n-butanal) stands for all the heavy
+#   by-products of the oxo and aldol steps (aldols, trimers, esters), ASSUMED: one defined
+#   compound with the right element balance. Its own boiling point (438 K) is below
+#   2-ethylhexenal's and 2-ethylhexanol's; its splits and C-403's bottoms temperature follow
+#   the heavies it stands for, not its own volatility (DESIGN.md D-007, L-4).
+# - NAOH is the dissolved sodium hydroxide of the aldol caustic; sodium butyrate from the
+#   Cannizzaro reaction is not modelled (L-4).
+# - 2-ethylhexanal, the intermediate of the hydrogenation, is not modelled: both hydrogenation
+#   stages take 2-ethylhexenal to 2-ethylhexanol in one reaction (D-006).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: C3H6, name: Propylene, formula: C3H6, cas: 115-07-1, molar_mass: 42.081, normal_boiling_point: 225.53}
+  - {id: C3H8, name: Propane (impurity of the propylene and by-product), formula: C3H8, cas: 74-98-6, molar_mass: 44.097, normal_boiling_point: 231.04}
+  - {id: CO, name: Carbon monoxide, formula: CO, cas: 630-08-0, molar_mass: 28.010, normal_boiling_point: 81.64}
+  - {id: H2, name: Hydrogen, formula: H2, cas: 1333-74-0, molar_mass: 2.016, normal_boiling_point: 20.37}
+  - {id: N2, name: Nitrogen (with the other inerts of the synthesis gas and hydrogen), formula: N2, cas: 7727-37-9, molar_mass: 28.014, normal_boiling_point: 77.35}
+  - {id: NBAL, name: n-Butyraldehyde (butanal), formula: C4H8O, cas: 123-72-8, molar_mass: 72.107, normal_boiling_point: 347.95, liquid_heat_capacity: 163.7}
+  - {id: IBAL, name: Isobutyraldehyde (2-methylpropanal), formula: C4H8O, cas: 78-84-2, molar_mass: 72.107, normal_boiling_point: 337.25, liquid_heat_capacity: 163.7}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_heat_capacity: 75.4}
+  - {id: NAOH, name: Sodium hydroxide (dissolved), formula: NaOH, cas: 1310-73-2, molar_mass: 39.997, liquid_heat_capacity: 87.5}
+  - {id: EPA, name: 2-Ethyl-2-hexenal, formula: C8H14O, cas: 645-62-5, molar_mass: 126.199, normal_boiling_point: 448.15, liquid_heat_capacity: 266.5}
+  - {id: EH, name: 2-Ethylhexanol (2-ethylhexan-1-ol), formula: C8H18O, cas: 104-76-7, molar_mass: 130.231, normal_boiling_point: 459.35, liquid_heat_capacity: 385.0}
+  - {id: NBOL, name: n-Butanol, formula: C4H10O, cas: 71-36-3, molar_mass: 74.123, normal_boiling_point: 390.75, liquid_heat_capacity: 218.5}
+  - {id: IBOL, name: Isobutanol, formula: C4H10O, cas: 78-83-1, molar_mass: 74.123, normal_boiling_point: 380.99, liquid_heat_capacity: 229.5}
+  - {id: BUBU, name: n-Butyl butyrate (stands for the heavies), formula: C8H16O2, cas: 109-21-7, molar_mass: 144.214, normal_boiling_point: 438.1, liquid_heat_capacity: 302.7}
+templates:
+  - id: gas
+    title: Oxo and hydrogenation gases (propylene, propane, CO, hydrogen, inerts) with the organics they carry
+    components: [C3H6, C3H8, CO, H2, N2, NBAL, IBAL, H2O, EPA, EH, NBOL, IBOL, BUBU, NAOH]
+  - id: liquid
+    title: Aldehydes, alcohols, water and caustic (the gases at zero where none is dissolved)
+    components: [NBAL, IBAL, H2O, NAOH, EPA, EH, NBOL, IBOL, BUBU, C3H6, C3H8, CO, H2, N2]
+# property_method is a placeholder: no benchmarked package of core covers the aldehyde, alcohol
+# and water liquids or the oxo gas (DESIGN.md L-2).
+property_method:
+  adapter: thermo
+  status: placeholder

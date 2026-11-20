@@ -1,4 +1,5 @@
-# Benchmarks of CO2 capture and conditioning: for now the conditioning of a high-purity source.
+# Benchmarks of CO2 capture and conditioning: the conditioning of a high-purity source and the
+# direct air capture of CO2 with a liquid solvent.
 # Schema: schemas/benchmarks.schema.json; rules: docs/benchmarks.md. Ranges are facts from the cited
 # source, in our own form.
 #
@@ -38,6 +39,33 @@ kpis:
       water), IPCC SRCCS (2005) ch. 3; a web search for open make-up water figures of CO2 compression
       intercooling found none stated per t of CO2.
 
+  dac-specific-electricity:
+    title: Electricity per t of CO2 captured from the air (liquid-solvent direct air capture)
+    unit: kWh/t
+    no_open_reference: >-
+      No open range independent of the dataset found (2026-11-20). Read: Keith et al. (2018) Joule
+      2, 1573, Table 2, scenario C (gas-fired calciner, grid power, 15 MPa): 366 kWh/t, with the
+      oxygen plant's power and the slaker's power credit; it is the dataset's own source and a
+      single value. NETL (2022) DOE/NETL-2021/2864, Exhibit 5-2, Case 1: 65.1 MW of auxiliaries
+      for 909 225 t/a captured from the air at 85 % (122.1 t/h), 533 kWh/t divided by us, for a
+      different configuration (on-site NGCC, a flue-gas absorber, the air separation unit's main
+      air compressor included); a single value of a re-evaluation of the same process, so not a
+      range. A web search on 2026-11-20 for open reviews stating the electricity of liquid-solvent
+      DAC per t of CO2 found reviews with wide ranges over all DAC types (e.g. Frontiers in
+      Sustainability 2023, doi:10.3389/frsus.2023.1167713, not read in full) and no range for
+      this configuration.
+  dac-natural-gas:
+    title: Natural gas (LHV) per t of CO2 captured from the air (liquid-solvent direct air capture, gas-fired calciner)
+    unit: GJ/t
+    no_open_reference: >-
+      No open range independent of the dataset found (2026-11-20). Read: Keith et al. (2018) Joule
+      2, 1573, p. 1580 and Table 2: 5.25 GJ per t of CO2 for the calcination (scenario C) and
+      8.81 GJ/t with an on-site gas turbine (scenario A), the dataset's own source and single
+      values. NETL (2022) DOE/NETL-2021/2864, Exhibit 5-2: 15 981 kg/h of natural gas to the
+      calciner for 909 225 t/a from the air and 187 131 t/a of flue gas CO2 on the same liquor;
+      its heating value was not read, so no per-t figure is derived. The web search of
+      2026-11-20 (see dac-specific-electricity) found no range for a gas-fired oxy calciner.
+
 datasets:
   - process: carbon-capture-1
     dataset: co2-conditioning-ammonia-stripper-vent
@@ -47,3 +75,15 @@ datasets:
         expression: feed:electricity / product:CO2
         per: product:CO2
       co2-conditioning-cooling-water-makeup: {expression: resource:water / product:CO2, per: product:CO2}
+  - process: direct-air-capture-1
+    dataset: carbon-dioxide-by-direct-air-capture-koh-solvent-and-calcium-loop-1.17-mt-a-15-mpa
+    conditions: {technology: "aqueous KOH contactors, pellet reactor, steam slaker, oxy-fired calciner on natural gas (Keith et al. 2018 scenario C)", delivery: "15.1 MPa, 97.0 wt% CO2", air: "20 C, 64 % RH", basis: conceptual inventory}
+    constants:
+      ch4-lhv:
+        value: 50.0
+        unit: MJ/kg
+        provenance: sourced
+        source: "Keith, D. W. et al. (2018) Joule 2, 1573, Fig. 2: 670 GJ/h (LHV) for 13.4 t/h of CH4; the calciner gas is modelled as methane at this value (processes/direct-air-capture-1/DESIGN.md D-007)"
+    kpis:
+      dac-specific-electricity: {expression: feed:POWER / (resource:CO2 - emission:CO2), per: product:CO2P}
+      dac-natural-gas: {expression: feed:NG * const:ch4-lhv / (resource:CO2 - emission:CO2), per: product:CO2P}

@@ -1,0 +1,65 @@
+# Components and templates of ibuprofen-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula), normal_boiling_point in K at
+# 101.325 kPa.
+#
+# The liquids are carried as molecular pseudo-components, an inventory basis, not a speciation:
+# the ketone's HF complex in R-101, the Pd complex and the triphenylphosphine of R-301 and
+# the Raney nickel of R-201 are not resolved (DESIGN.md D-006). The ibuprofen crystals are a
+# separate solid component, IBU_S (phase: solid). Two lumps stand for by-products the sources
+# give only as percentages (D-005):
+# - ISO: the 19 % of the converted isobutylbenzene that US 4 981 995 A Example 1 does not
+#   report as 4-isobutylacetophenone, taken as its isomers (C12H16O, ASSUMED);
+# - HE: the "heavy ends" of the carbonylation (US 4 981 995 A Example 100), taken as the ether
+#   of two IBPE (C24H34O, ASSUMED).
+# Liquid data the semi-batch R101 needs (D-006), all at 298.15 K from thermo 0.6.1,
+# Chemical(...), its default methods (package values, ADR 0037 of the library; DESIGN.md SRC-4):
+# - liquid_molar_volume, m3/kmol (Vml): isobutylbenzene 0.16276 and 4-isobutylacetophenone
+#   0.19559 (MMSNM0, an estimation method); acetic anhydride 0.09495, acetic acid 0.05763 and
+#   hydrogen fluoride 0.02125 (DIPPR_PERRY_8E, Perry's 8th ed. drawing on DIPPR 801, not read);
+#   hexane 0.13157 and water 0.01807 (HEOS_FIT); ibuprofen 0.20727 (MMSNM0);
+# - liquid_heat_capacity, kJ/(kmol K) (Cplm): isobutylbenzene 242.84 (ZABRANSKY_SPLINE_SAT),
+#   acetic anhydride 152.37 and 4-isobutylacetophenone 315.32 (DADGOSTAR_SHAW, an estimation
+#   method), acetic acid 131.95 and hydrogen fluoride 61.53 (VDI_TABULAR, the VDI Heat Atlas,
+#   not read), ibuprofen 283.47 (ZABRANSKY_SPLINE_C; ZABRANSKY_* are fits to Zabransky et al.'s
+#   compilation of liquid heat capacities, not read), hexane 195.84 and water 75.33 (HEOS_FIT,
+#   fits to CoolProp's Helmholtz-energy equations of state);
+# - ISO, IBPE and IBPET take 4-isobutylacetophenone's volume and heat capacity, IPPA
+#   ibuprofen's and HE twice 4-isobutylacetophenone's (ASSUMED analogues: thermo 0.6.1 has no
+#   data for IBPE, IBPET or 3-IPPA);
+# - normal boiling points from chemicals 1.5.2, Tb, its default method: CRC_ORG (the CRC
+#   Handbook's organic table bundled in chemicals, not read) for isobutylbenzene 445.85, acetic
+#   anhydride 412.65 and acetic acid 391.05; CRC_INORG (its inorganic table, not read) for
+#   hydrogen fluoride 293.15; HEOS (CoolProp's Helmholtz-energy equations of state) for hexane
+#   341.87, water 373.12, hydrogen 20.37, carbon monoxide 81.64 and hydrogen chloride 188.17 K;
+#   the aromatics of the later steps have none here (their vapour pressures are not used);
+# - H2, CO and HCl carry their ideal-gas heat capacities at 298.15 K in liquid_heat_capacity
+#   (thermo 0.6.1, Cpgm, HEOS_FIT: 28.83, 29.14 and 29.13 kJ/(kmol K)), standing for the gas and
+#   the dissolved acid in the conversion steps' duties (ASSUMED; the HCl's heat of solution not
+#   counted, D-009).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: IBB, name: Isobutylbenzene, formula: C10H14, cas: 538-93-2, molar_mass: 134.222, normal_boiling_point: 445.85, liquid_molar_volume: 0.16276, liquid_heat_capacity: 242.84}
+  - {id: AC2O, name: Acetic anhydride, formula: C4H6O3, cas: 108-24-7, molar_mass: 102.089, normal_boiling_point: 412.65, liquid_molar_volume: 0.09495, liquid_heat_capacity: 152.37}
+  - {id: HOAC, name: Acetic acid, formula: C2H4O2, cas: 64-19-7, molar_mass: 60.052, normal_boiling_point: 391.05, liquid_molar_volume: 0.05763, liquid_heat_capacity: 131.95}
+  - {id: HF, name: Hydrogen fluoride (anhydrous), formula: HF, cas: 7664-39-3, molar_mass: 20.006, normal_boiling_point: 293.15, liquid_molar_volume: 0.02125, liquid_heat_capacity: 61.53}
+  - {id: IBAP, name: 4-Isobutylacetophenone, formula: C12H16O, cas: 38861-78-8, molar_mass: 176.259, liquid_molar_volume: 0.19559, liquid_heat_capacity: 315.32}
+  - {id: ISO, name: Acylation by-products (isobutylacetophenone isomers; lump), formula: C12H16O, molar_mass: 176.259, liquid_molar_volume: 0.19559, liquid_heat_capacity: 315.32}
+  - {id: H2, name: Hydrogen, formula: H2, cas: 1333-74-0, molar_mass: 2.016, normal_boiling_point: 20.37, liquid_heat_capacity: 28.83}
+  - {id: IBPE, name: "1-(4-Isobutylphenyl)ethanol", formula: C12H18O, cas: 40150-92-3, molar_mass: 178.275, liquid_molar_volume: 0.19559, liquid_heat_capacity: 315.32}
+  - {id: IBPET, name: "1-Ethyl-4-isobutylbenzene (over-reduction)", formula: C12H18, molar_mass: 162.276, liquid_molar_volume: 0.19559, liquid_heat_capacity: 315.32}
+  - {id: CO, name: Carbon monoxide, formula: CO, cas: 630-08-0, molar_mass: 28.01, normal_boiling_point: 81.64, liquid_heat_capacity: 29.14}
+  - {id: HCL, name: Hydrogen chloride (dissolved), formula: HCl, cas: 7647-01-0, molar_mass: 36.458, normal_boiling_point: 188.17, liquid_heat_capacity: 29.13}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12, liquid_molar_volume: 0.01807, liquid_heat_capacity: 75.33}
+  - {id: IBU, name: Ibuprofen (dissolved or molten), formula: C13H18O2, cas: 15687-27-1, molar_mass: 206.285, liquid_molar_volume: 0.20727, liquid_heat_capacity: 283.47}
+  - {id: IBU_S, name: Ibuprofen (crystals), formula: C13H18O2, cas: 15687-27-1, molar_mass: 206.285, phase: solid, liquid_molar_volume: 0.20727, liquid_heat_capacity: 283.47}
+  - {id: IPPA, name: "3-(4-Isobutylphenyl)propionic acid (3-IPPA)", formula: C13H18O2, molar_mass: 206.285, liquid_molar_volume: 0.20727, liquid_heat_capacity: 283.47}
+  - {id: HE, name: Carbonylation heavy ends (lump), formula: C24H34O, molar_mass: 338.535, liquid_molar_volume: 0.39118, liquid_heat_capacity: 630.64}
+  - {id: HEX, name: n-Hexane, formula: C6H14, cas: 110-54-3, molar_mass: 86.178, normal_boiling_point: 341.87, liquid_molar_volume: 0.13157, liquid_heat_capacity: 195.84}
+templates:
+  - {id: acyl, title: "Acylation liquor (HF, aromatics, acetic acid and anhydride)", components: [IBB, AC2O, HOAC, HF, IBAP, ISO]}
+  - {id: all, title: Every component of the plant (each stream carries its own), components: [IBB, AC2O, HOAC, HF, IBAP, ISO, H2, IBPE, IBPET, CO, HCL, H2O, IBU, IBU_S, IPPA, HE, HEX]}
+property_method:
+  adapter: thermo
+  status: placeholder

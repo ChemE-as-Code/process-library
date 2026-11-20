@@ -1,0 +1,1216 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# 2-Ethylhexanol by propylene hydroformylation (aqueous Rh/TPPTS), aldol condensation of
+# n-butanal and two-stage hydrogenation, 120 kt/a (DESIGN.md D-001, D-002). Where the values
+# come from:
+# - the feeds' compositions are the library producers' products or ASSUMED grades (D-003);
+#   their flows are solved by core's design specifications (`specs:`, core ADR 0070) for the
+#   product rate, the reactor feed, the crude's water, the caustic's strength and the
+#   hydrogenation gas;
+# - the conversion steps take the fractions of process/reactions.yaml (D-004 to D-006); the
+#   separators' splits (`recovery:`) and the splitters are ASSUMED design specifications inside
+#   what US 4 684 750 A and US 4 523 036 A state (SRC-1, SRC-2), D-004 to D-007;
+# - the oxo cycle gas, the aldol caustic, the hydrogenation cycle gas, the hydrogen cascade and
+#   the after-run are torn (S11, S19, S33, S38, S43, core ADR 0060) and solved together with the
+#   specifications by `cheme process propagate --fill`, which writes every flow and composition
+#   but the feeds' compositions;
+# - temperatures and pressures are ASSUMED design values inside the sources' ranges (D-004 to
+#   D-007); the adiabatic mixers' outlet temperatures, every duty and every power come from
+#   scripts/balance.py (D-009, balance-output contract of library ADR 0027), which reads the
+#   propagated streams.
+schema: cheme/process/v1
+kind: flowsheet
+title: 2-Ethylhexanol by propylene hydroformylation, aldol condensation and hydrogenation (120 kt/a)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - id: design
+    description: "Design case: 120 kt/a 2-ethylhexanol (15 t/h in 8000 h), the route and yields of US 4 684 750 A (D-002)"
+    default: true
+    capacity: 15 t/h 2-ethylhexanol
+    provenance: assumed
+    source: "D-002: a normalisation basis for the inventory, not a commercial plant claim"
+tolerance: {abs: 1.0, rel: 0.005}   # balances: |in - out| <= abs + rel * max(in, out), kg/h
+tears:
+  - stream: S3
+    initial: {flow: 15800, unit: kg/h, basis: mole_fraction, composition: {C3H6: 0.03067, C3H8: 0.2083, CO: 0.3742, H2: 0.37039, N2: 0.01254, NBAL: 0.00346, IBAL: 0.00028, H2O: 0.00016}}
+  - stream: S11
+    initial: {flow: 9960, unit: kg/h, basis: mole_fraction, composition: {C3H6: 0.01404, C3H8: 0.09551, CO: 0.27324, H2: 0.1501, N2: 0.45277, NBAL: 0.01287, IBAL: 0.00087, H2O: 0.00059}}
+  - stream: S19
+    initial: {flow: 15279, unit: kg/h, basis: mole_fraction, composition: {NBAL: 0.00004, H2O: 0.9905, NAOH: 0.0094, EPA: 0.00006}}
+  - stream: S33
+    initial: {flow: 10685, unit: kg/h, basis: mole_fraction, composition: {H2: 0.99399, N2: 0.00601}}
+  - stream: S38
+    initial: {flow: 595, unit: kg/h, basis: mole_fraction, composition: {H2: 0.99899, N2: 0.00101}}
+  - stream: S43
+    initial: {flow: 466, unit: kg/h, basis: mole_fraction, composition: {EH: 0.97507, BUBU: 0.02493}}
+convergence: {method: wegstein, max_iterations: 300}
+specs:
+  - id: rate
+    vary: {stream: S1, initial: 10700}
+    target: {stream: S46, component: EH, quantity: annual, value: 120000, unit: t, hours: 8000}
+    provenance: assumed
+    source: "D-002: 120 kt/a of 2-ethylhexanol in 8000 h, ASSUMED normalisation basis"
+  - id: syngas
+    vary: {stream: S2, initial: 8000}
+    target: {stream: S5, component: CO, quantity: ratio, per: {stream: S5, component: C3H6}, basis: mole, value: 1.5}
+    provenance: assumed
+    source: "D-004: 1.5 mol CO per mol propylene in R-101's feed, ASSUMED (no open source read gives the gas composition of the aqueous Rh process); the synthesis gas follows from it"
+  - id: water
+    vary: {stream: S4, initial: 200}
+    target: {stream: S13, component: H2O, quantity: fraction, basis: mass, value: 0.01}
+    provenance: assumed
+    source: "D-004: the crude leaves the catalyst phase with 1.0 wt% dissolved water, ASSUMED; the water make-up S4 replaces it"
+  - id: caustic
+    vary: {stream: S18, initial: 70}
+    target: {stream: S23, component: NAOH, quantity: fraction, basis: mass, value: 0.015}
+    provenance: given
+    source: "US 4 684 750 A (SRC-1), aldol example: the aqueous phase holds about 1-2 wt% NaOH; 1.5 wt% taken (D-005)"
+  - id: hydrogen
+    vary: {stream: S35, initial: 600}
+    target: {stream: S27, component: H2, quantity: fraction, basis: mole, value: 0.90}
+    provenance: assumed
+    source: "D-006: 90 mol% hydrogen in R-301's vapour feed, ASSUMED, so that 2-ethylhexenal stays below its dew point at 423 K and 400 kPa(a)"
+
+feeds:
+  - {id: C3, title: "Propylene (chemical grade, propylene-pdh-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SYN, title: "Synthesis gas H2/CO 1:1", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: DMW, title: "Demineralised water, catalyst-phase make-up", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: NAOH, title: "Caustic soda 50 wt% (chlor-alkali-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: H2F, title: "Hydrogen 99.9 mol% (hydrogen-1)", category: raw_material, ports: [{id: out, direction: out}]}
+  - id: MPS
+    title: MP steam 1500 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 471.4, provenance: assumed, source: "saturation at 1500 kPa(a) (IAPWS-97), D-009"}
+    ports:
+      - {id: e301, direction: out, kind: energy}
+      - {id: c401, direction: out, kind: energy}
+      - {id: c402, direction: out, kind: energy}
+      - {id: c403, direction: out, kind: energy}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: k101, direction: out, kind: energy}
+      - {id: k301, direction: out, kind: energy}
+      - {id: pumps, direction: out, kind: energy}
+      - {id: vac1, direction: out, kind: energy}
+      - {id: vac2, direction: out, kind: energy}
+      - {id: p101, direction: out, kind: energy}
+products:
+  - {id: EHP, title: 2-Ethylhexanol to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: IBAL, title: Isobutanal to storage, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: LIGHTS, title: Light ends (butanols) to the site's fuel, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: HVY, title: Heavy ends to the site's fuel, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: OFFGAS, title: Purge and vent gases to the site's fuel gas, category: off_gas, ports: [{id: in, direction: in}]}
+  - {id: WW, title: Aqueous effluent to biological treatment, category: wastewater, ports: [{id: in, direction: in}]}
+  - id: LPSX
+    title: LP steam 300 kPa(a) raised in R-301, surplus to the site's header
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 300, provenance: assumed, source: "design basis, D-009"}
+      supply_temperature: {value: 406.7, provenance: assumed, source: "saturation at 300 kPa(a) (IAPWS-97), D-009"}
+    ports:
+      - {id: r301, direction: in, kind: energy}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis, D-009"}
+      return_temperature: {value: 308.15, provenance: assumed, source: "design basis, D-009"}
+    ports:
+      - {id: r101, direction: in, kind: energy}
+      - {id: c102, direction: in, kind: energy}
+      - {id: r201, direction: in, kind: energy}
+      - {id: e201, direction: in, kind: energy}
+      - {id: e302, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+      - {id: c402, direction: in, kind: energy}
+      - {id: e401, direction: in, kind: energy}
+      - {id: c403, direction: in, kind: energy}
+
+blocks:
+  - id: OXO
+    title: Hydroformylation (aqueous Rh/TPPTS), syngas stripping and n/iso-butanal separation
+    class: ReactingChemicals
+    ports:
+      - {id: c3, direction: in}
+      - {id: syn, direction: in}
+      - {id: dmw, direction: in}
+      - {id: purge, direction: out}
+      - {id: vent, direction: out}
+      - {id: iso, direction: out}
+      - {id: aq, direction: out}
+      - {id: nbal, direction: out}
+      - {id: pw, direction: in, kind: energy}
+      - {id: pw2, direction: in, kind: energy}
+      - {id: vac, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: ALD
+    title: Aldol condensation with aqueous caustic and phase separation
+    class: ReactingChemicals
+    ports:
+      - {id: nbal, direction: in}
+      - {id: naoh, direction: in}
+      - {id: purge, direction: out}
+      - {id: org, direction: out}
+      - {id: pw, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+  - id: HYD
+    title: Two-stage hydrogenation (gas phase over Cu, liquid phase over Ni)
+    class: ReactingChemicals
+    ports:
+      - {id: org, direction: in}
+      - {id: h2, direction: in}
+      - {id: purge, direction: out}
+      - {id: crude, direction: out}
+      - {id: lpx, direction: out, kind: energy}
+      - {id: mp, direction: in, kind: energy}
+      - {id: pw, direction: in, kind: energy}
+      - {id: cw, direction: out, kind: energy}
+  - id: DIS
+    title: Distillation (light ends, 2-ethylhexanol, after-run columns)
+    class: Distilling
+    ports:
+      - {id: crude, direction: in}
+      - {id: aq, direction: out}
+      - {id: lights, direction: out}
+      - {id: eh, direction: out}
+      - {id: hvy, direction: out}
+      - {id: pw, direction: in, kind: energy}
+      - {id: mp1, direction: in, kind: energy}
+      - {id: mp2, direction: in, kind: energy}
+      - {id: mp3, direction: in, kind: energy}
+      - {id: cw1, direction: out, kind: energy}
+      - {id: cw2, direction: out, kind: energy}
+      - {id: cw3, direction: out, kind: energy}
+      - {id: cw4, direction: out, kind: energy}
+  - id: COL
+    title: Off-gas and effluent collection
+    class: Mixing
+    ports:
+      - {id: oxo, direction: in}
+      - {id: c102, direction: in}
+      - {id: hyd, direction: in}
+      - {id: offgas, direction: out}
+      - {id: wc102, direction: in}
+      - {id: wald, direction: in}
+      - {id: wc401, direction: in}
+      - {id: ww, direction: out}
+
+steps:
+  # ---------------------------------------------------------------- hydroformylation (D-004)
+  - id: M101
+    block: OXO
+    title: Reactor gas feed (propylene, strip gas with the synthesis gas, cycle gas, water make-up)
+    class: Mixing
+    ports:
+      - {id: c3, direction: in, delegates: c3}
+      - {id: strip, direction: in}
+      - {id: rec, direction: in}
+      - {id: dmw, direction: in, delegates: dmw}
+      - {id: out, direction: out}
+  - id: R101
+    block: OXO
+    title: Hydroformylation reactor (stirred, aqueous Rh/TPPTS catalyst phase, 5 MPa, 393 K)
+    class: ReactingChemicals
+    reactions: [HYN, HYI, HYD]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: R102
+    block: OXO
+    title: Heavies formed in R-101 (second conversion step of the same vessel)
+    class: ReactingChemicals
+    reactions: [TISH]
+    reactor: conversion
+    links: [{target: equipment, ref: R-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy}
+  - id: V101
+    block: OXO
+    title: Phase separator (gas, crude aldehyde; the catalyst phase returns to R-101)
+    class: Separating
+    recovery:
+      outlets:
+        gas: {C3H6: 0.2, C3H8: 0.2, CO: 0.97, H2: 0.99, N2: 0.98, NBAL: 0.02, IBAL: 0.025, H2O: 0.02}
+      provenance: assumed
+      source: "D-004: ASSUMED split; US 4 523 036 A (SRC-2) separates the crude uncooled with much propylene dissolved in it and strips it with the synthesis gas; the aqueous catalyst phase is decanted and returned inside R-101/V-101 (not a stream, L-3)"
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out}
+  - id: P101
+    block: OXO
+    title: Crude pump (V-101's liquid up to the stripper's head)
+    class: Pumping
+    links: [{target: equipment, ref: P-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: pw, direction: in, kind: energy, delegates: pw2}
+  - id: C101
+    block: OXO
+    title: Crude stripper (dissolved propylene stripped by the fresh synthesis gas)
+    class: Absorbing
+    recovery:
+      outlets:
+        gas: {C3H6: 0.995, C3H8: 0.995, CO: 1.0, H2: 1.0, N2: 1.0, NBAL: 0.01, IBAL: 0.015, H2O: 0.01}
+      provenance: assumed
+      source: "D-004: ASSUMED split; US 4 523 036 A (SRC-2): the dissolved olefin is stripped from the uncooled crude by synthesis gas in countercurrent and returns to the reactor"
+    links: [{target: equipment, ref: C-101}]
+    ports:
+      - {id: liq, direction: in}
+      - {id: syn, direction: in, delegates: syn}
+      - {id: gas, direction: out}
+      - {id: bot, direction: out}
+  - id: X101
+    block: OXO
+    title: Oxo cycle-gas purge
+    class: SplittingMaterial
+    split: {purge: 0.05}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: out, direction: out}
+  - id: K101
+    block: OXO
+    title: Oxo cycle-gas compressor
+    class: Compressing
+    links: [{target: equipment, ref: K-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: pw, direction: in, kind: energy, delegates: pw}
+  - id: C102
+    block: OXO
+    title: n/iso-Butanal column (100 theoretical plates, 50-80 kPa(a)) with overhead decanter
+    class: Distilling
+    recovery:
+      outlets:
+        vent: {C3H6: 1.0, C3H8: 1.0, CO: 1.0, H2: 1.0, N2: 1.0}
+        iso: {IBAL: 0.962, NBAL: 0.0000512}
+        aq: {H2O: 1.0}
+      provenance: assumed
+      source: "D-004: ASSUMED split for the purities of US 4 684 750 A (SRC-1): overhead 99.9 wt% isobutanal and 0.1 wt% n-butanal, bottoms 0.2 wt% isobutanal; the dissolved gases to the vent, the water decanted from the overhead"
+    links: [{target: equipment, ref: C-102}]
+    ports:
+      - {id: in, direction: in}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: iso, direction: out, delegates: iso}
+      - {id: aq, direction: out, delegates: aq}
+      - {id: bot, direction: out, delegates: nbal}
+      - {id: rx, direction: in, kind: energy}
+      - {id: rx2, direction: in, kind: energy}
+      - {id: vac, direction: in, kind: energy, delegates: vac}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  # ---------------------------------------------------------------- aldol condensation (D-005)
+  - id: M201
+    block: ALD
+    title: Mixing pump (n-butanal, caustic make-up, recycled aqueous phase)
+    class: Mixing
+    links: [{target: equipment, ref: P-201}]
+    ports:
+      - {id: nbal, direction: in, delegates: nbal}
+      - {id: naoh, direction: in, delegates: naoh}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+      - {id: pw, direction: in, kind: energy, delegates: pw}
+  - id: R201
+    block: ALD
+    title: Aldol reactor (mixing section, 413 K, about 3 min)
+    class: ReactingChemicals
+    reactions: [ALD, TISH2]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: E201
+    block: ALD
+    title: Aldol product cooler to 333 K
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: V201
+    block: ALD
+    title: Aldol decanter (organic 2-ethylhexenal phase, aqueous caustic phase)
+    class: Separating
+    recovery:
+      outlets:
+        aq: {NAOH: 1.0, H2O: 0.99, NBAL: 0.01, EPA: 0.0005}
+      provenance: assumed
+      source: "D-005: ASSUMED split; US 4 684 750 A (SRC-1) separates the phases at about 60 C; the organic phase keeps some water, the aqueous phase dissolves a little aldehyde"
+    links: [{target: equipment, ref: V-201}]
+    ports:
+      - {id: in, direction: in}
+      - {id: aq, direction: out}
+      - {id: org, direction: out, delegates: org}
+  - id: X201
+    block: ALD
+    title: Aqueous phase recycle and purge
+    class: SplittingMaterial
+    split: {purge: 0.10}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: rec, direction: out}
+  # ---------------------------------------------------------------- hydrogenation (D-006)
+  - id: M301
+    block: HYD
+    title: 2-Ethylhexenal with the cycle hydrogen and the hydrogen from the second stage
+    class: Mixing
+    ports:
+      - {id: org, direction: in, delegates: org}
+      - {id: rec, direction: in}
+      - {id: h2, direction: in}
+      - {id: out, direction: out}
+  - id: E301
+    block: HYD
+    title: Vaporiser and superheater of the first-stage feed
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: mp, direction: in, kind: energy, delegates: mp}
+  - id: R301
+    block: HYD
+    title: First-stage hydrogenation, gas phase over Cu (fixed bed, 423-433 K)
+    class: ReactingChemicals
+    reactions: [HEPA, HNB, HIB]
+    reactor: conversion
+    links: [{target: equipment, ref: R-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: r302, direction: out, kind: energy}
+      - {id: exp, direction: out, kind: energy, delegates: lpx}
+  - id: E302
+    block: HYD
+    title: First-stage product condenser
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: cw, direction: out, kind: energy, delegates: cw}
+  - id: V301
+    block: HYD
+    title: First-stage separator
+    class: Separating
+    recovery:
+      outlets:
+        gas: {H2: 1.0, N2: 1.0}
+      provenance: assumed
+      source: "D-006: ASSUMED split; the condensed organics leave as liquid, hydrogen and inerts as gas (their solution in the liquid not modelled)"
+    links: [{target: equipment, ref: V-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out}
+  - id: X301
+    block: HYD
+    title: Hydrogenation cycle-gas purge
+    class: SplittingMaterial
+    split: {purge: 0.01}
+    ports:
+      - {id: in, direction: in}
+      - {id: purge, direction: out, delegates: purge}
+      - {id: out, direction: out}
+  - id: K301
+    block: HYD
+    title: Hydrogenation cycle-gas compressor
+    class: Compressing
+    links: [{target: equipment, ref: K-301}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: pw, direction: in, kind: energy, delegates: pw}
+  - id: M302
+    block: HYD
+    title: First-stage product with the fresh hydrogen (second-stage feed)
+    class: Mixing
+    links: [{target: equipment, ref: P-301}]
+    ports:
+      - {id: liq, direction: in}
+      - {id: h2, direction: in, delegates: h2}
+      - {id: out, direction: out}
+  - id: R302
+    block: HYD
+    title: Second-stage hydrogenation, liquid phase over Ni (trickle bed, 2.3 MPa, 393-403 K)
+    class: ReactingChemicals
+    reactions: [HEPA, HNB, HIB]
+    reactor: conversion
+    links: [{target: equipment, ref: R-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out}
+      - {id: lp, direction: in, kind: energy}
+  - id: V302
+    block: HYD
+    title: Second-stage separator (excess hydrogen let down to the first stage)
+    class: Separating
+    recovery:
+      outlets:
+        gas: {H2: 1.0, N2: 1.0}
+      provenance: assumed
+      source: "D-006: ASSUMED split, as V301"
+    links: [{target: equipment, ref: V-302}]
+    ports:
+      - {id: in, direction: in}
+      - {id: gas, direction: out}
+      - {id: liq, direction: out, delegates: crude}
+  # ---------------------------------------------------------------- distillation (D-007)
+  - id: C401
+    block: DIS
+    title: Light-ends column with overhead decanter
+    class: Distilling
+    recovery:
+      outlets:
+        aq: {H2O: 0.98}
+        lights: {H2O: 0.02, NBAL: 1.0, IBAL: 1.0, NBOL: 0.995, IBOL: 0.998, EH: 0.0005}
+      provenance: assumed
+      source: "D-007: ASSUMED split; US 4 684 750 A (SRC-1): the first column takes the compounds boiling below 2-ethylhexanol overhead; the water decanted"
+    links: [{target: equipment, ref: C-401}]
+    ports:
+      - {id: in, direction: in, delegates: crude}
+      - {id: aq, direction: out, delegates: aq}
+      - {id: lights, direction: out, delegates: lights}
+      - {id: bot, direction: out}
+      - {id: mp, direction: in, kind: energy, delegates: mp1}
+      - {id: cw, direction: out, kind: energy, delegates: cw1}
+  - id: M402
+    block: DIS
+    title: 2-Ethylhexanol column feed (light-ends bottoms and the after-run)
+    class: Mixing
+    ports:
+      - {id: c401, direction: in}
+      - {id: rec, direction: in}
+      - {id: out, direction: out}
+  - id: C402
+    block: DIS
+    title: 2-Ethylhexanol column (pure product overhead)
+    class: Distilling
+    recovery:
+      outlets:
+        top: {EH: 0.97, NBOL: 1.0, IBOL: 1.0, EPA: 1.0, H2O: 1.0, BUBU: 0.002}
+      provenance: assumed
+      source: "D-007: ASSUMED split; US 4 684 750 A (SRC-1): the second column takes pure 2-ethylhexanol overhead; the heavies (butyl butyrate standing for them) stay at the bottom"
+    links: [{target: equipment, ref: C-402}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out}
+      - {id: mp, direction: in, kind: energy, delegates: mp2}
+      - {id: vac, direction: in, kind: energy, delegates: pw}
+      - {id: cw, direction: out, kind: energy, delegates: cw2}
+  - id: E401
+    block: DIS
+    title: Product cooler
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-401}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: eh}
+      - {id: cw, direction: out, kind: energy, delegates: cw3}
+  - id: C403
+    block: DIS
+    title: After-run column (reusable 2-ethylhexanol back, heavies out)
+    class: Distilling
+    recovery:
+      outlets:
+        top: {EH: 0.96, BUBU: 0.05, EPA: 1.0}
+      provenance: assumed
+      source: "D-007: ASSUMED split; US 4 684 750 A (SRC-1): a third column separates the reusable after-run from the heavies"
+    links: [{target: equipment, ref: C-403}]
+    ports:
+      - {id: in, direction: in}
+      - {id: top, direction: out}
+      - {id: bot, direction: out, delegates: hvy}
+      - {id: mp, direction: in, kind: energy, delegates: mp3}
+      - {id: cw, direction: out, kind: energy, delegates: cw4}
+  # ---------------------------------------------------------------- collection (D-008)
+  - id: M501
+    block: COL
+    title: Off-gas collector (oxo purge, C-102 vent, hydrogenation purge)
+    class: Mixing
+    ports:
+      - {id: oxo, direction: in, delegates: oxo}
+      - {id: c102, direction: in, delegates: c102}
+      - {id: hyd, direction: in, delegates: hyd}
+      - {id: out, direction: out, delegates: offgas}
+  - id: M502
+    block: COL
+    title: Aqueous effluent collector
+    class: Mixing
+    ports:
+      - {id: c102, direction: in, delegates: wc102}
+      - {id: ald, direction: in, delegates: wald}
+      - {id: c401, direction: in, delegates: wc401}
+      - {id: out, direction: out, delegates: ww}
+
+streams:
+  - id: S1
+    title: Fresh propylene
+    from: C3.out
+    to: M101.c3
+    template: gas
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 5200, provenance: assumed, source: "D-003: pumped liquid"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        composition: {basis: mole_fraction, values: {C3H6: 0.995, C3H8: 0.005}, provenance: assumed, source: "D-003: chemical-grade propylene with 0.5 mol% propane, as acrylic-acid-1 takes it from propylene-pdh-1"}
+        flow: {value: 10702.8, provenance: calculated, source: 'cheme process propagate: spec rate (S46 EH t/a 120000)', fingerprint: 6ae4db93a04a534e}
+  - id: S2
+    title: Synthesis gas to the stripper
+    from: SYN.out
+    to: C101.syn
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 5100, provenance: assumed, source: "D-003: delivered compressed"}
+        phase: {value: vapor, provenance: assumed, source: "D-003"}
+        composition: {basis: mole_fraction, values: {H2: 0.5, CO: 0.49, N2: 0.01}, provenance: assumed, source: "D-003: H2/CO about 1:1 (SRC-1), 2 % hydrogen-rich for the propane formed, with 1 mol% inerts, ASSUMED"}
+        flow: {value: 7946.52, provenance: calculated, source: 'cheme process propagate: spec syngas (S5 CO per S5 C3H6 (mole) 1.5)', fingerprint: 6ae4db93a04a534e}
+  - id: S3
+    title: Strip gas (synthesis gas with the stripped propylene)
+    from: C101.gas
+    to: M101.strip
+    template: gas
+    state:
+      design:
+        temperature: {value: 373.4, provenance: assumed, source: "scripts/balance.py: C-101 adiabatic, its overhead and bottoms at one temperature (D-009)"}
+        pressure: {value: 5050, provenance: assumed, source: "D-004: C-101's head, above R-101 (5000)"}
+        phase: {value: vapor, provenance: assumed, source: "D-004"}
+        flow: {value: 15915.6, provenance: calculated, source: 'cheme process propagate: recycle C101 from S2 S51 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0295505, C3H8: 0.212284, CO: 0.370105, H2: 0.37388, N2: 0.0104339, NBAL: 0.00333312, IBAL: 0.000270117, H2O: 0.000143783, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C101 from S2 S51 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+  - id: S4
+    title: Water make-up to the catalyst phase
+    from: DMW.out
+    to: M101.dmw
+    template: liquid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 5200, provenance: assumed, source: "D-003: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        composition: {basis: mass_fraction, values: {H2O: 1.0}, provenance: assumed, source: "D-003: demineralised water"}
+        flow: {value: 183.374, provenance: calculated, source: 'cheme process propagate: spec water (S13 H2O mass fraction 0.01)', fingerprint: 6ae4db93a04a534e}
+  - id: S5
+    title: Reactor feed
+    from: M101.out
+    to: R101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 309.47, provenance: assumed, source: "scripts/balance.py: M101's inlets mixed adiabatically (D-009)"}
+        pressure: {value: 5000, provenance: assumed, source: "D-004: 50 bar, SRC-1"}
+        phase: {value: two-phase, provenance: assumed, source: "D-004: gas with the liquid propylene and make-up water"}
+        flow: {value: 36570.0, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S3 S4 S11', fingerprint: fb04e84fc19b0e94}
+        composition: {basis: mole_fraction, values: {C3H6: 0.185056, C3H8: 0.125367, CO: 0.277584, H2: 0.32846, N2: 0.0716097, NBAL: 0.00463865, IBAL: 0.000335644, H2O: 0.00694792, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S3 S4 S11', fingerprint: 9f78a743f7add56c}
+  - id: S6
+    title: Reactor contents after hydroformylation
+    from: R101.out
+    to: R102.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 393.15, provenance: assumed, source: "D-004: 115-125 C, SRC-1"}
+        pressure: {value: 5000, provenance: assumed, source: "D-004"}
+        phase: {value: two-phase, provenance: assumed, source: "D-004"}
+        flow: {value: 36570.0, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: dfa5b978263d2740}
+        composition: {basis: mole_fraction, values: {C3H6: 0.026398, C3H8: 0.189636, CO: 0.166724, H2: 0.241728, N2: 0.107526, NBAL: 0.244422, IBAL: 0.0131333, H2O: 0.0104327, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R101 from S5', fingerprint: 6836320d34127d31}
+  - id: S7
+    title: Reactor effluent (the catalyst phase not counted)
+    from: R102.out
+    to: V101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 393.15, provenance: assumed, source: "D-004"}
+        pressure: {value: 5000, provenance: assumed, source: "D-004"}
+        phase: {value: two-phase, provenance: assumed, source: "D-004"}
+        flow: {value: 36570.0, provenance: calculated, source: 'cheme process propagate: reactor R102 from S6', fingerprint: e80b896aa3d91ac8}
+        composition: {basis: mole_fraction, values: {C3H6: 0.026432, C3H8: 0.18988, CO: 0.166939, H2: 0.242039, N2: 0.107665, NBAL: 0.24216, IBAL: 0.0131502, H2O: 0.0104461, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00128854, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R102 from S6', fingerprint: 980d0b627c4428e6}
+  - id: S8
+    title: Oxo cycle gas
+    from: V101.gas
+    to: X101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 391.01, provenance: assumed, source: "scripts/balance.py: V-101 adiabatic, its gas and liquid at one temperature (D-009)"}
+        pressure: {value: 4950, provenance: assumed, source: "D-004"}
+        phase: {value: vapor, provenance: assumed, source: "D-004"}
+        flow: {value: 10282.3, provenance: calculated, source: 'cheme process propagate: separator V101 from S7', fingerprint: 3b4ea826f97ca320}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00951297, C3H8: 0.0683385, CO: 0.291397, H2: 0.431198, N2: 0.18987, NBAL: 0.00871542, IBAL: 0.0005916, H2O: 0.000375959, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S7', fingerprint: 3b4ea826f97ca320}
+  - id: S9
+    title: Oxo purge
+    from: X101.purge
+    to: M501.oxo
+    template: gas
+    state:
+      design:
+        temperature: {value: 391.01, provenance: assumed, source: "scripts/balance.py: V-101 adiabatic, its gas and liquid at one temperature (D-009)"}
+        pressure: {value: 4950, provenance: assumed, source: "D-004"}
+        phase: {value: vapor, provenance: assumed, source: "D-004"}
+        flow: {value: 514.115, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8', fingerprint: 3582d13e78e37e83}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00951297, C3H8: 0.0683385, CO: 0.291397, H2: 0.431198, N2: 0.18987, NBAL: 0.00871542, IBAL: 0.0005916, H2O: 0.000375959, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8', fingerprint: 2c35e4492ed9f78e}
+  - id: S10
+    title: Cycle gas to the compressor
+    from: X101.out
+    to: K101.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 391.01, provenance: assumed, source: "scripts/balance.py: V-101 adiabatic, its gas and liquid at one temperature (D-009)"}
+        pressure: {value: 4950, provenance: assumed, source: "D-004"}
+        phase: {value: vapor, provenance: assumed, source: "D-004"}
+        flow: {value: 9768.18, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8 S9', fingerprint: 69f75dabb62f1fce}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00951297, C3H8: 0.0683385, CO: 0.291397, H2: 0.431198, N2: 0.18987, NBAL: 0.00871542, IBAL: 0.0005916, H2O: 0.000375959, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X101 from S8', fingerprint: 2c35e4492ed9f78e}
+  - id: S11
+    title: Compressed cycle gas
+    from: K101.out
+    to: M101.rec
+    template: gas
+    state:
+      design:
+        temperature: {value: 394.77, provenance: assumed, source: "scripts/balance.py: K-101's discharge, isentropic efficiency 0.75 (D-009)"}
+        pressure: {value: 5100, provenance: assumed, source: "D-004"}
+        phase: {value: vapor, provenance: assumed, source: "D-004"}
+        flow: {value: 9768.19, provenance: calculated, source: 'cheme process propagate: recycle K101 from S10 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+        composition: {basis: mole_fraction, values: {C3H6: 0.00951294, C3H8: 0.0683388, CO: 0.291396, H2: 0.431199, N2: 0.18987, NBAL: 0.00871539, IBAL: 0.000591601, H2O: 0.000375962, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle K101 from S10 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+  - id: S12
+    title: Crude aldehyde with dissolved gases
+    from: V101.liq
+    to: P101.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 391.01, provenance: assumed, source: "scripts/balance.py: V-101 adiabatic, its gas and liquid at one temperature (D-009); separated uncooled, SRC-2"}
+        pressure: {value: 4950, provenance: assumed, source: "D-004: V-101, below R-101; P-101 pumps the liquid to C-101 (S51)"}
+        phase: {value: liquid, provenance: assumed, source: "D-004"}
+        flow: {value: 26287.7, provenance: calculated, source: 'cheme process propagate: separator V101 from S7', fingerprint: 3b4ea826f97ca320}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0475936, C3H8: 0.341899, CO: 0.0112722, H2: 0.0054477, N2: 0.00484655, NBAL: 0.534142, IBAL: 0.0288579, H2O: 0.0230414, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00290019, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V101 from S7', fingerprint: 3b4ea826f97ca320}
+  - id: S13
+    title: Stripped crude aldehyde
+    from: C101.bot
+    to: C102.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 373.4, provenance: assumed, source: "scripts/balance.py: C-101 adiabatic, its overhead and bottoms at one temperature (D-009)"}
+        pressure: {value: 5080, provenance: assumed, source: "D-004: C-101's bottom, below the synthesis gas S2 (5100) and above its head S3 (5050)"}
+        phase: {value: liquid, provenance: assumed, source: "D-004"}
+        flow: {value: 18318.6, provenance: calculated, source: 'cheme process propagate: separator C101 from S2 S51', fingerprint: ed25843e5932e39d}
+        composition: {basis: mole_fraction, values: {C3H6: 0.000406863, C3H8: 0.00292279, CO: 0.0, H2: 0.0, N2: 0.0, NBAL: 0.904112, IBAL: 0.0485994, H2O: 0.0390009, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00495857, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C101 from S2 S51', fingerprint: ed25843e5932e39d}
+  - id: S14
+    title: Vent of C-102 (dissolved gases)
+    from: C102.vent
+    to: M501.c102
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-004"}
+        pressure: {value: 150, provenance: assumed, source: "D-004: the crude let down into the column, its gases vented through the vacuum system"}
+        phase: {value: vapor, provenance: assumed, source: "D-004"}
+        flow: {value: 38.0675, provenance: calculated, source: 'cheme process propagate: separator C102 from S13', fingerprint: c8d6eac0c198e051}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 0.0, NAOH: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, C3H6: 0.122194, C3H8: 0.877806, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C102 from S13', fingerprint: c8d6eac0c198e051}
+  - id: S15
+    title: Isobutanal product
+    from: C102.iso
+    to: IBAL.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-004: cooled to storage"}
+        pressure: {value: 300, provenance: assumed, source: "D-004"}
+        phase: {value: liquid, provenance: assumed, source: "D-004"}
+        flow: {value: 879.816, provenance: calculated, source: 'cheme process propagate: separator C102 from S13', fingerprint: c8d6eac0c198e051}
+        composition: {basis: mole_fraction, values: {NBAL: 0.000989137, IBAL: 0.999011, H2O: 0.0, NAOH: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C102 from S13', fingerprint: c8d6eac0c198e051}
+  - id: S16
+    title: Water decanted from the C-102 overhead
+    from: C102.aq
+    to: M502.c102
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-004"}
+        pressure: {value: 300, provenance: assumed, source: "D-004"}
+        phase: {value: liquid, provenance: assumed, source: "D-004"}
+        flow: {value: 183.184, provenance: calculated, source: 'cheme process propagate: separator C102 from S13', fingerprint: c8d6eac0c198e051}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 1.0, NAOH: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C102 from S13', fingerprint: c8d6eac0c198e051}
+  - id: S17
+    title: n-Butanal (C-102 bottoms)
+    from: C102.bot
+    to: M201.nbal
+    template: liquid
+    state:
+      design:
+        temperature: {value: 368.15, provenance: assumed, source: "D-004: bottom 90-100 C, SRC-1"}
+        pressure: {value: 600, provenance: assumed, source: "D-005: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-004"}
+        flow: {value: 17217.5, provenance: calculated, source: 'cheme process propagate: separator C102 from S13', fingerprint: c8d6eac0c198e051}
+        composition: {basis: mole_fraction, values: {NBAL: 0.992529, IBAL: 0.00202748, H2O: 0.0, NAOH: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00544377, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C102 from S13', fingerprint: c8d6eac0c198e051}
+  - id: S18
+    title: Caustic soda make-up
+    from: NAOH.out
+    to: M201.naoh
+    template: liquid
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 600, provenance: assumed, source: "D-003"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        composition: {basis: mass_fraction, values: {NAOH: 0.5, H2O: 0.5}, provenance: assumed, source: "D-003: chlor-alkali-1's caustic soda 50 wt%"}
+        flow: {value: 58.3455, provenance: calculated, source: 'cheme process propagate: spec caustic (S23 NAOH mass fraction 0.015)', fingerprint: 6ae4db93a04a534e}
+  - id: S19
+    title: Recycled aqueous phase
+    from: X201.rec
+    to: M201.rec
+    template: liquid
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-005"}
+        pressure: {value: 600, provenance: assumed, source: "D-005: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 17503.6, provenance: calculated, source: 'cheme process propagate: recycle X201 from S23 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+        composition: {basis: mole_fraction, values: {NBAL: 3.74477e-05, IBAL: 0.0, H2O: 0.993093, NAOH: 0.00681527, EPA: 5.3938e-05, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle X201 from S23 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+  - id: S20
+    title: Aldol reactor feed
+    from: M201.out
+    to: R201.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 345.3, provenance: assumed, source: "scripts/balance.py: M201's inlets mixed adiabatically; R-201 is heated by its own reaction to 413 K (D-005, D-009)"}
+        pressure: {value: 550, provenance: assumed, source: "D-005: 0.1-0.7 MPa, SRC-1"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 34779.4, provenance: calculated, source: 'cheme process propagate: mixer M201 from S17 S18 S19', fingerprint: edffda7f8240361a}
+        composition: {basis: mole_fraction, values: {NBAL: 0.195963, IBAL: 0.00040024, H2O: 0.796456, NAOH: 0.00606287, EPA: 4.31849e-05, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00107464, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M201 from S17 S18 S19', fingerprint: 39b9a4106a7f8236}
+  - id: S21
+    title: Aldol reactor product
+    from: R201.out
+    to: E201.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 413.15, provenance: assumed, source: "D-005: 130-150 C, SRC-1"}
+        pressure: {value: 500, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 34779.4, provenance: calculated, source: 'cheme process propagate: reactor R201 from S20', fingerprint: 7b50fd1522f1637a}
+        composition: {basis: mole_fraction, values: {NBAL: 0.00333268, IBAL: 0.000400397, H2O: 0.89273, NAOH: 0.00606525, EPA: 0.0960047, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00146714, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S20', fingerprint: d32d2cfcb9fca3b3}
+  - id: S22
+    title: Cooled aldol product
+    from: E201.out
+    to: V201.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-005: phase separation at about 60 C, SRC-1"}
+        pressure: {value: 450, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 34779.4, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S21', fingerprint: 5dc660cf248bd345}
+        composition: {basis: mole_fraction, values: {NBAL: 0.00333268, IBAL: 0.000400397, H2O: 0.89273, NAOH: 0.00606525, EPA: 0.0960047, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00146714, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E201 from S21', fingerprint: 5dc660cf248bd345}
+  - id: S23
+    title: Aqueous caustic phase
+    from: V201.aq
+    to: X201.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-005"}
+        pressure: {value: 450, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 19448.4, provenance: calculated, source: 'cheme process propagate: separator V201 from S22', fingerprint: 539cb70ebd3e7cd1}
+        composition: {basis: mole_fraction, values: {NBAL: 3.7448e-05, IBAL: 0.0, H2O: 0.993093, NAOH: 0.00681528, EPA: 5.39383e-05, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V201 from S22', fingerprint: 539cb70ebd3e7cd1}
+  - id: S24
+    title: Aqueous phase purge
+    from: X201.purge
+    to: M502.ald
+    template: liquid
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-005"}
+        pressure: {value: 450, provenance: assumed, source: "D-005"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 1944.84, provenance: calculated, source: 'cheme process propagate: splitter X201 from S23', fingerprint: 000a2cd2b9fbb591}
+        composition: {basis: mole_fraction, values: {NBAL: 3.7448e-05, IBAL: 0.0, H2O: 0.993093, NAOH: 0.00681528, EPA: 5.39383e-05, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X201 from S23', fingerprint: 2c1605d92d474fc4}
+  - id: S25
+    title: Organic phase (crude 2-ethylhexenal)
+    from: V201.org
+    to: M301.org
+    template: liquid
+    state:
+      design:
+        temperature: {value: 333.15, provenance: assumed, source: "D-005"}
+        pressure: {value: 500, provenance: assumed, source: "D-006: pumped"}
+        phase: {value: liquid, provenance: assumed, source: "D-005"}
+        flow: {value: 15331.0, provenance: calculated, source: 'cheme process propagate: separator V201 from S22', fingerprint: 539cb70ebd3e7cd1}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0299803, IBAL: 0.00363829, H2O: 0.0811197, NAOH: 0.0, EPA: 0.87193, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0133315, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V201 from S22', fingerprint: 539cb70ebd3e7cd1}
+  - id: S26
+    title: First-stage feed (liquid with the hydrogen)
+    from: M301.out
+    to: E301.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 341.22, provenance: assumed, source: "scripts/balance.py: M301's inlets mixed adiabatically (D-009)"}
+        pressure: {value: 420, provenance: assumed, source: "D-006"}
+        phase: {value: two-phase, provenance: assumed, source: "D-006"}
+        flow: {value: 18873.5, provenance: calculated, source: 'cheme process propagate: mixer M301 from S25 S33 S38', fingerprint: c07852c0b0b657e9}
+        composition: {basis: mole_fraction, values: {NBAL: 0.00252607, IBAL: 0.000306554, H2O: 0.00683496, NAOH: 0.0, EPA: 0.0734668, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00112328, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.9, N2: 0.0157426}, provenance: calculated, source: 'cheme process propagate: mixer M301 from S25 S33 S38', fingerprint: 72f3645ab393853e}
+  - id: S27
+    title: Vaporised first-stage feed
+    from: E301.out
+    to: R301.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 423.15, provenance: assumed, source: "D-006: 140-160 C, SRC-1"}
+        pressure: {value: 400, provenance: assumed, source: "D-006: inside 0.05-0.5 MPa, SRC-1"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 18873.5, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S26', fingerprint: e9055c0947dd0300}
+        composition: {basis: mole_fraction, values: {NBAL: 0.00252607, IBAL: 0.000306554, H2O: 0.00683496, NAOH: 0.0, EPA: 0.0734668, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00112328, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.9, N2: 0.0157426}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S26', fingerprint: e9055c0947dd0300}
+  - id: S28
+    title: First-stage product
+    from: R301.out
+    to: E302.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 433.15, provenance: assumed, source: "D-006: 140-160 C, SRC-1"}
+        pressure: {value: 380, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 18873.5, provenance: calculated, source: 'cheme process propagate: reactor R301 from S27', fingerprint: bba18b93348a55ef}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.882592, N2: 0.0184831, NBAL: 2.9658e-05, IBAL: 3.59919e-06, H2O: 0.00802478, EPA: 0.000862558, EH: 0.0853932, NBOL: 0.00293615, IBOL: 0.000356319, BUBU: 0.00131882, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: reactor R301 from S27', fingerprint: 202740c7ec250500}
+  - id: S29
+    title: Condensed first-stage product
+    from: E302.out
+    to: V301.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 360, provenance: assumed, source: "D-006"}
+        phase: {value: two-phase, provenance: assumed, source: "D-006"}
+        flow: {value: 18873.5, provenance: calculated, source: 'cheme process propagate: pass-through E302 from S28', fingerprint: 2704cac19d5ff4e6}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.882592, N2: 0.0184831, NBAL: 2.9658e-05, IBAL: 3.59919e-06, H2O: 0.00802478, EPA: 0.000862558, EH: 0.0853932, NBOL: 0.00293615, IBOL: 0.000356319, BUBU: 0.00131882, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E302 from S28', fingerprint: 2704cac19d5ff4e6}
+  - id: S30
+    title: First-stage separator gas
+    from: V301.gas
+    to: X301.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 360, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 3073.02, provenance: calculated, source: 'cheme process propagate: separator V301 from S29', fingerprint: 18b3a6aa26af01c4}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.979488, N2: 0.0205123, NBAL: 0.0, IBAL: 0.0, H2O: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S29', fingerprint: 18b3a6aa26af01c4}
+  - id: S31
+    title: Hydrogenation purge
+    from: X301.purge
+    to: M501.hyd
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 360, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 30.7302, provenance: calculated, source: 'cheme process propagate: splitter X301 from S30', fingerprint: f54066791a71c1ef}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.979488, N2: 0.0205123, NBAL: 0.0, IBAL: 0.0, H2O: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X301 from S30', fingerprint: 79b03a3cee63a4b9}
+  - id: S32
+    title: Hydrogen cycle gas to the compressor
+    from: X301.out
+    to: K301.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 360, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 3042.29, provenance: calculated, source: 'cheme process propagate: splitter X301 from S30 S31', fingerprint: 536eb5e5374f8ccc}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.979488, N2: 0.0205123, NBAL: 0.0, IBAL: 0.0, H2O: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: splitter X301 from S30', fingerprint: 79b03a3cee63a4b9}
+  - id: S33
+    title: Compressed hydrogen cycle gas
+    from: K301.out
+    to: M301.rec
+    template: gas
+    state:
+      design:
+        temperature: {value: 337.79, provenance: assumed, source: "scripts/balance.py: K-301's discharge, isentropic efficiency 0.75 (D-009)"}
+        pressure: {value: 440, provenance: assumed, source: "D-006"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 3042.29, provenance: calculated, source: 'cheme process propagate: recycle K301 from S32 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.979488, N2: 0.0205122, NBAL: 0.0, IBAL: 0.0, H2O: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle K301 from S32 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+  - id: S34
+    title: First-stage liquid product
+    from: V301.liq
+    to: M302.liq
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 2400, provenance: assumed, source: "D-006: pumped to the second stage"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        flow: {value: 15800.5, provenance: calculated, source: 'cheme process propagate: separator V301 from S29', fingerprint: 18b3a6aa26af01c4}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0, NBAL: 0.000299803, IBAL: 3.6383e-05, H2O: 0.0811198, EPA: 0.00871931, EH: 0.863211, NBOL: 0.0296805, IBOL: 0.00360191, BUBU: 0.0133315, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V301 from S29', fingerprint: 18b3a6aa26af01c4}
+  - id: S35
+    title: Fresh hydrogen
+    from: H2F.out
+    to: M302.h2
+    template: gas
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-003"}
+        pressure: {value: 2850, provenance: assumed, source: "D-003: hydrogen-1's delivery pressure"}
+        phase: {value: vapor, provenance: assumed, source: "D-003"}
+        composition: {basis: mole_fraction, values: {H2: 0.999, N2: 0.001}, provenance: assumed, source: "D-003: hydrogen-1's product, 99.9 mol% H2, the rest nitrogen"}
+        flow: {value: 504.911, provenance: calculated, source: 'cheme process propagate: spec hydrogen (S27 H2 mole fraction 0.9)', fingerprint: 6ae4db93a04a534e}
+  - id: S36
+    title: Second-stage feed
+    from: M302.out
+    to: R302.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "scripts/balance.py: M302's inlets mixed adiabatically; R-302's feed heater takes it to the reactor temperature (D-009)"}
+        pressure: {value: 2300, provenance: assumed, source: "D-006: 2-2.5 MPa, SRC-1"}
+        phase: {value: two-phase, provenance: assumed, source: "D-006"}
+        flow: {value: 16305.4, provenance: calculated, source: 'cheme process propagate: mixer M302 from S34 S35', fingerprint: b33084080ef277bc}
+        composition: {basis: mole_fraction, values: {NBAL: 0.00010452, IBAL: 1.26842e-05, H2O: 0.0282807, NAOH: 0.0, EPA: 0.0030398, EH: 0.30094, NBOL: 0.0103475, IBOL: 0.00125573, BUBU: 0.00464774, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.65072, N2: 0.000651371}, provenance: calculated, source: 'cheme process propagate: mixer M302 from S34 S35', fingerprint: aca667195a3c17cd}
+  - id: S37
+    title: Second-stage product
+    from: R302.out
+    to: V302.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 395.15, provenance: assumed, source: "D-006: 120-140 C (SRC-1), the feed heated on R-301's LP steam"}
+        pressure: {value: 2250, provenance: assumed, source: "D-006"}
+        phase: {value: two-phase, provenance: assumed, source: "D-006"}
+        flow: {value: 16305.4, provenance: calculated, source: 'cheme process propagate: reactor R302 from S36', fingerprint: 09f8297db7e28c2a}
+        composition: {basis: mole_fraction, values: {NBAL: 1.05165e-06, IBAL: 1.27625e-07, H2O: 0.0284553, NAOH: 0.0, EPA: 3.05856e-05, EH: 0.305826, NBOL: 0.0105155, IBOL: 0.00127612, BUBU: 0.00467643, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.648564, N2: 0.000655392}, provenance: calculated, source: 'cheme process propagate: reactor R302 from S36', fingerprint: d4d89f216d51e32b}
+  - id: S38
+    title: Excess hydrogen to the first stage
+    from: V302.gas
+    to: M301.h2
+    template: gas
+    state:
+      design:
+        temperature: {value: 395.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 420, provenance: assumed, source: "D-006: let down"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 500.216, provenance: calculated, source: 'cheme process propagate: recycle V302 from S37 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.99899, N2: 0.00100951, NBAL: 0.0, IBAL: 0.0, H2O: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle V302 from S37 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+  - id: S39
+    title: Crude 2-ethylhexanol
+    from: V302.liq
+    to: C401.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 395.15, provenance: assumed, source: "D-006"}
+        pressure: {value: 2250, provenance: assumed, source: "D-006"}
+        phase: {value: liquid, provenance: assumed, source: "D-006"}
+        flow: {value: 15805.2, provenance: calculated, source: 'cheme process propagate: separator V302 from S37', fingerprint: 47fae843278e9d7d}
+        composition: {basis: mole_fraction, values: {NBAL: 2.99802e-06, IBAL: 3.63831e-07, H2O: 0.0811198, NAOH: 0.0, EPA: 8.71928e-05, EH: 0.871843, NBOL: 0.0299774, IBOL: 0.00363794, BUBU: 0.0133315, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator V302 from S37', fingerprint: 47fae843278e9d7d}
+  - id: S40
+    title: Water decanted from the C-401 overhead
+    from: C401.aq
+    to: M502.c401
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 120, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 189.532, provenance: calculated, source: 'cheme process propagate: separator C401 from S39', fingerprint: 956d52834a1e2c61}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 1.0, NAOH: 0.0, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S39', fingerprint: 956d52834a1e2c61}
+  - id: S41
+    title: Light ends
+    from: C401.lights
+    to: LIGHTS.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 339.621, provenance: calculated, source: 'cheme process propagate: separator C401 from S39', fingerprint: 956d52834a1e2c61}
+        composition: {basis: mole_fraction, values: {NBAL: 8.44041e-05, IBAL: 1.0243e-05, H2O: 0.0456757, NAOH: 0.0, EPA: 0.0, EH: 0.0122726, NBOL: 0.839742, IBOL: 0.102215, BUBU: 0.0, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S39', fingerprint: 956d52834a1e2c61}
+  - id: S42
+    title: Light-ends column bottoms
+    from: C401.bot
+    to: M402.c401
+    template: liquid
+    state:
+      design:
+        temperature: {value: 440.15, provenance: assumed, source: "D-007: bubble point of 2-ethylhexanol at 60 kPa(a) (thermo's vapour pressure)"}
+        pressure: {value: 60, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 15276.0, provenance: calculated, source: 'cheme process propagate: separator C401 from S39', fingerprint: 956d52834a1e2c61}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 0.0, NAOH: 0.0, EPA: 9.85248e-05, EH: 0.98466, NBOL: 0.000169367, IBOL: 8.22149e-06, BUBU: 0.0150641, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S39', fingerprint: 956d52834a1e2c61}
+  - id: S43
+    title: After-run (C-403 overhead)
+    from: C403.top
+    to: M402.rec
+    template: liquid
+    state:
+      design:
+        temperature: {value: 420.15, provenance: assumed, source: "D-007: bubble point of 2-ethylhexanol at 30 kPa(a) (thermo's vapour pressure)"}
+        pressure: {value: 30, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 458.724, provenance: calculated, source: 'cheme process propagate: recycle C403 from S47 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 0.0, NAOH: 0.0, EPA: 0.0, EH: 0.973619, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0263812, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: recycle C403 from S47 (tear, broyden)', fingerprint: 2d5138cf2c2f359e}
+  - id: S44
+    title: 2-Ethylhexanol column feed
+    from: M402.out
+    to: C402.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 439.57, provenance: assumed, source: "scripts/balance.py: M402's inlets mixed adiabatically (D-009)"}
+        pressure: {value: 40, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 15734.7, provenance: calculated, source: 'cheme process propagate: mixer M402 from S42 S43', fingerprint: 041ed0634be7204d}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 0.0, NAOH: 0.0, EPA: 9.5656e-05, EH: 0.984338, NBOL: 0.000164435, IBOL: 7.9821e-06, BUBU: 0.0153936, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M402 from S42 S43', fingerprint: 50bc44bc01aa336f}
+  - id: S45
+    title: 2-Ethylhexanol distillate
+    from: C402.top
+    to: E401.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 409.15, provenance: assumed, source: "D-007: bubble point at the top, 20 kPa(a)"}
+        pressure: {value: 20, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 15003.5, provenance: calculated, source: 'cheme process propagate: separator C402 from S44', fingerprint: 75946ab0620cd91c}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 0.0, NAOH: 0.0, EPA: 0.000100152, EH: 0.999687, NBOL: 0.000172164, IBOL: 8.35729e-06, BUBU: 3.22343e-05, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C402 from S44', fingerprint: 75946ab0620cd91c}
+  - id: S46
+    title: 2-Ethylhexanol product
+    from: E401.out
+    to: EHP.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007: cooled to storage"}
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 15003.5, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S45', fingerprint: 014a0c177746df9f}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 0.0, NAOH: 0.0, EPA: 0.000100152, EH: 0.999687, NBOL: 0.000172164, IBOL: 8.35729e-06, BUBU: 3.22343e-05, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E401 from S45', fingerprint: 014a0c177746df9f}
+  - id: S47
+    title: 2-Ethylhexanol column bottoms
+    from: C402.bot
+    to: C403.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 428.15, provenance: assumed, source: "D-007"}
+        pressure: {value: 30, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 731.18, provenance: calculated, source: 'cheme process propagate: separator C402 from S44', fingerprint: 75946ab0620cd91c}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 0.0, NAOH: 0.0, EPA: 0.0, EH: 0.65779, NBOL: 0.0, IBOL: 0.0, BUBU: 0.34221, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C402 from S44', fingerprint: 75946ab0620cd91c}
+  - id: S48
+    title: Heavy ends
+    from: C403.bot
+    to: HVY.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007: cooled to the fuel tank"}
+        pressure: {value: 300, provenance: assumed, source: "D-007"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 272.457, provenance: calculated, source: 'cheme process propagate: separator C403 from S47', fingerprint: 327e0784231136fc}
+        composition: {basis: mole_fraction, values: {NBAL: 0.0, IBAL: 0.0, H2O: 0.0, NAOH: 0.0, EPA: 0.0, EH: 0.0748741, NBOL: 0.0, IBOL: 0.0, BUBU: 0.925126, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C403 from S47', fingerprint: 327e0784231136fc}
+  - id: S49
+    title: Off-gas to the fuel gas
+    from: M501.out
+    to: OFFGAS.in
+    template: gas
+    state:
+      design:
+        temperature: {value: 367.11, provenance: assumed, source: "scripts/balance.py: M501's inlets mixed adiabatically (D-009)"}
+        pressure: {value: 150, provenance: assumed, source: "D-008: let down to the fuel gas header"}
+        phase: {value: vapor, provenance: assumed, source: "D-008"}
+        flow: {value: 582.913, provenance: calculated, source: 'cheme process propagate: mixer M501 from S9 S14 S31', fingerprint: a8596bed5df899c5}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0090999, C3H8: 0.0653711, CO: 0.199103, H2: 0.584017, N2: 0.135793, NBAL: 0.00595498, IBAL: 0.000404222, H2O: 0.000256881, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M501 from S9 S14 S31', fingerprint: 7d3e1e84117f8a6f}
+  - id: S50
+    title: Aqueous effluent
+    from: M502.out
+    to: WW.in
+    template: liquid
+    state:
+      design:
+        temperature: {value: 329.92, provenance: assumed, source: "scripts/balance.py: M502's inlets mixed adiabatically (D-009)"}
+        pressure: {value: 300, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "D-008"}
+        flow: {value: 2317.56, provenance: calculated, source: 'cheme process propagate: mixer M502 from S16 S24 S40', fingerprint: 240848dc917ed06d}
+        composition: {basis: mole_fraction, values: {NBAL: 3.13813e-05, IBAL: 0.0, H2O: 0.994212, NAOH: 0.00571119, EPA: 4.52002e-05, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.0, C3H6: 0.0, C3H8: 0.0, CO: 0.0, H2: 0.0, N2: 0.0}, provenance: calculated, source: 'cheme process propagate: mixer M502 from S16 S24 S40', fingerprint: 3c77e00fc2f382ee}
+  - id: S51
+    title: Crude aldehyde pumped to the stripper
+    from: P101.out
+    to: C101.liq
+    template: liquid
+    state:
+      design:
+        temperature: {value: 391.01, provenance: assumed, source: "scripts/balance.py: S12's temperature, the pump's work neglected (D-009)"}
+        pressure: {value: 5100, provenance: assumed, source: "D-004: P-101's discharge, above C-101's head (5050) for the feed valve"}
+        phase: {value: liquid, provenance: assumed, source: "D-004"}
+        flow: {value: 26287.7, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S12', fingerprint: b0d44ff52be6ef5b}
+        composition: {basis: mole_fraction, values: {C3H6: 0.0475936, C3H8: 0.341899, CO: 0.0112722, H2: 0.0054477, N2: 0.00484655, NBAL: 0.534142, IBAL: 0.0288579, H2O: 0.0230414, EPA: 0.0, EH: 0.0, NBOL: 0.0, IBOL: 0.0, BUBU: 0.00290019, NAOH: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through P101 from S12', fingerprint: b0d44ff52be6ef5b}
+  # energy streams: every duty and power from scripts/balance.py (D-009)
+  - {id: Q1, title: "R-101's cooling register to C-102's reboiler", kind: energy, from: R101.q, to: C102.rx, state: {design: {duty: {value: 5170.8, provenance: assumed, source: "scripts/balance.py: C-102's reboiler less Q17: R-101's heat covers the whole reboiler, the boil-up at R = 1.1 x Underwood's minimum with its balance closed (S13 to S14-S17), D-009"}}}}
+  - {id: Q17, title: "R-101's heat of the heavies formation to C-102's reboiler", kind: energy, from: R102.q, to: C102.rx2, state: {design: {duty: {value: 34.9, provenance: assumed, source: "scripts/balance.py: the heavies step of R-101 (S6 - S7), D-009"}}}}
+  - {id: Q18, title: "R-101's trim cooler", kind: energy, from: R101.cw, to: CW.r101, state: {design: {duty: {value: 3491.8, provenance: assumed, source: "scripts/balance.py: R-101's heat of the hydroformylation step (S5 - S6) less Q1, to cooling water (D-009)"}}}}
+  - {id: Q3, title: "LP steam raised in R-301 to R-302's feed heater", kind: energy, from: R301.r302, to: R302.lp, state: {design: {duty: {value: 1171.9, provenance: assumed, source: "scripts/balance.py: R-302 with its feed heater: S36 to S37 (D-009)"}}}}
+  - {id: Q4, title: "Surplus LP steam raised in R-301, exported", kind: energy, from: R301.exp, to: LPSX.r301, state: {design: {duty: {value: 3734.6, provenance: assumed, source: "scripts/balance.py: R-301's heat (S27 - S28) less Q3 (D-009)"}}}}
+  - {id: Q5, title: "C-102 condenser and the overhead and vent coolers", kind: energy, from: C102.cw, to: CW.c102, state: {design: {duty: {value: 5310.2, provenance: assumed, source: "scripts/balance.py: the boil-up's latent heat at 338 K and the overhead products and vent cooled to 313 K (D-009)"}}}}
+  - {id: Q6, title: "R-201's surplus reaction heat", kind: energy, from: R201.cw, to: CW.r201, state: {design: {duty: {value: 52.1, provenance: assumed, source: "scripts/balance.py: S20 - S21: the reaction heats the feed to 413 K, the rest to cooling water (D-009)"}}}}
+  - {id: Q7, title: "Aldol product cooler E-201", kind: energy, from: E201.cw, to: CW.e201, state: {design: {duty: {value: 2524.9, provenance: assumed, source: "scripts/balance.py: S21 cooled to S22 (D-009)"}}}}
+  - {id: Q8, title: "Vaporiser E-301 on MP steam", kind: energy, from: MPS.e301, to: E301.mp, state: {design: {duty: {value: 3252.4, provenance: assumed, source: "scripts/balance.py: S26 heated and vaporised to S27 (D-009)"}}}}
+  - {id: Q9, title: "First-stage product condenser E-302", kind: energy, from: E302.cw, to: CW.e302, state: {design: {duty: {value: 4449.0, provenance: assumed, source: "scripts/balance.py: S28 condensed and cooled to S29 (D-009)"}}}}
+  - {id: Q10, title: "C-401 reboiler", kind: energy, from: MPS.c401, to: C401.mp, state: {design: {duty: {value: 909.6, provenance: assumed, source: "scripts/balance.py: C-401's balance with its condenser Q11 (D-009)"}}}}
+  - {id: Q11, title: "C-401 condenser and the overhead coolers", kind: energy, from: C401.cw, to: CW.c401, state: {design: {duty: {value: 388.9, provenance: assumed, source: "scripts/balance.py: the boil-up at reflux 3 (ASSUMED) at 350 K and the overhead products cooled to 313 K (D-009)"}}}}
+  - {id: Q12, title: "C-402 reboiler", kind: energy, from: MPS.c402, to: C402.mp, state: {design: {duty: {value: 2922.1, provenance: assumed, source: "scripts/balance.py: C-402's balance with its condenser Q13 (D-009)"}}}}
+  - {id: Q13, title: "C-402 condenser", kind: energy, from: C402.cw, to: CW.c402, state: {design: {duty: {value: 3303.0, provenance: assumed, source: "scripts/balance.py: the boil-up at reflux 1 (ASSUMED) at 409 K (D-009)"}}}}
+  - {id: Q14, title: "Product cooler E-401", kind: energy, from: E401.cw, to: CW.e401, state: {design: {duty: {value: 1182.7, provenance: assumed, source: "scripts/balance.py: S45 cooled to S46 (D-009)"}}}}
+  - {id: Q15, title: "C-403 reboiler", kind: energy, from: MPS.c403, to: C403.mp, state: {design: {duty: {value: 98.3, provenance: assumed, source: "scripts/balance.py: C-403's balance with its condenser Q16 (D-009)"}}}}
+  - {id: Q16, title: "C-403 condenser and the heavies cooler", kind: energy, from: C403.cw, to: CW.c403, state: {design: {duty: {value: 120.0, provenance: assumed, source: "scripts/balance.py: the boil-up at reflux 1 (ASSUMED) at 420 K and the heavies cooled from 453 to 313 K (D-009)"}}}}
+  - {id: P1, title: "Oxo cycle-gas compressor K-101", kind: energy, from: POWER.k101, to: K101.pw, state: {design: {duty: {value: 20.1, provenance: assumed, source: "scripts/balance.py: isentropic compression S10 to S11, efficiency 0.75, drive 0.95, ASSUMED (D-009)"}}}}
+  - {id: P2, title: "Hydrogenation cycle-gas compressor K-301", kind: energy, from: POWER.k301, to: K301.pw, state: {design: {duty: {value: 250.2, provenance: assumed, source: "scripts/balance.py: isentropic compression S32 to S33, efficiency 0.75, drive 0.95, ASSUMED (D-009)"}}}}
+  - {id: P3, title: "Pumps (propylene, aldol mixing pump, hydrogenation feed, reflux and product)", kind: energy, from: POWER.pumps, to: M201.pw, state: {design: {duty: {value: 150.0, provenance: assumed, source: "scripts/balance.py: ASSUMED allowance (D-009)"}}}}
+  - {id: P6, title: "Crude pump P-101", kind: energy, from: POWER.p101, to: P101.pw, state: {design: {duty: {value: 2.7, provenance: assumed, source: "scripts/balance.py: S12 lifted from 4950 to 5100 kPa(a) at 703 kg/m3 (n-butanal at 391 K, thermo 0.6.1), pump efficiency 0.60 and drive 0.95, ASSUMED (D-009)"}}}}
+  - {id: P4, title: "C-102's vacuum pump", kind: energy, from: POWER.vac1, to: C102.vac, state: {design: {duty: {value: 17.1, provenance: assumed, source: "scripts/balance.py: the vent S14 compressed from C-102's head (50 kPa(a)) to 150 kPa(a) by a liquid-ring pump, efficiency 0.40, with an allowance for the air leaking in and the vapour it carries, ASSUMED (D-009)"}}}}
+  - {id: P5, title: "Vacuum pumps of C-401 to C-403", kind: energy, from: POWER.vac2, to: C402.vac, state: {design: {duty: {value: 45.0, provenance: assumed, source: "scripts/balance.py: an allowance per column for the air leaking in and the vapour it carries (liquid-ring pumps), ASSUMED (D-009)"}}}}
+layout: {bfd: {}, pfd: {}}

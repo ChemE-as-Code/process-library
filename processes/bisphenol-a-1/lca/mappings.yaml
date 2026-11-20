@@ -1,0 +1,18 @@
+# bisphenol-a-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, links an
+# Atlas producer's `dataset`, gives the exchange's `chemical` slug, `atlas: false`, or a
+# `properties_reason`.
+#
+# Phenol and acetone link the library's cumene-phenol plant acetone-1, which makes both (its
+# allocation between them is its own). The LP and HP steam are counted as heat delivered (kWh),
+# as biodiesel-1 and oxalyl-chloride-1 do. Electricity, cooling water, the demineralised water
+# and the wastewater link through the shared lci/mappings.yaml by their chemical slugs in
+# process.yaml. The tar to incineration (product:TAR) stays a gap (lci/gaps.json; DESIGN.md
+# D-014).
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:PH": {dataset: {path: processes/acetone-1/lca/dataset.yaml, product: "product:PHENOL"}, source: "the Atlas producer acetone-1, phenol from the cumene hydroperoxide process (co-product with acetone, allocated there); kg for kg (D-003, D-014)"}
+  "feed:AC": {dataset: {path: processes/acetone-1/lca/dataset.yaml, product: "product:ACETONE"}, source: "the Atlas producer acetone-1, acetone from the cumene hydroperoxide process; kg for kg (D-003, D-014)"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the feed heater (Q1) and the condensate column's reboiler (Q12), counted as heat delivered (kWh), D-011"}
+  "feed:HPS": {use: steam-heat, source: "HP steam 4000 kPa(a) to the adduct melter (Q6), the phenol stripper (Q7) and the cracking still (Q10), counted as heat delivered (kWh), D-011"}
