@@ -20,13 +20,15 @@ moisture. `process/recipe.yaml` holds the batch recipe the cycle time, the vesse
 jacket checks, the scrubber load per batch and the flowsheet's year-average flows come from
 (`cheme process recipe`, `cheme process reactor-hazards`, `cheme process crystallizers`).
 The heats of R101, R102 and Q101 are written by the models (`energy_port`); the quench's
-dilution heat is the dose's `heat_of_solution`, so Q101's duty, its jacket check (190.5 kW against
-210 kW) and its dT_ad hold it (core 1.10.0, DESIGN.md D-015), and the thermal
-screening compares the HCl a cooling failure releases with an ASSUMED vent capacity of 150 m3/h
-(the normal peak rounded up; no vent sized yet): at the end of R-101's salt addition it uses 0.97
+dilution heat is the dose's `heat_of_solution`, so Q101's duty, its jacket check (190.4 kW against
+210 kW; 190.5 kW before DESIGN.md D-018) and its dT_ad hold it (core 1.10.0, DESIGN.md D-015),
+and the thermal screening compares the HCl a cooling failure releases with an ASSUMED vent
+capacity of 150 m3/h (the normal peak rounded up; no vent sized yet): at the end of R-101's salt addition it uses 0.97
 of it (about 3 % margin), at a ten times slower rate all of it, at a hundred times slower 8.7
 times it (a design finding: dosing interlocks and an emergency relief sized from calorimetry are
-required, not yet designed; DESIGN.md D-011, D-014). Core 1.12.0 reproduces these numbers.
+required, not yet designed; DESIGN.md D-011, D-014). Core 1.12.0 reproduced these numbers; on
+core 1.13.0, with D-018's vessel, `cheme process recipe` gives the 190.4 kW and
+`cheme process reactor-hazards` the 0.97.
 DESIGN.md D-017 settles what a model can settle. The 3 % margin is the margin of the normal salt
 addition, so the salt feeder's delivery is limited to the design rate. The interlocks stop the
 salt before about 2.7 % of it and the toluene before about 8.5 % of it has accumulated (model

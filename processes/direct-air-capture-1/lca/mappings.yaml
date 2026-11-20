@@ -1,0 +1,22 @@
+# direct-air-capture-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, links a
+# library `dataset`, gives the exchange's `chemical` slug, `atlas: false`, or a
+# `properties_reason`.
+#
+# Linked (DESIGN.md D-011): the calciner's oxygen to asu-1 (a higher-purity proxy), the natural
+# gas, the KOH make-up, the limestone seed and the purge's landfill to shared entries; the
+# process water to the shared water entry (a conservative proxy: demineralised water, which
+# prefer_atlas links to the Atlas market of demineralised-water-1); the condensate and the liquor
+# bleed to the shared wastewater entry (treatment by mass). Without these entries the shared
+# `water` entry would also link the condensate, a waste output, as water consumed.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:OXY": {dataset: {path: processes/asu-1/lca/dataset.yaml, product: "product:GOXP"}, source: "the Atlas producer asu-1, GOX 99.5 mol% at 30 barg, a higher-purity, higher-pressure proxy for the 95.6 wt% oxygen at 120 kPa of a dedicated low-pressure ASU (SRC-1 p. 1581: 238 kWh/t), per kg of oxidant as the exchange counts it (D-011)"}
+  "feed:NG": {use: natural-gas, atlas: false, source: "calciner natural gas counted by mass as methane (LHV 50.0 GJ/t, D-007); not linked to an Atlas producer of the slug methane, which is hda-1's fuel gas"}
+  "feed:KOHF": {use: potassium-hydroxide, source: "potassium hydroxide make-up counted as 100 % KOH, the shared entry's basis (D-005)"}
+  "feed:SEED": {use: limestone, atlas: false, source: "ground calcium carbonate seed, the shared crushed-limestone entry counted 1:1 by mass, a proxy (D-005); not linked to an Atlas producer of the slug calcium-carbonate, whose only one is the lime of a nitrophosphate fertiliser plant, not a seed grade"}
+  "product:PURGE": {use: inert-waste-landfill, source: "filter cake purge to landfill (waste treatment without recovery stays in the system), ASSUMED inert (D-005)"}
+  "feed:PW": {use: water, source: "process water for the pellet washers, the slaker and the lime slurry (streams S2, S8, S4), counted by mass; the shared water entry is demineralised water, more treatment than the softened municipal or ground water the plant needs: a conservative proxy until a process-water entry exists (D-011), as kraft-pulp-1 and bioethanol-1 map theirs"}
+  "product:COND": {use: wastewater, source: "the calciner's combustion water knocked out in the CO2 train (stream S21) to treatment by mass, a conservative screening link for a clean condensate; its reuse as make-up water is not designed (D-008, D-011)"}
+  "product:BLEED": {use: wastewater, source: "the lean-liquor bleed (KOH and K2CO3, stream S23) to treatment by mass; the neutralisation of the alkaline liquor is not represented (screening, as co2-electrolysis-bpm-1's bleed, D-005, D-011)"}

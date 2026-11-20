@@ -1,0 +1,20 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps,
+# with the duties the balance gives. Design pressures, temperatures and materials are not set
+# yet (basic engineering); materials named are usual choices for hot ammonia and hydrogen, to be
+# confirmed (nitriding and hydrogen attack, DESIGN.md D-009). All values ASSUMED unless a source
+# is named (DESIGN.md).
+schema: cheme/equipment/v1
+equipment:
+  - {tag: E-101, type: HeatExchanger, service: "Feed-effluent exchanger: liquid ammonia vaporised against the cracked gas",
+     notes: "20.3 MW (Q4, scripts/balance.py): 60.7 t/h of liquid ammonia from 293 K at 1500 kPa(a) to vapour at 313 K and 1350 kPa(a) (saturation 308 K, thermo 0.6.1); the cracked gas from 773 to 424 K (D-008). A kettle-type vaporiser with the hot gas in the tubes is a basic-stage choice; the hot end sees hydrogen and ammonia at 773 K (material selection open, D-009)."}
+  - {tag: H-101, type: Furnace, service: "Fired cracking furnace: tail-gas burners, radiant section with the catalyst tubes, convection section with the ammonia superheater coil E-102 and, at its cold end, the combustion air preheater E-104",
+     notes: "Tail gas of U-201 only (52.3 t/h, 80.1 MW LHV; no trim fuel, EP 4 337 600 A1 reference example 2, SRC-1), 99.8 t/h of air for 2.0 mol% O2 in the wet flue gas (ASSUMED), preheated to 623 K in E-104 (9.09 MW, Q5, ASSUMED outlet temperature); 53.6 MW to the tubes (Q1) and 17.3 MW to the superheater coil (Q2, cheme process propagate), flue gas to stack at 492 K (scripts/balance.py), so 88.5 % of the fired LHV is absorbed. Bridgewall check (D-006): adiabatic flame 1886 K, flue gas leaving the radiant section at 993 K (220 K above the tube outlet), 672 K between E-102 and E-104; whether the tubes take Q1 at that bridgewall is open until they are sized (L-4). Burner NOx from the fuel ammonia and the low-NOx burner or SCR it needs are open (D-006, L-3)."}
+  - {tag: R-101, type: TubularReactor, service: "Cracker tubes: catalyst-filled tubes in the radiant section of H-101",
+     notes: "Ammonia in at 723 K and 1250 kPa(a), cracked gas out at 773.15 K and 1100 kPa(a) at equilibrium (97.42 % of the ammonia cracked, 1.30 mol% left; SRC-1's basis, D-004); 53.6 MW absorbed (Q1). Catalyst nickel on a refractory support (ASSUMED); tube count and catalyst volume not sized (no open kinetics read, L-4)."}
+  - {tag: K-101, type: Compressor, service: "Combustion air fan",
+     notes: "99.8 t/h of air from 101.3 to 106 kPa(a), 151 kW electric (W1, isentropic efficiency 0.75, drive 0.95, ASSUMED, D-008); to the air preheater E-104 in the convection section of H-101; no induced-draft fan modelled (D-006)."}
+  - {tag: E-103, type: HeatExchanger, service: "Cracked gas trim cooler on cooling water",
+     notes: "The cracked gas from 424 to 313 K, 6.32 MW to cooling water (Q3, scripts/balance.py); no condensate (dry gas), D-005."}
+  - {tag: U-201, type: Package, service: "Hydrogen pressure swing adsorption unit",
+     notes: "Feed 60.7 t/h of cracked gas (74.0 mol% H2, 24.7 mol% N2, 1.30 mol% NH3 at 313 K, 1060 kPa(a)); 79.4 % of the hydrogen to the product (SRC-1 reference example 2, D-005), 8.34 t/h of hydrogen 99.99 mol% with 84 ppm(mol) N2 and no ammonia (ISO 14687 as SRC-1 states it: < 300 ppm N2, < 0.1 ppm NH3); tail gas at 130 kPa(a) to H-101. Number of beds, cycle and adsorbent layers (an ammonia layer or a TSA ahead of it, SRC-1) are vendor data, not set."}

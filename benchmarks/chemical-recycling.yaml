@@ -7,6 +7,14 @@
 # but of a different product: liquid fuel after on-site upgrading, US plants, about 2016. The JRC 2026
 # range of company-reported yields is recorded as a second reference; it is not independent of the
 # dataset, which takes its yield from another part of the same report.
+#
+# bhet-pet-glycolysis-1 (#516): benchmarks must be independent of the dataset (docs/benchmarks.md).
+# The dataset takes its conversion split, its crystallisation yields and its water ratios from
+# EP 0 723 951 A1 Example 2, so that patent cannot bind it. Luo et al. (ACS Sustain. Chem. Eng.
+# 2023, NSF public-access copy) give a laboratory molar yield (95 % BHET at 100 % conversion over
+# ZnO in 10 min), a reaction yield of another catalyst and heating, not a plant's consumption; and
+# their utility use per kg BHET is in the supporting information, not read. Both KPIs record
+# no_open_reference; the stoichiometric floor of the flake is 0.756 kg/kg (192.17 / 254.238).
 schema: cheme-as-code/benchmarks/v1
 family: chemical-recycling
 
@@ -48,6 +56,15 @@ kpis:
       al. 2021, doi:10.1016/j.scitotenv.2020.144483 (HTTP 403). The dataset's value is Benavides et
       al. 2017, its own source.
 
+  bhet-specific-pet:
+    title: Washed PET flake per kg of BHET (glycolysis)
+    unit: kg/kg
+    no_open_reference: "No open source independent of the dataset with a plant's PET use per kg of BHET found (searched 2026-11-19: EP 0 723 951 A1 read, the dataset's own source; Luo et al. 2023, NSF public-access copy, a laboratory molar yield of 95 %, i.e. 0.796 kg of PET per kg of BHET, for a ZnO catalyst under microwave heating, not a plant figure; Goh et al. 2015 and US 4 078 143 A give no yield of purified BHET). The stoichiometric floor is 0.756 kg/kg."
+  bhet-specific-heat:
+    title: Steam heat per kg of BHET (glycolysis with crystallisation from water)
+    unit: kWh/kg
+    no_open_reference: "No open figure of the heat of a water-route BHET plant found (searched 2026-11-19): Luo et al. 2023 state that the EG/water distillation is the leading utility of their water-antisolvent case but give no heat per kg in the text read (their inventory is in the supporting information, not read); EP 0 723 951 A1 gives no energy."
+
 datasets:
   - process: plastic-pyrolysis-1
     dataset: plastic-pyrolysis-mixed-polyolefins
@@ -55,3 +72,9 @@ datasets:
     kpis:
       pyrolysis-oil-yield: {expression: product:plastic-pyrolysis-oil / feed:mixed-polyolefin-waste, reference: benavides-2017-ptf-liquid-yield}
       pyrolysis-specific-electricity: {expression: feed:electricity / product:plastic-pyrolysis-oil, per: product:plastic-pyrolysis-oil}
+  - process: bhet-pet-glycolysis-1
+    dataset: bhet-by-batch-glycolysis-of-pet-flake-with-crystallisation-from-water-5000-t-a
+    conditions: {technology: "zinc-acetate-catalysed glycolysis of washed PET flake at the glycol's atmospheric reflux, water quench and oligomer recycle, crystallisation and recrystallisation from water, vacuum drying, water and glycol distilled and recycled", basis: "concept balance, ratios from EP 0 723 951 A1 Example 2 and ASSUMED (DESIGN.md D-004 to D-009)"}
+    kpis:
+      bhet-specific-pet: {expression: feed:PETF / product:BHET, per: product:BHET}
+      bhet-specific-heat: {expression: (feed:HPS + feed:LPS) / product:BHET, per: product:BHET}
