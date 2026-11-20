@@ -1,0 +1,27 @@
+# Reactions of mtbe-1 (DESIGN.md D-004). Schema: `cheme schema process-reactions`.
+# Model basis: a conversion specification, not kinetics. The etherification takes place in the
+# liquid on the acidic ion-exchange resin of the reactive zone of C-101 (stages 3 to 10, 800 kg
+# each, 4.9 equiv H+/kg); R101, the reaction step of that column, converts 99.5 % of the
+# isobutene it receives, the conversion of Murat, Mohamed and Bhatia (2003, Table 2, their model
+# of Nijhuis et al.'s column; SRC-1). The activity-based rate law of Rehfinger and Hoffmann
+# (1990) that SRC-1 states (its equations 8 to 11) is recorded in DESIGN.md D-004, not used:
+# core has no reactive-distillation model to put it in (L-1). Side reactions (dimerisation to
+# diisobutene, hydration to tert-butanol, methanol to dimethyl ether) are left out, as both
+# sources leave them out (SRC-1 section 3.2: very small; SRC-2 section 2.2).
+# Heat of reaction: from the ideal-gas formation enthalpies of process/materials.yaml at
+# 298.15 K (-283700 + 17600 + 200700 J/mol). Negative = exothermic, J/mol. In the liquid the
+# heat released is smaller by the difference of the heats of vaporization; the column's duties
+# are the source's (D-008), so this value is not used for a duty.
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: ETH
+    title: Etherification of isobutene with methanol to MTBE (acidic ion-exchange resin)
+    equation: C4H8 + CH4O <=> C5H12O
+    stoichiometry: {IB: -1, MEOH: -1, MTBE: 1}
+    reversible: true
+    phase: liquid
+    catalyst: "strongly acidic ion-exchange resin, 4.9 equiv H+/kg, in the reactive zone of the column (SRC-1, SRC-2)"
+    conversion: {key: IB, value: 0.995, provenance: given, source: "Murat, Mohamed and Bhatia (2003), IIUM Eng. J. 4(2), Table 2: isobutene conversion 99.5 % in their model of the column (98.5 % in Nijhuis et al.'s), SRC-1; D-004"}
+    heat_of_reaction: {value: -65400, provenance: calculated, source: "ideal-gas formation enthalpies of process/materials.yaml at 298.15 K (chemicals 1.5.2: MTBE CRC, isobutene and methanol ATcT); gas basis, header"}
+    sources: ["Murat, Mohamed, Bhatia (2003) IIUM Engineering Journal 4(2) 13-30, equations 7 to 11 and Tables 1 and 2", "Svandova, Labovsky, Markos, Jelemensky (2007) ESCAPE17, section 2.2"]

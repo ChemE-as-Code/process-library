@@ -1,0 +1,121 @@
+# Process Atlas manifest of bhet-pet-glycolysis-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: bhet-pet-glycolysis-1
+title: BHET by batch glycolysis of PET flake with ethylene glycol and zinc acetate, crystallisation from water (5000 t/a)
+summary: >-
+  Washed PET flake is glycolysed with ethylene glycol and zinc acetate for 2 h at the glycol's
+  atmospheric reflux; the glycolysate is quenched with water, the oligomers filtered off and
+  recycled, and BHET crystallised, recrystallised from water and dried; water and glycol are
+  distilled and recycled. Concept stage, 3944.7 kg per batch every 6.25 h, preliminary
+  gate-to-gate LCI.
+description: |
+  Washed post-consumer PET flake, fresh and recovered ethylene glycol (2 kg per kg PET), zinc
+  acetate (1.5 g per kg PET) and the recycled oligomer cake are heated, their water distilled
+  off on the way, and held 2 h at the glycol's reflux at 470 K and atmospheric pressure: method
+  B of EP 0 723 951 A1 (Pilati et al., Example 2). The hot glycolysate is filtered of the
+  non-PET solids and run into the second mother liquor of the batch before last at 343 K, where the oligomers precipitate and are filtered off, 90 % of them back
+  to the next charge. The liquor is cooled to 288 K for the crude BHET (90 % of the dissolved
+  BHET, from Example 2), which is centrifuged, redissolved in 6 kg of hot water per kg at 353 K,
+  recrystallised at 288 K to its water solubility, centrifuged and vacuum-dried at 343 K. The
+  first mother liquor, the dryer's condensate and the reactor's heat-up distillate are distilled: 95 % of the water returns to the
+  redissolution, 95 % of the glycol bottoms with their BHET and catalyst to the charge, the rest
+  of each is purged. Model yield 97.7 % of the PET repeat units to dried BHET of 99.8 wt%.
+
+  The batch is modelled with cheme-as-code: a conversion step for the glycolysis with the split
+  of Example 2 (87 % of the repeat units to BHET, 13 % to oligomers lumped as the dimer, the
+  recycled oligomers glycolysed alike, a little DEG), core's crystallizer for the oligomers and
+  both crops (imposed yields and BHET's water solubility, ADR 0056), specified filters and
+  centrifuges, core's dryer with its cooling (ADRs 0057, 0076), component separators for the
+  reactor's heat-up distillation of the charge's water and for the dewatering column, four
+  design specifications that size the flake, the fresh glycol, the catalyst and the make-up
+  water (ADR 0070), four recycles converged at tears (ADR 0060) and the batch recipe (ADRs 0051,
+  0052, 0057): the dryer sets a cycle of 6.248 h, the reactor close behind, 1268 batches a year.
+  The water route's distillation takes 6.7 of the 7.9 kWh of heat per kg BHET (SRC-1 finds the same
+  for its water-antisolvent case). Every heat of reaction is ASSUMED 0 (an ester interchange);
+  the thermal screening finds no exotherm, the reactor runs at its MTT. See DESIGN.md for every
+  assumption.
+families: [chemical-recycling, polymers]
+keywords: [BHET, bis(2-hydroxyethyl) terephthalate, PET, polyethylene terephthalate, chemical recycling, depolymerisation, glycolysis, ethylene glycol, zinc acetate, oligomers, crystallisation, recrystallisation, centrifuge, vacuum drying, water and glycol recovery, distillation, batch, circular economy, polyester monomer]
+facets:
+  feedstock_basis: [recycled, fossil]
+  product_classes: [polymers, chemicals]
+  unit_operations: [reaction, filtration, crystallization, drying, distillation]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, the conversion split, the
+# crystallisation yields, the filters, the drying rate and the column's split and duty are
+# assumed; ratios and conditions from EP 0 723 951 A1 (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept batch PFD with closed mass, component and element balances (cheme validate, cheme
+    process streams: 5 blocks and 19 steps within tolerance; the second mother liquor, the
+    recovered glycol, the oligomer cake and the distilled water converged at the tears S19, S20,
+    S21 and S29). Four design specifications size the flake for 5000 t/a of dried BHET, the fresh
+    glycol for 2 kg of glycol per kg PET in the charge, the zinc acetate for 1.5 g per kg PET and
+    the make-up water for 6 kg of water per kg of crude BHET in the redissolution (EP 0 723 951
+    A1). The charge's water (4.3 wt%, mostly from the wet oligomer cake) is distilled off in the
+    heat-up (X101, a specified split), since it cannot stay liquid at 470 K and 1 atm; the
+    glycolysis R101 is a conversion step with Example 2's split; the crystallizers CR201 to
+    CR204, the filters and the dryer D201 are core's models, the dewatering column X301 a
+    specified split; cheme process propagate writes the reactor's and the crystallizers' duties
+    (Q1 to Q5; the quench CR201 with its two inlets' own heat capacities); the dryer's heat Q6
+    and cooling Q12 are core's dryer model as reported by cheme process crystallizers; the
+    heat-up distillation and reflux of R-101 (Q10, Q11), the condensers' and the column's duties
+    (Q7 to Q9) are by hand with their arithmetic in each source. The recipe's rate agrees with
+    the flowsheet (no cheme.recipe-basis finding); it sizes D-201 (12.5 m3); R-101 (16 m3), the
+    crystallisers and the second mother liquor's tank T-304 are sized by hand. Thermal screening
+    (cheme process reactor-hazards): R101 dT_ad 0 K (every heat of reaction ASSUMED 0), MTSR
+    470.1 K against an MTT of 470.31 K (the glycol's boiling point, the lower bound of the dry
+    glycolysate's bubble point); no TD24, no criticality class. Preliminary gate-to-gate LCI: in
+    the Atlas build the glycol is linked to ethylene-glycol-1, the make-up water to
+    demineralised-water-1, the steam as heat, and power, cooling water and the wastewater
+    through the shared mappings; six exchanges are gaps: the washed flake (its sorting and
+    washing; burden-free as waste under cut-off), the catalyst, chilled water and the
+    incineration of the three purges. Core's own assessment, without a background, lists all 13
+    exchanges as unmapped (lca/gaps.csv). cheme maturity reaches no
+    level (assumed conversion split and separations); the claim `maturity: concept` is the
+    lowest value of the schema, not an evidenced level. Not reviewed. Needs cheme-as-code 1.13.0.
+chemistry:
+  inputs:
+    - {chemical: polyethylene-terephthalate, role: feedstock, inventory_key: "feed:PETF", note: "Washed post-consumer bottle flake with 0.5 wt% non-PET solids (ASSUMED), 0.776 kg/kg BHET; burden-free as waste under cut-off, its sorting and washing a gap"}
+    - {chemical: ethylene-glycol, role: reactant, inventory_key: "feed:EGF", note: "Fresh MEG (ethylene-glycol-1), 0.315 kg/kg; 2 kg per kg PET in the charge with 1.36 kg/kg recovered glycol recycled"}
+    - {chemical: zinc-acetate, role: feedstock, inventory_key: "feed:CATF", note: "Zinc acetate make-up, 0.06 g/kg; 1.5 g per kg PET in the charge, mostly returned with the recovered glycol"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:WATF", note: "Demineralised make-up water (demineralised-water-1), 0.319 kg/kg; 6.1 kg/kg is distilled and recycled"}
+  outputs:
+    - {chemical: bis-2-hydroxyethyl-terephthalate, role: main-product, inventory_key: "product:BHET", note: "Dried BHET, modelled 99.8 wt% with 0.2 wt% water and traces of glycol, DEG and catalyst, to packing; a recycled monomer for PET polycondensation (pet-1 starts from PTA and MEG)"}
+    - {chemical: ethylene-glycol, role: waste, inventory_key: "product:GPURGE", note: "Glycol residue purge to incineration, 0.071 kg/kg: 89 wt% glycol with DEG, BHET, oligomers and zinc acetate"}
+    - {chemical: polyethylene-terephthalate, role: waste, inventory_key: "product:OPURGE", note: "Oligomer purge to incineration, 0.026 kg/kg: PET oligomers (lumped as the BHET dimer) wetted with water and glycol"}
+    - {chemical: polyethylene, role: waste, inventory_key: "product:RES", note: "Hot-filter residue to incineration, 0.006 kg/kg: the flake's non-PET solids (lumped as polyolefin) with glycolysate"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Distillate purge to wastewater treatment, 0.306 kg/kg, water with about 0.04 wt% glycol"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.059 kWh/kg: agitators, filters, centrifuges, the dryer's drive and vacuum pump, column pumps (ASSUMED)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "7.08 kWh/kg of HP steam 4100 kPa(a): R-101's heat-up (0.22, core's conversion duty), its heat-up distillation and reflux (0.14, by hand) and the column's reboiler (6.72, by hand)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.80 kWh/kg of LP steam 350 kPa(a): the quench and the redissolution (core's crystallizer duties) and the dryer (core's dryer model)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "6.44 kWh/kg removed: the column's, R-101's and the dryer's condensers (by hand) and the product's cooling in the dryer (core's dryer model)"}
+    - {chemical: chilled-water, role: utility, inventory_key: "product:CHW", note: "1.05 kWh/kg removed at 278 K: both crystallisations to 288 K (core's crystallizer duties)"}
+basis:
+  capacity: "5000 t/a dried BHET: 1268 batches/a of 3944.66 kg in 7920 h on a dedicated train (631.31 kg/h year average), ASSUMED (DESIGN.md D-002, D-003, D-013)"
+  operating_hours_per_year: 7920
+  location: generic chemical-recycling site next to a PET bottle sorting and washing plant (not chosen)
+references:
+  - {title: "Pilati, F.; Toselli, M.; Stramigioli, C.; Baldi, G.; Capra, M.; Osella, M.; Bava Pilone, G. (1996) EP 0 723 951 A1: Process to prepare bis(2-hydroxyethyl) terephthalate (waste PET with excess EG and a Zn, Ca or Co acetate at 190 to 210 C for 2 to 3 h; methods A, B and C of recovering BHET by crystallisation from water; Example 2: 300 g PET, 0.45 g ZnAc2, 600 g EG refluxed 2 h, 1000 g water, 45 g oligomers at 70 C, 295 g BHET after a second crystallisation from 1500 g water at 15 C)", url: "https://patents.google.com/patent/EP0723951A1/en"}
+  - {title: "Luo, Y.; Selvam, E.; Vlachos, D. G.; Ierapetritou, M. (2023) Economic and environmental benefits of modular microwave-assisted polyethylene terephthalate depolymerization. ACS Sustainable Chem. Eng. 11, 4209-4218 (NSF public-access copy; ZnO glycolysis at 210 C, 100 % conversion and 95 % BHET in 10 min; the water route's EG/water distillation the leading utility; GWP 0.636 vs 4.37 kg CO2-eq/kg BHET for the DMT route)", doi: 10.1021/acssuschemeng.2c07203, url: "https://par.nsf.gov/servlets/purl/10429439"}
+  - {title: "Goh, H. W.; Salmiaton, A.; Abdullah, N.; Idris, A. (2015) Time, temperature and amount of distilled water effects on the purity and yield of bis(2-hydroxyethyl) terephthalate purification system. Bull. Chem. React. Eng. Catal. 10(2), 143-154 (PET:EG 1:5, 1.5 % zinc acetate, 196 C, 8 h, reflux under N2; 5:1 water, 2 C, 3 h; BHET melting at 106 to 110 C)", doi: 10.9767/bcrec.10.2.7195.143-154}
+  - {title: "US 4 078 143 A (1978): Process for depolymerizing waste ethylene terephthalate polyester (DEG formed at 0.08 to 0.35 mol % per hour at 225 to 235 C; glycolysis at 200 to 240 C)", url: "https://patents.google.com/patent/US4078143A/en"}
+  - {title: "CN 110 590 551 A: Method for producing bis(2-hydroxyethyl) terephthalate and method for producing polyethylene terephthalate (Google Patents machine translation: BHET's solubility in water 0.5 % w/v at 20 C; hot water at 65 to 85 C to dissolve it)", url: "https://patents.google.com/patent/CN110590551A/en"}
+  - {title: "US 7 211 193 B2: Processes for the purification of bis(2-hydroxyethyl)terephthalate (crystallisation from the glycol at 15 to 30 C after deionisation; glycolysis at 190 to 220 C; the EG-crystallisation alternative rejected in D-001)", url: "https://patents.google.com/patent/US7211193B2/en"}
+  - {title: "The chemicals 1.5.2 and thermo 0.6.1 Python packages, open-source packages queried for single values (facts only, the underlying works not read; library ADR 0037): chemicals' boiling points (HEOS, CRC_ORG) and BHET's melting point (CRC_ORG), its identifier table; thermo's HEOS_FIT for water and glycol, ZABRANSKY_SPLINE and 'Fit 2023' for DEG, and the YEN_WOODS_SAT and DADGOSTAR_SHAW estimates for BHET", url: "https://github.com/CalebBell/chemicals"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/bhet-pet-glycolysis-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0

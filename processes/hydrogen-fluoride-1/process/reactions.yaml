@@ -1,0 +1,72 @@
+# Reactions of hydrogen-fluoride-1 (DESIGN.md D-005 to D-008). Schema: `cheme schema
+# process-reactions`. The main reaction and the side reactions of the spar's impurities follow
+# the BREF LVIC-AAF 2007, section 6.2.1, reactions (1) to (4), (5) and (9) (SRC-1); the
+# stoichiometry of the fatty-acid reaction is balanced here (the BREF's equation (5) does not
+# balance in oxygen, D-005). Conversions are design assumptions of a conversion reactor, not
+# kinetics; none is predicted (L-1). Heats of reaction only where they are used (D-009).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: R1
+    title: Fluorspar and sulfuric acid to hydrogen fluoride and anhydrite (rotary kiln)
+    equation: CaF2(s) + H2SO4(l) -> 2 HF(g) + CaSO4(s)
+    stoichiometry: {CaF2: -1, H2SO4: -1, HF: 2, CaSO4: 1}
+    phase: mixed
+    conversion: {key: CaF2, value: 0.9613, provenance: assumed, source: "D-006: of the CaF2 fed; with R2, 0.8 wt% CaF2 is left in the kiln solids, inside the 0.5-1.1 wt% of US 6 699 455 B2 (Examples 3 and 4, SRC-2)"}
+    heat_of_reaction: {value: 59000, provenance: given, source: "SRC-1, BREF LVIC-AAF 2007, section 6.2.1, reaction (1): 59 kJ/mol, endothermic; the formation enthalpies of the chemicals 1.5.2 package give 62.1 kJ/mol (D-009, SRC-4)"}
+  - id: R2
+    title: Silica in the spar to silicon tetrafluoride
+    equation: SiO2(s) + 2 CaF2(s) + 2 H2SO4(l) -> SiF4(g) + 2 CaSO4(s) + 2 H2O(g)
+    stoichiometry: {SiO2: -1, CaF2: -2, H2SO4: -2, SiF4: 1, CaSO4: 2, H2O: 2}
+    phase: mixed
+    conversion: {key: SiO2, value: 0.90, provenance: assumed, source: "D-005: 90 % of the silica leaves as SiF4, the rest stays in the anhydrite (SRC-1, 6.2.5: silica is contained in the anhydrite or released as SiF4); no open split was read"}
+  - id: R3
+    title: Calcium carbonate in the spar
+    equation: CaCO3(s) + H2SO4(l) -> CaSO4(s) + CO2(g) + H2O(g)
+    stoichiometry: {CaCO3: -1, H2SO4: -1, CaSO4: 1, CO2: 1, H2O: 1}
+    phase: mixed
+    conversion: {key: CaCO3, value: 1.0, provenance: assumed, source: "D-005: complete in the hot acid (SRC-1, reaction (3))"}
+  - id: R4
+    title: Iron and aluminium oxides in the spar (as Fe2O3)
+    equation: Fe2O3(s) + 3 H2SO4(l) -> Fe2(SO4)3(s) + 3 H2O(g)
+    stoichiometry: {Fe2O3: -1, H2SO4: -3, Fe2SO43: 1, H2O: 3}
+    phase: mixed
+    conversion: {key: Fe2O3, value: 1.0, provenance: assumed, source: "D-005: complete (SRC-1, reaction (4))"}
+  - id: R5
+    title: Flotation fatty acids (as stearic acid) reduce sulfuric acid to SO2
+    equation: C18H36O2 + 52 H2SO4 -> 18 CO2 + 70 H2O + 52 SO2
+    stoichiometry: {C18H36O2: -1, H2SO4: -52, CO2: 18, H2O: 70, SO2: 52}
+    phase: mixed
+    conversion: {key: C18H36O2, value: 1.0, provenance: assumed, source: "D-005: the organics of the uncalcined spar are oxidised by the hot acid to CO2, water and SO2 (SRC-1, reaction (5), balanced here for n = 16)"}
+  - id: HYD
+    title: Free SO3 of the oleum binds the water of the feed acid
+    equation: SO3 + H2O -> H2SO4
+    stoichiometry: {SO3: -1, H2O: -1, H2SO4: 1}
+    phase: liquid
+    conversion: {key: SO3, value: 1.0, provenance: assumed, source: "D-007: SRC-1, 6.2.1, reaction (9): oleum keeps the feed acid's concentration constant"}
+    heat_of_reaction: {value: -87175, provenance: assumed, source: "formation enthalpies SO3(l) -441.0, H2O(l) -285.825 and H2SO4(l) -814.0 kJ/mol, chemicals 1.5.2 (methods CRC for SO3 and H2SO4, ATCT_L for water, SRC-4); heat of dilution in the feed acid left out (L-2)"}
+  - id: NEU
+    title: Residual sulfuric acid in the anhydrite neutralised with lime
+    equation: CaO(s) + H2SO4 -> CaSO4(s) + H2O
+    stoichiometry: {CaO: -1, H2SO4: -1, CaSO4: 1, H2O: 1}
+    phase: mixed
+    conversion: {key: H2SO4, value: 1.0, provenance: assumed, source: "D-008: the anhydrite's free acid neutralised with a small excess of lime (SRC-1, 6.2.6 and Table 6.5; SRC-2: the acid in the product would otherwise need neutralisation with lime)"}
+    heat_of_reaction: {value: -271425, provenance: assumed, source: "formation enthalpies CaO(s) -634.9, CaSO4(s) -1434.5, H2SO4(l) -814.0 and H2O(l) -285.825 kJ/mol, chemicals 1.5.2 (methods CRC, ATCT_L for water, SRC-4); 63.9 kW in the anhydrite cooler Q9 (D-009)"}
+  - id: SIF
+    title: Silicon tetrafluoride absorbed in water to fluorosilicic acid and silica
+    equation: 3 SiF4 + 2 H2O -> 2 H2SiF6 + SiO2(s)
+    stoichiometry: {SiF4: -3, H2O: -2, H2SiF6: 2, SiO2: 1}
+    phase: mixed
+    conversion: {key: SiF4, value: 0.9995, provenance: assumed, source: "D-008: SiF4 absorbed in water to aqueous H2SiF6 (SRC-1, 6.2.4 and 6.2.5); stoichiometry balanced here"}
+  - id: SOX
+    title: SO2 scrubbed with caustic soda
+    equation: SO2 + 2 NaOH -> Na2SO3 + H2O
+    stoichiometry: {SO2: -1, NaOH: -2, Na2SO3: 1, H2O: 1}
+    phase: mixed
+    conversion: {key: SO2, value: 0.9998, provenance: assumed, source: "D-008: alkaline scrubbing of the tail gas (SRC-1, 6.2.5 and 6.4.7), set so that the SO2 slip, 0.0049 kg/t HF, sits inside SRC-1's 0.001-0.01 kg/t with alkaline scrubbing (Table 6.6) and its BAT-AEL of 0.001-0.01 kg/t (Table 6.15)"}
+  - id: COMB
+    title: Natural gas (as methane) burnt in the combustion chambers of the spar preheater and the kiln
+    equation: CH4 + 2 O2 -> CO2 + 2 H2O
+    stoichiometry: {CH4: -1, O2: -2, CO2: 1, H2O: 2}
+    phase: vapor
+    conversion: {key: CH4, value: 1.0, provenance: assumed, source: "D-009: complete combustion with 10 % excess oxygen (ASSUMED); its heat, the LHV 802.584 kJ/mol from the formation enthalpies CH4(g) -74.534, CO2(g) -393.474 and H2O(g) -241.822 kJ/mol (chemicals 1.5.2, SRC-4), is split by hand into Q1, Q2 and the losses Q10; the CO, NO and NO2 of the flue gas are estimated in lca/lca.yaml (D-011)"}

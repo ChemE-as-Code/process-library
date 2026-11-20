@@ -1,0 +1,18 @@
+# potassium-chloride-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, a `dataset` (an Atlas producer), `atlas: false`, or a
+# `properties_reason`.
+#
+# Linked here (DESIGN.md D-010): the make-up water to the shared water entry, the LP steam as heat
+# delivered (kWh), the dryer's fired heat as heat from natural gas (kWh). The build itself links
+# the electricity (the shared grid entry) and the cooling water (the shared cooling-tower utility,
+# by its slug cooling-water). The ore (no library process mines sylvinite), the salt tailings
+# (slug potash-tailings) and the brine purge (slug potash-brine-purge) have no entry and stay gaps
+# (CONTRIBUTING, "Gaps"): the tailings are not a sodium chloride product and the purge, injected
+# into a deep well, is not wastewater for treatment.
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:PW": {use: water, chemical: water, source: "process make-up water to the crystallizer feed (D-005), by mass"}
+  "feed:LPS": {use: steam-heat, source: "LP steam 450 kPa(a) to the mother-liquor heater (Q3, hand balance), counted as heat delivered (kWh), D-008"}
+  "feed:FUEL": {use: heat-natural-gas, source: "the dryer's natural-gas-fired air heater (Q4, core's dryer model), counted as the heat the drying air takes up from the burner (kWh): core's dryer duty, the cake's heat over the dryer's ASSUMED efficiency of 0.6 (the exhaust's share); the burner's losses and combustion emissions in the background, D-008"}
