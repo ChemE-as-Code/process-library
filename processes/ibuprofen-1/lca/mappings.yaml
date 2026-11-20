@@ -1,0 +1,17 @@
+# ibuprofen-1's own exchange overrides for the Atlas LCI build (build_lci.py, ADR 0022).
+# Schema: schemas/lci-process-mappings.schema.json. Keys are the dataset's exchange keys
+# (<kind>:<id>); each entry `use`s a technosphere entry of the shared lci/mappings.yaml, gives the
+# exchange's `chemical` slug, `atlas: false`, or a `properties_reason`.
+#
+# Linked here (DESIGN.md D-010): the acetic anhydride to acetic-anhydride-1, the hydrogen to
+# hydrogen-1, the 33 wt% hydrochloric acid to hydrogen-chloride-1, and the MP steam counted as
+# heat delivered (kWh), as paracetamol-1 does. The shared lci/mappings.yaml links the wash water,
+# the electricity, the cooling water and the wastewater. The build reports the rest as gaps
+# (lci/gaps.json): isobutylbenzene, HF, CO and hexane (no library process exports them), the
+# brine, the catalysts and the wastes' treatment (CONTRIBUTING, "Gaps").
+schema: cheme-as-code/lci-process-mappings/v1
+exchanges:
+  "feed:AC2OF": {dataset: {path: processes/acetic-anhydride-1/lca/dataset.yaml, product: "product:AC2O"}, source: "the Atlas producer acetic-anhydride-1, acetic anhydride 99.5 wt% by the ketene route, the grade this feed takes; kg for kg (D-004)"}
+  "feed:H2F": {dataset: {path: processes/hydrogen-1/lca/dataset.yaml, product: "product:H2"}, source: "the Atlas producer hydrogen-1, hydrogen by steam methane reforming and PSA; kg for kg (D-004)"}
+  "feed:HCLF": {dataset: {path: processes/hydrogen-chloride-1/lca/dataset.yaml, product: "product:HCLACID"}, source: "the Atlas producer hydrogen-chloride-1, hydrochloric acid 33 wt%, the grade this make-up takes; kg for kg (D-004)"}
+  "feed:MPS": {use: steam-heat, source: "MP steam 1100 kPa(a) to R-101's heat-up (Q2), the reboilers (Q3, Q5, Q10, Q15), the dryer (Q13), the wash water (Q17), the dissolver (Q19) and the dose (Q20), counted as heat delivered (kWh), D-009"}

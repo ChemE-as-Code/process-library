@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 140 public process folders: 100 engineering projects (a `plant.yaml` with a process
+The table lists 141 public process folders: 101 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -104,6 +104,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`hydrogen-peroxide-1`](processes/hydrogen-peroxide-1/) | Hydrogen peroxide by the anthraquinone autoxidation process (50 kt/a H2O2, 50 wt%) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`hydrotreating-1`](processes/hydrotreating-1/) | Gas oil hydrodesulfurisation to ultra-low-sulfur diesel (REF BREF ranges, model formulas) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`hydroxylamine-1`](processes/hydroxylamine-1/) | Hydroxylammonium sulfate by catalytic NO hydrogenation (30 kt/a NH2OH, 25 wt% solution) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`ibuprofen-1`](processes/ibuprofen-1/) | Ibuprofen by the BHC route: semi-batch acylation of isobutylbenzene in anhydrous HF with HF recycle, Raney nickel hydrogenation, Pd carbonylation with CO, vacuum distillation, crystallisation from hexane (3500 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`iodine-1`](processes/iodine-1/) | Iodine from natural iodide brine by chlorine oxidation, air blowing-out and SO2 absorption (1000 t/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`iodomethane-1`](processes/iodomethane-1/) | Iodomethane from methanol, red phosphorus and iodine, semi-batch reaction under reflux, distillation off the residue, washes, drying and batch rectification through a packed column (500 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`iron-steel-1`](processes/iron-steel-1/) | Crude steel by the integrated blast furnace and BOF route (Iron and Steel BREF data, IPCC carbon balance) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |

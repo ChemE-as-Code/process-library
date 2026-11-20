@@ -105,6 +105,8 @@ NO_REGISTRY_IDENTITY = {
     "ethanol-1/consumable:molecular-sieve": SORBENT,
     "ethylbenzene-1/product:flux_oil": FUEL_RESIDUE,
     "ethylene-glycol-1/consumable:eo-catalyst": CATALYST,
+    "ibuprofen-1/consumable:palladium-chloride": CATALYST,
+    "ibuprofen-1/consumable:raney-nickel": CATALYST,
     "glycerol-1/product:FAL": "the fatty-acid layer to the biodiesel plant, a mixture of no fixed composition",
     "fcc-1/input:catalyst": CATALYST,
     "formaldehyde-1/consumable:ecs-catalyst": CATALYST,
