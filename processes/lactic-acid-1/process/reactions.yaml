@@ -1,0 +1,107 @@
+# Reactions of lactic acid by fermentation (D-001, D-005 to D-008). Schema: `cheme schema
+# process-reactions`.
+#
+# Conversion models, not kinetics: each extent follows from the conversion given here (a
+# fraction of the key component's inlet flow of the step). The fermentation reactions are the
+# net of the bacteria's conversion of glucose and the lime's neutralisation of the acids as they
+# form (the pH is held at 5 to 6 by the lime, SRC-2 p. 7), so the acids appear as their calcium
+# salts; the parallel conversions are those of the BioSTEAM lactic biorefinery (SRC-1,
+# `_units.py`, class CoFermentation: 0.76 of the glucose to lactic acid, 0.07 to acetic acid and
+# 0.02 to cell mass, the rest left), D-005. Heats of reaction from formation enthalpies at
+# 298.15 K where a value was found (DESIGN.md SRC-4, library ADR 0037), the neutralisations at
+# the strong acid-strong base value, ASSUMED; the rest ASSUMED 0 with the reason (D-009).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: SLK
+    title: Slaking of quicklime to milk of lime
+    equation: CaO + H2O -> Ca(OH)2
+    stoichiometry: {CAO: -1, H2O: -1, CAOH: 1}
+    phase: liquid
+    conversion: {key: CAO, value: 1.0, provenance: assumed, source: "D-006: quicklime slaked completely in excess water (20 wt% slurry, ASSUMED)"}
+    heat_of_reaction: {value: -64475, provenance: assumed, source: "D-009: formation enthalpies at 298.15 K, Ca(OH)2(s) -985.2 and CaO(s) -634.9 kJ/mol (chemicals 1.5.2 `Hfs`, method CRC, the CRC Handbook table as packaged, not read here), water(l) -285.825 kJ/mol (chemicals 1.5.2 `Hfl`, method ATCT_L); -985.2 + 634.9 + 285.825 = -64.475 kJ/mol"}
+    catalyst: none
+    sources: ["D-006"]
+  - id: FLA
+    title: Lactic fermentation of glucose with neutralisation by lime (net)
+    equation: C6H12O6 + Ca(OH)2 -> Ca(C3H5O3)2 + 2 H2O
+    stoichiometry: {GLC: -1, CAOH: -1, CALA: 1, H2O: 2}
+    phase: liquid
+    conversion: {key: GLC, value: 0.76, provenance: given, source: "SRC-1 `_units.py`, CoFermentation: Glucose -> 2 LacticAcid at 0.76 (the target yield 0.76 g/g of sugar); with the lime's neutralisation to calcium lactate (D-005)"}
+    heat_of_reaction: {value: -228760, provenance: assumed, source: "D-009: glucose(s) -1271 kJ/mol (Wikipedia 'Glucose' infobox, citing Ponomarev and Migarskaya 1960; a secondary source, ASSUMED) to 2 L-lactic acid(s) at -694.08 kJ/mol (chemicals 1.5.2 `Hfs`, method WEBBOOK, the NIST WebBook value as packaged, not read here): 2(-694.08) + 1271 = -117.16 kJ/mol; plus the neutralisation of 2 mol of acid by lime taken at the strong acid-strong base value, 2 x -55.8 kJ/mol, ASSUMED (the acid's ionisation and the lime's dissolution left out): -228.76 kJ/mol of glucose. Heats of solution left out"}
+    catalyst: "lactic acid bacteria (SRC-1: a lignocellulose-tolerant strain; SRC-2: Bacillus coagulans DSM2314), 323 K, pH 5 to 6"
+    sources: ["SRC-1 _units.py CoFermentation", "SRC-2 pp. 5, 7-8"]
+  - id: FAA
+    title: Acetic acid by-product with neutralisation by lime (net)
+    equation: C6H12O6 + 1.5 Ca(OH)2 -> 1.5 Ca(CH3COO)2 + 3 H2O
+    stoichiometry: {GLC: -1, CAOH: -1.5, CAAC: 1.5, H2O: 3}
+    phase: liquid
+    conversion: {key: GLC, value: 0.07, provenance: given, source: "SRC-1 `_units.py`, CoFermentation: Glucose -> 3 AceticAcid at 0.07; neutralised to calcium acetate like the lactic acid (SRC-1's neutralisation reactions)"}
+    heat_of_reaction: {value: -347140, provenance: assumed, source: "D-009: 3 acetic acid(l) at -483.58 kJ/mol (chemicals 1.5.2 `Hfl`, method ATCT_L) less glucose(s) -1271 kJ/mol (Wikipedia, ASSUMED): -179.74 kJ/mol; plus 3 x -55.8 kJ/mol for the neutralisation, ASSUMED: -347.14 kJ/mol of glucose"}
+    catalyst: lactic acid bacteria
+    sources: ["SRC-1 _units.py CoFermentation"]
+  - id: FBIO
+    title: Cell mass growth on glucose (lump)
+    equation: C6H12O6 -> 6 CH2O
+    stoichiometry: {GLC: -1, BIO: 6}
+    phase: liquid
+    conversion: {key: GLC, value: 0.02, provenance: given, source: "SRC-1 `_units.py`, CoFermentation: Glucose -> 6 FermMicrobe at 0.02; the cell mass carried as CH2O (D-004, limit L-3)"}
+    heat_of_reaction: {value: 0, provenance: assumed, source: "D-009: no formation enthalpy of the cell mass lump; 2 % of the glucose, its heat ASSUMED 0"}
+    catalyst: lactic acid bacteria
+    sources: ["SRC-1 _units.py CoFermentation"]
+  - id: NEU
+    title: Neutralisation of the corn steep liquor's lactic acid by lime
+    equation: 2 C3H6O3 + Ca(OH)2 -> Ca(C3H5O3)2 + 2 H2O
+    stoichiometry: {LA: -2, CAOH: -1, CALA: 1, H2O: 2}
+    phase: liquid
+    conversion: {key: LA, value: 1.0, provenance: given, source: "SRC-1 `_units.py`: the lime neutralises the lactic acid completely (2 LacticAcid + CalciumDihydroxide -> CalciumLactate + 2 H2O at 1); the CSL brings 25 wt% lactic acid (SRC-1 `_chemicals.py`)"}
+    heat_of_reaction: {value: -111600, provenance: assumed, source: "D-009: 2 x -55.8 kJ/mol, the strong acid-strong base value, ASSUMED"}
+    catalyst: none
+    sources: ["SRC-1 _units.py CoFermentation"]
+  - id: ACL
+    title: Acidulation of calcium lactate with sulfuric acid to gypsum
+    equation: Ca(C3H5O3)2 + H2SO4 + 2 H2O -> 2 C3H6O3 + CaSO4.2H2O
+    stoichiometry: {CALA: -1, H2SO4: -1, H2O: -2, LA: 2, GYP: 1}
+    phase: liquid
+    conversion: {key: CALA, value: 1.0, provenance: given, source: "SRC-1 `_units.py`, AcidulationReactor: CalciumLactate + H2SO4 -> 2 LacticAcid + CaSO4 at 1; gypsum precipitated (SRC-2 p. 8); taken as the dihydrate, D-007"}
+    heat_of_reaction: {value: 0, provenance: assumed, source: "D-009: no formation enthalpy of dissolved calcium lactate found; the acidulation and the acid's heat of dilution ASSUMED 0 (limit L-5)"}
+    catalyst: none
+    sources: ["SRC-1 _units.py AcidulationReactor", "SRC-2 p. 8"]
+  - id: ACA
+    title: Acidulation of calcium acetate with sulfuric acid to gypsum
+    equation: Ca(CH3COO)2 + H2SO4 + 2 H2O -> 2 CH3COOH + CaSO4.2H2O
+    stoichiometry: {CAAC: -1, H2SO4: -1, H2O: -2, AA: 2, GYP: 1}
+    phase: liquid
+    conversion: {key: CAAC, value: 1.0, provenance: given, source: "SRC-1 `_units.py`, AcidulationReactor: CalciumAcetate + H2SO4 -> 2 AceticAcid + CaSO4 at 1"}
+    heat_of_reaction: {value: 0, provenance: assumed, source: "D-009: as ACL, ASSUMED 0 (limit L-5)"}
+    catalyst: none
+    sources: ["SRC-1 _units.py AcidulationReactor"]
+  - id: ACH
+    title: Neutralisation of the excess lime with sulfuric acid to gypsum
+    equation: Ca(OH)2 + H2SO4 -> CaSO4.2H2O
+    stoichiometry: {CAOH: -1, H2SO4: -1, GYP: 1}
+    phase: liquid
+    conversion: {key: CAOH, value: 1.0, provenance: given, source: "SRC-1 `_units.py`, AcidulationReactor: CalciumDihydroxide + H2SO4 -> CaSO4 + 2 H2O at 1"}
+    heat_of_reaction: {value: 0, provenance: assumed, source: "D-009: as ACL, ASSUMED 0 (limit L-5)"}
+    catalyst: none
+    sources: ["SRC-1 _units.py AcidulationReactor"]
+  - id: EST
+    title: Esterification of lactic acid with ethanol
+    equation: C3H6O3 + C2H5OH -> C5H10O3 + H2O
+    stoichiometry: {LA: -1, ETOH: -1, ETLA: 1, H2O: 1}
+    phase: liquid
+    reversible: true
+    conversion: {key: LA, value: 0.98, provenance: assumed, source: "D-008: in a reactive distillation column on Amberlyst-15 (SRC-1's catalyst) that takes the water and the ester out of the reaction zone, ASSUMED 98 %; SRC-1's stirred reactor stops at its equilibrium (K = exp(2.9625 - 515.13/T), `_units.py` Esterification) and recycles the unconverted acid, which is not taken here (D-008)"}
+    heat_of_reaction: {value: 0, provenance: assumed, source: "D-009: no formation enthalpy of liquid ethyl lactate found (chemicals 1.5.2 has only the gas); ASSUMED thermoneutral, as SRC-1's equilibrium constant changes little with temperature (515 K in its exponent)"}
+    catalyst: "Amberlyst-15 (sulfonated polystyrene resin), SRC-1 `_units.py` Esterification (3.9 wt% of the mass in its stirred reactor)"
+    sources: ["SRC-1 _units.py Esterification", "SRC-2 p. 8"]
+  - id: HYD
+    title: Hydrolysis of ethyl lactate
+    equation: C5H10O3 + H2O -> C3H6O3 + C2H5OH
+    stoichiometry: {ETLA: -1, H2O: -1, LA: 1, ETOH: 1}
+    phase: liquid
+    reversible: true
+    conversion: {key: ETLA, value: 0.80, provenance: given, source: "SRC-1 `_units.py`, HydrolysisReactor: EthylLactate + H2O -> LacticAcid + Ethanol at 0.8, with 12 mol of water per mol of ester"}
+    heat_of_reaction: {value: 0, provenance: assumed, source: "D-009: the reverse of EST, ASSUMED thermoneutral"}
+    catalyst: "none (autocatalysed by the lactic acid), as SRC-1 states none"
+    sources: ["SRC-1 _units.py HydrolysisReactor"]
