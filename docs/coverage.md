@@ -243,6 +243,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 132 | `hydrogen-fluoride` | Hydrogen fluoride (anhydrous) | inorganic-chemicals | n/a, to be sourced | n/a | - | - | 2 | hydrogen-fluoride-1 (T2) |
 | 133 | `bisphenol-a` | Bisphenol A | oxygenates | n/a, to be sourced | n/a | resin-adduct, hcl-catalysed | - | 2 | bisphenol-a-1 (T2) |
 | 134 | `e-methane` | e-Methane (synthetic natural gas) from hydrogen and CO2 | synthetic-fuels | n/a, to be sourced | high | catalytic-two-stage, biological | - | 2 | e-methane-1 (T2) |
+| 135 | `2-ethylhexanol` | 2-Ethylhexanol (oxo route via n-butanal) | oxygenates | n/a, to be sourced | n/a | - | - | 2 | 2-ethylhexanol-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

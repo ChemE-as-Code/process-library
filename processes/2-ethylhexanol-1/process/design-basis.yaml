@@ -1,0 +1,71 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# 2-Ethylhexanol by propylene hydroformylation, aldol condensation and hydrogenation, issue
+# ChemE-as-Code/process-library#511. Values marked ASSUMED are engineering choices of this
+# concept study, not owner, licensor or vendor data; every decision is in DESIGN.md. The
+# capacity is a per-unit-product normalisation for the inventory, not a claim about a
+# commercial plant.
+schema: cheme/design_basis/v1
+capacity:
+  basis: 2-ethylhexanol from the product column C-402's distillate, cooled to storage
+  product_t_per_d: 360                  # ASSUMED (D-002): 15 t/h
+  product_kg_per_h: 15000               # 120 kt/a in 8000 h
+  operating_hours_per_year: 8000        # ASSUMED (D-002)
+  turndown_percent: null                # not set at this stage
+feeds:
+  - name: Propylene (chemical grade)
+    terminal: C3
+    source_of_values: "library process propylene-pdh-1, taken at chemical grade with 0.5 mol% propane as acrylic-acid-1 takes it (ASSUMED grade, D-003)"
+    composition_mol_percent: {C3H6: 99.5, C3H8: 0.5}
+    conditions: {pressure_kPa_a: 5200, temperature_K: 298.15}   # ASSUMED, pumped liquid
+  - name: Synthesis gas H2/CO about 1:1
+    terminal: SYN
+    source_of_values: "US 4 684 750 A uses CO/H2 1:1 (SRC-1); 2 % hydrogen-rich for the propane formed and 1 mol% inerts, ASSUMED (D-003)"
+    composition_mol_percent: {H2: 50.0, CO: 49.0, N2: 1.0}
+    conditions: {pressure_kPa_a: 5100, temperature_K: 313.15}   # ASSUMED, delivered compressed
+  - name: Hydrogen
+    terminal: H2F
+    source_of_values: "library process hydrogen-1 (product H2: 99.9 mol%, the rest nitrogen, 2850 kPa(a)), D-003"
+    composition_mol_percent: {H2: 99.9, N2: 0.1}
+    conditions: {pressure_kPa_a: 2850, temperature_K: 313.15}
+  - name: Caustic soda 50 wt%
+    terminal: NAOH
+    source_of_values: "library process chlor-alkali-1 (product NAOH, 50 wt%), D-003"
+    composition_wt_percent: {NaOH: 50, water: 50}
+  - name: Demineralised water (catalyst-phase make-up)
+    terminal: DMW
+    source_of_values: "the site's demineralised water; its flow replaces the water the crude takes out of the catalyst phase (1.0 wt% of the crude, ASSUMED, D-004)"
+    composition_wt_percent: {water: 100}
+products:
+  - name: 2-Ethylhexanol
+    terminal: EHP
+    purity: "2-ethylhexanol 99.98 wt% as the ASSUMED splits give it (US 4 684 750 A: high purity, no figure), D-007"
+  - name: Isobutanal
+    terminal: IBAL
+    purity: "99.9 wt% isobutanal, 0.1 wt% n-butanal (US 4 684 750 A, SRC-1), D-004"
+  - name: Light ends
+    terminal: LIGHTS
+    use: "n- and isobutanol with some 2-ethylhexanol, to the site's liquid fuel (ASSUMED, D-007)"
+  - name: Heavy ends
+    terminal: HVY
+    use: "heavies with some 2-ethylhexanol, to the site's liquid fuel (ASSUMED, D-007)"
+  - name: Off-gas
+    terminal: OFFGAS
+    use: "the oxo purge, C-102's vent and the hydrogenation purge, to the site's fuel gas (ASSUMED, D-008)"
+  - name: Aqueous effluent
+    terminal: WW
+    use: "the aldol caustic purge and the decanted water of C-102 and C-401, to neutralisation and biological treatment (ASSUMED, D-005, D-008)"
+utilities:
+  - {name: MP steam, pressure_kPa_a: 1500, saturation_K: 471.4, use: "E-301 and the reboilers of C-401 to C-403 (D-009)", note: ASSUMED level}
+  - {name: LP steam raised in R-301, pressure_kPa_a: 300, saturation_K: 406.7, use: "R-302's feed heater; the surplus exported (D-009)", note: ASSUMED level}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, note: ASSUMED (D-009)}
+  - {name: Electric power, use: "cycle-gas compressors, pumps and the liquid-ring vacuum pumps of C-102 and C-401 to C-403 (electric drives ASSUMED, D-009)"}
+site:
+  location: ASSUMED generic site with propylene, synthesis gas, hydrogen and steam supply, not chosen
+  atmospheric_pressure_kPa: 101.325
+  design_ambient_K: 288.15
+assumptions:
+  - "Hydroformylation at 5 MPa and 393 K with CO/H2 about 1:1 and about 30 min (US 4 684 750 A); 90 % of the inlet propylene to aldehydes per pass at the source's 94.0 : 5.0 : 1.0 n : iso : heavies crude, ASSUMED per-pass conversion, D-004."
+  - "1.5 mol CO per mol propylene in the reactor feed, 5 % of the oxo cycle gas purged, 99.5 % of the dissolved propylene stripped back by the synthesis gas (US 4 523 036 A), all ASSUMED, D-004."
+  - "Aldol: 97.9 % of the n-butanal to 2-ethylhexenal and 0.4 % to heavies, ASSUMED so that the yield on n-butanal is US 4 684 750 A's 97.74 % of theory; 1.5 wt% NaOH in the aqueous phase (1-2 wt%, SRC-1), D-005."
+  - "Hydrogenation: 99 % of each stage's inlet aldehydes, 90 mol% hydrogen in the first stage's vapour feed, 1 % of its cycle gas purged, ASSUMED, D-006."
+  - "No property package covers these liquids or the oxo gas: every duty comes from scripts/balance.py on a constant heat capacity and formation-enthalpy basis, ASSUMED (D-009, L-2)."
