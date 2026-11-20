@@ -1,0 +1,33 @@
+# Components and templates of potassium-chloride-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol from the formula
+# with the IUPAC 2021 abridged standard atomic weights (K 39.098, Na 22.990, Cl 35.45, Ca 40.078,
+# S 32.06, O 15.999, H 1.008).
+#
+# The brine is written as neutral salts in water, an inventory basis and not a speciation
+# (DESIGN.md D-004, L-1). Sylvite (KCl) and halite (NaCl) are separate solid components
+# (phase: solid, core ADR 0025): KCl_s is both the ore's sylvite and the crystallised product, the
+# one crystal form of KCl. The ore's other minerals are anhydrite (CaSO4_s) and a lumped
+# insoluble fraction (INSOL: clay, dolomite and the minor sulfates of the ore, D-003), which pass
+# to the tailings unchanged; INSOL has no single formula and is written as SiO2 (ASSUMED) only so
+# that core can evaluate the element balances, which it passes through unchanged (L-1).
+schema: cheme/process/v1
+kind: materials
+components:
+  - {id: KCl, name: Potassium chloride (dissolved), formula: KCl, cas: 7447-40-7, molar_mass: 74.548}
+  - {id: KCl_s, name: "Potassium chloride, solid (sylvite in the ore, crystals in the product)", formula: KCl, cas: 7447-40-7, molar_mass: 74.548, phase: solid}
+  - {id: NaCl, name: Sodium chloride (dissolved), formula: NaCl, cas: 7647-14-5, molar_mass: 58.440}
+  - {id: NaCl_s, name: "Sodium chloride, solid (halite in the ore and the tailings)", formula: NaCl, cas: 7647-14-5, molar_mass: 58.440, phase: solid}
+  - {id: CaSO4_s, name: "Calcium sulfate, solid (anhydrite in the ore and the tailings)", formula: CaSO4, cas: 7778-18-9, molar_mass: 136.134, phase: solid}
+  - {id: INSOL, name: "Insolubles of the ore, lumped (clay, dolomite, minor sulfates), as SiO2", formula: SiO2, molar_mass: 60.084, phase: solid}
+  - {id: H2O, name: Water, formula: H2O, cas: 7732-18-5, molar_mass: 18.015, normal_boiling_point: 373.12}
+templates:
+  - {id: ore, title: "Crushed sylvinite ore", components: [KCl_s, NaCl_s, CaSO4_s, INSOL, H2O]}
+  - {id: slurry, title: "Leach slurry and tailings (solids in brine)", components: [KCl_s, NaCl_s, CaSO4_s, INSOL, KCl, NaCl, H2O]}
+  - {id: brine, title: "Brine (KCl and NaCl in water)", components: [KCl, NaCl, H2O, KCl_s, NaCl_s, CaSO4_s, INSOL]}
+  - {id: cake, title: "Potassium chloride cake and product", components: [KCl_s, KCl, NaCl, H2O]}
+  - {id: water, title: "Water and vapour", components: [H2O]}
+# No property package covers these brines and solids (core's packages are gas mixtures); the
+# duties are hand balances on the propagated streams and core's dryer model (DESIGN.md D-008).
+property_method:
+  adapter: thermo
+  status: placeholder

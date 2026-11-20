@@ -1,0 +1,42 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# e-Methane (synthetic natural gas) by two-stage catalytic CO2 methanation of electrolytic
+# hydrogen, after the STORE&GO demonstration at Falkenhagen, issue
+# ChemE-as-Code/process-library#520. Values marked ASSUMED are engineering choices of this
+# concept study, not client or vendor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: the Falkenhagen methanation unit at its measured operating point of 200 Nm3/h hydrogen, 95 % load (STORE&GO D5.9 section 4.1, Table 4-1)
+  hydrogen_Nm3_per_h: 200                 # 9.0045 kmol/h, D5.9 section 4.1
+  co2_Nm3_per_h: 50                       # stoichiometric H2/CO2 = 4 (D5.9 appendix 8.4, ASPEN basis)
+  sng_Nm3_per_h: 50.82                    # from the flowsheet (S18)
+  sng_kg_per_h: 36.13                     # 98.99 mol% CH4, from the flowsheet (S18)
+  operating_hours_per_year: 8000          # ASSUMED full-load equivalent (D5.9 section 5 uses 8000 h/a for its scale-up; the demonstration ran 1186 h)
+feeds:
+  - name: Hydrogen from an electrolysis plant
+    source_of_values: "D5.9 section 2.1: alkaline electrolysers at Falkenhagen, up to 210 Nm3/h to the methanation; 200 Nm3/h at the design point (Table 4-1)"
+    composition: "dry hydrogen (ASSUMED: the electrolysis plant's own dryer)"
+    conditions: {temperature_K: 303.15, pressure_kPa_a: 120}   # ASSUMED
+  - name: Carbon dioxide from a dense-phase pipeline (carbon-capture-1)
+    source_of_values: "carbon-capture-1 product: 99.95 mol% CO2 with 500 ppm water, 15.3 MPa and 30 C; sulfur-free, which the nickel catalyst needs (D8.3)"
+    conditions: {temperature_K: 303.15, pressure_kPa_a: 15300}
+products:
+  - name: Synthetic natural gas (e-methane)
+    purity: "98.99 mol% CH4, 0.93 mol% H2, 0.08 mol% CO2, dry (the flowsheet); D5.9 measured 99 vol-% CH4 and requires < 2 vol-% H2 and < 2 vol-% CO2 for injection into the transport grid (section 3.1)"
+    delivery: {temperature_K: 313.15, pressure_kPa_a: 5000, battery_limit: "grid connection (metering, odorisation outside the boundary)"}   # pressure ASSUMED above the 48 bar grid (D8.3)
+  - name: Process condensate
+    note: "the reaction water, 80.9 kg/h, degassed in an atmospheric tank (its dissolved CO2, CH4 and H2, 0.17 kg/h, released and counted as emissions), to treatment or reuse as electrolyser feed water after polishing (D-007)"
+utilities:
+  - {name: Electric power, use: "hydrogen compressor, electric preheater of the polishing reactor, the 10 C chiller, pumps and fans (together 41.8 kW computed part by part with ASSUMED efficiencies; D5.9 measured 41 kW for the methanation unit as built), and the injection compressor at 0.1 kWh/Nm3 (D5.9 Table 4-2), D-006, D-008"}
+  - {name: Thermal oil, use: "cools both reactors at about 180-200 C, heats the CO2 let-down heater; the rest to an oil air cooler without a heat user (D-009)", note: "internal, no import"}
+  - {name: Chilled water, use: "the water coolers to 283.15 K before both knock-outs (D-007)", note: "internal, from a packaged refrigeration unit"}
+site:
+  location: ASSUMED generic site in Germany at a transport gas grid connection and a dense-phase CO2 pipeline, next to an electrolysis plant; not chosen
+  design_ambient_K: 288.15             # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "The Falkenhagen two-stage catalytic methanation (STORE&GO D5.9 sections 2.1, 4.1 and 8.4): honeycomb reactor at about 350 C with 92 % conversion, cooling to 60 C and 10 C with water knock-out, polishing fixed bed at about 240 C, cooling and knock-out, two adsorption dryers, grid injection (D-001, D-004 to D-008)."
+  - "Stoichiometric feed H2/CO2 = 4 (D5.9 appendix 8.4: the measured 4.35-4.4 is taken as a measurement error); the polishing reactor at its ideal-gas equilibrium (D-005)."
+  - "CO2 from carbon-capture-1's dense-phase pipeline instead of the demonstration's liquid CO2 delivered by truck (D-003); hydrogen dry at 120 kPa(a) from an atmospheric electrolyser (ASSUMED, D-006)."
+  - "Reaction pressure 1500 kPa(a), D5.9's 14 bar read as gauge (ASSUMED); pressure drops ASSUMED."
+  - "No heat user at the generic site: the oil circuit's 94.7 kW go to an air cooler (D-009); D5.9 measured 86 kW used at Falkenhagen."
+  - "All flows are design-point averages over 8000 h; duties and powers concept estimates; accuracy +/-30 % not demonstrated."

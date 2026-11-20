@@ -1,0 +1,51 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Bisphenol A from phenol and acetone over a promoted sulfonated resin, issue
+# ChemE-as-Code/process-library#510. Values marked ASSUMED are engineering choices of this concept
+# study, not client or licensor data; every decision is in DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: bisphenol A melt to prilling or flaking (stream S26)
+  bisphenol_a_t_per_year: 70000          # ASSUMED (D-002): US 6 960 697 B2's simulated design basis; the design spec rate holds it
+  bisphenol_a_kg_per_h: 8750             # 70 000 t in 8000 h
+  operating_hours_per_year: 8000         # ASSUMED (D-002)
+  phenol_to_acetone_mol_per_mol: 10.0    # ASSUMED (D-005) at the reactor inlet; US 5 723 688 A prefers 4-14, US 4 391 997 A's examples 10.7
+  turndown_percent: 60                   # ASSUMED, not checked
+feeds:
+  - name: Phenol (from a cumene-phenol plant such as acetone-1)
+    source_of_values: ASSUMED (D-003)
+    composition: "taken as pure phenol; the commercial specification (water, cresols, hydroxyacetone, mesityl oxide) is an open input"
+    conditions: {temperature_K: 333.15, pressure_kPa_a: 300}
+  - name: Acetone (from the same cumene-phenol plant)
+    source_of_values: ASSUMED (D-003)
+    composition: "taken as pure acetone"
+    conditions: {temperature_K: 298.15, pressure_kPa_a: 500}
+  - name: Demineralised water to the crystallizer feed and for the phenol stripper's stripping steam
+    source_of_values: ASSUMED (D-007, D-009)
+    composition: "demineralised water"
+products:
+  - name: Bisphenol A, molten
+    purity: "99.96 wt% p,p-bisphenol A in the balance (o,p-isomer 170 ppm, by-products 230 ppm, phenol about 38 ppm); US 5 723 688 A, example 1 reaches 0.12 % impurities and 5 APHA by the same route"
+    delivery: {temperature_K: 493.15, pressure_kPa_a: 300, battery_limit: "melt to a prilling tower or flaker under nitrogen, outside the boundary"}
+  - name: Cracking-still residue (tar)
+    note: "bisphenols, by-products and phenol from the mother-liquor purge, kept hot, to incineration or as a tar fuel (D-008)"
+  - name: Phenolic wastewater
+    note: "the crystallizer condensate's water with about 0.5 wt% phenol, to biological treatment (D-008)"
+utilities:
+  - {name: Electric power, use: "crystallizer vapour booster (D-007), crystallizer circulation and vacuum, filter, stripper vacuum and pumps (D-011)", note: "the booster a hand calculation at an ASSUMED efficiency, the rest ASSUMED allowances"}
+  - {name: LP steam, use: "reactor feed heater, condensate column reboiler", note: "450 kPa(a), saturated, ASSUMED"}
+  - {name: HP steam, use: "adduct melter, phenol stripper and cracking still reboilers", note: "4000 kPa(a), saturated (523.5 K), ASSUMED; hot oil an alternative"}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "interstage coolers, crystallizer vacuum condenser and booster intercooler, column condensers; the phenol condensers through a tempered-water loop held above phenol's melting point (D-013)", note: ASSUMED}
+  - {name: Nitrogen, use: "blanketing of the phenol, mother-liquor and product tanks and of the filter (outside the flowsheet)", note: "not counted (D-014)"}
+site:
+  location: ASSUMED generic site integrated with a cumene-phenol plant, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "ASSUMED 70 kt/a in 8000 h, phenol to acetone 10 mol/mol at the reactor inlet (D-002, D-005)."
+  - "ASSUMED conversion model in R101 (D-005): 69 % of the acetone per pass (US 4 391 997 A), split 94.87 / 3.78 / 1.35 % to p,p-, o,p-bisphenol A and the by-product lump by that patent's Table I, example 3."
+  - "ASSUMED three adiabatic resin beds, 333 K in and 353 K out, the reaction heat giving the ascending profile (D-005, D-006)."
+  - "ASSUMED crystallizer at 318 K, imposed yield 0.75 of the bisphenol A as the 1:1 adduct, 85 % of the water evaporated, 525 kg/h of water dosed so that the evaporation takes the duty; the pressure (0.85 kPa(a)) and the acetone and phenol evaporated follow from the mother liquor's vapour-liquid equilibrium (UNIFAC); the vapour boosted to 12 kPa(a) to condense on cooling water (D-007)."
+  - "ASSUMED filter: all crystals to the cake, 0.25 kg of liquid per kg, a displacement wash of efficiency 0.8 with 0.6 kg of polished phenol per kg of adduct (US 5 723 688 A) (D-007)."
+  - "ASSUMED 5 % of the mother liquor purged to the cracking still, 30 % of the recycled o,p-isomer isomerised, 95 % of the purge's phenol recovered (D-008)."
+  - "ASSUMED phenol stripper: the melt flashed at about 3 kPa(a) and 493 K, then stripped with 30 kg/h of steam over six theoretical stages to about 38 ppm phenol in the product (D-009)."
+  - "All duties other than R101's, X201's and M301's are hand calculations (DESIGN.md D-011); accuracy +/-30 % not demonstrated."

@@ -1,0 +1,78 @@
+# Goal and scope of the bisphenol-a-1 LCI. Schema: `cheme schema lca`. Outputs: `cheme assess
+# lca --write` (lca/inventory.csv, gaps.csv, dataset.yaml, manifest.json, results); never edit
+# those by hand.
+#
+# Preliminary gate-to-gate foreground inventory (DESIGN.md D-014): every exchange of the plant
+# with its amount per kg of bisphenol A, from the balanced flowsheet. In core's screening the
+# backgrounds are left unmapped (`missing:` with the activity each should connect to): a gap,
+# never zero, and no values from licensed databases. The library's Atlas build links phenol and
+# acetone to acetone-1 (lca/mappings.yaml), the steam as heat delivered, electricity, cooling
+# water, the demineralised water and the wastewater through the shared lci/mappings.yaml; the
+# tar to incineration stays a gap.
+schema: cheme/lca/v1
+kind: lca
+goal: >-
+  Preliminary gate-to-gate life cycle inventory of bisphenol A made from phenol and acetone over
+  a promoted sulfonated resin, with adduct crystallization and phenol stripping, at the concept
+  stage: which raw materials, utilities, wastes and emissions the plant exchanges per kg of
+  bisphenol A, as the foreground for a later cradle-to-gate study (D-014).
+functional_unit: {product: BPAP, amount: 1, unit: kg, source: "1 kg of bisphenol A melt (modelled 99.96 wt%) at the plant gate to prilling or flaking, stream S26 (D-002, D-014)"}
+# The boundary key stays cradle-to-gate so that the purchased inputs remain open gaps instead of
+# being mapped free (the schema's gate-to-gate maps every feed free), as phthalic-anhydride-1 does.
+boundary: cradle-to-gate
+case: design
+year: 2026
+location: GLO
+technology: "phenol and acetone (10 mol/mol at the inlet) over a 2-mercaptoethylamine-promoted sulfonated polystyrene-divinylbenzene resin in three adiabatic fixed beds (333 to 353 K, 69 % acetone conversion per pass); the effluent crystallised without distillation as the 1:1 adduct with phenol by vacuum-evaporative cooling with added water (318 K, 0.85 kPa(a), the vapour boosted to 12 kPa(a) and condensed on cooling water); rotary vacuum filter with a polished-phenol wash; adduct melted and stripped of phenol under vacuum with a steam-stripping section; mother liquor isomerised and recycled, 5 % purged to a phenol-recovery still; 8.75 t/h, 70 kt/a"
+rights: "CC-BY-4.0: the ChemE-as-Code process library's own concept design (LICENSE-DATA)"
+system_model: cutoff
+flows:
+  # raw materials
+  - key: feed:PH
+    missing: "not mapped in the screening (D-014); the Atlas build links it to processes/acetone-1, product:PHENOL (cumene hydroperoxide route, co-product with acetone; lca/mappings.yaml)"
+    source: "flowsheet stream S1 (the make-up of the design spec ratio, D-005)"
+  - key: feed:AC
+    missing: "not mapped in the screening (D-014); the Atlas build links it to processes/acetone-1, product:ACETONE (lca/mappings.yaml)"
+    source: "flowsheet stream S2 (the design spec rate, D-002)"
+  - key: feed:DW
+    missing: "not mapped in the screening (D-014); the Atlas build links demineralised water through the shared lci/mappings.yaml (water, the Atlas market of processes/demineralised-water-1)"
+    source: "flowsheet streams S10 (the crystallizer's water dose, D-007) and S29 (the phenol stripper's stripping steam, D-009)"
+  # utilities
+  - key: feed:POWER
+    missing: "not mapped in the screening (D-014; the Atlas build links it through the shared lci/mappings.yaml); connect to: electricity, medium voltage, grid mix of the (undecided) site country"
+    source: "flowsheet energy streams Q3, Q5 and Q9 (ASSUMED allowances, D-011) and Q14 (the crystallizer's vapour booster, D-007)"
+  - key: feed:LPS
+    missing: "not mapped in the screening (D-014); the Atlas build counts it as heat delivered (lca/mappings.yaml, steam-heat)"
+    source: "flowsheet energy streams Q1 (feed heater) and Q12 (condensate column reboiler), D-011"
+  - key: feed:HPS
+    missing: "not mapped in the screening (D-014); the Atlas build counts it as heat delivered (lca/mappings.yaml, steam-heat)"
+    source: "flowsheet energy streams Q6 (adduct melter), Q7 (phenol stripper) and Q10 (cracking still), D-009, D-011"
+  - key: product:CW
+    missing: "not mapped in the screening (D-014; the Atlas build links it through the shared lci/mappings.yaml); connect to: heat rejected to a recirculating cooling-water system with cooling tower (processes/utility-cooling-tower), per kWh removed"
+    source: "flowsheet energy streams Q2, Q4, Q8, Q11, Q13 and Q15 (the phenol condensers' tempered-water loop rejects to cooling water), D-007, D-011"
+  # wastes
+  - key: product:TAR
+    treatment: {kind: waste, route: "incineration of the cracking-still residue (bisphenols, by-products, phenol) as a liquid organic waste or tar fuel (D-008)"}
+    missing: "not mapped yet (D-014); connect to: incineration of hazardous liquid organic waste, per kg (fossil carbon by the stream's composition)"
+    source: "flowsheet stream S23 (D-008)"
+  - key: product:WW
+    treatment: {kind: waste, route: "biological treatment of the phenolic condensate (about 0.6 wt% phenol and 0.3 wt% acetone) on site (D-008)"}
+    missing: "not mapped in the screening (D-014); the Atlas build links wastewater through the shared lci/mappings.yaml (processes/utility-wwtp)"
+    source: "flowsheet stream S28 (D-008)"
+operation:
+  hours_per_year: 8000
+  life_years: 20
+  source: "design basis operating_hours_per_year 8000 (ASSUMED); 20 a service life ASSUMED"
+emission_exclusions:
+  - {id: vacuum-vents, method: storage-tank, equipment: [X-201, C-301, C-302, T-101, T-201], reason: "The vacuum-pump discharges of the crystallizer and the columns and the tank breathing (phenol, acetone, nitrogen) go to a vent treatment that is not designed here; their flows are not in the balance (no P&ID yet, D-014). The EU risk assessment's site data (SRC-6, Table 3.2) give bisphenol A releases to air of 0.06 to 575 kg/a per site, about 0.86 g/t in all over the Western European production (D-014)."}
+  - {id: site-effluent, method: effluent, equipment: [C-401], reason: "The bisphenol A in the treated site effluent is not an exchange of this foreground: the phenolic water goes to treatment (product:WW). SRC-6, Table 3.2 gives 6.8 to 113 kg/a per site after treatment, about 0.2 g/t in all (D-014)."}
+  - {id: resin-make-up, method: non-routine, equipment: [R-101, R-301, V-101], reason: "Resin and promoter make-up and the spent resin's disposal are not counted: no open resin life read (D-013)."}
+dataset:
+  version: 0.1.0
+  classification: {isic: "2011"}   # ISIC Rev.4 2011 Manufacture of basic chemicals
+  modelling: {principle: attributional}
+  geography: {description: "Generic site integrated with a cumene-phenol plant, not chosen (GLO); one design case"}
+  system_model: cutoff
+  technology_level: current
+  review: {type: none}
+  data_generator: "ChemE-as-Code agent session (Claude Opus 5.5) for issue #510, unreviewed"

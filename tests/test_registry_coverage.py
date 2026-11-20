@@ -53,6 +53,8 @@ UNNAMED_REGISTRY_FLOWS = {
     "hydrogen-peroxide-1/consumable:sodium-hydroxide": "sodium-hydroxide",
     "iodine-1/feed:AIR": "air",
     "iodomethane-1/consumable:activated-carbon": "activated-carbon",
+    "lactic-acid-1/consumable:cip-caustic": "sodium-hydroxide",  # the cleaning in place's NaOH make-up
+    "lactic-acid-1/consumable:cip-water": "water",  # the fermenters' cleaning rinse
     "n-bromosuccinimide-1/consumable:rinse-water": "water",
     "natural-gas-processing-1/consumable:MDEA": "n-methyldiethanolamine",
     "natural-gas-processing-1/consumable:TEG": "triethylene-glycol",

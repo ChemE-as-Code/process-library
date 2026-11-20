@@ -1,0 +1,53 @@
+# What the plant must do. Schema: `cheme schema design_basis`.
+# Lactic acid by batch fermentation of glucose with lime, the gypsum route and purification
+# through ethyl lactate, issue ChemE-as-Code/process-library#517. Values marked ASSUMED are
+# engineering choices of this concept study, not client or licensor data; every decision is in
+# DESIGN.md.
+schema: cheme/design_basis/v1
+capacity:
+  basis: lactic acid (as 100 %) in an 88 wt% aqueous solution at the battery limit to storage
+  lactic_acid_t_per_year: 100000         # D-002: the order of SRC-2's scenario I (100 945 t/a recovered); ASSUMED
+  operating_hours_per_year: 8000         # ASSUMED (D-002)
+  lactic_acid_kg_per_h: 12500            # 100 000 t / 8000 h; the 88 wt% product about 14 190 kg/h
+feeds:
+  - name: Glucose syrup 70 wt% (dextrose; no library producer)
+    source_of_values: "D-004: bought-in sugar, ASSUMED 70 wt% glucose in water; SRC-1 and SRC-2 ferment lignocellulosic sugars, of which only the fermentation and separation parameters are used"
+    composition: "glucose 70 wt%, water 30 wt%"
+    conditions: {temperature_K: 323.15, pressure_kPa_a: 300}
+  - name: Corn steep liquor (no library producer)
+    source_of_values: "D-005: SRC-1's 10 g/L, taken per litre of broth (ASSUMED; SRC-1 doses it per litre of its sugar feed), modelled as 50 % water, 25 % protein, 25 % lactic acid (SRC-1)"
+  - name: Quicklime (lime-1)
+    source_of_values: "D-006: CaO for the acids formed plus 10 % (SRC-1), slaked to a 20 wt% milk of lime (ASSUMED)"
+  - name: Sulfuric acid 93 wt% (sulfuric-acid-1)
+    source_of_values: "D-007: 93 % acid (SRC-1, SRC-2), 1.01 mol per mol of calcium (ASSUMED; SRC-1 doses 10 % over)"
+  - name: Ethanol (bioethanol-1)
+    source_of_values: "D-008: make-up for the losses; 1.5 mol of ethanol per mol of lactic acid to the esterifier (SRC-1)"
+  - name: Process water
+    source_of_values: "D-005, D-006: medium water for the titer and the slaking water"
+products:
+  - name: Lactic acid 88 wt%
+    purity: "88 wt% lactic acid in water (SRC-2 p. 5; SRC-1's product flash), modelled 88.1 wt% lactic acid, 0.6 wt% ethyl lactate, 0.1 wt% acetic acid, the rest water; optical purity, colour, sugars and metals not modelled (limit L-2)"
+    delivery: {temperature_K: 313.15, pressure_kPa_a: 300, battery_limit: product storage}
+  - name: Gypsum filter cake (waste)
+    note: "about 1.61 kg per kg of lactic acid (1.42 kg per kg of the 88 wt% product), the solved stream S13 at 20 wt% moisture (SRC-1's moisture), with the lactic acid its liquid carries (D-007); to disposal or use, not credited"
+  - name: Cell mass cake (waste)
+    note: "cell mass and CSL solids at 35 wt% moisture (SRC-1), to anaerobic digestion or disposal (D-006)"
+  - name: Ester column residue (waste)
+    note: "the residual glucose, the unconverted lactic acid and the sulfuric acid's excess, to anaerobic digestion (D-008)"
+  - name: Wastewater
+    note: "the evaporator's condensate (with the acetic acid) and the hydrolysis-water purge, to the site's biological treatment (D-008)"
+utilities:
+  - {name: Electric power, use: "agitators of the fermenters, centrifuges, filter, pumps, vacuum pumps (D-009)", note: ASSUMED}
+  - {name: LP steam, pressure_kPa_a: 450, use: "the evaporator, the esterifier, the ethanol column, the hydrolysis, the stripper, the product concentrator (D-009)", note: ASSUMED}
+  - {name: MP steam, pressure_kPa_a: 1000, use: "the ester column's reboiler (D-008, D-009)", note: ASSUMED}
+  - {name: Cooling water, supply_K: 298.15, return_K: 308.15, use: "fermenters, slaker, acidulation, condensers, product cooler", note: ASSUMED}
+site:
+  location: ASSUMED generic site beside a corn wet mill or sugar refinery, not chosen
+  design_ambient_K: 298.15            # ASSUMED
+  atmospheric_pressure_kPa: 101.325
+assumptions:
+  - "Route: batch fermentation of glucose at 323 K, pH 5 to 6 held with lime; calcium lactate acidulated with sulfuric acid, gypsum filtered; purification by esterification with ethanol, ester distillation and hydrolysis (SRC-1, SRC-2), D-001."
+  - "Fermentation: 0.76 of the glucose to lactic acid, 0.07 to acetic acid, 0.02 to cell mass, 130 g/L at 0.89 g/(L h), 12 h turnaround (SRC-1); the rest of the glucose is left in the broth."
+  - "Esterification in a reactive distillation column at 98 % conversion, ASSUMED (D-008); hydrolysis at 80 % with 12 mol of water per mol of ester (SRC-1)."
+  - "Centrifuge, filter, evaporators and columns on specified recoveries (core's component separators), ASSUMED; no qualified model of these liquids in core (limit L-1)."
+  - "Duties of the reactors from core's conversion model with the components' heat capacities; the separations' duties hand estimates (D-009); no heat integration (limit L-7)."
