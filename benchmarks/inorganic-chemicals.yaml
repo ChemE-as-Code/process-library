@@ -39,6 +39,11 @@
 # balance. Electricity does only in part: the cells' power follows from the balance, but the
 # auxiliaries (0.30 of the 5.196 kWh/kg) are the midpoint of the BREF's own 100-500 kWh/t, so
 # that part of the electricity check is not independent of the dataset.
+# Hydrogen fluoride (hydrogen-fluoride-1, #513): the BREF LVIC-AAF 2007, Table 6.4, gives the
+# specific fluorspar (as CaF2), sulfuric acid (100 % equivalent) and electricity per t of HF of
+# European plants. The dataset's spar and acid follow from its own balance (the residues of
+# US 6 699 455 B2); its electricity is the midpoint of the same BREF range, so that check is not
+# independent of the dataset.
 schema: cheme-as-code/benchmarks/v1
 family: inorganic-chemicals
 
@@ -268,6 +273,52 @@ kpis:
           kind: government
           accessed: "2026-11-19"
 
+  hf-specific-calcium-fluoride:
+    title: Fluorspar (as CaF2) consumption per kg of hydrogen fluoride
+    unit: kg/kg
+    references:
+      - id: bref-lvicaaf-2007-hf-caf2
+        range: [2.1, 2.2]
+        basis: unallocated
+        note: "2100-2200 kg of CaF2 per t of HF."
+        conditions: {technology: "fluorspar and sulfuric acid in indirectly heated rotary kilns, European plants", region: EU, year: 2000}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf
+          locator: "Section 6.3.1, Table 6.4"
+          kind: government
+          accessed: "2026-11-19"
+  hf-specific-sulfuric-acid:
+    title: Sulfuric acid (100 % H2SO4 equivalent) per kg of hydrogen fluoride
+    unit: kg/kg
+    references:
+      - id: bref-lvicaaf-2007-hf-h2so4
+        range: [2.6, 2.7]
+        basis: unallocated
+        note: "2600-2700 kg of 100 % H2SO4 equivalent per t of HF (fresh acid and oleum)."
+        conditions: {technology: "fluorspar and sulfuric acid in indirectly heated rotary kilns, European plants", region: EU, year: 2000}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf
+          locator: "Section 6.3.1, Table 6.4"
+          kind: government
+          accessed: "2026-11-19"
+  hf-specific-electricity:
+    title: Electricity per kg of hydrogen fluoride
+    unit: kWh/kg
+    references:
+      - id: bref-lvicaaf-2007-hf-electricity
+        range: [0.15, 0.30]
+        basis: unallocated
+        note: "150-300 kWh per t of HF."
+        conditions: {technology: "fluorspar and sulfuric acid in indirectly heated rotary kilns, European plants", region: EU, year: 2000}
+        source:
+          citation: "European Commission JRC (2007) Reference Document on Best Available Techniques for the Manufacture of Large Volume Inorganic Chemicals - Ammonia, Acids and Fertilisers"
+          url: https://eippcb.jrc.ec.europa.eu/sites/default/files/2019-11/lvic_aaf.pdf
+          locator: "Section 6.3.1, Table 6.4"
+          kind: government
+          accessed: "2026-11-19"
+
 datasets:
   - process: phosphorus-tribromide-1
     dataset: phosphorus-tribromide-by-semi-batch-bromination-of-white-phosphorus-in-a-pbr3-heel-1000-t-a
@@ -327,3 +378,14 @@ datasets:
         out_of_range_reason: "The product stream is the dried crystal with its cake liquor's salts (99.6 wt% NaClO3, 0.28 wt% NaCl), so the salt per kg of product, 0.5499, lies 0.01 % under the BREF's 0.55 per kg of chlorate; per kg of NaClO3 in the product it is 0.552. The model's salt is pure NaCl with no losses but the product's and the bleed's chloride (D-005, L-3)."
       naclo3-specific-electricity: {expression: feed:POWER / product:NACLO3P, per: product:NACLO3P, reference: bref-lvics-2007-naclo3-electricity}
       naclo3-specific-water: {expression: feed:PW / product:NACLO3P, per: product:NACLO3P, reference: bref-lvics-2007-naclo3-water}
+  - process: hydrogen-fluoride-1
+    dataset: anhydrous-hydrogen-fluoride-from-fluorspar-and-sulfuric-acid-in-a-rotary-kiln-4800-kg-h-fluorspar
+    conditions: {technology: "acid spar (97.5 wt% CaF2) and sulfuric acid in a rotary kiln heated in three zones, acid pre-purification with the acid returned to the kiln, oleum, refrigerated condensation, two distillations", basis: "concept balance at the kiln residues of US 6 699 455 B2 Example 4, ASSUMED splits and conversions (DESIGN.md D-004 to D-009)"}
+    kpis:
+      hf-specific-calcium-fluoride:
+        expression: feed:SPAR * 0.975 / product:AHF
+        per: product:AHF
+        reference: bref-lvicaaf-2007-hf-caf2
+        out_of_range_reason: "2.031 kg CaF2 per kg, 3 % under the BREF's 2.1: the stoichiometric minimum is 1.951, and the model loses fluorine only to the anhydrite's 0.8 wt% CaF2 (the patent's residue) and the fluorosilicic acid; HF in the anhydrite, dust, the scrubber effluents and the spar's other impurities, which raise real plants' use, are not modelled (D-006, L-3)."
+      hf-specific-sulfuric-acid: {expression: (feed:ACID * 0.985 + feed:OLEUM * 1.22503) / product:AHF, per: product:AHF, reference: bref-lvicaaf-2007-hf-h2so4}
+      hf-specific-electricity: {expression: feed:POWER / product:AHF, per: product:AHF, reference: bref-lvicaaf-2007-hf-electricity}
