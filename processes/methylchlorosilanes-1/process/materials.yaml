@@ -1,0 +1,109 @@
+# Components and templates of methylchlorosilanes-1. Schema cheme/process/v1 (`cheme schema
+# process-materials`). Every component has a stable id; molar_mass in kg/kmol (IUPAC 2021
+# abridged standard atomic weights applied to the formula: C 12.011, H 1.008, Cl 35.45,
+# Si 28.085, Cu 63.546), normal_boiling_point in K at 101.325 kPa.
+#
+# Property sources (DESIGN.md source register SRC-7):
+# - normal boiling points from the CRC tables packaged in `chemicals` 1.5.2 (CRC_ORG for the
+#   organics and organosilanes); the printed CRC Handbook was not read here (library ADR 0037).
+#   They agree with the boiling points the open sources state: MeSiCl3 66.1 C and Me2SiCl2
+#   70.1 C (EP 1 957 504 B1, SRC-3), Me3SiCl 57 C and MeHSiCl2 41 C (Wikipedia, SRC-4);
+# - silicon and copper are solids (phase: solid) with no boiling point in the model;
+# - identities (formula, CAS, InChIKey) from PubChem (PUG REST, 2026-11-19) and the `chemicals`
+#   1.5.2 identifier database.
+# No ideal-gas data here: the fluid-bed reactor R201 is a conversion step without an energy
+# port, because core counts every inlet of a conversion step as an ideal gas and the silicon
+# and copper are solids, and dimethyldichlorosilane has no formation enthalpy in `chemicals`
+# 1.5.2 or the NIST WebBook (DESIGN.md D-005, L-1, L-2). Its duty, and the vaporiser's,
+# condenser's and columns' duties, are scripts/balance.py's.
+schema: cheme/process/v1
+kind: materials
+components:
+  - id: SI
+    name: Silicon (metallurgical grade, ground)
+    formula: Si
+    cas: 7440-21-3
+    inchikey: XUIMIQQOPSSXEZ-UHFFFAOYSA-N
+    smiles: "[Si]"
+    molar_mass: 28.085
+    phase: solid
+  - id: CU
+    name: Copper (catalyst, with the zinc and tin promoters not modelled)
+    formula: Cu
+    cas: 7440-50-8
+    inchikey: RYGMFSIKBFXOCR-UHFFFAOYSA-N
+    smiles: "[Cu]"
+    molar_mass: 63.546
+    phase: solid
+  - id: MECL
+    name: Chloromethane (methyl chloride)
+    formula: CH3Cl
+    cas: 74-87-3
+    inchikey: NEHMKBQYUWJMIP-UHFFFAOYSA-N
+    smiles: CCl
+    molar_mass: 50.485
+    normal_boiling_point: 249.05
+  - id: DMDCS
+    name: Dichlorodimethylsilane (Me2SiCl2)
+    formula: C2H6Cl2Si
+    cas: 75-78-5
+    inchikey: LIKFHECYJZWXFJ-UHFFFAOYSA-N
+    smiles: C[Si](C)(Cl)Cl
+    molar_mass: 129.055
+    normal_boiling_point: 343.65
+  - id: MTCS
+    name: Methyltrichlorosilane (MeSiCl3)
+    formula: CH3Cl3Si
+    cas: 75-79-6
+    inchikey: JLUFWMXJHAVVNN-UHFFFAOYSA-N
+    smiles: C[Si](Cl)(Cl)Cl
+    molar_mass: 149.470
+    normal_boiling_point: 339.15
+  - id: TMCS
+    name: Chlorotrimethylsilane (Me3SiCl)
+    formula: C3H9ClSi
+    cas: 75-77-4
+    inchikey: IJOOHPMOJXWVHK-UHFFFAOYSA-N
+    smiles: C[Si](C)(C)Cl
+    molar_mass: 108.640
+    normal_boiling_point: 330.75
+  - id: MDCS
+    name: Dichloromethylsilane (MeHSiCl2)
+    formula: CH4Cl2Si
+    cas: 75-54-7
+    inchikey: NWKBSEBOBPHMKL-UHFFFAOYSA-N
+    smiles: C[SiH](Cl)Cl
+    molar_mass: 115.028
+    normal_boiling_point: 314.05
+  - id: DISIL
+    name: 1,1,2,2-Tetrachloro-1,2-dimethyldisilane (stands for the high-boiling residue)
+    formula: C2H6Cl4Si2
+    cas: 4518-98-3
+    inchikey: JTBAMRDUGCDKMS-UHFFFAOYSA-N
+    smiles: C[Si](Cl)(Cl)[Si](C)(Cl)Cl
+    molar_mass: 228.040
+    normal_boiling_point: 427.15
+  - id: C2H6
+    name: Ethane (stands for the hydrocarbons of methyl-group cracking)
+    formula: C2H6
+    cas: 74-84-0
+    inchikey: OTMSDBZUPAUEDD-UHFFFAOYSA-N
+    smiles: CC
+    molar_mass: 30.070
+    normal_boiling_point: 184.55
+  - id: C2H4
+    name: Ethylene
+    formula: C2H4
+    cas: 74-85-1
+    inchikey: VGGSQFUCUMXWEO-UHFFFAOYSA-N
+    smiles: C=C
+    molar_mass: 28.054
+    normal_boiling_point: 169.35
+templates:
+  - {id: solids, title: Silicon and copper catalyst, components: [SI, CU]}
+  - {id: mecl, title: Methyl chloride, components: [MECL, C2H6, C2H4]}
+  # the conversion step and the component separators write every component of their inlets
+  - {id: crude, title: Crude methylchlorosilanes, components: [MECL, DMDCS, MTCS, TMCS, MDCS, DISIL, C2H6, C2H4, SI, CU]}
+property_method:
+  adapter: thermo
+  status: placeholder

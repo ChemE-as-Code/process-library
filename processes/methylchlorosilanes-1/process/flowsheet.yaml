@@ -1,0 +1,549 @@
+# The flowsheet: the source of the BFD and PFD (`cheme process build` writes process/*.xml;
+# never edit those). Schema cheme/process/v1 (`cheme schema process-flowsheet`).
+#
+# Methylchlorosilanes by the direct (Mueller-Rochow) process: ground silicon and methyl
+# chloride over a copper catalyst in a fluidised bed, the crude silanes distilled
+# (DESIGN.md D-001):
+# - fresh liquid methyl chloride (chloromethane-1) and the methyl chloride recovered in C-302
+#   are vaporised and superheated (E-101) and fluidise the bed of ground silicon and copper in
+#   R-201 at 573 K and 400 kPa(a); half of the methyl chloride converts per pass (D-003);
+# - R-201 converts 95 % of the silicon fed (R201, a conversion step on the silicon, D-004); its
+#   heat raises MP steam in the bed's cooling coils (Q2, D-005);
+# - the cyclones return the fines, and the spent contact mass and the finest dust leave the
+#   bed (CY202, a component separator: every solid to SPENT, D-006);
+# - the crude gas is cooled on cooling water (E-301) and flashed (V-302): most of the silanes
+#   and part of the methyl chloride condense; the gas is compressed (K-303) into the methyl
+#   chloride column C-302 at 800 kPa(a) (above the 90 psig of US 2 563 557), which returns the
+#   methyl chloride to the feed (the tear S2) and vents the hydrocarbons through a refrigerated
+#   vent condenser (E-304, brine) (C302, a component separator, D-007);
+# - the crude silanes are distilled in three columns after US 2 563 557: the heavies (C-401,
+#   residue), the lights (C-402, Me3SiCl and MeHSiCl2) and the close-boiling MeSiCl3/Me2SiCl2
+#   split (C-403, relative volatility 1.17, EP 1 957 504 B1) to the product Me2SiCl2 and a
+#   MeSiCl3 cut (component separators, D-008).
+# Where the values come from:
+# - the reactor conditions and the selectivity metrics: SRC-1 (US 4 500 724 A), SRC-4; the
+#   column 1 pressure and the product cuts: SRC-2 (US 2 563 557); ASSUMED where marked;
+# - every flow and composition after the feeds: `cheme process propagate --fill` (mixer, pass-
+#   through, the conversion step R201, the component separators), the silicon solved for
+#   60 000 t/a of Me2SiCl2 and the fresh methyl chloride for the reactor's methyl chloride
+#   ratio by the design specifications `rate` and `mecl`, the methyl chloride loop converged
+#   at the tear S2 (core ADRs 0060, 0070);
+# - every duty and power and the temperatures of the columns: scripts/balance.py (D-005,
+#   D-009), since R201 has solid reactants and Me2SiCl2 has no formation enthalpy in core's
+#   data (L-1, L-2).
+schema: cheme/process/v1
+kind: flowsheet
+title: Methylchlorosilanes by the direct process (silicon and methyl chloride over copper in a fluidised bed) with crude silane distillation (60 kt/a Me2SiCl2)
+units:
+  pressure: kPa(a)
+  temperature: K
+  flow: kg/h
+  duty: kW
+  enthalpy: kJ/kmol
+cases:
+  - {id: design, description: "Design case: 60 000 t/a dimethyldichlorosilane in 8000 h (D-002)", default: true}
+tolerance: {abs: 0.05, rel: 0.001}
+# The methyl chloride loop is torn at S2, the liquid methyl chloride from C-302 (D-007).
+tears:
+  - stream: S2
+    initial: {flow: 9000.0, unit: kg/h, basis: mass_fraction, composition: {MECL: 0.99, C2H6: 0.008, C2H4: 0.002}}
+convergence: {method: wegstein, max_iterations: 200, tolerance: {abs: 1.0e-5, rel: 1.0e-8}}
+specs:
+  - id: rate
+    vary: {stream: S5, initial: 2600.0, with: {S6: 0.001}}
+    target: {stream: S18, quantity: annual, value: 60000, unit: t, hours: 8000}
+    provenance: assumed
+    source: "D-002: 60 000 t/a of Me2SiCl2 in 8000 h, ASSUMED; the copper make-up follows the silicon at 0.005 kg/kg (0.5 wt% of the silicon, the low end of SRC-1's 0.5 to 10 %, ASSUMED, D-004)"
+  - id: mecl
+    vary: {stream: S1, initial: 2500.0}
+    target: {stream: S4, component: MECL, quantity: ratio, per: {stream: S5, component: SI}, basis: mass, value: 6.9152}
+    provenance: assumed
+    source: "D-003: half of the methyl chloride entering the bed converts per pass (ASSUMED within SRC-4's 30 to 90 %): 1.92347 mol consumed per mol of silicon fed (scripts/balance.py from reactions.yaml) / 0.5 x 50.485 / 28.085 = 6.9152 kg of methyl chloride per kg of silicon fed"
+
+feeds:
+  - {id: MECLF, title: Methyl chloride (chloromethane-1), category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: SIF, title: "Silicon (metallurgical grade, ground; no library process)", category: raw_material, ports: [{id: out, direction: out}]}
+  - {id: CUF, title: Copper catalyst make-up (no library process), category: raw_material, ports: [{id: out, direction: out}]}
+  - id: POWER
+    title: Electric power
+    category: utility
+    utility: {kind: electricity}
+    ports:
+      - {id: r201, direction: out, kind: energy}
+      - {id: c302, direction: out, kind: energy}
+      - {id: dist, direction: out, kind: energy}
+  - id: MPSI
+    title: MP steam 1500 kPa(a) from the site header
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 471.4, provenance: given, source: "saturation at 1500 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009: 10 K to the steam heaters and reboilers, ASSUMED"}
+    ports:
+      - {id: e101, direction: out, kind: energy}
+      - {id: c302, direction: out, kind: energy}
+      - {id: c401, direction: out, kind: energy}
+  - id: LPS
+    title: LP steam 450 kPa(a)
+    category: utility
+    utility:
+      kind: steam
+      level: LP
+      pressure: {value: 450, provenance: assumed, source: "design basis (D-009)"}
+      supply_temperature: {value: 421.0, provenance: given, source: "saturation at 450 kPa(a), IAPWS-IF97 (420.8 K)"}
+      min_approach: {value: 10, provenance: assumed, source: "D-009: 10 K to the steam heaters and reboilers, ASSUMED"}
+    ports:
+      - {id: c402, direction: out, kind: energy}
+      - {id: c403, direction: out, kind: energy}
+products:
+  - {id: DMDCSP, title: Dimethyldichlorosilane (at least 99.5 wt%) to storage, category: product, ports: [{id: in, direction: in}]}
+  - {id: MTCSP, title: Methyltrichlorosilane cut (about 90 wt%) to storage, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: LIGHTSP, title: "Light silanes cut (Me3SiCl, MeHSiCl2) to storage", category: by_product, ports: [{id: in, direction: in}]}
+  - {id: RESID, title: High-boiling residue to treatment, category: by_product, ports: [{id: in, direction: in}]}
+  - {id: SPENT, title: Spent contact mass and fines to treatment, category: solid_waste, ports: [{id: in, direction: in}]}
+  - {id: VENT, title: "Column vent (hydrocarbons, methyl chloride) to the site thermal oxidiser", category: off_gas, ports: [{id: in, direction: in}]}
+  - id: MPS
+    title: MP steam export 1500 kPa(a) (reactor cooling coils)
+    category: utility
+    utility:
+      kind: steam
+      level: MP
+      pressure: {value: 1500, provenance: assumed, source: "design basis (D-005)"}
+      supply_temperature: {value: 471.4, provenance: given, source: "saturation at 1500 kPa(a), IAPWS-IF97"}
+      min_approach: {value: 20, provenance: assumed, source: "D-005: at least 20 K between the bed and the steam raised in its coils (the design has about 100 K), ASSUMED"}
+    ports:
+      - {id: r201, direction: in, kind: energy}
+  - id: CW
+    title: Cooling water return
+    category: utility
+    utility:
+      kind: cooling_water
+      supply_temperature: {value: 298.15, provenance: assumed, source: "design basis (D-009)"}
+      return_temperature: {value: 303.15, provenance: assumed, source: "design basis (D-009): a 5 K range, so that C-302's reflux drum at 306.15 K keeps 3 K above the return (D-007)"}
+      min_approach: {value: 3, provenance: assumed, source: "D-009: 3 K to the coolers and condensers, ASSUMED (C-302's drum sets it)"}
+    ports:
+      - {id: e301, direction: in, kind: energy}
+      - {id: c302, direction: in, kind: energy}
+      - {id: c401, direction: in, kind: energy}
+      - {id: c402, direction: in, kind: energy}
+      - {id: c403, direction: in, kind: energy}
+  - id: BRINE
+    title: Brine return (248 K) from C-302's vent condenser
+    category: utility
+    utility:
+      kind: refrigerant
+      supply_temperature: {value: 243.15, provenance: assumed, source: "design basis (D-007, D-009)"}
+      return_temperature: {value: 248.15, provenance: assumed, source: "design basis (D-007, D-009)"}
+      min_approach: {value: 5, provenance: assumed, source: "D-009: 5 K to the vent condenser E-304, ASSUMED (the vent leaves at 253.15 K, 10 K above the brine supply)"}
+    ports:
+      - {id: c302, direction: in, kind: energy}
+
+blocks:
+  - id: FEED
+    title: Methyl chloride feed and vaporiser (E-101)
+    class: ExchangingThermalEnergy
+    ports:
+      - {id: fresh, direction: in}
+      - {id: recycle, direction: in}
+      - {id: out, direction: out}
+      - {id: steam, direction: in, kind: energy}
+  - id: REACT
+    title: Fluid-bed direct-process reactor with cyclones (R-201, CY-202)
+    class: ReactingChemicals
+    ports:
+      - {id: gas, direction: in}
+      - {id: si, direction: in}
+      - {id: cu, direction: in}
+      - {id: crude, direction: out}
+      - {id: spent, direction: out}
+      - {id: q, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: RECOV
+    title: Crude condensation and methyl chloride recovery (E-301, V-302, K-303, C-302, E-304)
+    class: SeparatingByThermalProcess
+    ports:
+      - {id: in, direction: in}
+      - {id: vent, direction: out}
+      - {id: mecl, direction: out}
+      - {id: crude, direction: out}
+      - {id: steam, direction: in, kind: energy}
+      - {id: q_cond, direction: out, kind: energy}
+      - {id: q_col, direction: out, kind: energy}
+      - {id: q_vent, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+  - id: DIST
+    title: Crude silane distillation (C-401 heavies, C-402 lights, C-403 MeSiCl3/Me2SiCl2 split)
+    class: Distilling
+    ports:
+      - {id: in, direction: in}
+      - {id: residue, direction: out}
+      - {id: lights, direction: out}
+      - {id: mtcs, direction: out}
+      - {id: product, direction: out}
+      - {id: mps, direction: in, kind: energy}
+      - {id: lps2, direction: in, kind: energy}
+      - {id: lps3, direction: in, kind: energy}
+      - {id: q1, direction: out, kind: energy}
+      - {id: q2, direction: out, kind: energy}
+      - {id: q3, direction: out, kind: energy}
+      - {id: power, direction: in, kind: energy}
+
+steps:
+  - id: M101
+    block: FEED
+    title: Fresh and recovered methyl chloride
+    class: Mixing
+    links: [{target: equipment, ref: V-101}]
+    ports:
+      - {id: fresh, direction: in, delegates: fresh}
+      - {id: recycle, direction: in, delegates: recycle}
+      - {id: out, direction: out}
+  - id: E101
+    block: FEED
+    title: Methyl chloride vaporiser and superheater (MP steam)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-101}]
+    ports:
+      - {id: in, direction: in}
+      - {id: out, direction: out, delegates: out}
+      - {id: q, direction: in, kind: energy, delegates: steam}
+  - id: R201
+    block: REACT
+    title: Fluid-bed reactor, silicon and copper contact mass at 573 K, cooling coils raising MP steam
+    class: ReactingChemicals
+    reactions: [DMF, MTF, TMF, MDF, DSF]
+    reactor: conversion
+    links: [{target: equipment, ref: R-201}]
+    ports:
+      - {id: gas, direction: in, delegates: gas}
+      - {id: si, direction: in, delegates: si}
+      - {id: cu, direction: in, delegates: cu}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: CY202
+    block: REACT
+    title: Cyclones, dust filter and contact-mass purge (component separator)
+    class: SeparatingByCyclonicMotion
+    links: [{target: equipment, ref: CY-202}]
+    recovery:
+      outlets:
+        spent: {SI: 1.0, CU: 1.0}
+      provenance: assumed
+      source: "D-006: the cyclones return the fines to the bed; at steady state the unconverted silicon (5 % of the feed) and the copper leave as spent contact mass and elutriated fines, the gas carries no solids (ASSUMED)"
+    ports:
+      - {id: in, direction: in}
+      - {id: spent, direction: out, delegates: spent}
+      - {id: gas, direction: out, delegates: crude}
+  - id: E301
+    block: RECOV
+    title: Crude gas cooler-condenser (cooling water)
+    class: ExchangingThermalEnergy
+    links: [{target: equipment, ref: E-301}, {target: equipment, ref: V-302}]
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: out, direction: out}
+      - {id: q, direction: out, kind: energy, delegates: q_cond}
+  - id: C302
+    block: RECOV
+    title: Methyl chloride column at 800 kPa(a) with the recycle-gas compressor and the refrigerated vent condenser (component separator)
+    class: Distilling
+    links: [{target: equipment, ref: C-302}, {target: equipment, ref: K-303}, {target: equipment, ref: E-304}]
+    recovery:
+      outlets:
+        vent: {C2H6: 0.95, C2H4: 0.97, MECL: 0.0051}
+        mecl: {C2H6: 0.05, C2H4: 0.03, MECL: 0.99}
+      provenance: assumed
+      source: "D-007: the column condenses the methyl chloride on cooling water (SRC-2, US 2 563 557, column 1, at about 90 psig; here 800 kPa(a)) and leaves the bottoms nearly free of it; the hydrocarbons (95 % of the ethane, 97 % of the ethylene, ASSUMED) leave the reflux drum through the vent condenser E-304 at 253.15 K, where methyl chloride's vapour pressure (thermo 0.6.1) leaves 0.51 % of the column's methyl chloride in the vent (scripts/balance.py); 0.49 % stays in the crude (to the lights cut, ASSUMED); the silanes all go to the bottoms"
+    ports:
+      - {id: in, direction: in}
+      - {id: vent, direction: out, delegates: vent}
+      - {id: mecl, direction: out, delegates: mecl}
+      - {id: crude, direction: out, delegates: crude}
+      - {id: steam, direction: in, kind: energy, delegates: steam}
+      - {id: q, direction: out, kind: energy, delegates: q_col}
+      - {id: q_vent, direction: out, kind: energy, delegates: q_vent}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C401
+    block: DIST
+    title: Heavies column (component separator)
+    class: Distilling
+    links: [{target: equipment, ref: C-401}]
+    recovery:
+      outlets:
+        residue: {DISIL: 1.0, DMDCS: 0.0015}
+      provenance: assumed
+      source: "D-008: the residue boiling above 70 C leaves at the bottom with 0.15 % of the Me2SiCl2, about 3 wt% of the residue, to keep the heavies out of the overhead (SRC-2's column 2 bottoms carry about 1.6 % Me2SiCl2), ASSUMED"
+    ports:
+      - {id: in, direction: in, delegates: in}
+      - {id: residue, direction: out, delegates: residue}
+      - {id: over, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: mps}
+      - {id: q, direction: out, kind: energy, delegates: q1}
+      - {id: power, direction: in, kind: energy, delegates: power}
+  - id: C402
+    block: DIST
+    title: Lights column (component separator)
+    class: Distilling
+    links: [{target: equipment, ref: C-402}]
+    recovery:
+      outlets:
+        lights: {MECL: 1.0, C2H6: 1.0, C2H4: 1.0, MDCS: 1.0, TMCS: 0.98, MTCS: 0.02, DMDCS: 0.002}
+      provenance: assumed
+      source: "D-008: everything boiling below MeSiCl3 (66 C) overhead with 2 % of the MeSiCl3 and 0.2 % of the Me2SiCl2 (SRC-2's column 3 overhead carries about 7 % MeSiCl3), 2 % of the Me3SiCl to the bottoms, ASSUMED"
+    ports:
+      - {id: in, direction: in}
+      - {id: lights, direction: out, delegates: lights}
+      - {id: bottoms, direction: out}
+      - {id: steam, direction: in, kind: energy, delegates: lps2}
+      - {id: q, direction: out, kind: energy, delegates: q2}
+  - id: C403
+    block: DIST
+    title: MeSiCl3/Me2SiCl2 superfractionation, two shells in series (component separator)
+    class: Distilling
+    links: [{target: equipment, ref: C-403}]
+    recovery:
+      outlets:
+        mtcs: {TMCS: 1.0, MTCS: 0.94, DMDCS: 0.0086}
+      provenance: assumed
+      source: "D-008: splits ASSUMED for SRC-2's cuts, an overhead of about 90 wt% MeSiCl3 and a bottoms of 99.5 wt% Me2SiCl2 (at most 0.5 % MeSiCl3); the Me3SiCl left by C-402 goes overhead"
+    ports:
+      - {id: in, direction: in}
+      - {id: mtcs, direction: out, delegates: mtcs}
+      - {id: product, direction: out, delegates: product}
+      - {id: steam, direction: in, kind: energy, delegates: lps3}
+      - {id: q, direction: out, kind: energy, delegates: q3}
+
+streams:
+  - id: S1
+    title: Fresh methyl chloride (liquid)
+    from: MECLF.out
+    to: M101.fresh
+    template: mecl
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "battery limit, from pressure storage (D-003)"}
+        pressure: {value: 800, provenance: assumed, source: "battery limit, above the 577 kPa vapour pressure at 298 K (thermo 0.6.1) (D-003)"}
+        phase: {value: liquid, provenance: assumed, source: "liquefied methyl chloride from storage (D-003)"}
+        composition: {basis: mass_fraction, values: {MECL: 1.0, C2H6: 0.0, C2H4: 0.0}, provenance: assumed, source: "D-003: chloromethane-1's product, its traces not modelled"}
+        flow: {value: 7221.7, provenance: calculated, source: 'cheme process propagate: spec mecl (S4 MECL per S5 SI (mass) 6.9152)', fingerprint: d4ff7705e124a87e}
+  - id: S2
+    title: Recovered methyl chloride (liquid) from C-302
+    from: C302.mecl
+    to: M101.recycle
+    template: mecl
+    state:
+      design:
+        temperature: {value: 306.15, provenance: assumed, source: "scripts/balance.py: C-302's reflux drum at 800 kPa(a), 3 K above the cooling-water return, below methyl chloride's 309.8 K saturation (thermo 0.6.1) so that the drum can vent the hydrocarbons (D-007)"}
+        pressure: {value: 800, provenance: assumed, source: "D-007: reflux pump discharge"}
+        phase: {value: liquid, provenance: assumed, source: "condensed (D-007)"}
+        flow: {value: 7084.8, provenance: calculated, source: 'cheme process propagate: recycle C302 from S10 (tear, broyden)', fingerprint: db8bfa38819fd572}
+        composition: {basis: mole_fraction, values: {MECL: 0.998558, C2H6: 0.00131289, C2H4: 0.000129177}, provenance: calculated, source: 'cheme process propagate: recycle C302 from S10 (tear, broyden)', fingerprint: db8bfa38819fd572}
+  - id: S3
+    title: Methyl chloride to the vaporiser
+    from: M101.out
+    to: E101.in
+    template: mecl
+    state:
+      design:
+        temperature: {value: 302.1, provenance: assumed, source: "scripts/balance.py: S1 and S2 mixed as liquids (thermo 0.6.1, D-009)"}
+        pressure: {value: 800, provenance: assumed, source: "D-003"}
+        phase: {value: liquid, provenance: assumed, source: "D-003"}
+        flow: {value: 14306.5, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 657d2014cf908ec9}
+        composition: {basis: mole_fraction, values: {MECL: 0.999286, C2H6: 0.000650357, C2H4: 6.39894e-05}, provenance: calculated, source: 'cheme process propagate: mixer M101 from S1 S2', fingerprint: 027246b4e5ce1adb}
+  - id: S4
+    title: Superheated methyl chloride to the bed (fluidising gas)
+    from: E101.out
+    to: R201.gas
+    template: mecl
+    state:
+      design:
+        temperature: {value: 453.15, provenance: assumed, source: "D-003: vaporised at 450 kPa(a) and superheated on MP steam, ASSUMED"}
+        pressure: {value: 450, provenance: assumed, source: "D-003: 50 kPa above the bed for the distributor"}
+        phase: {value: vapor, provenance: assumed, source: "D-003"}
+        flow: {value: 14306.5, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: 444c9d49d2efb358}
+        composition: {basis: mole_fraction, values: {MECL: 0.999286, C2H6: 0.000650357, C2H4: 6.39894e-05}, provenance: calculated, source: 'cheme process propagate: pass-through E101 from S3', fingerprint: 444c9d49d2efb358}
+  - id: S5
+    title: Ground silicon to the bed
+    from: SIF.out
+    to: R201.si
+    template: solids
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "battery limit (D-004)"}
+        pressure: {value: 450, provenance: assumed, source: "D-004: lock-hopper feed"}
+        composition: {basis: mass_fraction, values: {SI: 1.0, CU: 0.0}, provenance: assumed, source: "D-004: at least 98 % Si (SRC-1); its Fe, Al and Ca not modelled"}
+        flow: {value: 2067.97, provenance: calculated, source: 'cheme process propagate: spec rate (S18 t/a 60000)', fingerprint: d4ff7705e124a87e}
+  - id: S6
+    title: Copper catalyst make-up
+    from: CUF.out
+    to: R201.cu
+    template: solids
+    state:
+      design:
+        temperature: {value: 298.15, provenance: assumed, source: "battery limit (D-004)"}
+        pressure: {value: 450, provenance: assumed, source: "D-004"}
+        composition: {basis: mass_fraction, values: {CU: 1.0, SI: 0.0}, provenance: assumed, source: "D-004: copper metal; the zinc and tin promoters (SRC-1: Zn 0.01 to 0.5 part per part Cu, Sn 200 to 3000 ppm of the Cu) not modelled"}
+        flow: {value: 2.06797, provenance: calculated, source: 'cheme process propagate: spec rate (0.001 x S5)', fingerprint: d4ff7705e124a87e}
+  - id: S7
+    title: Reactor outlet (crude gas with entrained solids)
+    from: R201.out
+    to: CY202.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 573.15, provenance: given, source: "SRC-1 (US 4 500 724 A): 250 to 350 C, the examples about 300 C; SRC-4: 300 C"}
+        pressure: {value: 400, provenance: assumed, source: "D-004: within SRC-4's 2 to 5 bar"}
+        phase: {value: two-phase, provenance: assumed, source: "gas with entrained contact mass"}
+        flow: {value: 16376.5, provenance: calculated, source: 'cheme process propagate: reactor R201 from S4 S5 S6', fingerprint: 8a147f0d269d67dc}
+        composition: {basis: mole_fraction, values: {MECL: 0.650241, C2H6: 0.0169276, C2H4: 0.00277587, SI: 0.0169027, CU: 0.000149407, DMDCS: 0.268735, MTCS: 0.0193349, TMCS: 0.0114008, MDCS: 0.00538519, DISIL: 0.00814708}, provenance: calculated, source: 'cheme process propagate: reactor R201 from S4 S5 S6', fingerprint: ddf943309f1cd9f8}
+  - id: S8
+    title: Spent contact mass and fines
+    from: CY202.spent
+    to: SPENT.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 573.15, provenance: assumed, source: "as S7, cooled under nitrogen before treatment (D-006)"}
+        pressure: {value: 400, provenance: assumed, source: "as S7"}
+        flow: {value: 105.467, provenance: calculated, source: 'cheme process propagate: separator CY202 from S7', fingerprint: a042e226eabf35b0}
+        composition: {basis: mole_fraction, values: {MECL: 0.0, DMDCS: 0.0, MTCS: 0.0, TMCS: 0.0, MDCS: 0.0, DISIL: 0.0, C2H6: 0.0, C2H4: 0.0, SI: 0.991238, CU: 0.00876179}, provenance: calculated, source: 'cheme process propagate: separator CY202 from S7', fingerprint: a042e226eabf35b0}
+  - id: S9
+    title: Crude gas to the cooler-condenser
+    from: CY202.gas
+    to: E301.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 573.15, provenance: assumed, source: "as S7"}
+        pressure: {value: 390, provenance: assumed, source: "D-006: cyclone and filter pressure drop 10 kPa"}
+        phase: {value: vapor, provenance: assumed, source: "D-006"}
+        flow: {value: 16271.0, provenance: calculated, source: 'cheme process propagate: separator CY202 from S7', fingerprint: a042e226eabf35b0}
+        composition: {basis: mole_fraction, values: {MECL: 0.661522, DMDCS: 0.273397, MTCS: 0.0196703, TMCS: 0.0115986, MDCS: 0.00547861, DISIL: 0.00828842, C2H6: 0.0172213, C2H4: 0.00282403, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator CY202 from S7', fingerprint: a042e226eabf35b0}
+  - id: S10
+    title: Condensed crude and methyl chloride gas to C-302
+    from: E301.out
+    to: C302.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-007: cooled on cooling water and flashed in V-302 (scripts/balance.py, Raoult): about 52 mol% gas, 28 % of the methyl chloride and most of the silanes in the liquid; K-303 compresses the gas into C-302 (ASSUMED)"}
+        pressure: {value: 380, provenance: assumed, source: "D-007"}
+        phase: {value: two-phase, provenance: assumed, source: "D-007"}
+        flow: {value: 16271.0, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S9', fingerprint: 12a005d14f103ffa}
+        composition: {basis: mole_fraction, values: {MECL: 0.661522, DMDCS: 0.273397, MTCS: 0.0196703, TMCS: 0.0115986, MDCS: 0.00547861, DISIL: 0.00828842, C2H6: 0.0172213, C2H4: 0.00282403, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: pass-through E301 from S9', fingerprint: 12a005d14f103ffa}
+  - id: S11
+    title: Vent to the site thermal oxidiser
+    from: C302.vent
+    to: VENT.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 253.15, provenance: assumed, source: "scripts/balance.py: the vent condenser E-304's outlet on brine at 243.15/248.15 K, ASSUMED (D-007)"}
+        pressure: {value: 800, provenance: assumed, source: "D-007: C-302 at 800 kPa(a), above SRC-2's about 90 psig (US 2 563 557, column 1) so that the reflux drum can vent the hydrocarbons on cooling water"}
+        phase: {value: vapor, provenance: assumed, source: "D-007"}
+        flow: {value: 158.246, provenance: calculated, source: 'cheme process propagate: separator C302 from S10', fingerprint: 696b1c6c750da981}
+        composition: {basis: mole_fraction, values: {MECL: 0.150123, DMDCS: 0.0, MTCS: 0.0, TMCS: 0.0, MDCS: 0.0, DISIL: 0.0, C2H6: 0.727985, C2H4: 0.121892, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S10', fingerprint: 696b1c6c750da981}
+  - id: S12
+    title: Crude silanes to the heavies column
+    from: C302.crude
+    to: C401.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 422.3, provenance: assumed, source: "scripts/balance.py: the bubble point at 800 kPa(a), Raoult (thermo 0.6.1), C-302's bottom (D-007)"}
+        pressure: {value: 800, provenance: assumed, source: "D-007: C-302 at 800 kPa(a)"}
+        phase: {value: liquid, provenance: assumed, source: "D-007"}
+        flow: {value: 9027.97, provenance: calculated, source: 'cheme process propagate: separator C302 from S10', fingerprint: 696b1c6c750da981}
+        composition: {basis: mole_fraction, values: {MECL: 0.0100768, DMDCS: 0.849918, MTCS: 0.0611497, TMCS: 0.036057, MDCS: 0.0170315, DISIL: 0.0257665, C2H6: 0.0, C2H4: 0.0, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C302 from S10', fingerprint: 696b1c6c750da981}
+  - id: S13
+    title: High-boiling residue
+    from: C401.residue
+    to: RESID.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: cooled to storage"}
+        pressure: {value: 200, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "D-008"}
+        flow: {value: 415.997, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: ec76f58a5d0243bd}
+        composition: {basis: mole_fraction, values: {MECL: 0.0, DMDCS: 0.0471454, MTCS: 0.0, TMCS: 0.0, MDCS: 0.0, DISIL: 0.952855, C2H6: 0.0, C2H4: 0.0, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: ec76f58a5d0243bd}
+  - id: S14
+    title: Heavies column overhead to the lights column
+    from: C401.over
+    to: C402.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 360.4, provenance: assumed, source: "scripts/balance.py: the bubble point at 200 kPa(a), Raoult (thermo 0.6.1, D-008)"}
+        pressure: {value: 200, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "D-008"}
+        flow: {value: 8611.97, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: ec76f58a5d0243bd}
+        composition: {basis: mole_fraction, values: {MECL: 0.0103569, DMDCS: 0.87223, MTCS: 0.0628493, TMCS: 0.0370591, MDCS: 0.0175049, DISIL: 0.0, C2H6: 0.0, C2H4: 0.0, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C401 from S12', fingerprint: ec76f58a5d0243bd}
+  - id: S15
+    title: Light silanes cut
+    from: C402.lights
+    to: LIGHTSP.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 308.15, provenance: assumed, source: "scripts/balance.py: subcooled to storage below the bubble point at 200 kPa(a) (Raoult, thermo 0.6.1, D-008)"}
+        pressure: {value: 200, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "D-008"}
+        flow: {value: 462.018, provenance: calculated, source: 'cheme process propagate: separator C402 from S14', fingerprint: b33f13b380c4c32b}
+        composition: {basis: mole_fraction, values: {MECL: 0.154164, DMDCS: 0.0259665, MTCS: 0.0187104, TMCS: 0.540597, MDCS: 0.260563, DISIL: 0.0, C2H6: 0.0, C2H4: 0.0, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C402 from S14', fingerprint: b33f13b380c4c32b}
+  - id: S16
+    title: MeSiCl3 and Me2SiCl2 to the superfractionator
+    from: C402.bottoms
+    to: C403.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 366.5, provenance: assumed, source: "scripts/balance.py: the bubble point at 200 kPa(a), Raoult (thermo 0.6.1), the bottom of C-402 (D-008)"}
+        pressure: {value: 200, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "D-008"}
+        flow: {value: 8149.95, provenance: calculated, source: 'cheme process propagate: separator C402 from S14', fingerprint: b33f13b380c4c32b}
+        composition: {basis: mole_fraction, values: {MECL: 0.0, DMDCS: 0.933177, MTCS: 0.0660281, TMCS: 0.000794561, MDCS: 0.0, DISIL: 0.0, C2H6: 0.0, C2H4: 0.0, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C402 from S14', fingerprint: b33f13b380c4c32b}
+  - id: S17
+    title: Methyltrichlorosilane cut
+    from: C403.mtcs
+    to: MTCSP.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: cooled to storage"}
+        pressure: {value: 200, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "D-008"}
+        flow: {value: 650.006, provenance: calculated, source: 'cheme process propagate: separator C403 from S16', fingerprint: 75dbc79245f054ee}
+        composition: {basis: mole_fraction, values: {MECL: 0.0, DMDCS: 0.113214, MTCS: 0.875577, TMCS: 0.011209, MDCS: 0.0, DISIL: 0.0, C2H6: 0.0, C2H4: 0.0, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C403 from S16', fingerprint: 75dbc79245f054ee}
+  - id: S18
+    title: Dimethyldichlorosilane product
+    from: C403.product
+    to: DMDCSP.in
+    template: crude
+    state:
+      design:
+        temperature: {value: 313.15, provenance: assumed, source: "D-008: cooled to storage"}
+        pressure: {value: 200, provenance: assumed, source: "D-008"}
+        phase: {value: liquid, provenance: assumed, source: "D-008"}
+        flow: {value: 7499.94, provenance: calculated, source: 'cheme process propagate: separator C403 from S16', fingerprint: 75dbc79245f054ee}
+        composition: {basis: mole_fraction, values: {MECL: 0.0, DMDCS: 0.995736, MTCS: 0.00426394, TMCS: 0.0, MDCS: 0.0, DISIL: 0.0, C2H6: 0.0, C2H4: 0.0, SI: 0.0, CU: 0.0}, provenance: calculated, source: 'cheme process propagate: separator C403 from S16', fingerprint: 75dbc79245f054ee}
+  # --- energy -------------------------------------------------------------------------------
+  - {id: Q1, title: Methyl chloride vaporiser and superheater, kind: energy, from: MPSI.e101, to: E101.q, state: {design: {duty: {value: 2018.8, provenance: assumed, source: "scripts/balance.py: S3 liquid at 302.1 K vaporised and superheated to 453.15 K (thermo 0.6.1, D-009)"}}}}
+  - {id: Q2, title: Reactor heat to the cooling coils (MP steam), kind: energy, from: R201.q, to: MPS.r201, state: {design: {duty: {value: 4635.9, provenance: assumed, source: "scripts/balance.py: R-201's energy balance, the feed S4 at 453.15 K and the solids at 298.15 K to the outlet S7 at 573.15 K, formation enthalpies of chemicals 1.5.2 with Me2SiCl2's ASSUMED (-440.9 kJ/mol), the silicon and copper as solids (D-005)"}}}}
+  - {id: Q3, title: Crude gas cooler-condenser, kind: energy, from: E301.q, to: CW.e301, state: {design: {duty: {value: 1964.8, provenance: assumed, source: "scripts/balance.py: the crude gas from 573.15 to 313.15 K at 380 kPa(a), liquid and gas from an ideal (Raoult) flash, the hydrocarbons non-condensable (thermo 0.6.1, D-007, D-009)"}}}}
+  - {id: Q4, title: C-302 reboiler (MP steam), kind: energy, from: MPSI.c302, to: C302.steam, state: {design: {duty: {value: 1406.3, provenance: assumed, source: "scripts/balance.py: Q5 and Q12 plus C-302's outlets (the methyl chloride at 306.15 K, the vent at 253.15 K, the crude at its bubble point) less its feeds (V-302's liquid at 313.15 K, K-303's gas) (D-007)"}}}}
+  - {id: Q5, title: C-302 condenser, kind: energy, from: C302.q, to: CW.c302, state: {design: {duty: {value: 1430.8, provenance: assumed, source: "scripts/balance.py: the methyl chloride distillate condensed at the drum's 306.15 K at an external reflux of 1.0 (ASSUMED, D-007)"}}}}
+  - {id: Q6, title: C-401 reboiler (MP steam), kind: energy, from: MPSI.c401, to: C401.steam, state: {design: {duty: {value: 543.2, provenance: assumed, source: "scripts/balance.py: Q7 plus C-401's outlets less its feed S12 at 421.7 K (D-008)"}}}}
+  - {id: Q7, title: C-401 condenser and residue cooler, kind: energy, from: C401.q, to: CW.c401, state: {design: {duty: {value: 798.7, provenance: assumed, source: "scripts/balance.py: the overhead condensed from its dew to its bubble point (Raoult) at an external reflux of 0.5 (ASSUMED) and the residue cooled from its bubble point to storage (D-008)"}}}}
+  - {id: Q8, title: C-402 reboiler (LP steam), kind: energy, from: LPS.c402, to: C402.steam, state: {design: {duty: {value: 601.5, provenance: assumed, source: "scripts/balance.py: Q9 plus C-402's outlets less its feed S14 (D-008)"}}}}
+  - {id: Q9, title: C-402 condenser and lights cooler, kind: energy, from: C402.q, to: CW.c402, state: {design: {duty: {value: 593.2, provenance: assumed, source: "scripts/balance.py: the lights condensed from their dew to their bubble point at 200 kPa(a) (Raoult) at an external reflux of 15 (ASSUMED) and subcooled to 308.15 K (D-008)"}}}}
+  - {id: Q10, title: C-403 reboilers (LP steam), kind: energy, from: LPS.c403, to: C403.steam, state: {design: {duty: {value: 3088.4, provenance: assumed, source: "scripts/balance.py: Q11 plus C-403's outlets less its feed S16 (D-008)"}}}}
+  - {id: Q11, title: C-403 condenser and product coolers, kind: energy, from: C403.q, to: CW.c403, state: {design: {duty: {value: 3255.9, provenance: assumed, source: "scripts/balance.py: the MeSiCl3 cut condensed from its dew to its bubble point (Raoult) at 1.2 times Underwood's minimum reflux for a relative volatility of 1.17 (SRC-3), R 93.6, and the two cuts cooled to storage (D-008)"}}}}
+  - {id: Q12, title: C-302 vent condenser E-304 (brine), kind: energy, from: C302.q_vent, to: BRINE.c302, state: {design: {duty: {value: 248.2, provenance: assumed, source: "scripts/balance.py: the reflux drum's gas (the hydrocarbons with methyl chloride at its vapour pressure, 306.15 K) cooled to 253.15 K, the methyl chloride condensed back to the column (thermo 0.6.1, D-007)"}}}}
+  - {id: P1, title: Silicon handling and reactor feed, kind: energy, from: POWER.r201, to: R201.power, state: {design: {duty: {value: 106.2, provenance: assumed, source: "scripts/balance.py: silicon milling, conveying and lock hoppers at an ASSUMED 50 kWh/t of silicon and the methyl chloride feed pump (D-009)"}}}}
+  - {id: P2, title: Recycle-gas compressor and C-302 pumps, kind: energy, from: POWER.c302, to: C302.power, state: {design: {duty: {value: 100.6, provenance: assumed, source: "scripts/balance.py: K-303, V-302's gas from 380 to 840 kPa(a) at an isentropic efficiency of 0.75 and a motor of 0.95, and C-302's pumps (ASSUMED, D-007, D-009)"}}}}
+  - {id: P3, title: Distillation pumps, kind: energy, from: POWER.dist, to: C401.power, state: {design: {duty: {value: 6.8, provenance: assumed, source: "scripts/balance.py: the distillation train's pumps, 400 kPa at 0.60 (ASSUMED, D-009)"}}}}
+layout: {bfd: {}, pfd: {}}

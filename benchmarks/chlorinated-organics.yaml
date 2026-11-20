@@ -77,6 +77,14 @@
 # laboratory Examples 1 to 17, which bound the acid's use; the dataset's selectivity is calibrated to the crude of its Examples 19 and 20,
 # so the reference is not independent. No open source gives a PCl3 use per kg beyond one
 # laboratory charge; the stoichiometric floor is 2.164 kg/kg.
+#
+# Methylchlorosilanes (methylchlorosilanes-1, #522; with the chlorinated organics as a chlorinated
+# organosilicon made from methyl chloride): no open source read gives a plant's specific
+# consumptions. The stoichiometric floors are 0.218 kg silicon and 0.782 kg methyl chloride per
+# kg of Me2SiCl2 (Si + 2 CH3Cl -> (CH3)2SiCl2); they are limits, not ranges. The open ranges of
+# the silicon conversion (90 to 98 %) and the product distribution (Wikipedia, Direct process)
+# are the dataset's own basis (DESIGN.md D-004), so a range derived from them would only check
+# the arithmetic; they are not bound here.
 schema: cheme-as-code/benchmarks/v1
 family: chlorinated-organics
 
@@ -270,6 +278,14 @@ kpis:
     title: Methanesulfonic acid consumption per kg of methanesulfonyl chloride
     unit: kg/kg
     no_open_reference: "No open source with a plant's methanesulfonic acid use per kg of methanesulfonyl chloride found (searched as for mscl-specific-thionyl-chloride): Organic Syntheses' 71-83 % yield on a 95 % acid in the laboratory is the dataset's own source, not an independent reference. Only the stoichiometric floor, 0.839 kg/kg, is known."
+  dmdcs-specific-silicon:
+    title: Silicon consumption per kg of dimethyldichlorosilane (direct process)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's silicon use per kg of Me2SiCl2 found (searched 2026-11-19: US 4 500 724 A, US 2017/0305939 A1, Wikipedia's Direct process and Dimethyldichlorosilane pages read; a web search for direct-process consumption figures gave no plant data). The open silicon conversion (90 to 98 %) and product distribution are the dataset's own basis, not an independent reference. Only the stoichiometric floor, 0.218 kg/kg, is known."
+  dmdcs-specific-methyl-chloride:
+    title: Methyl chloride consumption per kg of dimethyldichlorosilane (direct process)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's methyl chloride use per kg of Me2SiCl2 found (searched as for dmdcs-specific-silicon). Only the stoichiometric floor, 0.782 kg/kg, is known."
 datasets:
   - process: vcm-1
     dataset: vcm-balanced-oxygen
@@ -350,3 +366,9 @@ datasets:
     kpis:
       mscl-specific-thionyl-chloride: {expression: feed:SOCL2 / product:MSCL, per: product:MSCL}
       mscl-specific-methanesulfonic-acid: {expression: feed:MSA / product:MSCL, per: product:MSCL}
+  - process: methylchlorosilanes-1
+    dataset: methylchlorosilanes-by-the-direct-process-silicon-and-methyl-chloride-over-copper-in-a-fluidised-bed-with-crude-silane-distillation-60-kt-a-me2sicl2
+    conditions: {technology: "direct process: ground silicon with methyl chloride over a copper catalyst in a fluidised bed at 573 K and 400 kPa(a), methyl chloride recovered at 800 kPa(a) with a brine-cooled vent condenser and recycled, crude distilled in three columns", basis: "concept balance, ASSUMED conversions and crude distribution inside the open ranges (MeHSiCl2 below one of them) (DESIGN.md D-003, D-004, D-007, D-008)"}
+    kpis:
+      dmdcs-specific-silicon: {expression: feed:SIF / product:DMDCSP, per: product:DMDCSP}
+      dmdcs-specific-methyl-chloride: {expression: feed:MECLF / product:DMDCSP, per: product:DMDCSP}

@@ -247,6 +247,7 @@ ISIC Rev.4 and NACE Rev. 2 classes, so coverage can also be reported by activity
 | 136 | `lactic-acid` | Lactic acid (the PLA monomer) | bio-based-chemicals | n/a, to be sourced | n/a | - | - | 2 | lactic-acid-1 (T2) |
 | 137 | `ibuprofen` | Ibuprofen | oxygenates | n/a, to be sourced | n/a | - | - | 2 | ibuprofen-1 (T2) |
 | 138 | `polyamide-66` | Polyamide 66 (nylon 6,6) | polymers | n/a, to be sourced | n/a | - | - | 2 | polyamide-66-1 (T2) |
+| 139 | `methylchlorosilanes` | Methylchlorosilanes (direct process; dimethyldichlorosilane) | chlorinated-organics | 1-10 (wikipedia-direct-process) | n/a | - | tert-butyldimethylsilyl-chloride | 2 | methylchlorosilanes-1 (T2) |
 
 Volume sources (ids as in `coverage.yaml` `sources:`): `usgs-mcs-2024` U.S. Geological Survey,
 Mineral Commodity Summaries 2024; `iea-ammonia-2021` IEA, Ammonia Technology Roadmap (2021);

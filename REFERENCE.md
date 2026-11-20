@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 142 public process folders: 102 engineering projects (a `plant.yaml` with a process
+The table lists 143 public process folders: 103 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -119,6 +119,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`methanol-1`](processes/methanol-1/) | Methanol synthesis loop and purification (2500 t/d Grade AA, natural-gas syngas) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methyl-methacrylate-1`](processes/methyl-methacrylate-1/) | Methyl methacrylate by the acetone cyanohydrin (ACH-sulfo) route: amidation in sulfuric acid, esterification with methanol, distillation, spent acid regenerated on site by decomposition and a contact plant (12.5 t/h, 100 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methylamines-1`](processes/methylamines-1/) | Methylamines (MMA, DMA, TMA) from methanol and ammonia | concept (calculation maturity: balanced, report from core 0.8.0, re-checked with core v1.2.1; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`methylchlorosilanes-1`](processes/methylchlorosilanes-1/) | Methylchlorosilanes by the direct (Mueller-Rochow) process: ground silicon and methyl chloride over a copper catalyst in a fluidised bed with MP steam raising, methyl chloride recovery at 800 kPa(a) with a brine-cooled vent condenser and recycle, heavies, lights and MeSiCl3/Me2SiCl2 columns (60 kt/a dimethyldichlorosilane, continuous) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`methylmagnesium-bromide-1`](processes/methylmagnesium-bromide-1/) | Methylmagnesium bromide, 35 wt% in 2-MeTHF, by semi-batch Grignard reaction with methyl bromide gas dosing and a vent (4400 t/a of solution, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`methyltriphenylphosphonium-bromide-1`](processes/methyltriphenylphosphonium-bromide-1/) | Methyltriphenylphosphonium bromide by semi-batch quaternisation of triphenylphosphine with liquid methyl bromide in toluene, precipitation, a filter-dryer and toluene recovery in a batch still (820 t/a, batch) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, batch recipe, LCI dataset) |
 | [`mtbe-1`](processes/mtbe-1/) | Methyl tert-butyl ether by catalytic distillation of a C4 raffinate with methanol over acidic resin (500 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |

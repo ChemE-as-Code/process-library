@@ -1,0 +1,68 @@
+# Reactions of methylchlorosilanes-1. Schema: `cheme schema process-reactions`.
+#
+# R201, the fluid-bed direct (Mueller-Rochow) reactor (DESIGN.md D-004): a conversion model on
+# the silicon, not kinetics. Every reaction converts its share of the silicon entering the bed
+# in parallel (core's conversion step), so each reaction's conversion is the overall silicon
+# conversion, 0.95 (ASSUMED within the 90 to 98 % of Wikipedia, SRC-4), times the share of the
+# reacted silicon that goes to it. The shares follow from an ASSUMED crude silane distribution
+# (wt% of the silanes, MeCl and hydrocarbons left out): Me2SiCl2 84.0, MeSiCl3 7.0, Me3SiCl 3.0,
+# MeHSiCl2 1.5 and a high-boiling residue 4.5, inside the ranges of SRC-4 (70 to 90, 5 to 15,
+# 2 to 4, 1 to 4 %); SRC-5 (Wikipedia, Dimethyldichlorosilane: Me2SiCl2 80 to 90, MeSiCl3 5 to
+# 15, MeHSiCl2 3 to 5, Me3SiCl 3 to 5 %) holds all but MeHSiCl2, whose 1.5 % lies below SRC-5's
+# range and follows SRC-4; with the T/D weight ratio 0.083 and the residue 4.5 % of the continuous fluid-bed
+# run of US 4 500 724 A (SRC-1, Example 3: T/D 0.07 to 0.10, residue 4 to 5 %). scripts/balance.py
+# derives the shares from the distribution and prints them.
+#
+# Lumped by-product chemistry (ASSUMED, D-004): the methyl groups a silane does not keep leave
+# as hydrocarbons, lumped as ethane (MeSiCl3 and the residue) and ethylene (MeHSiCl2, whose
+# Si-H takes a hydrogen of the methyl group); the real reactor gas holds methane, ethane,
+# ethylene, hydrogen and carbon deposited on the contact mass (L-3). Me3SiCl is formed with an
+# equal amount of MeSiCl3 (the redistribution pair of two Me2SiCl2); the high-boiling residue is
+# lumped as 1,1,2,2-tetrachloro-1,2-dimethyldisilane.
+#
+# No heat_of_reaction here: R201 is a conversion step without an energy port (materials.yaml);
+# scripts/balance.py computes its heat (D-005).
+schema: cheme/reactions/v1
+kind: reactions
+reactions:
+  - id: DMF
+    title: Silicon and methyl chloride to dimethyldichlorosilane
+    equation: Si + 2 CH3Cl -> (CH3)2SiCl2
+    stoichiometry: {SI: -1.0, MECL: -2.0, DMDCS: 1.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: SI, value: 0.79495, provenance: assumed, source: "silicon conversion 0.95 (ASSUMED, SRC-4: 90 to 98 %) x 0.83679, the share of the reacted silicon in Me2SiCl2 at the ASSUMED crude distribution (scripts/balance.py, D-004)"}
+    catalyst: Cu (Zn, Sn promoted)
+    sources: ["US 4 500 724 A (General Electric, 1985), description, claims and Examples 1 to 4, Google Patents", "Wikipedia, Direct process (2026-11-19)"]
+  - id: MTF
+    title: Silicon and methyl chloride to methyltrichlorosilane (hydrocarbons lumped as ethane)
+    equation: Si + 3 CH3Cl -> CH3SiCl3 + C2H6
+    stoichiometry: {SI: -1.0, MECL: -3.0, MTCS: 1.0, C2H6: 1.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: SI, value: 0.02347, provenance: assumed, source: "0.95 x 0.02471: the MeSiCl3 not formed with Me3SiCl (reaction TMF), ASSUMED distribution (D-004)"}
+    catalyst: Cu (Zn, Sn promoted)
+  - id: TMF
+    title: Silicon and methyl chloride to chlorotrimethylsilane and methyltrichlorosilane
+    equation: 2 Si + 4 CH3Cl -> (CH3)3SiCl + CH3SiCl3
+    stoichiometry: {SI: -2.0, MECL: -4.0, TMCS: 1.0, MTCS: 1.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: SI, value: 0.06745, provenance: assumed, source: "0.95 x 0.07100: two silicon atoms per Me3SiCl, ASSUMED distribution (D-004)"}
+    catalyst: Cu (Zn, Sn promoted)
+  - id: MDF
+    title: Silicon and methyl chloride to dichloromethylsilane (hydrocarbons lumped as ethylene)
+    equation: Si + 2 CH3Cl -> CH3SiHCl2 + 0.5 C2H4
+    stoichiometry: {SI: -1.0, MECL: -2.0, MDCS: 1.0, C2H4: 0.5}
+    phase: vapor
+    reversible: false
+    conversion: {key: SI, value: 0.01593, provenance: assumed, source: "0.95 x 0.01676, ASSUMED distribution (D-004)"}
+    catalyst: Cu (Zn, Sn promoted)
+  - id: DSF
+    title: Silicon and methyl chloride to the high-boiling residue (lumped as a methylchlorodisilane)
+    equation: 2 Si + 4 CH3Cl -> (CH3)2Si2Cl4 + C2H6
+    stoichiometry: {SI: -2.0, MECL: -4.0, DISIL: 1.0, C2H6: 1.0}
+    phase: vapor
+    reversible: false
+    conversion: {key: SI, value: 0.04820, provenance: assumed, source: "0.95 x 0.05074: the residue 4.5 wt% of the silanes (SRC-1, Example 3: 4 to 5 %), lumped as a disilane, ASSUMED (D-004)"}
+    catalyst: Cu (Zn, Sn promoted)
