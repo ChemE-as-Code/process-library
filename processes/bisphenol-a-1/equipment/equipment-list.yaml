@@ -1,0 +1,37 @@
+# The equipment list. Schema: `cheme schema equipment`.
+# As far as the PFD requires (concept stage): tags, types and services of the flowsheet steps.
+# Sizes are first estimates from the balance (DESIGN.md D-012); design pressures, temperatures
+# and materials are not set yet (basic engineering). All values ASSUMED unless a source is named.
+# Liquor volumes at an ASSUMED density of 1040 kg/m3 (phenol-rich liquor near 330 K).
+schema: cheme/equipment/v1
+equipment:
+  - {tag: T-101, type: Tank, service: "Phenol collection drum: fresh molten phenol, stripped phenol and phenol from the cracking still",
+     notes: "About 16.4 t/h at 338 K, heated and nitrogen-blanketed (phenol melts at 314 K); a buffer of about 1 h, about 16 m3 working (D-004)."}
+  - {tag: V-101, type: Vessel, service: "Phenol polishing beds: strong-acid cation and strong-base anion exchange resins in series",
+     notes: "US 5 723 688 A: polishing of the wash and reactor phenol at 40-120 C (preferred 45-70 C); bed volumes not sized (no space velocity read), resin make-up an open input (D-004, D-013)."}
+  - {tag: E-101, type: HeatExchanger, service: "Reactor feed heater on LP steam: 322 to 333 K",
+     notes: "408 kW (Q1, hand calculation, D-011)."}
+  - {tag: R-101, type: Reactor, service: "Condensation reactors: three fixed beds of promoted sulfonated polystyrene-divinylbenzene resin in series, down-flow, 333 K in, 353 K out",
+     notes: "About 157 m3 of bed in all for 60.5 m3/h of feed: US 6 960 697 B2's 200 m3 for 77 m3/h (2.6 h space time) scaled to this flow; about 4.5 bar(g) (that patent's 4.4 bar). The beds run almost adiabatic: the reaction heat raises the feed by about 20 K, which is US 4 391 997 A's ascending 60/70/80 C profile (D-005, D-006); the interstage coolers E-102 take 35 kW (Q2, core's conversion-step model). Resin promoted with 2-mercaptoethylamine on about 10 % of its acid sites (US 4 391 997 A); resin life and make-up open (D-013)."}
+  - {tag: E-102, type: HeatExchanger, service: "Interstage coolers of R-101 on cooling water",
+     notes: "35 kW in all (Q2): the beds' heat above the 353 K outlet; trim service."}
+  - {tag: X-201, type: Vessel, service: "Adduct crystallizer: vacuum-evaporative cooling at about 0.85 kPa(a) and 318 K, draft-tube type with a jacket",
+     notes: "About 98 m3 working for 55 m3/h of liquor (1.8 h, US 6 960 697 B2's 150 m3 for 84 m3/h; US 5 723 688 A: 0.5-6 h); jacket on warm water at most 5 K above the contents against encrustation (US 4 950 806 A). 1.50 MW removed as the latent heat of the evaporated water, acetone and phenol (Q4, core's crystallizer energy balance; D-007); the pressure is the mother liquor's bubble pressure at 318 K. Circulation, agitation and the vacuum pump for the non-condensables 150 kW (Q3, ASSUMED)."}
+  - {tag: K-201, type: Compressor, service: "Crystallizer vapour booster: two stages with an intercooler, 0.85 to 12 kPa(a)",
+     notes: "129.5 kmol/h (6.12 t/h) of water, acetone and phenol vapour, about 403 000 m3/h at the suction; 393 kW at an ASSUMED efficiency of 0.7 (Q14, D-007). Needed because the vapour cannot be condensed on cooling water at the crystallizer's pressure; a steam-jet ejector set is the alternative (its motive steam not estimated)."}
+  - {tag: E-201, type: HeatExchanger, service: "Crystallizer vacuum condenser behind K-201, with K-201's intercooler, on cooling water",
+     notes: "Condenses 6.12 t/h of water, acetone and phenol vapour totally at 12 kPa(a) to 313 K (the condensate's bubble pressure at 313 K is 11.8 kPa(a), UNIFAC); with the intercooler 2.07 MW, the crystallizer's Q4 plus Q15 (the vapour's own cooling, the subcooling and the booster's power, D-007)."}
+  - {tag: F-201, type: Filter, service: "Rotary vacuum (or pressure drum) filter with a phenol displacement wash",
+     notes: "12.3 t/h of adduct crystals, cake liquid 0.25 kg/kg, wash 0.6 kg of polished phenol per kg of adduct (US 5 723 688 A, example 1); gas-tight under nitrogen (acetone and phenol in the liquor; US 6 960 697 B2 calls for a gas-tight unit). Drive and vacuum 100 kW (Q5, ASSUMED, D-007)."}
+  - {tag: T-201, type: Tank, service: "Mother-liquor and washings receiver",
+     notes: "About 49.3 t/h; heated above the adduct's crystallization temperature to avoid deposits (D-008)."}
+  - {tag: R-301, type: Reactor, service: "Mother-liquor isomerisation bed (sulfonated resin)",
+     notes: "Turns 30 % of the recycled o,p-isomer to p,p-bisphenol A (ASSUMED, D-008; US 4 391 997 A's ion-exchange isomerization reactor 28, RxV); bed size open."}
+  - {tag: C-302, type: Column, service: "Cracking still on the mother-liquor purge: phenol recovered overhead at atmospheric pressure, residue (tar) to incineration",
+     notes: "2.46 t/h of purge (5 % of the mother liquor, D-008); reboiler 634 kW on HP steam (Q10), condenser 578 kW (Q11) on the tempered-water loop of the phenol condensers (D-013); hand calculations at reflux ratio 0.5. The cracking of bisphenols back to phenol and isopropenylphenol (US 4 391 997 A: 150-300 C over an aluminium alkoxide) is not modelled (L-4)."}
+  - {tag: C-401, type: Column, service: "Condensate column with a phenol-water decanter: acetone and phenol back to the reactor, water to treatment",
+     notes: "6.12 t/h of crystallizer condensate (65 wt% phenol); reboiler 562 kW on LP steam (Q12), condenser and wastewater cooler 533 kW on cooling water (Q13), reflux ratio 2 (ASSUMED, D-008)."}
+  - {tag: E-301, type: HeatExchanger, service: "Adduct melter: the washed cake melted and heated to 453 K on HP steam",
+     notes: "1.56 MW (Q6, core's conversion-step model: the adduct's heat of fusion of US 6 960 697 B2 and the sensible heat 323 to 453 K, D-009)."}
+  - {tag: C-301, type: Column, service: "Phenol stripper: vacuum column (about 3 kPa(a) top, 493 K bottoms), the feed flashed on a falling-film heater, a steam-stripping section below the feed",
+     notes: "6.71 t/h of phenol overhead, 8.75 t/h of bisphenol A melt from the bottom with about 38 wt-ppm phenol after 30 kg/h of stripping steam over six theoretical stages (S29; US 5 723 688 A: 150-230 C, 5-180 mbar); reboiler 1.14 MW on HP steam (Q7), condenser 1.37 MW on the tempered-water loop (Q8), reflux ratio 0.2 (ASSUMED, D-009); vacuum system and melt pumps 80 kW (Q9, ASSUMED)."}

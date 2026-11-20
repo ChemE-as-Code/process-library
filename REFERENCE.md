@@ -28,7 +28,7 @@ says how to add a process.
 
 ## Processes
 
-The table lists 136 public process folders: 96 engineering projects (a `plant.yaml` with a process
+The table lists 137 public process folders: 97 engineering projects (a `plant.yaml` with a process
 flowsheet), 34 manifest-only entries and 6 library utilities (both manifest and LCI dataset only).
 The table is generated from each folder's `process.yaml` and `checks/maturity.json`;
 `coverage.yaml` names the coverage entry and tier of each ([docs/coverage.md](docs/coverage.md)).
@@ -64,6 +64,7 @@ The table is generated from each folder's `process.yaml` and `checks/maturity.js
 | [`biodiesel-1`](processes/biodiesel-1/) | Biodiesel (FAME) by base-catalysed transesterification of refined soybean oil with methanol in two CSTRs with glycerol decanters, methanol flash and recycle, acid water wash and vacuum drying, crude glycerol co-product (32 420 t/a, continuous) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`bioethanol-1`](processes/bioethanol-1/) | Fuel ethanol from corn by dry grind: enzymatic liquefaction and saccharification, continuous cascade yeast fermentation, beer column, rectifier and molecular sieves to 99.5 wt%, stillage to DDGS (633 dry t/d of corn, 71 300 t/a, USDA-ARS/NREL dry-mill basis) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`biogas-1`](processes/biogas-1/) | Biogas from cattle slurry and biowastes in two-stage mesophilic digesters (FNR model plant VII), three-stage membrane upgrading to 98 mol% biomethane, digestate to land (704 t/a biomethane) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
+| [`bisphenol-a-1`](processes/bisphenol-a-1/) | Bisphenol A over a promoted sulfonated resin with adduct crystallization and phenol stripping (70 kt/a) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`bromine-1`](processes/bromine-1/) | Bromine from bromide brine by chlorine oxidation and steaming-out (Smackover-type brine) | concept (calculation maturity: not recorded; not reviewed) | yes (BFD/PFD, flowsheet, LCI dataset) |
 | [`btx-1`](processes/btx-1/) | Benzene, toluene and mixed xylenes by solvent extraction of catalytic reformate (LVOC BREF ranges, DOE reformate slate) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |
 | [`butadiene-1`](processes/butadiene-1/) | 1,3-Butadiene by extractive distillation of a crude C4 cut (EPA cut, IEA energy averages) | concept (Tier 1 form, sourced conceptual inventory with ASSUMED parts; not reviewed) | no (manifest and LCI dataset only) |

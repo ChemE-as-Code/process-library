@@ -610,6 +610,15 @@ kpis:
     title: Methanol consumed per kg of MTBE
     unit: kg/kg
     no_open_reference: "No open source with a plant's methanol use per kg of MTBE found (searched 2026-11-19: Murat et al. 2003 and Svandova et al. 2007 read, which model the column with its methanol feed but not the recovery; US 4 918 243 A and US 5 336 841 A read, which recover the excess methanol and give no consumption). The stoichiometric floor is 0.3635 kg/kg (32.042 / 88.148), a limit, not a range of real plants."
+  bpa-specific-phenol:
+    title: Fresh phenol consumption per kg of bisphenol A (resin route, adduct crystallization)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's phenol use per kg of bisphenol A found (searched 2026-11-19: US 4 391 997 A, US 5 723 688 A, US 6 960 697 B2, US 4 950 806 A and US 4 950 804 A read on Google Patents, and the EU risk assessment of bisphenol A, EUR 24588 EN; none states a consumption). The stoichiometric floor is 0.8245 kg/kg (2 x 94.111 / 228.286); the dataset's excess is the cracking-still residue and the wastewater of bisphenol-a-1 (DESIGN.md D-008, D-014)."
+  bpa-specific-acetone:
+    title: Fresh acetone consumption per kg of bisphenol A (resin route, adduct crystallization)
+    unit: kg/kg
+    no_open_reference: "No open source with a plant's acetone use per kg of bisphenol A found (searched 2026-11-19, the sources named under bpa-specific-phenol). The stoichiometric floor is 0.2544 kg/kg (58.079 / 228.286); bisphenol-a-1's excess is the acetone bound in the bisphenol A, the isomer and the by-products left in the cracking-still residue (the bisphenol A itself the largest share), the acetone in the wastewater and the impurities in the product (DESIGN.md D-005, D-008)."
+
 datasets:
   - process: terephthalic-acid-1
     dataset: pta-px-air-oxidation
@@ -807,3 +816,9 @@ datasets:
         reference: bao-2002-isobutene-conversion
         out_of_range_reason: "The KPI is per kg of the product, 99.10 wt% MTBE with 0.90 wt% C4 (Murat et al.'s bottoms, 1.4 mol% C4): 0.634 kg/kg. Per kg of the MTBE it holds, 0.6397 kg/kg, at the dataset's 99.5 % conversion (Murat et al.'s own model), inside the range. The reference's source is also the dataset's, for its own model's conversion; the bound figures are the other two columns it reports."
       mtbe-specific-methanol: {expression: feed:MEOH / product:MTBEP, per: product:MTBEP}
+  - process: bisphenol-a-1
+    dataset: bisphenol-a-from-phenol-and-acetone-over-a-promoted-sulfonated-resin-8.75-t-h-70-kt-a
+    conditions: {technology: "phenol and acetone (10 mol/mol) over a mercaptoamine-promoted sulfonated resin in three adiabatic fixed beds, adduct crystallization without distillation by vacuum-evaporative cooling, phenol displacement wash, melting and vacuum phenol stripping, mother liquor isomerised and recycled with a purge to a phenol-recovery still", basis: "concept balance, the laboratory conversion and selectivities of US 4 391 997 A and the crystallizer's yield, recoveries and splits ASSUMED (DESIGN.md D-005 to D-009)"}
+    kpis:
+      bpa-specific-phenol: {expression: feed:PH / product:BPAP, per: product:BPAP}
+      bpa-specific-acetone: {expression: feed:AC / product:BPAP, per: product:BPAP}

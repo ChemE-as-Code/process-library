@@ -1,0 +1,97 @@
+# Process Atlas manifest of bisphenol-a-1. Schema: schemas/process.schema.json
+# (cheme-as-code/process/v1). plant.yaml stays the engineering manifest; sheets and results are
+# derived from the ChemE-as-Code files by the catalog builder and not repeated here.
+schema: cheme-as-code/process/v1
+id: bisphenol-a-1
+title: Bisphenol A over a promoted sulfonated resin with adduct crystallization and phenol stripping (70 kt/a)
+summary: >-
+  Phenol and acetone condensed over a promoted sulfonated resin in adiabatic fixed beds; the
+  effluent crystallised without distillation as the 1:1 adduct with phenol, washed, melted and
+  stripped of phenol under vacuum; the mother liquor isomerised and recycled. Concept stage,
+  8.75 t/h, preliminary gate-to-gate LCI.
+description: |
+  Phenol and acetone at 10 mol/mol (with the recycled mother liquor) pass three fixed beds of a
+  sulfonated polystyrene-divinylbenzene resin promoted with 2-mercaptoethylamine, 333 K in and
+  353 K out: 69 % of the acetone reacts per pass, 94.9 % of it to p,p-bisphenol A
+  (2 C6H6O + C3H6O -> C15H16O2 + H2O), 3.8 % to the o,p-isomer and 1.4 % to heavier by-products
+  (US 4 391 997 A). The reaction heat alone gives the ascending temperature profile: the beds run
+  almost adiabatic. The effluent (18.5 wt% bisphenol A) goes without a distillation to a vacuum
+  crystallizer at 318 K and 0.85 kPa(a), the mother liquor's bubble pressure, where added water,
+  unreacted acetone and phenol evaporate and take the heat of cooling and crystallization
+  (US 5 723 688 A, US 4 950 806 A); a two-stage booster lifts the vapour to 12 kPa(a), where it
+  condenses on cooling water. 75 % of the bisphenol A crystallises as the 1:1 adduct with phenol.
+  A rotary vacuum filter separates the adduct and washes it with 0.6 kg of polished phenol per
+  kg; the cake is melted, flashed under vacuum and steam-stripped of its phenol, leaving
+  8750 kg/h of 99.96 wt% bisphenol A melt. The
+  mother liquor is isomerised over resin and recycled; 5 % of it is purged to a still that
+  recovers its phenol, the residue to incineration. The condensate gives back its acetone and
+  phenol in a column; its water goes to treatment.
+
+  The reactor, the melter and the crystallizer's duty are core's models (conversion steps,
+  crystallizer energy balance), the recycle is solved at two tears with three design
+  specifications (capacity, the reactor's phenol ratio, the wash ratio); the other duties are hand
+  calculations recorded in DESIGN.md, because no property package of core covers bisphenol A or
+  the adduct. Sources: GE, Dow, Mitsubishi and Mitsui patents and the EU risk assessment of
+  bisphenol A.
+families: [oxygenates]
+keywords: [bisphenol A, BPA, phenol, acetone, condensation, ion-exchange resin, sulfonated resin, mercaptoamine promoter, adduct crystallization, vacuum crystallization, phenol stripping, isomerisation, polycarbonate, epoxy resins]
+facets:
+  feedstock_basis: [fossil, electricity]
+  product_classes: [chemicals]
+  unit_operations: [reaction, crystallization, filtration, distillation, ion-exchange]
+  region: generic
+# Honest claim: concept is the lowest level of the manifest. Capacity, conversions transferred
+# from laboratory examples, the crystallizer's yield, the recoveries and most duties are assumed
+# (DESIGN.md).
+maturity: concept
+validation:
+  status: unreviewed
+  notes: >-
+    Concept PFD with closed mass, component and element balances (cheme validate, cheme process
+    streams; cheme assess lca --balance). The recycle converges at two tears with three design
+    specifications (cheme process propagate). R101 and M301 are conversion steps whose duties
+    are core's model on the liquid heat capacities of materials.yaml (the beds nearly adiabatic:
+    35 kW to the interstage coolers; the melter 1.56 MW); the crystallizer X201 is core's
+    imposed-yield crystallizer with its energy balance (1.50 MW), matched by hand to the latent
+    heat of what evaporates, the vapour in equilibrium with the mother liquor by UNIFAC; the
+    filter is core's displacement-wash model. The separators are
+    component separators with ASSUMED recoveries; the column, heater and still duties are hand
+    calculations. No property package of core covers bisphenol A, its isomer or the adduct.
+    Preliminary gate-to-gate LCI: in the Atlas build phenol and acetone link acetone-1, steam is
+    counted as heat delivered, electricity, cooling water, demineralised water and wastewater link
+    through the shared mappings; the tar to incineration is a gap. Not reviewed.
+chemistry:
+  inputs:
+    - {chemical: phenol, role: feedstock, inventory_key: "feed:PH", note: "Fresh molten phenol, 0.8619 kg/kg (stoichiometric 0.8245: 95.7 % yield); linked to acetone-1's product:PHENOL (lca/mappings.yaml)"}
+    - {chemical: acetone, role: feedstock, inventory_key: "feed:AC", note: "Fresh acetone, 0.2641 kg/kg (stoichiometric 0.2544: 96.3 % yield); linked to acetone-1's product:ACETONE (lca/mappings.yaml)"}
+    - {chemical: water, role: feedstock, inventory_key: "feed:DW", note: "Demineralised water dosed to the crystallizer feed for its evaporative cooling and raised to the phenol stripper's stripping steam, 0.0634 kg/kg"}
+  outputs:
+    - {chemical: bisphenol-a, role: main-product, inventory_key: "product:BPAP", note: "Bisphenol A melt at 493 K to prilling or flaking, modelled 99.96 wt% (o,p-isomer 170 ppm, by-products 230 ppm, phenol about 38 ppm)"}
+    - {chemical: wastewater, role: waste, inventory_key: "product:WW", note: "Phenolic condensate water (about 0.6 wt% phenol, 0.3 wt% acetone), 0.147 kg/kg, to biological treatment"}
+  utilities:
+    - {chemical: electricity, role: utility, inventory_key: "feed:POWER", note: "0.0826 kWh/kg: the crystallizer's vapour booster (hand calculation, ASSUMED efficiency) and the crystallizer, filter, stripper vacuum and pumps (ASSUMED allowances)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:LPS", note: "0.111 kWh/kg of LP steam 450 kPa(a): feed heater and condensate column (hand calculations)"}
+    - {chemical: steam, role: utility, inventory_key: "feed:HPS", note: "0.381 kWh/kg of HP steam 4000 kPa(a): adduct melter (core's conversion-step duty), phenol stripper with its stripping steam and cracking still (hand calculations)"}
+    - {chemical: cooling-water, role: utility, inventory_key: "product:CW", note: "0.524 kWh/kg removed: interstage coolers, crystallizer vacuum condenser and booster intercooler, column condensers (the phenol condensers through a tempered-water loop)"}
+basis:
+  capacity: "8750 kg/h bisphenol A (70 kt/a at 8000 h), ASSUMED after US 6 960 697 B2's simulated 70 000 t/a (DESIGN.md D-002)"
+  operating_hours_per_year: 8000
+  location: generic site integrated with a cumene-phenol plant (not chosen)
+references:
+  - {title: "General Electric (1983) US 4 391 997 A: Ion exchange catalyzed bisphenol process (ascending temperature profile, Table I selectivities, mother-liquor isomerisation and cracking)", url: "https://patents.google.com/patent/US4391997A/en"}
+  - {title: "Dow Chemical (1998) US 5 723 688 A: Process for preparing an adduct of a bisphenol with a phenolic compound (crystallization without distillation, phenol wash, phenol stripping)", url: "https://patents.google.com/patent/US5723688A/en"}
+  - {title: "Mitsubishi Chemical (2005) US 6 960 697 B2: System and method of producing bisphenol-A (BPA) (simulated 70 000 t/a plant: reactor and crystallizer sizes, crystallizer duty)", url: "https://patents.google.com/patent/US6960697B2/en"}
+  - {title: "Mitsui Toatsu Chemicals (1990) US 4 950 806 A: Process for crystallizing adduct of bisphenol A with phenol (vacuum-evaporative cooling with water, jacket temperature)", url: "https://patents.google.com/patent/US4950806A/en"}
+  - {title: "Mitsui Toatsu Chemicals (1990) US 4 950 804 A: Process for producing high-purity bisphenol A (hydrochloric acid route, dehydrochlorination)", url: "https://patents.google.com/patent/US4950804A/en"}
+  - {title: "European Union (2010) Risk Assessment Report 4,4'-isopropylidenediphenol (bisphenol-A), environment addendum of April 2008, EUR 24588 EN (production and use volumes, site releases, properties)", url: "https://publications.jrc.ec.europa.eu/repository/bitstream/JRC59980/lbna24588enn.pdf"}
+lca:
+  source: auto
+maintainers:
+  - {name: Artur Schweidtmann}
+repository:
+  url: https://github.com/ChemE-as-Code/process-library
+  path: processes/bisphenol-a-1
+  access: public
+publication:
+  status: public
+  license: CC-BY-4.0
