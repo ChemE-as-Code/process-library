@@ -1,0 +1,191 @@
+schema: cheme/process/v1
+kind: flowsheet
+title: Modified Ludzack-Ettinger waterline (EXPOsan ASM1 configuration)
+cases:
+- id: baseline
+  default: true
+  provenance: assumed
+  source: inputs/baseline.json
+  description: Constant-influent teaching example using EXPOsan 1.5.3 defaults.
+feeds:
+- id: INF
+  title: Influent
+  category: wastewater
+  ports:
+  - id: out
+    direction: out
+products:
+- id: EFF
+  title: Treated effluent
+  category: wastewater
+  ports:
+  - id: in
+    direction: in
+- id: SLUDGE
+  title: Waste activated sludge
+  category: wastewater
+  ports:
+  - id: in
+    direction: in
+blocks:
+- id: ANOXIC
+  title: Anoxic pre-denitrification
+  class: ProcessStep
+  ports:
+  - id: INFLUENT
+    direction: in
+  - id: INTERNAL
+    direction: in
+  - id: RAS
+    direction: in
+  - id: A2_OUT
+    direction: out
+- id: AEROBIC
+  title: Aerobic nitrification and carbon removal
+  class: ProcessStep
+  ports:
+  - id: INTERNAL
+    direction: out
+  - id: A2_OUT
+    direction: in
+  - id: TO_CLARIFIER
+    direction: out
+- id: CLARIFIER
+  title: Secondary clarification
+  class: ProcessStep
+  ports:
+  - id: RAS
+    direction: out
+  - id: TO_CLARIFIER
+    direction: in
+  - id: EFFLUENT
+    direction: out
+  - id: WAS
+    direction: out
+steps:
+- id: A1
+  title: A1 (1000 m3)
+  block: ANOXIC
+  class: ProcessStep
+  ports:
+  - id: INFLUENT
+    direction: in
+    delegates: INFLUENT
+  - id: INTERNAL
+    direction: in
+    delegates: INTERNAL
+  - id: RAS
+    direction: in
+    delegates: RAS
+  - id: A1_OUT
+    direction: out
+- id: A2
+  title: A2 (1000 m3)
+  block: ANOXIC
+  class: ProcessStep
+  ports:
+  - id: A1_OUT
+    direction: in
+  - id: A2_OUT
+    direction: out
+    delegates: A2_OUT
+- id: O1
+  title: O1 (1333 m3)
+  block: AEROBIC
+  class: ProcessStep
+  ports:
+  - id: A2_OUT
+    direction: in
+    delegates: A2_OUT
+  - id: O1_OUT
+    direction: out
+- id: O2
+  title: O2 (1333 m3)
+  block: AEROBIC
+  class: ProcessStep
+  ports:
+  - id: O1_OUT
+    direction: in
+  - id: O2_OUT
+    direction: out
+- id: O3
+  title: O3 (1333 m3)
+  block: AEROBIC
+  class: ProcessStep
+  ports:
+  - id: INTERNAL
+    direction: out
+    delegates: INTERNAL
+  - id: O2_OUT
+    direction: in
+  - id: TO_CLARIFIER
+    direction: out
+    delegates: TO_CLARIFIER
+- id: C1
+  title: C1 secondary clarifier
+  block: CLARIFIER
+  class: ProcessStep
+  ports:
+  - id: RAS
+    direction: out
+    delegates: RAS
+  - id: TO_CLARIFIER
+    direction: in
+    delegates: TO_CLARIFIER
+  - id: EFFLUENT
+    direction: out
+    delegates: EFFLUENT
+  - id: WAS
+    direction: out
+    delegates: WAS
+streams:
+- id: INFLUENT
+  title: INFLUENT
+  from: INF.out
+  to: A1.INFLUENT
+  template: wastewater
+- id: INTERNAL
+  title: INTERNAL
+  from: O3.INTERNAL
+  to: A1.INTERNAL
+  template: wastewater
+- id: RAS
+  title: RAS
+  from: C1.RAS
+  to: A1.RAS
+  template: wastewater
+- id: A1_OUT
+  title: A1_OUT
+  from: A1.A1_OUT
+  to: A2.A1_OUT
+  template: wastewater
+- id: A2_OUT
+  title: A2_OUT
+  from: A2.A2_OUT
+  to: O1.A2_OUT
+  template: wastewater
+- id: O1_OUT
+  title: O1_OUT
+  from: O1.O1_OUT
+  to: O2.O1_OUT
+  template: wastewater
+- id: O2_OUT
+  title: O2_OUT
+  from: O2.O2_OUT
+  to: O3.O2_OUT
+  template: wastewater
+- id: TO_CLARIFIER
+  title: TO_CLARIFIER
+  from: O3.TO_CLARIFIER
+  to: C1.TO_CLARIFIER
+  template: wastewater
+- id: EFFLUENT
+  title: EFFLUENT
+  from: C1.EFFLUENT
+  to: EFF.in
+  template: wastewater
+- id: WAS
+  title: WAS
+  from: C1.WAS
+  to: SLUDGE.in
+  template: wastewater
