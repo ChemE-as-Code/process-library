@@ -23,3 +23,13 @@ The worker publishes a final snapshot after integrating through day 200.
 The shared worker result records steady state as not evaluated. The underlying
 ASM1 example exports flow, COD, TN, TSS and ammonium nitrogen. TP and
 orthophosphate are outside this baseline's state representation.
+
+## D-003. Tie the activated-sludge review to the published run
+
+Review the final model snapshot at the integration end time. The CSTR outlet
+TSS represents its well-mixed liquid. Use C1's equal-volume layers for the
+settler inventory and the actual clarifier feed for applied solids loading.
+Use effluent and WAS for external solids losses. The shared core calculation
+reports reactor-only TSS SRT separately from the waterline TSS SRT. The saved
+layer profile and equipment dimensions are model evidence. A change to the
+optional WAS input represents a modeled operating condition.
