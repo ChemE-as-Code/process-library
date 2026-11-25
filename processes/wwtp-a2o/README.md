@@ -6,13 +6,13 @@ The process configuration and inputs come from the ASM2d CSTR branch of EXPOsan 
 
 ## Run the baseline
 
-Use Python 3.12.13 and `uv`. Place the `core` and `process-library` checkouts side by side. The shared command and wastewater stream columns use the QSDsan integration merged in [core PR #254](https://github.com/ChemE-as-Code/core/pull/254). Library CI pins merge commit `0e858853e159ded7fc408a98bc294a671cd75c60`. If core lives elsewhere, set `CHEME_CORE_PATH` to its checkout. The example locates core's Python in its virtual environment.
+Use Python 3.12.13 and `uv`. Place the `core` and `process-library` checkouts side by side. The QSDsan integration in [core PR #254](https://github.com/ChemE-as-Code/core/pull/254) supplies the shared command and wastewater stream columns. The design review uses [core PR #337](https://github.com/ChemE-as-Code/core/pull/337). If core lives elsewhere, set `CHEME_CORE_PATH` to its checkout. The example locates core's Python in its virtual environment.
 
-To reproduce the same core revision as library CI, use a fresh checkout of the merged commit. Run these commands from the parent of your `process-library` clone, in a directory where `core` does not already exist.
+To run the baseline and design review together, use a core checkout at `291daae` or a compatible later version. Run these commands from the parent of your `process-library` clone, in a directory where `core` does not already exist.
 
 ```sh
 git clone https://github.com/ChemE-as-Code/core.git core
-git -C core switch --detach 0e858853e159ded7fc408a98bc294a671cd75c60
+git -C core switch --detach 291daaef46e7a8f4f1af7b7ef8f28f5746c15eca
 ```
 
 1. From the core checkout, create the command-line environment with `uv sync --locked --python 3.12.13 --no-dev --extra serve`.
@@ -45,6 +45,23 @@ After a fill, run `cheme process build` with the same core environment to refres
 To open the native viewer, build it once with `npm ci` and `npm run build` from `core/viewer` (use `npm.cmd` in PowerShell if needed). Back in this example, run `.venv/Scripts/python.exe run_viewer.py` on Windows or `.venv/bin/python run_viewer.py` on Ubuntu. Choose **Stream table** or click a stream on the PFD. Water flow is in m³/day, COD in mg COD/L, TN and ammonium in mg N/L, TP and orthophosphate in mg P/L, and TSS in mg TSS/L. Historical reports open directly from their saved folders. The optional local launchers use `CHEME_CORE_PATH` to find the core checkout and accept `CHEME_CORE_PYTHON` to override its virtual-environment interpreter.
 
 The **Liquid flow** column carries the wastewater volume flow; the generic **Flow** column is reserved for mass flow in kg/h. The generic nonreactive mass-balance section remains not evaluable without mass-flow inputs. It does not establish nitrogen or phosphorus conservation for this biological model.
+
+## Review retention time and secondary clarifier loading
+
+After a successful fill, run `python review_design.py` from this example folder using
+the same core Python environment. The report identifies the saved run and calculates
+nominal HRT, reactor-only and clarifier-inclusive TSS SRT, and secondary clarifier loads.
+The worker saves the final outlet flows and TSS, reactor volumes, and C1's modeled
+equal-volume TSS layers in `design-snapshot.json`. The read-only review checks the
+run's input fingerprints and snapshot digest. When a complete clarifier profile is
+unavailable, the core calculation reports which metrics it deferred and why.
+
+For a one-factor sensitivity run, use a separate copy of this example. Set
+`recycles.waste_sludge_m3_d` in the copy's `inputs/baseline.json` to `423.5`
+for a 10% increase from 385 m³/day. Generate and incorporate the proposed
+engineering documents using the steps below before simulating. Run the same design
+review on the resulting snapshot. The comparison describes simulated operating
+conditions for this teaching example.
 
 ## Files
 

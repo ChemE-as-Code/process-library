@@ -12,6 +12,7 @@ from wwtp_a2o.domains.process.simulation import calculate
 from wwtp_a2o.integrations.qsdsan import upstream_evidence
 from wwtp_a2o.interfaces.report import write_saved_report
 from wwtp_a2o.project.artifacts import make_adapter, save_calculation, write_json
+from wwtp_a2o.project.design_review import save_design_snapshot
 
 
 def main(request: Path, response: Path) -> None:
@@ -59,6 +60,9 @@ def main(request: Path, response: Path) -> None:
     )
     write_json(evidence / "result.json", result)
     adapter = make_adapter(result, calculation.streams, calculation.reactors, {}, [])
+    if result["status"] == "completed":
+        digest = save_design_snapshot(evidence, data, calculation, result["run_id"])
+        adapter["verification"] = {**adapter["verification"], "design_snapshot_sha256": digest}
     write_json(evidence / "adapter-result.json", adapter)
     write_saved_report(evidence, data, result)
     write_json(response, adapter)
