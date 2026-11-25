@@ -15,9 +15,11 @@ FIX FIRST (open findings of the previous independent review, most important firs
 ${FIX_FIRST}
 
 Rules: you have a hard API budget of USD ${BUDGET} for this session, so work efficiently (plan,
-then batch edits; do not re-read huge files; use cheme show and grep). Work on a branch
-stage/${TARGET}-${STAGE}. Commit in logical commits BEFORE the budget runs out (at least once
-midway). Append to PROGRESS.md. Keep cheme validate free of errors at every commit. Do not
+then batch edits; do not re-read huge files; use cheme show and grep). Stay on the current
+branch stage/basic-lactic-acid-fermentation (do not create or switch branches; never push).
+The branch starts at c49d86cd (origin/main): use `cheme diff c49d86cd --list` for the branch's
+changes (the local `main` is stale). Commit in logical commits BEFORE the budget runs out (at
+least once midway; `git add` the files you changed by name). Append to PROGRESS.md. Keep cheme validate free of errors at every commit. Do not
 review or sign off your own work: an independent reviewer follows. Never bypass a git hook
 (no `--no-verify`, no `-c core.hooksPath=...`): when a hook fails, fix what it reports, or stop
 and say so in the summary. End with a short summary of
