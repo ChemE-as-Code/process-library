@@ -5,8 +5,71 @@
 # Leave a value out until it is known (action, fail, value): validate reports it as
 # cheme.control-incomplete (info), and a stage gate decides when it must be given.
 schema: cheme/loops/v1
-loops: []
-#  - id: FIC-101                        # stable id, usually the loop tag
+loops:
+  # R-201A, the typical of R-201A to P (P-202, D-017 to D-019, D-031)
+  - id: TIC-2011A
+    title: R-201A broth temperature, split range
+    purpose: Hold the broth at 323 K through the batch; heat at the start and in the lag phase, cool in the growth phase.
+    variable: temperature
+    measurement: [{tag: TIC-2011A}]
+    controller: TIC-2011A
+    action: reverse
+    final_elements:
+      - {tag: TV-2011B, kind: valve, actuator: pneumatic, fail: closed, range: [0, 50]}
+      - {tag: TV-2011A, kind: valve, actuator: pneumatic, fail: open, range: [50, 100]}
+    targets:
+      - {kind: setpoint, value: 323, unit: K, provenance: given, source: "concept fermentation temperature (D-005, SRC-1)"}
+      - {kind: high, value: 325, unit: K, provenance: assumed, source: "TAH, 2 K above the set point (D-031)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    interlocks: [I-201, I-202, I-204]
+    rationale: "Steam (0 to 50 %) and CW injection (50 to 100 %) into the P-201A loop; the coil inlet stays warm against calcium lactate at a cold wall (D-017). TV-2011A fails open (cooling on air failure); I-204 closes it on vacuum after SIP (D-031)."
+    unresolved: ["the fail position of TV-2011A (open for cooling) against I-204 (closed against steam collapse after SIP) is for the HAZOP"]
+  - id: AIC-2021A
+    title: R-201A pH with milk of lime
+    purpose: Hold pH 5 to 6 by dosing milk of lime from the ring main.
+    variable: composition
+    measurement: [{tag: AIC-2021A}, {tag: AI-2022A, role: deviation check}]
+    controller: AIC-2021A
+    action: reverse
+    final_elements:
+      - {tag: AV-2021A, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 5.5, unit: pH, provenance: assumed, source: "D-018"}
+    modes: [manual, auto]
+    normal_mode: auto
+    alarms: [{tag: AI-2022A, condition: ADH, response: "probe deviation: check both probes, hold dosing"}]
+    rationale: "On/off pulse dosing on a DN 25 branch, flushed with water after each dose, steam block at the nozzle (D-018, D-031)."
+  - id: LIC-2031A
+    title: R-201A fill level
+    purpose: End the medium fill at the batch volume (1033 m3).
+    variable: level
+    measurement: [{tag: LIC-2031A}]
+    controller: LIC-2031A
+    action: direct
+    final_elements:
+      - {tag: XV-2033A, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 14.7, unit: m, provenance: calculated, source: "1033 m3 in the 9.0 m vessel (D-016)"}
+    modes: [manual, auto]
+    normal_mode: auto
+    interlocks: [I-203]
+  - id: PIC-2041A
+    title: R-201A headspace pressure
+    purpose: Keep the sterile boundary under 0.3 barg of N2.
+    variable: pressure
+    measurement: [{tag: PIC-2041A}]
+    controller: PIC-2041A
+    action: direct
+    final_elements:
+      - {tag: PV-2041A, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 0.3, unit: bar(g), provenance: assumed, source: "D-019"}
+    modes: [manual, auto]
+    normal_mode: auto
+    interlocks: [I-204]
+    rationale: "Vent back-pressure valve after F-201A; the N2 make-up is the self-acting PCV-2042A at 0.25 barg, not part of this loop (D-031)."
+#  - id: FIC-101                       # stable id, usually the loop tag
 #    title: Feed flow
 #    purpose: Hold the feed rate of the operating case.
 #    section: FEED                      # a section of process/narrative.md
