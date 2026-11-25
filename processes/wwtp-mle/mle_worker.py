@@ -3,8 +3,18 @@
 import json
 import math
 import sys
+from hashlib import sha256
 from importlib.metadata import version
 from pathlib import Path
+
+TANKS = (
+    ("A1", "anoxic", "A1_OUT"),
+    ("A2", "anoxic", "A2_OUT"),
+    ("O1", "aerobic", "O1_OUT"),
+    ("O2", "aerobic", "O2_OUT"),
+    ("O3", "aerobic", "TO_CLARIFIER"),
+)
+DESIGN_STREAMS = ("INFLUENT", "EFFLUENT", "WAS", "RAS", "TO_CLARIFIER")
 
 
 def process_streams(system):
@@ -52,6 +62,63 @@ def measurements(stream):
     return {key: {"value": float(v), "unit": u} for key, (v, u) in values.items()}
 
 
+def design_snapshot(units, rows, request, day):
+    """Capture the existing core review's inputs from the worker's final state."""
+    values = {row["id"]: row["values"] for row in rows}
+    tanks = [
+        {
+            "id": tank,
+            "zone": zone,
+            "volume_m3": float(units[tank].V_max),
+            "mlss_mg_L": values[stream]["TSS"]["value"],
+            "sample_stream": stream,
+        }
+        for tank, zone, stream in TANKS
+    ]
+    settler = units["C1"]
+    count = settler.N_layer
+    clarifier = {
+        "unit_id": settler.ID,
+        "area_m2": float(settler.A_settle),
+        "height_m": float(settler.height),
+        "n_layers": count,
+    }
+    # In QSDsan 1.5.3 the settler's final state entries are its TSS layers,
+    # ordered from the overflow surface to the bottom.
+    labels = [f"TSS{i + 1} [mg/L]" for i in range(count)]
+    state = settler._state
+    layers = state[-count:] if state is not None and count > 0 else ()
+    if (
+        count > 0
+        and list(settler._state_header[-count:]) == labels
+        and len(layers) == count
+        and math.isclose(settler.h_layer * count, settler.height)
+        and all(math.isfinite(value) and value >= 0 for value in layers)
+    ):
+        clarifier["layer_tss_mg_L"] = [float(value) for value in layers]
+    return {
+        "case": request["case"],
+        "run_id": request["run_id"],
+        "day": day,
+        "tanks": tanks,
+        "clarifier": clarifier,
+        "streams": {
+            stream: {
+                "flow_m3_d": values[stream]["flow"]["value"],
+                "tss_mg_L": values[stream]["TSS"]["value"],
+            }
+            for stream in DESIGN_STREAMS
+        },
+        "sources": {
+            "geometry": "EXPOsan 1.5.3 model: CSTR.V_max and C1.A_settle, height and N_layer",
+            "mlss": "TSS of each listed well-mixed CSTR outlet, from this run's stream values",
+            "streams": "This run's baseline-result.json stream IDs, flow in m3/day and TSS in mg/L",
+            "clarifier_tss": "QSDsan 1.5.3 C1 equal-volume layers, top to bottom, in mg TSS/L",
+            "waterline": "Constant influent; WAS is drawn from the clarifier underflow",
+        },
+    }
+
+
 def main(request, response):
     import numpy as np
     import yaml
@@ -67,7 +134,14 @@ def main(request, response):
         raise ValueError("Expected the configured ASM1 stirred-tank case")
     system = create_system(suspended_growth_model=config["model"], reactor_model=config["reactor"])
     streams = process_streams(system)
+    units = {unit.ID: unit for unit in system.units}
     verify_connections(yaml.safe_load(Path("process/flowsheet.yaml").read_bytes()), streams)
+    if "waste_flow_m3_d" in config:
+        was = config["waste_flow_m3_d"]
+        influent = streams["INFLUENT"].get_total_flow("m3/day")
+        if type(was) not in (int, float) or not 0 <= was < influent:
+            raise ValueError("waste_flow_m3_d must be nonnegative and below the influent flow")
+        units["C1"].wastage = was
     days = config["days"]
     system.simulate(
         state_reset_hook="reset_cache", t_span=(0, days), method=config["method"],
@@ -82,6 +156,11 @@ def main(request, response):
     residual = streams["INFLUENT"].state[-1] - streams["EFFLUENT"].state[-1] - streams["WAS"].state[-1]
     if abs(residual) > 1e-5:
         raise ValueError(f"External water balance residual is {residual} m3/day")
+    day = float(sol.t[-1])
+    snapshot = design_snapshot(units, rows, request, day)
+    snapshot_bytes = (json.dumps(snapshot, indent=2, allow_nan=False) + "\n").encode()
+    evidence = Path(request["evidence"])
+    (evidence / "design-snapshot.json").write_bytes(snapshot_bytes)
     result = {
         "schema": "cheme/adapter-result/v2",
         "case": request["case"],
@@ -100,11 +179,16 @@ def main(request, response):
         },
         "solver": {"name": "QSDsan", "version": versions["qsdsan"], "method": "ASM1 / " + config["method"]},
         "streams": rows, "units": [{"id": u.ID, "status": "simulated"} for u in system.units],
-        "verification": {"day": float(sol.t[-1]), "versions": versions, "water_residual_m3_d": float(residual)},
+        "verification": {
+            "day": day,
+            "versions": versions,
+            "water_residual_m3_d": float(residual),
+            "design_snapshot_sha256": sha256(snapshot_bytes).hexdigest(),
+        },
         "messages": ["Constant-influent teaching run completed. ASM1 supplies no TP or PO4 result."],
     }
     encoded = json.dumps(result, indent=2, allow_nan=False)
-    (Path(request["evidence"]) / "baseline-result.json").write_text(encoded, encoding="utf-8")
+    (evidence / "baseline-result.json").write_text(encoded, encoding="utf-8")
     response.write_text(encoded, encoding="utf-8")
 
 
