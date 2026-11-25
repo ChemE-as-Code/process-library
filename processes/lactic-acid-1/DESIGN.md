@@ -597,6 +597,17 @@ booster discharge 200-SM-1014, which encloses the instruments of the sterile loo
 connections of E-103 end in connectors by the exchanger because every way to a sheet edge crosses
 the sterile loop or the header.
 
+## D-029 P-102 lime slaking and ring main as drawn (2026-11-25)
+Decision: P-102 ("Lime and ring main") draws V-102 with pneumatic filling (100-QL-1110), the
+weigh feeder X-102 (WIC-1032, its rate set by LIC-1034 on T-105), R-101 with slaking water on
+FV-1105 (ratio to the lime rate, ASSUMED), the cooling coil on TIC-1033/TV-1033 (100-CW-1107/1108,
+820 kW at a 10 K rise, ASSUMED), the vent to the wet scrubber (150-VT-1106), P-107A/B to T-105,
+P-106A/B (suction 150-ML-1109) into the ring main 100-ML-1102 and its return 100-ML-1103 with
+PIC-1035/PV-1035 and FIL-1036. R-101 is drawn and listed as a Vessel (agitated, in a note):
+this core's DEXPI classes have no stirred-tank reactor; the seed fermenters will meet the same
+(core limit, candidate issue). Review finding #8 (ring-main return velocity at peak draws) is
+not resolved by this sheet: P-106A/B stay at 80 m3/h until it is decided.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
