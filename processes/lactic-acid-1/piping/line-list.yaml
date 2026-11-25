@@ -1,3 +1,47 @@
 # Line list. Schema: `cheme schema lines`.
+# First entries for the fermentation area (DESIGN.md D-023: <DN>-<fluid>-<area><3 digits>[train]).
+# DN from the flow and a velocity basis in each note (ASSUMED limits: liquids 1 to 2.5 m/s,
+# slurries 1.5 m/s or more, gas and steam up to 30 m/s). R-201B to P repeat R-201A's branches
+# with their own letter; they are listed when P-203 is drawn. Headers end at their last user.
 schema: cheme/lines/v1
-lines: []
+lines:
+  # P-101 medium preparation and steriliser (campaigns at 200 t/h, D-014, D-015)
+  - {number: 150-PM-1001, from: T-103, to: V-101, nominal_diameter: DN150, fluid: Glucose syrup 70 wt%, sheet: P-101, notes: "46 m3/h of viscous syrup at 0.7 m/s (P-102A/B)."}
+  - {number: 40-PM-1002, from: T-104, to: V-101, nominal_diameter: DN40, fluid: Corn steep liquor, sheet: P-101, notes: "2.5 t/h at about 0.5 m/s (P-105A/B); DN 40 minimum against plugging (ASSUMED)."}
+  - {number: 150-PW-1003, from: BL, to: V-101, nominal_diameter: DN150, fluid: Process water, sheet: P-101, notes: "126 t/h in campaigns (50.9 t/h x 2.47) at 2.0 m/s."}
+  - {number: 250-PM-1004, from: V-101, to: P-104A, nominal_diameter: DN250, fluid: Medium, sheet: P-101, notes: "Pump suction, 189 m3/h at 1.1 m/s."}
+  - {number: 200-PM-1005, from: P-104A, to: X-101, nominal_diameter: DN200, fluid: Medium, sheet: P-101, notes: "Through E-101 cold side and E-102, 189 m3/h at 1.7 m/s; X-101 itself DN 250 (D-015)."}
+  - {number: 200-SM-1006, from: X-101, to: E-103, nominal_diameter: DN200, fluid: Sterile medium, sheet: P-101, notes: "Through E-101 hot side; sterile class from the holding tube on (D-020)."}
+  - {number: 200-PM-1007, from: E-103, to: V-101, nominal_diameter: DN200, fluid: Medium, sheet: P-101, notes: "Divert return by XV-1025 at the full flow (D-015)."}
+  # P-102 milk of lime (D-018, D-022)
+  - {number: 80-ML-1101, from: R-101, to: T-105, nominal_diameter: DN80, fluid: Milk of lime 20 wt%, sheet: P-102, notes: "40 m3/h at 2.2 m/s (P-107A/B)."}
+  - {number: 100-ML-1102, from: P-106A, to: R-201P, nominal_diameter: DN100, fluid: Milk of lime 20 wt%, sheet: P-102, notes: "Ring main supply leg past R-201A to H and P to I, 80 m3/h at 2.8 m/s; the last branch R-201P, then the return leg 100-ML-1103 (D-018)."}
+  - {number: 100-ML-1103, from: R-201I, to: T-105, nominal_diameter: DN100, fluid: Milk of lime 20 wt%, sheet: P-102, notes: "Ring main return past R-213A to C, at least 45 m3/h (1.6 m/s), back-pressure valve PV-1035 at T-105 (D-018)."}
+  - {number: 25-ML-2021A, from: 100-ML-1102, to: R-201A, nominal_diameter: DN25, fluid: Milk of lime 20 wt%, sheet: P-202, notes: "Dosing branch, 2.1 m3/h on average (1.2 m/s), 3.5 m3/h peak; water flush and steam block (D-018, D-020)."}
+  - {number: 25-ML-2131A, from: 100-ML-1103, to: R-213A, nominal_diameter: DN25, fluid: Milk of lime 20 wt%, sheet: P-201, notes: "Stage-5 dosing branch; B and C alike (D-013)."}
+  # P-201 / P-203 sterile medium and inoculum (D-013, D-014)
+  - {number: 200-SM-2001, from: E-103, to: R-201P, nominal_diameter: DN200, fluid: Sterile medium, sheet: P-203, notes: "Sterile medium header to the 16 fermenters, 189 m3/h at 1.7 m/s, steamed between campaigns (D-020)."}
+  - {number: 200-SM-2002A, from: 200-SM-2001, from_area: A-200, to: R-201A, nominal_diameter: DN200, fluid: Sterile medium, sheet: P-202, notes: "Medium inlet branch with steam block (D-020)."}
+  - {number: 100-SM-2003, from: 200-SM-2001, to: R-213C, nominal_diameter: DN100, fluid: Sterile medium, sheet: P-201, notes: "Seed side-draw: 53 t to a stage-5 vessel in about 1 h, 2.5 m/s; branches to R-211, R-212 and R-213 A to C (D-013)."}
+  - {number: 100-IN-2004, from: R-213A, to: R-201P, nominal_diameter: DN100, fluid: Inoculum, sheet: P-203, notes: "Sterile inoculum transfer header from R-213A to C by N2 pressure, 72 m3 in about 1 h (2.5 m/s); steamed between transfers (D-013, D-020)."}
+  - {number: 100-IN-2005A, from: 100-IN-2004, from_area: A-200, to: R-201A, nominal_diameter: DN100, fluid: Inoculum, sheet: P-202, notes: "Inoculum inlet branch with steam block (D-020)."}
+  # P-202 R-201A gas side (D-019)
+  - {number: 150-VT-2006A, from: R-201A, to: F-201A, nominal_diameter: DN150, fluid: Nitrogen and vapour, sheet: P-202, notes: "Vent to the sterile filter: displacement at fill 190 m3/h and SIP purge (about 1 t/h of steam, 16 m/s)."}
+  - {number: 150-VT-2007A, from: F-201A, to: ATM, to_area: A-200, nominal_diameter: DN150, fluid: Nitrogen and vapour, sheet: P-202, notes: "After the back-pressure valve PV-2041A to atmosphere at a safe height."}
+  - {number: 80-NS-2008, from: BL, to: F-202P, nominal_diameter: DN80, fluid: Nitrogen, sheet: P-203, notes: "N2 header at about 6 barg, 270 Nm3/h on average, cool-down peaks of 1300 Nm3/h at one fermenter (D-019)."}
+  - {number: 150-NS-2009A, from: F-202A, to: R-201A, nominal_diameter: DN150, fluid: Sterile nitrogen, sheet: P-202, notes: "After PV-2042A at 0.3 barg: 1300 m3/h at cool-down, 20 m/s (D-019)."}
+  # P-202 / P-203 harvest and broth hold (D-024)
+  - {number: 200-BR-2010A, from: R-201A, to: 250-BR-2011, nominal_diameter: DN200, fluid: Fermentation broth, sheet: P-202, notes: "Bottom valve cluster to the harvest header, 280 m3/h at 2.5 m/s (slurry with lime solids)."}
+  - {number: 250-BR-2011, from: R-201A, to: P-202A, nominal_diameter: DN250, fluid: Fermentation broth, sheet: P-203, notes: "Harvest header from R-201A to P, 280 m3/h at 1.6 m/s, sloped to the pumps."}
+  - {number: 200-BR-2012, from: P-202A, to: T-201, nominal_diameter: DN200, fluid: Fermentation broth, sheet: P-203, notes: "280 m3/h at 2.5 m/s."}
+  - {number: 200-BR-2013, from: T-201, to: P-203A, nominal_diameter: DN200, fluid: Fermentation broth, sheet: P-203, notes: "Pump suction, 125 m3/h at 1.1 m/s."}
+  - {number: 150-BR-2014, from: P-203A, to: S-301A, nominal_diameter: DN150, fluid: Fermentation broth, sheet: P-203, notes: "To the centrifuges S-301A to C, 125 m3/h at 2.0 m/s; heat-traced and insulated at 323 K (D-005)."}
+  # P-202 / P-204 CIP, SIP and tempered water (D-017, D-021)
+  - {number: 100-CS-2015, from: P-221A, to: R-201P, nominal_diameter: DN100, fluid: CIP solution, sheet: P-204, notes: "CIP supply header, 60 m3/h at 2.1 m/s; branches to the seed fermenters and transfer lines."}
+  - {number: 100-CS-2016A, from: 100-CS-2015, from_area: A-200, to: R-201A, nominal_diameter: DN100, fluid: CIP solution, sheet: P-202, notes: "To the spray devices, steam block (D-020)."}
+  - {number: 150-CR-2017, from: R-201A, to: P-222A, nominal_diameter: DN150, fluid: CIP return, sheet: P-204, notes: "CIP return header from the bottom valve clusters, 60 m3/h at 1.0 m/s, sloped."}
+  - {number: 150-SS-2019, from: F-231A, to: R-201P, nominal_diameter: DN150, fluid: Filtered LP steam, sheet: P-204, notes: "SIP steam header, 3 t/h at one fermenter (about 1320 m3/h at 3 barg, 21 m/s) (D-021)."}
+  - {number: 100-SS-2020A, from: 150-SS-2019, from_area: A-200, to: R-201A, nominal_diameter: DN100, fluid: Filtered LP steam, sheet: P-202, notes: "Headspace SIP inlet, 1.5 t/h at 23 m/s."}
+  - {number: 80-SS-2021A, from: 150-SS-2019, from_area: A-200, to: R-201A, nominal_diameter: DN80, fluid: Filtered LP steam, sheet: P-202, notes: "Bottom SIP inlet through the bottom valve cluster, 1.5 t/h at about 37 m/s (accepted for a short SIP, ASSUMED)."}
+  - {number: 150-TW-2022A, from: P-201A, to: R-201A, nominal_diameter: DN150, fluid: Tempered water, sheet: P-202, notes: "Half-pipe coil supply, 85 m3/h at 1.3 m/s (D-017)."}
+  - {number: 150-TW-2023A, from: R-201A, to: P-201A, nominal_diameter: DN150, fluid: Tempered water, sheet: P-202, notes: "Coil return to the pump; cooling-water injection and overflow on this loop (D-017)."}

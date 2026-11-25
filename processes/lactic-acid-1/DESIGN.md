@@ -534,7 +534,10 @@ A-700 control room and substation, A-800 utilities (reserved). The production fe
 outdoors in two rows of eight (pitch 14 m, 5 m between shells) on a foundation, the main rack
 PR-1 between the rows (tiers 6, 8 and 10 m), the tempered-water pumps beside the rack, a steel
 access structure at the fermenter tops for the agitator drives and filters (structures.yaml at
-the layout-3d step). Rejected: a fermentation hall (16 vessels of 24 m: a building of about
+the layout-3d step). Racks PR-4 and PR-6 (along B-201's north wall) take the medium, inoculum,
+CIP and SIP headers from the building to PR-1; PR-5 and PR-3 serve the tank farm and the
+downstream areas, PR-2 the ethanol area. A branch line that starts at a header names the area
+of its tie-in (`from_area: A-200`), since a header has no single position. Rejected: a fermentation hall (16 vessels of 24 m: a building of about
 120 x 45 x 30 m for no process reason; the drives need weather protection only). Separations
 (ASSUMED, measured by `cheme validate`): the ethanol area and the ethanol tank at least 30 m from
 the control room and substation, the ethanol tank 15 m from the site boundary, tanks 8 m from
