@@ -544,6 +544,14 @@ the control room and substation, the ethanol tank 15 m from the site boundary, t
 roads. Elevated items (agitators, fermenter filters) are placed at their elevation; their mounts
 and structures follow with the 3D layout (gate layout-3d).
 
+## D-027 Component balances with the NUT lump (2026-11-25)
+Decision: the basic gate's component balance of PREP, FERM, ACID, R201 and R301 cannot be
+evaluated because the CSL protein lump NUT has no formula (D-004). Its mass balances close. A
+formula would be invented data (no CSL composition was read), so the five findings are accepted
+at the gate `process-basic` in checks/checks.yaml with this reason, for the design review to
+confirm. Rejected: an ASSUMED amino-acid formula for NUT (it would make a nitrogen balance look
+sourced that is not, L-3).
+
 ## Method and dependency table
 
 | result | method | inputs | where |

@@ -41,6 +41,11 @@ checks:
     rules: [cheme.process-refine-pending, cheme.process-balance*,
             cheme.process-component-balance*, cheme.process-calculated-stale,
             cheme.generated-*]
+    # The CSL protein lump NUT has no formula (D-004: no composition was read); the mass
+    # balances of these blocks and steps close, the component balance cannot be evaluated
+    # without inventing one. Proposed for the design review to accept or reject.
+    accept:
+      - {id: "process/flowsheet.yaml#process-component-balance-not-evaluable:*", reason: "D-004 and D-027: NUT (CSL protein) is a lump without a formula; mass balances close; a formula would be invented data"}
   - id: process-links
     title: Every process link resolves against the lists and sheets
     stage: basic
