@@ -32,6 +32,46 @@ interlocks:
     sheet: P-103
     sil: null
     notes: "Sterile outlet of E-101 minus its raw inlet, low-low 1.0 bar (ASSUMED); a plate leak must go from sterile to raw (D-015, review 2026-11-25-S1#1)."
+  - id: I-201
+    title: "R-201A temperature high-high 333 K (TSHH-2012A, own sensor): stop the agitator"
+    cause: {tag: TSHH-2012A, condition: TSHH}
+    effects:
+      - {tag: A-201A, action: stop}
+      - {tag: TSHH-2012A, action: alarm}
+    sheet: P-202
+    sil: null
+    notes: "Set 333 K, 10 K above the 323 K set point (ASSUMED). Removes the 127 kW agitator input, the open safeguard of D-012; typical of R-201A to P (D-017, D-031). SIL from the HAZOP/LOPA, not assumed here."
+  - id: I-202
+    title: "R-201A tempered-water loop flow low-low (FSLL-2014A): lost cooling, stop the agitator"
+    cause: {tag: FSLL-2014A, condition: FSLL}
+    effects:
+      - {tag: A-201A, action: stop}
+      - {tag: FSLL-2014A, action: alarm}
+    sheet: P-202
+    sil: null
+    notes: "Set 30 % of the 85 m3/h loop flow (ASSUMED), 30 s delay against pump changeover (ASSUMED). Typical of R-201A to P (D-017, D-031)."
+    delay: {value: 30, unit: s}
+  - id: I-203
+    title: "R-201A level high-high (LSHH-2032A, independent of LIC-2031A): close the medium inlet"
+    cause: {tag: LSHH-2032A, condition: LSHH}
+    effects:
+      - {tag: XV-2034A, action: close}
+      - {tag: XV-2033A, action: close}
+      - {tag: LSHH-2032A, action: alarm}
+    sheet: P-202
+    sil: null
+    notes: "Set 16.0 m above the bottom tangent, 1.3 m (83 m3, 19 min of the 258 m3/h fill) above the 14.7 m batch level and below the vent nozzle, so the vent filter F-201A is not flooded (ASSUMED; D-031, review S3#4 applied to R-201A)."
+  - id: I-204
+    title: "R-201A headspace pressure low-low -0.05 barg (PALL-2043A): stop cooling and filling"
+    cause: {tag: PALL-2043A, condition: PALL}
+    effects:
+      - {tag: TV-2011A, action: close}
+      - {tag: XV-2034A, action: close}
+      - {tag: XV-2033A, action: close}
+      - {tag: PALL-2043A, action: alarm}
+    sheet: P-202
+    sil: null
+    notes: "Against steam collapse after SIP (CW into the coils or cold medium into a steamed vessel, about 24 000 m3/h of gas demand, far above any sterile-filter path); PSV-2046A at -0.2 barg covers only the loss of N2 during the controlled cool-down. Set -0.05 barg (ASSUMED). Candidate SIF for the HAZOP/LOPA (D-031, review S1#4)."
 #  - id: I-01
 #    title: LIN tank low-low level
 #    cause: {tag: LIA-101, condition: LALL}

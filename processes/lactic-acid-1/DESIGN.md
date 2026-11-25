@@ -649,6 +649,74 @@ hand-maintained from now on). ASSUMED throughout, no source read:
   full-strength production medium (about 240 g/L sugar, ASSUMED acceptable for the strain; no
   source read, Open inputs); dilution with sterile water rejected for now (a sterile water supply).
 
+## D-031 P-202: production fermenter R-201A as drawn, the typical of R-201A to P (2026-11-26)
+Decision: P-202 draws R-201A in full (scripts/draft_P-202.py is provenance; the XML is the source,
+with the second split-range signal of TIC-2011A added by hand from `cheme fragment signal`). It
+answers the open review findings S1#3, S1#4, S1#7, S2#9 and, for R-201A, S2#1/S3#5 and S3#4.
+Changes to D-016 to D-021, each ASSUMED unless a source is named:
+- **Class.** R-201A to P are DEXPI `Vessel` with a separate `Agitator`, as the seed fermenters
+  (one class for all fermenters, S3#3); F-201x/F-202x are `GasFilter`.
+- **Temperature, heating (S1#7).** The tempered-water loop of D-017 gets direct LP-steam injection
+  TV-2011B (25-LS-2031A, check valve) besides the CW injection TV-2011A; TIC-2011A is split range
+  (0 to 50 % steam, 50 to 100 % CW). Heating is needed at the start (medium arrives at about 323 K
+  from E-101 but the steel and coil water start cold) and in the lag phase of an outdoor vessel in
+  winter: shell about 620 m2 at an ASSUMED 0.5 W/(m2 K) insulated loss and 40 K to winter ambient
+  is about 12 kW, the coil water about 10 m3; 100 kW (about 0.15 t/h of steam) is the ASSUMED
+  heater size. CW injection: 0.67 MW with CW at 298 K replacing loop water at 315 K is 34 m3/h,
+  DN 80 at 1.9 m/s; the same flow overflows to the CW return. Rejected: a separate plate heater on
+  the loop (more equipment for a duty used a few hours per batch).
+- **Headspace pressure.** PIC-2041A holds 0.3 barg on the vent back-pressure valve PV-2041A; N2 is
+  made up by the self-acting regulator PCV-2042A set at 0.25 barg (tank-blanketing practice),
+  instead of the split range of D-019. Reason: the N2 make-up (the cool-down after SIP, the
+  harvest) then works without the control system and cannot be driven open by a controller fault;
+  its trim is restricted to about 1500 Nm3/h at 6 barg.
+- **Relief (D-019).** PSE-2045A, rupture disc set 2.5 barg on its own DN 150 nozzle to a safe
+  location. Cases: SIP steam valves failed open, 3 t/h of LP steam: 0.83 kg/s at about 3.5 bar(a)
+  and 140 C (1.85 kg/m3) is 0.45 m3/s, 25 m/s in DN 150; PCV-2042A failed open, 1500 Nm3/h =
+  0.52 kg/s of N2 at 3.65 kg/m3 is 0.14 m3/s. The SIP steam case governs (piping/special-items.yaml).
+  The same check of the N2 failure case is what S3#1 asks of the seed vessels (left to S9).
+- **Vacuum (S1#4).** The governing credible case is steam collapse after SIP: cooling water into the
+  coils at the full loop flow (TV-2011A open early or failed open) takes up to about 8.9 MW
+  (23.6 kg/s by 90 K), condensing about 4 kg/s of steam, about 24 000 m3/h of gas demand at
+  atmospheric pressure; cold medium or CIP spray into a steamed vessel is of the same order. No
+  sterile-filter path can pass that, so the case is **prevented, not relieved**: I-204 (PALL-2043A
+  at -0.05 barg, own tapping) closes TV-2011A and the medium inlet; the sequence permits coil
+  cooling, fill and CIP only with the headspace above +0.1 barg under N2 (control/sequences.yaml,
+  stage S9). PSV-2046A (vacuum relief at -0.2 barg, drawn as a check valve, no vacuum-valve class
+  in the authoring API) admits air through F-202A for the loss of N2 make-up during the controlled
+  cool-down, 1300 m3/h (D-019). If the HAZOP/LOPA does not credit I-204 and the permissives, the
+  fermenters must be rated for full vacuum: an open item for the HAZOP of the fermentation area.
+- **Vent filter wetting (S1#4).** During CIP the hydrophobic cartridge of F-201A is isolated by
+  XV-2043A and the vessel vents through the bypass XV-2044A (100-VT-2028A); both filters are
+  steamed with the vessel and drained at the housing low points through traps.
+- **High level (S3#4 for R-201A).** LIC-2031A (radar) closes the outer medium valve XV-2033A at the
+  batch volume (14.7 m); LSHH-2032A, an independent switch at 16.0 m (1.3 m = 83 m3, 19 min of the
+  258 m3/h fill, below the vent nozzle), closes the inner valve XV-2034A (I-203).
+- **Steam blocks (S2#1, S3#5 for R-201A).** Medium, inoculum, lime, CIP supply, CIP return and
+  harvest each have a steam block. The head SIP steam enters through the CIP spray line (it steams
+  the spray device and the line after the block); the bottom SIP steam through the bottom valve
+  cluster, with TI-2015A at the coldest point (121 C for 30 min, D-021).
+- **Lime dosing and the sterile boundary (S2#9).** The boundary is the steam block at the nozzle of
+  the DN 25 dosing branch, steamed while idle; after each dose the branch is flushed with water
+  (25-PW-2032A) against plugging. When dosing, non-sterile milk of lime crosses the boundary: the
+  contamination risk is accepted on the lime's pH of about 12.4 and the robust thermophilic
+  fermentation at 323 K, pH 5 to 6 (as D-018; no source read).
+- **Aseptic sampling** on a DN 25 shell nozzle: sampling valve, steam fed between it and the outlet
+  valve, flushed to drain before and after each sample.
+- **Trips** in control/cause-effect.yaml: I-201 TSHH-2012A (333 K) and I-202 FSLL-2014A stop
+  A-201A (D-012); I-203 LSHH-2032A; I-204 PALL-2043A. SIL: from the HAZOP/LOPA, not assumed.
+- **Turnaround with SIP (S1#3).** Timed sequence (all ASSUMED): harvest 3.7 h (1033 m3 at
+  280 m3/h) + drain 0.3 h = 4.0 h; CIP 1.5 h (pre-rinse 15 min, caustic 30 min at 353 K, rinse
+  15 min, final rinse 15 min, drains 15 min); SIP 3.0 h (heat-up and air purge 1.5 h: about 4.5 t of
+  steam at 3 t/h for 100 t of steel by 71 K = 1.6 t, the steam inventory of 1291 m3 = 1.45 t and the
+  purge; hold 0.5 h; controlled cool-down under N2 1.0 h); fill 4.0 h. Total 12.5 h against the
+  12 h of D-003: the batch cycle becomes 158.6 h and the harvest period 158.6 / 16 = 9.91 h instead
+  of 9.88 h, 0.3 % fewer batches a year. Decision: keep 16 fermenters and the solved flowsheet (the
+  difference is within the precision of the ASSUMED step times); record the 12.5 h as the basis of
+  the control sequences, and recover the 0.5 h, if the schedule needs it, by starting the CIP
+  pre-rinse while the harvest drains. Rejected: a 17th fermenter for 0.3 %.
+- **Line numbers.** The lime branch is 25-ML-2024A (25-ML-2021A reused the sequence of 80-SS-2021A).
+
 ## Method and dependency table
 
 | result | method | inputs | where |
