@@ -26,7 +26,7 @@ Python packages queried).
 
 | id | source | locator | access / terms | used for |
 |---|---|---|---|---|
-| SRC-1 | BioSTEAM lactic biorefinery: Bioindustrial-Park, `biorefineries/lactic` (Li, Y.; Bhagwat, S. S.; Cortes-Pena, Y. R. et al.), https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/biorefineries/lactic, the model of Li et al. (2021) ACS Sustainable Chem. Eng. 9, 1341-1351 | `README.rst`: SSCF and SHF configurations; MPSP 1.414 $/kg, GWP 4.567 kg CO2-eq/kg, FEC 58.67 MJ/kg (SSCF); the system's lime stream 243 kmol/h of Ca(OH)2 and the product 256 kmol/h of lactic acid (with 86.1 kmol/h water, 13.1 kmol/h ethyl lactate). `_units.py`: CoFermentation (T 50 C; titer 130 g/L, the maximum of the collected data; productivity 0.89 g/(L h); yield 0.76 g/g; turnaround 12 h; parallel reactions glucose to 2 lactic acid 0.76, to 3 acetic acid 0.07, to 6 cell mass 0.02; CSL 10 g/L; lime for the acids plus 10 %; neutralisation to the calcium salts at 1; V_wf 0.8); the Reactor class (agitation 0.0985 kW/m3, from 0.5 hp/1000 gal); AcidulationReactor (calcium salts and lime with H2SO4 at 1, the acid 10 % over and 93 % pure); Esterification (T 351.15 K; 1.5 mol ethanol per mol acid; Amberlyst-15 3.9 wt%; K = exp(2.9625 - 515.13/T)); HydrolysisReactor (12 mol water per mol ester, conversion 0.8). `_processes.py`, create_separation_process: cell mass filter moisture 0.35; acidulation tau 1 h, SS316; gypsum filter moisture 0.2; flash F401 at 379 K; D401 acetic acid recovery 0.99; D402 ethanol 0.99; D403 ethyl lactate 0.995 over lactic acid 0.9995, its bottoms 97 % recycled; R403 tau 4 h; D404 ethanol 0.9, water 0.9935 to the bottoms; F402 to 88 wt% lactic acid. `_chemicals.py`: CSL as 50 % water, 25 % protein, 25 % lactic acid. `utils.py` get_splits: gypsum 0.995 to the cake. The ethanol recycle about 91 % ethanol with 8 % water (Esterification._run comment) | read 2026-11-19; MIT licence (repository LICENSE.txt); code read, numbers used as facts, no code copied | D-001, D-003, D-005 to D-010, benchmarks |
+| SRC-1 | BioSTEAM lactic biorefinery: Bioindustrial-Park, `biorefineries/lactic` (Li, Y.; Bhagwat, S. S.; Cortes-Pena, Y. R. et al.), https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/biorefineries/lactic, the model of Li et al. (2021) ACS Sustainable Chem. Eng. 9, 1341-1351 | `README.rst`: SSCF and SHF configurations; MPSP 1.414 $/kg, GWP 4.567 kg CO2-eq/kg, FEC 58.67 MJ/kg (SSCF); the system's lime stream 243 kmol/h of Ca(OH)2 and the product 256 kmol/h of lactic acid (with 86.1 kmol/h water, 13.1 kmol/h ethyl lactate). `_units.py`: CoFermentation (T 50 C; titer 130 g/L, the maximum of the collected data; productivity 0.89 g/(L h); yield 0.76 g/g; turnaround 12 h; parallel reactions glucose to 2 lactic acid 0.76, to 3 acetic acid 0.07, to 6 cell mass 0.02; CSL 10 g/L; lime for the acids plus 10 %; neutralisation to the calcium salts at 1; V_wf 0.8); the Reactor class (agitation 0.0985 kW/m3, from 0.5 hp/1000 gal); AcidulationReactor (calcium salts and lime with H2SO4 at 1, the acid 10 % over and 93 % pure); Esterification (T 351.15 K; 1.5 mol ethanol per mol acid; Amberlyst-15 3.9 wt%; K = exp(2.9625 - 515.13/T)); HydrolysisReactor (12 mol water per mol ester, conversion 0.8). `_processes.py`, create_separation_process: cell mass filter moisture 0.35; acidulation tau 1 h, SS316; gypsum filter moisture 0.2; flash F401 at 379 K; D401 acetic acid recovery 0.99; D402 ethanol 0.99; D403 ethyl lactate 0.995 over lactic acid 0.9995, its bottoms 97 % recycled; R403 tau 4 h; D404 ethanol 0.9, water 0.9935 to the bottoms; F402 to 88 wt% lactic acid. `_chemicals.py`: CSL as 50 % water, 25 % protein, 25 % lactic acid. `utils.py` get_splits: gypsum 0.995 to the cake. The ethanol recycle about 91 % ethanol with 8 % water (Esterification._run comment). Read 2026-11-25 for basic engineering, `_units.py`: `SeedTrain` costed as 5 stages in 2 trains; seed turnaround 12 h ("the same as" Humbird et al. 2011, NREL, not read here); seed productivity 0.95 x 0.89 g/(L h); seed temperature 50 C; a `SeedHoldTank` after the seed train (tank, agitator, pump); `CoFermentation.inoculum_ratio = 0.07` (7 % of the fermentation feed split to the seed train); the main fermentation in `mode='batch'` with no air or oxygen input and no CO2 in its reactions (lactic and acetic acid and cell mass only): not aerated | read 2026-11-19 and 2026-11-25; MIT licence (repository LICENSE.txt); code read, numbers used as facts, no code copied | D-001, D-003, D-005 to D-010, benchmarks |
 | SRC-2 | Garrido, R.; Cabeza, L. F.; Falguera, V. (2023) Lactic Acid Production from Cow Manure: Technoeconomic Evaluation and Sensitivity Analysis. Fermentation 9, 901, doi:10.3390/fermentation9100901 | p. 5, Table 3: SSAF at 50 C, product recovery 92 %, final product 88 % w/w lactic acid. p. 6: 8640 h a year. pp. 7-8: calcium carbonate or hydroxide to hold pH 5 to 6; gypsum precipitated with sulfuric acid and filtered; technical-grade acid esterified with methanol or ethanol, the ester distilled, hydrolysed and the alcohol recycled; the zinc lactate alternative. p. 11, Table 4: scenario I, 109 723 t/a fermented, 100 945 t/a recovered. p. 13, Table 6: sulfuric acid 93 % 1981 kg/h; grid electricity 12 797 kW under by-products and credits (an export) | read 2026-11-19; CC BY 4.0, facts only | D-001, D-002, D-005, D-007, D-008 |
 | SRC-3 | Wikipedia, "Glucose" (infobox: enthalpy of formation -1271 kJ/mol, citing Ponomarev and Migarskaya 1960) and "Calcium lactate" (solubility of the L-lactate: 6.7 g/100 mL at 25 C, 8.5 g/100 mL at 30 C, citing Vavrusova et al. 2013) | infoboxes and text, read 2026-11-19 | secondary sources, values ASSUMED | reactions (FLA, FAA), D-005 |
 | SRC-4 | thermo 0.6.1 and chemicals 1.5.2 (Caleb Bell, MIT; core's environment) | formation enthalpies (kJ/mol): L-lactic acid(s) -694.08 (`Hfs`, method WEBBOOK, the NIST WebBook value as packaged), CaO(s) -634.9 and Ca(OH)2(s) -985.2 (`Hfs`, CRC), water(l) -285.825 and acetic acid(l) -483.58 (`Hfl`, ATCT_L, the Active Thermochemical Tables); heat capacities: water 75.33 and ethanol 122.02 kJ/(kmol K) at 323.15 K (HEOS_FIT), acetic acid 135.55 (VDI_TABULAR, the VDI Heat Atlas as bundled), sulfuric acid 138.9 (CRCSTD), CaO 42.10 and Ca(OH)2 87.48 (WEBBOOK_SHOMATE), gypsum 195.81 (PERRY151, Perry's Handbook table 2-151 as bundled); heats of vaporisation (HEOS_FIT): water 43.34, 42.47, 42.25, 41.65 kJ/mol at 313.15, 333.15, 338.15, 351.57 K, ethanol 40.43 and 39.14 kJ/mol at 333.15 and 351.57 K; boiling points (`Tb`): water 373.12 (HEOS), ethanol 351.57 (HEOS), acetic acid 391.05 (CRC_ORG), ethyl lactate 427.15 K (COMMON_CHEMISTRY); water's vapour pressure 20 kPa at 333.2 K, 450 kPa at 421.1 K, 1000 kPa at 453.0 K (IAPWS_PSAT). No heat capacity of lactic acid, ethyl lactate, glucose or the calcium salts, no heat of vaporisation of ethyl lactate, no formation enthalpy of liquid ethyl lactate or the calcium salts | open-source package queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037). The underlying works (the CRC Handbook, the VDI Heat Atlas, Perry's Handbook, CoolProp's reference equations, the NIST WebBook, the ATcT) were not read here | materials, reactions, D-009 |
@@ -310,6 +310,237 @@ inventory.
 No HAZOP at this stage; no semi-batch or dosed exothermic step (the lime is dosed on pH into a
 fermentation, not a reaction mass with accumulation).
 
+## Basic engineering (from 2026-11-25)
+
+Stage basic starts from the concept (PR #561) and keeps its numbers: the flowsheet, the recipe
+and the duties are unchanged; the decisions below split the concept's items into the parts a
+basic-engineering P&ID and layout need. No source beyond the register was read; every size,
+condition and practice below is ASSUMED unless an SRC is named, and usual industry practice is
+stated as an ASSUMED choice, not as data.
+
+## D-013 Seed train: 5 stages at 1:10, three plant trains (2026-11-25)
+Decision: SRC-1's 5 stages at 1:10 per step (ratio ASSUMED). The stage-5 seed is 7 % of the
+batch (SRC-1's inoculum ratio 0.07, taken on the broth): 0.07 x 1033 = 72 m3, then 7.2, 0.72,
+0.072 and 0.0072 m3. Stages 1 (7 L flask) and 2 (72 L lab fermenter) are grown in the
+microbiology laboratory off-plot (a note on P-201); stages 3 to 5 are plant seed fermenters R-211
+(1 m3), R-212 (10 m3) and R-213 (about 107 m3), each at about 72 % fill (ASSUMED). On SRC-1's 7 %
+of the feed (761 t of medium per batch, S6 x 9.879 h) the seed medium is 53 t; the 72 m3 basis is
+the larger and sizes R-213. The seed medium is a side-draw of the sterile medium header (D-014),
+so the flowsheet's medium and the production fermenters' totals are unchanged (L-3 stands: the
+seed's growth is not modelled apart).
+- Schedule: SRC-1 sizes its seed batch on the main titer and productivity, 130 / (0.95 x 0.89) =
+  153.8 h per stage; five stages in series would take 769 h, and no schedule that must inoculate
+  every 9.88 h can follow it. A seed stage is grown to the late exponential phase instead: at 1:10
+  about 3.3 doublings, at a doubling time of 1 to 1.5 h plus a lag (ASSUMED, no source read) 6 to
+  8 h; chosen 8 h of growth, 1 h fill and up to 0.9 h transfer, so a stage occupies its vessel
+  9.88 h (one production period) from fill to transfer, then SRC-1's 12 h turnaround (emptying,
+  CIP, SIP, cool-down): 21.88 h per vessel cycle.
+- Trains: each stage must deliver every 9.88 h, so ceil(21.88 / 9.88) = 3 vessels per stage:
+  three trains A, B, C, each starting a seed every 29.64 h (7.76 h slack per cycle), staggered by
+  one period; stage 3 of a train is filled at period k, transfers to stage 4 at k+1, to stage 5
+  at k+2 and into the production fermenter at k+3. SRC-1's two trains would need a cycle of at most
+  19.76 h, which leaves 7.76 h for fill, growth and transfer after the 12 h turnaround: rejected
+  as too tight. Every seed fill falls in a production fill campaign of the steriliser (D-014).
+- No seed hold tank (ASSUMED): stage 5 transfers straight into the filling production fermenter
+  by sterile nitrogen pressure (no pump seal on the sterile boundary); SRC-1's `SeedHoldTank` would
+  add a sterile vessel and a holding time for a culture that is better transferred in its
+  exponential phase. Rejected: SRC-1's hold tank with a pump.
+- pH: stage 5 on the milk-of-lime ring main like the production fermenters (D-018); stages 3 and
+  4, too small for a lime slurry branch (plugging), on NaOH 10 wt% from T-215 through a 0.2 um
+  sterile filter (ASSUMED; about 0.5 t of solution per stage-4 batch, its sodium neglected).
+- Seed fermenters: 3.0 barg and full vacuum, 150 C, SS316L, jackets on cooling water, top-entry
+  agitators (A-211 0.4 kW, A-212 2.2 kW, A-213 15 kW, ASSUMED), sterile vent and inlet gas filters
+  as on R-201A (drawn on P-201, tagged there as parts of the fermenter), in building B-201 (D-026).
+
+## D-014 Medium preparation: blended at the fill rate in campaigns (2026-11-25)
+Decision: the flow mismatch (the flowsheet carries the year-average medium S6, 77.0 t/h, but a
+fermenter fills in 4 h, recipe) is resolved by running medium preparation and the steriliser
+in campaigns at the fill rate: 761 t in 4 h = 190 t/h, designed for 200 t/h (ASSUMED margin),
+about 4 h of every 9.88 h, the seed stages' side-draws within the same campaign (D-013). Syrup,
+CSL and process water are blended in line on ratio control into V-101 (the concept's 200 m3,
+about 1 h at the fill rate), so the averaging happens in the syrup and CSL day tanks. Between
+campaigns the steriliser stands by hot on water circulating through it and back to V-101 at
+sterilising temperature (ASSUMED), so the sterile side stays sterile. The year average is
+unchanged: Q17 1478 kW stays the net steam (D-005), the campaign peak is 3.8 MW (D-015).
+Rejected: E-101 continuous at 77 t/h into a sterile medium buffer of one batch (about 720 m3 of
+24 wt% sugar at 323 K, an ideal growth medium held sterile for up to 10 h: a large sterile
+vessel with SIP, a filter and a contamination risk on every batch).
+Storage (ASSUMED): syrup T-101A/B 2 x 2150 m3, 7 days at 1340 kg/m3 (ASSUMED density); syrup day
+tank T-103 450 m3 (one day); CSL storage T-102 200 m3 (7 days) and day tank T-104 25 m3; syrup
+and CSL tanks kept at 323 K (the concept's feed temperature).
+
+## D-015 Continuous steriliser E-101 in its parts (2026-11-25)
+Decision: the concept's E-101 becomes the train regenerative exchanger E-101, steam heater E-102,
+holding tube X-101, trim cooler E-103, back-pressure valve and divert valve, at 200 t/h:
+- Sterilising temperature 413 K (140 C) and hold 120 s: ASSUMED (usual continuous medium
+  sterilisation practice, no source read; Open inputs).
+- E-101, wide-gap plates (CSL solids): raw medium from about 306.6 K (the blend, D-005) to
+  396.6 K against the sterile medium from 413 K to 323 K, 16.5 K approach on both ends (D-005's
+  approach, now on both ends because both sides carry the same flow and heat capacity), about
+  21 MW at 200 t/h. E-102 on LP steam: 396.6 to 413 K, 16.4 K x 89.4 kW/K = 1.47 MW on the year
+  average (the medium at water's heat capacity per kg, D-009), which is Q17 1.48 MW; at 200 t/h
+  3.8 MW, E-102 designed for 4.0 MW. E-103 on cooling water, 1.0 MW, for start-up on water and the
+  regenerator's drift. The sterile side of E-101 is kept at a higher pressure than the raw side
+  (the back-pressure valve is downstream of E-103), so a leak goes from sterile to raw.
+- X-101: 120 s at 189 m3/h = 6.3 m3, DN 250 (0.049 m2, 1.07 m/s), about 130 m of serpentine on a
+  skid, rising, insulated. The holding pressure is above water's 3.6 bar(a) at 413 K (SRC-4's
+  IAPWS series gives 450 kPa at 421 K): back-pressure control PIC-1026 at about 5 barg (ASSUMED);
+  design 10 barg, 160 C.
+- Divert: TT-1023 and TT-1024 (two elements) at the holding-tube outlet; below 411 K (ASSUMED,
+  2 K under the set point) the three-way divert valve XV-1025, downstream of E-103, sends the
+  medium back to V-101 and closes the sterile header; the sterile side then has to be re-sterilised
+  on hot water at 413 K for 30 min (ASSUMED) before forward flow is released. An interlock in
+  control/cause-effect.yaml (stage basic, after P-101 is drawn). Rejected: diverting at the
+  holding-tube outlet (413 K medium to an atmospheric tank).
+
+## D-016 Production fermenters R-201A to P (2026-11-25)
+Decision: 16 tags R-201A to R-201P (the concept's R-201 split). Each 1291 m3 (D-010), D 9.0 m,
+straight side 17.3 m (63.6 m2 x 17.3 m = 1100 m3 plus two 2:1 heads of 95.4 m3), 2 m skirt,
+23.8 m overall; broth level about 14.7 m above the bottom tangent. Design 2.5 barg and -0.3 barg,
+150 C (SIP at about 121 C, 1.05 barg; ASSUMED): a full-vacuum rating of a 9 m vessel is heavy, so
+vacuum is prevented (D-019). Material SS304 (SRC-1) with SS316L nozzles and probe ports
+(ASSUMED); empty weight about 100 t (D-005). Agitators A-201A to P tagged apart (they carry the
+trip of D-017): top entry, 127 kW absorbed (D-012: 2035 kW / 16; D-009's 1880 kW is the year
+average), 160 kW motor (ASSUMED next size with margin), gearbox on the top head, double mechanical
+seal with a sterile barrier fluid (condensate or water at above the headspace pressure, ASSUMED).
+R-201A is drawn in full on P-202 as the typical; B to P on P-203 with the common headers and
+their branch valves, noted "instrumented as R-201A, typical". Rows outdoors on a foundation with
+a steel access structure at their tops (D-026).
+
+## D-017 Fermenter temperature: half-pipe coils on a tempered-water loop (2026-11-25)
+Decision: half-pipe coils on the shell, each fermenter with its own tempered-water loop: pump
+P-201x (85 m3/h) circulates through the coils; cooling water is injected on TIC-2011x (broth
+temperature, set 323 K) by TV-2011x, the surplus overflowing to the cooling-water return (ASSUMED
+usual practice; keeps the coil inlet warm against calcium lactate crystallising at a cold wall,
+D-005). Duty: Q2 7153 kW / 16 = 447 kW per fermenter on average; peak 1.5 times (ASSUMED) = 0.67
+MW; at U 400 W/(m2 K) and an LMTD of 11 K (broth 323 K, loop 308 to 315 K, ASSUMED) 152 m2 of the
+416 m2 of wetted shell. Alarms TAH-2011x on the broth; an independent TT-2012x with TSHH-2012x
+(set 333 K, ASSUMED) and FSLL-2014x on the loop flow (lost cooling) trip the agitator A-201x (the
+open safeguard of D-012) and alarm; in control/cause-effect.yaml once P-202 is drawn. Rejected:
+cooling water straight through the coils (a cold wall at 298 K).
+
+## D-018 pH: milk-of-lime ring main with dosing branches (2026-11-25)
+Decision: pH 5 to 6 (set 5.5, ASSUMED) on two steam-sterilisable pH probes AT-2021x and
+AT-2022x (two of two compared, deviation alarm), AIC-2021x to the on/off dosing valve AV-2021x
+on a DN 25 branch of a circulating milk-of-lime ring main, with a water flush connection after
+each dose against plugging and a steam block at the vessel nozzle (D-020). Demand: S7 34.9 t/h,
+about 2.4 t/h per fermenting vessel on average (about 15 vessels ferment at once), 3.5 m3/h peak
+(ASSUMED 1.5 times at 1150 kg/m3). Ring main DN 100 from T-105 through all fermenters and back,
+P-106A/B at 80 m3/h (2.8 m/s), about twice the 35 m3/h of all draws, so the return end stays above
+1.4 m/s (ASSUMED minimum against settling); PIC-1035 holds the ring pressure by a back-pressure
+valve at the return. The milk of lime is not sterile: its pH (about 12.4) and the slaking heat
+keep its bioburden low, and the thermophilic fermentation at 323 K and pH 5 to 6 is robust
+(ASSUMED; no source read); the dosing branch's steam block is the sterile boundary, accepted
+as a contamination risk. Rejected: NaOH or ammonia (sodium or ammonium sulfate instead of
+gypsum downstream: another route, D-001).
+
+## D-019 No aeration; nitrogen overlay, sterile filters, relief and vacuum protection (2026-11-25)
+Decision: the fermentation is not aerated: SRC-1 runs it in batch with no air or oxygen input and
+no CO2 among its products (homofermentative lactic acid bacteria, glucose to two lactic acid);
+the fermenters have no sparger, compressor or air filter train, and a note on P-202 says so.
+- Overlay: sterile-filtered nitrogen at 0.3 barg (ASSUMED) keeps the sterile boundary under
+  positive pressure, PIC-2041x split range on the N2 inlet PV-2042x and the vent back-pressure
+  valve PV-2041x. N2 about 1340 Nm3 per harvest (1033 m3 at 1.3 bar(a)) and 1300 Nm3 per SIP
+  cool-down, about 270 Nm3/h on average (ASSUMED estimate), from a site supply at the battery
+  limit. Rejected: a plain sterile vent (air drawn in at harvest; no positive pressure).
+- Filters: vent F-201x and inlet gas F-202x, DN 150 housings with 0.2 um hydrophobic cartridges,
+  steam-sterilised with the vessel, condensate drained at the housing low points. DN 150 because
+  the cool-down after SIP condenses about 1291 m3 of steam: at a controlled cool-down of at least
+  60 min (ASSUMED, by the coil valve) about 1300 m3/h of gas must come in (20 m/s in DN 150).
+- Relief: a sanitary reverse-acting rupture disc on the headspace, set 2.5 barg, sized on the SIP
+  steam case (the SIP steam valves failed open, about 3 t/h of LP steam, ASSUMED; sizing at
+  stage basic, piping/special-items.yaml), discharged to a safe location. Vacuum: the gas inlet
+  (operational) and a vacuum relief valve set at -0.2 barg admitting gas through F-202x
+  (ASSUMED), so the -0.3 barg rating is never reached.
+
+## D-020 Sterile boundary, steam blocks and aseptic sampling (2026-11-25)
+Decision: the sterile boundary runs at the first valve on every line into a sterile vessel or
+header; every entry that is opened and closed (medium inlet, inoculum inlet, lime dosing, harvest
+and CIP return, CIP supply, sampling) has a steam block: two block valves with steam fed and
+condensate drained between them (double block and bleed with steam, ASSUMED usual practice),
+steamed whenever the line is idle. The aseptic sampling valve is steam- and condensate-flushed
+before and after each sample. The boundary is marked on the sheets by notes and spec breaks
+(sterile class SS316L, orbital-welded, drainable). SIP steam enters at the headspace and at the
+bottom; condensate traps at the low points (bottom valve cluster, filter housings, coil drain).
+
+## D-021 CIP station and SIP steam (2026-11-25)
+Decision: one CIP station in building B-201 for the production fermenters, seed fermenters and
+transfer lines: caustic T-221 (NaOH about 2 wt%, 353 K), acid T-222 (nitric acid about 1 wt%,
+weekly), fresh water T-223, recovered rinse T-224 (40 m3 each), caustic 50 wt% make-up T-225 with
+P-223, heater E-221 on LP steam (2.0 MW), supply pumps P-221A/B (60 m3/h at about 3 barg at the
+spray devices on the fermenter top: about 30 L/min per metre of circumference, 28 m for 9 m, 51
+m3/h, ASSUMED), return pumps P-222A/B (self-priming). Sequence (ASSUMED): pre-rinse from T-224,
+caustic 30 min at 353 K, rinse, acid weekly, final rinse to T-224. The concept's 20 t of rinse
+water and 50 kg of NaOH per fermenter cleaned stay (D-003). SIP: plant LP steam through the
+sintered steam filters F-231A/B (1 um, ASSUMED; filtered plant steam, not clean steam) to the
+sterile users, 121 C for 30 min (ASSUMED); its condensate drained to the wastewater (not returned:
+possible product contamination, ASSUMED). The SIP steam per batch is the concept's cut-off
+(D-005).
+
+## D-022 Lime: silo, feeder, slaker and milk-of-lime tank (2026-11-25)
+Decision: quicklime silo V-102 (400 m3, 3 days at 1000 kg/m3 bulk, ASSUMED) with a bin vent
+filter, weigh feeder X-102 to slaker R-101 (the concept's 40 m3, D-006), slaker vent to a wet
+scrubber, a grit screen at its outlet, pumps P-107A/B to the milk-of-lime tank T-105 (250 m3, 8 h
+of S7 against a slaker outage, ASSUMED), ring main pumps P-106A/B (D-018).
+
+## D-023 Sheets, tags, line numbers (2026-11-25)
+Decision: ten P&IDs as the specification plans them: P-101 medium and steriliser, P-102 lime and
+ring main, P-201 seed train, P-202 R-201A (typical, detailed), P-203 R-201B to P with headers,
+harvest and T-201, P-204 CIP and SIP, P-301 cell removal, acidulation and gypsum, P-401
+evaporation, P-402 esterification and ester column, P-403 ethanol recovery, hydrolysis and
+product; all `planned` in plant.yaml. P-203 and P-201 may be generated by scripts (16 fermenters,
+three trains).
+- Equipment tags: letter, area digit and two digits (T tank, V vessel or drum, R reactor or
+  fermenter, A agitator of a fermenter, E exchanger or evaporator, X holding tube or feeder, P pump,
+  K vacuum pump, S centrifuge or solids filter, F gas or steam filter, C column); A, B... for
+  installed spares and parallel units, the fermenter letter for its own items (P-201A belongs to
+  R-201A). Other tanks' agitators are parts of their tanks.
+- Line numbers: `<DN>-<fluid>-<area><three digits>[train letter]`, e.g. 200-SM-2001A; fluid codes
+  SM sterile medium, PM process medium, IN inoculum, BR broth, ML milk of lime, CS/CR CIP supply
+  and return, LS LP steam, SS filtered SIP steam, CD condensate, NS sterile nitrogen, VT vent,
+  TW tempered water, CW/CWR cooling water, PW process water, PL process liquid. DN from a velocity
+  basis given per line in the line list (liquids 1 to 2.5 m/s, slurries at least 1.5 m/s,
+  gas and steam up to 30 m/s; ASSUMED).
+- Instrument tags: ISA letters and a loop number `<area><two digits>` plus the fermenter or train
+  letter (TIC-2011A on R-201A; TIC-2131B on R-213B).
+
+## D-024 Harvest and broth hold (2026-11-25)
+Decision: each fermenter's bottom valve cluster (harvest and CIP return) on a DN 250 harvest
+header; harvest pumps P-202A/B, 280 m3/h (1106 t in 4 h, recipe) to T-201 (the concept's 2500 m3,
+D-010), agitated, insulated, with an LP-steam coil to hold at or above 323 K (D-005); broth feed
+pumps P-203A/B, 125 m3/h on T-201's level and the downstream rate, to the centrifuges.
+
+## D-025 Downstream items for basic engineering (2026-11-25)
+Decision (sizes ASSUMED from the flowsheet flows): three disc-stack centrifuges S-301A to C, two
+running (55 m3/h each), cake hopper V-301 and cake pumps to anaerobic digestion; R-301's cooling
+on a pump-around through the spiral exchanger E-301 sized for 2.0 MW (D-007's 1.5 to 2 MW with
+the acid's dilution heat; a coil of about 200 m2 in a 150 m3 gypsum slurry tank was rejected for
+scaling), acid storage T-301 (7 days) and dosing pumps; belt filter S-302 with liquid-ring
+vacuum pumps K-301A/B, filtrate receiver V-303 and pumps; evaporator E-401 as effects E-401A to D
+with circulation pumps, surface condenser E-402, receiver V-401 and vacuum pumps K-401; R-401
+with feed heater E-411; C-401, C-402 and C-403 each with reboiler, condenser, reflux drum, reflux
+and bottoms pumps (C-401 with vacuum pumps K-421); R-402 with heater E-441; E-404 as effects
+E-404A and B with condenser E-461, drum V-461 and vacuum pumps K-461; product cooler E-405;
+product tanks T-401A/B (7 days); ethanol make-up tank T-402 with pumps P-472. The flowsheet links
+name the split tags (R-201A to P, S-301A to C, E-401A to D, E-404A/B, the steriliser's parts).
+
+## D-026 Plot plan (2026-11-25)
+Decision: a 360 m x 260 m site (ASSUMED) with a perimeter road and internal roads (8 m), areas
+A-110 lime, A-130 media day tanks, A-120 with the clad building B-201 for medium preparation,
+the steriliser, the seed train and the CIP station, A-200 production fermentation, A-300 cell
+removal, acidulation and gypsum with the gypsum store A-310, A-400 evaporation and purification
+(the ethanol area), A-600 tank farm (syrup, CSL, acid, product), A-610 ethanol storage apart,
+A-700 control room and substation, A-800 utilities (reserved). The production fermenters stand
+outdoors in two rows of eight (pitch 14 m, 5 m between shells) on a foundation, the main rack
+PR-1 between the rows (tiers 6, 8 and 10 m), the tempered-water pumps beside the rack, a steel
+access structure at the fermenter tops for the agitator drives and filters (structures.yaml at
+the layout-3d step). Rejected: a fermentation hall (16 vessels of 24 m: a building of about
+120 x 45 x 30 m for no process reason; the drives need weather protection only). Separations
+(ASSUMED, measured by `cheme validate`): the ethanol area and the ethanol tank at least 30 m from
+the control room and substation, the ethanol tank 15 m from the site boundary, tanks 8 m from
+roads. Elevated items (agitators, fermenter filters) are placed at their elevation; their mounts
+and structures follow with the 3D layout (gate layout-3d).
+
 ## Method and dependency table
 
 | result | method | inputs | where |
@@ -358,9 +589,9 @@ fermentation, not a reaction mass with accumulation).
 - The reactive distillation's conversion and the ester column's conditions from an open source.
 - Calcium lactate's solubility at 323 K.
 - Whether a gypsum cake wash pays.
-- The medium steriliser's conditions (temperature, holding time, the regenerative exchanger)
-  and the fermenters' sterilisation in place, here a hand estimate and a cut-off (D-005); the
-  seed train.
+- The medium steriliser's conditions (413 K and 120 s ASSUMED, D-015) and the fermenters'
+  sterilisation in place, here a hand estimate and a cut-off (D-005); the seed growth time (8 h
+  ASSUMED, D-013) and the dosing of a non-sterile milk of lime (D-018).
 - R-301's cooling with the acid's heat of dilution and the acidulation's heat (D-007, L-5).
 - Whether the ester column's water-free residue stays stable and pumpable at 423 K, or the
   column keeps water in its bottoms (D-008).
