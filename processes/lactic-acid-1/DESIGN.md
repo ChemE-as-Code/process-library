@@ -717,6 +717,53 @@ Changes to D-016 to D-021, each ASSUMED unless a source is named:
   pre-rinse while the harvest drains. Rejected: a 17th fermenter for 0.3 %.
 - **Line numbers.** The lime branch is 25-ML-2024A (25-ML-2021A reused the sequence of 80-SS-2021A).
 
+## D-033 P-202 to the S4 review: tags, agitator drive, coils, I-204, relief load, turnaround (2026-11-26)
+Decision: P-202 stays hand-maintained; `scripts/fix_P-202_s4b.py` (run once, provenance) added the
+labels and texts below, the drive and coil outlines and the moved bubbles are hand edits. All
+values ASSUMED unless a source is named.
+- **Valve tags (S4#1).** XV-2033A/2034A, TV-2011A/B, PV-2041A, XV-2043A/2044A, AV-2021A and
+  PSV-2046A carry printed tag labels. PCV-2042A is drawn as a field regulator bubble on the N2
+  valve with its impulse line from 50-NS-2025A downstream of the valve ("self-acting" note).
+  `cheme validate` still reports the valve-tagged instruments (TV, AV, XV, PV) as
+  instrument-not-on-pid: it reads instrument tags from bubbles and actuators, not from valve
+  labels (a core limit, listed below for the review to judge).
+- **Agitator (S4#2).** A-201A is drawn as a top-entry drive on the vessel axis line (x shifted
+  8 mm right of the centre so the drive clears the head SIP line): motor M (catalogue
+  MOTOR_SHAPE, 160 kW installed for the 127 kW of D-012), gearbox G, shaft through the top head,
+  double mechanical seal S with a sterile barrier fluid above headspace pressure (D-016), and the
+  impeller symbol in the broth. The drive is drawing only (no separate motor tag; the motor list
+  comes with electrical-list.yaml).
+- **Coils (S4#3).** The half-pipe coils of D-017 are drawn as an outline outside the straight
+  shell; 150-TW-2022A/2023A connect to them, not to the broth.
+- **I-204 and the loop during SIP (S4#4).** During SIP P-201A is stopped and TV-2011A/B are
+  closed (sequence step, S9); the stagnant loop water is warmed by the shell. I-204 (PALL-2043A)
+  now also stops P-201A, so the about 10 m3 of loop water cannot be circulated through the coils
+  of a steamed vessel, and stops the CIP supply pumps P-221A/B (one fermenter is cleaned at a
+  time, D-021), so no cold CIP spray enters a steamed vessel. Cold medium stays covered by
+  XV-2034A. Rejected: a trip valve in the CIP supply steam block (another actuated valve on every
+  fermenter for a case the pump stop covers).
+- **Relief load (S4#5).** PSE-2045A is checked against the full-open SIP paths, not the normal
+  3 t/h: from the LP header at 4.5 bar(a) (design basis) into the vessel at 3.75 bar(a)
+  relieving, 100-SS-2020A and 80-SS-2021A with K = 10 each (take-off, steam filter, valves,
+  bends) pass about 2.5 kg/s (9 t/h). The DN 150 disc to atmosphere is choked at about
+  360 kg/(m2 s) with Kd 0.62, 6.7 kg/s, 2.7 times that load: DN 150 stays, no restriction orifice.
+  Burst indicator XA-2045A (alarm) on the disc, so a burst disc does not open the sterile vessel
+  unnoticed. The same check for the seed vessels (S3#1) is left to S9.
+- **TIC-2011A (S4#6), PSV-2046A (S4#7).** TIC-2011A sits right of the loop riser with a straight
+  measuring line from the broth; its outputs are labelled "TV-2011A: 50-100 % (CW)" and
+  "TV-2011B: 0-50 % (LP steam)" and cross the riser once each (accepted in checks.yaml).
+  PSV-2046A is tagged and labelled "vacuum relief -0.2 barg".
+- **Turnaround (S4#8).** process/recipe.yaml now follows D-031's steps and keeps the 12 h of
+  D-003 with two overlaps: the CIP pre-rinse starts in the last 0.25 h of the harvest drain
+  (CIP 1.25 h after the harvest's 4.0 h), and the fill starts in the last 0.25 h of the SIP
+  cool-down once the vessel is under N2 above +0.1 barg (SIP 2.75 h before the fill's 4.0 h):
+  4.0 + 1.25 + 2.75 + 4.0 = 12.0 h. The 1.5 h inoculum transfer of D-030 runs in the last 1.5 h
+  of the fill through its own nozzle, so it adds no time. 16 fermenters and the 9.88 h harvest
+  period stay. Rejected: a 12.5 h turnaround (0.3 % fewer batches).
+- **Crossings on P-201 (S3#6).** The wildcard acceptances in checks.yaml are replaced by the 37
+  explicit finding ids.
+- Left open: S4#9 (vent filter housing heating), S3#1 to #5, #7 to #10, S2 and S1 lows (to S9).
+
 ## Method and dependency table
 
 | result | method | inputs | where |
