@@ -1,7 +1,37 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
 schema: cheme/interlocks/v1
-interlocks: []
+interlocks:
+  - id: I-101
+    title: "Steriliser divert: holding-tube outlet below 411 K (TT-1023, 1oo2 with I-102)"
+    cause: {tag: TT-1023, condition: TALL}
+    effects:
+      - {tag: XV-1025A, action: close}
+      - {tag: XV-1025B, action: open}
+      - {tag: TT-1023, action: alarm}
+    sheet: P-103
+    sil: null
+    notes: "Set 411 K, 2 K under the 413 K set point (ASSUMED). Forward flow is released only after 30 min re-sterilisation of the sterile side on water at 413 K (sequence, D-015). The divert returns the medium to V-101 (XV-1030, P-101)."
+  - id: I-102
+    title: "Steriliser divert: holding-tube outlet below 411 K (TT-1024, 1oo2 with I-101)"
+    cause: {tag: TT-1024, condition: TALL}
+    effects:
+      - {tag: XV-1025A, action: close}
+      - {tag: XV-1025B, action: open}
+      - {tag: TT-1024, action: alarm}
+    sheet: P-103
+    sil: null
+    notes: "As I-101 (D-015)."
+  - id: I-103
+    title: "Steriliser divert: E-101 sterile side less than 1.0 bar above the raw side"
+    cause: {tag: PDT-1028, condition: PDALL}
+    effects:
+      - {tag: XV-1025A, action: close}
+      - {tag: XV-1025B, action: open}
+      - {tag: PDT-1028, action: alarm}
+    sheet: P-103
+    sil: null
+    notes: "Sterile outlet of E-101 minus its raw inlet, low-low 1.0 bar (ASSUMED); a plate leak must go from sterile to raw (D-015, review 2026-11-25-S1#1)."
 #  - id: I-01
 #    title: LIN tank low-low level
 #    cause: {tag: LIA-101, condition: LALL}

@@ -359,9 +359,10 @@ in campaigns at the fill rate: 761 t in 4 h = 190 t/h, designed for 200 t/h (ASS
 about 4 h of every 9.88 h, the seed stages' side-draws within the same campaign (D-013). Syrup,
 CSL and process water are blended in line on ratio control into V-101 (the concept's 200 m3,
 about 1 h at the fill rate), so the averaging happens in the syrup and CSL day tanks. Between
-campaigns the steriliser stands by hot on water circulating through it and back to V-101 at
-sterilising temperature (ASSUMED), so the sterile side stays sterile. The year average is
-unchanged: Q17 1478 kW stays the net steam (D-005), the campaign peak is 3.8 MW (D-015).
+campaigns the steriliser is stopped, not held hot; it is re-sterilised before each campaign on
+once-through water (D-015, revised 2026-11-25 for review finding #5). The year average of the
+medium heating is unchanged: Q17 1478 kW stays the net steam (D-005), the campaign peak is
+3.8 MW (D-015); the re-sterilisation steam comes on top (D-015).
 Rejected: E-101 continuous at 77 t/h into a sterile medium buffer of one batch (about 720 m3 of
 24 wt% sugar at 323 K, an ideal growth medium held sterile for up to 10 h: a large sterile
 vessel with SIP, a filter and a contamination risk on every batch).
@@ -380,18 +381,44 @@ holding tube X-101, trim cooler E-103, back-pressure valve and divert valve, at 
   21 MW at 200 t/h. E-102 on LP steam: 396.6 to 413 K, 16.4 K x 89.4 kW/K = 1.47 MW on the year
   average (the medium at water's heat capacity per kg, D-009), which is Q17 1.48 MW; at 200 t/h
   3.8 MW, E-102 designed for 4.0 MW. E-103 on cooling water, 1.0 MW, for start-up on water and the
-  regenerator's drift. The sterile side of E-101 is kept at a higher pressure than the raw side
-  (the back-pressure valve is downstream of E-103), so a leak goes from sterile to raw.
+  regenerator's drift.
+- Sterile side above raw side in E-101 (revised 2026-11-25, review finding #1: with only the
+  back-pressure valve after E-103 the raw side, upstream of E-102 and X-101, is at the higher
+  pressure, so a plate leak would carry raw medium into the sterile medium). A sterile-side
+  booster P-108A/B (sanitary, variable speed, double mechanical seal with a steam barrier,
+  ASSUMED) after X-101 raises the sterile side. Pressures (ASSUMED, pressure drops of about
+  0.5 to 0.7 bar per exchanger pass and 0.5 bar in X-101): X-101 outlet 3.5 barg (PIC-1029 on
+  the booster speed; 0.9 bar above water's 2.6 barg at 413 K, SRC-4), so the raw side enters
+  E-101 at about 5.4 barg; the booster delivers about 7.1 barg (3.6 bar, about 40 m), the sterile
+  side leaves E-101 at about 6.4 barg, 1.0 bar above the highest raw pressure, and PIC-1026
+  holds about 6 barg after E-103 with PV-1026. PDT-1028 measures the sterile outlet of E-101
+  against its raw inlet; below 1.0 bar (ASSUMED) it diverts like a low holding temperature
+  (C&E I-103). Rejected: a second pump on the raw side after E-101 (the raw side at 397 K would
+  have to stay above 2.2 bar(a) anyway, leaving too little margin), and a double-wall or
+  intermediate-loop regenerator (a third circuit and about twice the plate area).
+- Standby and water (revised 2026-11-25, review finding #5): no hot standby on water circulating
+  to V-101, and no water into V-101 at all. Before each campaign the steriliser and the sterile
+  header are sterilised on once-through process water (XV-1034 into the P-104 suction) at 413 K
+  for 30 min (ASSUMED) to the wastewater (XV-1032, 150-WW-1018); the water-to-medium front at the
+  start goes to the wastewater for one hold-up volume (about 10 m3, ASSUMED), the last medium of
+  a campaign is pushed forward into the fermenter being filled by water (about 10 m3, about 1 %
+  of a batch, ASSUMED, the blend of the last hour made correspondingly stronger). Only a divert of
+  medium returns to V-101 (XV-1030). Steam on top of Q17 (ASSUMED estimate): heating the hold-up
+  and steel (about 1 h at up to 2 MW) plus 30 min at 100 t/h with the regenerator's 16.5 K
+  approach (about 1.9 MW), about 2.5 to 3 MWh per campaign, i.e. about 0.3 MW or 0.5 t/h of LP
+  steam as a year average (+20 % on Q17), and about 50 m3 of wastewater per campaign; Q17 and the
+  LCI do not carry it yet (Open inputs).
 - X-101: 120 s at 189 m3/h = 6.3 m3, DN 250 (0.049 m2, 1.07 m/s), about 130 m of serpentine on a
   skid, rising, insulated. The holding pressure is above water's 3.6 bar(a) at 413 K (SRC-4's
-  IAPWS series gives 450 kPa at 421 K): back-pressure control PIC-1026 at about 5 barg (ASSUMED);
+  IAPWS series gives 450 kPa at 421 K): held at 3.5 barg by PIC-1029 (see the booster above);
   design 10 barg, 160 C.
-- Divert: TT-1023 and TT-1024 (two elements) at the holding-tube outlet; below 411 K (ASSUMED,
-  2 K under the set point) the three-way divert valve XV-1025, downstream of E-103, sends the
-  medium back to V-101 and closes the sterile header; the sterile side then has to be re-sterilised
-  on hot water at 413 K for 30 min (ASSUMED) before forward flow is released. An interlock in
-  control/cause-effect.yaml (stage basic, after P-101 is drawn). Rejected: diverting at the
-  holding-tube outlet (413 K medium to an atmospheric tank).
+- Divert: TT-1023 and TT-1024 (two elements, 1oo2) at the holding-tube outlet; below 411 K
+  (ASSUMED, 2 K under the set point) or on PDT-1028 low, the divert pair after PV-1026 acts:
+  US-1025 closes the forward valve XV-1025A to the sterile header, UY-1025 opens XV-1025B back to
+  V-101 (a pair of on/off valves instead of one three-way valve, so the forward valve is a tight
+  block); the sterile side is then re-sterilised on water at 413 K for 30 min (ASSUMED) before
+  forward flow is released. C&E I-101 to I-103. Rejected: diverting at the holding-tube outlet
+  (413 K medium to an atmospheric tank).
 
 ## D-016 Production fermenters R-201A to P (2026-11-25)
 Decision: 16 tags R-201A to R-201P (the concept's R-201 split). Each 1291 m3 (D-010), D 9.0 m,
@@ -552,6 +579,24 @@ at the gate `process-basic` in checks/checks.yaml with this reason, for the desi
 confirm. Rejected: an ASSUMED amino-acid formula for NUT (it would make a nitrogen balance look
 sourced that is not, L-3).
 
+## D-028 P-101 split: medium preparation P-101, continuous steriliser P-103 (2026-11-25)
+Decision: the sheet frame is A3; storage, day tanks, blending and the steriliser do not fit on one
+readable sheet. P-101 keeps syrup and CSL receipt, storage T-101A/B and T-102, day tanks T-103
+and T-104, their pumps, the ratio blend (FIC-1011/1012/1013) and V-101 with LIC-1014; the new
+P-103 carries the steriliser (P-104A/B, E-101, E-102, X-101, P-108A/B, E-103, PV-1026, the divert
+pair XV-1025A/B, the water and wastewater connections). 250-PM-1004 (V-101 to P-104) and
+200-PM-1007 (divert to V-101) continue across both sheets under their numbers. New lines
+150-PM-1008/1009 (syrup receipt and transfer), 50-PM-1010/1011 (CSL), 200-PM-1012/1013,
+200-SM-1014/1015/1016 (the steriliser's legs between items), 150-WW-1018, 150-PW-1019 and the
+utility connections 200-LS-1021, 80-SC-1022, 150-CW-1023/1024 (sizes in the line list, velocity
+bases ASSUMED). New level indicators LI-1003/1004/1005 on the storage tanks. Drawn from
+scripts/draft_P-101.py and scripts/draft_P-103.py (provenance; both sheets are hand-maintained
+from now on). Tank heating coils are named in a note on P-101, not drawn (basic level). Open
+drawing warnings on P-103: two signal lines (US-1025 to XV-1025A, PDT-1028 to US-1025) cross the
+booster discharge 200-SM-1014, which encloses the instruments of the sterile loop; the CW
+connections of E-103 end in connectors by the exchanger because every way to a sheet edge crosses
+the sterile loop or the header.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
@@ -595,6 +640,8 @@ sourced that is not, L-3).
   MTT or TD24): the adiabatic rise of D-012 is a hand estimate.
 
 ## Open inputs
+- The steriliser's re-sterilisation steam (about 0.3 MW year average) and water (about 50 m3 per
+  campaign) on top of Q17 and S2, for the utilities and the LCI (D-015).
 - A dextrose-fed fermentation's yield, titer and productivity (the sources' are for
   lignocellulosic sugars).
 - The reactive distillation's conversion and the ester column's conditions from an open source.
