@@ -323,7 +323,7 @@ Decision: SRC-1's 5 stages at 1:10 per step (ratio ASSUMED). The stage-5 seed is
 batch (SRC-1's inoculum ratio 0.07, taken on the broth): 0.07 x 1033 = 72 m3, then 7.2, 0.72,
 0.072 and 0.0072 m3. Stages 1 (7 L flask) and 2 (72 L lab fermenter) are grown in the
 microbiology laboratory off-plot (a note on P-201); stages 3 to 5 are plant seed fermenters R-211
-(1 m3), R-212 (10 m3) and R-213 (about 107 m3), each at about 72 % fill (ASSUMED). On SRC-1's 7 %
+(1 m3), R-212 (10 m3) and R-213 (about 107 m3), at about 72, 72 and 67 % fill (ASSUMED; D-030). On SRC-1's 7 %
 of the feed (761 t of medium per batch, S6 x 9.879 h) the seed medium is 53 t; the 72 m3 basis is
 the larger and sizes R-213. The seed medium is a side-draw of the sterile medium header (D-014),
 so the flowsheet's medium and the production fermenters' totals are unchanged (L-3 stands: the
@@ -607,6 +607,47 @@ PIC-1035/PV-1035 and FIL-1036. R-101 is drawn and listed as a Vessel (agitated, 
 this core's DEXPI classes have no stirred-tank reactor; the seed fermenters will meet the same
 (core limit, candidate issue). Review finding #8 (ring-main return velocity at peak draws) is
 not resolved by this sheet: P-106A/B stay at 80 m3/h until it is decided.
+
+## D-030 Seed train A on P-201; transfer hydraulics and campaign timeline (2026-11-26)
+Decision: P-201 draws train A in full (R-211A, R-212A, R-213A with agitators A-211A to A-213A,
+T-215, P-215A/B, F-215); trains B and C go on the new sheet P-205 as typicals of train A (planned;
+their 12 list items moved to it). Drawn from scripts/draft_P-201.py (provenance; the sheet is
+hand-maintained from now on). ASSUMED throughout, no source read:
+- Per vessel: medium from 100-SM-2003, base (NaOH 15-NA-2147 through F-215; lime 25-ML-2131A on
+  R-213A) and inoculum each through a steam block (two ball valves, 15-SS-2148 steam and a trap to
+  the drain between them, D-020); the R-213A outlet 100-IN-2138A has its own steam block before
+  100-IN-2004 (P-203). Sterile N2 from 40-NS-2141 through the inlet filter F-242A/244A/246A and
+  PV-21x4A (PIC-21x4A on the N2 inlet), vent through F-241A/243A/245A and a hand valve to atm. (a
+  constant sweep; closed for a transfer). Rupture disc on each vessel to a safe location (sizing
+  on the SIP steam case at detail). Jackets on cooling water with TIC-21x1A on TV-21x1A; pH
+  AIC-21x2A on AV-21x2A; WI-2113A/2123A (load cells), LI-2133A (radar). Bottom valve cluster:
+  bottom valve, SIP steam tee (25-SS-2150 from 50-SS-2144), transfer tee, CIP return valve to
+  50-CR-2143; CIP supply 50-CS-2142 to a spray device through one valve, steamed with the vessel
+  (the steam-block rule of D-020 is not applied to CIP connections of the seed vessels: open for
+  the review). Headers to P-205 at the right edge. Drawing: SIP steam is the lowest top header so
+  no steam-block feed crosses a header; the 31 remaining crossings (drops through the headers
+  below) and the CW stubs are accepted in checks.yaml with this reason.
+- Transfer hydraulics (review S1#2): R-213A in B-201 to the R-201 top inlets, about 250 m of DN 100
+  (S1 estimate). Transfer in 1.5 h instead of 1 h: 48 m3/h, 1.7 m/s; friction scales with v^2 from
+  S1's 1.3 to 1.7 bar at 2.5 m/s to about 0.6 to 0.8 bar; lift to the 23.8 m fermenter top about
+  2.4 bar (24 m at 1030 kg/m3, ASSUMED); target headspace 0.3 barg: R-213A at about 3.5 barg at
+  the start of the transfer. R-213A's design pressure is raised from 3.0 to 6.0 barg (list
+  updated; a 4 m vessel at 6 barg is ordinary) so the transfer runs at least 1.5 bar below it;
+  R-211A and R-212A stay at 3.0 barg (local transfers in B-201, lift under 5 m). The line hold-up
+  (about 2 m3, 250 m x 7.9 L/m) is blown forward into the fermenter with sterile N2 at the end of
+  the transfer, then the line is steamed (D-020). The 1.5 h transfer fits D-013's cycle: stage 5
+  occupies 1 h fill + 8 h growth + 1.5 h transfer = 10.5 h, plus 12 h turnaround = 22.5 h, under
+  the 29.64 h a vessel has per seed (three trains). Rejected: a bottom inoculum inlet (the broth
+  head adds up to 1.5 bar), stage 5 beside the fermenter rows (a second sterile building).
+- Campaign timeline (review S1#6): per production period (9.88 h) the steriliser runs 1.5 h
+  heat-up and 30 min water sterilisation (D-015), 4 h production fill at 190 t/h, then the seed
+  fills at about 80 t/h (40 % of the 200 t/h design, ASSUMED within a plate steriliser's turndown;
+  the hold time rises to about 5 min, on the safe side): 72 m3 to a stage-5 vessel in about 1 h,
+  7.2 and 0.72 m3 to stages 4 and 3 in the same hour on their own branches; 6.5 to 7 h of 9.88 h.
+  The seed fill is never inside a production fill, so the steriliser never exceeds 200 t/h.
+  R-213 holds 72 m3 in about 107 m3: 67 % fill, not 72 % (D-013 corrected). The seed medium is the
+  full-strength production medium (about 240 g/L sugar, ASSUMED acceptable for the strain; no
+  source read, Open inputs); dilution with sterile water rejected for now (a sterile water supply).
 
 ## Method and dependency table
 
