@@ -1066,12 +1066,27 @@ data).
   moment. This changes A-201A's note ("on the top head"). The vent and gas filters F-201/F-202
   move from over the head to the deck edge on the rack side (y 126.5 and 145.5). Two stair
   towers per deck, one at each row end (south of row 1, north of row 2), give two ways down
-  about 104 m apart. Rejected: a fermentation hall (D-026); per-vessel head platforms with
+  about 104 m apart. No shell platforms on the fermenters (`access: {platforms: []}`): the
+  top-head connections are worked from the deck, the bottom valve clusters, probes, sample
+  valve and lower manway from grade. The model puts the shell nozzles at the heights the P&IDs
+  draw them (1.6 to 23 m on R-201A) and proposed eight ring platforms per vessel; those heights
+  are drawing positions, not design, and the probes, sampling and manway are placed on the
+  lower shell at detail design. Rejected: a fermentation hall (D-026); per-vessel head platforms with
   ladders (16 ladders of 24 m, one way down each, no route for the drive lifts); drives on the
   head (the head would need a 12 t reinforcement per vessel).
-- **Seed building B-201**: the train B and C filters F-241 to F-246 B/C are placed as train A
-  on the platforms P1 to P3; a 25 t overhead crane (rail at 14 m) lifts the stage-5 vessels
-  (18 t) and the CIP tanks; laydown LD-120 south of the building.
+- **Seed building B-201**: the three trains stand 10 m apart (y 232, 222, 212; they were 5 to
+  7 m apart and their small-bore lines clashed), the NaOH dosing set T-215/F-215/P-215A/B moves
+  to y 200 to make room. The seed vessels' top platforms stay building levels P1 (2.45 m),
+  P2 (4.6 m) and P3 (10.2 m). Intended is one platform strip per stage over its vessels, but a
+  building level takes no extent and an item inside a clad building cannot be mounted on a
+  steel frame (core limit L-11), so in the model each level covers the whole 72 x 64 m floor
+  and every pipe in the building below 2.1 m over a level is a headroom finding. The train B
+  and C filters F-241 to F-246 B/C are placed as train A. A 25 t overhead crane
+  (rail at 14 m) lifts the stage-5 vessels (18 t) and the CIP tanks; laydown LD-120 lies south
+  of the building.
+- **Skipped lines** (`piping/routing.yaml`): the DN15 lines (sampling, NaOH dosing, steam
+  bleeds; field-run below the gate's DN25) and the seed jackets' 25-CW cooling water (a
+  utility, routed at detail engineering, gate layout-detail).
 - **Downstream**: columns C-401 to C-403, R-401 and the evaporator bodies E-401A to D stand on
   their own skirts with platforms on their shells (no frames); R-301's agitator A-301 stands on
   its flat roof (7.5 m). The overhead condensers stay at grade as D-026 placed them; a
@@ -1095,6 +1110,37 @@ data).
 - **P-404**: the build fingerprints every sheet in `plant.yaml`, and a planned sheet without a
   file stops it (core limit L-10). P-404 was started as the empty template (`cheme sheet new`,
   title block only), so its status went from planned to drafted. It is drawn in S9.
+- **Lifting** (`layout/lifting-study.*`): the seed stage-5 vessels go by the B-201 crane. The
+  fermenters (9 m), T-101A/B and T-201 (14 m), the silo V-102 and the belt filter S-302 are
+  field-erected or assembled in place and never lifted whole: accepted in gate lifting-study
+  with that reason. The drive, seal and filter lifts go from CP-201/CP-202 to the 24.5 m deck.
+
+Model as committed (259 items, 1146 segments: 1004 routed, 142 of 33 lines skipped with
+a reason, 0 unrouted; 69 item platforms; plot plan, section x = 159 m across both fermenter
+rows and section y = 232 m through seed train A and the ethanol columns rendered and looked
+at). Gates: layout-plot-plan ok, mto ok; layout-3d fails on clashes, headroom and the missing
+independent layout review; lifting-study fails on S-301A to C only. Remaining layout findings,
+for the layout review and S9 or detail engineering:
+- `layout-clash-pipe` (201 or more; the listing stops at 201): mostly the fermenter branches.
+  The drops from the 6, 8 and 10 m tiers of PR-1 to the vessel tops leave their headers at the
+  same x, rise through the tiers above and run in parallel to the top deck. They need one
+  riser lane per service per fermenter (via points or pinned drops, about 100 routes), which
+  is the next layout task. The rest are tank-farm lines sharing a PR-5 lane.
+- `layout-headroom` 158: the seed building's whole-floor platform levels (L-11), 7 drops over
+  T-201's roof platform, and a few crossings of road R-5 at 5.9 m (header drops).
+- `layout-clash-pipe-equipment` 63 and `layout-clash-pipe-steel` 15: branches through the
+  agitator drive envelopes and the top-deck beams, and lines through the PR-1 bents.
+- `layout-operability` (201 or more): the fermenter shell nozzles at drawing heights (see above)
+  and valves on the rack drops; `layout-free-span`/`support-missing`: generated support posts
+  to place at detail engineering.
+- `layout-escape-ways` 25, `ladder-clearance` 28, `walkway-riser` 40, `egress-zone` 27,
+  `vent-outlet` 27: proposed item platforms (columns, seed vessels, R-301, T-201) still to be
+  reviewed and pinned, and the vent risers to be raised by a `vents` rule after the vent study.
+- `layout-steel-in-way` 7: rack bents in roads R-5 to R-8 where the racks cross them (span
+  the road with a portal at detail engineering); `layout-spacing` 3: the vacuum pump pairs
+  K-401, K-421 and K-461 stand 1.3 to 2.8 m apart (3 m wanted).
+- Lifting: S-301A to C, lanes blocked by their feed and centrate lines (a removal lane at
+  detail engineering).
 
 ## Method and dependency table
 
@@ -1142,6 +1188,9 @@ data).
   has no start, and every branch off it stays unrouted: its first segment is pinned (D-043).
 - L-10: `cheme layout build` stops on a planned sheet that has no file yet (it fingerprints
   every sheet of `plant.yaml`); the empty template had to be created first (D-043).
+- L-11: a building level has no extent and an item in a clad building must be mounted on a
+  building level, so the platforms of the vessels inside a building cover the whole floor in
+  the model (headroom findings over the whole floor, D-043).
 
 ## Open inputs
 - The steriliser's re-sterilisation steam (about 0.3 MW year average) and water (about 50 m3 per
