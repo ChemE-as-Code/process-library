@@ -827,6 +827,44 @@ the XML is the source):
 - Left open: TV-2052 is printed as a valve tag only (not in the instrument list, as the P-202
   valves); the CIP of T-201 and its overflow are not drawn.
 
+## D-036 Seed trains to the S3 review; trains B and C on P-205 and P-208 (2026-11-26)
+Decision: one script, scripts/draft_seed_train.py (replaces draft_P-201.py), draws train A on
+P-201 and its typicals, train B on P-205 and train C on the new sheet P-208 (the train letter
+follows from the sheet file; P-201 was redrawn from it, since no hand edit had been made after
+D-030). One train fills a sheet at legible scale, so "trains B and C on P-205" became one train
+per sheet (plant.yaml and the C items' `sheet:` changed). Trains B and C are drawn in full, with
+every tag of their own, and listed (lines, filters, instruments, discs, trips): no footnote
+typicals (S5#1 lesson). Headers run A -> B -> C; on P-208 they end in a steam trap (medium, SIP),
+a drain valve (CIP) or a blind flange (N2, NaOH); the CIP return starts there at a SIP steam
+connection. Each sheet is hand-maintained; changes go through the script and a redraw of all three.
+Review S3 closed as follows (ASSUMED throughout, no source read):
+- S3#1 relief: each N2 branch gets a self-acting reducer with restricted trim, PCV-21x6x (2.0 barg
+  for R-211/R-212, 4.0 barg for R-213; 150 Nm3/h at most from 6 barg). Rupture discs PSE-21x5x
+  (3.0 barg R-211/R-212, 6.0 barg R-213) in piping/special-items.yaml with their cases: governing
+  is PCV and PV both failed open, 0.052 kg/s against about 0.30 kg/s of N2 through a DN 25 disc
+  at 4.3 bar(a) (choked, Kd 0.62); SIP steam about 0.1 kg/s against about 0.2 kg/s. R-213 at
+  6.0 barg equals the header pressure, so a header excursion is the only overpressure. The
+  transfer pressure is 3.5 barg (D-030); the line note's "4.5 barg" is corrected.
+- S3#2 aseptic sampling: a steam-sterilisable sampling valve on each seed vessel's bottom head
+  (15-BR-2158x to 2160x), drawn as one valve with its steam and condensate ports in the valve
+  body (not drawn). Transfer release (ASSUMED): a sample at the end of growth with OD in range,
+  microscopy and plating free of contaminants, pH 5 to 6.
+- S3#4 high level: a batch stop on the fill measurement, not an independent switch: WIS-2113x/
+  2123x (load cells) and LIS-2133x (radar) close XV-21x8x, the inner valve of the medium steam
+  block, at high-high (C&E I-211 to I-213C). Overfill wets the vent filter (sterility, batch
+  loss); overpressure is covered by the disc, so the function is not a safety function. An
+  independent LSHH was rejected: no clear nozzle and bubble position on the seed vessel tops
+  at this sheet scale, and no safety case for it.
+- S3#5 CIP inlet: double-seat (mix-proof) valves XV-21x9x with a steamed leakage chamber instead of
+  a steam block (rejected: two more steam blocks per vessel on a full sheet). Usual in aseptic
+  plants (ASSUMED); the leakage chamber drain is part of the valve.
+- S3#7: T-215 gets a fill from P-223 (50 wt% NaOH, 15-NA-2152) with dilution water (15-PW-2153) and
+  a vent (25-VT-2154); the P-215A/B check valves were drawn, the P-215A label is moved off the
+  suction. S3#8: vent-filter housing drains through traps; the disc outlets renumbered
+  25-VT-2155x to 2157x; the 25-ML-2131A label moved. S3#10 (seed heating) stays open.
+- The NaOH header 15-NA-2147 continues from P-201 to trains B and C; R-212's branch is now
+  15-NA-2121x.
+
 ## Method and dependency table
 
 | result | method | inputs | where |

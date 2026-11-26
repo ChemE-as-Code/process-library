@@ -1,4 +1,6 @@
-"""P-201 seed train A, stages 3 to 5 (provenance script; the XML is the source).
+"""SUPERSEDED by scripts/draft_seed_train.py (D-036): kept as the provenance of P-201 revision A only.
+
+P-201 seed train A, stages 3 to 5 (provenance script; the XML is the source).
 
     cheme sheet new P-201 --title 'Seed train A, stages 3 to 5'
     cheme run scripts/draft_P-201.py pid/P-201.xml
