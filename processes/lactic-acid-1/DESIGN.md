@@ -1142,6 +1142,18 @@ for the layout review and S9 or detail engineering:
 - Lifting: S-301A to C, lanes blocked by their feed and centrate lines (a removal lane at
   detail engineering).
 
+## D-044 S9 close-out: XV-3013, the P-403 crossing, P-404 (2026-11-26)
+- **XV-3013 (S6-review#1, reopened at S8).** The valve has been on P-301 since S7 (D-040), drawn
+  at the T-301 tanker fill line 80-SA-3009: the former hand valve T301_HVF is a ball valve with
+  a fail-closed actuator, its tag label printing XV-3013, and LSHH-3013 (on its own nozzle N5,
+  independent of LIT-3012) signals to it (C&E I-301). Rendered and checked in S9
+  (build/P-301_crop-290-10-350-55.png). The finding came from the instrument-list check, which
+  looks for an instrument bubble printing the tag; as for the P-202 valves (D-034), the final
+  element prints its tag as the valve's tag label, so the check is accepted with that reason in
+  checks/checks.yaml. Rejected: a separate XV bubble beside the valve (would print the tag twice).
+- **P-403 crossing.** The one crossing D-042 accepted in words (80-RV-4406 over 65-ET-4505) is now
+  accepted by id in checks/checks.yaml, so drawing-clean no longer fails on it.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
