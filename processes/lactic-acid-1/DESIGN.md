@@ -927,6 +927,32 @@ Left open: R-301 high-level and low-level trips, the vacuum system pressure indi
 filter's interlocks (belt drift, cloth wash, vacuum loss), the centrifuges' vendor interlocks;
 the cake chute of S-302 is not a pipe; A-301 not yet placed in the layout.
 
+## D-039 P-401 four-effect evaporator as drawn (2026-11-26)
+Decision: P-401 draws D-008's E-401 from scripts/draft_P-401.py (provenance; hand-maintained) as
+four falling-film effects E-401A to D in forward feed (listed as ThinFilmEvaporator, the DEXPI
+class drawn; separator in the same symbol). The feed 150-CL-3022 enters the circulation of
+E-401A; each pump P-403x lifts its sump to the film distributor (about 150 m3/h, ASSUMED wetting
+rate) and sends the forward transfer on LIC-4011x/LV-4011x to the next effect's sump. LP steam
+(FIC-4001, 6.5 t/h for Q4 13.7 MW at 2.1 MJ/kg) heats E-401A, its condensate returns through a
+trap; each effect's vapour heats the next; the last vapour goes to the surface condenser E-402
+(Q5 14.5 MW; cooling water 1250 m3/h at a 10 K rise, ASSUMED). The condensates of E-401B to D
+and E-402 drain to the receiver V-401, on which the liquid-ring pumps K-401A/B hold the vacuum
+(non-condensables with the condensate, ASSUMED); P-401A/B on LIC-4004 send S15 to wastewater.
+P-402A/B draw the concentrate (S16, 71 wt%) from the E-401D sump through DV-4002 on DIC-4002
+(density as the concentration measurement, ASSUMED usual).
+- Effect pressures ASSUMED (no source read): about 1.0, 0.6, 0.3 and 0.12 bar(a), equal
+  evaporation of about 20 t/h per effect (81 t/h / 4). Vapour DN at 30 to 45 m/s: 20 t/h is
+  5.6 kg/s; at 1.0 bar(a) 0.59 kg/m3 gives 9.4 m3/s (DN600, 33 m/s), at 0.6 bar(a) 0.37 kg/m3
+  15 m3/s (DN800, 30 m/s), at 0.3 bar(a) 0.19 kg/m3 29.5 m3/s (DN1000, 38 m/s), at 0.12 bar(a)
+  0.08 kg/m3 70 m3/s (DN1400, 45 m/s; DN1500 to be checked). DEXPI's DN standard has no
+  DN250 to DN1400: the DN stays in the line numbers and the line list.
+- New fluid codes (D-023): VP process vapour, PC process condensate.
+- Accepted crossings (checks.yaml): condensate drops against the forward transfers, the
+  concentrate draw against the condensate header, the LIC measuring lines against the risers.
+Left open: the vacuum control (PI-4003 only, no PIC on bleed air), effect temperature and
+pressure indications, the condensate flash between effects, the evaporator CIP (scaling by
+residual gypsum, D-007), relief of E-401A's steam chest; P-401's areas for the layout.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
