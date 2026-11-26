@@ -6,7 +6,12 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from wwtp_a2o.domains.process.model import REACTORS, connections, validate_inputs
+from wwtp_a2o.domains.process.model import (
+    REACTORS,
+    clarifier_solubles,
+    connections,
+    validate_inputs,
+)
 from wwtp_a2o.integrations.qsdsan import build_model, integrate
 
 METRICS = {
@@ -58,7 +63,7 @@ def metrics(stream):
 
 
 def calculate(data: dict, reference: bool = False) -> Calculation:
-    """Use exactly the previous equations, integration and accepted-state postprocessing."""
+    """Integrate the selected model and publish values from its accepted states."""
     import numpy as np
 
     validate_inputs(data)
@@ -183,6 +188,7 @@ def calculate(data: dict, reference: bool = False) -> Calculation:
         "python": sys.version,
         "executable": sys.executable,
         "verification": {
+            "clarifier_solubles": clarifier_solubles(data),
             "whole_system_N_P_balance_with_accumulation_and_gas": "not_verified",
             "solver_method_and_tolerance_robustness": "not_verified",
             "initialization_robustness": "not_tested",

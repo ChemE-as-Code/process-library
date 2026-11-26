@@ -11,7 +11,16 @@ GROUPS = {
 }
 
 
+def clarifier_solubles(data):
+    mode = data.get("clarifier_solubles", "mixed")
+    if mode not in ("mixed", "bsm1-layered"):
+        raise ValueError("clarifier_solubles must be mixed or bsm1-layered")
+    return mode
+
+
 def validate_inputs(data):
+    clarifier_solubles(data)
+
     def positive(value, name, zero=False):
         if not isinstance(value, (int, float)) or not math.isfinite(value):
             raise ValueError(f"{name} must be a finite number")
