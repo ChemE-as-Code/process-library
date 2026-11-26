@@ -1178,6 +1178,52 @@ for the layout review and S9 or detail engineering:
   - XV-4807A/B and XV-4704 print their tags as valve labels; their instrument-list checks are
     accepted as XV-3013's. Rejected: separate XV bubbles (the tag twice).
 
+## Basic-engineering status (2026-11-26, S9)
+
+Stage basic is in progress and not signed off; the branch `stage/basic-lactic-acid-fermentation`
+awaits the independent review and a human merge. All 16 planned P&IDs are drawn (P-404 in S9).
+
+Gates of stage basic (from `cheme check`; the stages up to concept pass):
+
+| gate | state | why |
+|---|---|---|
+| validate (0 errors), lists in step, sheets drawn | ok | 0 errors; every listed item on a sheet (P-404 drawn in S9) |
+| drawing-clean | ok expected | the last unaccepted crossing (P-403, 80-RV-4406 over 65-ET-4505) accepted in S9 with D-042's reason; every acceptance is an agent proposal for the design review to confirm |
+| design-review | failing | the review records of S2 to S8 name files changed since they were written (DESIGN.md, the lists, checks.yaml, sheets), and S9's changes are unreviewed; it passes once the independent S9 review is written against the final commit |
+| layout-3d | failing | 200 pipe-pipe, 63 pipe-equipment and 15 pipe-steel clashes and 158 headroom findings not accepted, mostly the fermenter branches at the top decks (S8#1) and the whole-floor platform levels of B-201 (L-11, S8#5) |
+| lifting-study | failing | S-301A to C: the removal lanes are blocked by their own feed and centrate lines (S8#6) |
+
+Open review findings by area (the review records in `reviews/` hold the text):
+- **Fermentation, layout (D-043):** S8#1 high, branch valves and clashes at the fermenters.
+  Intended fix: put each fermenter's header branch valves at the top deck or at a rack walkway,
+  give each service one riser lane per fermenter, drop the generated one-valve platforms, and
+  route the A-200 branches clash-free (via points and pins in piping/routing.yaml). S8#2: support
+  the 12 t drives on the vessel head (head reinforcement quantified by the vessel vendor) or keep
+  the frame and state a decoupling the seal can follow (about 40 mm SIP growth, ASSUMED 100 K
+  on 24 m SS304, plus hydrostatic stretch and settlement); the intended choice is the drive on
+  the vessel, the deck only for access. S8#3: lower the deck TD from 24.5 m to the head-tangent
+  level (about 21.6 m) so the top-head valves are within reach of the grating. S8#4: a middle
+  stair per deck and declared escape zones. S8#5: accept the L-11 headroom artefacts by id, raise
+  the R-5 crossings to the road clearance, clear the drops over T-201. S8#6: per-bay crane pads,
+  the gearbox lift weight, a centrifuge removal lane. S8#7 closed by P-404 being drawn. S8#8:
+  the rise in line-crossing warnings is not yet explained.
+- **Fermentation, P&IDs:** S5#1 (medium), the lists for the typicals R-201B to P: the
+  instruments and valves of the typicals are covered by "instrumented as R-201A" on P-203,
+  P-206, P-207 and not listed per fermenter; intended fix: list them per fermenter (tag suffix
+  B to P) or record the typical rule in the lists' notes. S5#2 (medium), T-201: give the broth
+  hold tank a vent, an overflow and an independent LAHH stopping the harvest pumps (a C&E entry);
+  not done in S9. S5#3 to #8 (low) and S4#9, S4b#1, S3#9, S3#10 (low) remain open.
+- **CIP/SIP (P-204):** S5b#2 to #4 (medium, the CIP return divert and the permissives), S5b#5 to
+  #8, #10 (low).
+- **Media and lime:** S2#1 (XV-1025A), S2#2 (the slaker interlock), S2#3 (medium), S2#6 to #8
+  and S1#8 (low).
+- **Downstream:** S6#1 (high, XV-3013) answered in S9 (D-044, for the reviewer to close);
+  S6#3, #5 (medium), S6#7 to #9 (low); S7b#1 (PSV readability and RV sizing), #2 (R-402
+  pressure), #3, #4 (R-401) (medium), #5 to #7 (low).
+- **P-404 (new in S9):** unreviewed; open within it: the LALL of LIT-4706 stopping P-472A/B has
+  no C&E entry yet, the remote acid-feed flow of FFIC-4701 is not drawn, 100-PL-4402's listed
+  `to:` (E-441) differs from the P-403 drawing (the tee M402).
+
 ## Method and dependency table
 
 | result | method | inputs | where |
