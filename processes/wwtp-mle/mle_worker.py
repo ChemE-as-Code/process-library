@@ -119,10 +119,23 @@ def design_snapshot(units, rows, request, day):
     }
 
 
+def build_system(config):
+    from exposan.bsm1 import create_system
+
+    mode = config.get("clarifier_solubles", "mixed")
+    if mode not in ("mixed", "bsm1-layered"):
+        raise ValueError("clarifier_solubles must be mixed or bsm1-layered")
+    system = create_system(suspended_growth_model=config["model"], reactor_model=config["reactor"])
+    if mode == "bsm1-layered":
+        from mle_clarifier import use_layered_clarifier
+
+        system = use_layered_clarifier(system)
+    return system
+
+
 def main(request, response):
     import numpy as np
     import yaml
-    from exposan.bsm1 import create_system
 
     if (request["schema"], request["mode"]) != ("cheme/worker-request/v1", "dynamic"):
         raise ValueError("MLE requires a v1 worker request for dynamic integration")
@@ -132,7 +145,7 @@ def main(request, response):
         raise ValueError(f"This baseline requires QSDsan and EXPOsan 1.5.3: {versions}")
     if (config["case"], config["model"], config["reactor"]) != (request["case"], "ASM1", "CSTR"):
         raise ValueError("Expected the configured ASM1 stirred-tank case")
-    system = create_system(suspended_growth_model=config["model"], reactor_model=config["reactor"])
+    system = build_system(config)
     streams = process_streams(system)
     units = {unit.ID: unit for unit in system.units}
     verify_connections(yaml.safe_load(Path("process/flowsheet.yaml").read_bytes()), streams)
@@ -187,6 +200,8 @@ def main(request, response):
         },
         "messages": ["Constant-influent teaching run completed. ASM1 supplies no TP or PO4 result."],
     }
+    if config.get("clarifier_solubles") == "bsm1-layered":
+        result["verification"]["clarifier_solubles"] = "bsm1-layered"
     encoded = json.dumps(result, indent=2, allow_nan=False)
     (evidence / "baseline-result.json").write_text(encoded, encoding="utf-8")
     response.write_text(encoded, encoding="utf-8")

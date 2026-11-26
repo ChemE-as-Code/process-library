@@ -36,6 +36,20 @@ Each run keeps its own ignored evidence folder. Flow, COD, TN, TSS and ammonium
 nitrogen appear in the native stream table. ASM1 does not supply TP or phosphate
 for this case.
 
+## Optional layered dissolved transport in the clarifier
+
+To use the BSM1 dissolved transport equations, add
+`"clarifier_solubles": "bsm1-layered"` to the input JSON in a separate copy of
+the example, then run `cheme process simulate --fill` there. The
+default `"mixed"` continues to use the EXPOsan clarifier. Use the saved
+`verify_baseline.py` reference for the default case.
+
+The option keeps QSDsan's 10-layer solids settling calculation and applies
+the non-reactive dissolved balances from the IWA BSM1 technical report
+(§2.3.3, equations 41–44) separately in each layer. Effluent takes the top
+layer's dissolved concentrations. The bottom layer supplies the return and
+waste sludge streams. The example's default input remains constant.
+
 ## Review retention time and secondary clarifier loading
 
 Use a core Python environment containing commit `291daae` (core #337) or a
