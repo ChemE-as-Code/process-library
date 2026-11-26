@@ -423,9 +423,9 @@ holding tube X-101, trim cooler E-103, back-pressure valve and divert valve, at 
 ## D-016 Production fermenters R-201A to P (2026-11-25)
 Decision: 16 tags R-201A to R-201P (the concept's R-201 split). Each 1291 m3 (D-010), D 9.0 m,
 straight side 17.3 m (63.6 m2 x 17.3 m = 1100 m3 plus two 2:1 heads of 95.4 m3), 2 m skirt,
-23.8 m overall; broth level about 14.7 m above the bottom tangent. Design 2.5 barg and -0.3 barg,
-150 C (SIP at about 121 C, 1.05 barg; ASSUMED): a full-vacuum rating of a 9 m vessel is heavy, so
-vacuum is prevented (D-019). Material SS304 (SRC-1) with SS316L nozzles and probe ports
+23.8 m overall; broth level about 14.7 m above the bottom tangent. Design 2.5 barg and full
+vacuum (D-034 replaces the -0.3 barg first chosen here), 150 C (SIP at about 121 C, 1.05 barg;
+ASSUMED). Material SS304 (SRC-1) with SS316L nozzles and probe ports
 (ASSUMED); empty weight about 100 t (D-005). Agitators A-201A to P tagged apart (they carry the
 trip of D-017): top entry, 127 kW absorbed (D-012: 2035 kW / 16; D-009's 1880 kW is the year
 average), 160 kW motor (ASSUMED next size with margin), gearbox on the top head, double mechanical
@@ -763,6 +763,36 @@ values ASSUMED unless a source is named.
 - **Crossings on P-201 (S3#6).** The wildcard acceptances in checks.yaml are replaced by the 37
   explicit finding ids.
 - Left open: S4#9 (vent filter housing heating), S3#1 to #5, #7 to #10, S2 and S1 lows (to S9).
+
+## D-034 P-202 to the S4b review: full vacuum, set points, LP header relief, legibility (2026-11-26)
+Decision (all values ASSUMED unless a source is named):
+- **Full vacuum (S4b#2).** R-201A to P are designed for 2.5 barg **and full vacuum** (FV), 150 C,
+  as the seed vessels R-211x to R-213x already are (D-013). Reason: steam collapse after SIP can
+  draw about 24 000 m3/h (D-031), far above any sterile-filter path, and usual practice for
+  steam-sterilised fermenters is an FV rating (no source read). I-204 and the permissives of S9
+  stay, but now protect the sterile boundary (filter cartridges, seals, gaskets drawn in) and
+  the batch, not the vessel; PSV-2046A covers the loss of N2 during the controlled cool-down.
+  Cost: stiffening rings on a 9 m shell; the 100 t empty weight of D-016 is kept until the vessel
+  vendor confirms it. D-016's "-0.3 barg, vacuum prevented" is replaced. The seed vessels of
+  trains B and C get the class and pressures of train A (R-213B/C 6.0 barg, `Vessel`, S3#3).
+- **Overlay set points (S4b#6).** PIC-2041A 0.30 barg on the vent valve; PCV-2042A 0.25 barg
+  (lock-up about 0.27 barg), below the PIC set point, so N2 enters only below 0.25 barg and
+  leaves only above 0.30 barg: no continuous purge. PCV-2042A senses its outlet at the F-202A
+  inlet; at the cool-down peak (1300 m3/h) the filter and line drop about 0.05 to 0.1 bar, so
+  the headspace stays at about +0.15 barg, above PALL-2043A (-0.05 barg). In control/loops.yaml.
+- **LP header relief (S4b#3).** The LP steam header (4.5 bar(a) = 3.5 barg normal maximum,
+  design basis) is protected at the site letdown station by its own relief valve, set at the LP
+  header design pressure of 3.5 barg and sized for the letdown valve failed open (utility
+  system, ASSUMED; outside this battery limit). A failed letdown therefore raises the header at
+  most to 3.5 barg plus 10 % accumulation, 4.85 bar(a): the full-open SIP load into R-201A scales
+  with the upstream pressure to about 2.7 kg/s, against the 6.7 kg/s of the DN 150 disc of D-033.
+  The fermenter disc (2.5 barg) is below the header's set pressure, as it must be.
+- **Valve tags (S4b#1).** The eight actuated valves keep their printed tag labels; validate's
+  instrument cross-check reads tags only from bubbles and actuators, so the eight list entries are
+  accepted in checks.yaml with this reason, and the PSE-2045A note tag with D-031's.
+- **Legibility (S4b#4, #5).** The six small explanatory texts of P-202 are raised from 2.0 to
+  2.5 mm; the 100-CS-2016A label moved right of the CIP drop below the head SIP tee, clear of the
+  steam block's bleed (its two acceptances removed).
 
 ## Method and dependency table
 
