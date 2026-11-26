@@ -290,6 +290,29 @@
               <String>LV-3031</String>
             </Data>
           </Object>
+          <Object id="Inst_LSHH3013_System" type="Plant/Instrumentation.ActuatingSystem">
+            <Components property="ControlledActuator">
+              <Object id="Inst_LSHH3013_Actuator" type="Plant/Instrumentation.ControlledActuator">
+                <Data property="DeviceTypeName">
+                  <String>general</String>
+                </Data>
+                <Data property="FailAction">
+                  <DataReference data="Plant/Enumerations.FailActionClassification.FailClose"/>
+                </Data>
+                <Data property="FailActionRepresentation">
+                  <String>F.C.</String>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="OperatedValveReference">
+              <Object id="Inst_LSHH3013_ValveRef" type="Plant/Instrumentation.OperatedValveReference">
+                <References objects="#T301_HVF" property="Valve"/>
+              </Object>
+            </Components>
+            <Data property="ActuatingSystemNumber">
+              <String>XV-3013</String>
+            </Data>
+          </Object>
         </Components>
         <Components property="PipingNetworkSystems">
           <Object id="Line_150BR2014" type="Plant/Piping.PipingNetworkSystem">
@@ -2715,6 +2738,9 @@
                         </Data>
                       </Object>
                     </Components>
+                    <Data property="PipingComponentNumber">
+                      <String>XV-3013</String>
+                    </Data>
                   </Object>
                 </Components>
                 <References objects="#Line_80SA3009_From" property="SourceItem"/>
@@ -5139,6 +5165,74 @@
               <String>IC</String>
             </Data>
           </Object>
+          <Object id="Inst_LIT3012" type="Plant/Instrumentation.ProcessInstrumentationFunction">
+            <Components property="ProcessSignalGeneratingFunctions">
+              <Object id="Inst_LIT3012_Sensor" type="Plant/Instrumentation.ProcessSignalGeneratingFunction">
+                <References objects="#T301_L1" property="SensingLocation"/>
+                <Data property="ProcessSignalGeneratingFunctionNumber">
+                  <String>LT3012</String>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="SignalConveyingFunctions">
+              <Object id="Inst_LIT3012_MeasuringLine" type="Plant/Instrumentation.MeasuringLineFunction">
+                <References objects="#Inst_LIT3012_Sensor" property="Source"/>
+                <References objects="#Inst_LIT3012" property="Target"/>
+              </Object>
+            </Components>
+            <Data property="Location">
+              <DataReference data="Plant/Enumerations.LocationClassification.CentralLocation"/>
+            </Data>
+            <Data property="ProcessInstrumentationFunctionCategory">
+              <String>L</String>
+            </Data>
+            <Data property="ProcessInstrumentationFunctionNumber">
+              <String>3012</String>
+            </Data>
+            <Data property="ProcessInstrumentationFunctions">
+              <String>IT</String>
+            </Data>
+          </Object>
+          <Object id="Inst_LSHH3013" type="Plant/Instrumentation.ProcessInstrumentationFunction">
+            <Components property="ActuatingFunctions">
+              <Object id="Inst_LSHH3013_Actuating" type="Plant/Instrumentation.ActuatingFunction">
+                <References objects="#Inst_LSHH3013_System" property="Systems"/>
+                <Data property="ActuatingFunctionNumber">
+                  <String>XV-3013</String>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="ProcessSignalGeneratingFunctions">
+              <Object id="Inst_LSHH3013_Sensor" type="Plant/Instrumentation.ProcessSignalGeneratingFunction">
+                <References objects="#T301_L2" property="SensingLocation"/>
+                <Data property="ProcessSignalGeneratingFunctionNumber">
+                  <String>LT3013</String>
+                </Data>
+              </Object>
+            </Components>
+            <Components property="SignalConveyingFunctions">
+              <Object id="Inst_LSHH3013_MeasuringLine" type="Plant/Instrumentation.MeasuringLineFunction">
+                <References objects="#Inst_LSHH3013_Sensor" property="Source"/>
+                <References objects="#Inst_LSHH3013" property="Target"/>
+              </Object>
+              <Object id="Inst_LSHH3013_Signal" type="Plant/Instrumentation.SignalConveyingFunction">
+                <References objects="#Inst_LSHH3013" property="Source"/>
+                <References objects="#Inst_LSHH3013_Actuating" property="Target"/>
+              </Object>
+            </Components>
+            <Data property="Location">
+              <DataReference data="Plant/Enumerations.LocationClassification.CentralLocation"/>
+            </Data>
+            <Data property="ProcessInstrumentationFunctionCategory">
+              <String>L</String>
+            </Data>
+            <Data property="ProcessInstrumentationFunctionNumber">
+              <String>3013</String>
+            </Data>
+            <Data property="ProcessInstrumentationFunctions">
+              <String>SHH</String>
+            </Data>
+          </Object>
         </Components>
         <Components property="TaggedPlantItems">
           <Object id="S301A" type="Plant/ProcessEquipment.Centrifuge">
@@ -5922,6 +6016,16 @@
           </Object>
           <Object id="T301" type="Plant/ProcessEquipment.Tank">
             <Components property="Nozzles">
+              <Object id="T301_L1" type="Plant/ProcessEquipment.ProcessNozzle">
+                <Data property="SubTagName">
+                  <String>N4</String>
+                </Data>
+              </Object>
+              <Object id="T301_L2" type="Plant/ProcessEquipment.ProcessNozzle">
+                <Data property="SubTagName">
+                  <String>N5</String>
+                </Data>
+              </Object>
               <Object id="T301_N1" type="Plant/ProcessEquipment.ProcessNozzle">
                 <Components property="Nodes">
                   <Object id="T301_N1_Node" type="Plant/Piping.PipingNode">
@@ -20913,6 +21017,40 @@
           </Object>
           <Object id="T301_Drawing" type="Core/Diagram.RepresentationGroup">
             <Components property="Groups">
+              <Object id="T301_L1_Drawing" type="Core/Diagram.RepresentationGroup">
+                <Components property="NodePositions">
+                  <Object id="T301_L1_Position" type="Plant/Diagram.InstrumentationNodePosition">
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>344.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>64.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+                <References objects="#T301_L1" property="Represents"/>
+              </Object>
+              <Object id="T301_L2_Drawing" type="Core/Diagram.RepresentationGroup">
+                <Components property="NodePositions">
+                  <Object id="T301_L2_Position" type="Plant/Diagram.InstrumentationNodePosition">
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>316.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>46.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                  </Object>
+                </Components>
+                <References objects="#T301_L2" property="Represents"/>
+              </Object>
               <Object id="T301_Symbol" type="Core/Diagram.Static">
                 <Components property="Elements">
                   <Object id="T301_SymbolShape" type="Core/Diagram.ShapeUsage">
@@ -21308,6 +21446,65 @@
                             </Data>
                             <Data property="ScaleY">
                               <Double>0.4</Double>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                      <Object id="T301_HVF_TagLabel" type="Plant/Diagram.ValveLabel">
+                        <Components property="Elements">
+                          <Object id="T301_HVF_TagLabel_Text" type="Core/Diagram.Text">
+                            <Components property="Template">
+                              <Object id="T301_HVF_TagLabel_Template" type="Core/Diagram.TextTemplate">
+                                <Components property="Fragments">
+                                  <Object id="T301_HVF_TagLabel_Fragment" type="Core/Diagram.AttributeRepresentation">
+                                    <References objects="#T301_HVF" property="Object"/>
+                                    <Data property="AttributeName">
+                                      <String>PipingComponentNumber</String>
+                                    </Data>
+                                    <Data property="Type">
+                                      <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                                    </Data>
+                                  </Object>
+                                </Components>
+                              </Object>
+                            </Components>
+                            <Data property="Alignment">
+                              <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                            </Data>
+                            <Data property="Color">
+                              <AggregatedDataValue type="Core/Diagram.Color">
+                                <Data property="B">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="G">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="R">
+                                  <Integer>0</Integer>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="Font">
+                              <String>Calibri</String>
+                            </Data>
+                            <Data property="Position">
+                              <AggregatedDataValue type="Core/Diagram.Point">
+                                <Data property="X">
+                                  <Double>316.0</Double>
+                                </Data>
+                                <Data property="Y">
+                                  <Double>30.0</Double>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="Rotation">
+                              <Double>0.0</Double>
+                            </Data>
+                            <Data property="Size">
+                              <Double>3.0</Double>
+                            </Data>
+                            <Data property="Text">
+                              <String>XV-3013</String>
                             </Data>
                           </Object>
                         </Components>
@@ -29043,6 +29240,626 @@
                 </Data>
                 <Data property="Text">
                   <String>Gypsum (D-038): horizontal vacuum belt filter S-302 with cloth wash, no cake wash (D-007); filtrate receiver V-303 on the liquid-ring vacuum pumps K-301A/B (seal water by the vendor); cake 20 wt% moisture to the belt conveyor.</String>
+                </Data>
+              </Object>
+            </Components>
+          </Object>
+          <Object id="Inst_LIT3012_Drawing" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Inst_LIT3012_Bubble" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Inst_LIT3012_BubbleShape" type="Core/Diagram.ShapeUsage">
+                    <References objects="#Shape17" property="Shape"/>
+                    <Data property="IsMirrored">
+                      <Boolean>false</Boolean>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>356.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>64.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="ScaleX">
+                      <Double>1.0</Double>
+                    </Data>
+                    <Data property="ScaleY">
+                      <Double>1.0</Double>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+              <Object id="Inst_LIT3012_MeasuringLine_Drawing" type="Core/Diagram.RepresentationGroup">
+                <Components property="Groups">
+                  <Object id="Inst_LIT3012_MeasuringLine_Line" type="Core/Diagram.Static">
+                    <Components property="Elements">
+                      <Object id="Inst_LIT3012_MeasuringLine_Shape" type="Core/Diagram.ConnectorLine">
+                        <References objects="#Inst_LIT3012_SensePosition" property="Source"/>
+                        <References objects="#Inst_LIT3012_BubblePosition" property="Target"/>
+                        <Data property="Stroke">
+                          <AggregatedDataValue type="Core/Diagram.Stroke">
+                            <Data property="Color">
+                              <AggregatedDataValue type="Core/Diagram.Color">
+                                <Data property="B">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="G">
+                                  <Integer>128</Integer>
+                                </Data>
+                                <Data property="R">
+                                  <Integer>0</Integer>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="DashStyle">
+                              <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                            </Data>
+                            <Data property="Width">
+                              <Double>0.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                  </Object>
+                </Components>
+                <References objects="#Inst_LIT3012_MeasuringLine" property="Represents"/>
+              </Object>
+              <Object id="Inst_LIT3012_Label" type="Plant/Diagram.ProcessInstrumentationFunctionLabel">
+                <Components property="Elements">
+                  <Object id="Inst_LIT3012_Letters" type="Core/Diagram.Text">
+                    <Components property="Template">
+                      <Object id="Inst_LIT3012_Letters_Template" type="Core/Diagram.TextTemplate">
+                        <Components property="Fragments">
+                          <Object id="Inst_LIT3012_Letters_Fragment1" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_LIT3012" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctionCategory</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                          <Object id="Inst_LIT3012_Letters_Fragment2" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_LIT3012" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctions</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <Data property="Alignment">
+                      <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                    </Data>
+                    <Data property="Color">
+                      <AggregatedDataValue type="Core/Diagram.Color">
+                        <Data property="B">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="G">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="R">
+                          <Integer>0</Integer>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Font">
+                      <String>Calibri</String>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>356.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>62.6</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="Size">
+                      <Double>2.5</Double>
+                    </Data>
+                    <Data property="Text">
+                      <String>LIT</String>
+                    </Data>
+                  </Object>
+                  <Object id="Inst_LIT3012_Number" type="Core/Diagram.Text">
+                    <Components property="Template">
+                      <Object id="Inst_LIT3012_Number_Template" type="Core/Diagram.TextTemplate">
+                        <Components property="Fragments">
+                          <Object id="Inst_LIT3012_Number_Fragment" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_LIT3012" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctionNumber</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <Data property="Alignment">
+                      <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                    </Data>
+                    <Data property="Color">
+                      <AggregatedDataValue type="Core/Diagram.Color">
+                        <Data property="B">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="G">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="R">
+                          <Integer>0</Integer>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Font">
+                      <String>Calibri</String>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>356.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>65.6</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="Size">
+                      <Double>2.5</Double>
+                    </Data>
+                    <Data property="Text">
+                      <String>3012</String>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <Components property="NodePositions">
+              <Object id="Inst_LIT3012_SensePosition" type="Plant/Diagram.InstrumentationNodePosition">
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>344.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>64.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+              <Object id="Inst_LIT3012_BubblePosition" type="Plant/Diagram.InstrumentationNodePosition">
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>349.25</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>64.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
+            <References objects="#Inst_LIT3012" property="Represents"/>
+          </Object>
+          <Object id="Inst_LSHH3013_Drawing" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Inst_LSHH3013_Bubble" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Inst_LSHH3013_BubbleShape" type="Core/Diagram.ShapeUsage">
+                    <References objects="#Shape17" property="Shape"/>
+                    <Data property="IsMirrored">
+                      <Boolean>false</Boolean>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>306.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>46.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="ScaleX">
+                      <Double>1.0</Double>
+                    </Data>
+                    <Data property="ScaleY">
+                      <Double>1.0</Double>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+              <Object id="Inst_LSHH3013_MeasuringLine_Drawing" type="Core/Diagram.RepresentationGroup">
+                <Components property="Groups">
+                  <Object id="Inst_LSHH3013_MeasuringLine_Line" type="Core/Diagram.Static">
+                    <Components property="Elements">
+                      <Object id="Inst_LSHH3013_MeasuringLine_Shape" type="Core/Diagram.ConnectorLine">
+                        <References objects="#Inst_LSHH3013_SensePosition" property="Source"/>
+                        <References objects="#Inst_LSHH3013_BubblePosition" property="Target"/>
+                        <Data property="Stroke">
+                          <AggregatedDataValue type="Core/Diagram.Stroke">
+                            <Data property="Color">
+                              <AggregatedDataValue type="Core/Diagram.Color">
+                                <Data property="B">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="G">
+                                  <Integer>128</Integer>
+                                </Data>
+                                <Data property="R">
+                                  <Integer>0</Integer>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="DashStyle">
+                              <DataReference data="Core/Diagram.DashStyle.Solid"/>
+                            </Data>
+                            <Data property="Width">
+                              <Double>0.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                  </Object>
+                </Components>
+                <References objects="#Inst_LSHH3013_MeasuringLine" property="Represents"/>
+              </Object>
+              <Object id="Inst_LSHH3013_Signal_Drawing" type="Core/Diagram.RepresentationGroup">
+                <Components property="Groups">
+                  <Object id="Inst_LSHH3013_Signal_Line" type="Core/Diagram.Static">
+                    <Components property="Elements">
+                      <Object id="Inst_LSHH3013_Signal_Shape" type="Core/Diagram.PolyLine">
+                        <Data property="Points">
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>306.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>42.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>306.0</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>26.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                          <AggregatedDataValue type="Core/Diagram.Point">
+                            <Data property="X">
+                              <Double>316.8</Double>
+                            </Data>
+                            <Data property="Y">
+                              <Double>26.0</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                        <Data property="Stroke">
+                          <AggregatedDataValue type="Core/Diagram.Stroke">
+                            <Data property="Color">
+                              <AggregatedDataValue type="Core/Diagram.Color">
+                                <Data property="B">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="G">
+                                  <Integer>0</Integer>
+                                </Data>
+                                <Data property="R">
+                                  <Integer>0</Integer>
+                                </Data>
+                              </AggregatedDataValue>
+                            </Data>
+                            <Data property="DashStyle">
+                              <DataReference data="Core/Diagram.DashStyle.Dash"/>
+                            </Data>
+                            <Data property="Width">
+                              <Double>0.25</Double>
+                            </Data>
+                          </AggregatedDataValue>
+                        </Data>
+                      </Object>
+                    </Components>
+                  </Object>
+                </Components>
+                <References objects="#Inst_LSHH3013_Signal" property="Represents"/>
+              </Object>
+              <Object id="Inst_LSHH3013_Label" type="Plant/Diagram.ProcessInstrumentationFunctionLabel">
+                <Components property="Elements">
+                  <Object id="Inst_LSHH3013_Letters" type="Core/Diagram.Text">
+                    <Components property="Template">
+                      <Object id="Inst_LSHH3013_Letters_Template" type="Core/Diagram.TextTemplate">
+                        <Components property="Fragments">
+                          <Object id="Inst_LSHH3013_Letters_Fragment1" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_LSHH3013" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctionCategory</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                          <Object id="Inst_LSHH3013_Letters_Fragment2" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_LSHH3013" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctions</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <Data property="Alignment">
+                      <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                    </Data>
+                    <Data property="Color">
+                      <AggregatedDataValue type="Core/Diagram.Color">
+                        <Data property="B">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="G">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="R">
+                          <Integer>0</Integer>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Font">
+                      <String>Calibri</String>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>306.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>44.6</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="Size">
+                      <Double>2.5</Double>
+                    </Data>
+                    <Data property="Text">
+                      <String>LSHH</String>
+                    </Data>
+                  </Object>
+                  <Object id="Inst_LSHH3013_Number" type="Core/Diagram.Text">
+                    <Components property="Template">
+                      <Object id="Inst_LSHH3013_Number_Template" type="Core/Diagram.TextTemplate">
+                        <Components property="Fragments">
+                          <Object id="Inst_LSHH3013_Number_Fragment" type="Core/Diagram.AttributeRepresentation">
+                            <References objects="#Inst_LSHH3013" property="Object"/>
+                            <Data property="AttributeName">
+                              <String>ProcessInstrumentationFunctionNumber</String>
+                            </Data>
+                            <Data property="Type">
+                              <DataReference data="Core/Diagram.AttributeRepresentationType.Value"/>
+                            </Data>
+                          </Object>
+                        </Components>
+                      </Object>
+                    </Components>
+                    <Data property="Alignment">
+                      <DataReference data="Core/Diagram.TextAlignment.CenterCenter"/>
+                    </Data>
+                    <Data property="Color">
+                      <AggregatedDataValue type="Core/Diagram.Color">
+                        <Data property="B">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="G">
+                          <Integer>0</Integer>
+                        </Data>
+                        <Data property="R">
+                          <Integer>0</Integer>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Font">
+                      <String>Calibri</String>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>306.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>47.6</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>0.0</Double>
+                    </Data>
+                    <Data property="Size">
+                      <Double>2.5</Double>
+                    </Data>
+                    <Data property="Text">
+                      <String>3013</String>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <Components property="NodePositions">
+              <Object id="Inst_LSHH3013_SensePosition" type="Plant/Diagram.InstrumentationNodePosition">
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>316.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>46.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+              <Object id="Inst_LSHH3013_BubblePosition" type="Plant/Diagram.InstrumentationNodePosition">
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>312.75</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>46.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+              </Object>
+            </Components>
+            <References objects="#Inst_LSHH3013" property="Represents"/>
+          </Object>
+          <Object id="Inst_LSHH3013_Actuator_Drawing" type="Core/Diagram.RepresentationGroup">
+            <Components property="Groups">
+              <Object id="Inst_LSHH3013_Actuator_Symbol" type="Core/Diagram.Static">
+                <Components property="Elements">
+                  <Object id="Inst_LSHH3013_Actuator_SymbolShape" type="Core/Diagram.ShapeUsage">
+                    <References objects="#Shape1" property="Shape"/>
+                    <Data property="IsMirrored">
+                      <Boolean>false</Boolean>
+                    </Data>
+                    <Data property="Position">
+                      <AggregatedDataValue type="Core/Diagram.Point">
+                        <Data property="X">
+                          <Double>324.0</Double>
+                        </Data>
+                        <Data property="Y">
+                          <Double>26.0</Double>
+                        </Data>
+                      </AggregatedDataValue>
+                    </Data>
+                    <Data property="Rotation">
+                      <Double>180.0</Double>
+                    </Data>
+                    <Data property="ScaleX">
+                      <Double>0.4</Double>
+                    </Data>
+                    <Data property="ScaleY">
+                      <Double>0.4</Double>
+                    </Data>
+                  </Object>
+                </Components>
+              </Object>
+            </Components>
+            <References objects="#Inst_LSHH3013_Actuator" property="Represents"/>
+          </Object>
+          <Object id="Note5" type="Core/Diagram.Static">
+            <Components property="Elements">
+              <Object id="Note5_Text" type="Core/Diagram.Text">
+                <Data property="Alignment">
+                  <DataReference data="Core/Diagram.TextAlignment.LeftCenter"/>
+                </Data>
+                <Data property="Color">
+                  <AggregatedDataValue type="Core/Diagram.Color">
+                    <Data property="B">
+                      <Integer>0</Integer>
+                    </Data>
+                    <Data property="G">
+                      <Integer>0</Integer>
+                    </Data>
+                    <Data property="R">
+                      <Integer>0</Integer>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Font">
+                  <String>Calibri</String>
+                </Data>
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>350.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>80.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Rotation">
+                  <Double>0.0</Double>
+                </Data>
+                <Data property="Size">
+                  <Double>2.0</Double>
+                </Data>
+                <Data property="Text">
+                  <String>LSHH-3013 closes XV-3013 (I-301);</String>
+                </Data>
+              </Object>
+            </Components>
+          </Object>
+          <Object id="Note6" type="Core/Diagram.Static">
+            <Components property="Elements">
+              <Object id="Note6_Text" type="Core/Diagram.Text">
+                <Data property="Alignment">
+                  <DataReference data="Core/Diagram.TextAlignment.LeftCenter"/>
+                </Data>
+                <Data property="Color">
+                  <AggregatedDataValue type="Core/Diagram.Color">
+                    <Data property="B">
+                      <Integer>0</Integer>
+                    </Data>
+                    <Data property="G">
+                      <Integer>0</Integer>
+                    </Data>
+                    <Data property="R">
+                      <Integer>0</Integer>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Font">
+                  <String>Calibri</String>
+                </Data>
+                <Data property="Position">
+                  <AggregatedDataValue type="Core/Diagram.Point">
+                    <Data property="X">
+                      <Double>350.0</Double>
+                    </Data>
+                    <Data property="Y">
+                      <Double>84.0</Double>
+                    </Data>
+                  </AggregatedDataValue>
+                </Data>
+                <Data property="Rotation">
+                  <Double>0.0</Double>
+                </Data>
+                <Data property="Size">
+                  <Double>2.0</Double>
+                </Data>
+                <Data property="Text">
+                  <String>LIT-3012 LALL stops P-304A/B (I-302)</String>
                 </Data>
               </Object>
             </Components>

@@ -953,6 +953,31 @@ Left open: the vacuum control (PI-4003 only, no PIC on bleed air), effect temper
 pressure indications, the condensate flash between effects, the evaporator CIP (scaling by
 residual gypsum, D-007), relief of E-401A's steam chest; P-401's areas for the layout.
 
+## D-040 Fixes to the S6 review on P-301 and P-401 (2026-11-26)
+Decision, by finding (scripts/fix_P-301_s7.py and fix_P-401_s7.py, provenance; the sheets stay
+hand-maintained):
+- S6#1 (high): T-301 gets two instrument nozzles, LIT-3012 (level with LAH, LAL, LALL) and the
+  independent switch LSHH-3013. LSHH-3013 closes the tanker fill valve, the former hand valve,
+  now the actuated ball valve XV-3013 (fail closed; C&E I-301, latching, manual reset; set at
+  90 % of the tank height, ASSUMED). LIT-3012 LALL stops P-304A/B (I-302, dry running; set
+  0.3 m above the outlet, ASSUMED). The tanker pump stop on the LSHH horn is a procedure
+  (ASSUMED). SIL screening is left to the HAZOP.
+- S6#2: acid dosing stops (FV-3021 closed, P-304A/B stopped) on A-301 not running (I-303),
+  pH low-low at AIC-3024, set pH 1.5 (I-304, ASSUMED), R-301 level high-high on LIC-3022
+  (I-305, the control transmitter, not independent) and clarified-broth flow low-low at FT-3020
+  (I-306, 10 s). A wrong high reading of FT-3020 overdoses acid; I-304 catches the result
+  whatever the cause. Rejected: a second flow meter (I-304 already covers it).
+- S6#4: E-401D's sump is held by LIC-4011D on the concentrate draw valve (the former DV-4002,
+  now LV-4011D, fail closed). DIC-4002 measures the density on the concentrate suction
+  80-CL-4014 and sets FIC-4001 (cascade, control/loops.yaml): a low density raises the steam.
+  The cascade is shown as a note on the sheet, not as a signal line across it. Rejected:
+  density on the draw with the last-effect level on the feed (the feed already follows
+  V-303's level, LIC-3031).
+- S6#6: the E-401A to D tags moved clear of their symbols; the old DIC-4002 measuring line
+  through the valve actuator is gone with the redraw; "To R-401 (P-402)" moved clear of P-402B.
+Left for S9 (with the medium carry-overs): S6#3 (centrifuge margin), S6#5 (E-401A steam
+chest design pressure and relief, NC vents, effect PI/TI, vacuum PIC), S6#7 to S6#10.
+
 ## Method and dependency table
 
 | result | method | inputs | where |

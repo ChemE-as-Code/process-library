@@ -69,6 +69,47 @@ loops:
     normal_mode: auto
     interlocks: [I-204]
     rationale: "Vent back-pressure valve after F-201A; the N2 make-up is the self-acting PCV-2042A at 0.25 barg (lock-up about 0.27 barg), not part of this loop (D-031). PCV set below the PIC set point, so N2 is made up only below 0.25 barg and vented only above 0.3 barg: no continuous purge through the vessel, and the headspace stays positive at the cool-down peak (D-034, S4b#6)."
+  # E-401 last effect and steam (P-401, D-039, D-040)
+  - id: LIC-4011D
+    title: E-401D sump level on the concentrate draw
+    purpose: Hold the last effect's sump level, so it neither drains the circulation pump P-403D nor floods the film tubes.
+    variable: level
+    measurement: [{tag: LIC-4011D}]
+    controller: LIC-4011D
+    action: direct
+    final_elements:
+      - {tag: LV-4011D, kind: valve, actuator: pneumatic, fail: closed}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: "S6#4: LIC-4011A to C hold A to C on the forward transfers; the concentrate leaves D on LV-4011D (the former DV-4002). Fails closed: the concentrate stays in the evaporator rather than going off-spec to R-401."
+  - id: DIC-4002
+    title: Concentrate density, master of the steam flow
+    purpose: Hold the concentrate at 71 wt% lactic acid (D-008) by the evaporation rate.
+    variable: composition
+    measurement: [{tag: DIC-4002}]
+    controller: DIC-4002
+    action: reverse
+    final_elements:
+      - {tag: FIC-4001, kind: other}
+    targets:
+      - {kind: setpoint, value: 71, unit: "wt%", provenance: given, source: "D-008"}
+    modes: [manual, auto]
+    normal_mode: auto
+    rationale: "Density on the concentrate suction 80-CL-4014; a low density raises the LP steam set point of FIC-4001 (cascade, D-040). Feed rate follows V-303's level (LIC-3031, P-301)."
+  - id: FIC-4001
+    title: LP steam to E-401A
+    purpose: Set the evaporation rate of the four effects.
+    variable: flow
+    measurement: [{tag: FIC-4001}]
+    controller: FIC-4001
+    action: reverse
+    final_elements:
+      - {tag: FV-4001, kind: valve, actuator: pneumatic, fail: closed}
+    targets:
+      - {kind: setpoint, value: 6.5, unit: t/h, provenance: calculated, source: "Q4 13.7 MW at 2.1 MJ/kg (line list 250-LS-4001)"}
+    modes: [manual, auto, cascade]
+    normal_mode: cascade
+    links: [{type: cascade, loop: DIC-4002}]
 #  - id: FIC-101                       # stable id, usually the loop tag
 #    title: Feed flow
 #    purpose: Hold the feed rate of the operating case.
