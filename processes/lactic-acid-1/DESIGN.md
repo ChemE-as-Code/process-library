@@ -865,6 +865,19 @@ Review S3 closed as follows (ASSUMED throughout, no source read):
 - The NaOH header 15-NA-2147 continues from P-201 to trains B and C; R-212's branch is now
   15-NA-2121x.
 
+## D-037 P-204 CIP station and SIP steam as drawn (2026-11-26)
+Decision: P-204 draws D-021 from scripts/draft_P-204.py (provenance; hand-maintained). T-221 to
+T-224 on one suction header 100-CS-2207 to P-221A/B (duty, standby, check valves), E-221 on LP
+steam (TV-2201, TIC-2201), FV-2202 (FIC-2202) into 100-CS-2015; the return 150-CR-2017 with
+TT-2204 and AIT-2203 (conductivity) to P-222A/B and the recovery header 100-CR-2226 to T-221,
+T-222, T-224 or the drain; T-225 (50 wt% NaOH from a tanker) with P-223 to T-221 and to T-215
+(15-NA-2152); fresh water to T-223; tank vents to atmosphere. SIP: LP steam 150-LS-2233 through
+F-231A/B (PDI-2206) and PV-2205 (PIC-2205, 3 barg) into 150-SS-2019, drip leg with a trap.
+ASSUMED, no source read: P-222A/B self-priming at the low point of the return header below the
+fermenter rows (S1#9); saturated steam, dryness 0.95 or better after the utility separator (S1#10);
+sequence and concentrations as D-021. Left open: tank level instruments and overflows, pump
+isolation valves and drains, the T-201 condensate (S5#6), the CIP and SIP permissives in C&E.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
