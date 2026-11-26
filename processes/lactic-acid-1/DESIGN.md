@@ -891,6 +891,42 @@ fermenter rows (S1#9); saturated steam, dryness 0.95 or better after the utility
 sequence and concentrations as D-021. Left open: tank level instruments and overflows, pump
 isolation valves and drains, the T-201 condensate (S5#6), the CIP and SIP permissives in C&E.
 
+## D-038 P-301 cell removal, acidulation and gypsum filtration as drawn (2026-11-26)
+Decision: P-301 draws D-006, D-007 and D-025 from scripts/draft_P-301.py (provenance;
+hand-maintained). Sheet title shortened to "Cell removal, acidulation" to fit the title block.
+- Cell removal: the 150-BR-2014 header from P-203A/B drops to S-301A to C, each on its own feed
+  flow loop FIC-3011x (55 m3/h; two running, one spare). Each disc-stack bowl discharges its
+  solids intermittently through a chute 100-CM-3004x into the hopper V-301; progressive cavity
+  pumps P-301A/B (listed as RotaryPump) send the 0.88 t/h of cake to anaerobic digestion. The
+  clarified broth from the centripetal pumps of the bowls joins in 150-PL-3002 (FT-3020) to R-301.
+  Operating water, bowl flush, motors and CIP of the machines are the vendor's package (ASSUMED).
+  The three machines, each on three headers, are a K3,3 graph: the two crossings of the cake chutes
+  with the clarified header cannot be drawn away and are accepted in checks.yaml.
+- Acidulation: 93 wt% acid from T-301 by P-304A/B through FV-3021 on FFIC-3021, in ratio to
+  FT-3020 at 1.01 mol per mol of calcium (D-007), the ratio trimmed by the pH loop AIC-3024 (set
+  point about pH 2.5, ASSUMED; no source read). The acid enters R-301 through a side nozzle at the
+  impeller (dip pipe, ASSUMED) and not into the pump-around as D-025 first said: concentrated acid
+  in a DN200 slurry line gives local heat and gypsum scale in the pipe and the spiral exchanger,
+  while the agitated 150 m3 spreads it (ASSUMED usual practice). R-301 is listed as Vessel (the
+  DEXPI class drawn) with its agitator A-301 (tagged as A-202 of T-201; power to the vendor).
+- Cooling (D-007: 1.5 to 2 MW): pump-around P-303A/B (250 m3/h, ASSUMED in D-025) through the
+  spiral exchanger E-301 back to R-301; TIC-3023 holds 323 K on the cooling-water outlet valve
+  TV-3023. Cooling water for 2.0 MW at a 10 K rise (ASSUMED): 2000 / (4.18 x 10) = 47.8 kg/s,
+  172 m3/h, DN200 at 1.5 m/s. The slurry flow through E-301 is 2000 kW / (3.8 kJ/(kg K) x 1150
+  kg/m3 x 250/3600 m3/s) = 6.6 K warmer in than out (heat capacity and density ASSUMED).
+- Slurry to the filter: P-305A/B (120 m3/h) on a variable-speed drive set by LIC-3022 on R-301;
+  no control valve in the gypsum slurry (erosion, ASSUMED usual practice). 150-GS-3018 at 1.9 m/s.
+- Gypsum filter: S-302 with its cloth wash, no cake wash (D-007); the cake discharges through a
+  chute (200-GC-3019, listed for the drawing only) to the belt conveyor to the gypsum store A-310.
+  The filtrate and the air from the vacuum boxes go to the receiver V-303 (full vacuum design);
+  the liquid-ring pumps K-301A/B (two running) draw on V-303 and exhaust to atmosphere, seal
+  water by the vendor (ASSUMED). P-306A/B pump the filtrate to E-401 (P-401) on LIC-3031/LV-3031.
+- New fluid codes (D-023): CM cell mass cake, SA sulfuric acid, GS gypsum slurry, GC gypsum cake,
+  CL crude lactic acid filtrate, VA vacuum air.
+Left open: R-301 high-level and low-level trips, the vacuum system pressure indication and the
+filter's interlocks (belt drift, cloth wash, vacuum loss), the centrifuges' vendor interlocks;
+the cake chute of S-302 is not a pipe; A-301 not yet placed in the layout.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
