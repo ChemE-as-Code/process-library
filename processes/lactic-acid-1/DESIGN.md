@@ -978,6 +978,39 @@ hand-maintained):
 Left for S9 (with the medium carry-overs): S6#3 (centrifuge margin), S6#5 (E-401A steam
 chest design pressure and relief, NC vents, effect PI/TI, vacuum PIC), S6#7 to S6#10.
 
+## D-041 P-402 esterification and ester column as drawn (2026-11-26)
+Decision: P-402 is drawn from scripts/draft_P-402.py (provenance; hand-maintained). The
+concentrate (65-CL-4015 from P-401) and the ethanol recycle and make-up (50-ET-4101 from P-403,
+S17 + S18 + S19) mix and are heated in E-411 on LP steam (TIC-4101 on TV-4101; Q6 214 kW,
+0.37 t/h). R-401 is a packed reactive distillation column on Amberlyst-15 (D-008). The flowsheet
+carries R-401 as one outlet to C-401 (S21); as drawn, R-401's vapour goes to C-401 on PIC-4102
+(PV-4102 lets down to 20 kPa(a)), and its sump liquid by P-411A/B on LIC-4104 (LV-4104). R-401
+has no reboiler of its own: the reaction heat and E-411 carry it (ASSUMED, as the flowsheet's
+single duty Q6). C-401 at 20 kPa(a): thermosyphon reboiler E-421 on MP steam (TIC-4202 on
+TV-4202, a control-tray temperature; Q7 12.1 MW, 21.8 t/h, DN300), condenser E-422 on cooling
+water (1075 m3/h at 10 K, ASSUMED), reflux drum V-421 under the liquid-ring pumps K-421A/B
+(PIC-4201 on PV-4201, the suction throttle), P-421A/B for the reflux (FIC-4205, reflux ratio 1,
+D-009) and the overhead to C-402 (LIC-4204 on LV-4204). The ethanol to lactic acid ratio is held
+by the ethanol make-up on P-403, not on this sheet.
+- **No residue cooler.** The residue (3.1 t/h at about 423 K: salts, sugars, oligomers) leaves
+  hot by P-422A/B on LIC-4203 (pump speed, as LIC-3022) in a traced line to anaerobic digestion
+  off-plot. Reason: the residue's viscosity rises steeply on cooling (ASSUMED, no data read), and
+  the receiver dilutes it. Rejected: a residue cooler E-423 (fouling, a pumping problem moved
+  downstream). For the review: if the receiver needs it below 373 K, add a cooler at S9.
+- **Relief:** PSV-4105 (R-401) and PSV-4206 (C-401) at the 3.5 barg design pressure to the vent
+  header; cases named, not sized (piping/special-items.yaml). Drawn as check valves with PSV tags
+  (no safety valve class in the authoring API, as PSV-2046A, D-031).
+- **Vapour line DN** R-401 to C-401 DN150 ASSUMED (the flowsheet has no vapour load for it); the
+  overhead DN1000 for 26 t/h at 20 kPa(a), 0.3 kg/m3 ASSUMED, 31 m/s; reboiler return DN600
+  ASSUMED. DEXPI's DN standard lacks DN300 to DN1000: kept in the line numbers and the list.
+- New fluid codes (D-023): ET ethanol, RV relief, RS residue, MS MP steam.
+- R-401 and C-401 listed as ProcessColumn, the DEXPI class drawn.
+- Accepted crossings: LIC-4204's and TIC-4202's signal lines cross the reflux line and the pump
+  discharge header between the instrument and its valve.
+Left open: column pressure-drop and tray indications (PDI, TI profile), the C-401 overhead
+non-condensables to the vacuum system beyond PIC-4201, R-401 catalyst change-out connections,
+the vent header and its scrubber (D-012), SIL screening of the column high-pressure cases.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
