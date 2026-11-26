@@ -36,6 +36,28 @@ export CHEME_QSDSAN_PYTHON="$PWD/.venv/bin/python"
 ../../../core/.venv/bin/cheme process simulate --fill
 ```
 
+## Enable layered transport of dissolved constituents
+
+In a separate copy of the example, add the top-level key
+`"clarifier_solubles": "bsm1-layered"` to both `inputs/baseline.json` and
+`process/case-inputs.json`. Run the same `cheme process simulate --fill` command.
+The default `mixed` uses one dissolved concentration throughout the clarifier.
+The layered option tracks dissolved constituents in each of the configured layers
+(10 in the baseline geometry). Effluent uses the top layer and return and waste
+sludge use the bottom layer. The solids settling calculation is the same in both
+modes. Saved runs record the selected mode under `verification.clarifier_solubles`.
+
+In a separate dry-weather benchmark using the [released seven-reactor ASM2d
+example](https://github.com/wwtmodels/Activated-Sludge-Models/releases/tag/v1),
+the 10-layer option reduced mean absolute error across 672 matched 15-minute
+samples from 0.231 to 0.137 mg P/L for effluent orthophosphate and from 0.226
+to 0.131 mg P/L for total phosphorus. For the two major peaks on the same days,
+orthophosphate timing matched at 15-minute resolution and total phosphorus
+peaked 15 minutes early. The local benchmark used the released varying influent
+and evaluated the last seven days of the second dry-weather period. The standard
+commands above simulate the constant-influent teaching case. This comparison
+uses two simulations of the public benchmark scenario.
+
 ## Inspect the output
 
 Open the `report.html` path printed by the command for the final effluent, stream results, trajectories and numerical checks. Each fill saves a new directory under `process/simulation-runs/`. Both `--fill` and `--check` execute this repository's worker with your account's permissions using the interpreter you select in `CHEME_QSDSAN_PYTHON`. Run them only on a checkout you trust. Core stages the declared files and discards check-only results. The shared viewer reads the filled project and the record in `process/simulation-run.json`. The BFD groups the biological zones, and the PFD shows the seven tanks and the clarifier.

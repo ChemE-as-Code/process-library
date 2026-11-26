@@ -6,6 +6,9 @@ from pathlib import Path
 
 
 def build_model(data, reactor_ids, upstream_reference=False):
+    layered = data.get("clarifier_solubles") == "bsm1-layered"
+    if upstream_reference and layered:
+        raise ValueError("The unmodified upstream reference requires mixed clarifier solubles")
     # Heavy third-party imports stay at the integration boundary.
     from exposan.bsm1.system import create_system
     from qsdsan import process_models as pc
@@ -50,6 +53,10 @@ def build_model(data, reactor_ids, upstream_reference=False):
             data["recycles"]["internal_m3_d"],
             data["influent"]["flow_m3_d"] + data["recycles"]["return_sludge_m3_d"],
         ]
+        if layered:
+            from wwtp_a2o.integrations.clarifier import use_layered_clarifier
+
+            system = use_layered_clarifier(system, reactor_ids, c1)
     u = system.flowsheet.unit
     # ChemE IDs map to the actual QSDsan stream objects.
     streams = {
