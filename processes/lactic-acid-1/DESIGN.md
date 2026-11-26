@@ -1052,6 +1052,50 @@ Left open: P-404 (drawing, its lines and instruments, the make-up ratio controll
 the T-401A/B and T-402 overfill protection asked for at T-301 in the S6 review), column
 pressure-drop indications, R-402 vent sizing, the vent header and scrubber (D-012).
 
+## D-043 3D layout for basic engineering (2026-11-26)
+Decision: the plot plan of D-026 stays (areas, roads, racks, the fermenters outdoors in two rows
+of eight at 14 m pitch with PR-1 between them); the 3D model adds what stands on it. Every
+dimension and rule below is ASSUMED (usual industry practice, no vendor, structural or site
+data).
+- **Fermenter top access** (`layout/structures.yaml`): one open steel frame per row, ST-201
+  over R-201A to H and ST-202 over R-201I to P, 8 bays of 14 m by one bay of 14 m, the columns
+  in the 5 m gaps between the shells and 2.5 m off them north and south, braced at the row
+  ends. A grating deck TD at 24.5 m, 0.7 m above the head tops (23.8 m). The agitator drives
+  A-201A to P (160 kW motor, 12 t, D-016) stand on drive bridges of this deck and the shaft
+  enters through the top-head nozzle, so the head does not carry the drive's weight and bending
+  moment. This changes A-201A's note ("on the top head"). The vent and gas filters F-201/F-202
+  move from over the head to the deck edge on the rack side (y 126.5 and 145.5). Two stair
+  towers per deck, one at each row end (south of row 1, north of row 2), give two ways down
+  about 104 m apart. Rejected: a fermentation hall (D-026); per-vessel head platforms with
+  ladders (16 ladders of 24 m, one way down each, no route for the drive lifts); drives on the
+  head (the head would need a 12 t reinforcement per vessel).
+- **Seed building B-201**: the train B and C filters F-241 to F-246 B/C are placed as train A
+  on the platforms P1 to P3; a 25 t overhead crane (rail at 14 m) lifts the stage-5 vessels
+  (18 t) and the CIP tanks; laydown LD-120 south of the building.
+- **Downstream**: columns C-401 to C-403, R-401 and the evaporator bodies E-401A to D stand on
+  their own skirts with platforms on their shells (no frames); R-301's agitator A-301 stands on
+  its flat roof (7.5 m). The overhead condensers stay at grade as D-026 placed them; a
+  condenser structure for gravity reflux is left to detail engineering.
+- **Racks** (`piping/routing.yaml`): on PR-1 the broth, sterile medium and inoculum run on the
+  6 m tier, CIP supply and return, filtered SIP steam and milk of lime on 8 m, nitrogen, steam,
+  condensate, cooling and tempered water on 10 m; on PR-4 and PR-6 the process lines on 6 m and
+  the utilities on 8 m.
+- **Header anchors**: the fermenter headers 200-SM-2001, 100-IN-2004, 250-BR-2011 and 80-NS-2008
+  and the seed headers 100-SM-2003, 40-NS-2141, 50-CS-2142, 50-CR-2143, 50-SS-2140 and
+  50-SS-2144 start on their sheets at an off-page connector whose feeding line carries another
+  number upstream (e.g. 200-SM-1016 on P-103), so the router found no start (core limit L-9).
+  Their first segment is pinned from the rack junction (PR-4 at the west end of PR-1; PR-6 at
+  the B-201 north wall) to the first tee, and the router runs the rest along the rack.
+- **Zones** (`layout/zones.yaml`): a zone-2 screening envelope over the ethanol process area
+  north of PR-2 (R-401, C-401 to C-403, R-402), source zones from the table around T-402's vent
+  and the ethanol pump seals, crane pads on the roads beside the fermenter rows, A-300 and the
+  tank farm, laydowns south of row 1, in the reserved area A-250 and south of B-201, and a
+  keep-clear truck bay at the tank farm. None of this is an area classification: a competent
+  person classifies the ethanol areas to the site's standard.
+- **P-404**: the build fingerprints every sheet in `plant.yaml`, and a planned sheet without a
+  file stops it (core limit L-10). P-404 was started as the empty template (`cheme sheet new`,
+  title block only), so its status went from planned to drafted. It is drawn in S9.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
@@ -1093,6 +1137,11 @@ pressure-drop indications, R-402 vent sizing, the vent header and scrubber (D-01
   columns' duties are hand estimates; no heat integration or multiple-effect evaporator model.
 - L-8: `cheme process reactor-hazards` screens no batch fermentation (a conversion step without
   MTT or TD24): the adiabatic rise of D-012 is a hand estimate.
+- L-9: the router pairs off-page connectors by line number only. A header whose feeding line
+  has another number on the upstream sheet (a branch drawn as its own line into the header)
+  has no start, and every branch off it stays unrouted: its first segment is pinned (D-043).
+- L-10: `cheme layout build` stops on a planned sheet that has no file yet (it fingerprints
+  every sheet of `plant.yaml`); the empty template had to be created first (D-043).
 
 ## Open inputs
 - The steriliser's re-sterilisation steam (about 0.3 MW year average) and water (about 50 m3 per

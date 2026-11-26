@@ -1,0 +1,26 @@
+# Pipe routing intent (schema: cheme schema routing). DESIGN.md D-043; every rule ASSUMED.
+rules:
+  # PR-1 between the fermenter rows: process low, sterile services in the middle, utilities on
+  # top; PR-4 and PR-6 (seed building to PR-1): process low, utilities on the upper tier.
+  tiers:
+    - {rack: PR-1, elevation: 6, fluids: [Fermentation broth, Sterile medium, Inoculum, Medium]}
+    - {rack: PR-1, elevation: 8, fluids: [CIP solution, CIP return, Filtered LP steam, Milk of lime]}
+    - {rack: PR-1, elevation: 10, fluids: [Nitrogen, Sterile nitrogen, LP steam, Steam condensate, Cooling water, Process water, Tempered water]}
+    - {rack: PR-4, elevation: 6, fluids: [Sterile medium, Inoculum, Medium, CIP solution, CIP return]}
+    - {rack: PR-6, elevation: 6, fluids: [Sterile medium, Inoculum, Medium, CIP solution, CIP return]}
+lines:
+  # Headers drawn from an off-page connector with no partner sheet (the feeding line has its
+  # own number on the sheet upstream): the first segment is pinned from the rack junction to the
+  # first tee, the router takes the rest of the header along the rack (D-043).
+  - {line: 200-SM-2001, segment: P-203/Line_Hdr_SM_S1, route: [[98, 133.4, 6.2], [131, 133.4, 6.2]], notes: "From PR-4 at the west end of PR-1 to the R-201B tee."}
+  - {line: 100-IN-2004, segment: P-203/Line_Hdr_IN_S1, route: [[98, 134.0, 6.15], [131, 134.0, 6.15]], notes: "As 200-SM-2001."}
+  - {line: 250-BR-2011, segment: P-203/Line_Hdr_BR_S1, route: [[112, 132.6, 6.25], [131, 132.6, 6.25]], notes: "Harvest header from its west end past R-201A/I."}
+  - {line: 80-NS-2008, segment: P-203/Line_Hdr_NS_S1, route: [[98, 132.6, 10.1], [131, 132.6, 10.1]], notes: "N2 header from PR-4."}
+  # Seed headers in B-201: from PR-6 through the north wall to the R-211A tee
+  - {line: 100-SM-2003, segment: P-201/Line_100SM2003_S1, route: [[48.0, 242, 6.15], [48.0, 235.5, 6.15]]}
+  - {line: 50-CS-2142, segment: P-201/Line_50CS2142_S1, route: [[48.5, 242, 6.1], [48.5, 235.5, 6.1]]}
+  - {line: 50-CR-2143, segment: P-201/Line_50CR2143_S1, route: [[49.0, 242, 6.1], [49.0, 235.5, 6.1]]}
+  - {line: 40-NS-2141, segment: P-201/Line_40NS2141_S1, route: [[48.0, 242, 8.1], [48.0, 235.5, 8.1]]}
+  - {line: 50-SS-2140, segment: P-201/Line_50SS2140_S1, route: [[48.5, 242, 8.1], [48.5, 235.5, 8.1]]}
+  - {line: 50-SS-2144, segment: P-201/Line_50SS2144_S1, route: [[49.0, 242, 8.1], [49.0, 235.5, 8.1]]}
+notes: ASSUMED - tier allocation, header anchors and pipe-way elevation chosen for this design (D-043).
