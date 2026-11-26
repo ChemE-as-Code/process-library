@@ -794,6 +794,39 @@ Decision (all values ASSUMED unless a source is named):
   2.5 mm; the 100-CS-2016A label moved right of the CIP drop below the head SIP tee, clear of the
   steam block's bleed (its two acceptances removed).
 
+## D-035 P-203, P-206, P-207: fermenters R-201B to P as typicals, headers, harvest and T-201 (2026-11-26)
+Decision (ASSUMED unless a source is named; drawn by `scripts/draft_P-203.py`, provenance only,
+the XML is the source):
+- **Sheets.** The 15 typicals do not fit one A3 sheet legibly (15 columns of about 26 mm with
+  five header drops, two filters and a pump each). P-203 draws R-201B to I, the new P-206 R-201J
+  to P, the new P-207 the harvest pumps P-202A/B, T-201 with its agitator A-202 and the feed pumps
+  P-203A/B. D-023's P-203 is split; the lists' `sheet:` follow. Rejected: one sheet at 26 mm per
+  fermenter (labels unreadable at slide size), an A1 sheet (the template is A3).
+- **Typical column.** Each fermenter is drawn by one loop body: R-201x with A-201x, branch drops
+  from the top headers (inoculum 100-IN-2004, sterile medium 200-SM-2001, CIP supply 100-CS-2015,
+  SIP steam 150-SS-2019 teed into the CIP drop as on R-201A, N2 80-NS-2008 through F-202x), the vent
+  through F-201x to atmosphere, the tempered-water loop P-201x on the coils, and below the vessel
+  the harvest drop to 250-BR-2011 with the CIP return 150-CR-2017 teed off, and the lime branch from
+  the ring main 100-ML-1102 to the low shell nozzle. Each branch valve drawn stands for R-201A's
+  steam block, and the instruments, trips, sampling, bottom SIP and the TW loop's CW/LP-steam
+  injection are "as R-201A" (sheet note), as a typical overview usually does. The 195 branch line
+  numbers follow R-201A's with the fermenter's letter (e.g. 200-SM-2002B) and are listed.
+- **Headers.** The drops cross the headers below them; a header set common to all fermenters
+  cannot be drawn without (each fermenter connects to every header). Those crossings, and only
+  those (drop with header, by the Line_Drop_*/Line_Hdr_* ids), are accepted in checks.yaml. Top
+  headers end on P-206 at a low-point drain (SIP steam: trap; N2: vent); the harvest header goes to
+  P-207, the CIP return to P-204, the ring main into its return leg 100-ML-1103 (P-102).
+- **Harvest and hold (D-024).** 250-BR-2011 feeds P-202A (duty) and P-202B (spare), check valves
+  on both, 200-BR-2012 with FI-2053 into the top of T-201. T-201 is agitated by A-202 (not sized:
+  0.05 to 0.1 kW/m3 for solids suspension, 125 to 250 kW, ASSUMED, vendor to size), insulated, with
+  an LP-steam coil on TIC-2052/TV-2052 (50-LS-2054, condensate 25-CD-2055 through a trap) to hold
+  at or above 323 K (D-005). 200-BR-2013 to P-203A (variable speed, duty) and P-203B (spare),
+  150-BR-2014 heat-traced to S-301A to C (P-301); LIC-2051 sets the feed by P-203A's speed.
+- **DN 250.** DEXPI's DIN 2448 list has no DN 250, so the harvest header's nominal diameter is
+  printed in its label and listed as DN250, but left out of the model (authoring note).
+- Left open: TV-2052 is printed as a valve tag only (not in the instrument list, as the P-202
+  valves); the CIP of T-201 and its overflow are not drawn.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
