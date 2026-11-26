@@ -217,7 +217,7 @@ def test_lca_covers_every_heat_stream_and_biogenic_carbon(sheet) -> None:
     for key in ("feed:GLCF", "feed:CSLF", "feed:ETOHF"):
         assert content[key]["biogenic_fraction"] == 1.0
     excluded = {e for x in lca["emission_exclusions"] for e in x.get("equipment", [])}
-    for tag in ("R-401", "C-401", "C-402", "C-403", "R-402", "E-404"):
+    for tag in ("R-401", "C-401", "C-402", "C-403", "R-402", "E-404A", "E-404B"):
         assert tag in excluded
     assert {c["id"] for c in lca["consumables"]} == {"cip-water", "cip-caustic"}
     # the esterifier's resin and the fermenters' steaming are cut off with their amounts
