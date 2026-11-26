@@ -1171,7 +1171,7 @@ for the layout review and S9 or detail engineering:
     fill valve (C&E I-401, I-402, latching), the overfill protection the S6 review asked for at
     T-301, applied here. P-481A/B take from either tank to truck loading. Tank vents to atm.
   - Ethanol make-up: T-402 (N2 blanketed, D-012) filled from tankers through XV-4704, closed by
-    the independent LSHH-4705 (I-403); LIT-4706 (LALL stops P-472A/B, a C&E entry still to write);
+    the independent LSHH-4705 (I-403); LIT-4706 (LALL stops P-472A/B, I-404);
     P-472A/B and FV-4701 on the ratio controller FFIC-4701, which holds S17 in ratio to the acid
     feed of R-401 (D-008); the remote flow signal from P-402 comes by the DCS (not drawn).
     Vent through a pressure-vacuum valve and flame arrester (detail).
@@ -1226,9 +1226,9 @@ Open review findings by area (the review records in `reviews/` hold the text):
 - **Downstream:** S6#1 (high, XV-3013) answered in S9 (D-044, for the reviewer to close);
   S6#3, #5 (medium), S6#7 to #9 (low); S7b#1 (PSV readability and RV sizing), #2 (R-402
   pressure), #3, #4 (R-401) (medium), #5 to #7 (low).
-- **P-404 (new in S9):** unreviewed; open within it: the LALL of LIT-4706 stopping P-472A/B has
-  no C&E entry yet, the remote acid-feed flow of FFIC-4701 is not drawn, 100-PL-4402's listed
-  `to:` (E-441) differs from the P-403 drawing (the tee M402).
+- **P-404 (new in S9):** unreviewed; the LALL of LIT-4706 stopping P-472A/B is C&E I-404, and
+  100-PL-4402 is listed to the line it joins at the tee M402 (80-PL-4401). Open: the remote
+  acid-feed flow of FFIC-4701 is not drawn.
 
 ## Method and dependency table
 
