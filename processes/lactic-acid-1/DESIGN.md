@@ -1191,7 +1191,13 @@ Gates of stage basic (from `cheme check`; the stages up to concept pass):
 | drawing-clean | ok expected | the last unaccepted crossing (P-403, 80-RV-4406 over 65-ET-4505) accepted in S9 with D-042's reason; every acceptance is an agent proposal for the design review to confirm |
 | design-review | failing | the review records of S2 to S8 name files changed since they were written (DESIGN.md, the lists, checks.yaml, sheets), and S9's changes are unreviewed; it passes once the independent S9 review is written against the final commit |
 | layout-3d | failing | 200 pipe-pipe, 63 pipe-equipment and 15 pipe-steel clashes and 158 headroom findings not accepted, mostly the fermenter branches at the top decks (S8#1) and the whole-floor platform levels of B-201 (L-11, S8#5) |
-| lifting-study | failing | S-301A to C: the removal lanes are blocked by their own feed and centrate lines (S8#6) |
+| lifting-study | failing | S-301A to C: the removal lanes are blocked by their own feed and centrate lines (S8#6); the study itself was rewritten from the S9 model |
+| mto | ok expected | estimate/mto.* rewritten from the S9 model (`cheme assess mto --write`) |
+| layout-review | failing | the S8 layout review predates P-404 and the S9 model; a new layout review is needed |
+| process-basic, process-links, pids-valid, pids-exist | ok | checked with `cheme check --stage basic` in S9 |
+
+The S9 model routes 1057 of 1199 segments; the other 142 are the declared skips of D-043 (DN15
+field-run lines and the seed-vessel CW stubs), so every process line is routed or skipped.
 
 Open review findings by area (the review records in `reviews/` hold the text):
 - **Fermentation, layout (D-043):** S8#1 high, branch valves and clashes at the fermenters.
