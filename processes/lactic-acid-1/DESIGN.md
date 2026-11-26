@@ -1011,6 +1011,47 @@ Left open: column pressure-drop and tray indications (PDI, TI profile), the C-40
 non-condensables to the vacuum system beyond PIC-4201, R-401 catalyst change-out connections,
 the vent header and its scrubber (D-012), SIL screening of the column high-pressure cases.
 
+## D-042 P-403 ethanol recovery and hydrolysis as drawn; P-404 split off (2026-11-26)
+Decision: the planned P-403 (38 listed items) is split. P-403 "Ethanol recovery and hydrolysis"
+carries C-402, R-402 and C-403 with their exchangers, drums and pumps (21 items), drawn from
+scripts/draft_P-403.py (provenance; hand-maintained). A new sheet P-404 "Product concentration,
+storage, ethanol make-up" (planned, not drawn in S7b) takes E-404A/B, E-461, V-461, P-461A/B,
+P-462A/B, K-461A/B, E-405, T-401A/B, P-481A/B, T-402, P-472A/B (17 items). Reason: 38 items on
+one A3 sheet is about three times P-402's density and would not read; the split follows the
+process (alcohol recovery loop vs. product finishing and tank farm). Rejected: one crowded sheet.
+- **C-402 and C-403** (1 atm, reflux ratios 3 and 2, D-009) are drawn alike, C-403 mirrored:
+  thermosyphon reboiler on LP steam (TIC-4302/TIC-4502, a control-tray temperature, on
+  TV-4302/TV-4502), condenser on cooling water, reflux drum with PI and a vent to the vent
+  header, P-431A/B and P-451A/B for the reflux (FIC-4305/4505) and the distillate (LIC-4304/4504
+  on the drum level), the sump on LIC-4303/4503 setting the bottoms pump speed (as LIC-4203).
+- **Ethanol header.** The C-402 distillate becomes 50-ET-4101 at P-431A/B and runs to E-411
+  on P-402; the C-403 distillate (65-ET-4505) and the make-up (25-ET-4701 from P-472A/B on
+  P-404) join it on this sheet. The make-up flow holds the ethanol ratio (D-008); its
+  controller is drawn with P-472A/B on P-404. The line list's 50-ET-4101 now starts at P-431A.
+- **R-402**: 260 m3 vessel with its agitator drawn as part of it (D-023: tank agitators are parts
+  of their tanks), listed as Vessel (the class drawn, as R-301). Feed S24 + water recycle S29
+  (100-PL-4402 from P-404) mix at the tee M402 and are heated in E-441 to 363 K (TIC-4401 on
+  TV-4401, Q11 1.39 MW, 2.4 t/h LP steam); the hydrolysate goes by P-442A/B on LIC-4403
+  (LV-4403) to C-403.
+- **Line sizes** from the stream table (velocities in the line list): overheads DN450 and DN500
+  at about 20 m/s with the vapour density ASSUMED at 1.38 kg/m3; reboiler returns DN400 and the
+  thermosyphon feeds DN150 ASSUMED; LP steam DN250 (C-402, C-403) and DN125 (E-441) at 20 to
+  24 m/s; CW DN250 (E-432) and DN300 (E-452) at 2 m/s.
+- **Relief:** PSV-4309 (C-402), PSV-4406 (R-402), PSV-4509 (C-403) at the 3.5 barg design
+  pressure to the vent header, cases named, not sized (piping/special-items.yaml), drawn as
+  check valves (D-031). Ethanol throughout: flammable area for area classification (D-012).
+- Accepted on the sheet: one crossing (R-402's relief line 80-RV-4406 crosses the C-403
+  distillate 65-ET-4505 on its way to the top edge); DN changes without a drawn reducer at the
+  pump suctions (DN150 header, DN100 nozzles), at P-431A's discharge (DN65 to 50-ET-4101) and
+  at the mixing tee M402 (DN80 to E-441's DN150 inlet; the mixed flow after the tee is S25,
+  60 m3/h, which the DN80 run would carry at 3.3 m/s: the run from M402 to E-441 is DN150 in
+  intent). Open: 20 `line-through-symbol` findings at the pump nozzles, which P-402's pumps,
+  drawn by the same builder, do not raise (cause not found in S7b); the three off-page
+  connectors to P-404 warn until P-404 is drawn.
+Left open: P-404 (drawing, its lines and instruments, the make-up ratio controller FIC-4701,
+the T-401A/B and T-402 overfill protection asked for at T-301 in the S6 review), column
+pressure-drop indications, R-402 vent sizing, the vent header and scrubber (D-012).
+
 ## Method and dependency table
 
 | result | method | inputs | where |
