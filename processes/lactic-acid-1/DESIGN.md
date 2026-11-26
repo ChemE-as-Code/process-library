@@ -1153,6 +1153,30 @@ for the layout review and S9 or detail engineering:
   checks/checks.yaml. Rejected: a separate XV bubble beside the valve (would print the tag twice).
 - **P-403 crossing.** The one crossing D-042 accepted in words (80-RV-4406 over 65-ET-4505) is now
   accepted by id in checks/checks.yaml, so drawing-clean no longer fails on it.
+- **P-404 drawn** ("Product and ethanol make-up", title shortened to fit the title block) from
+  scripts/draft_P-404.py (provenance; hand-maintained), with the 17 listed items and the
+  P-403 off-page connectors (100-PL-4507 in, 100-PL-4402 and 25-ET-4701 out).
+  - E-404A/B: two falling-film effects, drawn and listed as ThinFilmEvaporator (as E-401), once
+    through with no circulation pumps (ASSUMED; none are listed). E-404A on LP steam (FIC-4601,
+    300-LS-4601), its vapour heats E-404B (600-VP-4603); E-404B at 20 kPa(a) (D-008). Sumps on
+    LIC-4604 (transfer to E-404B) and LIC-4616 (product to E-405). Equal evaporation in the two
+    effects ASSUMED for the line sizes (about 18.8 t/h each, half of S28).
+  - E-461 condenses the last vapour (1200-VP-4606) on cooling water; K-461A/B (liquid ring) take
+    the non-condensables from the condenser to the vent header, PIC-4610 on their speed. V-461
+    collects both condensates (S28); P-461A/B return S29 through LV-4615 (LIC-4615) as
+    100-PL-4402, which now starts at the pumps, and the purge S30 goes through FV-4614 (FIC-4614)
+    to a drain hub of the process sewer to WWT (drawn as an open end "drain").
+  - Product: P-462A/B, E-405 with TIC-4804 on the cooling water, T-401A/B filled through
+    XV-4807A/B; each tank has LIT-4808x (LAH, LAL) and an independent LSHH-4809x that closes its
+    fill valve (C&E I-401, I-402, latching), the overfill protection the S6 review asked for at
+    T-301, applied here. P-481A/B take from either tank to truck loading. Tank vents to atm.
+  - Ethanol make-up: T-402 (N2 blanketed, D-012) filled from tankers through XV-4704, closed by
+    the independent LSHH-4705 (I-403); LIT-4706 (LALL stops P-472A/B, a C&E entry still to write);
+    P-472A/B and FV-4701 on the ratio controller FFIC-4701, which holds S17 in ratio to the acid
+    feed of R-401 (D-008); the remote flow signal from P-402 comes by the DCS (not drawn).
+    Vent through a pressure-vacuum valve and flame arrester (detail).
+  - XV-4807A/B and XV-4704 print their tags as valve labels; their instrument-list checks are
+    accepted as XV-3013's. Rejected: separate XV bubbles (the tag twice).
 
 ## Method and dependency table
 
