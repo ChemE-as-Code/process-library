@@ -41,6 +41,11 @@ checks:
     rules: [cheme.process-refine-pending, cheme.process-balance*,
             cheme.process-component-balance*, cheme.process-calculated-stale,
             cheme.generated-*]
+    # The CSL protein lump NUT has no formula (D-004: no composition was read); the mass
+    # balances of these blocks and steps close, the component balance cannot be evaluated
+    # without inventing one. Proposed for the design review to accept or reject.
+    accept:
+      - {id: "process/flowsheet.yaml#process-component-balance-not-evaluable:*", reason: "D-004 and D-027: NUT (CSL protein) is a lump without a formula; mass balances close; a formula would be invented data"}
   - id: process-links
     title: Every process link resolves against the lists and sheets
     stage: basic
@@ -68,6 +73,78 @@ checks:
     rules: [cheme.line-through-label, cheme.line-crossing, cheme.label-overlap,
             cheme.label-far-from-owner, cheme.line-through-valve, cheme.line-on-pipe,
             cheme.line-not-orthogonal, cheme.offpage-not-on-edge]
+    accept:
+      - id: "pid/P-401.xml#line-crossing:Line_100CL4013*+Line_*PC4016*"
+        reason: "D-039: each effect has a vapour, a liquid transfer and a condensate connection to its neighbours; the condensate drop of E-401B to D crosses the transfer from the effect before (agent proposal, for the design review to confirm)"
+      - id: "pid/P-401.xml#line-crossing:Line_100PC4016_S3_P1+Line_80CL4014_S1_P1"
+        reason: "D-039: the concentrate draw from E-401D to P-402A/B crosses the condensate header once (agent proposal, for the design review to confirm)"
+      - id: "pid/P-401.xml#line-crossing:Line_150CL4011*+Inst_LIC4011*_MeasuringLine"
+        reason: "D-039: the sump level transmitter sits on the effect between the circulation riser and the transfer valve it acts on (agent proposal, for the design review to confirm)"
+      - id: "pid/P-402.xml#line-crossing:Line_*PL421*+Inst_*42*_Signal"
+        reason: "D-041: LIC-4204 and TIC-4202 act on valves below the reflux line and the pump discharge header, which run between the instrument and its valve (agent proposal, for the design review to confirm)"
+      - id: "pid/P-403.xml#line-crossing:Line_65ET4505_S2_P2+Line_80RV4406_S1_P2"
+        reason: "D-042, D-044: R-402's relief line 80-RV-4406 runs to the vent header at the top edge and crosses the C-403 distillate 65-ET-4505 once (agent proposal, for the design review to confirm)"
+      - id: "pid/P-401.xml#line-crossing:Line_100PC4016_S3_P1+Inst_LIC4011D_Signal"
+        reason: "D-040: LIC-4011D sits beside E-401D and acts on LV-4011D at the concentrate pumps below the condensate header (agent proposal, for the design review to confirm)"
+      - id: "pid/P-301.xml#line-crossing:Line_100CM3004*+Line_150PL3002_S*"
+        reason: "D-038: three centrifuges each joined to three headers (feed, clarified broth, cell mass cake) form a K3,3 graph, which no plane drawing draws without a crossing; the cake chutes of S-301B and C cross the clarified header (agent proposal, for the design review to confirm)"
+      - id: "pid/P-103.xml#line-crossing:Line_P108A_DB_S2_P1+Inst_US1025_Signal"
+        reason: "D-028: the booster discharge 200-SM-1014 encloses the sterile loop's instruments; every signal route from US-1025 to XV-1025A crosses it once (agent proposal, for the design review to confirm)"
+      - id: "pid/P-103.xml#line-crossing:Line_P108A_DB_S2_P1+Inst_PDT1028_Signal"
+        reason: "D-028: as above, PDT-1028 to US-1025 crosses 200-SM-1014 once (agent proposal, for the design review to confirm)"
+      - id: "pid/P-103.xml#offpage-not-on-edge:Line_150CW1023_From"
+        reason: "D-028: CW supply stub kept at E-103; every route to the bottom edge crosses the sterile loop and the header (agent proposal, for the design review to confirm)"
+      - id: "pid/P-103.xml#offpage-not-on-edge:Line_150CW1024_To"
+        reason: "D-028: CW return stub kept at E-103, as 150-CW-1023 (agent proposal, for the design review to confirm)"
+      # Seed trains P-201, P-205, P-208 (D-030, D-036): only crossings with a named common header
+      # are accepted (S3#6: no sheet-wide wildcard); a crossing between two branches still warns.
+      # Header drops: the drops from the top headers (medium, N2, CIP, NaOH) to the three seed
+      # vessels cross the headers below them; SIP is the lowest top header.
+      - {id: "pid/P-20[158].xml#line-crossing:*Line_40NS2141_S*", reason: "D-030, D-036: drop across the N2 header (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-20[158].xml#line-crossing:*Line_50CS2142_S*", reason: "D-030, D-036: drop across the CIP supply header (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-20[158].xml#line-crossing:*Line_15NA2147_S*", reason: "D-030, D-036: drop across the NaOH header (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-20[158].xml#line-crossing:*Line_50SS2140_S*", reason: "D-030, D-036: drop across the SIP steam header (agent proposal, for the design review to confirm)"}
+      # The bottom SIP risers and the outer steam feed of R-213x cross the CIP return.
+      - {id: "pid/P-20[158].xml#line-crossing:Line_50CR2143_S*+Line_R21*", reason: "D-030, D-036: SIP riser across the CIP return (agent proposal, for the design review to confirm)"}
+      # P-201: jacket cooling-water supply and return stubs at each seed vessel (utility stubs).
+      - {id: "pid/P-201.xml#offpage-not-on-edge:Line_25CW2119A_From", reason: "D-030: CW stub at R-211A (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-201.xml#offpage-not-on-edge:Line_R211A_CWR_To", reason: "D-030: CWR stub at R-211A (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-201.xml#offpage-not-on-edge:Line_25CW2129A_From", reason: "D-030: CW stub at R-212A (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-201.xml#offpage-not-on-edge:Line_R212A_CWR_To", reason: "D-030: CWR stub at R-212A (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-201.xml#offpage-not-on-edge:Line_25CW2139A_From", reason: "D-030: CW stub at R-213A (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-201.xml#offpage-not-on-edge:Line_R213A_CWR_To", reason: "D-030: CWR stub at R-213A (agent proposal, for the design review to confirm)"}
+      # P-204 (D-037): the caustic make-up to T-221 and the recovery riser cross the suction header and
+      # the LP steam inlet; the fresh-water inlet crosses the recovery header above the tanks.
+      - {id: "pid/P-204.xml#line-crossing:Line_100CS2207_S1_P2+Line_25NA2231_S2_P1", reason: "D-037: caustic make-up riser across the CIP suction header (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-204.xml#line-crossing:Line_150LS2233_S1_P2+Line_25NA2231_S2_P1", reason: "D-037: caustic make-up riser across the LP steam inlet (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-204.xml#line-crossing:Line_100CR2226_S3_P1+Line_100CS2207_S4_P1", reason: "D-037: recovery riser across the CIP suction header (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-204.xml#line-crossing:Line_100CR2226_S4_P1+Line_80PW2232_S1_P1", reason: "D-037: fresh-water inlet across the recovery header (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-204.xml#offpage-not-on-edge:Line_15NA2152_To", reason: "D-037: 11 mm above the bottom edge, kept clear of the sheet notes (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-20[158].xml#label-overlap:F241[ABC]:F-241[ABC]+F242[ABC]", reason: "D-036: at the narrow R-211x the vent-filter tag touches the inlet filter's symbol; the render reads clearly (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-20[58].xml#offpage-not-on-edge:Line_25CW21[123]9[BC]_From", reason: "D-036: CW stubs at the seed vessels of trains B and C, as train A (agent proposal, for the design review to confirm)"}
+      - {id: "pid/P-20[58].xml#offpage-not-on-edge:Line_R21[123][BC]_CWR_To", reason: "D-036: CWR stubs at the seed vessels of trains B and C, as train A (agent proposal, for the design review to confirm)"}
+      - id: "pid/P-202.xml#line-crossing:Line_150TW2023A_S3_P1+Inst_TIC2011A_Signal"
+        reason: "D-033: TIC-2011A now sits right of the tempered-water riser, its measuring line straight from the broth; its two split-range outputs cross the riser once each to reach TV-2011A and TV-2011B on the utility side (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#line-crossing:Line_150TW2023A_S3_P1+Inst_TIC2011A_SignalB"
+        reason: "D-033: as the other split-range output (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#label-tag-unknown:PlantModel1:PSE-2045A"
+        reason: "D-031: the rupture disc is tagged by a note because pyDEXPI's RuptureDisc carries no tag; the tag is in piping/special-items.yaml (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#offpage-not-on-edge:Line_SM_SS_From"
+        reason: "D-031: steam feed (SS) of a steam block drawn as a stub at the block so the sterile boundary reads at the vessel; the local SIP steam distribution is on P-204 (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#offpage-not-on-edge:Line_IN_SS_From"
+        reason: "D-031: as Line_SM_SS_From (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#offpage-not-on-edge:Line_CS_SS_From"
+        reason: "D-031: as Line_SM_SS_From (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#offpage-not-on-edge:Line_ML_SS_From"
+        reason: "D-031: as Line_SM_SS_From (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#offpage-not-on-edge:Line_BR_SS_From"
+        reason: "D-031: as Line_SM_SS_From (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#offpage-not-on-edge:Line_CR_SS_From"
+        reason: "D-031: as Line_SM_SS_From (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#offpage-not-on-edge:Line_SP_SS_From"
+        reason: "D-031: steam feed of the aseptic sampling valve, as Line_SM_SS_From (agent proposal, for the design review to confirm)"
+      - id: "pid/P-202.xml#offpage-not-on-edge:Line_25PW2032A_From"
+        reason: "D-031: flush water stub at the lime dosing branch, from the PW utility station by the fermenter (agent proposal, for the design review to confirm)"
     # A sheet kept from the DEXPI reference P&ID (pyDEXPI's sample, e.g. as a worked example)
     # fails this gate by design: the reference has crossings and labels on its lines. Accept
     # its findings here, naming the sheet:
@@ -122,6 +199,33 @@ checks:
     stage: basic
     kind: layout-model
     require: [model-current, lifting, lifting-current]
+    # Field-erected items (D-043, ASSUMED): built in place, never lifted whole in service; their
+    # maintenance lifts (drives, seals, filters) go from the crane pads CP-201/CP-202 to the deck.
+    accept:
+      - {id: "layout/plant-model.yaml#layout-laydown:laydown-T-101A", reason: "T-101A, 14 m field-erected storage tank: built in place, no whole lift (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:T-101B", reason: "T-101B, 14 m field-erected storage tank: built in place, no whole lift (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-laydown:laydown-T-101B", reason: "T-101B field-erected (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:T-201", reason: "T-201, 14 m field-erected broth hold tank: built in place, no whole lift (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:V-102", reason: "V-102 quicklime silo field-erected in place (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-laydown:laydown-V-102", reason: "V-102 field-erected (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:S-302", reason: "S-302 belt filter assembled on site from modules; no whole lift (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-laydown:laydown-S-302", reason: "S-302 assembled on site (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201A", reason: "Production fermenters, 9 m diameter, are field-fabricated before the top deck ST-201/ST-202 is erected; the shell is never lifted in service, the drive and seal lifts go from CP-201/CP-202 (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201B", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201C", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201D", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201E", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201F", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201G", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201H", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201I", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201J", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201K", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201L", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201M", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201N", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201O", reason: "As R-201A (D-043)"}
+      - {id: "layout/plant-model.yaml#layout-lifting:R-201P", reason: "As R-201A (D-043)"}
   # The material take-off of the 3D model (estimate/, skill mto-estimate): rewritten after the
   # model's last change. Add rates (the project's own, not the example) and estimate-current
   # once the project prices it.
@@ -233,4 +337,35 @@ checks:
 # Findings accepted for every gate and for `cheme validate`, which then reports them as info
 # with the reason (an entry that names no finding is reported as cheme.accept-unused).
 # Only warnings and infos can be accepted; an error stays an error (cheme.accept-error).
-accept: []
+accept:
+  # D-034 (S4b#1): the actuated valves of P-202 print their tags as labels on the valve; validate
+  # reads instrument tags from bubbles and actuators only (core limit, DESIGN.md "Core limits hit").
+  # D-036: pyDEXPI's RuptureDisc carries no tag; the discs are tagged by a note beside the symbol.
+  - {id: "piping/special-items.yaml#piping-item-not-on-pid:PSE-2*", reason: "D-031, D-036: rupture disc tagged by a note on its sheet, the class carries no tag (core limit; agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:TV-2011A", reason: "D-034: printed as the valve's tag label on P-202 (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:TV-2011B", reason: "D-034: printed as the valve's tag label on P-202 (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:AV-2021A", reason: "D-034: printed as the valve's tag label on P-202 (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:XV-2033A", reason: "D-034: printed as the valve's tag label on P-202 (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:XV-2034A", reason: "D-034: printed as the valve's tag label on P-202 (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:PV-2041A", reason: "D-034: printed as the valve's tag label on P-202 (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:XV-2043A", reason: "D-034: printed as the valve's tag label on P-202 (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:XV-4807[AB]", reason: "D-034, D-044: actuated fill valves of T-401A/B on P-404, tag printed as the valve's tag label, LSHH-4809A/B signal to them (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:XV-4704", reason: "D-034, D-044: actuated tanker fill valve of T-402 on P-404, tag printed as the valve's tag label, LSHH-4705 signal to it (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:XV-3013", reason: "D-034, D-044: drawn on P-301 as the actuated ball valve T301_HVF on 80-SA-3009 with its actuator (F.C.) and the LSHH-3013 signal, tag printed as the valve's tag label (agent proposal, for the design review to confirm)"}
+  - {id: "control/instrument-list.yaml#instrument-not-on-pid:XV-2044A", reason: "D-034: printed as the valve's tag label on P-202 (agent proposal, for the design review to confirm)"}
+  # D-035: on the fermenter overviews every fermenter's branch drops from the common headers and
+  # crosses the headers between (a header set shared by all fermenters cannot be drawn without);
+  # only a drop (Line_Drop_*) crossing a header (Line_Hdr_*) is accepted, any other crossing still warns.
+  # D-035: a branch that tees off a header drawn on another sheet: its connector names the header
+  # and the header's sheet, which by nature does not carry the branch's own line number.
+  - {id: "pid/P-103.xml#offpage-mismatch:Line_200SM1016_To:Sterile medium header 200-SM-2001 (P-203", reason: "D-035: 200-SM-1016 becomes the header 200-SM-2001 (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-201.xml#offpage-mismatch:Line_100SM2003_From:Sterile medium, 200-SM-2001 (P-203)", reason: "D-035: branch off a header on another sheet (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-201.xml#offpage-mismatch:Line_40NS2141_From:N2, 80-NS-2008 (P-203)", reason: "D-035: branch off a header on another sheet (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-20[158].xml#offpage-mismatch:Line_100IN2138[ABC]_To:Inoculum, 100-IN-2004 (P-203)", reason: "D-035, D-036: the seed transfer line joins the inoculum header 100-IN-2004 (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-202.xml#offpage-mismatch:Line_200SM2002A_From:Sterile medium, 200-SM-2001 (P-203)", reason: "D-035: branch off a header on another sheet (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-202.xml#offpage-mismatch:Line_100IN2005A_From:Inoculum, 100-IN-2004 (P-203)", reason: "D-035: branch off a header on another sheet (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-202.xml#offpage-mismatch:Line_50NS2025A_From:N2, 80-NS-2008 (P-203)", reason: "D-035: branch off a header on another sheet (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-202.xml#offpage-mismatch:Line_25ML2024A_From:Milk of lime, 100-ML-1102 (P-203)", reason: "D-035: branch off a header on another sheet (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-202.xml#offpage-mismatch:Line_200BR2010A_To:Harvest header, 250-BR-2011 (P-203)", reason: "D-035: branch into a header on another sheet (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-20[36].xml#line-crossing:Line_Drop_*+Line_Hdr_*", reason: "D-035: branch drop across a common header on the fermenter overview (agent proposal, for the design review to confirm)"}
+  - {id: "pid/P-202.xml#label-tag-unknown:PlantModel1:PSE-2045A", reason: "D-031, D-034: pyDEXPI's RuptureDisc carries no tag; PSE-2045A is a note by the disc and its entry in piping/special-items.yaml (agent proposal, for the design review to confirm)"}

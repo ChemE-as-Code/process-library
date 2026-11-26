@@ -1,7 +1,102 @@
 # Cause and effect list: interlocks and trips. Schema: `cheme schema interlocks`.
 # On a sheet, refer to an interlock ("see C&E I-01") instead of spelling out what it trips.
 schema: cheme/interlocks/v1
-interlocks: []
+interlocks:
+  - id: I-101
+    title: "Steriliser divert: holding-tube outlet below 411 K (TT-1023, 1oo2 with I-102)"
+    cause: {tag: TT-1023, condition: TALL}
+    effects:
+      - {tag: XV-1025A, action: close}
+      - {tag: XV-1025B, action: open}
+      - {tag: TT-1023, action: alarm}
+    sheet: P-103
+    sil: null
+    notes: "Set 411 K, 2 K under the 413 K set point (ASSUMED). Forward flow is released only after 30 min re-sterilisation of the sterile side on water at 413 K (sequence, D-015). The divert returns the medium to V-101 (XV-1030, P-101)."
+  - id: I-102
+    title: "Steriliser divert: holding-tube outlet below 411 K (TT-1024, 1oo2 with I-101)"
+    cause: {tag: TT-1024, condition: TALL}
+    effects:
+      - {tag: XV-1025A, action: close}
+      - {tag: XV-1025B, action: open}
+      - {tag: TT-1024, action: alarm}
+    sheet: P-103
+    sil: null
+    notes: "As I-101 (D-015)."
+  - id: I-103
+    title: "Steriliser divert: E-101 sterile side less than 1.0 bar above the raw side"
+    cause: {tag: PDT-1028, condition: PDALL}
+    effects:
+      - {tag: XV-1025A, action: close}
+      - {tag: XV-1025B, action: open}
+      - {tag: PDT-1028, action: alarm}
+    sheet: P-103
+    sil: null
+    notes: "Sterile outlet of E-101 minus its raw inlet, low-low 1.0 bar (ASSUMED); a plate leak must go from sterile to raw (D-015, review 2026-11-25-S1#1)."
+  - id: I-201
+    title: "R-201A temperature high-high 333 K (TSHH-2012A, own sensor): stop the agitator"
+    cause: {tag: TSHH-2012A, condition: TSHH}
+    effects:
+      - {tag: A-201A, action: stop}
+      - {tag: TSHH-2012A, action: alarm}
+    sheet: P-202
+    sil: null
+    notes: "Set 333 K, 10 K above the 323 K set point (ASSUMED). Removes the 127 kW agitator input, the open safeguard of D-012; typical of R-201A to P (D-017, D-031). SIL from the HAZOP/LOPA, not assumed here."
+  - id: I-202
+    title: "R-201A tempered-water loop flow low-low (FSLL-2014A): lost cooling, stop the agitator"
+    cause: {tag: FSLL-2014A, condition: FSLL}
+    effects:
+      - {tag: A-201A, action: stop}
+      - {tag: FSLL-2014A, action: alarm}
+    sheet: P-202
+    sil: null
+    notes: "Set 30 % of the 85 m3/h loop flow (ASSUMED), 30 s delay against pump changeover (ASSUMED). Typical of R-201A to P (D-017, D-031)."
+    delay: {value: 30, unit: s}
+  - id: I-203
+    title: "R-201A level high-high (LSHH-2032A, independent of LIC-2031A): close the medium inlet"
+    cause: {tag: LSHH-2032A, condition: LSHH}
+    effects:
+      - {tag: XV-2034A, action: close}
+      - {tag: LSHH-2032A, action: alarm}
+    sheet: P-202
+    sil: null
+    notes: "Set 16.0 m above the bottom tangent, 1.3 m (83 m3, 19 min of the 258 m3/h fill) above the 14.7 m batch level and below the vent nozzle, so the vent filter F-201A is not flooded (ASSUMED; D-031, review S3#4 applied to R-201A)."
+  - id: I-204
+    title: "R-201A headspace pressure low-low -0.05 barg (PALL-2043A): stop cooling and filling"
+    cause: {tag: PALL-2043A, condition: PALL}
+    effects:
+      - {tag: TV-2011A, action: close}
+      - {tag: P-201A, action: stop}
+      - {tag: XV-2034A, action: close}
+      - {tag: P-221A, action: stop}
+      - {tag: P-221B, action: stop}
+      - {tag: PALL-2043A, action: alarm}
+    sheet: P-202
+    sil: null
+    notes: "Against steam collapse after SIP (CW into the coils, the loop water circulated through the coils, cold medium or CIP spray into a steamed vessel, about 24 000 m3/h of gas demand, far above any sterile-filter path); PSV-2046A at -0.2 barg covers only the loss of N2 during the controlled cool-down. Stops the loop pump P-201A (no circulation of the about 10 m3 of loop water through the coils) and the CIP supply pumps P-221A/B (one fermenter is cleaned at a time, D-021). Set -0.05 barg (ASSUMED). The fermenters are rated for full vacuum (D-034, S4b#2), so a steam collapse is no longer a loss of containment: I-204 protects the sterile boundary (filters, seals, gaskets drawn in) and the batch schedule, not the vessel. SIL from the HAZOP/LOPA (D-031, D-033, D-034, review S1#4, S4#4)."
+  # Seed fermenters (D-036, review S3#4): batch stop of the medium fill on the fill measurement
+  # (load cells, radar) at high-high; closes the inner valve of the medium steam block. One entry
+  # per vessel and train.
+  - {id: I-211, title: "R-211A weight high-high: close the medium fill", cause: {tag: WIS-2113A, condition: WSHH}, effects: [{tag: XV-2118A, action: close}, {tag: WIS-2113A, action: alarm}], sheet: P-201, sil: null, notes: "Set 0.85 m3 equivalent, above the 0.72 m3 batch and below the vent nozzle, so the vent filter F-241A is not wetted (ASSUMED; D-036). Not independent of the batch weighing: a sterility and batch-loss function, not a safety function; PSE-2115A relieves overpressure."}
+  - {id: I-212, title: "R-212A weight high-high: close the medium fill", cause: {tag: WIS-2123A, condition: WSHH}, effects: [{tag: XV-2128A, action: close}, {tag: WIS-2123A, action: alarm}], sheet: P-201, sil: null, notes: "Set 8.5 m3 equivalent (ASSUMED), as I-211 (D-036)."}
+  - {id: I-213, title: "R-213A level high-high: close the medium fill", cause: {tag: LIS-2133A, condition: LSHH}, effects: [{tag: XV-2138A, action: close}, {tag: LIS-2133A, action: alarm}], sheet: P-201, sil: null, notes: "Set 85 m3 (about 80 % of 107 m3, ASSUMED), above the 72 m3 batch, as I-211 (D-036)."}
+  - {id: I-211B, title: "R-211B weight high-high: close the medium fill", cause: {tag: WIS-2113B, condition: WSHH}, effects: [{tag: XV-2118B, action: close}, {tag: WIS-2113B, action: alarm}], sheet: P-205, sil: null, notes: "As I-211."}
+  - {id: I-212B, title: "R-212B weight high-high: close the medium fill", cause: {tag: WIS-2123B, condition: WSHH}, effects: [{tag: XV-2128B, action: close}, {tag: WIS-2123B, action: alarm}], sheet: P-205, sil: null, notes: "As I-212."}
+  - {id: I-213B, title: "R-213B level high-high: close the medium fill", cause: {tag: LIS-2133B, condition: LSHH}, effects: [{tag: XV-2138B, action: close}, {tag: LIS-2133B, action: alarm}], sheet: P-205, sil: null, notes: "As I-213."}
+  - {id: I-211C, title: "R-211C weight high-high: close the medium fill", cause: {tag: WIS-2113C, condition: WSHH}, effects: [{tag: XV-2118C, action: close}, {tag: WIS-2113C, action: alarm}], sheet: P-208, sil: null, notes: "As I-211."}
+  - {id: I-212C, title: "R-212C weight high-high: close the medium fill", cause: {tag: WIS-2123C, condition: WSHH}, effects: [{tag: XV-2128C, action: close}, {tag: WIS-2123C, action: alarm}], sheet: P-208, sil: null, notes: "As I-212."}
+  - {id: I-213C, title: "R-213C level high-high: close the medium fill", cause: {tag: LIS-2133C, condition: LSHH}, effects: [{tag: XV-2138C, action: close}, {tag: LIS-2133C, action: alarm}], sheet: P-208, sil: null, notes: "As I-213."}
+  # ---- P-404 product and ethanol tanks: overfill protection (D-044) ----
+  - {id: I-401, title: "T-401A level high-high: close its fill valve", cause: {tag: LSHH-4809A, condition: LSHH}, effects: [{tag: XV-4807A, action: close}, {tag: LSHH-4809A, action: alarm}], sheet: P-404, sil: null, latching: true, reset: manual, notes: "Switch independent of LIT-4808A, set at 90 % of the tank height (ASSUMED). The operator changes over to T-401B on LAH of LIT-4808A; if both tanks trip the product goes on with E-404B's sump rising (LIC-4616 alarm), a HAZOP item. SIL screening open."}
+  - {id: I-402, title: "T-401B level high-high: close its fill valve", cause: {tag: LSHH-4809B, condition: LSHH}, effects: [{tag: XV-4807B, action: close}, {tag: LSHH-4809B, action: alarm}], sheet: P-404, sil: null, latching: true, reset: manual, notes: "As I-401."}
+  - {id: I-403, title: "T-402 level high-high: close the tanker fill valve", cause: {tag: LSHH-4705, condition: LSHH}, effects: [{tag: XV-4704, action: close}, {tag: LSHH-4705, action: alarm}], sheet: P-404, sil: null, latching: true, reset: manual, notes: "Overfill protection of the ethanol tank during tanker unloading (flammable liquid, D-012); switch independent of LIT-4706, set at 90 % (ASSUMED); the driver stops the tanker pump on the horn (procedure, ASSUMED). SIL screening open (HAZOP)."}
+  - {id: I-404, title: "T-402 level low-low: stop the ethanol make-up pumps", cause: {tag: LIT-4706, condition: LALL}, effects: [{tag: P-472A, action: stop}, {tag: P-472B, action: stop}, {tag: LIT-4706, action: alarm}], sheet: P-404, sil: null, notes: "Dry-running protection of P-472A/B (equipment protection); set 0.3 m above the outlet nozzle (ASSUMED)."}
+  # ---- P-301 acid tank and acid dosing (S6 review #1 and #2, D-040) ----
+  - {id: I-301, title: "T-301 level high-high: close the tanker fill valve", cause: {tag: LSHH-3013, condition: LSHH}, effects: [{tag: XV-3013, action: close}, {tag: LSHH-3013, action: alarm}], sheet: P-301, sil: null, latching: true, reset: manual, notes: "Overfill protection of the 93 wt% sulfuric acid tank during tanker unloading; switch independent of LIT-3012; set at 90 % of the tank height (ASSUMED). The driver also stops the tanker pump on the horn (procedure, ASSUMED). SIL screening open (HAZOP)."}
+  - {id: I-302, title: "T-301 level low-low: stop the acid pumps", cause: {tag: LIT-3012, condition: LALL}, effects: [{tag: P-304A, action: stop}, {tag: P-304B, action: stop}, {tag: LIT-3012, action: alarm}], sheet: P-301, sil: null, notes: "Dry-running protection of P-304A/B (equipment protection); set 0.3 m above the outlet nozzle (ASSUMED)."}
+  - {id: I-303, title: "A-301 not running: stop acid dosing", cause: {tag: A-301, condition: "not running"}, effects: [{tag: FV-3021, action: close}, {tag: P-304A, action: stop}, {tag: P-304B, action: stop}], sheet: P-301, sil: null, latching: true, reset: manual, notes: "Without the agitator, concentrated acid pools at the dip pipe and boils locally on dilution (S6#2). Motor-running feedback of A-301."}
+  - {id: I-304, title: "R-301 pH low-low: stop acid dosing", cause: {tag: AIC-3024, condition: ALL}, effects: [{tag: FV-3021, action: close}, {tag: P-304A, action: stop}, {tag: P-304B, action: stop}, {tag: AIC-3024, action: alarm}], sheet: P-301, sil: null, latching: true, reset: manual, notes: "Set pH 1.5 (ASSUMED, the set point is about 2.5). This trip acts on the result of overdosing whatever its cause, including a wrong reading of FT-3020 (S6#2)."}
+  - {id: I-305, title: "R-301 level high-high: stop acid dosing", cause: {tag: LIC-3022, condition: LAHH}, effects: [{tag: FV-3021, action: close}, {tag: P-304A, action: stop}, {tag: P-304B, action: stop}, {tag: LIC-3022, action: alarm}], sheet: P-301, sil: null, notes: "Uses the control transmitter LIC-3022 (not independent; an independent LSHH is a detail-engineering item if the HAZOP asks for it). Stopping the broth feed on this trip is left to the HAZOP (it would stop the centrifuges)."}
+  - {id: I-306, title: "Clarified broth flow low-low: stop acid dosing", cause: {tag: FT-3020, condition: FALL}, effects: [{tag: FV-3021, action: close}, {tag: P-304A, action: stop}, {tag: P-304B, action: stop}], sheet: P-301, sil: null, delay: {value: 10, unit: s}, notes: "Loss of the wild flow of the ratio; a wrong high reading of FT-3020 is caught by I-304."}
 #  - id: I-01
 #    title: LIN tank low-low level
 #    cause: {tag: LIA-101, condition: LALL}

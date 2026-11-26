@@ -26,7 +26,7 @@ Python packages queried).
 
 | id | source | locator | access / terms | used for |
 |---|---|---|---|---|
-| SRC-1 | BioSTEAM lactic biorefinery: Bioindustrial-Park, `biorefineries/lactic` (Li, Y.; Bhagwat, S. S.; Cortes-Pena, Y. R. et al.), https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/biorefineries/lactic, the model of Li et al. (2021) ACS Sustainable Chem. Eng. 9, 1341-1351 | `README.rst`: SSCF and SHF configurations; MPSP 1.414 $/kg, GWP 4.567 kg CO2-eq/kg, FEC 58.67 MJ/kg (SSCF); the system's lime stream 243 kmol/h of Ca(OH)2 and the product 256 kmol/h of lactic acid (with 86.1 kmol/h water, 13.1 kmol/h ethyl lactate). `_units.py`: CoFermentation (T 50 C; titer 130 g/L, the maximum of the collected data; productivity 0.89 g/(L h); yield 0.76 g/g; turnaround 12 h; parallel reactions glucose to 2 lactic acid 0.76, to 3 acetic acid 0.07, to 6 cell mass 0.02; CSL 10 g/L; lime for the acids plus 10 %; neutralisation to the calcium salts at 1; V_wf 0.8); the Reactor class (agitation 0.0985 kW/m3, from 0.5 hp/1000 gal); AcidulationReactor (calcium salts and lime with H2SO4 at 1, the acid 10 % over and 93 % pure); Esterification (T 351.15 K; 1.5 mol ethanol per mol acid; Amberlyst-15 3.9 wt%; K = exp(2.9625 - 515.13/T)); HydrolysisReactor (12 mol water per mol ester, conversion 0.8). `_processes.py`, create_separation_process: cell mass filter moisture 0.35; acidulation tau 1 h, SS316; gypsum filter moisture 0.2; flash F401 at 379 K; D401 acetic acid recovery 0.99; D402 ethanol 0.99; D403 ethyl lactate 0.995 over lactic acid 0.9995, its bottoms 97 % recycled; R403 tau 4 h; D404 ethanol 0.9, water 0.9935 to the bottoms; F402 to 88 wt% lactic acid. `_chemicals.py`: CSL as 50 % water, 25 % protein, 25 % lactic acid. `utils.py` get_splits: gypsum 0.995 to the cake. The ethanol recycle about 91 % ethanol with 8 % water (Esterification._run comment) | read 2026-11-19; MIT licence (repository LICENSE.txt); code read, numbers used as facts, no code copied | D-001, D-003, D-005 to D-010, benchmarks |
+| SRC-1 | BioSTEAM lactic biorefinery: Bioindustrial-Park, `biorefineries/lactic` (Li, Y.; Bhagwat, S. S.; Cortes-Pena, Y. R. et al.), https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park/tree/master/biorefineries/lactic, the model of Li et al. (2021) ACS Sustainable Chem. Eng. 9, 1341-1351 | `README.rst`: SSCF and SHF configurations; MPSP 1.414 $/kg, GWP 4.567 kg CO2-eq/kg, FEC 58.67 MJ/kg (SSCF); the system's lime stream 243 kmol/h of Ca(OH)2 and the product 256 kmol/h of lactic acid (with 86.1 kmol/h water, 13.1 kmol/h ethyl lactate). `_units.py`: CoFermentation (T 50 C; titer 130 g/L, the maximum of the collected data; productivity 0.89 g/(L h); yield 0.76 g/g; turnaround 12 h; parallel reactions glucose to 2 lactic acid 0.76, to 3 acetic acid 0.07, to 6 cell mass 0.02; CSL 10 g/L; lime for the acids plus 10 %; neutralisation to the calcium salts at 1; V_wf 0.8); the Reactor class (agitation 0.0985 kW/m3, from 0.5 hp/1000 gal); AcidulationReactor (calcium salts and lime with H2SO4 at 1, the acid 10 % over and 93 % pure); Esterification (T 351.15 K; 1.5 mol ethanol per mol acid; Amberlyst-15 3.9 wt%; K = exp(2.9625 - 515.13/T)); HydrolysisReactor (12 mol water per mol ester, conversion 0.8). `_processes.py`, create_separation_process: cell mass filter moisture 0.35; acidulation tau 1 h, SS316; gypsum filter moisture 0.2; flash F401 at 379 K; D401 acetic acid recovery 0.99; D402 ethanol 0.99; D403 ethyl lactate 0.995 over lactic acid 0.9995, its bottoms 97 % recycled; R403 tau 4 h; D404 ethanol 0.9, water 0.9935 to the bottoms; F402 to 88 wt% lactic acid. `_chemicals.py`: CSL as 50 % water, 25 % protein, 25 % lactic acid. `utils.py` get_splits: gypsum 0.995 to the cake. The ethanol recycle about 91 % ethanol with 8 % water (Esterification._run comment). Read 2026-11-25 for basic engineering, `_units.py`: `SeedTrain` costed as 5 stages in 2 trains; seed turnaround 12 h ("the same as" Humbird et al. 2011, NREL, not read here); seed productivity 0.95 x 0.89 g/(L h); seed temperature 50 C; a `SeedHoldTank` after the seed train (tank, agitator, pump); `CoFermentation.inoculum_ratio = 0.07` (7 % of the fermentation feed split to the seed train); the main fermentation in `mode='batch'` with no air or oxygen input and no CO2 in its reactions (lactic and acetic acid and cell mass only): not aerated | read 2026-11-19 and 2026-11-25; MIT licence (repository LICENSE.txt); code read, numbers used as facts, no code copied | D-001, D-003, D-005 to D-010, benchmarks |
 | SRC-2 | Garrido, R.; Cabeza, L. F.; Falguera, V. (2023) Lactic Acid Production from Cow Manure: Technoeconomic Evaluation and Sensitivity Analysis. Fermentation 9, 901, doi:10.3390/fermentation9100901 | p. 5, Table 3: SSAF at 50 C, product recovery 92 %, final product 88 % w/w lactic acid. p. 6: 8640 h a year. pp. 7-8: calcium carbonate or hydroxide to hold pH 5 to 6; gypsum precipitated with sulfuric acid and filtered; technical-grade acid esterified with methanol or ethanol, the ester distilled, hydrolysed and the alcohol recycled; the zinc lactate alternative. p. 11, Table 4: scenario I, 109 723 t/a fermented, 100 945 t/a recovered. p. 13, Table 6: sulfuric acid 93 % 1981 kg/h; grid electricity 12 797 kW under by-products and credits (an export) | read 2026-11-19; CC BY 4.0, facts only | D-001, D-002, D-005, D-007, D-008 |
 | SRC-3 | Wikipedia, "Glucose" (infobox: enthalpy of formation -1271 kJ/mol, citing Ponomarev and Migarskaya 1960) and "Calcium lactate" (solubility of the L-lactate: 6.7 g/100 mL at 25 C, 8.5 g/100 mL at 30 C, citing Vavrusova et al. 2013) | infoboxes and text, read 2026-11-19 | secondary sources, values ASSUMED | reactions (FLA, FAA), D-005 |
 | SRC-4 | thermo 0.6.1 and chemicals 1.5.2 (Caleb Bell, MIT; core's environment) | formation enthalpies (kJ/mol): L-lactic acid(s) -694.08 (`Hfs`, method WEBBOOK, the NIST WebBook value as packaged), CaO(s) -634.9 and Ca(OH)2(s) -985.2 (`Hfs`, CRC), water(l) -285.825 and acetic acid(l) -483.58 (`Hfl`, ATCT_L, the Active Thermochemical Tables); heat capacities: water 75.33 and ethanol 122.02 kJ/(kmol K) at 323.15 K (HEOS_FIT), acetic acid 135.55 (VDI_TABULAR, the VDI Heat Atlas as bundled), sulfuric acid 138.9 (CRCSTD), CaO 42.10 and Ca(OH)2 87.48 (WEBBOOK_SHOMATE), gypsum 195.81 (PERRY151, Perry's Handbook table 2-151 as bundled); heats of vaporisation (HEOS_FIT): water 43.34, 42.47, 42.25, 41.65 kJ/mol at 313.15, 333.15, 338.15, 351.57 K, ethanol 40.43 and 39.14 kJ/mol at 333.15 and 351.57 K; boiling points (`Tb`): water 373.12 (HEOS), ethanol 351.57 (HEOS), acetic acid 391.05 (CRC_ORG), ethyl lactate 427.15 K (COMMON_CHEMISTRY); water's vapour pressure 20 kPa at 333.2 K, 450 kPa at 421.1 K, 1000 kPa at 453.0 K (IAPWS_PSAT). No heat capacity of lactic acid, ethyl lactate, glucose or the calcium salts, no heat of vaporisation of ethyl lactate, no formation enthalpy of liquid ethyl lactate or the calcium salts | open-source package queried 2026-11-19; single values, facts only, with their source; not open data (library ADR 0037). The underlying works (the CRC Handbook, the VDI Heat Atlas, Perry's Handbook, CoolProp's reference equations, the NIST WebBook, the ATcT) were not read here | materials, reactions, D-009 |
@@ -310,6 +310,926 @@ inventory.
 No HAZOP at this stage; no semi-batch or dosed exothermic step (the lime is dosed on pH into a
 fermentation, not a reaction mass with accumulation).
 
+## Basic engineering (from 2026-11-25)
+
+Stage basic starts from the concept (PR #561) and keeps its numbers: the flowsheet, the recipe
+and the duties are unchanged; the decisions below split the concept's items into the parts a
+basic-engineering P&ID and layout need. No source beyond the register was read; every size,
+condition and practice below is ASSUMED unless an SRC is named, and usual industry practice is
+stated as an ASSUMED choice, not as data.
+
+## D-013 Seed train: 5 stages at 1:10, three plant trains (2026-11-25)
+Decision: SRC-1's 5 stages at 1:10 per step (ratio ASSUMED). The stage-5 seed is 7 % of the
+batch (SRC-1's inoculum ratio 0.07, taken on the broth): 0.07 x 1033 = 72 m3, then 7.2, 0.72,
+0.072 and 0.0072 m3. Stages 1 (7 L flask) and 2 (72 L lab fermenter) are grown in the
+microbiology laboratory off-plot (a note on P-201); stages 3 to 5 are plant seed fermenters R-211
+(1 m3), R-212 (10 m3) and R-213 (about 107 m3), at about 72, 72 and 67 % fill (ASSUMED; D-030). On SRC-1's 7 %
+of the feed (761 t of medium per batch, S6 x 9.879 h) the seed medium is 53 t; the 72 m3 basis is
+the larger and sizes R-213. The seed medium is a side-draw of the sterile medium header (D-014),
+so the flowsheet's medium and the production fermenters' totals are unchanged (L-3 stands: the
+seed's growth is not modelled apart).
+- Schedule: SRC-1 sizes its seed batch on the main titer and productivity, 130 / (0.95 x 0.89) =
+  153.8 h per stage; five stages in series would take 769 h, and no schedule that must inoculate
+  every 9.88 h can follow it. A seed stage is grown to the late exponential phase instead: at 1:10
+  about 3.3 doublings, at a doubling time of 1 to 1.5 h plus a lag (ASSUMED, no source read) 6 to
+  8 h; chosen 8 h of growth, 1 h fill and up to 0.9 h transfer, so a stage occupies its vessel
+  9.88 h (one production period) from fill to transfer, then SRC-1's 12 h turnaround (emptying,
+  CIP, SIP, cool-down): 21.88 h per vessel cycle.
+- Trains: each stage must deliver every 9.88 h, so ceil(21.88 / 9.88) = 3 vessels per stage:
+  three trains A, B, C, each starting a seed every 29.64 h (7.76 h slack per cycle), staggered by
+  one period; stage 3 of a train is filled at period k, transfers to stage 4 at k+1, to stage 5
+  at k+2 and into the production fermenter at k+3. SRC-1's two trains would need a cycle of at most
+  19.76 h, which leaves 7.76 h for fill, growth and transfer after the 12 h turnaround: rejected
+  as too tight. Every seed fill falls in a production fill campaign of the steriliser (D-014).
+- No seed hold tank (ASSUMED): stage 5 transfers straight into the filling production fermenter
+  by sterile nitrogen pressure (no pump seal on the sterile boundary); SRC-1's `SeedHoldTank` would
+  add a sterile vessel and a holding time for a culture that is better transferred in its
+  exponential phase. Rejected: SRC-1's hold tank with a pump.
+- pH: stage 5 on the milk-of-lime ring main like the production fermenters (D-018); stages 3 and
+  4, too small for a lime slurry branch (plugging), on NaOH 10 wt% from T-215 through a 0.2 um
+  sterile filter (ASSUMED; about 0.5 t of solution per stage-4 batch, its sodium neglected).
+- Seed fermenters: 3.0 barg and full vacuum, 150 C, SS316L, jackets on cooling water, top-entry
+  agitators (A-211 0.4 kW, A-212 2.2 kW, A-213 15 kW, ASSUMED), sterile vent and inlet gas filters
+  as on R-201A (drawn on P-201, tagged there as parts of the fermenter), in building B-201 (D-026).
+
+## D-014 Medium preparation: blended at the fill rate in campaigns (2026-11-25)
+Decision: the flow mismatch (the flowsheet carries the year-average medium S6, 77.0 t/h, but a
+fermenter fills in 4 h, recipe) is resolved by running medium preparation and the steriliser
+in campaigns at the fill rate: 761 t in 4 h = 190 t/h, designed for 200 t/h (ASSUMED margin),
+about 4 h of every 9.88 h, the seed stages' side-draws within the same campaign (D-013). Syrup,
+CSL and process water are blended in line on ratio control into V-101 (the concept's 200 m3,
+about 1 h at the fill rate), so the averaging happens in the syrup and CSL day tanks. Between
+campaigns the steriliser is stopped, not held hot; it is re-sterilised before each campaign on
+once-through water (D-015, revised 2026-11-25 for review finding #5). The year average of the
+medium heating is unchanged: Q17 1478 kW stays the net steam (D-005), the campaign peak is
+3.8 MW (D-015); the re-sterilisation steam comes on top (D-015).
+Rejected: E-101 continuous at 77 t/h into a sterile medium buffer of one batch (about 720 m3 of
+24 wt% sugar at 323 K, an ideal growth medium held sterile for up to 10 h: a large sterile
+vessel with SIP, a filter and a contamination risk on every batch).
+Storage (ASSUMED): syrup T-101A/B 2 x 2150 m3, 7 days at 1340 kg/m3 (ASSUMED density); syrup day
+tank T-103 450 m3 (one day); CSL storage T-102 200 m3 (7 days) and day tank T-104 25 m3; syrup
+and CSL tanks kept at 323 K (the concept's feed temperature).
+
+## D-015 Continuous steriliser E-101 in its parts (2026-11-25)
+Decision: the concept's E-101 becomes the train regenerative exchanger E-101, steam heater E-102,
+holding tube X-101, trim cooler E-103, back-pressure valve and divert valve, at 200 t/h:
+- Sterilising temperature 413 K (140 C) and hold 120 s: ASSUMED (usual continuous medium
+  sterilisation practice, no source read; Open inputs).
+- E-101, wide-gap plates (CSL solids): raw medium from about 306.6 K (the blend, D-005) to
+  396.6 K against the sterile medium from 413 K to 323 K, 16.5 K approach on both ends (D-005's
+  approach, now on both ends because both sides carry the same flow and heat capacity), about
+  21 MW at 200 t/h. E-102 on LP steam: 396.6 to 413 K, 16.4 K x 89.4 kW/K = 1.47 MW on the year
+  average (the medium at water's heat capacity per kg, D-009), which is Q17 1.48 MW; at 200 t/h
+  3.8 MW, E-102 designed for 4.0 MW. E-103 on cooling water, 1.0 MW, for start-up on water and the
+  regenerator's drift.
+- Sterile side above raw side in E-101 (revised 2026-11-25, review finding #1: with only the
+  back-pressure valve after E-103 the raw side, upstream of E-102 and X-101, is at the higher
+  pressure, so a plate leak would carry raw medium into the sterile medium). A sterile-side
+  booster P-108A/B (sanitary, variable speed, double mechanical seal with a steam barrier,
+  ASSUMED) after X-101 raises the sterile side. Pressures (ASSUMED, pressure drops of about
+  0.5 to 0.7 bar per exchanger pass and 0.5 bar in X-101): X-101 outlet 3.5 barg (PIC-1029 on
+  the booster speed; 0.9 bar above water's 2.6 barg at 413 K, SRC-4), so the raw side enters
+  E-101 at about 5.4 barg; the booster delivers about 7.1 barg (3.6 bar, about 40 m), the sterile
+  side leaves E-101 at about 6.4 barg, 1.0 bar above the highest raw pressure, and PIC-1026
+  holds about 6 barg after E-103 with PV-1026. PDT-1028 measures the sterile outlet of E-101
+  against its raw inlet; below 1.0 bar (ASSUMED) it diverts like a low holding temperature
+  (C&E I-103). Rejected: a second pump on the raw side after E-101 (the raw side at 397 K would
+  have to stay above 2.2 bar(a) anyway, leaving too little margin), and a double-wall or
+  intermediate-loop regenerator (a third circuit and about twice the plate area).
+- Standby and water (revised 2026-11-25, review finding #5): no hot standby on water circulating
+  to V-101, and no water into V-101 at all. Before each campaign the steriliser and the sterile
+  header are sterilised on once-through process water (XV-1034 into the P-104 suction) at 413 K
+  for 30 min (ASSUMED) to the wastewater (XV-1032, 150-WW-1018); the water-to-medium front at the
+  start goes to the wastewater for one hold-up volume (about 10 m3, ASSUMED), the last medium of
+  a campaign is pushed forward into the fermenter being filled by water (about 10 m3, about 1 %
+  of a batch, ASSUMED, the blend of the last hour made correspondingly stronger). Only a divert of
+  medium returns to V-101 (XV-1030). Steam on top of Q17 (ASSUMED estimate): heating the hold-up
+  and steel (about 1 h at up to 2 MW) plus 30 min at 100 t/h with the regenerator's 16.5 K
+  approach (about 1.9 MW), about 2.5 to 3 MWh per campaign, i.e. about 0.3 MW or 0.5 t/h of LP
+  steam as a year average (+20 % on Q17), and about 50 m3 of wastewater per campaign; Q17 and the
+  LCI do not carry it yet (Open inputs).
+- X-101: 120 s at 189 m3/h = 6.3 m3, DN 250 (0.049 m2, 1.07 m/s), about 130 m of serpentine on a
+  skid, rising, insulated. The holding pressure is above water's 3.6 bar(a) at 413 K (SRC-4's
+  IAPWS series gives 450 kPa at 421 K): held at 3.5 barg by PIC-1029 (see the booster above);
+  design 10 barg, 160 C.
+- Divert: TT-1023 and TT-1024 (two elements, 1oo2) at the holding-tube outlet; below 411 K
+  (ASSUMED, 2 K under the set point) or on PDT-1028 low, the divert pair after PV-1026 acts:
+  US-1025 closes the forward valve XV-1025A to the sterile header, UY-1025 opens XV-1025B back to
+  V-101 (a pair of on/off valves instead of one three-way valve, so the forward valve is a tight
+  block); the sterile side is then re-sterilised on water at 413 K for 30 min (ASSUMED) before
+  forward flow is released. C&E I-101 to I-103. Rejected: diverting at the holding-tube outlet
+  (413 K medium to an atmospheric tank).
+
+## D-016 Production fermenters R-201A to P (2026-11-25)
+Decision: 16 tags R-201A to R-201P (the concept's R-201 split). Each 1291 m3 (D-010), D 9.0 m,
+straight side 17.3 m (63.6 m2 x 17.3 m = 1100 m3 plus two 2:1 heads of 95.4 m3), 2 m skirt,
+23.8 m overall; broth level about 14.7 m above the bottom tangent. Design 2.5 barg and full
+vacuum (D-034 replaces the -0.3 barg first chosen here), 150 C (SIP at about 121 C, 1.05 barg;
+ASSUMED). Material SS304 (SRC-1) with SS316L nozzles and probe ports
+(ASSUMED); empty weight about 100 t (D-005). Agitators A-201A to P tagged apart (they carry the
+trip of D-017): top entry, 127 kW absorbed (D-012: 2035 kW / 16; D-009's 1880 kW is the year
+average), 160 kW motor (ASSUMED next size with margin), gearbox on the top head, double mechanical
+seal with a sterile barrier fluid (condensate or water at above the headspace pressure, ASSUMED).
+R-201A is drawn in full on P-202 as the typical; B to P on P-203 with the common headers and
+their branch valves, noted "instrumented as R-201A, typical". Rows outdoors on a foundation with
+a steel access structure at their tops (D-026).
+
+## D-017 Fermenter temperature: half-pipe coils on a tempered-water loop (2026-11-25)
+Decision: half-pipe coils on the shell, each fermenter with its own tempered-water loop: pump
+P-201x (85 m3/h) circulates through the coils; cooling water is injected on TIC-2011x (broth
+temperature, set 323 K) by TV-2011x, the surplus overflowing to the cooling-water return (ASSUMED
+usual practice; keeps the coil inlet warm against calcium lactate crystallising at a cold wall,
+D-005). Duty: Q2 7153 kW / 16 = 447 kW per fermenter on average; peak 1.5 times (ASSUMED) = 0.67
+MW; at U 400 W/(m2 K) and an LMTD of 11 K (broth 323 K, loop 308 to 315 K, ASSUMED) 152 m2 of the
+416 m2 of wetted shell. Alarms TAH-2011x on the broth; an independent TT-2012x with TSHH-2012x
+(set 333 K, ASSUMED) and FSLL-2014x on the loop flow (lost cooling) trip the agitator A-201x (the
+open safeguard of D-012) and alarm; in control/cause-effect.yaml once P-202 is drawn. Rejected:
+cooling water straight through the coils (a cold wall at 298 K).
+
+## D-018 pH: milk-of-lime ring main with dosing branches (2026-11-25)
+Decision: pH 5 to 6 (set 5.5, ASSUMED) on two steam-sterilisable pH probes AT-2021x and
+AT-2022x (two of two compared, deviation alarm), AIC-2021x to the on/off dosing valve AV-2021x
+on a DN 25 branch of a circulating milk-of-lime ring main, with a water flush connection after
+each dose against plugging and a steam block at the vessel nozzle (D-020). Demand: S7 34.9 t/h,
+about 2.4 t/h per fermenting vessel on average (about 15 vessels ferment at once), 3.5 m3/h peak
+(ASSUMED 1.5 times at 1150 kg/m3). Ring main DN 100 from T-105 through all fermenters and back,
+P-106A/B at 80 m3/h (2.8 m/s), about twice the 35 m3/h of all draws, so the return end stays above
+1.4 m/s (ASSUMED minimum against settling); PIC-1035 holds the ring pressure by a back-pressure
+valve at the return. The milk of lime is not sterile: its pH (about 12.4) and the slaking heat
+keep its bioburden low, and the thermophilic fermentation at 323 K and pH 5 to 6 is robust
+(ASSUMED; no source read); the dosing branch's steam block is the sterile boundary, accepted
+as a contamination risk. Rejected: NaOH or ammonia (sodium or ammonium sulfate instead of
+gypsum downstream: another route, D-001).
+
+## D-019 No aeration; nitrogen overlay, sterile filters, relief and vacuum protection (2026-11-25)
+Decision: the fermentation is not aerated: SRC-1 runs it in batch with no air or oxygen input and
+no CO2 among its products (homofermentative lactic acid bacteria, glucose to two lactic acid);
+the fermenters have no sparger, compressor or air filter train, and a note on P-202 says so.
+- Overlay: sterile-filtered nitrogen at 0.3 barg (ASSUMED) keeps the sterile boundary under
+  positive pressure, PIC-2041x split range on the N2 inlet PV-2042x and the vent back-pressure
+  valve PV-2041x. N2 about 1340 Nm3 per harvest (1033 m3 at 1.3 bar(a)) and 1300 Nm3 per SIP
+  cool-down, about 270 Nm3/h on average (ASSUMED estimate), from a site supply at the battery
+  limit. Rejected: a plain sterile vent (air drawn in at harvest; no positive pressure).
+- Filters: vent F-201x and inlet gas F-202x, DN 150 housings with 0.2 um hydrophobic cartridges,
+  steam-sterilised with the vessel, condensate drained at the housing low points. DN 150 because
+  the cool-down after SIP condenses about 1291 m3 of steam: at a controlled cool-down of at least
+  60 min (ASSUMED, by the coil valve) about 1300 m3/h of gas must come in (20 m/s in DN 150).
+- Relief: a sanitary reverse-acting rupture disc on the headspace, set 2.5 barg, sized on the SIP
+  steam case (the SIP steam valves failed open, about 3 t/h of LP steam, ASSUMED; sizing at
+  stage basic, piping/special-items.yaml), discharged to a safe location. Vacuum: the gas inlet
+  (operational) and a vacuum relief valve set at -0.2 barg admitting gas through F-202x
+  (ASSUMED), so the -0.3 barg rating is never reached.
+
+## D-020 Sterile boundary, steam blocks and aseptic sampling (2026-11-25)
+Decision: the sterile boundary runs at the first valve on every line into a sterile vessel or
+header; every entry that is opened and closed (medium inlet, inoculum inlet, lime dosing, harvest
+and CIP return, CIP supply, sampling) has a steam block: two block valves with steam fed and
+condensate drained between them (double block and bleed with steam, ASSUMED usual practice),
+steamed whenever the line is idle. The aseptic sampling valve is steam- and condensate-flushed
+before and after each sample. The boundary is marked on the sheets by notes and spec breaks
+(sterile class SS316L, orbital-welded, drainable). SIP steam enters at the headspace and at the
+bottom; condensate traps at the low points (bottom valve cluster, filter housings, coil drain).
+
+## D-021 CIP station and SIP steam (2026-11-25)
+Decision: one CIP station in building B-201 for the production fermenters, seed fermenters and
+transfer lines: caustic T-221 (NaOH about 2 wt%, 353 K), acid T-222 (nitric acid about 1 wt%,
+weekly), fresh water T-223, recovered rinse T-224 (40 m3 each), caustic 50 wt% make-up T-225 with
+P-223, heater E-221 on LP steam (2.0 MW), supply pumps P-221A/B (60 m3/h at about 3 barg at the
+spray devices on the fermenter top: about 30 L/min per metre of circumference, 28 m for 9 m, 51
+m3/h, ASSUMED), return pumps P-222A/B (self-priming). Sequence (ASSUMED): pre-rinse from T-224,
+caustic 30 min at 353 K, rinse, acid weekly, final rinse to T-224. The concept's 20 t of rinse
+water and 50 kg of NaOH per fermenter cleaned stay (D-003). SIP: plant LP steam through the
+sintered steam filters F-231A/B (1 um, ASSUMED; filtered plant steam, not clean steam) to the
+sterile users, 121 C for 30 min (ASSUMED); its condensate drained to the wastewater (not returned:
+possible product contamination, ASSUMED). The SIP steam per batch is the concept's cut-off
+(D-005).
+
+## D-022 Lime: silo, feeder, slaker and milk-of-lime tank (2026-11-25)
+Decision: quicklime silo V-102 (400 m3, 3 days at 1000 kg/m3 bulk, ASSUMED) with a bin vent
+filter, weigh feeder X-102 to slaker R-101 (the concept's 40 m3, D-006), slaker vent to a wet
+scrubber, a grit screen at its outlet, pumps P-107A/B to the milk-of-lime tank T-105 (250 m3, 8 h
+of S7 against a slaker outage, ASSUMED), ring main pumps P-106A/B (D-018).
+
+## D-023 Sheets, tags, line numbers (2026-11-25)
+Decision: ten P&IDs as the specification plans them: P-101 medium and steriliser, P-102 lime and
+ring main, P-201 seed train, P-202 R-201A (typical, detailed), P-203 R-201B to P with headers,
+harvest and T-201, P-204 CIP and SIP, P-301 cell removal, acidulation and gypsum, P-401
+evaporation, P-402 esterification and ester column, P-403 ethanol recovery, hydrolysis and
+product; all `planned` in plant.yaml. P-203 and P-201 may be generated by scripts (16 fermenters,
+three trains).
+- Equipment tags: letter, area digit and two digits (T tank, V vessel or drum, R reactor or
+  fermenter, A agitator of a fermenter, E exchanger or evaporator, X holding tube or feeder, P pump,
+  K vacuum pump, S centrifuge or solids filter, F gas or steam filter, C column); A, B... for
+  installed spares and parallel units, the fermenter letter for its own items (P-201A belongs to
+  R-201A). Other tanks' agitators are parts of their tanks.
+- Line numbers: `<DN>-<fluid>-<area><three digits>[train letter]`, e.g. 200-SM-2001A; fluid codes
+  SM sterile medium, PM process medium, IN inoculum, BR broth, ML milk of lime, CS/CR CIP supply
+  and return, LS LP steam, SS filtered SIP steam, CD condensate, NS sterile nitrogen, VT vent,
+  TW tempered water, CW/CWR cooling water, PW process water, PL process liquid. DN from a velocity
+  basis given per line in the line list (liquids 1 to 2.5 m/s, slurries at least 1.5 m/s,
+  gas and steam up to 30 m/s; ASSUMED).
+- Instrument tags: ISA letters and a loop number `<area><two digits>` plus the fermenter or train
+  letter (TIC-2011A on R-201A; TIC-2131B on R-213B).
+
+## D-024 Harvest and broth hold (2026-11-25)
+Decision: each fermenter's bottom valve cluster (harvest and CIP return) on a DN 250 harvest
+header; harvest pumps P-202A/B, 280 m3/h (1106 t in 4 h, recipe) to T-201 (the concept's 2500 m3,
+D-010), agitated, insulated, with an LP-steam coil to hold at or above 323 K (D-005); broth feed
+pumps P-203A/B, 125 m3/h on T-201's level and the downstream rate, to the centrifuges.
+
+## D-025 Downstream items for basic engineering (2026-11-25)
+Decision (sizes ASSUMED from the flowsheet flows): three disc-stack centrifuges S-301A to C, two
+running (55 m3/h each), cake hopper V-301 and cake pumps to anaerobic digestion; R-301's cooling
+on a pump-around through the spiral exchanger E-301 sized for 2.0 MW (D-007's 1.5 to 2 MW with
+the acid's dilution heat; a coil of about 200 m2 in a 150 m3 gypsum slurry tank was rejected for
+scaling), acid storage T-301 (7 days) and dosing pumps; belt filter S-302 with liquid-ring
+vacuum pumps K-301A/B, filtrate receiver V-303 and pumps; evaporator E-401 as effects E-401A to D
+with circulation pumps, surface condenser E-402, receiver V-401 and vacuum pumps K-401; R-401
+with feed heater E-411; C-401, C-402 and C-403 each with reboiler, condenser, reflux drum, reflux
+and bottoms pumps (C-401 with vacuum pumps K-421); R-402 with heater E-441; E-404 as effects
+E-404A and B with condenser E-461, drum V-461 and vacuum pumps K-461; product cooler E-405;
+product tanks T-401A/B (7 days); ethanol make-up tank T-402 with pumps P-472. The flowsheet links
+name the split tags (R-201A to P, S-301A to C, E-401A to D, E-404A/B, the steriliser's parts).
+
+## D-026 Plot plan (2026-11-25)
+Decision: a 360 m x 260 m site (ASSUMED) with a perimeter road and internal roads (8 m), areas
+A-110 lime, A-130 media day tanks, A-120 with the clad building B-201 for medium preparation,
+the steriliser, the seed train and the CIP station, A-200 production fermentation, A-300 cell
+removal, acidulation and gypsum with the gypsum store A-310, A-400 evaporation and purification
+(the ethanol area), A-600 tank farm (syrup, CSL, acid, product), A-610 ethanol storage apart,
+A-700 control room and substation, A-800 utilities (reserved). The production fermenters stand
+outdoors in two rows of eight (pitch 14 m, 5 m between shells) on a foundation, the main rack
+PR-1 between the rows (tiers 6, 8 and 10 m), the tempered-water pumps beside the rack, a steel
+access structure at the fermenter tops for the agitator drives and filters (structures.yaml at
+the layout-3d step). Racks PR-4 and PR-6 (along B-201's north wall) take the medium, inoculum,
+CIP and SIP headers from the building to PR-1; PR-5 and PR-3 serve the tank farm and the
+downstream areas, PR-2 the ethanol area. A branch line that starts at a header names the area
+of its tie-in (`from_area: A-200`), since a header has no single position. Rejected: a fermentation hall (16 vessels of 24 m: a building of about
+120 x 45 x 30 m for no process reason; the drives need weather protection only). Separations
+(ASSUMED, measured by `cheme validate`): the ethanol area and the ethanol tank at least 30 m from
+the control room and substation, the ethanol tank 15 m from the site boundary, tanks 8 m from
+roads. Elevated items (agitators, fermenter filters) are placed at their elevation; their mounts
+and structures follow with the 3D layout (gate layout-3d).
+
+## D-027 Component balances with the NUT lump (2026-11-25)
+Decision: the basic gate's component balance of PREP, FERM, ACID, R201 and R301 cannot be
+evaluated because the CSL protein lump NUT has no formula (D-004). Its mass balances close. A
+formula would be invented data (no CSL composition was read), so the five findings are accepted
+at the gate `process-basic` in checks/checks.yaml with this reason, for the design review to
+confirm. Rejected: an ASSUMED amino-acid formula for NUT (it would make a nitrogen balance look
+sourced that is not, L-3).
+
+## D-028 P-101 split: medium preparation P-101, continuous steriliser P-103 (2026-11-25)
+Decision: the sheet frame is A3; storage, day tanks, blending and the steriliser do not fit on one
+readable sheet. P-101 keeps syrup and CSL receipt, storage T-101A/B and T-102, day tanks T-103
+and T-104, their pumps, the ratio blend (FIC-1011/1012/1013) and V-101 with LIC-1014; the new
+P-103 carries the steriliser (P-104A/B, E-101, E-102, X-101, P-108A/B, E-103, PV-1026, the divert
+pair XV-1025A/B, the water and wastewater connections). 250-PM-1004 (V-101 to P-104) and
+200-PM-1007 (divert to V-101) continue across both sheets under their numbers. New lines
+150-PM-1008/1009 (syrup receipt and transfer), 50-PM-1010/1011 (CSL), 200-PM-1012/1013,
+200-SM-1014/1015/1016 (the steriliser's legs between items), 150-WW-1018, 150-PW-1019 and the
+utility connections 200-LS-1021, 80-SC-1022, 150-CW-1023/1024 (sizes in the line list, velocity
+bases ASSUMED). New level indicators LI-1003/1004/1005 on the storage tanks. Drawn from
+scripts/draft_P-101.py and scripts/draft_P-103.py (provenance; both sheets are hand-maintained
+from now on). Tank heating coils are named in a note on P-101, not drawn (basic level). Open
+drawing warnings on P-103: two signal lines (US-1025 to XV-1025A, PDT-1028 to US-1025) cross the
+booster discharge 200-SM-1014, which encloses the instruments of the sterile loop; the CW
+connections of E-103 end in connectors by the exchanger because every way to a sheet edge crosses
+the sterile loop or the header.
+
+## D-029 P-102 lime slaking and ring main as drawn (2026-11-25)
+Decision: P-102 ("Lime and ring main") draws V-102 with pneumatic filling (100-QL-1110), the
+weigh feeder X-102 (WIC-1032, its rate set by LIC-1034 on T-105), R-101 with slaking water on
+FV-1105 (ratio to the lime rate, ASSUMED), the cooling coil on TIC-1033/TV-1033 (100-CW-1107/1108,
+820 kW at a 10 K rise, ASSUMED), the vent to the wet scrubber (150-VT-1106), P-107A/B to T-105,
+P-106A/B (suction 150-ML-1109) into the ring main 100-ML-1102 and its return 100-ML-1103 with
+PIC-1035/PV-1035 and FIL-1036. R-101 is drawn and listed as a Vessel (agitated, in a note):
+this core's DEXPI classes have no stirred-tank reactor; the seed fermenters will meet the same
+(core limit, candidate issue). Review finding #8 (ring-main return velocity at peak draws) is
+not resolved by this sheet: P-106A/B stay at 80 m3/h until it is decided.
+
+## D-030 Seed train A on P-201; transfer hydraulics and campaign timeline (2026-11-26)
+Decision: P-201 draws train A in full (R-211A, R-212A, R-213A with agitators A-211A to A-213A,
+T-215, P-215A/B, F-215); trains B and C go on the new sheet P-205 as typicals of train A (planned;
+their 12 list items moved to it). Drawn from scripts/draft_P-201.py (provenance; the sheet is
+hand-maintained from now on). ASSUMED throughout, no source read:
+- Per vessel: medium from 100-SM-2003, base (NaOH 15-NA-2147 through F-215; lime 25-ML-2131A on
+  R-213A) and inoculum each through a steam block (two ball valves, 15-SS-2148 steam and a trap to
+  the drain between them, D-020); the R-213A outlet 100-IN-2138A has its own steam block before
+  100-IN-2004 (P-203). Sterile N2 from 40-NS-2141 through the inlet filter F-242A/244A/246A and
+  PV-21x4A (PIC-21x4A on the N2 inlet), vent through F-241A/243A/245A and a hand valve to atm. (a
+  constant sweep; closed for a transfer). Rupture disc on each vessel to a safe location (sizing
+  on the SIP steam case at detail). Jackets on cooling water with TIC-21x1A on TV-21x1A; pH
+  AIC-21x2A on AV-21x2A; WI-2113A/2123A (load cells), LI-2133A (radar). Bottom valve cluster:
+  bottom valve, SIP steam tee (25-SS-2150 from 50-SS-2144), transfer tee, CIP return valve to
+  50-CR-2143; CIP supply 50-CS-2142 to a spray device through one valve, steamed with the vessel
+  (the steam-block rule of D-020 is not applied to CIP connections of the seed vessels: open for
+  the review). Headers to P-205 at the right edge. Drawing: SIP steam is the lowest top header so
+  no steam-block feed crosses a header; the 31 remaining crossings (drops through the headers
+  below) and the CW stubs are accepted in checks.yaml with this reason.
+- Transfer hydraulics (review S1#2): R-213A in B-201 to the R-201 top inlets, about 250 m of DN 100
+  (S1 estimate). Transfer in 1.5 h instead of 1 h: 48 m3/h, 1.7 m/s; friction scales with v^2 from
+  S1's 1.3 to 1.7 bar at 2.5 m/s to about 0.6 to 0.8 bar; lift to the 23.8 m fermenter top about
+  2.4 bar (24 m at 1030 kg/m3, ASSUMED); target headspace 0.3 barg: R-213A at about 3.5 barg at
+  the start of the transfer. R-213A's design pressure is raised from 3.0 to 6.0 barg (list
+  updated; a 4 m vessel at 6 barg is ordinary) so the transfer runs at least 1.5 bar below it;
+  R-211A and R-212A stay at 3.0 barg (local transfers in B-201, lift under 5 m). The line hold-up
+  (about 2 m3, 250 m x 7.9 L/m) is blown forward into the fermenter with sterile N2 at the end of
+  the transfer, then the line is steamed (D-020). The 1.5 h transfer fits D-013's cycle: stage 5
+  occupies 1 h fill + 8 h growth + 1.5 h transfer = 10.5 h, plus 12 h turnaround = 22.5 h, under
+  the 29.64 h a vessel has per seed (three trains). Rejected: a bottom inoculum inlet (the broth
+  head adds up to 1.5 bar), stage 5 beside the fermenter rows (a second sterile building).
+- Campaign timeline (review S1#6): per production period (9.88 h) the steriliser runs 1.5 h
+  heat-up and 30 min water sterilisation (D-015), 4 h production fill at 190 t/h, then the seed
+  fills at about 80 t/h (40 % of the 200 t/h design, ASSUMED within a plate steriliser's turndown;
+  the hold time rises to about 5 min, on the safe side): 72 m3 to a stage-5 vessel in about 1 h,
+  7.2 and 0.72 m3 to stages 4 and 3 in the same hour on their own branches; 6.5 to 7 h of 9.88 h.
+  The seed fill is never inside a production fill, so the steriliser never exceeds 200 t/h.
+  R-213 holds 72 m3 in about 107 m3: 67 % fill, not 72 % (D-013 corrected). The seed medium is the
+  full-strength production medium (about 240 g/L sugar, ASSUMED acceptable for the strain; no
+  source read, Open inputs); dilution with sterile water rejected for now (a sterile water supply).
+
+## D-031 P-202: production fermenter R-201A as drawn, the typical of R-201A to P (2026-11-26)
+Decision: P-202 draws R-201A in full (scripts/draft_P-202.py is provenance; the XML is the source,
+with the second split-range signal of TIC-2011A added by hand from `cheme fragment signal`). It
+answers the open review findings S1#3, S1#4, S1#7, S2#9 and, for R-201A, S2#1/S3#5 and S3#4.
+Changes to D-016 to D-021, each ASSUMED unless a source is named:
+- **Class.** R-201A to P are DEXPI `Vessel` with a separate `Agitator`, as the seed fermenters
+  (one class for all fermenters, S3#3); F-201x/F-202x are `GasFilter`.
+- **Temperature, heating (S1#7).** The tempered-water loop of D-017 gets direct LP-steam injection
+  TV-2011B (25-LS-2031A, check valve) besides the CW injection TV-2011A; TIC-2011A is split range
+  (0 to 50 % steam, 50 to 100 % CW). Heating is needed at the start (medium arrives at about 323 K
+  from E-101 but the steel and coil water start cold) and in the lag phase of an outdoor vessel in
+  winter: shell about 620 m2 at an ASSUMED 0.5 W/(m2 K) insulated loss and 40 K to winter ambient
+  is about 12 kW, the coil water about 10 m3; 100 kW (about 0.15 t/h of steam) is the ASSUMED
+  heater size. CW injection: 0.67 MW with CW at 298 K replacing loop water at 315 K is 34 m3/h,
+  DN 80 at 1.9 m/s; the same flow overflows to the CW return. Rejected: a separate plate heater on
+  the loop (more equipment for a duty used a few hours per batch).
+- **Headspace pressure.** PIC-2041A holds 0.3 barg on the vent back-pressure valve PV-2041A; N2 is
+  made up by the self-acting regulator PCV-2042A set at 0.25 barg (tank-blanketing practice),
+  instead of the split range of D-019. Reason: the N2 make-up (the cool-down after SIP, the
+  harvest) then works without the control system and cannot be driven open by a controller fault;
+  its trim is restricted to about 1500 Nm3/h at 6 barg.
+- **Relief (D-019).** PSE-2045A, rupture disc set 2.5 barg on its own DN 150 nozzle to a safe
+  location. Cases: SIP steam valves failed open, 3 t/h of LP steam: 0.83 kg/s at about 3.5 bar(a)
+  and 140 C (1.85 kg/m3) is 0.45 m3/s, 25 m/s in DN 150; PCV-2042A failed open, 1500 Nm3/h =
+  0.52 kg/s of N2 at 3.65 kg/m3 is 0.14 m3/s. The SIP steam case governs (piping/special-items.yaml).
+  The same check of the N2 failure case is what S3#1 asks of the seed vessels (left to S9).
+- **Vacuum (S1#4).** The governing credible case is steam collapse after SIP: cooling water into the
+  coils at the full loop flow (TV-2011A open early or failed open) takes up to about 8.9 MW
+  (23.6 kg/s by 90 K), condensing about 4 kg/s of steam, about 24 000 m3/h of gas demand at
+  atmospheric pressure; cold medium or CIP spray into a steamed vessel is of the same order. No
+  sterile-filter path can pass that, so the case is **prevented, not relieved**: I-204 (PALL-2043A
+  at -0.05 barg, own tapping) closes TV-2011A and the medium inlet; the sequence permits coil
+  cooling, fill and CIP only with the headspace above +0.1 barg under N2 (control/sequences.yaml,
+  stage S9). PSV-2046A (vacuum relief at -0.2 barg, drawn as a check valve, no vacuum-valve class
+  in the authoring API) admits air through F-202A for the loss of N2 make-up during the controlled
+  cool-down, 1300 m3/h (D-019). If the HAZOP/LOPA does not credit I-204 and the permissives, the
+  fermenters must be rated for full vacuum: an open item for the HAZOP of the fermentation area.
+- **Vent filter wetting (S1#4).** During CIP the hydrophobic cartridge of F-201A is isolated by
+  XV-2043A and the vessel vents through the bypass XV-2044A (100-VT-2028A); both filters are
+  steamed with the vessel and drained at the housing low points through traps.
+- **High level (S3#4 for R-201A).** LIC-2031A (radar) closes the outer medium valve XV-2033A at the
+  batch volume (14.7 m); LSHH-2032A, an independent switch at 16.0 m (1.3 m = 83 m3, 19 min of the
+  258 m3/h fill, below the vent nozzle), closes the inner valve XV-2034A (I-203).
+- **Steam blocks (S2#1, S3#5 for R-201A).** Medium, inoculum, lime, CIP supply, CIP return and
+  harvest each have a steam block. The head SIP steam enters through the CIP spray line (it steams
+  the spray device and the line after the block); the bottom SIP steam through the bottom valve
+  cluster, with TI-2015A at the coldest point (121 C for 30 min, D-021).
+- **Lime dosing and the sterile boundary (S2#9).** The boundary is the steam block at the nozzle of
+  the DN 25 dosing branch, steamed while idle; after each dose the branch is flushed with water
+  (25-PW-2032A) against plugging. When dosing, non-sterile milk of lime crosses the boundary: the
+  contamination risk is accepted on the lime's pH of about 12.4 and the robust thermophilic
+  fermentation at 323 K, pH 5 to 6 (as D-018; no source read).
+- **Aseptic sampling** on a DN 25 shell nozzle: sampling valve, steam fed between it and the outlet
+  valve, flushed to drain before and after each sample.
+- **Trips** in control/cause-effect.yaml: I-201 TSHH-2012A (333 K) and I-202 FSLL-2014A stop
+  A-201A (D-012); I-203 LSHH-2032A; I-204 PALL-2043A. SIL: from the HAZOP/LOPA, not assumed.
+- **Turnaround with SIP (S1#3).** Timed sequence (all ASSUMED): harvest 3.7 h (1033 m3 at
+  280 m3/h) + drain 0.3 h = 4.0 h; CIP 1.5 h (pre-rinse 15 min, caustic 30 min at 353 K, rinse
+  15 min, final rinse 15 min, drains 15 min); SIP 3.0 h (heat-up and air purge 1.5 h: about 4.5 t of
+  steam at 3 t/h for 100 t of steel by 71 K = 1.6 t, the steam inventory of 1291 m3 = 1.45 t and the
+  purge; hold 0.5 h; controlled cool-down under N2 1.0 h); fill 4.0 h. Total 12.5 h against the
+  12 h of D-003: the batch cycle becomes 158.6 h and the harvest period 158.6 / 16 = 9.91 h instead
+  of 9.88 h, 0.3 % fewer batches a year. Decision: keep 16 fermenters and the solved flowsheet (the
+  difference is within the precision of the ASSUMED step times); record the 12.5 h as the basis of
+  the control sequences, and recover the 0.5 h, if the schedule needs it, by starting the CIP
+  pre-rinse while the harvest drains. Rejected: a 17th fermenter for 0.3 %.
+- **Line numbers.** The lime branch is 25-ML-2024A (25-ML-2021A reused the sequence of 80-SS-2021A).
+
+## D-033 P-202 to the S4 review: tags, agitator drive, coils, I-204, relief load, turnaround (2026-11-26)
+Decision: P-202 stays hand-maintained; `scripts/fix_P-202_s4b.py` (run once, provenance) added the
+labels and texts below, the drive and coil outlines and the moved bubbles are hand edits. All
+values ASSUMED unless a source is named.
+- **Valve tags (S4#1).** XV-2033A/2034A, TV-2011A/B, PV-2041A, XV-2043A/2044A, AV-2021A and
+  PSV-2046A carry printed tag labels. PCV-2042A is drawn as a field regulator bubble on the N2
+  valve with its impulse line from 50-NS-2025A downstream of the valve ("self-acting" note).
+  `cheme validate` still reports the valve-tagged instruments (TV, AV, XV, PV) as
+  instrument-not-on-pid: it reads instrument tags from bubbles and actuators, not from valve
+  labels (a core limit, listed below for the review to judge).
+- **Agitator (S4#2).** A-201A is drawn as a top-entry drive on the vessel axis line (x shifted
+  8 mm right of the centre so the drive clears the head SIP line): motor M (catalogue
+  MOTOR_SHAPE, 160 kW installed for the 127 kW of D-012), gearbox G, shaft through the top head,
+  double mechanical seal S with a sterile barrier fluid above headspace pressure (D-016), and the
+  impeller symbol in the broth. The drive is drawing only (no separate motor tag; the motor list
+  comes with electrical-list.yaml).
+- **Coils (S4#3).** The half-pipe coils of D-017 are drawn as an outline outside the straight
+  shell; 150-TW-2022A/2023A connect to them, not to the broth.
+- **I-204 and the loop during SIP (S4#4).** During SIP P-201A is stopped and TV-2011A/B are
+  closed (sequence step, S9); the stagnant loop water is warmed by the shell. I-204 (PALL-2043A)
+  now also stops P-201A, so the about 10 m3 of loop water cannot be circulated through the coils
+  of a steamed vessel, and stops the CIP supply pumps P-221A/B (one fermenter is cleaned at a
+  time, D-021), so no cold CIP spray enters a steamed vessel. Cold medium stays covered by
+  XV-2034A. Rejected: a trip valve in the CIP supply steam block (another actuated valve on every
+  fermenter for a case the pump stop covers).
+- **Relief load (S4#5).** PSE-2045A is checked against the full-open SIP paths, not the normal
+  3 t/h: from the LP header at 4.5 bar(a) (design basis) into the vessel at 3.75 bar(a)
+  relieving, 100-SS-2020A and 80-SS-2021A with K = 10 each (take-off, steam filter, valves,
+  bends) pass about 2.5 kg/s (9 t/h). The DN 150 disc to atmosphere is choked at about
+  360 kg/(m2 s) with Kd 0.62, 6.7 kg/s, 2.7 times that load: DN 150 stays, no restriction orifice.
+  Burst indicator XA-2045A (alarm) on the disc, so a burst disc does not open the sterile vessel
+  unnoticed. The same check for the seed vessels (S3#1) is left to S9.
+- **TIC-2011A (S4#6), PSV-2046A (S4#7).** TIC-2011A sits right of the loop riser with a straight
+  measuring line from the broth; its outputs are labelled "TV-2011A: 50-100 % (CW)" and
+  "TV-2011B: 0-50 % (LP steam)" and cross the riser once each (accepted in checks.yaml).
+  PSV-2046A is tagged and labelled "vacuum relief -0.2 barg".
+- **Turnaround (S4#8).** process/recipe.yaml now follows D-031's steps and keeps the 12 h of
+  D-003 with two overlaps: the CIP pre-rinse starts in the last 0.25 h of the harvest drain
+  (CIP 1.25 h after the harvest's 4.0 h), and the fill starts in the last 0.25 h of the SIP
+  cool-down once the vessel is under N2 above +0.1 barg (SIP 2.75 h before the fill's 4.0 h):
+  4.0 + 1.25 + 2.75 + 4.0 = 12.0 h. The 1.5 h inoculum transfer of D-030 runs in the last 1.5 h
+  of the fill through its own nozzle, so it adds no time. 16 fermenters and the 9.88 h harvest
+  period stay. Rejected: a 12.5 h turnaround (0.3 % fewer batches).
+- **Crossings on P-201 (S3#6).** The wildcard acceptances in checks.yaml are replaced by the 37
+  explicit finding ids.
+- Left open: S4#9 (vent filter housing heating), S3#1 to #5, #7 to #10, S2 and S1 lows (to S9).
+
+## D-034 P-202 to the S4b review: full vacuum, set points, LP header relief, legibility (2026-11-26)
+Decision (all values ASSUMED unless a source is named):
+- **Full vacuum (S4b#2).** R-201A to P are designed for 2.5 barg **and full vacuum** (FV), 150 C,
+  as the seed vessels R-211x to R-213x already are (D-013). Reason: steam collapse after SIP can
+  draw about 24 000 m3/h (D-031), far above any sterile-filter path, and usual practice for
+  steam-sterilised fermenters is an FV rating (no source read). I-204 and the permissives of S9
+  stay, but now protect the sterile boundary (filter cartridges, seals, gaskets drawn in) and
+  the batch, not the vessel; PSV-2046A covers the loss of N2 during the controlled cool-down.
+  Cost: stiffening rings on a 9 m shell; the 100 t empty weight of D-016 is kept until the vessel
+  vendor confirms it. D-016's "-0.3 barg, vacuum prevented" is replaced. The seed vessels of
+  trains B and C get the class and pressures of train A (R-213B/C 6.0 barg, `Vessel`, S3#3).
+- **Overlay set points (S4b#6).** PIC-2041A 0.30 barg on the vent valve; PCV-2042A 0.25 barg
+  (lock-up about 0.27 barg), below the PIC set point, so N2 enters only below 0.25 barg and
+  leaves only above 0.30 barg: no continuous purge. PCV-2042A senses its outlet at the F-202A
+  inlet; at the cool-down peak (1300 m3/h) the filter and line drop about 0.05 to 0.1 bar, so
+  the headspace stays at about +0.15 barg, above PALL-2043A (-0.05 barg). In control/loops.yaml.
+- **LP header relief (S4b#3).** The LP steam header (4.5 bar(a) = 3.5 barg normal maximum,
+  design basis) is protected at the site letdown station by its own relief valve, set at the LP
+  header design pressure of 3.5 barg and sized for the letdown valve failed open (utility
+  system, ASSUMED; outside this battery limit). A failed letdown therefore raises the header at
+  most to 3.5 barg plus 10 % accumulation, 4.85 bar(a): the full-open SIP load into R-201A scales
+  with the upstream pressure to about 2.7 kg/s, against the 6.7 kg/s of the DN 150 disc of D-033.
+  The fermenter disc (2.5 barg) is below the header's set pressure, as it must be.
+- **Valve tags (S4b#1).** The eight actuated valves keep their printed tag labels; validate's
+  instrument cross-check reads tags only from bubbles and actuators, so the eight list entries are
+  accepted in checks.yaml with this reason, and the PSE-2045A note tag with D-031's.
+- **Legibility (S4b#4, #5).** The six small explanatory texts of P-202 are raised from 2.0 to
+  2.5 mm; the 100-CS-2016A label moved right of the CIP drop below the head SIP tee, clear of the
+  steam block's bleed (its two acceptances removed).
+
+## D-035 P-203, P-206, P-207: fermenters R-201B to P as typicals, headers, harvest and T-201 (2026-11-26)
+Decision (ASSUMED unless a source is named; drawn by `scripts/draft_P-203.py`, provenance only,
+the XML is the source):
+- **Sheets.** The 15 typicals do not fit one A3 sheet legibly (15 columns of about 26 mm with
+  five header drops, two filters and a pump each). P-203 draws R-201B to I, the new P-206 R-201J
+  to P, the new P-207 the harvest pumps P-202A/B, T-201 with its agitator A-202 and the feed pumps
+  P-203A/B. D-023's P-203 is split; the lists' `sheet:` follow. Rejected: one sheet at 26 mm per
+  fermenter (labels unreadable at slide size), an A1 sheet (the template is A3).
+- **Typical column.** Each fermenter is drawn by one loop body: R-201x with A-201x, branch drops
+  from the top headers (inoculum 100-IN-2004, sterile medium 200-SM-2001, CIP supply 100-CS-2015,
+  SIP steam 150-SS-2019 teed into the CIP drop as on R-201A, N2 80-NS-2008 through F-202x), the vent
+  through F-201x to atmosphere, the tempered-water loop P-201x on the coils, and below the vessel
+  the harvest drop to 250-BR-2011 with the CIP return 150-CR-2017 teed off, and the lime branch from
+  the ring main 100-ML-1102 to the low shell nozzle. Each branch valve drawn stands for R-201A's
+  steam block, and the instruments, trips, sampling, bottom SIP and the TW loop's CW/LP-steam
+  injection are "as R-201A" (sheet note), as a typical overview usually does. The 195 branch line
+  numbers follow R-201A's with the fermenter's letter (e.g. 200-SM-2002B) and are listed.
+- **Headers.** The drops cross the headers below them; a header set common to all fermenters
+  cannot be drawn without (each fermenter connects to every header). Those crossings, and only
+  those (drop with header, by the Line_Drop_*/Line_Hdr_* ids), are accepted in checks.yaml. Top
+  headers end on P-206 at a low-point drain (SIP steam: trap; N2: vent); the harvest header goes to
+  P-207, the CIP return to P-204, the ring main into its return leg 100-ML-1103 (P-102).
+- **Harvest and hold (D-024).** 250-BR-2011 feeds P-202A (duty) and P-202B (spare), check valves
+  on both, 200-BR-2012 with FI-2053 into the top of T-201. T-201 is agitated by A-202 (not sized:
+  0.05 to 0.1 kW/m3 for solids suspension, 125 to 250 kW, ASSUMED, vendor to size), insulated, with
+  an LP-steam coil on TIC-2052/TV-2052 (50-LS-2054, condensate 25-CD-2055 through a trap) to hold
+  at or above 323 K (D-005). 200-BR-2013 to P-203A (variable speed, duty) and P-203B (spare),
+  150-BR-2014 heat-traced to S-301A to C (P-301); LIC-2051 sets the feed by P-203A's speed.
+- **DN 250.** DEXPI's DIN 2448 list has no DN 250, so the harvest header's nominal diameter is
+  printed in its label and listed as DN250, but left out of the model (authoring note).
+- Left open: TV-2052 is printed as a valve tag only (not in the instrument list, as the P-202
+  valves); the CIP of T-201 and its overflow are not drawn.
+
+## D-036 Seed trains to the S3 review; trains B and C on P-205 and P-208 (2026-11-26)
+Decision: one script, scripts/draft_seed_train.py (replaces draft_P-201.py), draws train A on
+P-201 and its typicals, train B on P-205 and train C on the new sheet P-208 (the train letter
+follows from the sheet file; P-201 was redrawn from it, since no hand edit had been made after
+D-030). One train fills a sheet at legible scale, so "trains B and C on P-205" became one train
+per sheet (plant.yaml and the C items' `sheet:` changed). Trains B and C are drawn in full, with
+every tag of their own, and listed (lines, filters, instruments, discs, trips): no footnote
+typicals (S5#1 lesson). Headers run A -> B -> C; on P-208 they end in a steam trap (medium, SIP),
+a drain valve (CIP) or a blind flange (N2, NaOH); the CIP return starts there at a SIP steam
+connection. Each sheet is hand-maintained; changes go through the script and a redraw of all three.
+Review S3 closed as follows (ASSUMED throughout, no source read):
+- S3#1 relief: each N2 branch gets a self-acting reducer with restricted trim, PCV-21x6x (2.0 barg
+  for R-211/R-212, 4.0 barg for R-213; 150 Nm3/h at most from 6 barg). Rupture discs PSE-21x5x
+  (3.0 barg R-211/R-212, 6.0 barg R-213) in piping/special-items.yaml with their cases: governing
+  is PCV and PV both failed open, 0.052 kg/s against about 0.30 kg/s of N2 through a DN 25 disc
+  at 4.3 bar(a) (choked, Kd 0.62); SIP steam about 0.1 kg/s against about 0.2 kg/s. R-213 at
+  6.0 barg equals the header pressure, so a header excursion is the only overpressure. The
+  transfer pressure is 3.5 barg (D-030); the line note's "4.5 barg" is corrected.
+- S3#2 aseptic sampling: a steam-sterilisable sampling valve on each seed vessel's bottom head
+  (15-BR-2158x to 2160x), drawn as one valve with its steam and condensate ports in the valve
+  body (not drawn). Transfer release (ASSUMED): a sample at the end of growth with OD in range,
+  microscopy and plating free of contaminants, pH 5 to 6.
+- S3#4 high level: a batch stop on the fill measurement, not an independent switch: WIS-2113x/
+  2123x (load cells) and LIS-2133x (radar) close XV-21x8x, the inner valve of the medium steam
+  block, at high-high (C&E I-211 to I-213C). Overfill wets the vent filter (sterility, batch
+  loss); overpressure is covered by the disc, so the function is not a safety function. An
+  independent LSHH was rejected: no clear nozzle and bubble position on the seed vessel tops
+  at this sheet scale, and no safety case for it.
+- S3#5 CIP inlet: double-seat (mix-proof) valves XV-21x9x with a steamed leakage chamber instead of
+  a steam block (rejected: two more steam blocks per vessel on a full sheet). Usual in aseptic
+  plants (ASSUMED); the leakage chamber drain is part of the valve.
+- S3#7: T-215 gets a fill from P-223 (50 wt% NaOH, 15-NA-2152) with dilution water (15-PW-2153) and
+  a vent (25-VT-2154); the P-215A/B check valves were drawn, the P-215A label is moved off the
+  suction. S3#8: vent-filter housing drains through traps; the disc outlets renumbered
+  25-VT-2155x to 2157x; the 25-ML-2131A label moved. S3#10 (seed heating) stays open.
+- The NaOH header 15-NA-2147 continues from P-201 to trains B and C; R-212's branch is now
+  15-NA-2121x.
+
+## D-037 P-204 CIP station and SIP steam as drawn (2026-11-26)
+Decision: P-204 draws D-021 from scripts/draft_P-204.py (provenance; hand-maintained). T-221 to
+T-224 on one suction header 100-CS-2207 to P-221A/B (duty, standby, check valves), E-221 on LP
+steam (TV-2201, TIC-2201), FV-2202 (FIC-2202) into 100-CS-2015; the return 150-CR-2017 with
+TT-2204 and AIT-2203 (conductivity) to P-222A/B and the recovery header 100-CR-2226 to T-221,
+T-222, T-224 or the drain; T-225 (50 wt% NaOH from a tanker) with P-223 to T-221 and to T-215
+(15-NA-2152); fresh water to T-223; tank vents to atmosphere. SIP: LP steam 150-LS-2233 through
+F-231A/B (PDI-2206) and PV-2205 (PIC-2205) into 150-SS-2019, drip leg with a trap.
+SIP header pressure (S5b#1, revised 2026-11-26): PIC-2205 holds **1.5 barg** (was 3 barg). The vessel
+SIP basis is 121 C, about 1.05 barg (D-016, D-021); saturated steam at 1.5 barg (2.5 bar abs) is
+about 127 C, so 0.45 bar is left for the filters downstream, the branch valves and the inlet lines.
+No vessel can then reach more than the header pressure: 1.5 barg is 60 % of the R-201A to P design
+pressure and PSE-2045x set point (2.5 barg), 50 % of R-211x/R-212x (3.0 barg) and 25 % of R-213x
+(6.0 barg), so a normal SIP neither lifts a disc nor breaks the sterile boundary; no per-vessel SIP
+pressure control is added (rejected: 16 + 9 control valves for a duty one header valve covers).
+PV-2205 fails closed and PIC-2205 alarms high at 1.8 barg (both ASSUMED); PV-2205 failing open is
+the full-open relief case already checked (D-033, D-034). Steam velocity in 150-SS-2019 at 3 t/h and
+1.5 barg (about 1.39 kg/m3): 2160 m3/h, 32 m/s, inside a 40 m/s limit for saturated steam
+(ASSUMED). In the DN80 bottom inlets 80-SS-2021x the heat-up peak of 1.5 t/h reaches about 60 m/s;
+accepted for the short heat-up, the bottom flow being throttled by its valve to about 1 t/h once
+the vessel is warm (ASSUMED; detail engineering checks the DN).
+ASSUMED, no source read: P-222A/B self-priming at the low point of the return header below the
+fermenter rows (S1#9); saturated steam, dryness 0.95 or better after the utility separator (S1#10);
+sequence and concentrations as D-021. Left open: tank level instruments and overflows, pump
+isolation valves and drains, the T-201 condensate (S5#6), the CIP and SIP permissives in C&E.
+
+## D-038 P-301 cell removal, acidulation and gypsum filtration as drawn (2026-11-26)
+Decision: P-301 draws D-006, D-007 and D-025 from scripts/draft_P-301.py (provenance;
+hand-maintained). Sheet title shortened to "Cell removal, acidulation" to fit the title block.
+- Cell removal: the 150-BR-2014 header from P-203A/B drops to S-301A to C, each on its own feed
+  flow loop FIC-3011x (55 m3/h; two running, one spare). Each disc-stack bowl discharges its
+  solids intermittently through a chute 100-CM-3004x into the hopper V-301; progressive cavity
+  pumps P-301A/B (listed as RotaryPump) send the 0.88 t/h of cake to anaerobic digestion. The
+  clarified broth from the centripetal pumps of the bowls joins in 150-PL-3002 (FT-3020) to R-301.
+  Operating water, bowl flush, motors and CIP of the machines are the vendor's package (ASSUMED).
+  The three machines, each on three headers, are a K3,3 graph: the two crossings of the cake chutes
+  with the clarified header cannot be drawn away and are accepted in checks.yaml.
+- Acidulation: 93 wt% acid from T-301 by P-304A/B through FV-3021 on FFIC-3021, in ratio to
+  FT-3020 at 1.01 mol per mol of calcium (D-007), the ratio trimmed by the pH loop AIC-3024 (set
+  point about pH 2.5, ASSUMED; no source read). The acid enters R-301 through a side nozzle at the
+  impeller (dip pipe, ASSUMED) and not into the pump-around as D-025 first said: concentrated acid
+  in a DN200 slurry line gives local heat and gypsum scale in the pipe and the spiral exchanger,
+  while the agitated 150 m3 spreads it (ASSUMED usual practice). R-301 is listed as Vessel (the
+  DEXPI class drawn) with its agitator A-301 (tagged as A-202 of T-201; power to the vendor).
+- Cooling (D-007: 1.5 to 2 MW): pump-around P-303A/B (250 m3/h, ASSUMED in D-025) through the
+  spiral exchanger E-301 back to R-301; TIC-3023 holds 323 K on the cooling-water outlet valve
+  TV-3023. Cooling water for 2.0 MW at a 10 K rise (ASSUMED): 2000 / (4.18 x 10) = 47.8 kg/s,
+  172 m3/h, DN200 at 1.5 m/s. The slurry flow through E-301 is 2000 kW / (3.8 kJ/(kg K) x 1150
+  kg/m3 x 250/3600 m3/s) = 6.6 K warmer in than out (heat capacity and density ASSUMED).
+- Slurry to the filter: P-305A/B (120 m3/h) on a variable-speed drive set by LIC-3022 on R-301;
+  no control valve in the gypsum slurry (erosion, ASSUMED usual practice). 150-GS-3018 at 1.9 m/s.
+- Gypsum filter: S-302 with its cloth wash, no cake wash (D-007); the cake discharges through a
+  chute (200-GC-3019, listed for the drawing only) to the belt conveyor to the gypsum store A-310.
+  The filtrate and the air from the vacuum boxes go to the receiver V-303 (full vacuum design);
+  the liquid-ring pumps K-301A/B (two running) draw on V-303 and exhaust to atmosphere, seal
+  water by the vendor (ASSUMED). P-306A/B pump the filtrate to E-401 (P-401) on LIC-3031/LV-3031.
+- New fluid codes (D-023): CM cell mass cake, SA sulfuric acid, GS gypsum slurry, GC gypsum cake,
+  CL crude lactic acid filtrate, VA vacuum air.
+Left open: R-301 high-level and low-level trips, the vacuum system pressure indication and the
+filter's interlocks (belt drift, cloth wash, vacuum loss), the centrifuges' vendor interlocks;
+the cake chute of S-302 is not a pipe; A-301 not yet placed in the layout.
+
+## D-039 P-401 four-effect evaporator as drawn (2026-11-26)
+Decision: P-401 draws D-008's E-401 from scripts/draft_P-401.py (provenance; hand-maintained) as
+four falling-film effects E-401A to D in forward feed (listed as ThinFilmEvaporator, the DEXPI
+class drawn; separator in the same symbol). The feed 150-CL-3022 enters the circulation of
+E-401A; each pump P-403x lifts its sump to the film distributor (about 150 m3/h, ASSUMED wetting
+rate) and sends the forward transfer on LIC-4011x/LV-4011x to the next effect's sump. LP steam
+(FIC-4001, 6.5 t/h for Q4 13.7 MW at 2.1 MJ/kg) heats E-401A, its condensate returns through a
+trap; each effect's vapour heats the next; the last vapour goes to the surface condenser E-402
+(Q5 14.5 MW; cooling water 1250 m3/h at a 10 K rise, ASSUMED). The condensates of E-401B to D
+and E-402 drain to the receiver V-401, on which the liquid-ring pumps K-401A/B hold the vacuum
+(non-condensables with the condensate, ASSUMED); P-401A/B on LIC-4004 send S15 to wastewater.
+P-402A/B draw the concentrate (S16, 71 wt%) from the E-401D sump through DV-4002 on DIC-4002
+(density as the concentration measurement, ASSUMED usual).
+- Effect pressures ASSUMED (no source read): about 1.0, 0.6, 0.3 and 0.12 bar(a), equal
+  evaporation of about 20 t/h per effect (81 t/h / 4). Vapour DN at 30 to 45 m/s: 20 t/h is
+  5.6 kg/s; at 1.0 bar(a) 0.59 kg/m3 gives 9.4 m3/s (DN600, 33 m/s), at 0.6 bar(a) 0.37 kg/m3
+  15 m3/s (DN800, 30 m/s), at 0.3 bar(a) 0.19 kg/m3 29.5 m3/s (DN1000, 38 m/s), at 0.12 bar(a)
+  0.08 kg/m3 70 m3/s (DN1400, 45 m/s; DN1500 to be checked). DEXPI's DN standard has no
+  DN250 to DN1400: the DN stays in the line numbers and the line list.
+- New fluid codes (D-023): VP process vapour, PC process condensate.
+- Accepted crossings (checks.yaml): condensate drops against the forward transfers, the
+  concentrate draw against the condensate header, the LIC measuring lines against the risers.
+Left open: the vacuum control (PI-4003 only, no PIC on bleed air), effect temperature and
+pressure indications, the condensate flash between effects, the evaporator CIP (scaling by
+residual gypsum, D-007), relief of E-401A's steam chest; P-401's areas for the layout.
+
+## D-040 Fixes to the S6 review on P-301 and P-401 (2026-11-26)
+Decision, by finding (scripts/fix_P-301_s7.py and fix_P-401_s7.py, provenance; the sheets stay
+hand-maintained):
+- S6#1 (high): T-301 gets two instrument nozzles, LIT-3012 (level with LAH, LAL, LALL) and the
+  independent switch LSHH-3013. LSHH-3013 closes the tanker fill valve, the former hand valve,
+  now the actuated ball valve XV-3013 (fail closed; C&E I-301, latching, manual reset; set at
+  90 % of the tank height, ASSUMED). LIT-3012 LALL stops P-304A/B (I-302, dry running; set
+  0.3 m above the outlet, ASSUMED). The tanker pump stop on the LSHH horn is a procedure
+  (ASSUMED). SIL screening is left to the HAZOP.
+- S6#2: acid dosing stops (FV-3021 closed, P-304A/B stopped) on A-301 not running (I-303),
+  pH low-low at AIC-3024, set pH 1.5 (I-304, ASSUMED), R-301 level high-high on LIC-3022
+  (I-305, the control transmitter, not independent) and clarified-broth flow low-low at FT-3020
+  (I-306, 10 s). A wrong high reading of FT-3020 overdoses acid; I-304 catches the result
+  whatever the cause. Rejected: a second flow meter (I-304 already covers it).
+- S6#4: E-401D's sump is held by LIC-4011D on the concentrate draw valve (the former DV-4002,
+  now LV-4011D, fail closed). DIC-4002 measures the density on the concentrate suction
+  80-CL-4014 and sets FIC-4001 (cascade, control/loops.yaml): a low density raises the steam.
+  The cascade is shown as a note on the sheet, not as a signal line across it. Rejected:
+  density on the draw with the last-effect level on the feed (the feed already follows
+  V-303's level, LIC-3031).
+- S6#6: the E-401A to D tags moved clear of their symbols; the old DIC-4002 measuring line
+  through the valve actuator is gone with the redraw; "To R-401 (P-402)" moved clear of P-402B.
+Left for S9 (with the medium carry-overs): S6#3 (centrifuge margin), S6#5 (E-401A steam
+chest design pressure and relief, NC vents, effect PI/TI, vacuum PIC), S6#7 to S6#10.
+
+## D-041 P-402 esterification and ester column as drawn (2026-11-26)
+Decision: P-402 is drawn from scripts/draft_P-402.py (provenance; hand-maintained). The
+concentrate (65-CL-4015 from P-401) and the ethanol recycle and make-up (50-ET-4101 from P-403,
+S17 + S18 + S19) mix and are heated in E-411 on LP steam (TIC-4101 on TV-4101; Q6 214 kW,
+0.37 t/h). R-401 is a packed reactive distillation column on Amberlyst-15 (D-008). The flowsheet
+carries R-401 as one outlet to C-401 (S21); as drawn, R-401's vapour goes to C-401 on PIC-4102
+(PV-4102 lets down to 20 kPa(a)), and its sump liquid by P-411A/B on LIC-4104 (LV-4104). R-401
+has no reboiler of its own: the reaction heat and E-411 carry it (ASSUMED, as the flowsheet's
+single duty Q6). C-401 at 20 kPa(a): thermosyphon reboiler E-421 on MP steam (TIC-4202 on
+TV-4202, a control-tray temperature; Q7 12.1 MW, 21.8 t/h, DN300), condenser E-422 on cooling
+water (1075 m3/h at 10 K, ASSUMED), reflux drum V-421 under the liquid-ring pumps K-421A/B
+(PIC-4201 on PV-4201, the suction throttle), P-421A/B for the reflux (FIC-4205, reflux ratio 1,
+D-009) and the overhead to C-402 (LIC-4204 on LV-4204). The ethanol to lactic acid ratio is held
+by the ethanol make-up on P-403, not on this sheet.
+- **No residue cooler.** The residue (3.1 t/h at about 423 K: salts, sugars, oligomers) leaves
+  hot by P-422A/B on LIC-4203 (pump speed, as LIC-3022) in a traced line to anaerobic digestion
+  off-plot. Reason: the residue's viscosity rises steeply on cooling (ASSUMED, no data read), and
+  the receiver dilutes it. Rejected: a residue cooler E-423 (fouling, a pumping problem moved
+  downstream). For the review: if the receiver needs it below 373 K, add a cooler at S9.
+- **Relief:** PSV-4105 (R-401) and PSV-4206 (C-401) at the 3.5 barg design pressure to the vent
+  header; cases named, not sized (piping/special-items.yaml). Drawn as check valves with PSV tags
+  (no safety valve class in the authoring API, as PSV-2046A, D-031).
+- **Vapour line DN** R-401 to C-401 DN150 ASSUMED (the flowsheet has no vapour load for it); the
+  overhead DN1000 for 26 t/h at 20 kPa(a), 0.3 kg/m3 ASSUMED, 31 m/s; reboiler return DN600
+  ASSUMED. DEXPI's DN standard lacks DN300 to DN1000: kept in the line numbers and the list.
+- New fluid codes (D-023): ET ethanol, RV relief, RS residue, MS MP steam.
+- R-401 and C-401 listed as ProcessColumn, the DEXPI class drawn.
+- Accepted crossings: LIC-4204's and TIC-4202's signal lines cross the reflux line and the pump
+  discharge header between the instrument and its valve.
+Left open: column pressure-drop and tray indications (PDI, TI profile), the C-401 overhead
+non-condensables to the vacuum system beyond PIC-4201, R-401 catalyst change-out connections,
+the vent header and its scrubber (D-012), SIL screening of the column high-pressure cases.
+
+## D-042 P-403 ethanol recovery and hydrolysis as drawn; P-404 split off (2026-11-26)
+Decision: the planned P-403 (38 listed items) is split. P-403 "Ethanol recovery and hydrolysis"
+carries C-402, R-402 and C-403 with their exchangers, drums and pumps (21 items), drawn from
+scripts/draft_P-403.py (provenance; hand-maintained). A new sheet P-404 "Product concentration,
+storage, ethanol make-up" (planned, not drawn in S7b) takes E-404A/B, E-461, V-461, P-461A/B,
+P-462A/B, K-461A/B, E-405, T-401A/B, P-481A/B, T-402, P-472A/B (17 items). Reason: 38 items on
+one A3 sheet is about three times P-402's density and would not read; the split follows the
+process (alcohol recovery loop vs. product finishing and tank farm). Rejected: one crowded sheet.
+- **C-402 and C-403** (1 atm, reflux ratios 3 and 2, D-009) are drawn alike, C-403 mirrored:
+  thermosyphon reboiler on LP steam (TIC-4302/TIC-4502, a control-tray temperature, on
+  TV-4302/TV-4502), condenser on cooling water, reflux drum with PI and a vent to the vent
+  header, P-431A/B and P-451A/B for the reflux (FIC-4305/4505) and the distillate (LIC-4304/4504
+  on the drum level), the sump on LIC-4303/4503 setting the bottoms pump speed (as LIC-4203).
+- **Ethanol header.** The C-402 distillate becomes 50-ET-4101 at P-431A/B and runs to E-411
+  on P-402; the C-403 distillate (65-ET-4505) and the make-up (25-ET-4701 from P-472A/B on
+  P-404) join it on this sheet. The make-up flow holds the ethanol ratio (D-008); its
+  controller is drawn with P-472A/B on P-404. The line list's 50-ET-4101 now starts at P-431A.
+- **R-402**: 260 m3 vessel with its agitator drawn as part of it (D-023: tank agitators are parts
+  of their tanks), listed as Vessel (the class drawn, as R-301). Feed S24 + water recycle S29
+  (100-PL-4402 from P-404) mix at the tee M402 and are heated in E-441 to 363 K (TIC-4401 on
+  TV-4401, Q11 1.39 MW, 2.4 t/h LP steam); the hydrolysate goes by P-442A/B on LIC-4403
+  (LV-4403) to C-403.
+- **Line sizes** from the stream table (velocities in the line list): overheads DN450 and DN500
+  at about 20 m/s with the vapour density ASSUMED at 1.38 kg/m3; reboiler returns DN400 and the
+  thermosyphon feeds DN150 ASSUMED; LP steam DN250 (C-402, C-403) and DN125 (E-441) at 20 to
+  24 m/s; CW DN250 (E-432) and DN300 (E-452) at 2 m/s.
+- **Relief:** PSV-4309 (C-402), PSV-4406 (R-402), PSV-4509 (C-403) at the 3.5 barg design
+  pressure to the vent header, cases named, not sized (piping/special-items.yaml), drawn as
+  check valves (D-031). Ethanol throughout: flammable area for area classification (D-012).
+- Accepted on the sheet: one crossing (R-402's relief line 80-RV-4406 crosses the C-403
+  distillate 65-ET-4505 on its way to the top edge); DN changes without a drawn reducer at the
+  pump suctions (DN150 header, DN100 nozzles), at P-431A's discharge (DN65 to 50-ET-4101) and
+  at the mixing tee M402 (DN80 to E-441's DN150 inlet; the mixed flow after the tee is S25,
+  60 m3/h, which the DN80 run would carry at 3.3 m/s: the run from M402 to E-441 is DN150 in
+  intent). Open: 20 `line-through-symbol` findings at the pump nozzles, which P-402's pumps,
+  drawn by the same builder, do not raise (cause not found in S7b); the three off-page
+  connectors to P-404 warn until P-404 is drawn.
+Left open: P-404 (drawing, its lines and instruments, the make-up ratio controller FIC-4701,
+the T-401A/B and T-402 overfill protection asked for at T-301 in the S6 review), column
+pressure-drop indications, R-402 vent sizing, the vent header and scrubber (D-012).
+
+## D-043 3D layout for basic engineering (2026-11-26)
+Decision: the plot plan of D-026 stays (areas, roads, racks, the fermenters outdoors in two rows
+of eight at 14 m pitch with PR-1 between them); the 3D model adds what stands on it. Every
+dimension and rule below is ASSUMED (usual industry practice, no vendor, structural or site
+data).
+- **Fermenter top access** (`layout/structures.yaml`): one open steel frame per row, ST-201
+  over R-201A to H and ST-202 over R-201I to P, 8 bays of 14 m by one bay of 14 m, the columns
+  in the 5 m gaps between the shells and 2.5 m off them north and south, braced at the row
+  ends. A grating deck TD at 24.5 m, 0.7 m above the head tops (23.8 m). The agitator drives
+  A-201A to P (160 kW motor, 12 t, D-016) stand on drive bridges of this deck and the shaft
+  enters through the top-head nozzle, so the head does not carry the drive's weight and bending
+  moment. This changes A-201A's note ("on the top head"). The vent and gas filters F-201/F-202
+  move from over the head to the deck edge on the rack side (y 126.5 and 145.5). Two stair
+  towers per deck, one at each row end (south of row 1, north of row 2), give two ways down
+  about 104 m apart. No shell platforms on the fermenters (`access: {platforms: []}`): the
+  top-head connections are worked from the deck, the bottom valve clusters, probes, sample
+  valve and lower manway from grade. The model puts the shell nozzles at the heights the P&IDs
+  draw them (1.6 to 23 m on R-201A) and proposed eight ring platforms per vessel; those heights
+  are drawing positions, not design, and the probes, sampling and manway are placed on the
+  lower shell at detail design. Rejected: a fermentation hall (D-026); per-vessel head platforms with
+  ladders (16 ladders of 24 m, one way down each, no route for the drive lifts); drives on the
+  head (the head would need a 12 t reinforcement per vessel).
+- **Seed building B-201**: the three trains stand 10 m apart (y 232, 222, 212; they were 5 to
+  7 m apart and their small-bore lines clashed), the NaOH dosing set T-215/F-215/P-215A/B moves
+  to y 200 to make room. The seed vessels' top platforms stay building levels P1 (2.45 m),
+  P2 (4.6 m) and P3 (10.2 m). Intended is one platform strip per stage over its vessels, but a
+  building level takes no extent and an item inside a clad building cannot be mounted on a
+  steel frame (core limit L-11), so in the model each level covers the whole 72 x 64 m floor
+  and every pipe in the building below 2.1 m over a level is a headroom finding. The train B
+  and C filters F-241 to F-246 B/C are placed as train A. A 25 t overhead crane
+  (rail at 14 m) lifts the stage-5 vessels (18 t) and the CIP tanks; laydown LD-120 lies south
+  of the building.
+- **Skipped lines** (`piping/routing.yaml`): the DN15 lines (sampling, NaOH dosing, steam
+  bleeds; field-run below the gate's DN25) and the seed jackets' 25-CW cooling water (a
+  utility, routed at detail engineering, gate layout-detail).
+- **Downstream**: columns C-401 to C-403, R-401 and the evaporator bodies E-401A to D stand on
+  their own skirts with platforms on their shells (no frames); R-301's agitator A-301 stands on
+  its flat roof (7.5 m). The overhead condensers stay at grade as D-026 placed them; a
+  condenser structure for gravity reflux is left to detail engineering.
+- **Racks** (`piping/routing.yaml`): on PR-1 the broth, sterile medium and inoculum run on the
+  6 m tier, CIP supply and return, filtered SIP steam and milk of lime on 8 m, nitrogen, steam,
+  condensate, cooling and tempered water on 10 m; on PR-4 and PR-6 the process lines on 6 m and
+  the utilities on 8 m.
+- **Header anchors**: the fermenter headers 200-SM-2001, 100-IN-2004, 250-BR-2011 and 80-NS-2008
+  and the seed headers 100-SM-2003, 40-NS-2141, 50-CS-2142, 50-CR-2143, 50-SS-2140 and
+  50-SS-2144 start on their sheets at an off-page connector whose feeding line carries another
+  number upstream (e.g. 200-SM-1016 on P-103), so the router found no start (core limit L-9).
+  Their first segment is pinned from the rack junction (PR-4 at the west end of PR-1; PR-6 at
+  the B-201 north wall) to the first tee, and the router runs the rest along the rack.
+- **Zones** (`layout/zones.yaml`): a zone-2 screening envelope over the ethanol process area
+  north of PR-2 (R-401, C-401 to C-403, R-402), source zones from the table around T-402's vent
+  and the ethanol pump seals, crane pads on the roads beside the fermenter rows, A-300 and the
+  tank farm, laydowns south of row 1, in the reserved area A-250 and south of B-201, and a
+  keep-clear truck bay at the tank farm. None of this is an area classification: a competent
+  person classifies the ethanol areas to the site's standard.
+- **P-404**: the build fingerprints every sheet in `plant.yaml`, and a planned sheet without a
+  file stops it (core limit L-10). P-404 was started as the empty template (`cheme sheet new`,
+  title block only), so its status went from planned to drafted. It is drawn in S9.
+- **Lifting** (`layout/lifting-study.*`): the seed stage-5 vessels go by the B-201 crane. The
+  fermenters (9 m), T-101A/B and T-201 (14 m), the silo V-102 and the belt filter S-302 are
+  field-erected or assembled in place and never lifted whole: accepted in gate lifting-study
+  with that reason. The drive, seal and filter lifts go from CP-201/CP-202 to the 24.5 m deck.
+
+Model as committed (259 items, 1146 segments: 1004 routed, 142 of 33 lines skipped with
+a reason, 0 unrouted; 69 item platforms; plot plan, section x = 159 m across both fermenter
+rows and section y = 232 m through seed train A and the ethanol columns rendered and looked
+at). Gates: layout-plot-plan ok, mto ok; layout-3d fails on clashes, headroom and the missing
+independent layout review; lifting-study fails on S-301A to C only. Remaining layout findings,
+for the layout review and S9 or detail engineering:
+- `layout-clash-pipe` (201 or more; the listing stops at 201): mostly the fermenter branches.
+  The drops from the 6, 8 and 10 m tiers of PR-1 to the vessel tops leave their headers at the
+  same x, rise through the tiers above and run in parallel to the top deck. They need one
+  riser lane per service per fermenter (via points or pinned drops, about 100 routes), which
+  is the next layout task. The rest are tank-farm lines sharing a PR-5 lane.
+- `layout-headroom` 158: the seed building's whole-floor platform levels (L-11), 7 drops over
+  T-201's roof platform, and a few crossings of road R-5 at 5.9 m (header drops).
+- `layout-clash-pipe-equipment` 63 and `layout-clash-pipe-steel` 15: branches through the
+  agitator drive envelopes and the top-deck beams, and lines through the PR-1 bents.
+- `layout-operability` (201 or more): the fermenter shell nozzles at drawing heights (see above)
+  and valves on the rack drops; `layout-free-span`/`support-missing`: generated support posts
+  to place at detail engineering.
+- `layout-escape-ways` 25, `ladder-clearance` 28, `walkway-riser` 40, `egress-zone` 27,
+  `vent-outlet` 27: proposed item platforms (columns, seed vessels, R-301, T-201) still to be
+  reviewed and pinned, and the vent risers to be raised by a `vents` rule after the vent study.
+- `layout-steel-in-way` 7: rack bents in roads R-5 to R-8 where the racks cross them (span
+  the road with a portal at detail engineering); `layout-spacing` 3: the vacuum pump pairs
+  K-401, K-421 and K-461 stand 1.3 to 2.8 m apart (3 m wanted).
+- Lifting: S-301A to C, lanes blocked by their feed and centrate lines (a removal lane at
+  detail engineering).
+
+## D-044 S9 close-out: XV-3013, the P-403 crossing, P-404 (2026-11-26)
+- **XV-3013 (S6-review#1, reopened at S8).** The valve has been on P-301 since S7 (D-040), drawn
+  at the T-301 tanker fill line 80-SA-3009: the former hand valve T301_HVF is a ball valve with
+  a fail-closed actuator, its tag label printing XV-3013, and LSHH-3013 (on its own nozzle N5,
+  independent of LIT-3012) signals to it (C&E I-301). Rendered and checked in S9
+  (build/P-301_crop-290-10-350-55.png). The finding came from the instrument-list check, which
+  looks for an instrument bubble printing the tag; as for the P-202 valves (D-034), the final
+  element prints its tag as the valve's tag label, so the check is accepted with that reason in
+  checks/checks.yaml. Rejected: a separate XV bubble beside the valve (would print the tag twice).
+- **P-403 crossing.** The one crossing D-042 accepted in words (80-RV-4406 over 65-ET-4505) is now
+  accepted by id in checks/checks.yaml, so drawing-clean no longer fails on it.
+- **P-404 drawn** ("Product and ethanol make-up", title shortened to fit the title block) from
+  scripts/draft_P-404.py (provenance; hand-maintained), with the 17 listed items and the
+  P-403 off-page connectors (100-PL-4507 in, 100-PL-4402 and 25-ET-4701 out).
+  - E-404A/B: two falling-film effects, drawn and listed as ThinFilmEvaporator (as E-401), once
+    through with no circulation pumps (ASSUMED; none are listed). E-404A on LP steam (FIC-4601,
+    300-LS-4601), its vapour heats E-404B (600-VP-4603); E-404B at 20 kPa(a) (D-008). Sumps on
+    LIC-4604 (transfer to E-404B) and LIC-4616 (product to E-405). Equal evaporation in the two
+    effects ASSUMED for the line sizes (about 18.8 t/h each, half of S28).
+  - E-461 condenses the last vapour (1200-VP-4606) on cooling water; K-461A/B (liquid ring) take
+    the non-condensables from the condenser to the vent header, PIC-4610 on their speed. V-461
+    collects both condensates (S28); P-461A/B return S29 through LV-4615 (LIC-4615) as
+    100-PL-4402, which now starts at the pumps, and the purge S30 goes through FV-4614 (FIC-4614)
+    to a drain hub of the process sewer to WWT (drawn as an open end "drain").
+  - Product: P-462A/B, E-405 with TIC-4804 on the cooling water, T-401A/B filled through
+    XV-4807A/B; each tank has LIT-4808x (LAH, LAL) and an independent LSHH-4809x that closes its
+    fill valve (C&E I-401, I-402, latching), the overfill protection the S6 review asked for at
+    T-301, applied here. P-481A/B take from either tank to truck loading. Tank vents to atm.
+  - Ethanol make-up: T-402 (N2 blanketed, D-012) filled from tankers through XV-4704, closed by
+    the independent LSHH-4705 (I-403); LIT-4706 (LALL stops P-472A/B, I-404);
+    P-472A/B and FV-4701 on the ratio controller FFIC-4701, which holds S17 in ratio to the acid
+    feed of R-401 (D-008); the remote flow signal from P-402 comes by the DCS (not drawn).
+    Vent through a pressure-vacuum valve and flame arrester (detail).
+  - XV-4807A/B and XV-4704 print their tags as valve labels; their instrument-list checks are
+    accepted as XV-3013's. Rejected: separate XV bubbles (the tag twice).
+
+## Basic-engineering status (2026-11-26, S9)
+
+Stage basic is in progress and not signed off; the branch `stage/basic-lactic-acid-fermentation`
+awaits the independent review and a human merge. All 16 planned P&IDs are drawn (P-404 in S9).
+
+Gates of stage basic (from `cheme check`; the stages up to concept pass):
+
+| gate | state | why |
+|---|---|---|
+| validate (0 errors), lists in step, sheets drawn | ok | 0 errors; every listed item on a sheet (P-404 drawn in S9) |
+| drawing-clean | ok expected | the last unaccepted crossing (P-403, 80-RV-4406 over 65-ET-4505) accepted in S9 with D-042's reason; every acceptance is an agent proposal for the design review to confirm |
+| design-review | failing | the review records of S2 to S8 name files changed since they were written (DESIGN.md, the lists, checks.yaml, sheets), and S9's changes are unreviewed; it passes once the independent S9 review is written against the final commit |
+| layout-3d | failing | 200 pipe-pipe, 63 pipe-equipment and 15 pipe-steel clashes and 158 headroom findings not accepted, mostly the fermenter branches at the top decks (S8#1) and the whole-floor platform levels of B-201 (L-11, S8#5) |
+| lifting-study | failing | S-301A to C: the removal lanes are blocked by their own feed and centrate lines (S8#6); the study itself was rewritten from the S9 model |
+| mto | ok expected | estimate/mto.* rewritten from the S9 model (`cheme assess mto --write`) |
+| layout-review | failing | the S8 layout review predates P-404 and the S9 model; a new layout review is needed |
+| process-basic, process-links, pids-valid, pids-exist | ok | checked with `cheme check --stage basic` in S9 |
+
+The S9 model routes 1057 of 1199 segments; the other 142 are the declared skips of D-043 (DN15
+field-run lines and the seed-vessel CW stubs), so every process line is routed or skipped.
+
+Open review findings by area (the review records in `reviews/` hold the text):
+- **Fermentation, layout (D-043):** S8#1 high, branch valves and clashes at the fermenters.
+  Intended fix: put each fermenter's header branch valves at the top deck or at a rack walkway,
+  give each service one riser lane per fermenter, drop the generated one-valve platforms, and
+  route the A-200 branches clash-free (via points and pins in piping/routing.yaml). S8#2: support
+  the 12 t drives on the vessel head (head reinforcement quantified by the vessel vendor) or keep
+  the frame and state a decoupling the seal can follow (about 40 mm SIP growth, ASSUMED 100 K
+  on 24 m SS304, plus hydrostatic stretch and settlement); the intended choice is the drive on
+  the vessel, the deck only for access. S8#3: lower the deck TD from 24.5 m to the head-tangent
+  level (about 21.6 m) so the top-head valves are within reach of the grating. S8#4: a middle
+  stair per deck and declared escape zones. S8#5: accept the L-11 headroom artefacts by id, raise
+  the R-5 crossings to the road clearance, clear the drops over T-201. S8#6: per-bay crane pads,
+  the gearbox lift weight, a centrifuge removal lane. S8#7 closed by P-404 being drawn. S8#8:
+  the rise in line-crossing warnings is not yet explained.
+- **Fermentation, P&IDs:** S5#1 (medium), the lists for the typicals R-201B to P: the
+  instruments and valves of the typicals are covered by "instrumented as R-201A" on P-203,
+  P-206, P-207 and not listed per fermenter; intended fix: list them per fermenter (tag suffix
+  B to P) or record the typical rule in the lists' notes. S5#2 (medium), T-201: give the broth
+  hold tank a vent, an overflow and an independent LAHH stopping the harvest pumps (a C&E entry);
+  not done in S9. S5#3 to #8 (low) and S4#9, S4b#1, S3#9, S3#10 (low) remain open.
+- **CIP/SIP (P-204):** S5b#2 to #4 (medium, the CIP return divert and the permissives), S5b#5 to
+  #8, #10 (low).
+- **Media and lime:** S2#1 (XV-1025A), S2#2 (the slaker interlock), S2#3 (medium), S2#6 to #8
+  and S1#8 (low).
+- **Downstream:** S6#1 (high, XV-3013) answered in S9 (D-044, for the reviewer to close);
+  S6#3, #5 (medium), S6#7 to #9 (low); S7b#1 (PSV readability and RV sizing), #2 (R-402
+  pressure), #3, #4 (R-401) (medium), #5 to #7 (low).
+- **P-404 (new in S9):** unreviewed; the LALL of LIT-4706 stopping P-472A/B is C&E I-404, and
+  100-PL-4402 is listed to the line it joins at the tee M402 (80-PL-4401). Open: the remote
+  acid-feed flow of FFIC-4701 is not drawn.
+
 ## Method and dependency table
 
 | result | method | inputs | where |
@@ -351,16 +1271,26 @@ fermentation, not a reaction mass with accumulation).
   columns' duties are hand estimates; no heat integration or multiple-effect evaporator model.
 - L-8: `cheme process reactor-hazards` screens no batch fermentation (a conversion step without
   MTT or TD24): the adiabatic rise of D-012 is a hand estimate.
+- L-9: the router pairs off-page connectors by line number only. A header whose feeding line
+  has another number on the upstream sheet (a branch drawn as its own line into the header)
+  has no start, and every branch off it stays unrouted: its first segment is pinned (D-043).
+- L-10: `cheme layout build` stops on a planned sheet that has no file yet (it fingerprints
+  every sheet of `plant.yaml`); the empty template had to be created first (D-043).
+- L-11: a building level has no extent and an item in a clad building must be mounted on a
+  building level, so the platforms of the vessels inside a building cover the whole floor in
+  the model (headroom findings over the whole floor, D-043).
 
 ## Open inputs
+- The steriliser's re-sterilisation steam (about 0.3 MW year average) and water (about 50 m3 per
+  campaign) on top of Q17 and S2, for the utilities and the LCI (D-015).
 - A dextrose-fed fermentation's yield, titer and productivity (the sources' are for
   lignocellulosic sugars).
 - The reactive distillation's conversion and the ester column's conditions from an open source.
 - Calcium lactate's solubility at 323 K.
 - Whether a gypsum cake wash pays.
-- The medium steriliser's conditions (temperature, holding time, the regenerative exchanger)
-  and the fermenters' sterilisation in place, here a hand estimate and a cut-off (D-005); the
-  seed train.
+- The medium steriliser's conditions (413 K and 120 s ASSUMED, D-015) and the fermenters'
+  sterilisation in place, here a hand estimate and a cut-off (D-005); the seed growth time (8 h
+  ASSUMED, D-013) and the dosing of a non-sterile milk of lime (D-018).
 - R-301's cooling with the acid's heat of dilution and the acidulation's heat (D-007, L-5).
 - Whether the ester column's water-free residue stays stable and pumpable at 423 K, or the
   column keeps water in its bottoms (D-008).

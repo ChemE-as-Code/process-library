@@ -12,11 +12,20 @@ Stage result (Claude Code JSON, tail):
 ${RESULT}
 
 Check: `cheme status`, `cheme validate` (and `--fail-on warning`, saying which warnings
-are expected for later sheets), `cheme fmt --check`, `git log` / `cheme diff main --list`
-of the stage, the YAML lists against the sheets, DESIGN.md decisions and numbers (sanity-check
+are expected for later sheets), `cheme fmt --check`, `git log` / `cheme diff <stage start
+commit> --list` of the stage (the branch stage/basic-lactic-acid-fermentation starts at
+c49d86cd; the local `main` is stale, do not diff against it), the YAML lists against the sheets, DESIGN.md decisions and numbers (sanity-check
 the main balances), `cheme check --stage ${TARGET}`, and for P&ID stages render each new or
 changed sheet to PNG (`cheme render --png`, `--crop` on dense areas) and READ the images:
-say only what you saw.
+say only what you saw. Review the fermentation area as an industrial bioprocess engineer
+would (seed train, sterilisation, sterile boundary, CIP/SIP, pH and temperature control,
+vent and vacuum protection, the schedule arithmetic), and check that every number is
+sourced or marked ASSUMED. You have a budget of USD ${BUDGET}: be efficient. Stay on the
+current branch; never push, merge or sign off.
+
+For a layout stage (S8), the review record's topic is `layout` (not design) and it cites the
+rendered plot plan and at least two sections by file name (`cheme layout render --plan --png`,
+`--section ... --png`), which you render and look at.
 
 Write two things:
 1. `reviews/<today>-${STAGE}-review.md` in the format of reviews/README.md: front matter with
