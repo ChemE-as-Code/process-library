@@ -872,7 +872,20 @@ steam (TV-2201, TIC-2201), FV-2202 (FIC-2202) into 100-CS-2015; the return 150-C
 TT-2204 and AIT-2203 (conductivity) to P-222A/B and the recovery header 100-CR-2226 to T-221,
 T-222, T-224 or the drain; T-225 (50 wt% NaOH from a tanker) with P-223 to T-221 and to T-215
 (15-NA-2152); fresh water to T-223; tank vents to atmosphere. SIP: LP steam 150-LS-2233 through
-F-231A/B (PDI-2206) and PV-2205 (PIC-2205, 3 barg) into 150-SS-2019, drip leg with a trap.
+F-231A/B (PDI-2206) and PV-2205 (PIC-2205) into 150-SS-2019, drip leg with a trap.
+SIP header pressure (S5b#1, revised 2026-11-26): PIC-2205 holds **1.5 barg** (was 3 barg). The vessel
+SIP basis is 121 C, about 1.05 barg (D-016, D-021); saturated steam at 1.5 barg (2.5 bar abs) is
+about 127 C, so 0.45 bar is left for the filters downstream, the branch valves and the inlet lines.
+No vessel can then reach more than the header pressure: 1.5 barg is 60 % of the R-201A to P design
+pressure and PSE-2045x set point (2.5 barg), 50 % of R-211x/R-212x (3.0 barg) and 25 % of R-213x
+(6.0 barg), so a normal SIP neither lifts a disc nor breaks the sterile boundary; no per-vessel SIP
+pressure control is added (rejected: 16 + 9 control valves for a duty one header valve covers).
+PV-2205 fails closed and PIC-2205 alarms high at 1.8 barg (both ASSUMED); PV-2205 failing open is
+the full-open relief case already checked (D-033, D-034). Steam velocity in 150-SS-2019 at 3 t/h and
+1.5 barg (about 1.39 kg/m3): 2160 m3/h, 32 m/s, inside a 40 m/s limit for saturated steam
+(ASSUMED). In the DN80 bottom inlets 80-SS-2021x the heat-up peak of 1.5 t/h reaches about 60 m/s;
+accepted for the short heat-up, the bottom flow being throttled by its valve to about 1 t/h once
+the vessel is warm (ASSUMED; detail engineering checks the DN).
 ASSUMED, no source read: P-222A/B self-priming at the low point of the return header below the
 fermenter rows (S1#9); saturated steam, dryness 0.95 or better after the utility separator (S1#10);
 sequence and concentrations as D-021. Left open: tank level instruments and overflows, pump
